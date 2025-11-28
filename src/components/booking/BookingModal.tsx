@@ -106,7 +106,11 @@ export function BookingModal({
         setSelectedCoachId(null);
         setAlert(null);
       }, 1500);
-    } catch {
+    } catch (error) {
+      // Log error for debugging purposes
+      if (process.env.NODE_ENV === "development") {
+        console.error("Booking error:", error);
+      }
       setAlert({
         type: "error",
         message: "An error occurred. Please try again.",

@@ -115,7 +115,10 @@ export async function POST(request: Request) {
       }
     }
 
-    console.error("Booking error:", error);
+    // Log error in development for debugging
+    if (process.env.NODE_ENV === "development") {
+      console.error("Booking error:", error);
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
