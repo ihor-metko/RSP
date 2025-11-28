@@ -11,21 +11,34 @@
 }
 
 :root {
+  /* Brand colors extracted from logo */
+  --rsp-brand-navy: #06092C;
+  --rsp-brand-teal: #00D090;
+  --rsp-brand-cyan: #12C2FE;
+
+  /* Light theme semantic colors */
   --rsp-background: #ffffff;
-  --rsp-foreground: #1a1a1a;
-  --rsp-primary: #3b82f6;
-  --rsp-primary-hover: #2563eb;
+  --rsp-foreground: #06092C;
+  --rsp-primary: #00D090;
+  --rsp-primary-hover: #00b87d;
+  --rsp-secondary: #12C2FE;
+  --rsp-secondary-hover: #0ea8db;
   --rsp-border: #e5e7eb;
   --rsp-card-bg: #f9fafb;
+  --rsp-accent: #06092C;
 }
 
 .dark {
-  --rsp-background: #0a0a0a;
+  /* Dark theme semantic colors */
+  --rsp-background: #06092C;
   --rsp-foreground: #ededed;
-  --rsp-primary: #3b82f6;
-  --rsp-primary-hover: #60a5fa;
-  --rsp-border: #374151;
-  --rsp-card-bg: #1f2937;
+  --rsp-primary: #00D090;
+  --rsp-primary-hover: #2FD9A4;
+  --rsp-secondary: #12C2FE;
+  --rsp-secondary-hover: #4ED2FE;
+  --rsp-border: #242746;
+  --rsp-card-bg: #141738;
+  --rsp-accent: #ffffff;
 }
 
 body {

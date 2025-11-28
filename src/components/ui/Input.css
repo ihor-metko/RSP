@@ -16,6 +16,7 @@
 
 .rsp-input:focus {
   border-color: var(--rsp-primary);
+  --tw-ring-color: var(--rsp-secondary);
 }
 
 .rsp-input::placeholder {
