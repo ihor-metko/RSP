@@ -11,6 +11,15 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
+// Mock requireRole to always authorize for tests
+jest.mock("@/lib/requireRole", () => ({
+  requireRole: jest.fn().mockResolvedValue({
+    authorized: true,
+    userId: "test-user-id",
+    userRole: "player",
+  }),
+}));
+
 describe("POST /api/bookings", () => {
   beforeEach(() => {
     jest.clearAllMocks();

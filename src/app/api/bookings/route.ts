@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/requireRole";
 
 interface BookingRequest {
   courtId: string;
@@ -11,6 +12,12 @@ interface BookingRequest {
 
 export async function POST(request: Request) {
   try {
+    // Role check: Only player, admin, coach can create bookings
+    const authResult = await requireRole(request, ["player", "admin", "coach"]);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
     const body: BookingRequest = await request.json();
 
     // Validate input: ensure all required fields exist

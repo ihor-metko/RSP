@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button, Card, Input, Modal, DarkModeToggle } from "@/components/ui";
+import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 
 export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -11,7 +12,10 @@ export default function Home() {
     <main className="rsp-container min-h-screen p-8">
       <header className="rsp-header flex items-center justify-between mb-8">
         <h1 className="rsp-title text-3xl font-bold">Paddle Club MVP</h1>
-        <DarkModeToggle />
+        <div className="flex items-center gap-4">
+          <UserRoleIndicator />
+          <DarkModeToggle />
+        </div>
       </header>
 
       <section className="rsp-content max-w-2xl mx-auto">
