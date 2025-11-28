@@ -1,7 +1,11 @@
-import { AuthOptions } from "next-auth";
+import { AuthOptions, User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
+
+interface AuthUser extends NextAuthUser {
+  role: string;
+}
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -48,8 +52,9 @@ export const authOptions: AuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as { role?: string }).role ?? "player";
+        const authUser = user as AuthUser;
+        token.id = authUser.id;
+        token.role = authUser.role;
       }
       return token;
     },

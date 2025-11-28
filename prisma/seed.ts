@@ -3,9 +3,12 @@ import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
+const SEED_PASSWORD = process.env.SEED_USER_PASSWORD || "testpassword123";
+const BCRYPT_SALT_ROUNDS = 12;
+
 async function main() {
-  // Hash the test password
-  const hashedPassword = await bcrypt.hash("testpassword123", 10);
+  // Hash the seed password with proper salt rounds
+  const hashedPassword = await bcrypt.hash(SEED_PASSWORD, BCRYPT_SALT_ROUNDS);
 
   // Create 1 test user with role "player"
   const testUser = await prisma.user.upsert({
