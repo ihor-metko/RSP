@@ -83,25 +83,11 @@ describe("GET /api/clubs", () => {
     expect(data[1].name).toBe("Club B");
   });
 
-  it("should return clubs for authenticated coach", async () => {
+  it("should return 403 for authenticated coach", async () => {
     mockAuth.mockResolvedValue({
       user: { id: "coach-123", role: "coach" },
     });
 
-    const mockClubs = [
-      {
-        id: "club-1",
-        name: "Club A",
-        location: "123 Main St",
-        contactInfo: null,
-        openingHours: null,
-        logo: null,
-        createdAt: new Date().toISOString(),
-      },
-    ];
-
-    (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
-
     const request = new Request("http://localhost:3000/api/clubs", {
       method: "GET",
     });
@@ -109,29 +95,15 @@ describe("GET /api/clubs", () => {
     const response = await GET(request);
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(data).toHaveLength(1);
+    expect(response.status).toBe(403);
+    expect(data.error).toBe("Forbidden");
   });
 
-  it("should return clubs for authenticated admin", async () => {
+  it("should return 403 for authenticated admin", async () => {
     mockAuth.mockResolvedValue({
       user: { id: "admin-123", role: "admin" },
     });
 
-    const mockClubs = [
-      {
-        id: "club-1",
-        name: "Club A",
-        location: "123 Main St",
-        contactInfo: null,
-        openingHours: null,
-        logo: null,
-        createdAt: new Date().toISOString(),
-      },
-    ];
-
-    (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
-
     const request = new Request("http://localhost:3000/api/clubs", {
       method: "GET",
     });
@@ -139,8 +111,8 @@ describe("GET /api/clubs", () => {
     const response = await GET(request);
     const data = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(data).toHaveLength(1);
+    expect(response.status).toBe(403);
+    expect(data.error).toBe("Forbidden");
   });
 
   it("should return empty array when no clubs exist", async () => {

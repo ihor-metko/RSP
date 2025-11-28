@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 
 export async function GET(request: Request) {
-  const authResult = await requireRole(request, ["player", "coach", "admin"]);
+  const authResult = await requireRole(request, ["player"]);
 
   if (!authResult.authorized) {
     return authResult.response;
