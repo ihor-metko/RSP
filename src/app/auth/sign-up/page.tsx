@@ -9,9 +9,9 @@ const MIN_PASSWORD_LENGTH = 8;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [name, setName] = useState("Ihor Metko");
+  const [email, setEmail] = useState("ihor.metko@gmail.com");
+  const [password, setPassword] = useState("12345678");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +42,7 @@ export default function RegisterPage() {
       if (!response.ok) {
         setError(data.error || "Registration failed");
       } else {
-        router.push("/login");
+        router.push("/auth/sign-in");
       }
     } catch {
       setError("An error occurred. Please try again.");
@@ -102,7 +102,7 @@ export default function RegisterPage() {
           </div>
           <p className="rsp-text text-center text-sm">
             Already have an account?{" "}
-            <Link href="/login" className="rsp-link text-blue-500 hover:underline">
+            <Link href="/auth/sign-in" className="rsp-link text-blue-500 hover:underline">
               Sign in
             </Link>
           </p>

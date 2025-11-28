@@ -6,10 +6,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, Card, Input } from "@/components/ui";
 
-export default function LoginPage() {
+export default function SignInPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("ihor.metko@gmail.com");
+  const [password, setPassword] = useState("12345678");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
           </div>
           <p className="rsp-text text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="rsp-link text-blue-500 hover:underline">
+            <Link href="/auth/sign-up" className="rsp-link text-blue-500 hover:underline">
               Register
             </Link>
           </p>
