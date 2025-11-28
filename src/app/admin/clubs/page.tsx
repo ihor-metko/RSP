@@ -16,6 +16,16 @@ const initialFormData: ClubFormData = {
   logo: "",
 };
 
+function isValidImageUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export default function AdminClubsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -229,9 +239,10 @@ export default function AdminClubsPage() {
                       >
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            {club.logo && (
+                            {isValidImageUrl(club.logo) && (
+                              /* eslint-disable-next-line @next/next/no-img-element */
                               <img
-                                src={club.logo}
+                                src={club.logo as string}
                                 alt={`${club.name} logo`}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -278,11 +289,12 @@ export default function AdminClubsPage() {
                         >
                           <td colSpan={5} className="py-3 px-4">
                             <div className="space-y-2 text-sm">
-                              {club.logo && (
+                              {isValidImageUrl(club.logo) && (
                                 <div>
                                   <span className="font-semibold">Logo: </span>
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
-                                    src={club.logo}
+                                    src={club.logo as string}
                                     alt={`${club.name} logo`}
                                     className="w-16 h-16 rounded object-cover mt-1"
                                   />
