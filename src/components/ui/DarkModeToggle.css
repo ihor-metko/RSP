@@ -1,0 +1,13 @@
+.rsp-dark-toggle {
+  @apply p-2 rounded-md transition-colors;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.rsp-dark-toggle:hover {
+  background-color: var(--rsp-border);
+}
+
+.rsp-dark-toggle-icon {
+  @apply w-5 h-5;
+}

@@ -1,0 +1,30 @@
+.rsp-modal-overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.rsp-modal {
+  @apply relative w-full max-w-md rounded-lg p-6 shadow-lg;
+  background-color: var(--rsp-card-bg);
+}
+
+.rsp-modal-header {
+  @apply mb-4 text-lg font-semibold;
+}
+
+.rsp-modal-body {
+  @apply mb-4;
+}
+
+.rsp-modal-footer {
+  @apply flex justify-end gap-2;
+}
+
+.rsp-modal-close {
+  @apply absolute right-4 top-4 p-1 rounded-md;
+  color: var(--rsp-foreground);
+}
+
+.rsp-modal-close:hover {
+  background-color: var(--rsp-border);
+}
