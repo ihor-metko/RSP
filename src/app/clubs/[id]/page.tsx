@@ -2,8 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Card, Button } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
+
+// Business hours for generating available slots
+const BUSINESS_START_HOUR = 9;
+const BUSINESS_END_HOUR = 18;
+
+// Price is stored in cents
+const CENTS_PER_DOLLAR = 100;
 
 interface Court {
   id: string;
@@ -36,7 +44,7 @@ interface Slot {
 function generateDefaultSlots(): Slot[] {
   const today = new Date();
   const slots: Slot[] = [];
-  for (let hour = 9; hour < 18; hour++) {
+  for (let hour = BUSINESS_START_HOUR; hour < BUSINESS_END_HOUR; hour++) {
     const start = new Date(today);
     start.setHours(hour, 0, 0, 0);
     const end = new Date(today);
@@ -54,11 +62,15 @@ export default function ClubDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { data: session } = useSession();
   const [club, setClub] = useState<ClubWithDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
+
+  // Get user ID from session, or use a placeholder for unauthenticated users
+  const userId = session?.user?.id || "guest";
 
   useEffect(() => {
     async function fetchClubData() {
@@ -95,7 +107,7 @@ export default function ClubDetailPage({
   };
 
   const formatPrice = (price: number) => {
-    return `$${(price / 100).toFixed(2)}`;
+    return `$${(price / CENTS_PER_DOLLAR).toFixed(2)}`;
   };
 
   if (isLoading) {
@@ -170,7 +182,7 @@ export default function ClubDetailPage({
           coachList={club.coaches}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          userId="current-user-placeholder"
+          userId={userId}
         />
       )}
     </main>
