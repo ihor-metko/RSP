@@ -166,6 +166,7 @@ export default function ClubDetailPage({
     }
 
     // Create the preselected slot with ISO datetime strings
+    // Note: Using UTC format (with Z suffix) to be consistent with the availability API
     const startDateTime = `${date}T${startTime}:00.000Z`;
     const endDateTime = `${date}T${endTime}:00.000Z`;
     

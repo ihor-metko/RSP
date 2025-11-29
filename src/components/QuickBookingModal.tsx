@@ -65,8 +65,13 @@ export function QuickBookingModal({
     setHasSearched(true);
 
     try {
+      const params = new URLSearchParams({
+        date,
+        start: startTime,
+        duration: duration.toString(),
+      });
       const response = await fetch(
-        `/api/clubs/${clubId}/available-courts?date=${date}&start=${startTime}&duration=${duration}`
+        `/api/clubs/${clubId}/available-courts?${params}`
       );
 
       if (!response.ok) {
@@ -88,11 +93,12 @@ export function QuickBookingModal({
 
   const handleSelectCourt = (courtId: string) => {
     // Calculate end time based on start time and duration
-    const startDate = new Date(`${date}T${startTime}:00.000Z`);
-    const endDate = new Date(startDate.getTime() + duration * 60 * 1000);
-    const endHour = endDate.getUTCHours().toString().padStart(2, "0");
-    const endMinute = endDate.getUTCMinutes().toString().padStart(2, "0");
-    const endTimeStr = `${endHour}:${endMinute}`;
+    // Use simple arithmetic on hours/minutes to avoid timezone issues
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const totalMinutes = startHour * 60 + startMinute + duration;
+    const endHour = Math.floor(totalMinutes / 60) % 24;
+    const endMinute = totalMinutes % 60;
+    const endTimeStr = `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
 
     onSelectCourt(courtId, date, startTime, endTimeStr);
   };
