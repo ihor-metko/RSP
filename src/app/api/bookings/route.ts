@@ -86,7 +86,7 @@ export async function POST(request: Request) {
           coachId: body.coachId || null,
           start: startTime,
           end: endTime,
-          price: court.defaultPrice,
+          price: court.defaultPriceCents,
           status: "reserved",
         },
       });

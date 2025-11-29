@@ -5,19 +5,19 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Card, Button } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
+import { formatPrice } from "@/utils/price";
 
 // Business hours for generating available slots
 const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 18;
 
-// Price is stored in cents
-const CENTS_PER_DOLLAR = 100;
-
 interface Court {
   id: string;
   name: string;
   indoor: boolean;
-  defaultPrice: number;
+  defaultPriceCents: number;
+  type?: string | null;
+  surface?: string | null;
 }
 
 interface Coach {
@@ -106,10 +106,6 @@ export default function ClubDetailPage({
     setSelectedCourtId(null);
   };
 
-  const formatPrice = (price: number) => {
-    return `$${(price / CENTS_PER_DOLLAR).toFixed(2)}`;
-  };
-
   if (isLoading) {
     return (
       <main className="tm-club-page min-h-screen p-8">
@@ -133,27 +129,47 @@ export default function ClubDetailPage({
 
   return (
     <main className="tm-club-page min-h-screen p-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold">{club.name}</h1>
-        <p className="text-gray-500 mt-2">{club.location}</p>
+      <header className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{club.name}</h1>
+          <p className="text-gray-500 mt-2">{club.location}</p>
+        </div>
+        {session?.user?.role === "admin" && (
+          <Link
+            href={`/admin/clubs/${club.id}/courts`}
+            className="rsp-link text-blue-500 hover:underline"
+          >
+            Admin → Courts
+          </Link>
+        )}
       </header>
 
       <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {club.courts.length === 0 ? (
           <div className="col-span-full text-gray-500">
-            No courts available at this club.
+            No courts defined for this club yet. Contact admin.
           </div>
         ) : (
           club.courts.map((court) => (
             <Card key={court.id} title={court.name} className="tm-court-card">
               <div className="space-y-2">
+                {court.type && (
+                  <p className="text-sm">
+                    <span className="font-medium">Type:</span> {court.type}
+                  </p>
+                )}
+                {court.surface && (
+                  <p className="text-sm">
+                    <span className="font-medium">Surface:</span> {court.surface}
+                  </p>
+                )}
                 <p className="text-sm">
-                  <span className="font-medium">Surface:</span>{" "}
-                  {court.indoor ? "Indoor" : "Outdoor"}
+                  <span className="font-medium">Indoor:</span>{" "}
+                  {court.indoor ? "Yes" : "No"}
                 </p>
                 <p className="text-sm">
                   <span className="font-medium">Default Price:</span>{" "}
-                  {formatPrice(court.defaultPrice)}
+                  {formatPrice(court.defaultPriceCents)}
                 </p>
               </div>
               <div className="mt-4">

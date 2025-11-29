@@ -16,8 +16,10 @@ export async function GET(
           select: {
             id: true,
             name: true,
+            type: true,
+            surface: true,
             indoor: true,
-            defaultPrice: true,
+            defaultPriceCents: true,
           },
         },
         coaches: {

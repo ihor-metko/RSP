@@ -263,6 +263,15 @@ export default function AdminClubsPage() {
                               variant="outline"
                               onClick={(e) => {
                                 e.stopPropagation();
+                                router.push(`/admin/clubs/${club.id}/courts`);
+                              }}
+                            >
+                              Courts
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 handleOpenEditModal(club);
                               }}
                             >

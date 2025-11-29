@@ -34,13 +34,13 @@ describe("GET /api/clubs/[id]", () => {
           id: "court-1",
           name: "Court 1",
           indoor: true,
-          defaultPrice: 5000,
+          defaultPriceCents: 5000,
         },
         {
           id: "court-2",
           name: "Court 2",
           indoor: false,
-          defaultPrice: 4000,
+          defaultPriceCents: 4000,
         },
       ],
       coaches: [
@@ -70,7 +70,7 @@ describe("GET /api/clubs/[id]", () => {
     expect(data.courts).toHaveLength(2);
     expect(data.courts[0].name).toBe("Court 1");
     expect(data.courts[0].indoor).toBe(true);
-    expect(data.courts[0].defaultPrice).toBe(5000);
+    expect(data.courts[0].defaultPriceCents).toBe(5000);
     expect(data.coaches).toHaveLength(2);
     expect(data.coaches[0].name).toBe("Coach Alice");
     expect(data.coaches[1].name).toBe("Coach Bob");

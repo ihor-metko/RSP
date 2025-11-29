@@ -47,8 +47,10 @@ async function main() {
     data: {
       name: "Court 1",
       clubId: club.id,
+      type: "padel",
+      surface: "artificial",
       indoor: true,
-      defaultPrice: 50,
+      defaultPriceCents: 5000,
     },
   });
 
@@ -56,8 +58,10 @@ async function main() {
     data: {
       name: "Court 2",
       clubId: club.id,
+      type: "padel",
+      surface: "artificial",
       indoor: true,
-      defaultPrice: 50,
+      defaultPriceCents: 5000,
     },
   });
 
@@ -65,8 +69,10 @@ async function main() {
     data: {
       name: "Court 3",
       clubId: club.id,
+      type: "padel",
+      surface: "clay",
       indoor: false,
-      defaultPrice: 40,
+      defaultPriceCents: 4000,
     },
   });
 

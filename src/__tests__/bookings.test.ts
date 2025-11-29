@@ -180,7 +180,7 @@ describe("POST /api/bookings", () => {
       const mockCourt = {
         id: "court-123",
         name: "Court 1",
-        defaultPrice: 5000,
+        defaultPriceCents: 5000,
       };
 
       const mockTx = {
@@ -245,7 +245,7 @@ describe("POST /api/bookings", () => {
       const mockCourt = {
         id: "court-123",
         name: "Court 1",
-        defaultPrice: 5000,
+        defaultPriceCents: 5000,
       };
 
       const mockTx = {
