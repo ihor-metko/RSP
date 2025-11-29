@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { Card, Button } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { formatPrice } from "@/utils/price";
-import type { Court, AvailabilitySlot, AvailabilityResponse } from "@/types/court";
+import type { Court, AvailabilitySlot, AvailabilityResponse, PriceTimelineResponse, PriceSegment } from "@/types/court";
 
 interface CourtWithClub extends Court {
   clubId?: string;
@@ -15,6 +15,7 @@ interface CourtWithClub extends Court {
 interface Slot {
   startTime: string;
   endTime: string;
+  priceCents?: number;
 }
 
 // Helper to format date as YYYY-MM-DD
@@ -32,10 +33,16 @@ function formatDisplayDate(date: Date): string {
   });
 }
 
-// Helper to format time from ISO string
+// Helper to format time from ISO string for display
 function formatTime(isoString: string): string {
   const date = new Date(isoString);
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+// Helper to extract HH:MM from ISO string for price matching
+function extractTimeFromISO(isoString: string): string {
+  const date = new Date(isoString);
+  return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
 }
 
 function getStatusColor(status: AvailabilitySlot["status"]): string {
@@ -118,18 +125,46 @@ export default function CourtDetailPage({
   }, [params]);
 
   // Fetch availability when date changes
-  const fetchAvailability = useCallback(async (courtId: string, date: Date) => {
+  const fetchAvailability = useCallback(async (courtId: string, date: Date, defaultPriceCents: number) => {
     setAvailabilityLoading(true);
     const dateStr = formatDateString(date);
 
     try {
-      const response = await fetch(`/api/courts/${courtId}/availability?date=${dateStr}`);
-      if (response.ok) {
-        const data: AvailabilityResponse = await response.json();
-        setAvailability(data.slots);
-      } else {
-        setAvailability([]);
+      // Fetch both availability and price timeline in parallel
+      const [availabilityResponse, priceResponse] = await Promise.all([
+        fetch(`/api/courts/${courtId}/availability?date=${dateStr}`),
+        fetch(`/api/courts/${courtId}/price-timeline?date=${dateStr}`),
+      ]);
+
+      let slots: AvailabilitySlot[] = [];
+      let priceTimeline: PriceSegment[] = [];
+
+      if (availabilityResponse.ok) {
+        const data: AvailabilityResponse = await availabilityResponse.json();
+        slots = data.slots;
       }
+
+      if (priceResponse.ok) {
+        const priceData: PriceTimelineResponse = await priceResponse.json();
+        priceTimeline = priceData.timeline;
+      }
+
+      // Merge price info into slots
+      const slotsWithPrices = slots.map((slot) => {
+        const slotTime = extractTimeFromISO(slot.start);
+        
+        // Find matching price segment
+        const priceSegment = priceTimeline.find((seg) => {
+          return slotTime >= seg.start && slotTime < seg.end;
+        });
+
+        return {
+          ...slot,
+          priceCents: priceSegment?.priceCents ?? defaultPriceCents,
+        };
+      });
+
+      setAvailability(slotsWithPrices);
     } catch {
       setAvailability([]);
     } finally {
@@ -139,9 +174,9 @@ export default function CourtDetailPage({
 
   useEffect(() => {
     if (court?.id) {
-      fetchAvailability(court.id, selectedDate);
+      fetchAvailability(court.id, selectedDate, court.defaultPriceCents);
     }
-  }, [court?.id, selectedDate, fetchAvailability]);
+  }, [court?.id, court?.defaultPriceCents, selectedDate, fetchAvailability]);
 
   const handlePrevDay = () => {
     const newDate = new Date(selectedDate);
@@ -177,7 +212,7 @@ export default function CourtDetailPage({
     setToast({ type: "success", message: "Booking created successfully!" });
     // Refresh availability
     if (court?.id) {
-      fetchAvailability(court.id, selectedDate);
+      fetchAvailability(court.id, selectedDate, court.defaultPriceCents);
     }
     // Clear any existing timeout
     if (toastTimeoutRef.current) {
@@ -194,6 +229,7 @@ export default function CourtDetailPage({
       {
         startTime: selectedSlot.start,
         endTime: selectedSlot.end,
+        priceCents: selectedSlot.priceCents,
       },
     ];
   };
@@ -363,11 +399,14 @@ export default function CourtDetailPage({
                 className={`tm-slot-button p-3 rounded border text-center transition-colors ${getStatusColor(slot.status)}`}
                 onClick={() => handleSlotClick(slot)}
                 disabled={slot.status === "booked"}
-                aria-label={`${formatTime(slot.start)} - ${formatTime(slot.end)}: ${getStatusLabel(slot.status)}`}
+                aria-label={`${formatTime(slot.start)} - ${formatTime(slot.end)}: ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
               >
                 <div className="font-semibold">{formatTime(slot.start)}</div>
                 <div className="text-xs">{formatTime(slot.end)}</div>
-                <div className="text-xs mt-1">{getStatusLabel(slot.status)}</div>
+                {slot.priceCents !== undefined && slot.status !== "booked" && (
+                  <div className="text-xs font-medium mt-1">{formatPrice(slot.priceCents)}</div>
+                )}
+                <div className="text-xs mt-1 opacity-75">{getStatusLabel(slot.status)}</div>
               </button>
             ))}
           </div>

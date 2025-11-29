@@ -85,9 +85,26 @@ model Court {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
-  club         Club          @relation(fields: [clubId], references: [id])
-  bookings     Booking[]
-  pricingRules PricingRule[]
+  club            Club             @relation(fields: [clubId], references: [id])
+  bookings        Booking[]
+  pricingRules    PricingRule[]
+  courtPriceRules CourtPriceRule[]
+}
+
+model CourtPriceRule {
+  id         String    @id @default(uuid())
+  courtId    String
+  dayOfWeek  Int?      // 0=Sunday .. 6=Saturday OR null = applies to all days
+  date       DateTime? @db.Date // optional exact date override (mutually exclusive with dayOfWeek)
+  startTime  String    // "09:00" format
+  endTime    String    // "12:00" format
+  priceCents Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@index([courtId])
 }
 
 model Coach {

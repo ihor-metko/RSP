@@ -6,19 +6,24 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, Card, Modal } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
-import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
+import { PriceRuleForm, PriceRuleFormData } from "@/components/admin/PriceRuleForm";
 import { formatPrice } from "@/utils/price";
+
+interface PriceRule {
+  id: string;
+  courtId: string;
+  dayOfWeek: number | null;
+  date: string | null;
+  startTime: string;
+  endTime: string;
+  priceCents: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface Court {
   id: string;
   name: string;
-  slug: string | null;
-  type: string | null;
-  surface: string | null;
-  indoor: boolean;
-  defaultPriceCents: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface Club {
@@ -26,52 +31,66 @@ interface Club {
   name: string;
 }
 
-export default function AdminCourtsPage({
+const DAY_OF_WEEK_LABELS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+export default function PriceRulesPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; courtId: string }>;
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [clubId, setClubId] = useState<string | null>(null);
+  const [courtId, setCourtId] = useState<string | null>(null);
   const [club, setClub] = useState<Club | null>(null);
-  const [courts, setCourts] = useState<Court[]>([]);
+  const [court, setCourt] = useState<Court | null>(null);
+  const [rules, setRules] = useState<PriceRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editingCourt, setEditingCourt] = useState<Court | null>(null);
-  const [deletingCourt, setDeletingCourt] = useState<Court | null>(null);
+  const [editingRule, setEditingRule] = useState<PriceRule | null>(null);
+  const [deletingRule, setDeletingRule] = useState<PriceRule | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     params.then((resolvedParams) => {
       setClubId(resolvedParams.id);
+      setCourtId(resolvedParams.courtId);
     });
   }, [params]);
 
-  const fetchCourts = useCallback(async () => {
-    if (!clubId) return;
+  const fetchRules = useCallback(async () => {
+    if (!courtId) return;
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/clubs/${clubId}/courts`);
+      const response = await fetch(`/api/courts/${courtId}/price-rules`);
       if (!response.ok) {
         if (response.status === 404) {
-          setError("Club not found");
+          setError("Court not found");
           return;
         }
-        throw new Error("Failed to fetch courts");
+        throw new Error("Failed to fetch price rules");
       }
       const data = await response.json();
-      setCourts(data.courts);
+      setRules(data.rules);
       setError("");
     } catch {
-      setError("Failed to load courts");
+      setError("Failed to load price rules");
     } finally {
       setLoading(false);
     }
-  }, [clubId]);
+  }, [courtId]);
 
   const fetchClub = useCallback(async () => {
     if (!clubId) return;
@@ -92,6 +111,25 @@ export default function AdminCourtsPage({
     }
   }, [clubId]);
 
+  const fetchCourt = useCallback(async () => {
+    if (!courtId) return;
+
+    try {
+      const response = await fetch(`/api/courts/${courtId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError("Court not found");
+          return;
+        }
+        throw new Error("Failed to fetch court");
+      }
+      const data = await response.json();
+      setCourt(data);
+    } catch {
+      setError("Failed to load court");
+    }
+  }, [courtId]);
+
   useEffect(() => {
     if (status === "loading") return;
 
@@ -100,46 +138,52 @@ export default function AdminCourtsPage({
       return;
     }
 
-    if (clubId) {
+    if (clubId && courtId) {
       fetchClub();
-      fetchCourts();
+      fetchCourt();
+      fetchRules();
     }
-  }, [session, status, router, clubId, fetchClub, fetchCourts]);
+  }, [session, status, router, clubId, courtId, fetchClub, fetchCourt, fetchRules]);
+
+  const showToast = (type: "success" | "error", message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const handleOpenCreateModal = () => {
-    setEditingCourt(null);
+    setEditingRule(null);
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (court: Court) => {
-    setEditingCourt(court);
+  const handleOpenEditModal = (rule: PriceRule) => {
+    setEditingRule(rule);
     setIsModalOpen(true);
   };
 
-  const handleOpenDeleteModal = (court: Court) => {
-    setDeletingCourt(court);
+  const handleOpenDeleteModal = (rule: PriceRule) => {
+    setDeletingRule(rule);
     setIsDeleteModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setEditingCourt(null);
+    setEditingRule(null);
   };
 
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false);
-    setDeletingCourt(null);
+    setDeletingRule(null);
   };
 
-  const handleSubmit = async (formData: CourtFormData) => {
-    if (!clubId) return;
+  const handleSubmit = async (formData: PriceRuleFormData) => {
+    if (!courtId) return;
 
     setSubmitting(true);
     try {
-      const url = editingCourt
-        ? `/api/clubs/${clubId}/courts/${editingCourt.id}`
-        : `/api/clubs/${clubId}/courts`;
-      const method = editingCourt ? "PUT" : "POST";
+      const url = editingRule
+        ? `/api/courts/${courtId}/price-rules/${editingRule.id}`
+        : `/api/courts/${courtId}/price-rules`;
+      const method = editingRule ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
@@ -149,11 +193,12 @@ export default function AdminCourtsPage({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to save court");
+        throw new Error(data.error || "Failed to save price rule");
       }
 
       handleCloseModal();
-      fetchCourts();
+      fetchRules();
+      showToast("success", editingRule ? "Price rule updated" : "Price rule created");
     } catch (err) {
       throw err;
     } finally {
@@ -162,27 +207,38 @@ export default function AdminCourtsPage({
   };
 
   const handleDelete = async () => {
-    if (!deletingCourt || !clubId) return;
+    if (!deletingRule || !courtId) return;
 
     setSubmitting(true);
     try {
       const response = await fetch(
-        `/api/clubs/${clubId}/courts/${deletingCourt.id}`,
+        `/api/courts/${courtId}/price-rules/${deletingRule.id}`,
         { method: "DELETE" }
       );
 
       if (!response.ok && response.status !== 204) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to delete court");
+        throw new Error(data.error || "Failed to delete price rule");
       }
 
       handleCloseDeleteModal();
-      fetchCourts();
+      fetchRules();
+      showToast("success", "Price rule deleted");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete court");
+      setError(err instanceof Error ? err.message : "Failed to delete price rule");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const formatRuleDay = (rule: PriceRule): string => {
+    if (rule.date) {
+      return new Date(rule.date).toLocaleDateString();
+    }
+    if (rule.dayOfWeek !== null) {
+      return DAY_OF_WEEK_LABELS[rule.dayOfWeek];
+    }
+    return "All days";
   };
 
   if (status === "loading" || loading) {
@@ -195,13 +251,27 @@ export default function AdminCourtsPage({
 
   return (
     <main className="rsp-container min-h-screen p-8">
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 p-4 rounded shadow-lg z-50 ${
+            toast.type === "success"
+              ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+              : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+          }`}
+          role="alert"
+        >
+          {toast.message}
+        </div>
+      )}
+
       <header className="rsp-header flex items-center justify-between mb-8">
         <div>
           <h1 className="rsp-title text-3xl font-bold">
-            Courts - {club?.name || "Loading..."}
+            Price Rules - {court?.name || "Loading..."}
           </h1>
           <p className="rsp-subtitle text-gray-500 mt-2">
-            Manage courts for this club
+            {club?.name || "Loading..."} - Manage time-based pricing for this court
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -212,12 +282,12 @@ export default function AdminCourtsPage({
       <section className="rsp-content">
         <div className="flex justify-between items-center mb-6">
           <Link
-            href="/admin/clubs"
+            href={`/admin/clubs/${clubId}/courts`}
             className="rsp-link text-blue-500 hover:underline"
           >
-            ← Back to Clubs
+            ← Back to Courts
           </Link>
-          <Button onClick={handleOpenCreateModal}>+ Add Court</Button>
+          <Button onClick={handleOpenCreateModal}>+ Add Price Rule</Button>
         </div>
 
         {error && (
@@ -227,75 +297,56 @@ export default function AdminCourtsPage({
         )}
 
         <Card>
-          <div className="rsp-courts-table overflow-x-auto">
+          <div className="rsp-price-rules-table overflow-x-auto">
             <table className="w-full text-left">
               <thead>
                 <tr
                   className="border-b"
                   style={{ borderColor: "var(--rsp-border)" }}
                 >
-                  <th className="py-3 px-4 font-semibold">Name</th>
-                  <th className="py-3 px-4 font-semibold hidden md:table-cell">
-                    Type
-                  </th>
-                  <th className="py-3 px-4 font-semibold hidden md:table-cell">
-                    Surface
-                  </th>
-                  <th className="py-3 px-4 font-semibold hidden sm:table-cell">
-                    Indoor
-                  </th>
-                  <th className="py-3 px-4 font-semibold hidden sm:table-cell">
-                    Price
-                  </th>
+                  <th className="py-3 px-4 font-semibold">Day/Date</th>
+                  <th className="py-3 px-4 font-semibold">Start Time</th>
+                  <th className="py-3 px-4 font-semibold">End Time</th>
+                  <th className="py-3 px-4 font-semibold">Price/Hour</th>
                   <th className="py-3 px-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {courts.length === 0 ? (
+                {rules.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-500">
-                      No courts found. Add your first court.
+                    <td colSpan={5} className="py-8 text-center text-gray-500">
+                      No price rules defined. Default court price will be used.
                     </td>
                   </tr>
                 ) : (
-                  courts.map((court) => (
+                  rules.map((rule) => (
                     <tr
-                      key={court.id}
+                      key={rule.id}
                       className="border-b hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       style={{ borderColor: "var(--rsp-border)" }}
                     >
                       <td className="py-3 px-4">
-                        <span className="font-medium">{court.name}</span>
+                        <span className="font-medium">{formatRuleDay(rule)}</span>
+                        {rule.date && (
+                          <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                            Specific date
+                          </span>
+                        )}
                       </td>
-                      <td className="py-3 px-4 hidden md:table-cell">
-                        {court.type || "-"}
-                      </td>
-                      <td className="py-3 px-4 hidden md:table-cell">
-                        {court.surface || "-"}
-                      </td>
-                      <td className="py-3 px-4 hidden sm:table-cell">
-                        {court.indoor ? "Yes" : "No"}
-                      </td>
-                      <td className="py-3 px-4 hidden sm:table-cell">
-                        {formatPrice(court.defaultPriceCents)}
-                      </td>
+                      <td className="py-3 px-4">{rule.startTime}</td>
+                      <td className="py-3 px-4">{rule.endTime}</td>
+                      <td className="py-3 px-4">{formatPrice(rule.priceCents)}</td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <Link
-                            href={`/admin/clubs/${clubId}/courts/${court.id}/price-rules`}
-                            className="inline-flex items-center justify-center px-4 py-2 border rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
-                          >
-                            Pricing
-                          </Link>
                           <Button
                             variant="outline"
-                            onClick={() => handleOpenEditModal(court)}
+                            onClick={() => handleOpenEditModal(rule)}
                           >
                             Edit
                           </Button>
                           <Button
                             variant="outline"
-                            onClick={() => handleOpenDeleteModal(court)}
+                            onClick={() => handleOpenDeleteModal(rule)}
                             className="text-red-500 hover:text-red-700"
                           >
                             Delete
@@ -315,18 +366,17 @@ export default function AdminCourtsPage({
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editingCourt ? "Edit Court" : "Add Court"}
+        title={editingRule ? "Edit Price Rule" : "Add Price Rule"}
       >
-        <CourtForm
+        <PriceRuleForm
           initialValues={
-            editingCourt
+            editingRule
               ? {
-                  name: editingCourt.name,
-                  slug: editingCourt.slug || "",
-                  type: editingCourt.type || "",
-                  surface: editingCourt.surface || "",
-                  indoor: editingCourt.indoor,
-                  defaultPriceCents: editingCourt.defaultPriceCents,
+                  dayOfWeek: editingRule.dayOfWeek,
+                  date: editingRule.date,
+                  startTime: editingRule.startTime,
+                  endTime: editingRule.endTime,
+                  priceCents: editingRule.priceCents,
                 }
               : undefined
           }
@@ -340,11 +390,13 @@ export default function AdminCourtsPage({
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
-        title="Delete Court"
+        title="Delete Price Rule"
       >
         <p className="mb-4">
-          Are you sure you want to delete court &quot;{deletingCourt?.name}
-          &quot;? This action cannot be undone.
+          Are you sure you want to delete this price rule (
+          {deletingRule && formatRuleDay(deletingRule)}: {deletingRule?.startTime} - {deletingRule?.endTime}
+          )?
+          This action cannot be undone.
         </p>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={handleCloseDeleteModal}>

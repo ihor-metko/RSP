@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { getResolvedPriceForSlot } from "@/lib/priceRules";
 
 interface BookingRequest {
   courtId: string;
@@ -8,6 +9,20 @@ interface BookingRequest {
   endTime: string;
   userId: string;
   coachId: string | null;
+}
+
+/**
+ * Format a date to "HH:MM" time string.
+ */
+function formatTimeString(date: Date): string {
+  return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+}
+
+/**
+ * Format a date to "YYYY-MM-DD" date string.
+ */
+function formatDateString(date: Date): string {
+  return date.toISOString().split("T")[0];
 }
 
 export async function POST(request: Request) {
@@ -52,6 +67,32 @@ export async function POST(request: Request) {
       );
     }
 
+    // Calculate duration in minutes
+    const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+
+    // Get date and time strings for price calculation
+    const dateStr = formatDateString(startTime);
+    const startTimeStr = formatTimeString(startTime);
+
+    // Calculate resolved price using price rules
+    let resolvedPrice: number;
+    try {
+      resolvedPrice = await getResolvedPriceForSlot(
+        body.courtId,
+        dateStr,
+        startTimeStr,
+        durationMinutes
+      );
+    } catch (priceError) {
+      if (priceError instanceof Error && priceError.message === "Court not found") {
+        return NextResponse.json(
+          { error: "Court not found" },
+          { status: 400 }
+        );
+      }
+      throw priceError;
+    }
+
     // Implement atomic booking logic inside a transaction
     const booking = await prisma.$transaction(async (tx) => {
       // Check for overlapping bookings for the selected courtId
@@ -69,16 +110,7 @@ export async function POST(request: Request) {
         throw new Error("CONFLICT");
       }
 
-      // Get court to retrieve default price
-      const court = await tx.court.findUnique({
-        where: { id: body.courtId },
-      });
-
-      if (!court) {
-        throw new Error("COURT_NOT_FOUND");
-      }
-
-      // Create new booking with status = 'reserved'
+      // Create new booking with status = 'reserved' and resolved price
       const newBooking = await tx.booking.create({
         data: {
           courtId: body.courtId,
@@ -86,7 +118,7 @@ export async function POST(request: Request) {
           coachId: body.coachId || null,
           start: startTime,
           end: endTime,
-          price: court.defaultPriceCents,
+          price: resolvedPrice,
           status: "reserved",
         },
       });
@@ -94,7 +126,7 @@ export async function POST(request: Request) {
       return newBooking;
     });
 
-    // Return successful response
+    // Return successful response with price
     return NextResponse.json(
       {
         bookingId: booking.id,
@@ -103,6 +135,7 @@ export async function POST(request: Request) {
         startTime: booking.start.toISOString(),
         endTime: booking.end.toISOString(),
         coachId: booking.coachId,
+        priceCents: booking.price,
       },
       { status: 201 }
     );

@@ -13,13 +13,14 @@ interface AvailableCourt {
   surface: string | null;
   indoor: boolean;
   defaultPriceCents: number;
+  priceCents?: number; // Resolved price for the selected slot
 }
 
 interface QuickBookingModalProps {
   clubId: string;
   isOpen: boolean;
   onClose: () => void;
-  onSelectCourt: (courtId: string, date: string, startTime: string, endTime: string) => void;
+  onSelectCourt: (courtId: string, date: string, startTime: string, endTime: string, priceCents?: number) => void;
 }
 
 // Business hours configuration
@@ -82,7 +83,40 @@ export function QuickBookingModal({
       }
 
       const data = await response.json();
-      setAvailableCourts(data.availableCourts || []);
+      const courts: AvailableCourt[] = data.availableCourts || [];
+
+      // Fetch price timeline for each court to get resolved prices
+      const courtsWithPrices = await Promise.all(
+        courts.map(async (court) => {
+          try {
+            const priceResponse = await fetch(
+              `/api/courts/${court.id}/price-timeline?date=${date}`
+            );
+            if (priceResponse.ok) {
+              const priceData = await priceResponse.json();
+              // Find price segment that covers the start time
+              const segment = priceData.timeline.find(
+                (seg: { start: string; end: string; priceCents: number }) =>
+                  startTime >= seg.start && startTime < seg.end
+              );
+              // Calculate price for the duration
+              const priceCents = segment
+                ? Math.round((segment.priceCents / 60) * duration)
+                : Math.round((court.defaultPriceCents / 60) * duration);
+              return { ...court, priceCents };
+            }
+          } catch {
+            // Ignore price fetch errors
+          }
+          // Fallback to default price calculation
+          return {
+            ...court,
+            priceCents: Math.round((court.defaultPriceCents / 60) * duration),
+          };
+        })
+      );
+
+      setAvailableCourts(courtsWithPrices);
     } catch {
       setError("An error occurred. Please try again.");
       setAvailableCourts([]);
@@ -91,7 +125,7 @@ export function QuickBookingModal({
     }
   }, [clubId, date, startTime, duration]);
 
-  const handleSelectCourt = (courtId: string) => {
+  const handleSelectCourt = (court: AvailableCourt) => {
     // Calculate end time based on start time and duration
     // Use simple arithmetic on hours/minutes to avoid timezone issues
     const [startHour, startMinute] = startTime.split(":").map(Number);
@@ -100,7 +134,7 @@ export function QuickBookingModal({
     const endMinute = totalMinutes % 60;
     const endTimeStr = `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
 
-    onSelectCourt(courtId, date, startTime, endTimeStr);
+    onSelectCourt(court.id, date, startTime, endTimeStr, court.priceCents);
   };
 
   const handleClose = () => {
@@ -253,13 +287,17 @@ export function QuickBookingModal({
                           )}
                         </div>
                         <div className="tm-quick-booking-court-price">
-                          {formatPrice(court.defaultPriceCents)} / hour
+                          {court.priceCents !== undefined ? (
+                            <span className="font-semibold">{formatPrice(court.priceCents)}</span>
+                          ) : (
+                            <span>{formatPrice(court.defaultPriceCents)} / hour</span>
+                          )}
                         </div>
                       </div>
                       <Button
-                        onClick={() => handleSelectCourt(court.id)}
+                        onClick={() => handleSelectCourt(court)}
                         className="tm-quick-booking-select-btn"
-                        aria-label={`Select ${court.name}`}
+                        aria-label={`Select ${court.name}${court.priceCents !== undefined ? ` - ${formatPrice(court.priceCents)}` : ""}`}
                       >
                         Select
                       </Button>

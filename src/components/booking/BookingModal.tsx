@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { Modal, Button } from "@/components/ui";
+import { formatPrice } from "@/utils/price";
 import "./BookingModal.css";
 
 interface Slot {
   startTime: string;
   endTime: string;
+  priceCents?: number;
 }
 
 interface Coach {
@@ -31,6 +33,7 @@ interface BookingResponse {
   startTime: string;
   endTime: string;
   coachId: string | null;
+  priceCents?: number;
 }
 
 export function BookingModal({
@@ -47,13 +50,14 @@ export function BookingModal({
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  const selectedSlot = selectedSlotIndex !== null ? availableSlots[selectedSlotIndex] : null;
+
   const handleConfirm = async () => {
-    if (selectedSlotIndex === null) {
+    if (selectedSlotIndex === null || !selectedSlot) {
       setAlert({ type: "error", message: "Please select a time slot" });
       return;
     }
 
-    const selectedSlot = availableSlots[selectedSlotIndex];
     setIsLoading(true);
     setAlert(null);
 
@@ -92,7 +96,7 @@ export function BookingModal({
 
       setAlert({
         type: "success",
-        message: "Booking reserved successfully",
+        message: `Booking reserved successfully${data.priceCents ? ` - ${formatPrice(data.priceCents)}` : ""}`,
       });
 
       if (onBookingSuccess) {
@@ -130,7 +134,12 @@ export function BookingModal({
   const formatSlot = (slot: Slot) => {
     const start = new Date(slot.startTime);
     const end = new Date(slot.endTime);
-    return `${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    const timeStr = `${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    
+    if (slot.priceCents !== undefined) {
+      return `${timeStr} · ${formatPrice(slot.priceCents)}`;
+    }
+    return timeStr;
   };
 
   return (
@@ -169,6 +178,14 @@ export function BookingModal({
               ))}
             </select>
           </div>
+
+          {/* Show selected slot price */}
+          {selectedSlot?.priceCents !== undefined && (
+            <div className="tm-booking-price-info mt-3 p-3 rounded bg-gray-50 dark:bg-gray-800">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Price: </span>
+              <span className="font-semibold">{formatPrice(selectedSlot.priceCents)}</span>
+            </div>
+          )}
 
           {coachList && coachList.length > 0 && (
             <div className="tm-booking-select-wrapper">

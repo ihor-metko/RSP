@@ -1,11 +1,13 @@
 "use client";
 
 import type { AvailabilitySlot } from "@/types/court";
+import { formatPrice } from "@/utils/price";
 
 interface CourtSlotsTodayProps {
   slots: AvailabilitySlot[];
   maxSlots?: number;
   isLoading?: boolean;
+  showPrices?: boolean;
 }
 
 function formatTime(isoString: string): string {
@@ -43,6 +45,7 @@ export function CourtSlotsToday({
   slots,
   maxSlots = 6,
   isLoading = false,
+  showPrices = true,
 }: CourtSlotsTodayProps) {
   if (isLoading) {
     return (
@@ -50,7 +53,7 @@ export function CourtSlotsToday({
         {Array.from({ length: maxSlots }).map((_, i) => (
           <div
             key={i}
-            className="tm-slot-skeleton w-12 h-6 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"
+            className="tm-slot-skeleton w-16 h-6 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"
           />
         ))}
       </div>
@@ -69,6 +72,12 @@ export function CourtSlotsToday({
   const displaySlots = slots.slice(0, maxSlots);
   const remainingCount = slots.length - maxSlots;
 
+  // Get minimum price for "from X" display when there are remaining slots
+  const availableSlots = slots.filter((s) => s.status === "available" && s.priceCents !== undefined);
+  const minPrice = availableSlots.length > 0
+    ? Math.min(...availableSlots.map((s) => s.priceCents!))
+    : null;
+
   return (
     <div className="tm-slots-today">
       <div className="flex gap-1 flex-wrap">
@@ -76,15 +85,21 @@ export function CourtSlotsToday({
           <span
             key={slot.start}
             className={`tm-slot-chip inline-block px-2 py-0.5 text-xs rounded border ${getStatusColor(slot.status)}`}
-            title={`${formatTime(slot.start)} - ${getStatusLabel(slot.status)}`}
-            aria-label={`${formatTime(slot.start)}: ${getStatusLabel(slot.status)}`}
+            title={`${formatTime(slot.start)} - ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? ` · ${formatPrice(slot.priceCents)}` : ""}`}
+            aria-label={`${formatTime(slot.start)}: ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
           >
             {formatTime(slot.start)}
+            {showPrices && slot.priceCents !== undefined && slot.status === "available" && (
+              <span className="ml-1 opacity-75">· {formatPrice(slot.priceCents)}</span>
+            )}
           </span>
         ))}
         {remainingCount > 0 && (
           <span className="tm-slot-more inline-block px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
             +{remainingCount} more
+            {showPrices && minPrice !== null && (
+              <span className="ml-1">from {formatPrice(minPrice)}</span>
+            )}
           </span>
         )}
       </div>

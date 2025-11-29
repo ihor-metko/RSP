@@ -8,6 +8,12 @@ import { prisma } from "@/lib/prisma";
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     $transaction: jest.fn(),
+    court: {
+      findUnique: jest.fn(),
+    },
+    courtPriceRule: {
+      findMany: jest.fn(),
+    },
   },
 }));
 
@@ -23,6 +29,14 @@ jest.mock("@/lib/requireRole", () => ({
 describe("POST /api/bookings", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default mock for court lookup (for price resolution)
+    (prisma.court.findUnique as jest.Mock).mockResolvedValue({
+      id: "court-123",
+      name: "Court 1",
+      defaultPriceCents: 5000,
+    });
+    // Default mock for price rules (empty - use default price)
+    (prisma.courtPriceRule.findMany as jest.Mock).mockResolvedValue([]);
   });
 
   const createRequest = (body: Record<string, unknown>) => {
@@ -280,6 +294,9 @@ describe("POST /api/bookings", () => {
 
   describe("Error handling", () => {
     it("should return 400 when court is not found", async () => {
+      // Override the default court mock to return null for price resolution
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue(null);
+
       const mockTx = {
         booking: {
           findFirst: jest.fn().mockResolvedValue(null),
