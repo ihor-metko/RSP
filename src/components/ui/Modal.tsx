@@ -78,17 +78,18 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
           modalRef.current?.focus();
         }
       });
+
+      // Return cleanup function that restores focus when modal closes
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = "unset";
+
+        // Restore focus to the previously focused element
+        if (previousActiveElement.current) {
+          previousActiveElement.current.focus();
+        }
+      };
     }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "unset";
-
-      // Restore focus to the previously focused element
-      if (previousActiveElement.current && isOpen) {
-        previousActiveElement.current.focus();
-      }
-    };
   }, [isOpen, handleKeyDown, getFocusableElements]);
 
   if (!isOpen) return null;
