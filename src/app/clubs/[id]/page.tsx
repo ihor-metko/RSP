@@ -1,24 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Card, Button } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
-import { formatPrice } from "@/utils/price";
-
-// Business hours for generating available slots
-const BUSINESS_START_HOUR = 9;
-const BUSINESS_END_HOUR = 18;
-
-interface Court {
-  id: string;
-  name: string;
-  indoor: boolean;
-  defaultPriceCents: number;
-  type?: string | null;
-  surface?: string | null;
-}
+import { CourtCard } from "@/components/CourtCard";
+import { CourtSlotsToday } from "@/components/CourtSlotsToday";
+import type { Court, AvailabilitySlot, AvailabilityResponse } from "@/types/court";
 
 interface Coach {
   id: string;
@@ -41,20 +30,9 @@ interface Slot {
   endTime: string;
 }
 
-function generateDefaultSlots(): Slot[] {
-  const today = new Date();
-  const slots: Slot[] = [];
-  for (let hour = BUSINESS_START_HOUR; hour < BUSINESS_END_HOUR; hour++) {
-    const start = new Date(today);
-    start.setHours(hour, 0, 0, 0);
-    const end = new Date(today);
-    end.setHours(hour + 1, 0, 0, 0);
-    slots.push({
-      startTime: start.toISOString(),
-      endTime: end.toISOString(),
-    });
-  }
-  return slots;
+// Helper to get today's date in YYYY-MM-DD format
+function getTodayDateString(): string {
+  return new Date().toISOString().split("T")[0];
 }
 
 export default function ClubDetailPage({
@@ -63,14 +41,48 @@ export default function ClubDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [club, setClub] = useState<ClubWithDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
+  const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
+  const [availabilityLoading, setAvailabilityLoading] = useState(true);
 
   // Get user ID from session, or use a placeholder for unauthenticated users
   const userId = session?.user?.id || "guest";
+
+  // Fetch availability for all courts
+  const fetchAvailability = useCallback(async (courts: Court[]) => {
+    const today = getTodayDateString();
+    setAvailabilityLoading(true);
+
+    try {
+      const results = await Promise.all(
+        courts.map(async (court) => {
+          try {
+            const response = await fetch(`/api/courts/${court.id}/availability?date=${today}`);
+            if (response.ok) {
+              const data: AvailabilityResponse = await response.json();
+              return { courtId: court.id, slots: data.slots };
+            }
+          } catch {
+            // Ignore individual court availability errors
+          }
+          return { courtId: court.id, slots: [] };
+        })
+      );
+
+      const availabilityMap: Record<string, AvailabilitySlot[]> = {};
+      results.forEach(({ courtId, slots }) => {
+        availabilityMap[courtId] = slots;
+      });
+      setCourtAvailability(availabilityMap);
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchClubData() {
@@ -87,6 +99,12 @@ export default function ClubDetailPage({
         }
         const data = await response.json();
         setClub(data);
+        // Fetch availability for all courts
+        if (data.courts && data.courts.length > 0) {
+          fetchAvailability(data.courts);
+        } else {
+          setAvailabilityLoading(false);
+        }
       } catch {
         setError("Failed to load club data");
       } finally {
@@ -94,11 +112,15 @@ export default function ClubDetailPage({
       }
     }
     fetchClubData();
-  }, [params]);
+  }, [params, fetchAvailability]);
 
   const handleBookClick = (courtId: string) => {
     setSelectedCourtId(courtId);
     setIsModalOpen(true);
+  };
+
+  const handleViewSchedule = (courtId: string) => {
+    router.push(`/courts/${courtId}`);
   };
 
   const handleCloseModal = () => {
@@ -106,10 +128,36 @@ export default function ClubDetailPage({
     setSelectedCourtId(null);
   };
 
+  const handleBookingSuccess = () => {
+    // Refresh availability after successful booking
+    if (club?.courts) {
+      fetchAvailability(club.courts);
+    }
+  };
+
+  // Convert availability slots to BookingModal format
+  const getAvailableSlotsForCourt = (courtId: string): Slot[] => {
+    const slots = courtAvailability[courtId] || [];
+    return slots
+      .filter((slot) => slot.status === "available")
+      .map((slot) => ({
+        startTime: slot.start,
+        endTime: slot.end,
+      }));
+  };
+
   if (isLoading) {
     return (
       <main className="tm-club-page min-h-screen p-8">
-        <div className="text-center text-gray-500">Loading club data...</div>
+        <div className="tm-loading-skeleton">
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
+          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-8" />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            ))}
+          </div>
+        </div>
       </main>
     );
   }
@@ -117,7 +165,9 @@ export default function ClubDetailPage({
   if (error || !club) {
     return (
       <main className="tm-club-page min-h-screen p-8">
-        <div className="text-center text-red-500">{error || "Club not found"}</div>
+        <div className="tm-error-banner text-center p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded">
+          {error || "Club not found"}
+        </div>
         <div className="mt-4 text-center">
           <Link href="/clubs" className="text-blue-500 hover:underline">
             ← Back to Clubs
@@ -146,41 +196,26 @@ export default function ClubDetailPage({
 
       <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {club.courts.length === 0 ? (
-          <div className="col-span-full text-gray-500">
-            No courts defined for this club yet. Contact admin.
+          <div className="tm-empty-state col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800 rounded">
+            <p className="text-gray-500 dark:text-gray-400">
+              No courts defined for this club yet. Contact admin.
+            </p>
           </div>
         ) : (
           club.courts.map((court) => (
-            <Card key={court.id} title={court.name} className="tm-court-card">
-              <div className="space-y-2">
-                {court.type && (
-                  <p className="text-sm">
-                    <span className="font-medium">Type:</span> {court.type}
-                  </p>
-                )}
-                {court.surface && (
-                  <p className="text-sm">
-                    <span className="font-medium">Surface:</span> {court.surface}
-                  </p>
-                )}
-                <p className="text-sm">
-                  <span className="font-medium">Indoor:</span>{" "}
-                  {court.indoor ? "Yes" : "No"}
-                </p>
-                <p className="text-sm">
-                  <span className="font-medium">Default Price:</span>{" "}
-                  {formatPrice(court.defaultPriceCents)}
-                </p>
-              </div>
-              <div className="mt-4">
-                <Button
-                  className="tm-book-button"
-                  onClick={() => handleBookClick(court.id)}
-                >
-                  Book
-                </Button>
-              </div>
-            </Card>
+            <CourtCard
+              key={court.id}
+              court={court}
+              onBook={handleBookClick}
+              onViewSchedule={handleViewSchedule}
+              todaySlots={
+                <CourtSlotsToday
+                  slots={courtAvailability[court.id] || []}
+                  isLoading={availabilityLoading}
+                  maxSlots={6}
+                />
+              }
+            />
           ))
         )}
       </section>
@@ -194,11 +229,12 @@ export default function ClubDetailPage({
       {selectedCourtId && (
         <BookingModal
           courtId={selectedCourtId}
-          availableSlots={generateDefaultSlots()}
+          availableSlots={getAvailableSlotsForCourt(selectedCourtId)}
           coachList={club.coaches}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           userId={userId}
+          onBookingSuccess={handleBookingSuccess}
         />
       )}
     </main>
