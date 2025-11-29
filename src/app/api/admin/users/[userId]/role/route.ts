@@ -98,14 +98,21 @@ export async function POST(
 
       // If changing from coach to player, delete Coach records
       if (role === "player" && existingUser.role === "coach") {
-        // Delete all coach availability records first (due to foreign key constraint)
-        await tx.coachAvailability.deleteMany({
-          where: {
-            coach: {
-              userId,
-            },
-          },
+        // Find all coach records for this user to get their IDs
+        const userCoaches = await tx.coach.findMany({
+          where: { userId },
+          select: { id: true },
         });
+        const coachIds = userCoaches.map((c) => c.id);
+
+        // Delete all coach availability records first (due to foreign key constraint)
+        if (coachIds.length > 0) {
+          await tx.coachAvailability.deleteMany({
+            where: {
+              coachId: { in: coachIds },
+            },
+          });
+        }
 
         // Delete coach records
         await tx.coach.deleteMany({

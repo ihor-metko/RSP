@@ -56,11 +56,14 @@ export async function GET(request: Request) {
     }
 
     // Check if coach has a club assigned
-    if (!coach.club) {
-      return NextResponse.json(
-        { error: "Coach is not assigned to a club" },
-        { status: 400 }
-      );
+    // If no club, use default hours (09:00 - 21:00)
+    let clubOpeningHour = 9;
+    let clubClosingHour = 21;
+    
+    if (coach.club) {
+      const parsedHours = parseOpeningHours(coach.club.openingHours);
+      clubOpeningHour = parsedHours.openingHour;
+      clubClosingHour = parsedHours.closingHour;
     }
 
     // Fetch coach availability slots for the specified date
@@ -76,9 +79,6 @@ export async function GET(request: Request) {
         start: "asc",
       },
     });
-
-    // Parse club opening hours using utility function
-    const { openingHour: clubOpeningHour, closingHour: clubClosingHour } = parseOpeningHours(coach.club.openingHours);
 
     // Transform availability slots to match the API response format
     const formattedSlots = availabilitySlots.map((slot) => ({

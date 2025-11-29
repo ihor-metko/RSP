@@ -568,6 +568,7 @@ describe("Admin Users API", () => {
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
       
+      const mockCoachFindMany = jest.fn().mockResolvedValue([{ id: "coach-123" }]);
       const mockCoachAvailabilityDeleteMany = jest.fn().mockResolvedValue({ count: 0 });
       const mockCoachDeleteMany = jest.fn().mockResolvedValue({ count: 1 });
       
@@ -580,6 +581,7 @@ describe("Admin Users API", () => {
             deleteMany: mockCoachAvailabilityDeleteMany,
           },
           coach: {
+            findMany: mockCoachFindMany,
             deleteMany: mockCoachDeleteMany,
           },
         };
