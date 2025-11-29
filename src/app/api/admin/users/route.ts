@@ -3,6 +3,11 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 
+interface UserWhereClause {
+  OR?: { name?: { contains: string; mode: "insensitive" }; email?: { contains: string; mode: "insensitive" } }[];
+  role?: string;
+}
+
 export async function GET(request: Request) {
   const authResult = await requireRole(request, ["admin"]);
 
@@ -15,10 +20,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const role = searchParams.get("role") || "";
 
-    const whereClause: {
-      OR?: { name?: { contains: string; mode: "insensitive" }; email?: { contains: string; mode: "insensitive" } }[];
-      role?: string;
-    } = {};
+    const whereClause: UserWhereClause = {};
 
     if (search) {
       whereClause.OR = [

@@ -240,12 +240,7 @@ export default function AdminCoachesPage() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="rsp-input w-full md:w-auto px-3 py-2 border rounded-md"
-              style={{
-                backgroundColor: "var(--rsp-background)",
-                borderColor: "var(--rsp-border)",
-                color: "var(--rsp-foreground)",
-              }}
+              className="rsp-input w-full md:w-auto"
               aria-label="Filter by role"
             >
               <option value="">All Roles</option>
