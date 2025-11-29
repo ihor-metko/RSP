@@ -5,13 +5,11 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Card, Button } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
+import { formatPrice } from "@/utils/price";
 
 // Business hours for generating available slots
 const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 18;
-
-// Price is stored in cents
-const CENTS_PER_DOLLAR = 100;
 
 interface Court {
   id: string;
@@ -106,10 +104,6 @@ export default function ClubDetailPage({
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedCourtId(null);
-  };
-
-  const formatPrice = (price: number) => {
-    return `$${(price / CENTS_PER_DOLLAR).toFixed(2)}`;
   };
 
   if (isLoading) {

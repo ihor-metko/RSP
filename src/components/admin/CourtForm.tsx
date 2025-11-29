@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button, Input } from "@/components/ui";
+import { centsToDollars, dollarsToCents } from "@/utils/price";
 
 export interface CourtFormData {
   name: string;
@@ -18,8 +19,6 @@ interface CourtFormProps {
   onCancel: () => void;
   isSubmitting?: boolean;
 }
-
-const CENTS_PER_DOLLAR = 100;
 
 export function CourtForm({
   initialValues,
@@ -50,7 +49,7 @@ export function CourtForm({
     const value = parseFloat(e.target.value) || 0;
     setFormData((prev) => ({
       ...prev,
-      defaultPriceCents: Math.round(value * CENTS_PER_DOLLAR),
+      defaultPriceCents: dollarsToCents(value),
     }));
   };
 
@@ -70,7 +69,7 @@ export function CourtForm({
     }
   };
 
-  const displayPrice = (formData.defaultPriceCents / CENTS_PER_DOLLAR).toFixed(2);
+  const displayPrice = centsToDollars(formData.defaultPriceCents).toFixed(2);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

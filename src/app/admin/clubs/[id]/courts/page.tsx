@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button, Card, Modal } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
+import { formatPrice } from "@/utils/price";
 
 interface Court {
   id: string;
@@ -24,8 +25,6 @@ interface Club {
   id: string;
   name: string;
 }
-
-const CENTS_PER_DOLLAR = 100;
 
 export default function AdminCourtsPage({
   params,
@@ -184,10 +183,6 @@ export default function AdminCourtsPage({
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const formatPrice = (priceInCents: number) => {
-    return `$${(priceInCents / CENTS_PER_DOLLAR).toFixed(2)}`;
   };
 
   if (status === "loading" || loading) {
