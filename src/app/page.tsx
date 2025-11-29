@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { Button, Card, Input, Modal, DarkModeToggle } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 
 export default function Home() {
+  const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -42,6 +44,16 @@ export default function Home() {
             <Link href="/clubs" className="rsp-link text-blue-500 hover:underline">
               View Clubs →
             </Link>
+            {session?.user?.role === "admin" && (
+              <>
+                <Link href="/admin/clubs" className="rsp-link text-blue-500 hover:underline">
+                  Manage Clubs (Admin) →
+                </Link>
+                <Link href="/admin/coaches" className="rsp-link text-blue-500 hover:underline">
+                  Manage Coaches (Admin) →
+                </Link>
+              </>
+            )}
           </div>
         </Card>
       </section>
