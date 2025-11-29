@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { getDateString, isValidTimeFormat, formatTimeHHMM } from "@/utils/dateTime";
 
 /**
  * PUT /api/coach/availability/[slotId]
@@ -64,16 +65,15 @@ export async function PUT(
 
     // If times are provided, update the slot
     if (startTime && endTime) {
-      // Validate time format
-      const timeRegex = /^\d{2}:\d{2}$/;
-      if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+      // Validate time format using utility function
+      if (!isValidTimeFormat(startTime) || !isValidTimeFormat(endTime)) {
         return NextResponse.json(
           { error: "Invalid time format. Use HH:MM" },
           { status: 400 }
         );
       }
 
-      const dateStr = slot.start.toISOString().split("T")[0];
+      const dateStr = getDateString(slot.start);
       const newStart = new Date(`${dateStr}T${startTime}:00`);
       const newEnd = new Date(`${dateStr}T${endTime}:00`);
 
@@ -103,9 +103,9 @@ export async function PUT(
     // If no body, return current slot info
     return NextResponse.json({
       slotId: slot.id,
-      startTime: slot.start.toTimeString().slice(0, 5),
-      endTime: slot.end.toTimeString().slice(0, 5),
-      date: slot.start.toISOString().split("T")[0],
+      startTime: formatTimeHHMM(slot.start),
+      endTime: formatTimeHHMM(slot.end),
+      date: getDateString(slot.start),
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

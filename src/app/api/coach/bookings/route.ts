@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { createDayRange, isValidDateFormat, formatTimeHHMM } from "@/utils/dateTime";
 
 /**
  * GET /api/coach/bookings?date=YYYY-MM-DD
@@ -26,27 +27,14 @@ export async function GET(request: Request) {
     }
 
     // Validate date format (YYYY-MM-DD)
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(dateParam)) {
+    if (!isValidDateFormat(dateParam)) {
       return NextResponse.json(
         { error: "Invalid date format. Use YYYY-MM-DD" },
         { status: 400 }
       );
     }
 
-    // Parse date and create start/end of day
-    const date = new Date(dateParam);
-    if (isNaN(date.getTime())) {
-      return NextResponse.json(
-        { error: "Invalid date" },
-        { status: 400 }
-      );
-    }
-
-    const startOfDay = new Date(dateParam);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(dateParam);
-    endOfDay.setHours(23, 59, 59, 999);
+    const { startOfDay, endOfDay } = createDayRange(dateParam);
 
     // Find the coach record for the authenticated user
     const coach = await prisma.coach.findFirst({
@@ -99,7 +87,7 @@ export async function GET(request: Request) {
         playerContact: booking.user.email,
         courtName: booking.court.name,
         date: dateParam,
-        time: booking.start.toTimeString().slice(0, 5), // HH:MM format
+        time: formatTimeHHMM(booking.start),
         duration: durationMinutes,
         status: booking.status,
       };

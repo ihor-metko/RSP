@@ -63,6 +63,23 @@ function minutesToTime(minutes: number): string {
   return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
 }
 
+// Parse date string (YYYY-MM-DD) to Date without timezone issues
+function parseDateString(dateStr: string): Date {
+  // Validate format before parsing
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return new Date(); // Return current date as fallback
+  }
+  const [year, month, day] = dateStr.split("-").map(Number);
+  // Basic validation for reasonable date values
+  if (month < 1 || month > 12 || day < 1 || day > 31) {
+    return new Date(); // Return current date as fallback
+  }
+  return new Date(year, month - 1, day);
+}
+
+// Default slot duration in minutes
+const SLOT_DURATION_MINUTES = 60;
+
 export default function CoachDashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -187,7 +204,7 @@ export default function CoachDashboardPage() {
       } else {
         // Create a new availability slot
         const dateParam = formatDateParam(selectedDate);
-        const endTimeMinutes = parseTimeToMinutes(selectedTimeSlot.time) + 60;
+        const endTimeMinutes = parseTimeToMinutes(selectedTimeSlot.time) + SLOT_DURATION_MINUTES;
         const endTime = minutesToTime(endTimeMinutes);
 
         const response = await fetch("/api/coach/availability", {
@@ -349,7 +366,7 @@ export default function CoachDashboardPage() {
             <input
               type="date"
               value={formatDateParam(selectedDate)}
-              onChange={(e) => setSelectedDate(new Date(e.target.value))}
+              onChange={(e) => setSelectedDate(parseDateString(e.target.value))}
               className="mt-2 rsp-input text-center"
               aria-label="Select date"
             />

@@ -91,7 +91,7 @@ describe("GET /api/coach/bookings", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Invalid date");
+      expect(data.error).toBe("Invalid date format. Use YYYY-MM-DD");
     });
   });
 
