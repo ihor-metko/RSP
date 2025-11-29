@@ -3,10 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { BookingModal } from "@/components/booking/BookingModal";
+import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { CourtCard } from "@/components/CourtCard";
 import { CourtSlotsToday } from "@/components/CourtSlotsToday";
+import { Button } from "@/components/ui";
 import type { Court, AvailabilitySlot, AvailabilityResponse } from "@/types/court";
 
 interface Coach {
@@ -40,7 +42,7 @@ export default function ClubDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { data: session } = useSession();
+  const { data: session, status: authStatus } = useSession();
   const router = useRouter();
   const [club, setClub] = useState<ClubWithDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,6 +51,8 @@ export default function ClubDetailPage({
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
   const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
+  const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
+  const [preselectedSlot, setPreselectedSlot] = useState<Slot | null>(null);
 
   // Get user ID from session, or use a placeholder for unauthenticated users
   const userId = session?.user?.id || "guest";
@@ -123,16 +127,13 @@ export default function ClubDetailPage({
     router.push(`/courts/${courtId}`);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedCourtId(null);
-  };
-
   const handleBookingSuccess = () => {
     // Refresh availability after successful booking
     if (club?.courts) {
       fetchAvailability(club.courts);
     }
+    // Also reset preselected slot
+    setPreselectedSlot(null);
   };
 
   // Convert availability slots to BookingModal format
@@ -144,6 +145,58 @@ export default function ClubDetailPage({
         startTime: slot.start,
         endTime: slot.end,
       }));
+  };
+
+  // Handle Quick Booking button click
+  const handleQuickBookingClick = () => {
+    // If user is not authenticated, trigger login flow
+    if (authStatus === "unauthenticated") {
+      signIn();
+      return;
+    }
+    setIsQuickBookingOpen(true);
+  };
+
+  // Handle court selection from QuickBookingModal
+  const handleQuickBookingSelectCourt = (courtId: string, date: string, startTime: string, endTime: string) => {
+    // If user is not authenticated, trigger login flow
+    if (authStatus === "unauthenticated") {
+      signIn();
+      return;
+    }
+
+    // Create the preselected slot with ISO datetime strings
+    // Note: Using UTC format (with Z suffix) to be consistent with the availability API
+    const startDateTime = `${date}T${startTime}:00.000Z`;
+    const endDateTime = `${date}T${endTime}:00.000Z`;
+    
+    setPreselectedSlot({
+      startTime: startDateTime,
+      endTime: endDateTime,
+    });
+    setSelectedCourtId(courtId);
+    setIsQuickBookingOpen(false);
+    setIsModalOpen(true);
+  };
+
+  // Handle closing the Quick Booking modal
+  const handleQuickBookingClose = () => {
+    setIsQuickBookingOpen(false);
+  };
+
+  // Handle closing the Booking modal
+  const handleCloseBookingModal = () => {
+    setIsModalOpen(false);
+    setSelectedCourtId(null);
+    setPreselectedSlot(null);
+  };
+
+  // Get slots for BookingModal - either preselected or from availability
+  const getSlotsForBookingModal = (courtId: string): Slot[] => {
+    if (preselectedSlot) {
+      return [preselectedSlot];
+    }
+    return getAvailableSlotsForCourt(courtId);
   };
 
   if (isLoading) {
@@ -194,6 +247,17 @@ export default function ClubDetailPage({
         )}
       </header>
 
+      {/* Quick booking button - above courts list */}
+      <div className="tm-quick-booking-action mb-6">
+        <Button
+          onClick={handleQuickBookingClick}
+          className="tm-quick-booking-btn"
+          aria-label="Quick booking"
+        >
+          Quick booking
+        </Button>
+      </div>
+
       <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {club.courts.length === 0 ? (
           <div className="tm-empty-state col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800 rounded">
@@ -229,14 +293,21 @@ export default function ClubDetailPage({
       {selectedCourtId && (
         <BookingModal
           courtId={selectedCourtId}
-          availableSlots={getAvailableSlotsForCourt(selectedCourtId)}
+          availableSlots={getSlotsForBookingModal(selectedCourtId)}
           coachList={club.coaches}
           isOpen={isModalOpen}
-          onClose={handleCloseModal}
+          onClose={handleCloseBookingModal}
           userId={userId}
           onBookingSuccess={handleBookingSuccess}
         />
       )}
+
+      <QuickBookingModal
+        clubId={club.id}
+        isOpen={isQuickBookingOpen}
+        onClose={handleQuickBookingClose}
+        onSelectCourt={handleQuickBookingSelectCourt}
+      />
     </main>
   );
 }
