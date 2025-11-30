@@ -90,6 +90,16 @@
   background-color: #22c55e;
 }
 
+.tm-coach-availability-cell--available.tm-coach-availability-cell--start {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+}
+
+.tm-coach-availability-cell--available.tm-coach-availability-cell--end {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
 .tm-coach-availability-cell--available:hover {
   background-color: #16a34a;
 }
@@ -143,7 +153,11 @@
 }
 
 .tm-coach-legend-dot--available {
-  background-color: var(--rsp-primary);
+  background-color: #22c55e;
+}
+
+.dark .tm-coach-legend-dot--available {
+  background-color: #16a34a;
 }
 
 .tm-coach-legend-dot--empty {

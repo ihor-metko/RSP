@@ -301,10 +301,10 @@ export function CoachWeeklyAvailability({ coachId }: CoachWeeklyAvailabilityProp
     if (coveringSlot) {
       let classes = "tm-coach-availability-cell tm-coach-availability-cell--available";
       if (isSlotStart(coveringSlot, hour)) {
-        classes += " rounded-l";
+        classes += " tm-coach-availability-cell--start";
       }
       if (isSlotEnd(coveringSlot, hour)) {
-        classes += " rounded-r";
+        classes += " tm-coach-availability-cell--end";
       }
       return classes;
     }

@@ -1,48 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
-import { isValidTimeFormat } from "@/utils/dateTime";
+import { isValidTimeFormat, isValidTimeRange, doTimesOverlap, isValidDayOfWeek } from "@/utils/dateTime";
 import type { CoachWeeklyAvailabilitySlot, CreateAvailabilitySlotRequest } from "@/types/coach";
-
-/**
- * Validates that startTime is before endTime
- */
-function isValidTimeRange(startTime: string, endTime: string): boolean {
-  const [startHour, startMin] = startTime.split(":").map(Number);
-  const [endHour, endMin] = endTime.split(":").map(Number);
-  const startMinutes = startHour * 60 + startMin;
-  const endMinutes = endHour * 60 + endMin;
-  return startMinutes < endMinutes;
-}
-
-/**
- * Checks if two time ranges overlap
- */
-function doTimesOverlap(
-  start1: string,
-  end1: string,
-  start2: string,
-  end2: string
-): boolean {
-  const [s1h, s1m] = start1.split(":").map(Number);
-  const [e1h, e1m] = end1.split(":").map(Number);
-  const [s2h, s2m] = start2.split(":").map(Number);
-  const [e2h, e2m] = end2.split(":").map(Number);
-  
-  const start1Minutes = s1h * 60 + s1m;
-  const end1Minutes = e1h * 60 + e1m;
-  const start2Minutes = s2h * 60 + s2m;
-  const end2Minutes = e2h * 60 + e2m;
-  
-  return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
-}
-
-/**
- * Validates day of week (0-6)
- */
-function isValidDayOfWeek(day: unknown): day is number {
-  return typeof day === "number" && Number.isInteger(day) && day >= 0 && day <= 6;
-}
 
 /**
  * GET /api/coaches/[coachId]/availability
