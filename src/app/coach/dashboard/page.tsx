@@ -353,9 +353,14 @@ export default function CoachDashboardPage() {
         <Link href="/" className="rsp-link text-blue-500 hover:underline">
           ← Back to Home
         </Link>
-        <Link href="/coach/availability">
-          <Button variant="outline">Manage Weekly Availability</Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/coach/requests">
+            <Button variant="outline">Training Requests</Button>
+          </Link>
+          <Link href="/coach/availability">
+            <Button variant="outline">Manage Weekly Availability</Button>
+          </Link>
+        </div>
       </div>
 
       {/* Date Navigation */}
