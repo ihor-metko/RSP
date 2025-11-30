@@ -248,6 +248,7 @@
       "confirmed": "Confirmed",
       "rejected": "Rejected",
       "cancelled": "Cancelled",
+      "cancelledByPlayer": "Cancelled by You",
       "loading": "Loading trainings...",
       "errorLoading": "Failed to load training sessions",
       "trainer": "Trainer",
@@ -266,6 +267,7 @@
       "statusConfirmed": "Your training is confirmed!",
       "statusRejected": "This training request was declined.",
       "statusCancelled": "This training was cancelled.",
+      "statusCancelledByPlayer": "You cancelled this training request.",
       "statusPending": "Waiting for trainer confirmation."
     }
   },

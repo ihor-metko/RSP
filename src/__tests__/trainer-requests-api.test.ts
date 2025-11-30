@@ -572,5 +572,67 @@ describe("Trainer Requests API", () => {
       expect(response.status).toBe(200);
       expect(data.status).toBe("rejected");
     });
+
+    it("should not allow rejecting a cancelled_by_player request", async () => {
+      (requireRole as jest.Mock).mockResolvedValue({
+        authorized: true,
+        userId: "coach-user-123",
+        userRole: "coach",
+      });
+
+      (prisma.trainingRequest.findUnique as jest.Mock).mockResolvedValue({
+        id: "req-1",
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        status: "cancelled_by_player",
+      });
+
+      (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        userId: "coach-user-123",
+      });
+
+      const request = new Request("http://localhost:3000/api/trainer/requests/req-1/reject", {
+        method: "PUT",
+      });
+      const response = await rejectRequest(request, createContext("req-1"));
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain("Cannot reject a request with status");
+    });
+  });
+
+  describe("PUT /api/trainer/requests/[requestId]/confirm with cancelled_by_player", () => {
+    it("should not allow confirming a cancelled_by_player request", async () => {
+      (requireRole as jest.Mock).mockResolvedValue({
+        authorized: true,
+        userId: "coach-user-123",
+        userRole: "coach",
+      });
+
+      (prisma.trainingRequest.findUnique as jest.Mock).mockResolvedValue({
+        id: "req-1",
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        date: new Date("2024-01-15"),
+        time: "10:00",
+        status: "cancelled_by_player",
+      });
+
+      (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        userId: "coach-user-123",
+      });
+
+      const request = new Request("http://localhost:3000/api/trainer/requests/req-1/confirm", {
+        method: "PUT",
+      });
+      const response = await confirmRequest(request, createContext("req-1"));
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain("Cannot confirm a request with status");
+    });
   });
 });

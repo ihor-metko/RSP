@@ -122,7 +122,7 @@ export async function PATCH(
       );
     }
 
-    const validStatuses = ["pending", "confirmed", "rejected", "cancelled"];
+    const validStatuses = ["pending", "confirmed", "rejected", "cancelled", "cancelled_by_player"];
     if (!validStatuses.includes(body.status)) {
       return NextResponse.json(
         { error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` },
@@ -150,7 +150,7 @@ export async function PATCH(
           { status: 403 }
         );
       }
-      if (body.status !== "cancelled") {
+      if (body.status !== "cancelled" && body.status !== "cancelled_by_player") {
         return NextResponse.json(
           { error: "Players can only cancel their requests" },
           { status: 400 }
@@ -162,6 +162,8 @@ export async function PATCH(
           { status: 400 }
         );
       }
+      // Force status to cancelled_by_player when player cancels
+      body.status = "cancelled_by_player";
     }
 
     // Coaches can confirm or reject requests assigned to them
@@ -184,7 +186,7 @@ export async function PATCH(
     }
 
     // Determine if we need to cancel or confirm booking
-    const shouldCancelBooking = body.status === "cancelled" || body.status === "rejected";
+    const shouldCancelBooking = body.status === "cancelled" || body.status === "rejected" || body.status === "cancelled_by_player";
     const shouldConfirmBooking = body.status === "confirmed";
 
     // Update training request and booking in a transaction

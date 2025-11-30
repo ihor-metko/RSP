@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Card, Modal } from "@/components/ui";
+import { Button, Card, Modal } from "@/components/ui";
 import "./TrainingHistory.css";
 
 interface TrainingRequest {
@@ -23,7 +23,7 @@ interface TrainingRequest {
   updatedAt: string;
 }
 
-type FilterStatus = "all" | "pending" | "confirmed" | "rejected" | "cancelled";
+type FilterStatus = "all" | "pending" | "confirmed" | "rejected" | "cancelled" | "cancelled_by_player";
 
 // Helper function to format date for display
 function formatDateDisplay(dateStr: string): string {
@@ -49,12 +49,20 @@ function formatDateTime(dateStr: string): string {
 
 export function TrainingHistory() {
   const t = useTranslations("training.history");
+  const tCommon = useTranslations("training");
   const [trainings, setTrainings] = useState<TrainingRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [selectedTraining, setSelectedTraining] = useState<TrainingRequest | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const showToast = useCallback((message: string, type: "success" | "error") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
 
   const fetchTrainings = useCallback(async () => {
     try {
@@ -85,6 +93,35 @@ export function TrainingHistory() {
       setLoading(false);
     }
   }, [filterStatus, t]);
+
+  const handleCancelRequest = useCallback(async (trainingId: string) => {
+    setCancellingId(trainingId);
+    try {
+      const response = await fetch(`/api/trainings/${trainingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled_by_player" }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to cancel request");
+      }
+
+      showToast(tCommon("requestCancelled"), "success");
+      fetchTrainings();
+      
+      // Close modal if it's open for this training
+      if (selectedTraining?.id === trainingId) {
+        setIsModalOpen(false);
+        setSelectedTraining(null);
+      }
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : "Failed to cancel request", "error");
+    } finally {
+      setCancellingId(null);
+    }
+  }, [fetchTrainings, showToast, tCommon, selectedTraining]);
 
   useEffect(() => {
     fetchTrainings();
@@ -118,6 +155,7 @@ export function TrainingHistory() {
       case "rejected":
         return "tm-training-status--rejected";
       case "cancelled":
+      case "cancelled_by_player":
         return "tm-training-status--cancelled";
       default:
         return "";
@@ -134,6 +172,8 @@ export function TrainingHistory() {
         return t("rejected");
       case "cancelled":
         return t("cancelled");
+      case "cancelled_by_player":
+        return t("cancelledByPlayer");
       default:
         return status;
     }
@@ -161,6 +201,11 @@ export function TrainingHistory() {
           message: t("statusCancelled"),
           className: "tm-training-modal-status-message--cancelled",
         };
+      case "cancelled_by_player":
+        return {
+          message: t("statusCancelledByPlayer"),
+          className: "tm-training-modal-status-message--cancelled",
+        };
       default:
         return { message: "", className: "" };
     }
@@ -178,6 +223,19 @@ export function TrainingHistory() {
 
   return (
     <div className="tm-training-history">
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className={`tm-toast ${
+            toast.type === "success" ? "tm-toast--success" : "tm-toast--error"
+          }`}
+        >
+          {toast.message}
+        </div>
+      )}
+
       {/* Filter Controls */}
       <div className="tm-training-controls">
         <div className="tm-filter-group">
@@ -193,6 +251,7 @@ export function TrainingHistory() {
             <option value="confirmed">{t("confirmed")}</option>
             <option value="rejected">{t("rejected")}</option>
             <option value="cancelled">{t("cancelled")}</option>
+            <option value="cancelled_by_player">{t("cancelledByPlayer")}</option>
           </select>
         </div>
       </div>
@@ -261,6 +320,23 @@ export function TrainingHistory() {
                   <span className="tm-training-court-badge">
                     🏟️ {training.courtName}
                   </span>
+                </div>
+              )}
+
+              {/* Cancel Button - only for pending trainings */}
+              {training.status === "pending" && (
+                <div className="tm-training-card-actions">
+                  <Button
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCancelRequest(training.id);
+                    }}
+                    disabled={cancellingId === training.id}
+                    className="tm-cancel-button"
+                  >
+                    {cancellingId === training.id ? tCommon("cancelling") : tCommon("cancelRequest")}
+                  </Button>
                 </div>
               )}
             </div>
@@ -336,6 +412,20 @@ export function TrainingHistory() {
                 {t("lastUpdated")}: {formatDateTime(selectedTraining.updatedAt)}
               </p>
             </div>
+
+            {/* Cancel Button in Modal - only for pending trainings */}
+            {selectedTraining.status === "pending" && (
+              <div className="tm-training-modal-actions">
+                <Button
+                  variant="outline"
+                  onClick={() => handleCancelRequest(selectedTraining.id)}
+                  disabled={cancellingId === selectedTraining.id}
+                  className="tm-cancel-button"
+                >
+                  {cancellingId === selectedTraining.id ? tCommon("cancelling") : tCommon("cancelRequest")}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </Modal>

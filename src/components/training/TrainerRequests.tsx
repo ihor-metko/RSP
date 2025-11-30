@@ -21,7 +21,7 @@ interface TrainingRequest {
   updatedAt: string;
 }
 
-type FilterStatus = "all" | "pending" | "confirmed" | "rejected" | "cancelled";
+type FilterStatus = "all" | "pending" | "confirmed" | "rejected" | "cancelled" | "cancelled_by_player";
 
 interface TrainerRequestsProps {
   onRefresh?: () => void;
@@ -144,8 +144,19 @@ export function TrainerRequests({ onRefresh }: TrainerRequestsProps) {
         return "tm-request-status--rejected";
       case "cancelled":
         return "tm-request-status--cancelled";
+      case "cancelled_by_player":
+        return "tm-request-status--cancelled-by-player";
       default:
         return "";
+    }
+  };
+
+  const getStatusLabel = (status: string): string => {
+    switch (status) {
+      case "cancelled_by_player":
+        return "Cancelled by Player";
+      default:
+        return status;
     }
   };
 
@@ -206,6 +217,7 @@ export function TrainerRequests({ onRefresh }: TrainerRequestsProps) {
               <option value="confirmed">Confirmed</option>
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
+              <option value="cancelled_by_player">Cancelled by Player</option>
             </select>
           </div>
         )}
@@ -248,7 +260,7 @@ export function TrainerRequests({ onRefresh }: TrainerRequestsProps) {
                   <span className="tm-player-email">{request.playerEmail}</span>
                 </div>
                 <span className={`tm-request-status ${getStatusClass(request.status)}`}>
-                  {request.status}
+                  {getStatusLabel(request.status)}
                 </span>
               </div>
 

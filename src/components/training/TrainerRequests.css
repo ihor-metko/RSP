@@ -169,6 +169,14 @@
   @apply bg-gray-700 text-gray-300;
 }
 
+.tm-request-status--cancelled-by-player {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.dark .tm-request-status--cancelled-by-player {
+  @apply bg-orange-900/50 text-orange-300;
+}
+
 /* Request Details */
 .tm-request-details {
   @apply space-y-2 mb-4;

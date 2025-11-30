@@ -199,7 +199,7 @@ describe("Training Request Detail API", () => {
       expect(data.error).toBe("Training request not found");
     });
 
-    it("should allow player to cancel their own pending request", async () => {
+    it("should allow player to cancel their own pending request (converts to cancelled_by_player)", async () => {
       (requireRole as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "player-123",
@@ -225,7 +225,7 @@ describe("Training Request Detail API", () => {
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: null,
-        status: "cancelled",
+        status: "cancelled_by_player",
       };
 
       (prisma.$transaction as jest.Mock).mockResolvedValue(updatedTraining);
@@ -241,7 +241,82 @@ describe("Training Request Detail API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.status).toBe("cancelled");
+      expect(data.status).toBe("cancelled_by_player");
+    });
+
+    it("should allow player to cancel using cancelled_by_player status directly", async () => {
+      (requireRole as jest.Mock).mockResolvedValue({
+        authorized: true,
+        userId: "player-123",
+        userRole: "player",
+      });
+
+      (prisma.trainingRequest.findUnique as jest.Mock).mockResolvedValue({
+        id: "training-1",
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
+        status: "pending",
+      });
+
+      const updatedTraining = {
+        id: "training-1",
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
+        date: new Date("2024-01-15"),
+        time: "10:00",
+        comment: null,
+        status: "cancelled_by_player",
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue(updatedTraining);
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue({
+        id: "court-1",
+        name: "Court 1",
+      });
+
+      const request = new Request("http://localhost:3000/api/trainings/training-1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled_by_player" }),
+      });
+
+      const response = await PATCH(request, createContext("training-1"));
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.status).toBe("cancelled_by_player");
+    });
+
+    it("should not allow player to cancel non-pending request", async () => {
+      (requireRole as jest.Mock).mockResolvedValue({
+        authorized: true,
+        userId: "player-123",
+        userRole: "player",
+      });
+
+      (prisma.trainingRequest.findUnique as jest.Mock).mockResolvedValue({
+        id: "training-1",
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        status: "confirmed",
+      });
+
+      const request = new Request("http://localhost:3000/api/trainings/training-1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled_by_player" }),
+      });
+
+      const response = await PATCH(request, createContext("training-1"));
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain("Can only cancel pending requests");
     });
 
     it("should not allow player to confirm requests", async () => {
