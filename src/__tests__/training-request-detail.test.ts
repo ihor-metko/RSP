@@ -9,11 +9,22 @@ jest.mock("@/lib/prisma", () => ({
   prisma: {
     coach: {
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
     },
     trainingRequest: {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    court: {
+      findUnique: jest.fn(),
+    },
+    club: {
+      findUnique: jest.fn(),
+    },
+    booking: {
+      update: jest.fn(),
+    },
+    $transaction: jest.fn(),
   },
 }));
 
@@ -88,10 +99,29 @@ describe("Training Request Detail API", () => {
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: "Test",
         status: "pending",
+        createdAt: new Date("2024-01-10"),
+        updatedAt: new Date("2024-01-10"),
+      });
+
+      (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        user: { name: "John Trainer" },
+      });
+
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue({
+        id: "court-1",
+        name: "Court 1",
+      });
+
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue({
+        id: "club-123",
+        name: "Test Club",
       });
 
       const request = new Request("http://localhost:3000/api/trainings/training-1");
@@ -101,6 +131,8 @@ describe("Training Request Detail API", () => {
       expect(response.status).toBe(200);
       expect(data.id).toBe("training-1");
       expect(data.status).toBe("pending");
+      expect(data.trainerName).toBe("John Trainer");
+      expect(data.courtName).toBe("Court 1");
     });
   });
 
@@ -178,19 +210,26 @@ describe("Training Request Detail API", () => {
         id: "training-1",
         trainerId: "trainer-123",
         playerId: "player-123",
+        courtId: null,
+        bookingId: null,
         status: "pending",
       });
 
-      (prisma.trainingRequest.update as jest.Mock).mockResolvedValue({
+      const updatedTraining = {
         id: "training-1",
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: null,
+        bookingId: null,
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: null,
         status: "cancelled",
-      });
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue(updatedTraining);
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue(null);
 
       const request = new Request("http://localhost:3000/api/trainings/training-1", {
         method: "PATCH",
@@ -248,18 +287,28 @@ describe("Training Request Detail API", () => {
         id: "training-1",
         trainerId: "trainer-123",
         playerId: "player-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         status: "pending",
       });
 
-      (prisma.trainingRequest.update as jest.Mock).mockResolvedValue({
+      const updatedTraining = {
         id: "training-1",
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: null,
         status: "confirmed",
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue(updatedTraining);
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue({
+        id: "court-1",
+        name: "Court 1",
       });
 
       const request = new Request("http://localhost:3000/api/trainings/training-1", {
@@ -291,18 +340,28 @@ describe("Training Request Detail API", () => {
         id: "training-1",
         trainerId: "trainer-123",
         playerId: "player-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         status: "pending",
       });
 
-      (prisma.trainingRequest.update as jest.Mock).mockResolvedValue({
+      const updatedTraining = {
         id: "training-1",
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: null,
         status: "rejected",
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue(updatedTraining);
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue({
+        id: "court-1",
+        name: "Court 1",
       });
 
       const request = new Request("http://localhost:3000/api/trainings/training-1", {
