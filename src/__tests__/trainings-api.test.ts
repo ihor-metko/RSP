@@ -111,16 +111,24 @@ describe("Training Requests API", () => {
     });
 
     it("should return 400 if trainer does not work on selected day", async () => {
+      // 2024-01-15 is a Monday (dayOfWeek = 1), but trainer only works on Tuesday
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
         id: "trainer-123",
-        availabilities: [], // No availability
+        weeklyAvailabilities: [
+          {
+            id: "weekly-1",
+            dayOfWeek: 2, // Tuesday only
+            startTime: "09:00",
+            endTime: "18:00",
+          },
+        ],
       });
 
       const request = createRequest({
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
-        date: "2024-01-15",
+        date: "2024-01-15", // Monday
         time: "10:00",
       });
 
@@ -132,14 +140,15 @@ describe("Training Requests API", () => {
     });
 
     it("should return 400 if trainer is not available at selected time", async () => {
-      // Trainer works on this day but not at 10:00
+      // 2024-01-15 is a Monday (dayOfWeek = 1), trainer works on Monday but not at 10:00
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
         id: "trainer-123",
-        availabilities: [
+        weeklyAvailabilities: [
           {
-            id: "avail-1",
-            start: new Date("2024-01-15T14:00:00"),
-            end: new Date("2024-01-15T18:00:00"),
+            id: "weekly-1",
+            dayOfWeek: 1, // Monday
+            startTime: "14:00",
+            endTime: "18:00",
           },
         ],
       });
@@ -148,7 +157,7 @@ describe("Training Requests API", () => {
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
-        date: "2024-01-15",
+        date: "2024-01-15", // Monday
         time: "10:00",
       });
 
@@ -160,13 +169,15 @@ describe("Training Requests API", () => {
     });
 
     it("should return 409 if trainer already has training at this time", async () => {
+      // 2024-01-15 is a Monday (dayOfWeek = 1)
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
         id: "trainer-123",
-        availabilities: [
+        weeklyAvailabilities: [
           {
-            id: "avail-1",
-            start: new Date("2024-01-15T09:00:00"),
-            end: new Date("2024-01-15T18:00:00"),
+            id: "weekly-1",
+            dayOfWeek: 1, // Monday
+            startTime: "09:00",
+            endTime: "18:00",
           },
         ],
       });
@@ -183,7 +194,7 @@ describe("Training Requests API", () => {
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
-        date: "2024-01-15",
+        date: "2024-01-15", // Monday
         time: "10:00",
       });
 
@@ -195,13 +206,15 @@ describe("Training Requests API", () => {
     });
 
     it("should create training request successfully", async () => {
+      // 2024-01-15 is a Monday (dayOfWeek = 1)
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
         id: "trainer-123",
-        availabilities: [
+        weeklyAvailabilities: [
           {
-            id: "avail-1",
-            start: new Date("2024-01-15T09:00:00"),
-            end: new Date("2024-01-15T18:00:00"),
+            id: "weekly-1",
+            dayOfWeek: 1, // Monday
+            startTime: "09:00",
+            endTime: "18:00",
           },
         ],
       });
@@ -223,7 +236,7 @@ describe("Training Requests API", () => {
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
-        date: "2024-01-15",
+        date: "2024-01-15", // Monday
         time: "10:00",
         comment: "Test comment",
       });

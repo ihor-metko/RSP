@@ -116,7 +116,7 @@ export async function POST(request: Request) {
         clubId: body.clubId,
       },
       include: {
-        availabilities: true,
+        weeklyAvailabilities: true,
       },
     });
 
@@ -130,33 +130,28 @@ export async function POST(request: Request) {
     // Parse date - the body.date is in YYYY-MM-DD format
     const requestedDate = new Date(body.date);
     
-    // Parse start and end of day for date comparison
-    const requestedDayStart = new Date(`${body.date}T00:00:00`);
-    const requestedDayEnd = new Date(`${body.date}T23:59:59`);
+    // Get day of week from the requested date (0=Sunday, 6=Saturday)
+    const requestedDayOfWeek = requestedDate.getDay();
 
-    // Check if trainer has availability on this day
-    // Trainer availability is stored as date ranges. Check if any availability slot
-    // includes this day and time
-    const requestedDateTime = new Date(`${body.date}T${body.time}:00`);
-    
-    // Find availability slots that include the requested time
-    const availableSlot = trainer.availabilities.find((slot) => {
-      return requestedDateTime >= slot.start && requestedDateTime < slot.end;
-    });
+    // Check if trainer has weekly availability on this day of the week
+    const daySlotsForWeekday = trainer.weeklyAvailabilities.filter(
+      (slot) => slot.dayOfWeek === requestedDayOfWeek
+    );
 
-    if (!availableSlot) {
-      // Check if any availability exists for this day at all
-      const anySlotOnDay = trainer.availabilities.some((slot) => {
-        return slot.start >= requestedDayStart && slot.start < requestedDayEnd;
-      });
+    // If no slots exist for this day of week, trainer doesn't work on this day
+    if (daySlotsForWeekday.length === 0) {
+      return NextResponse.json(
+        { error: "Trainer does not work on this day. Choose another date." },
+        { status: 400 }
+      );
+    }
 
-      if (!anySlotOnDay) {
-        return NextResponse.json(
-          { error: "Trainer does not work on this day. Choose another date." },
-          { status: 400 }
-        );
-      }
+    // Check if the requested time falls within any of the day's slots
+    const isWithinWorkingHours = daySlotsForWeekday.some(
+      (slot) => body.time >= slot.startTime && body.time < slot.endTime
+    );
 
+    if (!isWithinWorkingHours) {
       return NextResponse.json(
         { error: "Trainer is not available at this time. Choose another slot." },
         { status: 400 }
