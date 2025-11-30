@@ -55,21 +55,36 @@ export async function PUT(
       );
     }
 
-    // Update the training request status to rejected
-    const updatedRequest = await prisma.trainingRequest.update({
-      where: { id: requestId },
-      data: { status: "rejected" },
+    // Update training request and booking in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Update the training request status to rejected
+      const updatedRequest = await tx.trainingRequest.update({
+        where: { id: requestId },
+        data: { status: "rejected" },
+      });
+
+      // If there's an associated booking, cancel it to free up the court
+      if (trainingRequest.bookingId) {
+        await tx.booking.update({
+          where: { id: trainingRequest.bookingId },
+          data: { status: "cancelled" },
+        });
+      }
+
+      return updatedRequest;
     });
 
     return NextResponse.json({
-      id: updatedRequest.id,
-      trainerId: updatedRequest.trainerId,
-      playerId: updatedRequest.playerId,
-      clubId: updatedRequest.clubId,
-      date: updatedRequest.date.toISOString().split("T")[0],
-      time: updatedRequest.time,
-      comment: updatedRequest.comment,
-      status: updatedRequest.status,
+      id: result.id,
+      trainerId: result.trainerId,
+      playerId: result.playerId,
+      clubId: result.clubId,
+      courtId: result.courtId,
+      bookingId: result.bookingId,
+      date: result.date.toISOString().split("T")[0],
+      time: result.time,
+      comment: result.comment,
+      status: result.status,
       message: "Training request rejected",
     });
   } catch (error) {

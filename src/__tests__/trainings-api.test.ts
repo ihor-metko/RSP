@@ -9,13 +9,31 @@ jest.mock("@/lib/prisma", () => ({
   prisma: {
     coach: {
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
     },
     trainingRequest: {
       create: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
     },
+    court: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+    },
+    club: {
+      findUnique: jest.fn(),
+    },
+    booking: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+    },
+    $transaction: jest.fn(),
   },
+}));
+
+// Mock priceRules
+jest.mock("@/lib/priceRules", () => ({
+  getResolvedPriceForSlot: jest.fn().mockResolvedValue(5000),
 }));
 
 // Mock requireRole
@@ -205,7 +223,76 @@ describe("Training Requests API", () => {
       expect(data.error).toContain("already has training at this time");
     });
 
-    it("should create training request successfully", async () => {
+    it("should return 400 if no courts available at the club", async () => {
+      (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        weeklyAvailabilities: [
+          {
+            id: "weekly-1",
+            dayOfWeek: 1,
+            startTime: "09:00",
+            endTime: "18:00",
+          },
+        ],
+      });
+
+      (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.court.findMany as jest.Mock).mockResolvedValue([]);
+
+      const request = createRequest({
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        clubId: "club-123",
+        date: "2024-01-15",
+        time: "10:00",
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toContain("No courts available at this club");
+    });
+
+    it("should return 409 if no court is available at selected time", async () => {
+      (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        weeklyAvailabilities: [
+          {
+            id: "weekly-1",
+            dayOfWeek: 1,
+            startTime: "09:00",
+            endTime: "18:00",
+          },
+        ],
+      });
+
+      (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
+      (prisma.court.findMany as jest.Mock).mockResolvedValue([
+        { id: "court-1", name: "Court 1", defaultPriceCents: 5000 },
+      ]);
+      // All courts have overlapping bookings
+      (prisma.booking.findFirst as jest.Mock).mockResolvedValue({
+        id: "existing-booking",
+        courtId: "court-1",
+      });
+
+      const request = createRequest({
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        clubId: "club-123",
+        date: "2024-01-15",
+        time: "10:00",
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(409);
+      expect(data.error).toContain("No courts available at the selected time");
+    });
+
+    it("should create training request with court reservation successfully", async () => {
       // 2024-01-15 is a Monday (dayOfWeek = 1)
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
         id: "trainer-123",
@@ -220,16 +307,38 @@ describe("Training Requests API", () => {
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
-
-      (prisma.trainingRequest.create as jest.Mock).mockResolvedValue({
+      (prisma.court.findMany as jest.Mock).mockResolvedValue([
+        { id: "court-1", name: "Court 1", defaultPriceCents: 5000 },
+      ]);
+      (prisma.booking.findFirst as jest.Mock).mockResolvedValue(null);
+      
+      const mockBooking = {
+        id: "booking-123",
+        courtId: "court-1",
+        userId: "player-123",
+        coachId: "trainer-123",
+        start: new Date("2024-01-15T10:00:00.000Z"),
+        end: new Date("2024-01-15T11:00:00.000Z"),
+        price: 5000,
+        status: "pending",
+      };
+      
+      const mockTrainingRequest = {
         id: "training-123",
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-123",
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: "Test comment",
         status: "pending",
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue({
+        booking: mockBooking,
+        trainingRequest: mockTrainingRequest,
       });
 
       const request = createRequest({
@@ -247,7 +356,10 @@ describe("Training Requests API", () => {
       expect(response.status).toBe(201);
       expect(data.id).toBe("training-123");
       expect(data.status).toBe("pending");
-      expect(data.message).toContain("Waiting for trainer confirmation");
+      expect(data.courtId).toBe("court-1");
+      expect(data.courtName).toBe("Court 1");
+      expect(data.bookingId).toBe("booking-123");
+      expect(data.message).toContain("court has been reserved");
     });
 
     it("should return 401 if user is not authenticated", async () => {
@@ -291,11 +403,31 @@ describe("Training Requests API", () => {
           trainerId: "trainer-123",
           playerId: "player-123",
           clubId: "club-123",
+          courtId: "court-1",
+          bookingId: "booking-1",
           date: new Date("2024-01-15"),
           time: "10:00",
+          comment: null,
           status: "pending",
+          createdAt: new Date("2024-01-10"),
+          updatedAt: new Date("2024-01-10"),
         },
       ]);
+
+      (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        user: { name: "John Trainer" },
+      });
+
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue({
+        id: "court-1",
+        name: "Court 1",
+      });
+
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue({
+        id: "club-123",
+        name: "Test Club",
+      });
 
       const request = new Request("http://localhost:3000/api/trainings", {
         method: "GET",
@@ -307,6 +439,9 @@ describe("Training Requests API", () => {
       expect(response.status).toBe(200);
       expect(data.trainings).toHaveLength(1);
       expect(data.trainings[0].id).toBe("training-1");
+      expect(data.trainings[0].trainerName).toBe("John Trainer");
+      expect(data.trainings[0].courtName).toBe("Court 1");
+      expect(data.trainings[0].clubName).toBe("Test Club");
     });
 
     it("should filter by player for player role", async () => {

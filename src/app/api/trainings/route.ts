@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 import { isValidDateFormat, isValidTimeFormat } from "@/utils/dateTime";
+import { getResolvedPriceForSlot } from "@/lib/priceRules";
 
 interface TrainingRequest {
   trainerId: string;
@@ -11,6 +12,9 @@ interface TrainingRequest {
   time: string;
   comment?: string;
 }
+
+// Training session duration in minutes (default 1 hour)
+const TRAINING_DURATION_MINUTES = 60;
 
 /**
  * GET /api/trainings
@@ -26,16 +30,30 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
     // Build where clause based on user role
     const whereClause: {
-      status?: string;
+      status?: string | { in: string[] };
       playerId?: string;
       trainerId?: string;
+      date?: { gte?: Date; lte?: Date };
     } = {};
 
-    if (status) {
+    if (status && status !== "all") {
       whereClause.status = status;
+    }
+
+    // Date filtering
+    if (startDate || endDate) {
+      whereClause.date = {};
+      if (startDate) {
+        whereClause.date.gte = new Date(startDate);
+      }
+      if (endDate) {
+        whereClause.date.lte = new Date(endDate);
+      }
     }
 
     // Players see their own requests
@@ -56,10 +74,50 @@ export async function GET(request: Request) {
 
     const trainings = await prisma.trainingRequest.findMany({
       where: whereClause,
-      orderBy: [{ date: "asc" }, { time: "asc" }],
+      orderBy: [{ date: "desc" }, { time: "asc" }],
     });
 
-    return NextResponse.json({ trainings });
+    // Enrich training requests with trainer, court, and club information
+    const enrichedTrainings = await Promise.all(
+      trainings.map(async (training) => {
+        const [trainer, court, club] = await Promise.all([
+          prisma.coach.findUnique({
+            where: { id: training.trainerId },
+            include: { user: { select: { name: true } } },
+          }),
+          training.courtId
+            ? prisma.court.findUnique({
+                where: { id: training.courtId },
+                select: { id: true, name: true },
+              })
+            : null,
+          prisma.club.findUnique({
+            where: { id: training.clubId },
+            select: { id: true, name: true },
+          }),
+        ]);
+
+        return {
+          id: training.id,
+          trainerId: training.trainerId,
+          trainerName: trainer?.user?.name || "Unknown Trainer",
+          playerId: training.playerId,
+          clubId: training.clubId,
+          clubName: club?.name || "Unknown Club",
+          courtId: training.courtId,
+          courtName: court?.name || null,
+          bookingId: training.bookingId,
+          date: training.date.toISOString().split("T")[0],
+          time: training.time,
+          comment: training.comment,
+          status: training.status,
+          createdAt: training.createdAt.toISOString(),
+          updatedAt: training.updatedAt.toISOString(),
+        };
+      })
+    );
+
+    return NextResponse.json({ trainings: enrichedTrainings });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error fetching training requests:", error);
@@ -175,30 +233,109 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create training request
-    const trainingRequest = await prisma.trainingRequest.create({
-      data: {
-        trainerId: body.trainerId,
-        playerId: body.playerId,
-        clubId: body.clubId,
-        date: requestedDate,
-        time: body.time,
-        comment: body.comment || null,
-        status: "pending",
-      },
+    // Find an available court for the requested time
+    // Get all courts for this club
+    const courts = await prisma.court.findMany({
+      where: { clubId: body.clubId },
+    });
+
+    if (courts.length === 0) {
+      return NextResponse.json(
+        { error: "No courts available at this club. Please contact support." },
+        { status: 400 }
+      );
+    }
+
+    // Calculate start and end times for the booking
+    const startTime = new Date(`${body.date}T${body.time}:00.000Z`);
+    const endTime = new Date(startTime.getTime() + TRAINING_DURATION_MINUTES * 60 * 1000);
+
+    // Find an available court (no overlapping bookings)
+    let availableCourt = null;
+    for (const court of courts) {
+      const overlappingBooking = await prisma.booking.findFirst({
+        where: {
+          courtId: court.id,
+          start: { lt: endTime },
+          end: { gt: startTime },
+          status: { in: ["reserved", "paid", "pending"] },
+        },
+      });
+
+      if (!overlappingBooking) {
+        availableCourt = court;
+        break;
+      }
+    }
+
+    if (!availableCourt) {
+      return NextResponse.json(
+        { error: "No courts available at the selected time. Please choose a different time slot." },
+        { status: 409 }
+      );
+    }
+
+    // Calculate price for the booking
+    let resolvedPrice: number;
+    try {
+      resolvedPrice = await getResolvedPriceForSlot(
+        availableCourt.id,
+        body.date,
+        body.time,
+        TRAINING_DURATION_MINUTES
+      );
+    } catch {
+      // Use default price if price calculation fails
+      resolvedPrice = availableCourt.defaultPriceCents;
+    }
+
+    // Create booking and training request in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the booking with pending status (will be confirmed when trainer accepts)
+      const booking = await tx.booking.create({
+        data: {
+          courtId: availableCourt.id,
+          userId: body.playerId,
+          coachId: body.trainerId,
+          start: startTime,
+          end: endTime,
+          price: resolvedPrice,
+          status: "pending", // Pending until trainer confirms
+        },
+      });
+
+      // Create training request with court and booking info
+      const trainingRequest = await tx.trainingRequest.create({
+        data: {
+          trainerId: body.trainerId,
+          playerId: body.playerId,
+          clubId: body.clubId,
+          courtId: availableCourt.id,
+          bookingId: booking.id,
+          date: requestedDate,
+          time: body.time,
+          comment: body.comment || null,
+          status: "pending",
+        },
+      });
+
+      return { booking, trainingRequest };
     });
 
     return NextResponse.json(
       {
-        id: trainingRequest.id,
-        trainerId: trainingRequest.trainerId,
-        playerId: trainingRequest.playerId,
-        clubId: trainingRequest.clubId,
+        id: result.trainingRequest.id,
+        trainerId: result.trainingRequest.trainerId,
+        playerId: result.trainingRequest.playerId,
+        clubId: result.trainingRequest.clubId,
+        courtId: result.trainingRequest.courtId,
+        courtName: availableCourt.name,
+        bookingId: result.trainingRequest.bookingId,
         date: body.date,
-        time: trainingRequest.time,
-        comment: trainingRequest.comment,
-        status: trainingRequest.status,
-        message: "Training request sent. Waiting for trainer confirmation.",
+        time: result.trainingRequest.time,
+        comment: result.trainingRequest.comment,
+        status: result.trainingRequest.status,
+        message: "Training request sent. A court has been reserved pending trainer confirmation.",
       },
       { status: 201 }
     );

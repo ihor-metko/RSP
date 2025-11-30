@@ -74,21 +74,74 @@ export async function PUT(
       );
     }
 
-    // Update the training request status to confirmed
-    const updatedRequest = await prisma.trainingRequest.update({
-      where: { id: requestId },
-      data: { status: "confirmed" },
+    // If there's a booking associated, verify the court is still available
+    if (trainingRequest.bookingId) {
+      const booking = await prisma.booking.findUnique({
+        where: { id: trainingRequest.bookingId },
+      });
+
+      if (booking) {
+        // Check if there are any other confirmed bookings for the same court/time
+        const conflictingBooking = await prisma.booking.findFirst({
+          where: {
+            courtId: booking.courtId,
+            start: { lt: booking.end },
+            end: { gt: booking.start },
+            status: { in: ["reserved", "paid"] },
+            id: { not: booking.id },
+          },
+        });
+
+        if (conflictingBooking) {
+          return NextResponse.json(
+            { error: "Cannot confirm: the court is already booked by another player" },
+            { status: 409 }
+          );
+        }
+      }
+    }
+
+    // Update training request and booking in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Update the training request status to confirmed
+      const updatedRequest = await tx.trainingRequest.update({
+        where: { id: requestId },
+        data: { status: "confirmed" },
+      });
+
+      // If there's an associated booking, update it to reserved
+      if (trainingRequest.bookingId) {
+        await tx.booking.update({
+          where: { id: trainingRequest.bookingId },
+          data: { status: "reserved" },
+        });
+      }
+
+      return updatedRequest;
     });
 
+    // Get court name for response
+    let courtName = null;
+    if (trainingRequest.courtId) {
+      const court = await prisma.court.findUnique({
+        where: { id: trainingRequest.courtId },
+        select: { name: true },
+      });
+      courtName = court?.name || null;
+    }
+
     return NextResponse.json({
-      id: updatedRequest.id,
-      trainerId: updatedRequest.trainerId,
-      playerId: updatedRequest.playerId,
-      clubId: updatedRequest.clubId,
-      date: updatedRequest.date.toISOString().split("T")[0],
-      time: updatedRequest.time,
-      comment: updatedRequest.comment,
-      status: updatedRequest.status,
+      id: result.id,
+      trainerId: result.trainerId,
+      playerId: result.playerId,
+      clubId: result.clubId,
+      courtId: result.courtId,
+      courtName,
+      bookingId: result.bookingId,
+      date: result.date.toISOString().split("T")[0],
+      time: result.time,
+      comment: result.comment,
+      status: result.status,
       message: "Training request confirmed successfully",
     });
   } catch (error) {

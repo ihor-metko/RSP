@@ -189,6 +189,8 @@ model TrainingRequest {
   trainerId String
   playerId  String
   clubId    String
+  courtId   String?  // Reserved court for the training session
+  bookingId String?  // Associated booking ID
   date      DateTime @db.Date
   time      String   // "HH:MM" format
   comment   String?
@@ -199,4 +201,6 @@ model TrainingRequest {
   @@index([trainerId])
   @@index([playerId])
   @@index([clubId])
+  @@index([courtId])
+  @@index([bookingId])
 }

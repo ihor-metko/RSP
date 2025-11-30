@@ -51,15 +51,40 @@ export async function GET(
       }
     }
 
+    // Fetch additional information
+    const [trainer, court, club] = await Promise.all([
+      prisma.coach.findUnique({
+        where: { id: training.trainerId },
+        include: { user: { select: { name: true } } },
+      }),
+      training.courtId
+        ? prisma.court.findUnique({
+            where: { id: training.courtId },
+            select: { id: true, name: true },
+          })
+        : null,
+      prisma.club.findUnique({
+        where: { id: training.clubId },
+        select: { id: true, name: true },
+      }),
+    ]);
+
     return NextResponse.json({
       id: training.id,
       trainerId: training.trainerId,
+      trainerName: trainer?.user?.name || "Unknown Trainer",
       playerId: training.playerId,
       clubId: training.clubId,
+      clubName: club?.name || "Unknown Club",
+      courtId: training.courtId,
+      courtName: court?.name || null,
+      bookingId: training.bookingId,
       date: training.date.toISOString().split("T")[0],
       time: training.time,
       comment: training.comment,
       status: training.status,
+      createdAt: training.createdAt.toISOString(),
+      updatedAt: training.updatedAt.toISOString(),
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
@@ -158,17 +183,53 @@ export async function PATCH(
       }
     }
 
-    // Update the training request
-    const updatedTraining = await prisma.trainingRequest.update({
-      where: { id: trainingId },
-      data: { status: body.status },
+    // Determine if we need to cancel or confirm booking
+    const shouldCancelBooking = body.status === "cancelled" || body.status === "rejected";
+    const shouldConfirmBooking = body.status === "confirmed";
+
+    // Update training request and booking in a transaction
+    const updatedTraining = await prisma.$transaction(async (tx) => {
+      const updated = await tx.trainingRequest.update({
+        where: { id: trainingId },
+        data: { status: body.status },
+      });
+
+      // Handle booking status based on training status change
+      if (training.bookingId) {
+        if (shouldCancelBooking) {
+          await tx.booking.update({
+            where: { id: training.bookingId },
+            data: { status: "cancelled" },
+          });
+        } else if (shouldConfirmBooking) {
+          await tx.booking.update({
+            where: { id: training.bookingId },
+            data: { status: "reserved" },
+          });
+        }
+      }
+
+      return updated;
     });
+
+    // Get court name for response
+    let courtName = null;
+    if (training.courtId) {
+      const court = await prisma.court.findUnique({
+        where: { id: training.courtId },
+        select: { name: true },
+      });
+      courtName = court?.name || null;
+    }
 
     return NextResponse.json({
       id: updatedTraining.id,
       trainerId: updatedTraining.trainerId,
       playerId: updatedTraining.playerId,
       clubId: updatedTraining.clubId,
+      courtId: updatedTraining.courtId,
+      courtName,
+      bookingId: updatedTraining.bookingId,
       date: updatedTraining.date.toISOString().split("T")[0],
       time: updatedTraining.time,
       comment: updatedTraining.comment,

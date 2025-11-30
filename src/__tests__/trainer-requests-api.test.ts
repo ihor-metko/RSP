@@ -25,6 +25,15 @@ jest.mock("@/lib/prisma", () => ({
     club: {
       findUnique: jest.fn(),
     },
+    court: {
+      findUnique: jest.fn(),
+    },
+    booking: {
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      update: jest.fn(),
+    },
+    $transaction: jest.fn(),
   },
 }));
 
@@ -309,6 +318,8 @@ describe("Trainer Requests API", () => {
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: "Test",
@@ -323,15 +334,36 @@ describe("Trainer Requests API", () => {
       // No conflicting request
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
 
-      (prisma.trainingRequest.update as jest.Mock).mockResolvedValue({
+      // Mock booking lookup
+      (prisma.booking.findUnique as jest.Mock).mockResolvedValue({
+        id: "booking-1",
+        courtId: "court-1",
+        start: new Date("2024-01-15T10:00:00.000Z"),
+        end: new Date("2024-01-15T11:00:00.000Z"),
+        status: "pending",
+      });
+
+      // No conflicting court booking
+      (prisma.booking.findFirst as jest.Mock).mockResolvedValue(null);
+
+      const confirmedResult = {
         id: "req-1",
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: "Test",
         status: "confirmed",
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue(confirmedResult);
+
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue({
+        id: "court-1",
+        name: "Court 1",
       });
 
       const request = new Request("http://localhost:3000/api/trainer/requests/req-1/confirm", {
@@ -455,6 +487,8 @@ describe("Trainer Requests API", () => {
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: "Test",
@@ -466,16 +500,20 @@ describe("Trainer Requests API", () => {
         userId: "coach-user-123",
       });
 
-      (prisma.trainingRequest.update as jest.Mock).mockResolvedValue({
+      const rejectedResult = {
         id: "req-1",
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: "court-1",
+        bookingId: "booking-1",
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: "Test",
         status: "rejected",
-      });
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue(rejectedResult);
 
       const request = new Request("http://localhost:3000/api/trainer/requests/req-1/reject", {
         method: "PUT",
@@ -500,6 +538,8 @@ describe("Trainer Requests API", () => {
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: null,
+        bookingId: null,
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: "Test",
@@ -508,16 +548,20 @@ describe("Trainer Requests API", () => {
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue(null);
 
-      (prisma.trainingRequest.update as jest.Mock).mockResolvedValue({
+      const rejectedResult = {
         id: "req-1",
         trainerId: "trainer-123",
         playerId: "player-123",
         clubId: "club-123",
+        courtId: null,
+        bookingId: null,
         date: new Date("2024-01-15"),
         time: "10:00",
         comment: "Test",
         status: "rejected",
-      });
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue(rejectedResult);
 
       const request = new Request("http://localhost:3000/api/trainer/requests/req-1/reject", {
         method: "PUT",
