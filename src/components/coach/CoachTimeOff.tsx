@@ -6,8 +6,13 @@ import type { CoachTimeOffEntry } from "@/types/coach";
 import "./CoachTimeOff.css";
 
 interface CoachTimeOffProps {
+  // coachId is passed for consistency with other coach components but not used
+  // since the API uses the authenticated session to determine the coach
   coachId: string;
 }
+
+// Maximum number of past time off entries to display
+const MAX_PAST_ENTRIES = 5;
 
 // Format date for display
 function formatDateForDisplay(dateStr: string): string {
@@ -314,7 +319,7 @@ export function CoachTimeOff({ coachId }: CoachTimeOffProps) {
           <div className="tm-timeoff-section">
             <h3 className="tm-timeoff-section-title">Past</h3>
             <div className="tm-timeoff-list">
-              {pastTimeOffs.slice(0, 5).map((entry) => (
+              {pastTimeOffs.slice(0, MAX_PAST_ENTRIES).map((entry) => (
                 <div key={entry.id} className="tm-timeoff-item tm-timeoff-item--past">
                   <div className="tm-timeoff-item-content">
                     <div className="tm-timeoff-item-date">
