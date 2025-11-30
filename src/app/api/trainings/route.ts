@@ -284,8 +284,11 @@ export async function POST(request: Request) {
         body.time,
         TRAINING_DURATION_MINUTES
       );
-    } catch {
-      // Use default price if price calculation fails
+    } catch (priceError) {
+      // Log error in development and fall back to default price
+      if (process.env.NODE_ENV === "development") {
+        console.error("Price calculation failed, using default:", priceError);
+      }
       resolvedPrice = availableCourt.defaultPriceCents;
     }
 

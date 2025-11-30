@@ -108,20 +108,6 @@
          text-blue-700 dark:text-blue-300 rounded text-sm;
 }
 
-/* Toast */
-.tm-training-toast {
-  @apply fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg max-w-sm 
-         animate-pulse;
-}
-
-.tm-training-toast--success {
-  @apply bg-green-500 text-white;
-}
-
-.tm-training-toast--error {
-  @apply bg-red-500 text-white;
-}
-
 /* Modal Content */
 .tm-training-modal-content {
   @apply space-y-4;

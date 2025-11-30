@@ -55,15 +55,14 @@ export async function PUT(
       );
     }
 
-    // Check for double-booking conflicts
-    // Find any confirmed training at the same time for this trainer
+    // Check for double-booking conflicts (preliminary check before transaction)
     const conflictingRequest = await prisma.trainingRequest.findFirst({
       where: {
         trainerId: trainingRequest.trainerId,
         date: trainingRequest.date,
         time: trainingRequest.time,
         status: "confirmed",
-        id: { not: requestId }, // Exclude this request
+        id: { not: requestId },
       },
     });
 
@@ -74,76 +73,106 @@ export async function PUT(
       );
     }
 
-    // If there's a booking associated, verify the court is still available
-    if (trainingRequest.bookingId) {
-      const booking = await prisma.booking.findUnique({
-        where: { id: trainingRequest.bookingId },
-      });
-
-      if (booking) {
-        // Check if there are any other confirmed bookings for the same court/time
-        const conflictingBooking = await prisma.booking.findFirst({
+    // Update training request and booking in a transaction with conflict checks
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Re-check for conflicting training requests inside transaction to prevent race conditions
+        const txConflictingRequest = await tx.trainingRequest.findFirst({
           where: {
-            courtId: booking.courtId,
-            start: { lt: booking.end },
-            end: { gt: booking.start },
-            status: { in: ["reserved", "paid"] },
-            id: { not: booking.id },
+            trainerId: trainingRequest.trainerId,
+            date: trainingRequest.date,
+            time: trainingRequest.time,
+            status: "confirmed",
+            id: { not: requestId },
           },
         });
 
-        if (conflictingBooking) {
+        if (txConflictingRequest) {
+          throw new Error("TRAINER_CONFLICT");
+        }
+
+        // If there's a booking associated, verify the court is still available
+        if (trainingRequest.bookingId) {
+          const booking = await tx.booking.findUnique({
+            where: { id: trainingRequest.bookingId },
+          });
+
+          if (booking) {
+            // Check if there are any other confirmed bookings for the same court/time
+            const conflictingBooking = await tx.booking.findFirst({
+              where: {
+                courtId: booking.courtId,
+                start: { lt: booking.end },
+                end: { gt: booking.start },
+                status: { in: ["reserved", "paid"] },
+                id: { not: booking.id },
+              },
+            });
+
+            if (conflictingBooking) {
+              throw new Error("COURT_CONFLICT");
+            }
+          }
+        }
+
+        // Update the training request status to confirmed
+        const updatedRequest = await tx.trainingRequest.update({
+          where: { id: requestId },
+          data: { status: "confirmed" },
+        });
+
+        // If there's an associated booking, update it to reserved
+        if (trainingRequest.bookingId) {
+          await tx.booking.update({
+            where: { id: trainingRequest.bookingId },
+            data: { status: "reserved" },
+          });
+        }
+
+        return updatedRequest;
+      });
+
+      // Get court name for response
+      let courtName = null;
+      if (trainingRequest.courtId) {
+        const court = await prisma.court.findUnique({
+          where: { id: trainingRequest.courtId },
+          select: { name: true },
+        });
+        courtName = court?.name || null;
+      }
+
+      return NextResponse.json({
+        id: result.id,
+        trainerId: result.trainerId,
+        playerId: result.playerId,
+        clubId: result.clubId,
+        courtId: result.courtId,
+        courtName,
+        bookingId: result.bookingId,
+        date: result.date.toISOString().split("T")[0],
+        time: result.time,
+        comment: result.comment,
+        status: result.status,
+        message: "Training request confirmed successfully",
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === "TRAINER_CONFLICT") {
+          return NextResponse.json(
+            { error: "Cannot confirm: trainer already has a confirmed session at this time" },
+            { status: 409 }
+          );
+        }
+        if (error.message === "COURT_CONFLICT") {
           return NextResponse.json(
             { error: "Cannot confirm: the court is already booked by another player" },
             { status: 409 }
           );
         }
       }
+      throw error;
     }
-
-    // Update training request and booking in a transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Update the training request status to confirmed
-      const updatedRequest = await tx.trainingRequest.update({
-        where: { id: requestId },
-        data: { status: "confirmed" },
-      });
-
-      // If there's an associated booking, update it to reserved
-      if (trainingRequest.bookingId) {
-        await tx.booking.update({
-          where: { id: trainingRequest.bookingId },
-          data: { status: "reserved" },
-        });
-      }
-
-      return updatedRequest;
-    });
-
-    // Get court name for response
-    let courtName = null;
-    if (trainingRequest.courtId) {
-      const court = await prisma.court.findUnique({
-        where: { id: trainingRequest.courtId },
-        select: { name: true },
-      });
-      courtName = court?.name || null;
-    }
-
-    return NextResponse.json({
-      id: result.id,
-      trainerId: result.trainerId,
-      playerId: result.playerId,
-      clubId: result.clubId,
-      courtId: result.courtId,
-      courtName,
-      bookingId: result.bookingId,
-      date: result.date.toISOString().split("T")[0],
-      time: result.time,
-      comment: result.comment,
-      status: result.status,
-      message: "Training request confirmed successfully",
-    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error confirming training request:", error);

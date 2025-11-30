@@ -55,7 +55,6 @@ export function TrainingHistory() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [selectedTraining, setSelectedTraining] = useState<TrainingRequest | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const fetchTrainings = useCallback(async () => {
     try {
@@ -91,11 +90,11 @@ export function TrainingHistory() {
     fetchTrainings();
   }, [fetchTrainings]);
 
-  // Set up polling for real-time updates
+  // Set up polling for real-time updates (every 60 seconds to reduce server load)
   useEffect(() => {
     const interval = setInterval(() => {
       fetchTrainings();
-    }, 30000); // Poll every 30 seconds
+    }, 60000); // Poll every 60 seconds
 
     return () => clearInterval(interval);
   }, [fetchTrainings]);
@@ -179,18 +178,6 @@ export function TrainingHistory() {
 
   return (
     <div className="tm-training-history">
-      {/* Toast notification */}
-      {toast && (
-        <div
-          className={`tm-training-toast ${
-            toast.type === "success" ? "tm-training-toast--success" : "tm-training-toast--error"
-          }`}
-          role="alert"
-        >
-          {toast.message}
-        </div>
-      )}
-
       {/* Filter Controls */}
       <div className="tm-training-controls">
         <div className="tm-filter-group">
