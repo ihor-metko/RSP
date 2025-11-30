@@ -1,0 +1,107 @@
+.tm-request-training-modal {
+  @apply w-full;
+}
+
+.tm-request-training-form {
+  @apply space-y-4;
+}
+
+.tm-trainer-availability {
+  @apply mt-3 p-3 rounded-md text-sm;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-trainer-availability-title {
+  @apply font-medium mb-2;
+  color: var(--rsp-foreground);
+}
+
+.tm-trainer-availability-item {
+  @apply py-1 flex justify-between items-center text-sm;
+}
+
+.tm-trainer-availability-date {
+  @apply font-medium;
+  color: var(--rsp-foreground);
+}
+
+.tm-trainer-availability-hours {
+  color: var(--rsp-primary);
+}
+
+.tm-trainer-availability-none {
+  @apply text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.tm-request-training-status {
+  @apply mt-4 p-4 rounded-md;
+}
+
+.tm-request-training-status--pending {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.dark .tm-request-training-status--pending {
+  @apply bg-yellow-900 text-yellow-200;
+}
+
+.tm-request-training-status--success {
+  @apply bg-green-100 text-green-800;
+}
+
+.dark .tm-request-training-status--success {
+  @apply bg-green-900 text-green-200;
+}
+
+.tm-training-request-card {
+  @apply p-4 rounded-md mb-3;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-training-request-header {
+  @apply flex justify-between items-start mb-2;
+}
+
+.tm-training-request-info {
+  @apply text-sm mb-2;
+}
+
+.tm-training-request-status {
+  @apply px-2 py-1 rounded text-xs font-medium;
+}
+
+.tm-training-request-status--pending {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.dark .tm-training-request-status--pending {
+  @apply bg-yellow-900 text-yellow-200;
+}
+
+.tm-training-request-status--confirmed {
+  @apply bg-green-100 text-green-800;
+}
+
+.dark .tm-training-request-status--confirmed {
+  @apply bg-green-900 text-green-200;
+}
+
+.tm-training-request-status--rejected {
+  @apply bg-red-100 text-red-800;
+}
+
+.dark .tm-training-request-status--rejected {
+  @apply bg-red-900 text-red-200;
+}
+
+.tm-training-request-status--cancelled {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.dark .tm-training-request-status--cancelled {
+  @apply bg-gray-700 text-gray-300;
+}

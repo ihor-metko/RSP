@@ -167,3 +167,20 @@ model PricingRule {
   price     Int
   createdAt DateTime @default(now())
 }
+
+model TrainingRequest {
+  id        String   @id @default(uuid())
+  trainerId String
+  playerId  String
+  clubId    String
+  date      DateTime @db.Date
+  time      String   // "HH:MM" format
+  comment   String?
+  status    String   @default("pending") // "pending", "confirmed", "rejected", "cancelled"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([trainerId])
+  @@index([playerId])
+  @@index([clubId])
+}

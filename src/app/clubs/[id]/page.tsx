@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
+import { RequestTrainingModal } from "@/components/training/RequestTrainingModal";
 import { CourtCard } from "@/components/CourtCard";
 import { CourtSlotsToday } from "@/components/CourtSlotsToday";
 import { Button } from "@/components/ui";
@@ -52,6 +53,7 @@ export default function ClubDetailPage({
   const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
   const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
+  const [isRequestTrainingOpen, setIsRequestTrainingOpen] = useState(false);
   const [preselectedSlot, setPreselectedSlot] = useState<Slot | null>(null);
 
   // Get user ID from session, or use a placeholder for unauthenticated users
@@ -184,6 +186,21 @@ export default function ClubDetailPage({
     setIsQuickBookingOpen(false);
   };
 
+  // Handle Request Training button click
+  const handleRequestTrainingClick = () => {
+    // If user is not authenticated, trigger login flow
+    if (authStatus === "unauthenticated") {
+      signIn();
+      return;
+    }
+    setIsRequestTrainingOpen(true);
+  };
+
+  // Handle closing the Request Training modal
+  const handleRequestTrainingClose = () => {
+    setIsRequestTrainingOpen(false);
+  };
+
   // Handle closing the Booking modal
   const handleCloseBookingModal = () => {
     setIsModalOpen(false);
@@ -284,6 +301,20 @@ export default function ClubDetailPage({
         )}
       </section>
 
+      {/* Request Training button - below courts list */}
+      {club.coaches.length > 0 && (
+        <div className="tm-request-training-action mt-6">
+          <Button
+            onClick={handleRequestTrainingClick}
+            className="tm-request-training-btn"
+            variant="outline"
+            aria-label="Request Training"
+          >
+            Request Training
+          </Button>
+        </div>
+      )}
+
       <div className="mt-8">
         <Link href="/clubs" className="text-blue-500 hover:underline">
           ← Back to Clubs
@@ -307,6 +338,15 @@ export default function ClubDetailPage({
         isOpen={isQuickBookingOpen}
         onClose={handleQuickBookingClose}
         onSelectCourt={handleQuickBookingSelectCourt}
+      />
+
+      {/* Request Training Modal */}
+      <RequestTrainingModal
+        clubId={club.id}
+        trainers={club.coaches}
+        playerId={userId}
+        isOpen={isRequestTrainingOpen}
+        onClose={handleRequestTrainingClose}
       />
     </main>
   );
