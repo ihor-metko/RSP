@@ -1,0 +1,186 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/requireRole";
+
+/**
+ * GET /api/trainings/[id]
+ * Get a specific training request
+ */
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const authResult = await requireRole(request, ["player", "coach", "admin"]);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    const resolvedParams = await params;
+    const trainingId = resolvedParams.id;
+
+    const training = await prisma.trainingRequest.findUnique({
+      where: { id: trainingId },
+    });
+
+    if (!training) {
+      return NextResponse.json(
+        { error: "Training request not found" },
+        { status: 404 }
+      );
+    }
+
+    // Authorization: players can only see their own requests
+    if (authResult.userRole === "player" && training.playerId !== authResult.userId) {
+      return NextResponse.json(
+        { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    // Coaches can only see requests assigned to them
+    if (authResult.userRole === "coach") {
+      const coach = await prisma.coach.findFirst({
+        where: { userId: authResult.userId },
+      });
+      if (!coach || training.trainerId !== coach.id) {
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 }
+        );
+      }
+    }
+
+    return NextResponse.json({
+      id: training.id,
+      trainerId: training.trainerId,
+      playerId: training.playerId,
+      clubId: training.clubId,
+      date: training.date.toISOString().split("T")[0],
+      time: training.time,
+      comment: training.comment,
+      status: training.status,
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error fetching training request:", error);
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/trainings/[id]
+ * Update training request status (cancel, confirm, reject)
+ */
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const authResult = await requireRole(request, ["player", "coach", "admin"]);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    const resolvedParams = await params;
+    const trainingId = resolvedParams.id;
+    const body = await request.json();
+
+    if (!body.status) {
+      return NextResponse.json(
+        { error: "Missing required field: status" },
+        { status: 400 }
+      );
+    }
+
+    const validStatuses = ["pending", "confirmed", "rejected", "cancelled"];
+    if (!validStatuses.includes(body.status)) {
+      return NextResponse.json(
+        { error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const training = await prisma.trainingRequest.findUnique({
+      where: { id: trainingId },
+    });
+
+    if (!training) {
+      return NextResponse.json(
+        { error: "Training request not found" },
+        { status: 404 }
+      );
+    }
+
+    // Authorization checks
+    // Players can only cancel their own pending requests
+    if (authResult.userRole === "player") {
+      if (training.playerId !== authResult.userId) {
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 }
+        );
+      }
+      if (body.status !== "cancelled") {
+        return NextResponse.json(
+          { error: "Players can only cancel their requests" },
+          { status: 400 }
+        );
+      }
+      if (training.status !== "pending") {
+        return NextResponse.json(
+          { error: "Can only cancel pending requests" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Coaches can confirm or reject requests assigned to them
+    if (authResult.userRole === "coach") {
+      const coach = await prisma.coach.findFirst({
+        where: { userId: authResult.userId },
+      });
+      if (!coach || training.trainerId !== coach.id) {
+        return NextResponse.json(
+          { error: "Forbidden" },
+          { status: 403 }
+        );
+      }
+      if (!["confirmed", "rejected"].includes(body.status)) {
+        return NextResponse.json(
+          { error: "Coaches can only confirm or reject requests" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Update the training request
+    const updatedTraining = await prisma.trainingRequest.update({
+      where: { id: trainingId },
+      data: { status: body.status },
+    });
+
+    return NextResponse.json({
+      id: updatedTraining.id,
+      trainerId: updatedTraining.trainerId,
+      playerId: updatedTraining.playerId,
+      clubId: updatedTraining.clubId,
+      date: updatedTraining.date.toISOString().split("T")[0],
+      time: updatedTraining.time,
+      comment: updatedTraining.comment,
+      status: updatedTraining.status,
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error updating training request:", error);
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
