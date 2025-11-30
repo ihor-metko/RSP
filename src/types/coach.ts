@@ -48,3 +48,44 @@ export interface UpdateAvailabilitySlotRequest {
 export interface AvailabilityResponse {
   slots: CoachWeeklyAvailabilitySlot[];
 }
+
+/**
+ * Coach Time Off entry
+ */
+export interface CoachTimeOffEntry {
+  id: string;
+  coachId: string;
+  date: string;       // "YYYY-MM-DD" format
+  startTime?: string | null; // "HH:mm" format, null for full-day off
+  endTime?: string | null;   // "HH:mm" format, null for full-day off
+  reason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Request body for creating a new time off entry
+ */
+export interface CreateTimeOffRequest {
+  date: string;         // "YYYY-MM-DD" format
+  startTime?: string;   // "HH:mm" format, optional for full-day off
+  endTime?: string;     // "HH:mm" format, optional for full-day off
+  reason?: string;
+}
+
+/**
+ * Request body for updating a time off entry
+ */
+export interface UpdateTimeOffRequest {
+  date?: string;         // "YYYY-MM-DD" format
+  startTime?: string | null;   // "HH:mm" format
+  endTime?: string | null;     // "HH:mm" format
+  reason?: string | null;
+}
+
+/**
+ * Response for time off endpoints
+ */
+export interface TimeOffResponse {
+  timeOffs: CoachTimeOffEntry[];
+}

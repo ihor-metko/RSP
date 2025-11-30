@@ -117,6 +117,7 @@ model Coach {
   phone                String?
   availabilities       CoachAvailability[]
   weeklyAvailabilities CoachWeeklyAvailability[]
+  timeOffs             CoachTimeOff[]
   createdAt            DateTime                  @default(now())
   bookings             Booking[]
 }
@@ -143,6 +144,21 @@ model CoachWeeklyAvailability {
 
   @@index([coachId])
   @@index([coachId, dayOfWeek])
+}
+
+model CoachTimeOff {
+  id        String    @id @default(uuid())
+  coach     Coach     @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  coachId   String
+  date      DateTime  @db.Date
+  startTime String?   // "HH:mm" format, optional for full-day off
+  endTime   String?   // "HH:mm" format, optional for full-day off
+  reason    String?   // Optional comment
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([coachId])
+  @@index([coachId, date])
 }
 
 model Booking {

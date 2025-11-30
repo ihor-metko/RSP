@@ -360,6 +360,9 @@ export default function CoachDashboardPage() {
           <Link href="/coach/availability">
             <Button variant="outline">Manage Weekly Availability</Button>
           </Link>
+          <Link href="/coach/timeoff">
+            <Button variant="outline">Manage Time Off</Button>
+          </Link>
         </div>
       </div>
 
