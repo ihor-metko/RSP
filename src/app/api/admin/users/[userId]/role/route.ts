@@ -24,7 +24,7 @@ export async function POST(
     const userId = resolvedParams.userId;
 
     const body = await request.json();
-    const { role, clubId, bio, phone } = body;
+    const { role, clubIds, bio, phone } = body;
 
     if (!isValidRole(role)) {
       return NextResponse.json(
@@ -50,6 +50,29 @@ export async function POST(
       );
     }
 
+    // When assigning coach role, validate that at least one club is selected
+    if (role === "coach") {
+      if (!clubIds || !Array.isArray(clubIds) || clubIds.length === 0) {
+        return NextResponse.json(
+          { error: "At least one club must be selected when assigning coach role" },
+          { status: 400 }
+        );
+      }
+
+      // Validate that all provided clubIds exist
+      const clubs = await prisma.club.findMany({
+        where: { id: { in: clubIds } },
+        select: { id: true },
+      });
+
+      if (clubs.length !== clubIds.length) {
+        return NextResponse.json(
+          { error: "One or more selected clubs do not exist" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Use a transaction to ensure atomicity
     const result = await prisma.$transaction(async (tx) => {
       // Update user role
@@ -65,35 +88,86 @@ export async function POST(
         },
       });
 
-      let coach = null;
+      let coaches: Array<{
+        id: string;
+        userId: string;
+        clubId: string | null;
+        bio: string | null;
+        phone: string | null;
+        createdAt: Date;
+      }> = [];
 
-      // If assigning coach role, create Coach record if it doesn't exist
-      if (role === "coach" && existingUser.role !== "coach") {
-        // Check if Coach record already exists
-        const existingCoach = await tx.coach.findFirst({
+      // If assigning coach role, create/update Coach records for each club
+      if (role === "coach") {
+        // Get existing coach records for this user
+        const existingCoaches = await tx.coach.findMany({
           where: { userId },
         });
 
-        if (!existingCoach) {
-          coach = await tx.coach.create({
+        const existingClubIds = existingCoaches
+          .filter((c) => c.clubId !== null)
+          .map((c) => c.clubId as string);
+
+        // Use Sets for O(1) lookup performance
+        const existingClubIdSet = new Set(existingClubIds);
+        const newClubIdSet = new Set(clubIds as string[]);
+
+        // Determine which clubs to add and which to remove
+        const clubIdsToAdd = clubIds.filter(
+          (id: string) => !existingClubIdSet.has(id)
+        );
+        const clubIdsToRemove = existingClubIds.filter(
+          (id: string) => !newClubIdSet.has(id)
+        );
+
+        // Remove coach records for clubs that are no longer selected
+        if (clubIdsToRemove.length > 0) {
+          const clubIdsToRemoveSet = new Set(clubIdsToRemove);
+          // First find the coach IDs to remove
+          const coachesToRemove = existingCoaches.filter(
+            (c) => c.clubId && clubIdsToRemoveSet.has(c.clubId)
+          );
+          const coachIdsToRemove = coachesToRemove.map((c) => c.id);
+
+          // Delete their availability records
+          if (coachIdsToRemove.length > 0) {
+            await tx.coachAvailability.deleteMany({
+              where: { coachId: { in: coachIdsToRemove } },
+            });
+          }
+
+          await tx.coach.deleteMany({
+            where: {
+              userId,
+              clubId: { in: clubIdsToRemove },
+            },
+          });
+        }
+
+        // Create coach records for new clubs
+        for (const cId of clubIdsToAdd) {
+          await tx.coach.create({
             data: {
               userId,
-              clubId: clubId || null,
+              clubId: cId,
               bio: bio || null,
               phone: phone || null,
             },
-            select: {
-              id: true,
-              userId: true,
-              clubId: true,
-              bio: true,
-              phone: true,
-              createdAt: true,
-            },
           });
-        } else {
-          coach = existingCoach;
         }
+
+        // Fetch the updated coach records
+        coaches = await tx.coach.findMany({
+          where: { userId },
+          select: {
+            id: true,
+            userId: true,
+            clubId: true,
+            bio: true,
+            phone: true,
+            createdAt: true,
+          },
+        });
       }
 
       // If changing from coach to player, delete Coach records
@@ -120,7 +194,7 @@ export async function POST(
         });
       }
 
-      return { user: updatedUser, coach };
+      return { user: updatedUser, coaches };
     });
 
     return NextResponse.json(result);

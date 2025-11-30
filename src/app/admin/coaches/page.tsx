@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button, Card, Input, Modal } from "@/components/ui";
+import { Button, Card, Input, Modal, Select } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
+import type { Club } from "@/types/club";
 
 interface User {
   id: string;
@@ -19,18 +20,21 @@ interface CoachFormData {
   name: string;
   email: string;
   password: string;
+  clubIds: string[];
 }
 
 const initialFormData: CoachFormData = {
   name: "",
   email: "",
   password: "",
+  clubIds: [],
 };
 
 export default function AdminCoachesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,6 +43,7 @@ export default function AdminCoachesPage() {
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [targetRole, setTargetRole] = useState<"coach" | "player">("coach");
+  const [selectedClubIds, setSelectedClubIds] = useState<string[]>([]);
   const [formData, setFormData] = useState<CoachFormData>(initialFormData);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -48,6 +53,21 @@ export default function AdminCoachesPage() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
+
+  const fetchClubs = useCallback(async () => {
+    try {
+      const response = await fetch("/api/admin/clubs");
+      if (response.ok) {
+        const data = await response.json();
+        setClubs(data);
+      }
+    } catch (err) {
+      // Log error for debugging but don't block the UI
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to load clubs:", err);
+      }
+    }
+  }, []);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -83,7 +103,8 @@ export default function AdminCoachesPage() {
     }
 
     fetchUsers();
-  }, [session, status, router, fetchUsers]);
+    fetchClubs();
+  }, [session, status, router, fetchUsers, fetchClubs]);
 
   const handleOpenCreateModal = () => {
     setFormData(initialFormData);
@@ -100,12 +121,16 @@ export default function AdminCoachesPage() {
   const handleOpenRoleModal = (user: User, role: "coach" | "player") => {
     setSelectedUser(user);
     setTargetRole(role);
+    setSelectedClubIds([]);
+    setFormError("");
     setIsRoleModalOpen(true);
   };
 
   const handleCloseRoleModal = () => {
     setIsRoleModalOpen(false);
     setSelectedUser(null);
+    setSelectedClubIds([]);
+    setFormError("");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,16 +138,38 @@ export default function AdminCoachesPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleClubSelectChange = (value: string | string[]) => {
+    const clubIds = Array.isArray(value) ? value : [value];
+    setFormData((prev) => ({ ...prev, clubIds }));
+  };
+
+  const handleRoleModalClubSelectChange = (value: string | string[]) => {
+    const clubIds = Array.isArray(value) ? value : [value];
+    setSelectedClubIds(clubIds);
+  };
+
   const handleCreateCoach = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
+
+    // Validate club selection
+    if (formData.clubIds.length === 0) {
+      setFormError("Please select at least one club");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
+      // First create the user
       const response = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
       });
 
       if (!response.ok) {
@@ -130,9 +177,26 @@ export default function AdminCoachesPage() {
         throw new Error(data.error || "Failed to create coach");
       }
 
+      const newUser = await response.json();
+
+      // Then update their role with club assignment
+      const roleResponse = await fetch(`/api/admin/users/${newUser.id}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: "coach",
+          clubIds: formData.clubIds,
+        }),
+      });
+
+      if (!roleResponse.ok) {
+        const data = await roleResponse.json();
+        throw new Error(data.error || "Failed to assign coach to club");
+      }
+
       handleCloseCreateModal();
       fetchUsers();
-      showToast("Coach created successfully", "success");
+      showToast("Trainer role assigned and linked to club(s) successfully.", "success");
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Failed to create coach");
     } finally {
@@ -143,12 +207,23 @@ export default function AdminCoachesPage() {
   const handleUpdateRole = async () => {
     if (!selectedUser) return;
 
+    // Validate club selection when assigning coach role
+    if (targetRole === "coach" && selectedClubIds.length === 0) {
+      setFormError("Please select at least one club");
+      return;
+    }
+
     setSubmitting(true);
+    setFormError("");
+
     try {
       const response = await fetch(`/api/admin/users/${selectedUser.id}/role`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: targetRole }),
+        body: JSON.stringify({
+          role: targetRole,
+          clubIds: targetRole === "coach" ? selectedClubIds : undefined,
+        }),
       });
 
       if (!response.ok) {
@@ -160,12 +235,14 @@ export default function AdminCoachesPage() {
       fetchUsers();
       showToast(
         targetRole === "coach" 
-          ? "User assigned as coach successfully" 
+          ? "Trainer role assigned and linked to club(s) successfully." 
           : "Coach role removed successfully",
         "success"
       );
     } catch (err) {
-      showToast(err instanceof Error ? err.message : "Failed to update role", "error");
+      const errorMessage = err instanceof Error ? err.message : "Failed to update role";
+      setFormError(errorMessage);
+      showToast(errorMessage, "error");
     } finally {
       setSubmitting(false);
     }
@@ -183,6 +260,11 @@ export default function AdminCoachesPage() {
         return "bg-gray-500";
     }
   };
+
+  const clubOptions = clubs.map((club) => ({
+    value: club.id,
+    label: club.name,
+  }));
 
   if (status === "loading" || loading) {
     return (
@@ -364,11 +446,24 @@ export default function AdminCoachesPage() {
             placeholder="Temporary password"
             required
           />
+          <Select
+            label="Assign to Club(s) *"
+            options={clubOptions}
+            multiple
+            value={formData.clubIds}
+            onChange={handleClubSelectChange}
+            required
+          />
+          {clubs.length === 0 && (
+            <p className="text-sm text-gray-500">
+              No clubs available. Please create a club first.
+            </p>
+          )}
           <div className="flex justify-end gap-2 mt-4">
             <Button type="button" variant="outline" onClick={handleCloseCreateModal}>
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" disabled={submitting || clubs.length === 0}>
               {submitting ? "Creating..." : "Create Coach"}
             </Button>
           </div>
@@ -381,35 +476,61 @@ export default function AdminCoachesPage() {
         onClose={handleCloseRoleModal}
         title={targetRole === "coach" ? "Assign as Coach" : "Remove Coach Role"}
       >
-        <p className="mb-4">
-          {targetRole === "coach" ? (
+        <div className="space-y-4">
+          {formError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+              {formError}
+            </div>
+          )}
+          <p>
+            {targetRole === "coach" ? (
+              <>
+                Are you sure you want to assign{" "}
+                <strong>{selectedUser?.name || selectedUser?.email}</strong> as a coach?
+              </>
+            ) : (
+              <>
+                Are you sure you want to remove coach role from{" "}
+                <strong>{selectedUser?.name || selectedUser?.email}</strong>? They will
+                become a regular player.
+              </>
+            )}
+          </p>
+          
+          {targetRole === "coach" && (
             <>
-              Are you sure you want to assign{" "}
-              <strong>{selectedUser?.name || selectedUser?.email}</strong> as a coach?
-            </>
-          ) : (
-            <>
-              Are you sure you want to remove coach role from{" "}
-              <strong>{selectedUser?.name || selectedUser?.email}</strong>? They will
-              become a regular player.
+              <Select
+                label="Assign to Club(s) *"
+                options={clubOptions}
+                multiple
+                value={selectedClubIds}
+                onChange={handleRoleModalClubSelectChange}
+                required
+              />
+              {clubs.length === 0 && (
+                <p className="text-sm text-gray-500">
+                  No clubs available. Please create a club first.
+                </p>
+              )}
             </>
           )}
-        </p>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={handleCloseRoleModal}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleUpdateRole}
-            disabled={submitting}
-            className={targetRole === "player" ? "bg-red-500 hover:bg-red-600" : ""}
-          >
-            {submitting
-              ? "Processing..."
-              : targetRole === "coach"
-              ? "Assign as Coach"
-              : "Remove Coach"}
-          </Button>
+          
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCloseRoleModal}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateRole}
+              disabled={submitting || (targetRole === "coach" && clubs.length === 0)}
+              className={targetRole === "player" ? "bg-red-500 hover:bg-red-600" : ""}
+            >
+              {submitting
+                ? "Processing..."
+                : targetRole === "coach"
+                ? "Assign as Coach"
+                : "Remove Coach"}
+            </Button>
+          </div>
         </div>
       </Modal>
     </main>

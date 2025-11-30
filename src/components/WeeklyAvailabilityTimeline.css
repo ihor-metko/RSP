@@ -1,0 +1,245 @@
+/* Weekly Availability Timeline Styles */
+.tm-weekly-timeline {
+  @apply w-full overflow-x-auto;
+}
+
+.tm-weekly-timeline-container {
+  @apply min-w-[800px] rounded-lg p-4;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-weekly-timeline-header {
+  @apply flex justify-between items-center mb-4;
+}
+
+.tm-weekly-timeline-title {
+  @apply text-lg font-semibold;
+}
+
+.tm-weekly-timeline-week-nav {
+  @apply flex items-center gap-2;
+}
+
+.tm-weekly-timeline-week-label {
+  @apply text-sm px-3;
+  color: var(--rsp-foreground);
+}
+
+.tm-weekly-timeline-nav-btn {
+  @apply px-3 py-1 rounded text-sm transition-colors;
+  background-color: var(--rsp-border);
+  color: var(--rsp-foreground);
+}
+
+.tm-weekly-timeline-nav-btn:hover {
+  background-color: var(--rsp-primary);
+  color: white;
+}
+
+/* Grid layout - 14 columns for hours (BUSINESS_END_HOUR - BUSINESS_START_HOUR = 22 - 8) */
+.tm-weekly-grid {
+  @apply grid gap-px;
+  /* First column is day label (80px), remaining 14 are hourly slots */
+  grid-template-columns: 80px repeat(14, minmax(50px, 1fr));
+  background-color: var(--rsp-border);
+}
+
+/* Header row */
+.tm-weekly-grid-header {
+  @apply contents;
+}
+
+.tm-weekly-grid-corner {
+  @apply p-2 text-xs font-medium text-center;
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+}
+
+.tm-weekly-grid-hour-header {
+  @apply p-2 text-xs font-medium text-center;
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+}
+
+/* Day rows */
+.tm-weekly-grid-row {
+  @apply contents;
+}
+
+.tm-weekly-grid-day-label {
+  @apply p-2 text-xs font-medium flex items-center;
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+}
+
+/* Availability blocks */
+.tm-availability-block {
+  @apply p-1 text-xs text-center cursor-pointer transition-all flex items-center justify-center;
+  min-height: 36px;
+}
+
+.tm-availability-block:hover {
+  @apply opacity-80 ring-2 ring-offset-1;
+  ring-color: var(--rsp-primary);
+}
+
+.tm-availability-block:focus {
+  @apply outline-none ring-2;
+  ring-color: var(--rsp-primary);
+}
+
+.tm-availability-block--available {
+  background-color: #22c55e;
+  color: white;
+}
+
+.tm-availability-block--partial {
+  background-color: #eab308;
+  color: #1f2937;
+}
+
+.tm-availability-block--booked {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* Dark theme adjustments */
+.dark .tm-availability-block--available {
+  background-color: #16a34a;
+}
+
+.dark .tm-availability-block--partial {
+  background-color: #ca8a04;
+  color: white;
+}
+
+.dark .tm-availability-block--booked {
+  background-color: #dc2626;
+}
+
+/* Tooltip */
+.tm-availability-tooltip {
+  @apply absolute z-50 p-2 rounded shadow-lg text-xs max-w-[200px];
+  background-color: var(--rsp-foreground);
+  color: var(--rsp-background);
+}
+
+.tm-availability-tooltip::after {
+  @apply absolute;
+  content: "";
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--rsp-foreground) transparent transparent transparent;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tm-tooltip-title {
+  @apply font-semibold mb-1;
+}
+
+.tm-tooltip-summary {
+  @apply flex gap-2 text-[10px];
+}
+
+.tm-tooltip-stat {
+  @apply flex items-center gap-1;
+}
+
+.tm-tooltip-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+.tm-tooltip-dot--available {
+  background-color: #22c55e;
+}
+
+.tm-tooltip-dot--partial {
+  background-color: #eab308;
+}
+
+.tm-tooltip-dot--booked {
+  background-color: #ef4444;
+}
+
+/* Legend */
+.tm-weekly-legend {
+  @apply flex gap-4 mt-4 text-xs;
+}
+
+.tm-legend-item {
+  @apply flex items-center gap-1;
+}
+
+.tm-legend-dot {
+  @apply w-3 h-3 rounded;
+}
+
+.tm-legend-dot--available {
+  background-color: #22c55e;
+}
+
+.tm-legend-dot--partial {
+  background-color: #eab308;
+}
+
+.tm-legend-dot--booked {
+  background-color: #ef4444;
+}
+
+/* Loading skeleton */
+.tm-weekly-skeleton {
+  @apply w-full overflow-hidden rounded-lg;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-weekly-skeleton-header {
+  @apply h-8 mb-4 rounded animate-pulse;
+  background-color: var(--rsp-border);
+}
+
+.tm-weekly-skeleton-grid {
+  @apply grid gap-1 p-4;
+  /* Same as .tm-weekly-grid: 14 hourly slots (22:00 - 08:00) */
+  grid-template-columns: 80px repeat(14, minmax(50px, 1fr));
+}
+
+.tm-weekly-skeleton-cell {
+  @apply h-9 rounded animate-pulse;
+  background-color: var(--rsp-border);
+}
+
+/* Error state */
+.tm-weekly-error {
+  @apply p-6 rounded-lg text-center;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-weekly-error-icon {
+  @apply text-4xl mb-2;
+}
+
+.tm-weekly-error-title {
+  @apply text-lg font-semibold mb-1;
+  color: #ef4444;
+}
+
+.tm-weekly-error-message {
+  @apply text-sm mb-4;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.tm-weekly-error-retry {
+  @apply px-4 py-2 rounded text-sm font-medium transition-colors;
+  background-color: var(--rsp-primary);
+  color: white;
+}
+
+.tm-weekly-error-retry:hover {
+  background-color: var(--rsp-primary-hover);
+}

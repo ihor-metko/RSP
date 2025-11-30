@@ -34,3 +34,43 @@ export interface PriceTimelineResponse {
   defaultPriceCents: number;
   timeline: PriceSegment[];
 }
+
+// Weekly availability types
+export interface CourtAvailabilityStatus {
+  courtId: string;
+  courtName: string;
+  courtType: string | null;
+  indoor: boolean;
+  status: "available" | "booked" | "partial";
+}
+
+export interface HourSlotAvailability {
+  hour: number;
+  courts: CourtAvailabilityStatus[];
+  summary: {
+    available: number;
+    booked: number;
+    partial: number;
+    total: number;
+  };
+  overallStatus: "available" | "partial" | "booked";
+}
+
+export interface DayAvailability {
+  date: string;
+  dayOfWeek: number;
+  dayName: string;
+  hours: HourSlotAvailability[];
+}
+
+export interface WeeklyAvailabilityResponse {
+  weekStart: string;
+  weekEnd: string;
+  days: DayAvailability[];
+  courts: Array<{
+    id: string;
+    name: string;
+    type: string | null;
+    indoor: boolean;
+  }>;
+}
