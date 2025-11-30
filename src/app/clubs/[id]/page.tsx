@@ -8,8 +8,10 @@ import { BookingModal } from "@/components/booking/BookingModal";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { CourtCard } from "@/components/CourtCard";
 import { CourtSlotsToday } from "@/components/CourtSlotsToday";
+import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
+import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { Button } from "@/components/ui";
-import type { Court, AvailabilitySlot, AvailabilityResponse } from "@/types/court";
+import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 
 interface Coach {
   id: string;
@@ -53,6 +55,13 @@ export default function ClubDetailPage({
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
   const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
   const [preselectedSlot, setPreselectedSlot] = useState<Slot | null>(null);
+  const [isCourtAvailabilityOpen, setIsCourtAvailabilityOpen] = useState(false);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{
+    date: string;
+    hour: number;
+    courts: CourtAvailabilityStatus[];
+  } | null>(null);
+  const [timelineKey, setTimelineKey] = useState(0);
 
   // Get user ID from session, or use a placeholder for unauthenticated users
   const userId = session?.user?.id || "guest";
@@ -134,6 +143,8 @@ export default function ClubDetailPage({
     }
     // Also reset preselected slot
     setPreselectedSlot(null);
+    // Trigger timeline refresh
+    setTimelineKey((prev) => prev + 1);
   };
 
   // Convert availability slots to BookingModal format
@@ -189,6 +200,49 @@ export default function ClubDetailPage({
     setIsModalOpen(false);
     setSelectedCourtId(null);
     setPreselectedSlot(null);
+  };
+
+  // Handle timeline slot click - opens court availability modal
+  const handleTimelineSlotClick = (
+    date: string,
+    hour: number,
+    courts: CourtAvailabilityStatus[]
+  ) => {
+    setSelectedTimeSlot({ date, hour, courts });
+    setIsCourtAvailabilityOpen(true);
+  };
+
+  // Handle closing the court availability modal
+  const handleCloseCourtAvailability = () => {
+    setIsCourtAvailabilityOpen(false);
+    setSelectedTimeSlot(null);
+  };
+
+  // Handle court selection from court availability modal
+  const handleSelectCourtFromTimeline = (
+    courtId: string,
+    date: string,
+    startTime: string,
+    endTime: string
+  ) => {
+    // If user is not authenticated, trigger login flow
+    if (authStatus === "unauthenticated") {
+      signIn();
+      return;
+    }
+
+    // Create the preselected slot with ISO datetime strings
+    const startDateTime = `${date}T${startTime}:00.000Z`;
+    const endDateTime = `${date}T${endTime}:00.000Z`;
+
+    setPreselectedSlot({
+      startTime: startDateTime,
+      endTime: endDateTime,
+    });
+    setSelectedCourtId(courtId);
+    setIsCourtAvailabilityOpen(false);
+    setSelectedTimeSlot(null);
+    setIsModalOpen(true);
   };
 
   // Get slots for BookingModal - either preselected or from availability
@@ -258,6 +312,17 @@ export default function ClubDetailPage({
         </Button>
       </div>
 
+      {/* Weekly Availability Timeline */}
+      {club.courts.length > 0 && (
+        <section className="mb-8">
+          <WeeklyAvailabilityTimeline
+            key={timelineKey}
+            clubId={club.id}
+            onSlotClick={handleTimelineSlotClick}
+          />
+        </section>
+      )}
+
       <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {club.courts.length === 0 ? (
           <div className="tm-empty-state col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800 rounded">
@@ -308,6 +373,17 @@ export default function ClubDetailPage({
         onClose={handleQuickBookingClose}
         onSelectCourt={handleQuickBookingSelectCourt}
       />
+
+      {selectedTimeSlot && (
+        <CourtAvailabilityModal
+          isOpen={isCourtAvailabilityOpen}
+          onClose={handleCloseCourtAvailability}
+          date={selectedTimeSlot.date}
+          hour={selectedTimeSlot.hour}
+          courts={selectedTimeSlot.courts}
+          onSelectCourt={handleSelectCourtFromTimeline}
+        />
+      )}
     </main>
   );
 }
