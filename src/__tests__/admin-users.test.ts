@@ -11,6 +11,15 @@ jest.mock("@/lib/prisma", () => ({
       create: jest.fn(),
       update: jest.fn(),
     },
+    coach: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      deleteMany: jest.fn(),
+    },
+    coachAvailability: {
+      deleteMany: jest.fn(),
+    },
+    $transaction: jest.fn(),
   },
 }));
 
@@ -352,13 +361,37 @@ describe("Admin Users API", () => {
       };
 
       const updatedUser = {
-        ...existingUser,
+        id: "user-123",
+        name: "Player",
+        email: "player@test.com",
         role: "coach",
         createdAt: new Date().toISOString(),
       };
 
+      const newCoach = {
+        id: "coach-123",
+        userId: "user-123",
+        clubId: null,
+        bio: null,
+        phone: null,
+        createdAt: new Date().toISOString(),
+      };
+
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
-      (prisma.user.update as jest.Mock).mockResolvedValue(updatedUser);
+      
+      // Mock the transaction to execute the callback with mocked tx object
+      (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
+        const tx = {
+          user: {
+            update: jest.fn().mockResolvedValue(updatedUser),
+          },
+          coach: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(newCoach),
+          },
+        };
+        return fn(tx);
+      });
 
       const request = new Request(
         "http://localhost:3000/api/admin/users/user-123/role",
@@ -375,7 +408,142 @@ describe("Admin Users API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.role).toBe("coach");
+      expect(data.user.role).toBe("coach");
+      expect(data.coach).not.toBeNull();
+      expect(data.coach.userId).toBe("user-123");
+    });
+
+    it("should update user role to coach and create coach with optional fields", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", role: "admin" },
+      });
+
+      const existingUser = {
+        id: "user-123",
+        name: "Player",
+        email: "player@test.com",
+        role: "player",
+      };
+
+      const updatedUser = {
+        id: "user-123",
+        name: "Player",
+        email: "player@test.com",
+        role: "coach",
+        createdAt: new Date().toISOString(),
+      };
+
+      const newCoach = {
+        id: "coach-123",
+        userId: "user-123",
+        clubId: "club-123",
+        bio: "Professional tennis coach",
+        phone: "123-456-7890",
+        createdAt: new Date().toISOString(),
+      };
+
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
+      
+      (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
+        const tx = {
+          user: {
+            update: jest.fn().mockResolvedValue(updatedUser),
+          },
+          coach: {
+            findFirst: jest.fn().mockResolvedValue(null),
+            create: jest.fn().mockResolvedValue(newCoach),
+          },
+        };
+        return fn(tx);
+      });
+
+      const request = new Request(
+        "http://localhost:3000/api/admin/users/user-123/role",
+        {
+          method: "POST",
+          body: JSON.stringify({ 
+            role: "coach",
+            clubId: "club-123",
+            bio: "Professional tennis coach",
+            phone: "123-456-7890"
+          }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const response = await updateRole(request, {
+        params: Promise.resolve({ userId: "user-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.user.role).toBe("coach");
+      expect(data.coach).not.toBeNull();
+    });
+
+    it("should not create duplicate coach record when already exists", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", role: "admin" },
+      });
+
+      const existingUser = {
+        id: "user-123",
+        name: "Player",
+        email: "player@test.com",
+        role: "player",
+      };
+
+      const updatedUser = {
+        id: "user-123",
+        name: "Player",
+        email: "player@test.com",
+        role: "coach",
+        createdAt: new Date().toISOString(),
+      };
+
+      const existingCoach = {
+        id: "coach-123",
+        userId: "user-123",
+        clubId: null,
+        bio: null,
+        phone: null,
+        createdAt: new Date().toISOString(),
+      };
+
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
+      
+      const mockCoachCreate = jest.fn();
+      (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
+        const tx = {
+          user: {
+            update: jest.fn().mockResolvedValue(updatedUser),
+          },
+          coach: {
+            findFirst: jest.fn().mockResolvedValue(existingCoach),
+            create: mockCoachCreate,
+          },
+        };
+        return fn(tx);
+      });
+
+      const request = new Request(
+        "http://localhost:3000/api/admin/users/user-123/role",
+        {
+          method: "POST",
+          body: JSON.stringify({ role: "coach" }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const response = await updateRole(request, {
+        params: Promise.resolve({ userId: "user-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.user.role).toBe("coach");
+      expect(data.coach).toEqual(existingCoach);
+      expect(mockCoachCreate).not.toHaveBeenCalled();
     });
 
     it("should update user role to player (remove coach)", async () => {
@@ -391,13 +559,34 @@ describe("Admin Users API", () => {
       };
 
       const updatedUser = {
-        ...existingUser,
+        id: "user-123",
+        name: "Coach",
+        email: "coach@test.com",
         role: "player",
         createdAt: new Date().toISOString(),
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
-      (prisma.user.update as jest.Mock).mockResolvedValue(updatedUser);
+      
+      const mockCoachFindMany = jest.fn().mockResolvedValue([{ id: "coach-123" }]);
+      const mockCoachAvailabilityDeleteMany = jest.fn().mockResolvedValue({ count: 0 });
+      const mockCoachDeleteMany = jest.fn().mockResolvedValue({ count: 1 });
+      
+      (prisma.$transaction as jest.Mock).mockImplementation(async (fn) => {
+        const tx = {
+          user: {
+            update: jest.fn().mockResolvedValue(updatedUser),
+          },
+          coachAvailability: {
+            deleteMany: mockCoachAvailabilityDeleteMany,
+          },
+          coach: {
+            findMany: mockCoachFindMany,
+            deleteMany: mockCoachDeleteMany,
+          },
+        };
+        return fn(tx);
+      });
 
       const request = new Request(
         "http://localhost:3000/api/admin/users/user-123/role",
@@ -414,7 +603,10 @@ describe("Admin Users API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.role).toBe("player");
+      expect(data.user.role).toBe("player");
+      expect(data.coach).toBeNull();
+      expect(mockCoachAvailabilityDeleteMany).toHaveBeenCalled();
+      expect(mockCoachDeleteMany).toHaveBeenCalled();
     });
 
     it("should return 404 when user not found", async () => {

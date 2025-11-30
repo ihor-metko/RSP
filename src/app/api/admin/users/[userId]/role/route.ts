@@ -24,7 +24,7 @@ export async function POST(
     const userId = resolvedParams.userId;
 
     const body = await request.json();
-    const { role } = body;
+    const { role, clubId, bio, phone } = body;
 
     if (!isValidRole(role)) {
       return NextResponse.json(
@@ -50,20 +50,80 @@ export async function POST(
       );
     }
 
-    // Update user role
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: { role },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+    // Use a transaction to ensure atomicity
+    const result = await prisma.$transaction(async (tx) => {
+      // Update user role
+      const updatedUser = await tx.user.update({
+        where: { id: userId },
+        data: { role },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+
+      let coach = null;
+
+      // If assigning coach role, create Coach record if it doesn't exist
+      if (role === "coach" && existingUser.role !== "coach") {
+        // Check if Coach record already exists
+        const existingCoach = await tx.coach.findFirst({
+          where: { userId },
+        });
+
+        if (!existingCoach) {
+          coach = await tx.coach.create({
+            data: {
+              userId,
+              clubId: clubId || null,
+              bio: bio || null,
+              phone: phone || null,
+            },
+            select: {
+              id: true,
+              userId: true,
+              clubId: true,
+              bio: true,
+              phone: true,
+              createdAt: true,
+            },
+          });
+        } else {
+          coach = existingCoach;
+        }
+      }
+
+      // If changing from coach to player, delete Coach records
+      if (role === "player" && existingUser.role === "coach") {
+        // Find all coach records for this user to get their IDs
+        const userCoaches = await tx.coach.findMany({
+          where: { userId },
+          select: { id: true },
+        });
+        const coachIds = userCoaches.map((c) => c.id);
+
+        // Delete all coach availability records first (due to foreign key constraint)
+        if (coachIds.length > 0) {
+          await tx.coachAvailability.deleteMany({
+            where: {
+              coachId: { in: coachIds },
+            },
+          });
+        }
+
+        // Delete coach records
+        await tx.coach.deleteMany({
+          where: { userId },
+        });
+      }
+
+      return { user: updatedUser, coach };
     });
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json(result);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating user role:", error);
