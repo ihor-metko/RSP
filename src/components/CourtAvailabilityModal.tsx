@@ -40,7 +40,7 @@ export function CourtAvailabilityModal({
   const t = useTranslations();
 
   // Get status label
-  const getStatusLabel = (status: "available" | "booked" | "partial"): string => {
+  const getStatusLabel = (status: "available" | "booked" | "partial" | "pending"): string => {
     switch (status) {
       case "available":
         return t("common.available");
@@ -48,6 +48,8 @@ export function CourtAvailabilityModal({
         return t("court.partiallyBooked");
       case "booked":
         return t("common.booked");
+      case "pending":
+        return t("court.pending");
     }
   };
 
@@ -60,9 +62,9 @@ export function CourtAvailabilityModal({
   };
 
   const sortedCourts = [...courts].sort((a, b) => {
-    // Sort by status: available first, then partial, then booked
-    const statusOrder = { available: 0, partial: 1, booked: 2 };
-    return statusOrder[a.status] - statusOrder[b.status];
+    // Sort by status: available first, then partial, then pending, then booked
+    const statusOrder: Record<string, number> = { available: 0, partial: 1, pending: 2, booked: 3 };
+    return (statusOrder[a.status] ?? 4) - (statusOrder[b.status] ?? 4);
   });
 
   const availableCourts = courts.filter((c) => c.status === "available");

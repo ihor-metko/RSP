@@ -40,6 +40,10 @@
   border-left: 4px solid #ef4444;
 }
 
+.tm-court-availability-item--pending {
+  border-left: 4px solid #f97316;
+}
+
 .tm-court-info {
   @apply flex-1;
 }
@@ -90,6 +94,11 @@
   color: #dc2626;
 }
 
+.tm-court-status-badge--pending {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #ea580c;
+}
+
 .tm-court-book-btn {
   @apply ml-2;
 }
@@ -124,4 +133,9 @@
 .dark .tm-court-status-badge--booked {
   background-color: rgba(239, 68, 68, 0.2);
   color: #ef4444;
+}
+
+.dark .tm-court-status-badge--pending {
+  background-color: rgba(249, 115, 22, 0.2);
+  color: #f97316;
 }

@@ -101,6 +101,10 @@ function Tooltip({ slot, dayName, position }: TooltipProps) {
           <span className="tm-tooltip-dot tm-tooltip-dot--booked" />
           {slot.summary.booked}
         </span>
+        <span className="tm-tooltip-stat">
+          <span className="tm-tooltip-dot tm-tooltip-dot--pending" />
+          {slot.summary.pending}
+        </span>
       </div>
     </div>
   );
@@ -311,7 +315,7 @@ export function WeeklyAvailabilityTimeline({
                   className={`tm-availability-block tm-availability-block--${slot.overallStatus}`}
                   role="gridcell"
                   tabIndex={0}
-                  aria-label={`${day.dayName} ${formatHour(slot.hour)}: ${slot.summary.available} available, ${slot.summary.partial} partially booked, ${slot.summary.booked} booked`}
+                  aria-label={`${day.dayName} ${formatHour(slot.hour)}: ${slot.summary.available} available, ${slot.summary.partial} partially booked, ${slot.summary.booked} booked, ${slot.summary.pending} pending`}
                   onClick={() =>
                     handleBlockClick(day.date, slot.hour, slot.courts)
                   }
@@ -344,6 +348,10 @@ export function WeeklyAvailabilityTimeline({
           <div className="tm-legend-item">
             <span className="tm-legend-dot tm-legend-dot--booked" />
             <span>Fully booked</span>
+          </div>
+          <div className="tm-legend-item">
+            <span className="tm-legend-dot tm-legend-dot--pending" />
+            <span>Pending</span>
           </div>
         </div>
 

@@ -275,6 +275,7 @@
     "availability": "Court Availability",
     "noCourtsFound": "No courts found for this club.",
     "partiallyBooked": "Partially booked",
+    "pending": "Pending",
     "noAvailableAtTime": "No courts available at this time. Try another slot."
   },
   "modal": {
