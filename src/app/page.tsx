@@ -46,9 +46,15 @@ export default function Home() {
         <Card title={t("home.quickLinks")} className="mt-6">
           <div className="rsp-links flex flex-col gap-2">
             {session?.user?.role === "player" && (
-              <Link href="/clubs" className="rsp-link text-blue-500 hover:underline">
-                {t("home.viewClubs")}
-              </Link>
+              <>
+                <Link href="/clubs" className="rsp-link text-blue-500 hover:underline">
+                  {t("home.viewClubs")}
+                </Link>
+
+                <Link href="/trainings" className="rsp-link text-blue-500 hover:underline">
+                  {t("training.history.title")}
+                </Link>
+              </>
             )}
 
             {session?.user?.role === "coach" && (
