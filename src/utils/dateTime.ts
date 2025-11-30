@@ -98,3 +98,53 @@ export function formatTimeHHMM(date: Date): string {
   const minutes = date.getMinutes().toString().padStart(2, "0");
   return `${hours}:${minutes}`;
 }
+
+/**
+ * Validates that startTime is before endTime
+ * @param startTime Start time in HH:mm format
+ * @param endTime End time in HH:mm format
+ * @returns true if startTime < endTime
+ */
+export function isValidTimeRange(startTime: string, endTime: string): boolean {
+  const [startHour, startMin] = startTime.split(":").map(Number);
+  const [endHour, endMin] = endTime.split(":").map(Number);
+  const startMinutes = startHour * 60 + startMin;
+  const endMinutes = endHour * 60 + endMin;
+  return startMinutes < endMinutes;
+}
+
+/**
+ * Checks if two time ranges overlap
+ * @param start1 Start time of first range in HH:mm format
+ * @param end1 End time of first range in HH:mm format
+ * @param start2 Start time of second range in HH:mm format
+ * @param end2 End time of second range in HH:mm format
+ * @returns true if the ranges overlap
+ */
+export function doTimesOverlap(
+  start1: string,
+  end1: string,
+  start2: string,
+  end2: string
+): boolean {
+  const [s1h, s1m] = start1.split(":").map(Number);
+  const [e1h, e1m] = end1.split(":").map(Number);
+  const [s2h, s2m] = start2.split(":").map(Number);
+  const [e2h, e2m] = end2.split(":").map(Number);
+  
+  const start1Minutes = s1h * 60 + s1m;
+  const end1Minutes = e1h * 60 + e1m;
+  const start2Minutes = s2h * 60 + s2m;
+  const end2Minutes = e2h * 60 + e2m;
+  
+  return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
+}
+
+/**
+ * Validates day of week (0-6, Sunday to Saturday)
+ * @param day Value to validate
+ * @returns true if valid day of week
+ */
+export function isValidDayOfWeek(day: unknown): day is number {
+  return typeof day === "number" && Number.isInteger(day) && day >= 0 && day <= 6;
+}

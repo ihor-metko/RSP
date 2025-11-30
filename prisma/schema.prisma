@@ -108,16 +108,17 @@ model CourtPriceRule {
 }
 
 model Coach {
-  id             String              @id @default(uuid())
-  user           User                @relation(fields: [userId], references: [id])
-  userId         String
-  club           Club?               @relation(fields: [clubId], references: [id])
-  clubId         String?
-  bio            String?
-  phone          String?
-  availabilities CoachAvailability[]
-  createdAt      DateTime            @default(now())
-  bookings       Booking[]
+  id                   String                    @id @default(uuid())
+  user                 User                      @relation(fields: [userId], references: [id])
+  userId               String
+  club                 Club?                     @relation(fields: [clubId], references: [id])
+  clubId               String?
+  bio                  String?
+  phone                String?
+  availabilities       CoachAvailability[]
+  weeklyAvailabilities CoachWeeklyAvailability[]
+  createdAt            DateTime                  @default(now())
+  bookings             Booking[]
 }
 
 model CoachAvailability {
@@ -127,6 +128,21 @@ model CoachAvailability {
   start     DateTime
   end       DateTime
   createdAt DateTime @default(now())
+}
+
+model CoachWeeklyAvailability {
+  id        String   @id @default(uuid())
+  coach     Coach    @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  coachId   String
+  dayOfWeek Int      // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime String   // "HH:mm" format
+  endTime   String   // "HH:mm" format
+  note      String?  // Optional label or note
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([coachId])
+  @@index([coachId, dayOfWeek])
 }
 
 model Booking {
@@ -166,4 +182,21 @@ model PricingRule {
   endTime   Int
   price     Int
   createdAt DateTime @default(now())
+}
+
+model TrainingRequest {
+  id        String   @id @default(uuid())
+  trainerId String
+  playerId  String
+  clubId    String
+  date      DateTime @db.Date
+  time      String   // "HH:MM" format
+  comment   String?
+  status    String   @default("pending") // "pending", "confirmed", "rejected", "cancelled"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([trainerId])
+  @@index([playerId])
+  @@index([clubId])
 }

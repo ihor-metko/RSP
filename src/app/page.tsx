@@ -41,9 +41,19 @@ export default function Home() {
 
         <Card title="Quick Links" className="mt-6">
           <div className="rsp-links flex flex-col gap-2">
-            <Link href="/clubs" className="rsp-link text-blue-500 hover:underline">
-              View Clubs →
-            </Link>
+            {session?.user?.role === "player" && (
+              <Link href="/clubs" className="rsp-link text-blue-500 hover:underline">
+                View Clubs →
+              </Link>
+            )}
+
+            {session?.user?.role === "coach" && (
+              <>
+                <Link href="/coach/dashboard" className="rsp-link text-blue-500 hover:underline">
+                  Dashboard
+                </Link>
+              </>
+            )}
             {session?.user?.role === "admin" && (
               <>
                 <Link href="/admin/clubs" className="rsp-link text-blue-500 hover:underline">

@@ -1,0 +1,219 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireRole } from "@/lib/requireRole";
+import { isValidDateFormat, isValidTimeFormat } from "@/utils/dateTime";
+
+interface TrainingRequest {
+  trainerId: string;
+  playerId: string;
+  clubId: string;
+  date: string;
+  time: string;
+  comment?: string;
+}
+
+/**
+ * GET /api/trainings
+ * Fetch training requests for the authenticated user
+ */
+export async function GET(request: Request) {
+  try {
+    // Role check: player, coach, admin can access
+    const authResult = await requireRole(request, ["player", "coach", "admin"]);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+
+    // Build where clause based on user role
+    const whereClause: {
+      status?: string;
+      playerId?: string;
+      trainerId?: string;
+    } = {};
+
+    if (status) {
+      whereClause.status = status;
+    }
+
+    // Players see their own requests
+    if (authResult.userRole === "player") {
+      whereClause.playerId = authResult.userId;
+    }
+    // Coaches see requests assigned to them
+    else if (authResult.userRole === "coach") {
+      // Find coach record for this user
+      const coach = await prisma.coach.findFirst({
+        where: { userId: authResult.userId },
+      });
+      if (coach) {
+        whereClause.trainerId = coach.id;
+      }
+    }
+    // Admins can see all requests (no additional filter)
+
+    const trainings = await prisma.trainingRequest.findMany({
+      where: whereClause,
+      orderBy: [{ date: "asc" }, { time: "asc" }],
+    });
+
+    return NextResponse.json({ trainings });
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error fetching training requests:", error);
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/trainings
+ * Create a new training request
+ */
+export async function POST(request: Request) {
+  try {
+    // Role check: player, admin can create training requests
+    const authResult = await requireRole(request, ["player", "admin"]);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    const body: TrainingRequest = await request.json();
+
+    // Validate required fields
+    if (!body.trainerId || !body.playerId || !body.clubId || !body.date || !body.time) {
+      return NextResponse.json(
+        { error: "Missing required fields: trainerId, playerId, clubId, date, and time are required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate date format
+    if (!isValidDateFormat(body.date)) {
+      return NextResponse.json(
+        { error: "Invalid date format. Use YYYY-MM-DD" },
+        { status: 400 }
+      );
+    }
+
+    // Validate time format
+    if (!isValidTimeFormat(body.time)) {
+      return NextResponse.json(
+        { error: "Invalid time format. Use HH:MM" },
+        { status: 400 }
+      );
+    }
+
+    // Verify trainer exists and belongs to the club
+    const trainer = await prisma.coach.findFirst({
+      where: {
+        id: body.trainerId,
+        clubId: body.clubId,
+      },
+      include: {
+        availabilities: true,
+      },
+    });
+
+    if (!trainer) {
+      return NextResponse.json(
+        { error: "Trainer not found in this club" },
+        { status: 400 }
+      );
+    }
+
+    // Parse date - the body.date is in YYYY-MM-DD format
+    const requestedDate = new Date(body.date);
+    
+    // Parse start and end of day for date comparison
+    const requestedDayStart = new Date(`${body.date}T00:00:00`);
+    const requestedDayEnd = new Date(`${body.date}T23:59:59`);
+
+    // Check if trainer has availability on this day
+    // Trainer availability is stored as date ranges. Check if any availability slot
+    // includes this day and time
+    const requestedDateTime = new Date(`${body.date}T${body.time}:00`);
+    
+    // Find availability slots that include the requested time
+    const availableSlot = trainer.availabilities.find((slot) => {
+      return requestedDateTime >= slot.start && requestedDateTime < slot.end;
+    });
+
+    if (!availableSlot) {
+      // Check if any availability exists for this day at all
+      const anySlotOnDay = trainer.availabilities.some((slot) => {
+        return slot.start >= requestedDayStart && slot.start < requestedDayEnd;
+      });
+
+      if (!anySlotOnDay) {
+        return NextResponse.json(
+          { error: "Trainer does not work on this day. Choose another date." },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: "Trainer is not available at this time. Choose another slot." },
+        { status: 400 }
+      );
+    }
+
+    // Check for existing training at the same time
+    const existingTraining = await prisma.trainingRequest.findFirst({
+      where: {
+        trainerId: body.trainerId,
+        date: requestedDate,
+        time: body.time,
+        status: { in: ["pending", "confirmed"] },
+      },
+    });
+
+    if (existingTraining) {
+      return NextResponse.json(
+        { error: "Trainer already has training at this time. Choose another slot." },
+        { status: 409 }
+      );
+    }
+
+    // Create training request
+    const trainingRequest = await prisma.trainingRequest.create({
+      data: {
+        trainerId: body.trainerId,
+        playerId: body.playerId,
+        clubId: body.clubId,
+        date: requestedDate,
+        time: body.time,
+        comment: body.comment || null,
+        status: "pending",
+      },
+    });
+
+    return NextResponse.json(
+      {
+        id: trainingRequest.id,
+        trainerId: trainingRequest.trainerId,
+        playerId: trainingRequest.playerId,
+        clubId: trainingRequest.clubId,
+        date: body.date,
+        time: trainingRequest.time,
+        comment: trainingRequest.comment,
+        status: trainingRequest.status,
+        message: "Training request sent. Waiting for trainer confirmation.",
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error creating training request:", error);
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
