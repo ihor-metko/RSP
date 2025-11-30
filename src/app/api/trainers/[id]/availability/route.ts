@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { formatTimeHHMM } from "@/utils/dateTime";
+
+// Number of days to generate availability for
+const AVAILABILITY_DAYS = 14;
 
 /**
  * GET /api/trainers/[id]/availability
  * Fetch trainer availability for players to view when requesting training
  * No authentication required - this is public information
+ * 
+ * Uses CoachWeeklyAvailability to generate availability for the next 14 days
  */
 export async function GET(
   request: Request,
@@ -15,7 +19,7 @@ export async function GET(
     const resolvedParams = await params;
     const trainerId = resolvedParams.id;
 
-    // Fetch trainer with availability
+    // Fetch trainer with weekly availability
     const trainer = await prisma.coach.findUnique({
       where: { id: trainerId },
       include: {
@@ -24,13 +28,11 @@ export async function GET(
             name: true,
           },
         },
-        availabilities: {
-          where: {
-            // Only show future availability
-            start: { gte: new Date() },
-          },
-          orderBy: { start: "asc" },
-          take: 30, // Limit to next 30 availability slots
+        weeklyAvailabilities: {
+          orderBy: [
+            { dayOfWeek: "asc" },
+            { startTime: "asc" },
+          ],
         },
       },
     });
@@ -51,18 +53,28 @@ export async function GET(
       },
     });
 
-    // Group availability by date
+    // Transform weekly availability into specific dates for the next N days
     const availabilityByDate: Record<string, { start: string; end: string }[]> = {};
-    
-    for (const slot of trainer.availabilities) {
-      const dateKey = slot.start.toISOString().split("T")[0];
-      if (!availabilityByDate[dateKey]) {
-        availabilityByDate[dateKey] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < AVAILABILITY_DAYS; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dayOfWeek = date.getDay(); // 0=Sunday, 6=Saturday
+      const dateKey = date.toISOString().split("T")[0];
+
+      // Find all weekly availability slots for this day of week
+      const daySlots = trainer.weeklyAvailabilities.filter(
+        (slot) => slot.dayOfWeek === dayOfWeek
+      );
+
+      if (daySlots.length > 0) {
+        availabilityByDate[dateKey] = daySlots.map((slot) => ({
+          start: slot.startTime,
+          end: slot.endTime,
+        }));
       }
-      availabilityByDate[dateKey].push({
-        start: formatTimeHHMM(slot.start),
-        end: formatTimeHHMM(slot.end),
-      });
     }
 
     // Group busy times by date

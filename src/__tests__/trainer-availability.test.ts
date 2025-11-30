@@ -36,22 +36,24 @@ describe("GET /api/trainers/[id]/availability", () => {
     expect(data.error).toBe("Trainer not found");
   });
 
-  it("should return trainer availability grouped by date", async () => {
-    const futureDate = new Date();
-    futureDate.setDate(futureDate.getDate() + 1);
-    futureDate.setHours(9, 0, 0, 0);
-
-    const futureEndDate = new Date(futureDate);
-    futureEndDate.setHours(18, 0, 0, 0);
+  it("should return trainer availability grouped by date from weekly schedule", async () => {
+    // Get tomorrow and determine its day of week
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrowDayOfWeek = tomorrow.getDay();
 
     (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
       id: "trainer-123",
       user: { name: "John Trainer" },
-      availabilities: [
+      weeklyAvailabilities: [
         {
-          id: "avail-1",
-          start: futureDate,
-          end: futureEndDate,
+          id: "weekly-1",
+          coachId: "trainer-123",
+          dayOfWeek: tomorrowDayOfWeek,
+          startTime: "09:00",
+          endTime: "18:00",
+          note: null,
         },
       ],
     });
@@ -67,6 +69,13 @@ describe("GET /api/trainers/[id]/availability", () => {
     expect(data.trainerName).toBe("John Trainer");
     expect(typeof data.availability).toBe("object");
     expect(typeof data.busyTimes).toBe("object");
+
+    // Check that availability includes tomorrow based on weekly schedule
+    const tomorrowKey = tomorrow.toISOString().split("T")[0];
+    expect(data.availability[tomorrowKey]).toBeDefined();
+    expect(data.availability[tomorrowKey]).toEqual([
+      { start: "09:00", end: "18:00" },
+    ]);
   });
 
   it("should include busy times from existing training requests", async () => {
@@ -76,7 +85,7 @@ describe("GET /api/trainers/[id]/availability", () => {
     (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
       id: "trainer-123",
       user: { name: "John Trainer" },
-      availabilities: [],
+      weeklyAvailabilities: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([
@@ -100,11 +109,11 @@ describe("GET /api/trainers/[id]/availability", () => {
     expect(data.busyTimes[dateKey]).toContain("10:00");
   });
 
-  it("should handle trainer with no availability", async () => {
+  it("should handle trainer with no weekly availability", async () => {
     (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
       id: "trainer-123",
       user: { name: "John Trainer" },
-      availabilities: [],
+      weeklyAvailabilities: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
@@ -122,7 +131,7 @@ describe("GET /api/trainers/[id]/availability", () => {
     (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
       id: "trainer-123",
       user: { name: null },
-      availabilities: [],
+      weeklyAvailabilities: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
@@ -133,5 +142,94 @@ describe("GET /api/trainers/[id]/availability", () => {
 
     expect(response.status).toBe(200);
     expect(data.trainerName).toBe("Unknown Trainer");
+  });
+
+  it("should support multiple slots per day", async () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayDayOfWeek = today.getDay();
+
+    (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
+      id: "trainer-123",
+      user: { name: "John Trainer" },
+      weeklyAvailabilities: [
+        {
+          id: "weekly-1",
+          coachId: "trainer-123",
+          dayOfWeek: todayDayOfWeek,
+          startTime: "09:00",
+          endTime: "12:00",
+          note: "Morning",
+        },
+        {
+          id: "weekly-2",
+          coachId: "trainer-123",
+          dayOfWeek: todayDayOfWeek,
+          startTime: "14:00",
+          endTime: "18:00",
+          note: "Afternoon",
+        },
+      ],
+    });
+
+    (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
+
+    const request = new Request("http://localhost:3000/api/trainers/trainer-123/availability");
+    const response = await GET(request, createContext("trainer-123"));
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+
+    const todayKey = today.toISOString().split("T")[0];
+    expect(data.availability[todayKey]).toBeDefined();
+    expect(data.availability[todayKey]).toHaveLength(2);
+    expect(data.availability[todayKey]).toEqual([
+      { start: "09:00", end: "12:00" },
+      { start: "14:00", end: "18:00" },
+    ]);
+  });
+
+  it("should generate availability for all matching days in the next 14 days", async () => {
+    // Set weekly availability for Monday (dayOfWeek = 1)
+    (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
+      id: "trainer-123",
+      user: { name: "John Trainer" },
+      weeklyAvailabilities: [
+        {
+          id: "weekly-1",
+          coachId: "trainer-123",
+          dayOfWeek: 1, // Monday
+          startTime: "10:00",
+          endTime: "17:00",
+          note: null,
+        },
+      ],
+    });
+
+    (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
+
+    const request = new Request("http://localhost:3000/api/trainers/trainer-123/availability");
+    const response = await GET(request, createContext("trainer-123"));
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+
+    // Count the number of Monday dates in the availability
+    const availabilityDates = Object.keys(data.availability);
+    const mondayDates = availabilityDates.filter((dateKey) => {
+      const date = new Date(dateKey);
+      return date.getDay() === 1; // Monday
+    });
+
+    // There should be 1-2 Mondays in the next 14 days
+    expect(mondayDates.length).toBeGreaterThanOrEqual(1);
+    expect(mondayDates.length).toBeLessThanOrEqual(2);
+
+    // Each Monday should have the correct availability
+    for (const mondayKey of mondayDates) {
+      expect(data.availability[mondayKey]).toEqual([
+        { start: "10:00", end: "17:00" },
+      ]);
+    }
   });
 });
