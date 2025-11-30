@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 
+interface TrainingRequestFilter {
+  trainerId?: string;
+  status?: string;
+  date?: Date;
+}
+
 /**
  * GET /api/trainer/requests
  * Fetch all training requests assigned to the authenticated trainer
@@ -32,11 +38,7 @@ export async function GET(request: Request) {
     const date = searchParams.get("date");
 
     // Build where clause
-    const whereClause: {
-      trainerId?: string;
-      status?: string;
-      date?: Date;
-    } = {};
+    const whereClause: TrainingRequestFilter = {};
 
     // Coaches see only their requests, admins see all
     if (authResult.userRole === "coach" && coach) {
