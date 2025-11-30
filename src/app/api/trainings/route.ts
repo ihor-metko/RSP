@@ -127,8 +127,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Parse date
+    // Parse date - the body.date is in YYYY-MM-DD format
     const requestedDate = new Date(body.date);
+    
+    // Parse start and end of day for date comparison
+    const requestedDayStart = new Date(`${body.date}T00:00:00`);
+    const requestedDayEnd = new Date(`${body.date}T23:59:59`);
 
     // Check if trainer has availability on this day
     // Trainer availability is stored as date ranges. Check if any availability slot
@@ -143,8 +147,7 @@ export async function POST(request: Request) {
     if (!availableSlot) {
       // Check if any availability exists for this day at all
       const anySlotOnDay = trainer.availabilities.some((slot) => {
-        const slotDate = slot.start.toISOString().split("T")[0];
-        return slotDate === body.date;
+        return slot.start >= requestedDayStart && slot.start < requestedDayEnd;
       });
 
       if (!anySlotOnDay) {

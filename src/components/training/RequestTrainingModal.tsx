@@ -28,6 +28,7 @@ interface RequestTrainingModalProps {
 // Business hours configuration
 const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 22;
+const DEFAULT_TIME = "10:00";
 
 // Get today's date in YYYY-MM-DD format
 function getTodayDateString(): string {
@@ -67,7 +68,7 @@ export function RequestTrainingModal({
 }: RequestTrainingModalProps) {
   const [selectedTrainerId, setSelectedTrainerId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
-  const [selectedTime, setSelectedTime] = useState<string>("10:00");
+  const [selectedTime, setSelectedTime] = useState<string>(DEFAULT_TIME);
   const [comment, setComment] = useState<string>("");
   const [trainerAvailability, setTrainerAvailability] = useState<TrainerAvailability | null>(null);
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
@@ -112,7 +113,13 @@ export function RequestTrainingModal({
 
   // Check if selected date and time is valid for the trainer
   const getAvailabilityStatus = (): { isValid: boolean; message: string } => {
-    if (!trainerAvailability) {
+    // If still loading availability, don't allow submission
+    if (isLoadingAvailability) {
+      return { isValid: false, message: "Loading trainer availability..." };
+    }
+    
+    // If no trainer selected or availability not loaded yet
+    if (!selectedTrainerId || !trainerAvailability) {
       return { isValid: true, message: "" };
     }
 
@@ -218,7 +225,7 @@ export function RequestTrainingModal({
         // Reset form
         setSelectedTrainerId("");
         setSelectedDate(getTodayDateString());
-        setSelectedTime("10:00");
+        setSelectedTime(DEFAULT_TIME);
         setComment("");
       } else {
         const data = await response.json();
@@ -235,7 +242,7 @@ export function RequestTrainingModal({
     // Reset state
     setSelectedTrainerId("");
     setSelectedDate(getTodayDateString());
-    setSelectedTime("10:00");
+    setSelectedTime(DEFAULT_TIME);
     setComment("");
     setTrainerAvailability(null);
     setAlert(null);
