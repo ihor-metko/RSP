@@ -36,12 +36,19 @@ jest.mock("@/lib/priceRules", () => ({
   getResolvedPriceForSlot: jest.fn().mockResolvedValue(5000),
 }));
 
+// Mock courtAvailability
+jest.mock("@/lib/courtAvailability", () => ({
+  getCourtAvailabilitySuggestions: jest.fn(),
+  findAvailableCourts: jest.fn(),
+}));
+
 // Mock requireRole
 jest.mock("@/lib/requireRole", () => ({
   requireRole: jest.fn(),
 }));
 
 import { requireRole } from "@/lib/requireRole";
+import { findAvailableCourts, getCourtAvailabilitySuggestions } from "@/lib/courtAvailability";
 
 describe("Training Requests API", () => {
   beforeEach(() => {
@@ -207,6 +214,8 @@ describe("Training Requests API", () => {
         time: "10:00",
         status: "pending",
       });
+      
+      (getCourtAvailabilitySuggestions as jest.Mock).mockResolvedValue([]);
 
       const request = createRequest({
         trainerId: "trainer-123",
@@ -221,6 +230,7 @@ describe("Training Requests API", () => {
 
       expect(response.status).toBe(409);
       expect(data.error).toContain("already has training at this time");
+      expect(data.code).toBe("TRAINER_NOT_AVAILABLE");
     });
 
     it("should return 400 if no courts available at the club", async () => {
@@ -237,6 +247,7 @@ describe("Training Requests API", () => {
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
+      (findAvailableCourts as jest.Mock).mockResolvedValue([]);
       (prisma.court.findMany as jest.Mock).mockResolvedValue([]);
 
       const request = createRequest({
@@ -268,14 +279,11 @@ describe("Training Requests API", () => {
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
+      (findAvailableCourts as jest.Mock).mockResolvedValue([]); // No available courts
+      (getCourtAvailabilitySuggestions as jest.Mock).mockResolvedValue([]);
       (prisma.court.findMany as jest.Mock).mockResolvedValue([
         { id: "court-1", name: "Court 1", defaultPriceCents: 5000 },
       ]);
-      // All courts have overlapping bookings
-      (prisma.booking.findFirst as jest.Mock).mockResolvedValue({
-        id: "existing-booking",
-        courtId: "court-1",
-      });
 
       const request = createRequest({
         trainerId: "trainer-123",
@@ -290,9 +298,49 @@ describe("Training Requests API", () => {
 
       expect(response.status).toBe(409);
       expect(data.error).toContain("No courts available at the selected time");
+      expect(data.code).toBe("NO_COURT_AVAILABLE");
+    });
+
+    it("should include suggestions when no courts available", async () => {
+      (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        weeklyAvailabilities: [
+          {
+            id: "weekly-1",
+            dayOfWeek: 1,
+            startTime: "09:00",
+            endTime: "18:00",
+          },
+        ],
+      });
+
+      (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
+      (findAvailableCourts as jest.Mock).mockResolvedValue([]);
+      (prisma.court.findMany as jest.Mock).mockResolvedValue([
+        { id: "court-1", name: "Court 1", defaultPriceCents: 5000 },
+      ]);
+      (getCourtAvailabilitySuggestions as jest.Mock).mockResolvedValue([
+        { date: "2024-01-15", time: "11:00", courtId: "court-1", courtName: "Court 1" },
+      ]);
+
+      const request = createRequest({
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        clubId: "club-123",
+        date: "2024-01-15",
+        time: "10:00",
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(409);
+      expect(data.suggestions).toHaveLength(1);
+      expect(data.suggestions[0].time).toBe("11:00");
     });
 
     it("should create training request with court reservation successfully", async () => {
+      (getCourtAvailabilitySuggestions as jest.Mock).mockResolvedValue([]);
       // 2024-01-15 is a Monday (dayOfWeek = 1)
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
         id: "trainer-123",
@@ -307,10 +355,12 @@ describe("Training Requests API", () => {
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
+      (findAvailableCourts as jest.Mock).mockResolvedValue([
+        { courtId: "court-1", courtName: "Court 1", defaultPriceCents: 5000 },
+      ]);
       (prisma.court.findMany as jest.Mock).mockResolvedValue([
         { id: "court-1", name: "Court 1", defaultPriceCents: 5000 },
       ]);
-      (prisma.booking.findFirst as jest.Mock).mockResolvedValue(null);
       
       const mockBooking = {
         id: "booking-123",

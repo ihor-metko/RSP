@@ -58,10 +58,10 @@ export async function GET(request: Request) {
       orderBy: [{ date: "desc" }, { time: "asc" }],
     });
 
-    // Get player and club information for each request
+    // Get player, club, court information for each request
     const enrichedRequests = await Promise.all(
       requests.map(async (req) => {
-        const [player, club, trainerInfo] = await Promise.all([
+        const [player, club, trainerInfo, court] = await Promise.all([
           prisma.user.findUnique({
             where: { id: req.playerId },
             select: { id: true, name: true, email: true },
@@ -76,6 +76,12 @@ export async function GET(request: Request) {
               user: { select: { name: true } },
             },
           }),
+          req.courtId
+            ? prisma.court.findUnique({
+                where: { id: req.courtId },
+                select: { id: true, name: true },
+              })
+            : null,
         ]);
 
         return {
@@ -87,6 +93,10 @@ export async function GET(request: Request) {
           playerEmail: player?.email || "",
           clubId: req.clubId,
           clubName: club?.name || "Unknown Club",
+          courtId: req.courtId,
+          courtName: court?.name || null,
+          bookingId: req.bookingId,
+          bookingStatus: req.status === "confirmed" ? "confirmed" : "pending",
           date: req.date.toISOString().split("T")[0],
           time: req.time,
           comment: req.comment,

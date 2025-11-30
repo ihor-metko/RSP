@@ -13,6 +13,10 @@ interface TrainingRequest {
   playerEmail: string;
   clubId: string;
   clubName: string;
+  courtId: string | null;
+  courtName: string | null;
+  bookingId: string | null;
+  bookingStatus: string | null;
   date: string;
   time: string;
   comment: string | null;
@@ -277,6 +281,20 @@ export function TrainerRequests({ onRefresh }: TrainerRequestsProps) {
                   <span className="tm-detail-label">Club:</span>
                   <span className="tm-detail-value">{request.clubName}</span>
                 </div>
+                {request.courtName && (
+                  <div className="tm-detail-row">
+                    <span className="tm-detail-label">Court:</span>
+                    <span className="tm-detail-value">
+                      🏟️ {request.courtName}
+                      {request.status === "pending" && (
+                        <span className="tm-court-status tm-court-status--pending"> (reserved)</span>
+                      )}
+                      {request.status === "confirmed" && (
+                        <span className="tm-court-status tm-court-status--confirmed"> (confirmed)</span>
+                      )}
+                    </span>
+                  </div>
+                )}
                 {request.comment && (
                   <div className="tm-detail-row tm-detail-row--comment">
                     <span className="tm-detail-label">Notes:</span>

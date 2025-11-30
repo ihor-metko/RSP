@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { getCourtAvailabilitySuggestions } from "@/lib/courtAvailability";
 
 /**
  * PUT /api/trainer/requests/[requestId]/confirm
@@ -159,14 +160,38 @@ export async function PUT(
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "TRAINER_CONFLICT") {
+          // Get alternative suggestions
+          const dateStr = trainingRequest.date.toISOString().split("T")[0];
+          const suggestions = await getCourtAvailabilitySuggestions(
+            trainingRequest.clubId,
+            trainingRequest.trainerId,
+            dateStr,
+            trainingRequest.time
+          );
           return NextResponse.json(
-            { error: "Cannot confirm: trainer already has a confirmed session at this time" },
+            { 
+              error: "Cannot confirm: trainer already has a confirmed session at this time",
+              code: "TRAINER_CONFLICT",
+              suggestions,
+            },
             { status: 409 }
           );
         }
         if (error.message === "COURT_CONFLICT") {
+          // Get alternative suggestions
+          const dateStr = trainingRequest.date.toISOString().split("T")[0];
+          const suggestions = await getCourtAvailabilitySuggestions(
+            trainingRequest.clubId,
+            trainingRequest.trainerId,
+            dateStr,
+            trainingRequest.time
+          );
           return NextResponse.json(
-            { error: "Cannot confirm: the court is already booked by another player" },
+            { 
+              error: "Cannot confirm: the court is already booked by another player",
+              code: "COURT_CONFLICT",
+              suggestions,
+            },
             { status: 409 }
           );
         }

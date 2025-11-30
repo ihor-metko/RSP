@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 import { isValidDateFormat, isValidTimeFormat } from "@/utils/dateTime";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
+import { getCourtAvailabilitySuggestions, findAvailableCourts } from "@/lib/courtAvailability";
 
 interface TrainingRequest {
   trainerId: string;
@@ -227,53 +228,66 @@ export async function POST(request: Request) {
     });
 
     if (existingTraining) {
+      // Get suggestions for alternative slots
+      const suggestions = await getCourtAvailabilitySuggestions(
+        body.clubId,
+        body.trainerId,
+        body.date,
+        body.time
+      );
       return NextResponse.json(
-        { error: "Trainer already has training at this time. Choose another slot." },
+        { 
+          error: "Trainer already has training at this time. Choose another slot.",
+          code: "TRAINER_NOT_AVAILABLE",
+          suggestions,
+        },
         { status: 409 }
       );
     }
 
-    // Find an available court for the requested time
-    // Get all courts for this club
-    const courts = await prisma.court.findMany({
+    // Find an available court for the requested time using the helper
+    const availableCourts = await findAvailableCourts(
+      body.clubId,
+      body.date,
+      body.time,
+      TRAINING_DURATION_MINUTES
+    );
+
+    // Get all courts to check if the club has any courts
+    const allCourts = await prisma.court.findMany({
       where: { clubId: body.clubId },
     });
 
-    if (courts.length === 0) {
+    if (allCourts.length === 0) {
       return NextResponse.json(
         { error: "No courts available at this club. Please contact support." },
         { status: 400 }
       );
     }
 
-    // Calculate start and end times for the booking
-    const startTime = new Date(`${body.date}T${body.time}:00.000Z`);
-    const endTime = new Date(startTime.getTime() + TRAINING_DURATION_MINUTES * 60 * 1000);
-
-    // Find an available court (no overlapping bookings)
-    let availableCourt = null;
-    for (const court of courts) {
-      const overlappingBooking = await prisma.booking.findFirst({
-        where: {
-          courtId: court.id,
-          start: { lt: endTime },
-          end: { gt: startTime },
-          status: { in: ["reserved", "paid", "pending"] },
-        },
-      });
-
-      if (!overlappingBooking) {
-        availableCourt = court;
-        break;
-      }
-    }
-
-    if (!availableCourt) {
+    if (availableCourts.length === 0) {
+      // Get suggestions for alternative slots
+      const suggestions = await getCourtAvailabilitySuggestions(
+        body.clubId,
+        body.trainerId,
+        body.date,
+        body.time
+      );
       return NextResponse.json(
-        { error: "No courts available at the selected time. Please choose a different time slot." },
+        { 
+          error: "No courts available at the selected time. Please choose a different time slot.",
+          code: "NO_COURT_AVAILABLE",
+          suggestions,
+        },
         { status: 409 }
       );
     }
+
+    const availableCourt = allCourts.find(c => c.id === availableCourts[0].courtId)!;
+
+    // Calculate start and end times for the booking
+    const startTime = new Date(`${body.date}T${body.time}:00.000Z`);
+    const endTime = new Date(startTime.getTime() + TRAINING_DURATION_MINUTES * 60 * 1000);
 
     // Calculate price for the booking
     let resolvedPrice: number;

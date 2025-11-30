@@ -105,3 +105,46 @@
 .dark .tm-training-request-status--cancelled {
   @apply bg-gray-700 text-gray-300;
 }
+
+/* Court availability info message */
+.tm-booking-info {
+  @apply text-sm py-2;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+/* Suggestions list */
+.tm-suggestions {
+  @apply mt-3 p-3 rounded-md;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-primary);
+}
+
+.tm-suggestions-title {
+  @apply font-medium mb-2 text-sm;
+  color: var(--rsp-foreground);
+}
+
+.tm-suggestion-item {
+  @apply w-full p-2 mb-1 rounded-md text-left cursor-pointer transition-all text-sm;
+  background-color: var(--rsp-background);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-suggestion-item:hover {
+  background-color: var(--rsp-primary);
+  color: white;
+}
+
+.tm-suggestion-item:last-child {
+  @apply mb-0;
+}
+
+.tm-suggestion-datetime {
+  @apply font-medium block;
+}
+
+.tm-suggestion-court {
+  @apply text-xs mt-1 block;
+  opacity: 0.8;
+}
