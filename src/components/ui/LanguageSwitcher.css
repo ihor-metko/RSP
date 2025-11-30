@@ -1,0 +1,40 @@
+.rsp-language-switcher {
+  display: flex;
+  align-items: center;
+}
+
+.rsp-language-select {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--rsp-input-bg, #fff);
+  border: 1px solid var(--rsp-border, #d1d5db);
+  color: var(--rsp-text, #1f2937);
+}
+
+.rsp-language-select:hover {
+  border-color: var(--rsp-primary, #3b82f6);
+}
+
+.rsp-language-select:focus {
+  outline: none;
+  border-color: var(--rsp-primary, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.rsp-language-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dark .rsp-language-select {
+  background-color: var(--rsp-input-bg, #1f2937);
+  border-color: var(--rsp-border, #374151);
+  color: var(--rsp-text, #f9fafb);
+}
+
+.dark .rsp-language-select:hover {
+  border-color: var(--rsp-primary, #60a5fa);
+}
