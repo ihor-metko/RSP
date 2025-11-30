@@ -315,7 +315,7 @@ export function WeeklyAvailabilityTimeline({
                   className={`tm-availability-block tm-availability-block--${slot.overallStatus}`}
                   role="gridcell"
                   tabIndex={0}
-                  aria-label={`${day.dayName} ${formatHour(slot.hour)}: ${slot.summary.available} available, ${slot.summary.partial} partially booked, ${slot.summary.booked} booked`}
+                  aria-label={`${day.dayName} ${formatHour(slot.hour)}: ${slot.summary.available} available, ${slot.summary.partial} partially booked, ${slot.summary.booked} booked, ${slot.summary.pending} pending`}
                   onClick={() =>
                     handleBlockClick(day.date, slot.hour, slot.courts)
                   }
