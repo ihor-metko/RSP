@@ -31,12 +31,15 @@ export async function GET(
     const url = new URL(request.url);
     const dateParam = url.searchParams.get("date");
     const startParam = url.searchParams.get("start");
+    const fromParam = url.searchParams.get("from"); // Alternative to start
+    const toParam = url.searchParams.get("to"); // Alternative to duration
     const durationParam = url.searchParams.get("duration");
 
     // Validate required params
-    if (!dateParam || !startParam) {
+    const timeStart = startParam || fromParam;
+    if (!dateParam || !timeStart) {
       return NextResponse.json(
-        { error: "Missing required parameters: date and start are required" },
+        { error: "Missing required parameters: date and start (or from) are required" },
         { status: 400 }
       );
     }
@@ -52,15 +55,39 @@ export async function GET(
 
     // Validate start time format (HH:MM)
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeRegex.test(startParam)) {
+    if (!timeRegex.test(timeStart)) {
       return NextResponse.json(
         { error: "Invalid start time format. Use HH:MM" },
         { status: 400 }
       );
     }
 
-    // Parse duration (default 60 minutes)
-    const duration = durationParam ? parseInt(durationParam, 10) : 60;
+    // Calculate duration from 'from' and 'to' params, or use duration param
+    let duration: number;
+    if (toParam) {
+      // Validate 'to' time format
+      if (!timeRegex.test(toParam)) {
+        return NextResponse.json(
+          { error: "Invalid end time format. Use HH:MM" },
+          { status: 400 }
+        );
+      }
+      // Calculate duration in minutes from 'from' and 'to'
+      const [startHours, startMins] = timeStart.split(":").map(Number);
+      const [endHours, endMins] = toParam.split(":").map(Number);
+      const startMinutes = startHours * 60 + startMins;
+      const endMinutes = endHours * 60 + endMins;
+      duration = endMinutes - startMinutes;
+      if (duration <= 0) {
+        return NextResponse.json(
+          { error: "End time must be after start time" },
+          { status: 400 }
+        );
+      }
+    } else {
+      // Parse duration (default 60 minutes)
+      duration = durationParam ? parseInt(durationParam, 10) : 60;
+    }
     if (isNaN(duration) || duration <= 0) {
       return NextResponse.json(
         { error: "Invalid duration. Must be a positive integer" },
@@ -91,8 +118,8 @@ export async function GET(
     }
 
     // Parse requested slot times
-    const [startHour] = startParam.split(":").map(Number);
-    const slotStart = new Date(`${dateParam}T${startParam}:00.000Z`);
+    const [startHour] = timeStart.split(":").map(Number);
+    const slotStart = new Date(`${dateParam}T${timeStart}:00.000Z`);
     const slotEnd = new Date(slotStart.getTime() + duration * 60 * 1000);
 
     // Validate slot is within business hours
@@ -113,7 +140,7 @@ export async function GET(
       where: {
         courtId: { in: club.courts.map((c) => c.id) },
         start: { gte: dayStart, lt: dayEnd },
-        status: { in: ["reserved", "paid"] },
+        status: { in: ["reserved", "paid", "pending"] },
       },
       select: {
         courtId: true,

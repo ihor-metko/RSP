@@ -61,7 +61,7 @@ describe("GET /api/clubs/[id]/available-courts", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toContain("date and start are required");
+      expect(data.error).toContain("date and start");
     });
 
     it("should return 400 if start is missing", async () => {
@@ -72,7 +72,7 @@ describe("GET /api/clubs/[id]/available-courts", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toContain("date and start are required");
+      expect(data.error).toContain("date and start");
     });
 
     it("should return 400 for invalid date format", async () => {

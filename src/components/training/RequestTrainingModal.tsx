@@ -58,6 +58,13 @@ function formatDateDisplay(dateStr: string): string {
   });
 }
 
+interface CourtAvailabilitySuggestion {
+  date: string;
+  time: string;
+  courtId: string;
+  courtName: string;
+}
+
 export function RequestTrainingModal({
   clubId,
   trainers,
@@ -75,9 +82,53 @@ export function RequestTrainingModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [submittedRequestId, setSubmittedRequestId] = useState<string | null>(null);
+  const [courtAvailability, setCourtAvailability] = useState<{ hasAvailableCourt: boolean; isChecking: boolean }>({ hasAvailableCourt: true, isChecking: false });
+  const [suggestions, setSuggestions] = useState<CourtAvailabilitySuggestion[]>([]);
 
   // Reference for focus trapping
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Check court availability when date/time changes
+  const checkCourtAvailability = useCallback(async () => {
+    if (!clubId || !selectedDate || !selectedTime) {
+      setCourtAvailability({ hasAvailableCourt: true, isChecking: false });
+      return;
+    }
+
+    setCourtAvailability({ hasAvailableCourt: true, isChecking: true });
+    setSuggestions([]);
+
+    try {
+      const response = await fetch(
+        `/api/clubs/${clubId}/available-courts?date=${selectedDate}&from=${selectedTime}&to=${calculateEndTime(selectedTime, 60)}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCourtAvailability({ 
+          hasAvailableCourt: data.availableCourts?.length > 0, 
+          isChecking: false 
+        });
+      } else {
+        setCourtAvailability({ hasAvailableCourt: true, isChecking: false });
+      }
+    } catch {
+      setCourtAvailability({ hasAvailableCourt: true, isChecking: false });
+    }
+  }, [clubId, selectedDate, selectedTime]);
+
+  // Helper to calculate end time
+  function calculateEndTime(startTime: string, durationMinutes: number): string {
+    const [hours, mins] = startTime.split(":").map(Number);
+    const totalMinutes = hours * 60 + mins + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60);
+    const endMins = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
+  }
+
+  // Effect to check court availability when date/time changes
+  useEffect(() => {
+    checkCourtAvailability();
+  }, [checkCourtAvailability]);
 
   // Fetch trainer availability when trainer is selected
   const fetchTrainerAvailability = useCallback(async (trainerId: string) => {
@@ -114,8 +165,8 @@ export function RequestTrainingModal({
   // Check if selected date and time is valid for the trainer
   const getAvailabilityStatus = (): { isValid: boolean; message: string } => {
     // If still loading availability, don't allow submission
-    if (isLoadingAvailability) {
-      return { isValid: false, message: "Loading trainer availability..." };
+    if (isLoadingAvailability || courtAvailability.isChecking) {
+      return { isValid: false, message: "Loading availability..." };
     }
     
     // If no trainer selected or availability not loaded yet
@@ -155,6 +206,14 @@ export function RequestTrainingModal({
       };
     }
 
+    // Check if court is available
+    if (!courtAvailability.hasAvailableCourt) {
+      return {
+        isValid: false,
+        message: "No free courts at this time. Try a different time slot.",
+      };
+    }
+
     return { isValid: true, message: "" };
   };
 
@@ -172,6 +231,7 @@ export function RequestTrainingModal({
 
     setIsSubmitting(true);
     setAlert(null);
+    setSuggestions([]);
 
     try {
       const response = await fetch("/api/trainings", {
@@ -190,12 +250,18 @@ export function RequestTrainingModal({
       const data = await response.json();
 
       if (!response.ok) {
-        setAlert({ type: "error", message: data.error || "Failed to create training request" });
+        // Handle 409 with suggestions
+        if (response.status === 409 && data.suggestions && data.suggestions.length > 0) {
+          setSuggestions(data.suggestions);
+          setAlert({ type: "error", message: `${data.error} See suggestions below.` });
+        } else {
+          setAlert({ type: "error", message: data.error || "Failed to create training request" });
+        }
         return;
       }
 
       setSubmittedRequestId(data.id);
-      setAlert({ type: "success", message: data.message });
+      setAlert({ type: "success", message: `${data.message} Court: ${data.courtName}` });
 
       // Notify parent of success
       if (onSuccess) {
@@ -206,6 +272,14 @@ export function RequestTrainingModal({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Handle clicking on a suggestion to auto-fill the form
+  const handleSuggestionClick = (suggestion: CourtAvailabilitySuggestion) => {
+    setSelectedDate(suggestion.date);
+    setSelectedTime(suggestion.time);
+    setSuggestions([]);
+    setAlert(null);
   };
 
   const handleCancelRequest = async () => {
@@ -247,6 +321,8 @@ export function RequestTrainingModal({
     setTrainerAvailability(null);
     setAlert(null);
     setSubmittedRequestId(null);
+    setSuggestions([]);
+    setCourtAvailability({ hasAvailableCourt: true, isChecking: false });
     onClose();
   };
 
@@ -400,10 +476,35 @@ export function RequestTrainingModal({
               </select>
             </div>
 
+            {/* Court availability status */}
+            {courtAvailability.isChecking && (
+              <div className="tm-booking-info">Checking court availability...</div>
+            )}
+
             {/* Validation message */}
             {selectedTrainerId && !availabilityStatus.isValid && (
               <div className="tm-booking-alert tm-booking-alert--error" role="alert">
                 {availabilityStatus.message}
+              </div>
+            )}
+
+            {/* Suggestions list */}
+            {suggestions.length > 0 && (
+              <div className="tm-suggestions">
+                <p className="tm-suggestions-title">Try these available slots:</p>
+                {suggestions.map((suggestion, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className="tm-suggestion-item"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                  >
+                    <span className="tm-suggestion-datetime">
+                      {formatDateDisplay(suggestion.date)} at {suggestion.time}
+                    </span>
+                    <span className="tm-suggestion-court">🏟️ {suggestion.courtName}</span>
+                  </button>
+                ))}
               </div>
             )}
 
@@ -429,7 +530,8 @@ export function RequestTrainingModal({
                   !selectedTrainerId ||
                   !selectedDate ||
                   !selectedTime ||
-                  !availabilityStatus.isValid
+                  !availabilityStatus.isValid ||
+                  courtAvailability.isChecking
                 }
               >
                 {isSubmitting ? "Submitting..." : "Submit Request"}
