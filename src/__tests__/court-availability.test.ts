@@ -33,7 +33,10 @@ describe("GET /api/courts/[courtId]/availability", () => {
     const mockBookings: never[] = [];
 
     (prisma.court.findUnique as jest.Mock).mockResolvedValue(mockCourt);
-    (prisma.booking.findMany as jest.Mock).mockResolvedValue(mockBookings);
+    // Both queries return empty arrays (no confirmed or pending bookings)
+    (prisma.booking.findMany as jest.Mock)
+      .mockResolvedValueOnce(mockBookings)
+      .mockResolvedValueOnce(mockBookings);
 
     const request = createRequest("court-123", "2024-01-15");
     const response = await GET(request, {
@@ -80,15 +83,19 @@ describe("GET /api/courts/[courtId]/availability", () => {
 
   it("should mark slots as booked when there are overlapping bookings", async () => {
     const mockCourt = { id: "court-123", name: "Test Court" };
-    const mockBookings = [
+    const mockConfirmedBookings = [
       {
         start: new Date("2024-01-15T10:00:00.000Z"),
         end: new Date("2024-01-15T11:00:00.000Z"),
+        status: "reserved",
       },
     ];
 
     (prisma.court.findUnique as jest.Mock).mockResolvedValue(mockCourt);
-    (prisma.booking.findMany as jest.Mock).mockResolvedValue(mockBookings);
+    // First call returns confirmed bookings, second call returns no pending bookings
+    (prisma.booking.findMany as jest.Mock)
+      .mockResolvedValueOnce(mockConfirmedBookings)
+      .mockResolvedValueOnce([]);
 
     const request = createRequest("court-123", "2024-01-15");
     const response = await GET(request, {
@@ -114,15 +121,19 @@ describe("GET /api/courts/[courtId]/availability", () => {
   it("should mark slots as partial when there is partial overlap", async () => {
     const mockCourt = { id: "court-123", name: "Test Court" };
     // Booking that starts at 10:30 and ends at 11:30 (partial overlap with 10:00-11:00 and 11:00-12:00)
-    const mockBookings = [
+    const mockConfirmedBookings = [
       {
         start: new Date("2024-01-15T10:30:00.000Z"),
         end: new Date("2024-01-15T11:30:00.000Z"),
+        status: "reserved",
       },
     ];
 
     (prisma.court.findUnique as jest.Mock).mockResolvedValue(mockCourt);
-    (prisma.booking.findMany as jest.Mock).mockResolvedValue(mockBookings);
+    // First call returns confirmed bookings, second call returns no pending bookings
+    (prisma.booking.findMany as jest.Mock)
+      .mockResolvedValueOnce(mockConfirmedBookings)
+      .mockResolvedValueOnce([]);
 
     const request = createRequest("court-123", "2024-01-15");
     const response = await GET(request, {
@@ -145,10 +156,51 @@ describe("GET /api/courts/[courtId]/availability", () => {
     expect(slot11am?.status).toBe("partial");
   });
 
+  it("should mark slots as pending when there are pending bookings", async () => {
+    const mockCourt = { id: "court-123", name: "Test Court" };
+    // Pending booking from training request
+    const mockPendingBookings = [
+      {
+        start: new Date("2024-01-15T14:00:00.000Z"),
+        end: new Date("2024-01-15T15:00:00.000Z"),
+        status: "pending",
+      },
+    ];
+
+    (prisma.court.findUnique as jest.Mock).mockResolvedValue(mockCourt);
+    // First call returns no confirmed bookings, second call returns pending bookings
+    (prisma.booking.findMany as jest.Mock)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce(mockPendingBookings);
+
+    const request = createRequest("court-123", "2024-01-15");
+    const response = await GET(request, {
+      params: Promise.resolve({ courtId: "court-123" }),
+    });
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+
+    // Find the 14:00 slot and verify it's pending
+    const slot14pm = data.slots.find((slot: { start: string }) =>
+      slot.start.includes("T14:00:00")
+    );
+    expect(slot14pm?.status).toBe("pending");
+
+    // The 13:00 slot should still be available
+    const slot13pm = data.slots.find((slot: { start: string }) =>
+      slot.start.includes("T13:00:00")
+    );
+    expect(slot13pm?.status).toBe("available");
+  });
+
   it("should use today's date when no date parameter is provided", async () => {
     const mockCourt = { id: "court-123", name: "Test Court" };
     (prisma.court.findUnique as jest.Mock).mockResolvedValue(mockCourt);
-    (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
+    // Both queries return empty arrays
+    (prisma.booking.findMany as jest.Mock)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
 
     const request = createRequest("court-123");
     const response = await GET(request, {

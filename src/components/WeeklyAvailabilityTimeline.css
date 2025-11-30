@@ -104,6 +104,11 @@
   color: white;
 }
 
+.tm-availability-block--pending {
+  background-color: #f97316;
+  color: white;
+}
+
 /* Dark theme adjustments */
 .dark .tm-availability-block--available {
   background-color: #16a34a;
@@ -116,6 +121,10 @@
 
 .dark .tm-availability-block--booked {
   background-color: #dc2626;
+}
+
+.dark .tm-availability-block--pending {
+  background-color: #ea580c;
 }
 
 /* Tooltip */
@@ -164,6 +173,10 @@
   background-color: #ef4444;
 }
 
+.tm-tooltip-dot--pending {
+  background-color: #f97316;
+}
+
 /* Legend */
 .tm-weekly-legend {
   @apply flex gap-4 mt-4 text-xs;
@@ -187,6 +200,10 @@
 
 .tm-legend-dot--booked {
   background-color: #ef4444;
+}
+
+.tm-legend-dot--pending {
+  background-color: #f97316;
 }
 
 /* Loading skeleton */

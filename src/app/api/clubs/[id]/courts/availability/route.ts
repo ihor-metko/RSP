@@ -11,7 +11,7 @@ interface CourtAvailabilityStatus {
   courtName: string;
   courtType: string | null;
   indoor: boolean;
-  status: "available" | "booked" | "partial";
+  status: "available" | "booked" | "partial" | "pending";
 }
 
 interface HourSlotAvailability {
@@ -21,9 +21,10 @@ interface HourSlotAvailability {
     available: number;
     booked: number;
     partial: number;
+    pending: number;
     total: number;
   };
-  overallStatus: "available" | "partial" | "booked";
+  overallStatus: "available" | "partial" | "booked" | "pending";
 }
 
 interface DayAvailability {
@@ -118,16 +119,31 @@ export async function GET(
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
 
-    // Get all bookings for the week
+    // Get all confirmed bookings for the week
     const weekStartUtc = new Date(`${weekDates[0]}T00:00:00.000Z`);
     const weekEndUtc = new Date(`${weekDates[6]}T23:59:59.999Z`);
 
-    const bookings = await prisma.booking.findMany({
+    const confirmedBookings = await prisma.booking.findMany({
       where: {
         courtId: { in: club.courts.map((c) => c.id) },
         start: { gte: weekStartUtc },
         end: { lte: weekEndUtc },
         status: { in: ["reserved", "paid"] },
+      },
+      select: {
+        courtId: true,
+        start: true,
+        end: true,
+      },
+    });
+
+    // Get all pending bookings for the week
+    const pendingBookings = await prisma.booking.findMany({
+      where: {
+        courtId: { in: club.courts.map((c) => c.id) },
+        start: { gte: weekStartUtc },
+        end: { lte: weekEndUtc },
+        status: "pending",
       },
       select: {
         courtId: true,
@@ -154,25 +170,48 @@ export async function GET(
         let availableCount = 0;
         let bookedCount = 0;
         let partialCount = 0;
+        let pendingCount = 0;
 
         for (const court of club.courts) {
           // Check for bookings that overlap with this slot
-          const courtBookings = bookings.filter((b) => b.courtId === court.id);
-          let status: "available" | "booked" | "partial" = "available";
+          const courtPendingBookings = pendingBookings.filter((b) => b.courtId === court.id);
+          const courtConfirmedBookings = confirmedBookings.filter((b) => b.courtId === court.id);
+          let status: "available" | "booked" | "partial" | "pending" = "available";
 
-          for (const booking of courtBookings) {
+          // First check pending bookings - they take priority for pending status
+          for (const booking of courtPendingBookings) {
             const bookingStart = new Date(booking.start);
             const bookingEnd = new Date(booking.end);
 
             // Check for overlap
             if (bookingStart < slotEnd && bookingEnd > slotStart) {
-              // If the booking completely covers the slot, it's booked
+              // If the booking completely covers the slot or overlaps, mark as pending
               if (bookingStart <= slotStart && bookingEnd >= slotEnd) {
-                status = "booked";
-                break; // Complete booking found, no need to check further
+                status = "pending";
+                break;
               } else {
-                // Partial overlap - only upgrade from available to partial
-                status = "partial";
+                // Partial overlap with pending
+                status = "pending";
+              }
+            }
+          }
+
+          // If not pending, check confirmed bookings
+          if (status === "available") {
+            for (const booking of courtConfirmedBookings) {
+              const bookingStart = new Date(booking.start);
+              const bookingEnd = new Date(booking.end);
+
+              // Check for overlap
+              if (bookingStart < slotEnd && bookingEnd > slotStart) {
+                // If the booking completely covers the slot, it's booked
+                if (bookingStart <= slotStart && bookingEnd >= slotEnd) {
+                  status = "booked";
+                  break; // Complete booking found, no need to check further
+                } else {
+                  // Partial overlap - only upgrade from available to partial
+                  status = "partial";
+                }
               }
             }
           }
@@ -187,15 +226,18 @@ export async function GET(
 
           if (status === "available") availableCount++;
           else if (status === "booked") bookedCount++;
+          else if (status === "pending") pendingCount++;
           else partialCount++;
         }
 
         // Determine overall status for this hour slot
-        let overallStatus: "available" | "partial" | "booked";
+        let overallStatus: "available" | "partial" | "booked" | "pending";
         if (availableCount === club.courts.length) {
           overallStatus = "available";
         } else if (bookedCount === club.courts.length) {
           overallStatus = "booked";
+        } else if (pendingCount === club.courts.length) {
+          overallStatus = "pending";
         } else {
           overallStatus = "partial";
         }
@@ -207,6 +249,7 @@ export async function GET(
             available: availableCount,
             booked: bookedCount,
             partial: partialCount,
+            pending: pendingCount,
             total: club.courts.length,
           },
           overallStatus,

@@ -23,6 +23,8 @@ function getStatusColor(status: AvailabilitySlot["status"]): string {
       return "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600";
     case "partial":
       return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700";
+    case "pending":
+      return "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 border-orange-300 dark:border-orange-700";
     default:
       return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600";
   }
@@ -36,6 +38,8 @@ function getStatusLabel(status: AvailabilitySlot["status"]): string {
       return "Booked";
     case "partial":
       return "Limited";
+    case "pending":
+      return "Pending";
     default:
       return "Unknown";
   }
@@ -112,6 +116,9 @@ export function CourtSlotsToday({
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-yellow-500" /> Limited
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-orange-500" /> Pending
         </span>
       </div>
     </div>

@@ -9,7 +9,7 @@ const SLOT_DURATION_HOURS = 1;
 interface AvailabilitySlot {
   start: string;
   end: string;
-  status: "available" | "booked" | "partial";
+  status: "available" | "booked" | "partial" | "pending";
 }
 
 export interface AvailabilityResponse {
@@ -57,8 +57,8 @@ export async function GET(
       return NextResponse.json({ error: "Court not found" }, { status: 404 });
     }
 
-    // Fetch bookings for the court on the specified date
-    const bookings = await prisma.booking.findMany({
+    // Fetch confirmed bookings for the court on the specified date
+    const confirmedBookings = await prisma.booking.findMany({
       where: {
         courtId,
         start: { gte: dayStart },
@@ -68,6 +68,23 @@ export async function GET(
       select: {
         start: true,
         end: true,
+        status: true,
+      },
+      orderBy: { start: "asc" },
+    });
+
+    // Fetch pending bookings for the court on the specified date
+    const pendingBookings = await prisma.booking.findMany({
+      where: {
+        courtId,
+        start: { gte: dayStart },
+        end: { lte: dayEnd },
+        status: "pending",
+      },
+      select: {
+        start: true,
+        end: true,
+        status: true,
       },
       orderBy: { start: "asc" },
     });
@@ -81,21 +98,42 @@ export async function GET(
       const slotEnd = new Date(slotStart.getTime() + slotDurationMs);
 
       // Check if this slot overlaps with any booking
-      let status: "available" | "booked" | "partial" = "available";
+      let status: "available" | "booked" | "partial" | "pending" = "available";
 
-      for (const booking of bookings) {
+      // First check pending bookings - they take priority for pending status
+      for (const booking of pendingBookings) {
         const bookingStart = new Date(booking.start);
         const bookingEnd = new Date(booking.end);
 
         // Check for overlap
         if (bookingStart < slotEnd && bookingEnd > slotStart) {
-          // If the booking completely covers the slot, it's booked
+          // If the booking completely covers the slot, it's pending
           if (bookingStart <= slotStart && bookingEnd >= slotEnd) {
-            status = "booked";
+            status = "pending";
             break;
           } else {
-            // Partial overlap
-            status = "partial";
+            // Partial overlap with pending booking
+            status = "pending";
+          }
+        }
+      }
+
+      // If not pending, check confirmed bookings
+      if (status === "available") {
+        for (const booking of confirmedBookings) {
+          const bookingStart = new Date(booking.start);
+          const bookingEnd = new Date(booking.end);
+
+          // Check for overlap
+          if (bookingStart < slotEnd && bookingEnd > slotStart) {
+            // If the booking completely covers the slot, it's booked
+            if (bookingStart <= slotStart && bookingEnd >= slotEnd) {
+              status = "booked";
+              break;
+            } else {
+              // Partial overlap
+              status = "partial";
+            }
           }
         }
       }

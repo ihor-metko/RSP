@@ -13,7 +13,7 @@ export interface Court {
 export interface AvailabilitySlot {
   start: string;
   end: string;
-  status: "available" | "booked" | "partial";
+  status: "available" | "booked" | "partial" | "pending";
   priceCents?: number; // Optional price in cents for the slot
 }
 
@@ -41,7 +41,7 @@ export interface CourtAvailabilityStatus {
   courtName: string;
   courtType: string | null;
   indoor: boolean;
-  status: "available" | "booked" | "partial";
+  status: "available" | "booked" | "partial" | "pending";
 }
 
 export interface HourSlotAvailability {
@@ -51,9 +51,10 @@ export interface HourSlotAvailability {
     available: number;
     booked: number;
     partial: number;
+    pending: number;
     total: number;
   };
-  overallStatus: "available" | "partial" | "booked";
+  overallStatus: "available" | "partial" | "booked" | "pending";
 }
 
 export interface DayAvailability {

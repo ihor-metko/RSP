@@ -101,6 +101,10 @@ function Tooltip({ slot, dayName, position }: TooltipProps) {
           <span className="tm-tooltip-dot tm-tooltip-dot--booked" />
           {slot.summary.booked}
         </span>
+        <span className="tm-tooltip-stat">
+          <span className="tm-tooltip-dot tm-tooltip-dot--pending" />
+          {slot.summary.pending}
+        </span>
       </div>
     </div>
   );
@@ -344,6 +348,10 @@ export function WeeklyAvailabilityTimeline({
           <div className="tm-legend-item">
             <span className="tm-legend-dot tm-legend-dot--booked" />
             <span>Fully booked</span>
+          </div>
+          <div className="tm-legend-item">
+            <span className="tm-legend-dot tm-legend-dot--pending" />
+            <span>Pending</span>
           </div>
         </div>
 
