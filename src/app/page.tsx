@@ -62,8 +62,10 @@ export default function Home() {
       </header>
 
       {/* Hero section with background and search */}
-      <section className="tm-hero relative overflow-hidden bg-gradient-to-br from-[var(--rsp-brand-navy)] via-[#0a1040] to-[var(--rsp-brand-navy)]">
+      <section className="tm-hero relative overflow-hidden bg-gradient-to-br from-[var(--rsp-primary)] via-[#0a1040] to-[var(--rsp-primary)]">
         <div className="tm-hero-overlay absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10" />
+        <div className="tm-hero-bg absolute inset-0 bg-[url('/platform/paddle-club-banner.webp')] bg-cover bg-center bg-no-repeat opacity-70" />
+
         <div className="tm-hero-content relative z-10 max-w-4xl mx-auto px-4 py-16 md:py-24 text-center">
           <h2 className="tm-hero-headline text-3xl md:text-5xl font-bold text-white mb-4">
             {t("home.heroHeadline")}
@@ -102,7 +104,7 @@ export default function Home() {
       <section className="tm-popular-clubs py-12 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-bold mb-6">{t("home.popularClubs")}</h2>
-          
+
           {loadingClubs ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               {[1, 2, 3, 4].map((i) => (
