@@ -173,7 +173,7 @@ export default function ClubsPage() {
       ) : clubs.length === 0 ? (
         <div className="tm-clubs-empty">
           <p className="tm-clubs-empty-text">
-            {getEmptyStateMessage(currentParams.q, currentParams.city, currentParams.indoor, t)}
+            {getEmptyStateMessage(currentParams.q, currentParams.city, currentParams.indoor ?? false, t)}
           </p>
           {(currentParams.q || currentParams.city || currentParams.indoor) && (
             <p className="tm-clubs-empty-suggestion text-gray-400 text-sm mt-2">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Input, Modal, Select, IMLink } from "@/components/ui";
+import { Button, Card, Input, Modal, Select, Multiselect, IMLink } from "@/components/ui";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import type { Club } from "@/types/club";
@@ -138,14 +138,12 @@ export default function AdminCoachesPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleClubSelectChange = (value: string | string[]) => {
-    const clubIds = Array.isArray(value) ? value : [value];
-    setFormData((prev) => ({ ...prev, clubIds }));
+  const handleClubSelectChange = (values: string[]) => {
+    setFormData((prev) => ({ ...prev, clubIds: values }));
   };
 
-  const handleRoleModalClubSelectChange = (value: string | string[]) => {
-    const clubIds = Array.isArray(value) ? value : [value];
-    setSelectedClubIds(clubIds);
+  const handleRoleModalClubSelectChange = (values: string[]) => {
+    setSelectedClubIds(values);
   };
 
   const handleCreateCoach = async (e: React.FormEvent) => {
@@ -448,13 +446,11 @@ export default function AdminCoachesPage() {
             placeholder="Temporary password"
             required
           />
-          <Select
+          <Multiselect
             label="Assign to Club(s) *"
             options={clubOptions}
-            multiple
             value={formData.clubIds}
             onChange={handleClubSelectChange}
-            required
           />
           {clubs.length === 0 && (
             <p className="text-sm text-gray-500">
@@ -501,13 +497,11 @@ export default function AdminCoachesPage() {
           
           {targetRole === "coach" && (
             <>
-              <Select
+              <Multiselect
                 label="Assign to Club(s) *"
                 options={clubOptions}
-                multiple
                 value={selectedClubIds}
                 onChange={handleRoleModalClubSelectChange}
-                required
               />
               {clubs.length === 0 && (
                 <p className="text-sm text-gray-500">
