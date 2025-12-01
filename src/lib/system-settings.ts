@@ -46,72 +46,49 @@ export function isValidCSSClassName(className: string): boolean {
 /**
  * Checks if a class name is a Tailwind CSS utility class.
  * Tailwind classes don't need the im- prefix.
+ *
+ * Note: This is a heuristic-based check covering common Tailwind patterns.
+ * For comprehensive validation, consider using Tailwind's official tooling.
+ * The im- prefix requirement primarily applies to custom component classes.
  */
 function isTailwindUtilityClass(className: string): boolean {
+  // Common Tailwind utility prefixes and standalone classes
+  // This list covers the most frequently used utilities
   const tailwindPrefixes = [
-    "flex",
-    "grid",
-    "block",
-    "inline",
-    "hidden",
-    "w-",
-    "h-",
-    "m-",
-    "p-",
-    "text-",
-    "bg-",
-    "border",
-    "rounded",
-    "shadow",
-    "opacity",
-    "transition",
-    "transform",
-    "hover:",
-    "focus:",
-    "active:",
-    "dark:",
-    "sm:",
-    "md:",
-    "lg:",
-    "xl:",
-    "2xl:",
-    "gap-",
-    "space-",
-    "items-",
-    "justify-",
-    "font-",
-    "leading-",
-    "tracking-",
-    "z-",
-    "top-",
-    "right-",
-    "bottom-",
-    "left-",
-    "absolute",
-    "relative",
-    "fixed",
-    "sticky",
-    "static",
-    "overflow",
-    "cursor-",
-    "pointer-",
-    "select-",
-    "resize",
-    "fill-",
-    "stroke-",
-    "object-",
-    "aspect-",
-    "container",
-    "max-",
-    "min-",
-    "inset-",
-    "col-",
-    "row-",
-    "whitespace-",
+    // Layout & Display
+    "flex", "grid", "block", "inline", "hidden", "contents",
+    // Sizing
+    "w-", "h-", "min-", "max-", "size-",
+    // Spacing
+    "m-", "p-", "gap-", "space-",
+    // Typography
+    "text-", "font-", "leading-", "tracking-", "whitespace-",
+    // Backgrounds & Borders
+    "bg-", "border", "rounded", "ring-", "outline-",
+    // Effects
+    "shadow", "opacity", "blur-", "brightness-",
+    // Transforms & Transitions
+    "transition", "transform", "translate-", "rotate-", "scale-",
+    // Responsive & State prefixes
+    "hover:", "focus:", "active:", "disabled:", "dark:",
+    "sm:", "md:", "lg:", "xl:", "2xl:",
+    // Flexbox & Grid
+    "items-", "justify-", "self-", "place-", "col-", "row-", "order-",
+    // Positioning
+    "absolute", "relative", "fixed", "sticky", "static",
+    "top-", "right-", "bottom-", "left-", "inset-", "z-",
+    // Overflow & Visibility
+    "overflow", "visible", "invisible", "truncate",
+    // Cursor & Pointer
+    "cursor-", "pointer-", "select-",
+    // SVG
+    "fill-", "stroke-",
+    // Other common utilities
+    "aspect-", "object-", "container", "resize", "sr-only",
   ];
 
   return tailwindPrefixes.some(
-    (prefix) => className.startsWith(prefix) || className === prefix.slice(0, -1)
+    (prefix) => className.startsWith(prefix) || className === prefix.replace(/-$/, "")
   );
 }
 
@@ -120,7 +97,9 @@ function isTailwindUtilityClass(className: string): boolean {
  * Third-party classes don't need the im- prefix.
  */
 function isThirdPartyClass(className: string): boolean {
-  // Allow third-party class prefixes
+  // Allow third-party class prefixes:
+  // - "rsp-" : Legacy RSP project component classes (to be migrated to im-)
+  // - "tm-"  : Theme/template classes from globals.css
   const thirdPartyPrefixes = ["rsp-", "tm-"];
   return thirdPartyPrefixes.some((prefix) => className.startsWith(prefix));
 }
@@ -212,10 +191,8 @@ export const CSSVariables = {
  * // Returns: "var(--rsp-primary)"
  * cssVar('primary')
  */
-export function cssVar(
-  variable: keyof typeof CSSVariables
-): `var(${(typeof CSSVariables)[typeof variable]})` {
-  return `var(${CSSVariables[variable]})` as `var(${(typeof CSSVariables)[typeof variable]})`;
+export function cssVar(variable: keyof typeof CSSVariables): string {
+  return `var(${CSSVariables[variable]})`;
 }
 
 // =============================================================================
