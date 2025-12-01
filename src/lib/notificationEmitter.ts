@@ -1,7 +1,20 @@
 import { prisma } from "@/lib/prisma";
-import { notificationEmitter, NotificationPayload } from "@/lib/notificationEmitter";
 
 export type NotificationType = "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
+
+export interface NotificationPayload {
+  id: string;
+  type: NotificationType;
+  bookingId: string | null;
+  coachId: string;
+  playerId: string;
+  trainingRequestId: string | null;
+  sessionDate: string | null;
+  sessionTime: string | null;
+  courtInfo: string | null;
+  summary: string;
+  createdAt: string;
+}
 
 export interface CreateNotificationParams {
   type: NotificationType;
@@ -13,6 +26,40 @@ export interface CreateNotificationParams {
   sessionTime?: string;
   courtInfo?: string;
 }
+
+// In-memory event emitter for SSE clients
+type NotificationListener = (notification: NotificationPayload) => void;
+
+class NotificationEventEmitter {
+  private listeners: Set<NotificationListener> = new Set();
+
+  subscribe(listener: NotificationListener): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  emit(notification: NotificationPayload): void {
+    this.listeners.forEach((listener) => {
+      try {
+        listener(notification);
+      } catch (error) {
+        // Silently ignore listener errors
+        if (process.env.NODE_ENV === "development") {
+          console.error("Notification listener error:", error);
+        }
+      }
+    });
+  }
+
+  getListenerCount(): number {
+    return this.listeners.size;
+  }
+}
+
+// Singleton instance for the notification emitter
+export const notificationEmitter = new NotificationEventEmitter();
 
 /**
  * Generate a summary message for the notification
@@ -39,13 +86,11 @@ function generateSummary(type: NotificationType, sessionDate?: Date, sessionTime
 }
 
 /**
- * Create an admin notification for tracking training request events
- * Also emits the notification to real-time SSE listeners
+ * Create an admin notification and emit it to SSE listeners
  */
-export async function createAdminNotification(
-  params: CreateNotificationParams
-): Promise<void> {
+export async function notifyAdmin(params: CreateNotificationParams): Promise<void> {
   try {
+    // Create notification in database
     const notification = await prisma.adminNotification.create({
       data: {
         type: params.type,
@@ -60,7 +105,7 @@ export async function createAdminNotification(
       },
     });
 
-    // Emit to real-time SSE listeners
+    // Construct the payload for real-time delivery
     const payload: NotificationPayload = {
       id: notification.id,
       type: notification.type as NotificationType,
@@ -79,6 +124,7 @@ export async function createAdminNotification(
       createdAt: notification.createdAt.toISOString(),
     };
 
+    // Emit to SSE listeners
     notificationEmitter.emit(payload);
   } catch (error) {
     // Log error in development but don't throw - notifications are non-critical

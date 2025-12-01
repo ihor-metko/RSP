@@ -13,6 +13,13 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
+// Mock notification emitter
+jest.mock("@/lib/notificationEmitter", () => ({
+  notificationEmitter: {
+    emit: jest.fn(),
+  },
+}));
+
 describe("Admin Notifications Service", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -25,7 +32,13 @@ describe("Admin Notifications Service", () => {
         type: "REQUESTED",
         playerId: "player-123",
         coachId: "coach-123",
+        trainingRequestId: "training-123",
+        bookingId: null,
+        sessionDate: new Date("2024-01-15"),
+        sessionTime: "10:00",
+        courtInfo: "Court 1",
         read: false,
+        createdAt: new Date("2024-01-10"),
       });
 
       await createAdminNotification({
@@ -57,6 +70,15 @@ describe("Admin Notifications Service", () => {
       (prisma.adminNotification.create as jest.Mock).mockResolvedValue({
         id: "notif-124",
         type: "ACCEPTED",
+        playerId: "player-123",
+        coachId: "coach-123",
+        trainingRequestId: "training-123",
+        bookingId: "booking-123",
+        sessionDate: null,
+        sessionTime: null,
+        courtInfo: null,
+        read: false,
+        createdAt: new Date("2024-01-10"),
       });
 
       await createAdminNotification({
@@ -82,6 +104,15 @@ describe("Admin Notifications Service", () => {
       (prisma.adminNotification.create as jest.Mock).mockResolvedValue({
         id: "notif-125",
         type: "DECLINED",
+        playerId: "player-123",
+        coachId: "coach-123",
+        trainingRequestId: null,
+        bookingId: null,
+        sessionDate: null,
+        sessionTime: null,
+        courtInfo: null,
+        read: false,
+        createdAt: new Date("2024-01-10"),
       });
 
       await createAdminNotification({
@@ -103,6 +134,15 @@ describe("Admin Notifications Service", () => {
       (prisma.adminNotification.create as jest.Mock).mockResolvedValue({
         id: "notif-126",
         type: "CANCELED",
+        playerId: "player-123",
+        coachId: "coach-123",
+        trainingRequestId: "training-123",
+        bookingId: null,
+        sessionDate: null,
+        sessionTime: null,
+        courtInfo: null,
+        read: false,
+        createdAt: new Date("2024-01-10"),
       });
 
       await createAdminNotification({
@@ -145,6 +185,15 @@ describe("Admin Notifications Service", () => {
       (prisma.adminNotification.create as jest.Mock).mockResolvedValue({
         id: "notif-127",
         type: "REQUESTED",
+        playerId: "player-123",
+        coachId: "coach-123",
+        trainingRequestId: null,
+        bookingId: null,
+        sessionDate: null,
+        sessionTime: null,
+        courtInfo: null,
+        read: false,
+        createdAt: new Date("2024-01-10"),
       });
 
       await createAdminNotification({

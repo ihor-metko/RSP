@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button, Card, Input, Modal, Select } from "@/components/ui";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import type { Club } from "@/types/club";
 
@@ -284,6 +285,7 @@ export default function AdminCoachesPage() {
           </p>
         </div>
         <div className="flex items-center gap-4">
+          <NotificationBell />
           <UserRoleIndicator />
         </div>
       </header>
