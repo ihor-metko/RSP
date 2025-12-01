@@ -348,5 +348,48 @@
     "toggleDarkMode": "Toggle dark mode",
     "switchToLight": "Switch to light mode",
     "switchToDark": "Switch to dark mode"
+  },
+  "playerDashboard": {
+    "player": "Player",
+    "greeting": "Hello, {name}!",
+    "subtitle": "Your paddle club dashboard",
+    "quickBook": {
+      "title": "Quick Book",
+      "selectClub": "Select Club",
+      "selectDate": "Select Date",
+      "noClubs": "No clubs available",
+      "bookNow": "Book Now"
+    },
+    "upcomingBookings": {
+      "title": "My Upcoming Bookings",
+      "noBookings": "You have no upcoming bookings.",
+      "browseClubs": "Browse clubs to make a booking",
+      "viewDetails": "View Details",
+      "repeat": "Repeat"
+    },
+    "coaches": {
+      "title": "Recommended Coaches",
+      "noCoaches": "No coaches available yet.",
+      "requestTraining": "Request Training"
+    },
+    "events": {
+      "title": "Club Events & Promotions",
+      "noEvents": "No upcoming events at the moment."
+    },
+    "navigation": {
+      "title": "Quick Navigation",
+      "myTrainings": "My Trainings",
+      "browseClubs": "Browse Clubs",
+      "home": "Home",
+      "profile": "Profile"
+    },
+    "bookingDetails": {
+      "title": "Booking Details"
+    },
+    "cancelConfirm": {
+      "title": "Cancel Booking",
+      "message": "Are you sure you want to cancel this booking? This action cannot be undone."
+    },
+    "bookingsError": "Failed to load bookings. Please try again."
   }
 }
