@@ -1,8 +1,7 @@
-import Link from "next/link";
+import Link, { LinkProps } from "next/link";
 import "./IMLink.css";
 
-interface IMLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
-  href: string;
+interface IMLinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, keyof LinkProps>, LinkProps {
   children: React.ReactNode;
   className?: string;
 }
