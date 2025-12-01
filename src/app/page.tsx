@@ -69,8 +69,13 @@ export default function Home() {
                 <Link href="/admin/clubs" className="rsp-link text-blue-500 hover:underline">
                   {t("home.manageClubs")}
                 </Link>
+
                 <Link href="/admin/coaches" className="rsp-link text-blue-500 hover:underline">
                   {t("home.manageCoaches")}
+                </Link>
+
+                <Link href="/admin/notifications" className="rsp-link text-blue-500 hover:underline">
+                  {t("home.manageNotifications")}
                 </Link>
               </>
             )}
