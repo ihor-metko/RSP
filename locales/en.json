@@ -109,7 +109,8 @@
     "promptMessage": "To proceed with booking, please log in or create an account.",
     "continueBrowsing": "Continue browsing",
     "signInToBook": "Sign up / Log in to book",
-    "signInToBookTooltip": "Sign in to book this court"
+    "signInToBookTooltip": "Sign in to book this court",
+    "welcomeBack": "Welcome back, {name}!"
   },
   "clubs": {
     "title": "Clubs",

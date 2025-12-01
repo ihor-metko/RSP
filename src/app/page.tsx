@@ -73,20 +73,6 @@ export default function Home() {
             {t("home.heroSubheadline")}
           </p>
 
-          {/* Hero CTA buttons */}
-          <div className="tm-hero-cta flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            {!isAuthenticated && (
-              <IMLink href="/auth/sign-up">
-                <Button className="w-full sm:w-auto">{t("common.register")}</Button>
-              </IMLink>
-            )}
-            <IMLink href="/clubs">
-              <Button variant="outline" className="w-full sm:w-auto tm-hero-view-clubs">
-                {t("home.viewClubs")}
-              </Button>
-            </IMLink>
-          </div>
-
           {/* Search bar in hero */}
           <div className="tm-hero-search max-w-2xl mx-auto bg-white/10 backdrop-blur-xs rounded-lg p-4">
             <PublicSearchBar navigateOnSearch compact />
