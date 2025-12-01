@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
 import { AdminNotificationsPanel } from "@/components/admin/AdminNotifications";
+import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 
 export default function AdminNotificationsPage() {
@@ -41,6 +42,7 @@ export default function AdminNotificationsPage() {
           </p>
         </div>
         <div className="flex items-center gap-4">
+          <NotificationBell />
           <UserRoleIndicator />
         </div>
       </header>

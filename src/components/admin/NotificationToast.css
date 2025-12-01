@@ -1,0 +1,72 @@
+/* Toast Container */
+.tm-notification-toast-container {
+  @apply fixed top-4 right-4 z-50 space-y-2;
+  max-width: 360px;
+}
+
+/* Individual Toast */
+.tm-notification-toast {
+  @apply flex items-start gap-3 p-4 rounded-lg shadow-lg;
+  @apply animate-slide-in-right;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.tm-notification-toast--exiting {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease forwards;
+}
+
+/* Toast Icon */
+.tm-notification-toast-icon {
+  @apply text-2xl flex-shrink-0;
+}
+
+/* Toast Content */
+.tm-notification-toast-content {
+  @apply flex-grow min-w-0;
+}
+
+.tm-notification-toast-summary {
+  @apply text-sm font-medium mb-2;
+  color: var(--rsp-foreground);
+}
+
+/* Toast Actions */
+.tm-notification-toast-actions {
+  @apply flex items-center gap-2;
+}
+
+.tm-toast-view-btn {
+  @apply text-xs px-3 py-1;
+}
+
+.tm-toast-dismiss-btn {
+  @apply w-6 h-6 flex items-center justify-center rounded-full;
+  @apply text-gray-400 hover:text-gray-600 hover:bg-gray-100;
+  @apply transition-colors cursor-pointer;
+  background: transparent;
+  border: none;
+}
+
+.dark .tm-toast-dismiss-btn {
+  @apply hover:text-gray-300 hover:bg-gray-700;
+}
