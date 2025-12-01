@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Modal, Button } from "@/components/ui";
+import { Modal, Button, Select } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import { doTimesOverlap, formatTimeHHMM } from "@/utils/dateTime";
 import "./BookingModal.css";
@@ -294,56 +294,45 @@ export function BookingModal({
 
         <div className="tm-booking-form">
           {coachList && coachList.length > 0 && (
-            <div className="tm-booking-select-wrapper">
-              <label htmlFor="coach-select" className="tm-booking-label">
-                {t("booking.selectCoach")}
-              </label>
-              <select
-                id="coach-select"
-                className="tm-booking-select"
-                value={selectedCoachId ?? ""}
-                onChange={(e) => handleCoachChange(e.target.value || null)}
-                disabled={isLoading}
-              >
-                <option value="">{t("booking.noCoach")}</option>
-                {coachList.map((coach) => (
-                  <option key={coach.id} value={coach.id}>
-                    {coach.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              id="coach-select"
+              label={t("booking.selectCoach")}
+              options={[
+                { value: "", label: t("booking.noCoach") },
+                ...coachList.map((coach) => ({
+                  value: coach.id,
+                  label: coach.name,
+                })),
+              ]}
+              value={selectedCoachId ?? ""}
+              onChange={(value) => handleCoachChange(value || null)}
+              disabled={isLoading}
+              className="tm-booking-select"
+            />
           )}
 
           {isLoadingCoachAvailability && (
             <div className="tm-booking-info">{t("booking.loadingCoachAvailability")}</div>
           )}
 
-          <div className="tm-booking-select-wrapper">
-            <label htmlFor="slot-select" className="tm-booking-label">
-              {t("booking.selectTimeSlot")}
-            </label>
-            <select
-              id="slot-select"
-              className="tm-booking-select"
-              value={selectedSlotIndex ?? ""}
-              onChange={(e) =>
-                setSelectedSlotIndex(e.target.value ? parseInt(e.target.value, 10) : null)
-              }
-              disabled={isLoading || isLoadingCoachAvailability}
-            >
-              <option value="">{t("booking.chooseTimeSlot")}</option>
-              {filteredSlots.map(({ slot, index, available }) => (
-                <option 
-                  key={`${slot.startTime}-${slot.endTime}`} 
-                  value={index}
-                  disabled={!available}
-                >
-                  {formatSlot(slot)}{!available ? ` (${t("booking.coachUnavailable")})` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            id="slot-select"
+            label={t("booking.selectTimeSlot")}
+            options={[
+              { value: "", label: t("booking.chooseTimeSlot") },
+              ...filteredSlots.map(({ slot, index, available }) => ({
+                value: String(index),
+                label: `${formatSlot(slot)}${!available ? ` (${t("booking.coachUnavailable")})` : ""}`,
+                disabled: !available,
+              })),
+            ]}
+            value={selectedSlotIndex !== null ? String(selectedSlotIndex) : ""}
+            onChange={(value) =>
+              setSelectedSlotIndex(value ? parseInt(value, 10) : null)
+            }
+            disabled={isLoading || isLoadingCoachAvailability}
+            className="tm-booking-select"
+          />
 
           {/* Show warning if selected slot is unavailable for coach */}
           {selectedSlotUnavailabilityReason && (

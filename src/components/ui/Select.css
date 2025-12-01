@@ -1,38 +1,95 @@
-@reference "tailwindcss";
-
-.rsp-select-wrapper {
-  @apply block;
+.im-select-wrapper {
+  position: relative;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.875rem;
 }
 
-.rsp-select {
-  @apply w-full rounded-md px-3 py-2 text-sm transition-colors;
-  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-  background-color: var(--rsp-background);
+.im-label {
+  color: var(--rsp-foreground);
+}
+
+.im-select-display {
+  background-color: var(--rsp-card-bg);
   color: var(--rsp-foreground);
   border: 1px solid var(--rsp-border);
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
-  background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-  padding-right: 2.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.rsp-select:focus {
+.im-select-display:hover {
   border-color: var(--rsp-primary);
-  --tw-ring-color: var(--rsp-secondary);
 }
 
-.rsp-select:disabled {
-  @apply opacity-50 cursor-not-allowed;
+.im-select-display.im-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.rsp-select[multiple] {
-  background-image: none;
-  padding-right: 0.75rem;
-  min-height: 100px;
+.im-arrow {
+  border: solid var(--rsp-foreground);
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 3px;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
 }
 
-.rsp-select option {
-  @apply py-1;
+.im-arrow.im-open {
+  transform: rotate(-135deg);
+}
+
+.im-select-options {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  width: 100%;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+  border-radius: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 50;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.im-select-option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.im-select-option:hover {
+  background-color: var(--rsp-primary-hover);
+  color: var(--rsp-background);
+}
+
+.im-select-option.im-selected {
+  background-color: var(--rsp-primary);
+  color: var(--rsp-background);
+  font-weight: 500;
+}
+
+.im-select-option.im-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Scrollbar styling */
+.im-select-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.im-select-options::-webkit-scrollbar-thumb {
+  background-color: var(--rsp-border);
+  border-radius: 3px;
+}
+
+.im-select-options::-webkit-scrollbar-track {
+  background: transparent;
 }

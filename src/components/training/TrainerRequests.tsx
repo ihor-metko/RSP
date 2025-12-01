@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Button, Card, Modal } from "@/components/ui";
+import { Button, Card, Modal, Select } from "@/components/ui";
 import "./TrainerRequests.css";
 
 interface TrainingRequest {
@@ -208,21 +208,20 @@ export function TrainerRequests({ onRefresh }: TrainerRequestsProps) {
 
         {showHistory && (
           <div className="tm-filter-controls">
-            <label htmlFor="status-filter" className="tm-filter-label">
-              Filter by status:
-            </label>
-            <select
+            <Select
               id="status-filter"
+              label="Filter by status:"
+              options={[
+                { value: "all", label: "All" },
+                { value: "confirmed", label: "Confirmed" },
+                { value: "rejected", label: "Rejected" },
+                { value: "cancelled", label: "Cancelled" },
+                { value: "cancelled_by_player", label: "Cancelled by Player" },
+              ]}
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
+              onChange={(value) => setFilterStatus(value as FilterStatus)}
               className="tm-filter-select"
-            >
-              <option value="all">All</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="rejected">Rejected</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="cancelled_by_player">Cancelled by Player</option>
-            </select>
+            />
           </div>
         )}
       </div>

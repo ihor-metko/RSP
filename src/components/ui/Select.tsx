@@ -1,70 +1,86 @@
+import { useState, useRef, useEffect } from "react";
 import "./Select.css";
 
-interface SelectOption {
+export interface SelectOption {
   value: string;
   label: string;
+  disabled?: boolean;
 }
 
-interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
+interface SelectProps {
+  id?: string;
   label?: string;
+  className?: string;
   options: SelectOption[];
   placeholder?: string;
-  onChange?: (value: string | string[]) => void;
+  value?: string;
+  onChange?: (value: string) => void;
+  disabled?: boolean;
 }
 
 export function Select({
   label,
   options,
-  placeholder,
-  className = "",
-  id,
-  multiple,
+  placeholder = "Оберіть...",
   value,
   onChange,
-  ...props
+  disabled = false,
 }: SelectProps) {
-  const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<string>(value!);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!onChange) return;
-    
-    if (multiple) {
-      const selectedValues = Array.from(e.target.selectedOptions).map(opt => opt.value);
-      onChange(selectedValues);
-    } else {
-      onChange(e.target.value);
+  const toggleOpen = () => {
+    if (!disabled) setOpen((prev) => !prev);
+  };
+
+  const handleSelect = (optionValue: string) => {
+    if (disabled) return;
+
+    setSelected(optionValue);
+    onChange?.(optionValue);
+    setOpen(false);
+  };
+
+  const handleClickOutside = (event: MouseEvent) => {
+    if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      setOpen(false);
     }
   };
 
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const displayLabel = () => {
+    if (selected) return options.find((o) => o.value === selected)?.label;
+    return placeholder;
+  };
+
   return (
-    <div className="rsp-select-wrapper">
-      {label && (
-        <label
-          htmlFor={selectId}
-          className="rsp-label mb-1 block text-sm font-medium"
-        >
-          {label}
-        </label>
-      )}
-      <select
-        id={selectId}
-        className={`rsp-select ${className}`.trim()}
-        multiple={multiple}
-        value={value}
-        onChange={handleChange}
-        {...props}
+    <div className="im-select-wrapper" ref={wrapperRef}>
+      {label && <label className="im-label mb-1 block text-sm font-medium">{label}</label>}
+      <div
+        className={`im-select-display ${disabled ? "im-disabled" : ""}`}
+        onClick={toggleOpen}
       >
-        {placeholder && !multiple && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
-        )}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        {displayLabel()}
+        <span className={`im-arrow ${open ? "im-open" : ""}`} />
+      </div>
+      {open && (
+        <ul className="im-select-options">
+          {options.map((option) => (
+            <li
+              key={option.value}
+              className={`im-select-option ${selected === option.value ? "im-selected" : ""} ${option.disabled ? "im-disabled" : ""}`}
+              onClick={() => !option.disabled && handleSelect(option.value)}
+            >
+              {option.label}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

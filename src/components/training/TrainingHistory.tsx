@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Card, Modal } from "@/components/ui";
+import { Button, Card, Modal, Select } from "@/components/ui";
 import "./TrainingHistory.css";
 
 interface TrainingRequest {
@@ -239,20 +239,21 @@ export function TrainingHistory() {
       {/* Filter Controls */}
       <div className="tm-training-controls">
         <div className="tm-filter-group">
-          <label htmlFor="status-filter">{t("filterByStatus")}:</label>
-          <select
+          <Select
             id="status-filter"
-            className="tm-filter-select"
+            label={`${t("filterByStatus")}:`}
+            options={[
+              { value: "all", label: t("allStatuses") },
+              { value: "pending", label: t("pending") },
+              { value: "confirmed", label: t("confirmed") },
+              { value: "rejected", label: t("rejected") },
+              { value: "cancelled", label: t("cancelled") },
+              { value: "cancelled_by_player", label: t("cancelledByPlayer") },
+            ]}
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-          >
-            <option value="all">{t("allStatuses")}</option>
-            <option value="pending">{t("pending")}</option>
-            <option value="confirmed">{t("confirmed")}</option>
-            <option value="rejected">{t("rejected")}</option>
-            <option value="cancelled">{t("cancelled")}</option>
-            <option value="cancelled_by_player">{t("cancelledByPlayer")}</option>
-          </select>
+            onChange={(value) => setFilterStatus(value as FilterStatus)}
+            className="tm-filter-select"
+          />
         </div>
       </div>
 

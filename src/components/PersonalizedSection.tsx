@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Card, Button } from "@/components/ui";
+import { Card, Button, Select } from "@/components/ui";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 
@@ -243,28 +243,22 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                 <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
               ) : (
                 <>
-                  <div>
-                    <label htmlFor="quick-club-select" className="block text-sm font-medium mb-2">
-                      {t("playerDashboard.quickBook.selectClub")}
-                    </label>
-                    <select
-                      id="quick-club-select"
-                      className="tm-booking-select w-full"
-                      value={selectedClubId}
-                      onChange={(e) => setSelectedClubId(e.target.value)}
-                      aria-label={t("playerDashboard.quickBook.selectClub")}
-                    >
-                      {clubs.length === 0 ? (
-                        <option value="">{t("playerDashboard.quickBook.noClubs")}</option>
-                      ) : (
-                        clubs.map((club) => (
-                          <option key={club.id} value={club.id}>
-                            {club.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
+                  <Select
+                    id="quick-club-select"
+                    label={t("playerDashboard.quickBook.selectClub")}
+                    options={
+                      clubs.length === 0
+                        ? [{ value: "", label: t("playerDashboard.quickBook.noClubs") }]
+                        : clubs.map((club) => ({
+                            value: club.id,
+                            label: club.name,
+                          }))
+                    }
+                    value={selectedClubId}
+                    onChange={(value) => setSelectedClubId(value)}
+                    aria-label={t("playerDashboard.quickBook.selectClub")}
+                    className="tm-booking-select w-full"
+                  />
                   <Button
                     onClick={() => setIsQuickBookingOpen(true)}
                     disabled={!selectedClubId || clubs.length === 0}

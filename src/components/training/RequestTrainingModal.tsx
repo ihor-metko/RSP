@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Modal, Button, Input } from "@/components/ui";
+import { Modal, Button, Input, Select } from "@/components/ui";
 import { doTimesOverlap } from "@/utils/dateTime";
 import "./RequestTrainingModal.css";
 
@@ -471,26 +471,22 @@ export function RequestTrainingModal({
         {!submittedRequestId && (
           <div className="tm-request-training-form">
             {/* Trainer selection */}
-            <div className="tm-booking-select-wrapper">
-              <label htmlFor="trainer-select" className="tm-booking-label">
-                Select Trainer
-              </label>
-              <select
-                id="trainer-select"
-                className="tm-booking-select"
-                value={selectedTrainerId}
-                onChange={(e) => handleTrainerChange(e.target.value)}
-                disabled={isSubmitting}
-                aria-describedby="trainer-availability-preview"
-              >
-                <option value="">Choose a trainer...</option>
-                {trainers.map((trainer) => (
-                  <option key={trainer.id} value={trainer.id}>
-                    {trainer.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              id="trainer-select"
+              label="Select Trainer"
+              options={[
+                { value: "", label: "Choose a trainer..." },
+                ...trainers.map((trainer) => ({
+                  value: trainer.id,
+                  label: trainer.name,
+                })),
+              ]}
+              value={selectedTrainerId}
+              onChange={(value) => handleTrainerChange(value)}
+              disabled={isSubmitting}
+              aria-describedby="trainer-availability-preview"
+              className="tm-booking-select"
+            />
 
             {/* Availability preview */}
             <div id="trainer-availability-preview">
@@ -514,24 +510,18 @@ export function RequestTrainingModal({
             </div>
 
             {/* Time picker */}
-            <div className="tm-booking-select-wrapper">
-              <label htmlFor="training-time" className="tm-booking-label">
-                Time
-              </label>
-              <select
-                id="training-time"
-                className="tm-booking-select"
-                value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
-                disabled={isSubmitting}
-              >
-                {TIME_OPTIONS.map((time) => (
-                  <option key={time} value={time}>
-                    {time}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Select
+              id="training-time"
+              label="Time"
+              options={TIME_OPTIONS.map((time) => ({
+                value: time,
+                label: time,
+              }))}
+              value={selectedTime}
+              onChange={(value) => setSelectedTime(value)}
+              disabled={isSubmitting}
+              className="tm-booking-select"
+            />
 
             {/* Court availability status */}
             {courtAvailability.isChecking && (

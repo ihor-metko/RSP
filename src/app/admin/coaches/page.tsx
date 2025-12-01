@@ -320,17 +320,18 @@ export default function AdminCoachesPage() {
             />
           </div>
           <div>
-            <select
+            <Select
+              options={[
+                { value: "", label: "All Roles" },
+                { value: "player", label: "Player" },
+                { value: "coach", label: "Coach" },
+                { value: "admin", label: "Admin" },
+              ]}
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="rsp-input w-full md:w-auto"
+              onChange={(value) => setRoleFilter(value)}
               aria-label="Filter by role"
-            >
-              <option value="">All Roles</option>
-              <option value="player">Player</option>
-              <option value="coach">Coach</option>
-              <option value="admin">Admin</option>
-            </select>
+              className="w-full md:w-auto"
+            />
           </div>
         </div>
 

@@ -4,5 +4,8 @@ export { Modal } from "./Modal";
 export { Card } from "./Card";
 export { DarkModeToggle } from "./DarkModeToggle";
 export { Select } from "./Select";
+export type { SelectOption } from "./Select";
+export { Multiselect } from "./Multiselect";
+export type { MultiselectOption } from "./Multiselect";
 export { LanguageSwitcher } from "./LanguageSwitcher";
 export { IMLink } from "./IMLink";

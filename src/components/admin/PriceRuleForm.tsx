@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Select } from "@/components/ui";
 import { centsToDollars, dollarsToCents } from "@/utils/price";
 
 export interface PriceRuleFormData {
@@ -169,25 +169,22 @@ export function PriceRuleForm({
 
       {/* Day of Week Select (for weekly rules) */}
       {ruleType === "weekly" && (
-        <div className="rsp-input-wrapper">
-          <label htmlFor="dayOfWeek" className="rsp-label mb-1 block text-sm font-medium">
-            Day of Week
-          </label>
-          <select
-            id="dayOfWeek"
-            name="dayOfWeek"
-            value={formData.dayOfWeek ?? 1}
-            onChange={handleInputChange}
-            disabled={isSubmitting}
-            className="tm-booking-select w-full px-3 py-2 border rounded-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-          >
-            {DAY_OF_WEEK_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Select
+          id="dayOfWeek"
+          label="Day of Week"
+          options={DAY_OF_WEEK_OPTIONS.map((opt) => ({
+            value: String(opt.value),
+            label: opt.label,
+          }))}
+          value={String(formData.dayOfWeek ?? 1)}
+          onChange={(value) => {
+            setFormData((prev) => ({
+              ...prev,
+              dayOfWeek: parseInt(value, 10),
+            }));
+          }}
+          disabled={isSubmitting}
+        />
       )}
 
       {/* Date Input (for date-specific rules) */}
