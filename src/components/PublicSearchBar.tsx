@@ -12,14 +12,13 @@ const DEFAULT_INDOOR = false;
 export interface SearchParams {
   q: string;
   city: string;
-  indoor: boolean;
 }
 
 interface PublicSearchBarProps {
   initialQ?: string;
   initialCity?: string;
   initialIndoor?: boolean;
-  /** 
+  /**
    * If provided, calls this function with search params instead of navigating.
    * Used on /clubs page for in-place filtering.
    */
@@ -45,13 +44,11 @@ export function PublicSearchBar({
   const router = useRouter();
   const [q, setQ] = useState(initialQ);
   const [city, setCity] = useState(initialCity);
-  const [indoor, setIndoor] = useState(initialIndoor);
 
   // Sync with URL changes (for back/forward navigation)
   useEffect(() => {
     setQ(initialQ);
     setCity(initialCity);
-    setIndoor(initialIndoor);
   }, [initialQ, initialCity, initialIndoor]);
 
   // Build URL with query params
@@ -59,7 +56,6 @@ export function PublicSearchBar({
     const searchParams = new URLSearchParams();
     if (params.q) searchParams.set("q", params.q);
     if (params.city) searchParams.set("city", params.city);
-    if (params.indoor) searchParams.set("indoor", "true");
     const queryString = searchParams.toString();
     return `/clubs${queryString ? `?${queryString}` : ""}`;
   }, []);
@@ -67,8 +63,8 @@ export function PublicSearchBar({
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const params = { q, city, indoor };
-    
+    const params = { q, city };
+
     if (navigateOnSearch) {
       router.push(buildSearchUrl(params));
     } else if (onSearch) {
@@ -80,9 +76,8 @@ export function PublicSearchBar({
   const handleClear = () => {
     setQ(DEFAULT_Q);
     setCity(DEFAULT_CITY);
-    setIndoor(DEFAULT_INDOOR);
-    const defaultParams = { q: DEFAULT_Q, city: DEFAULT_CITY, indoor: DEFAULT_INDOOR };
-    
+    const defaultParams = { q: DEFAULT_Q, city: DEFAULT_CITY };
+
     if (navigateOnSearch) {
       router.push(buildSearchUrl(defaultParams));
     } else if (onSearch) {
@@ -93,15 +88,14 @@ export function PublicSearchBar({
   // Debounced live search for /clubs page (only when onSearch is provided and not navigating)
   useEffect(() => {
     if (!onSearch || navigateOnSearch) return;
-    
+
     const handler = setTimeout(() => {
-      onSearch({ q, city, indoor });
+      onSearch({ q, city });
     }, 300);
 
     return () => clearTimeout(handler);
-  }, [q, city, indoor, onSearch, navigateOnSearch]);
-
-  const hasFilters = q || city || indoor;
+  }, [q, city, onSearch, navigateOnSearch]);
+  const hasFilters = q || city;
 
   return (
     <form
@@ -136,19 +130,6 @@ export function PublicSearchBar({
 
         {/* Indoor filter and actions */}
         <div className="flex items-center gap-4">
-          <label className="tm-indoor-filter flex items-center gap-2 cursor-pointer text-sm whitespace-nowrap">
-            <input
-              type="checkbox"
-              checked={indoor}
-              onChange={(e) => setIndoor(e.target.checked)}
-              className="tm-indoor-checkbox w-4 h-4 rounded-sm border-gray-300 dark:border-gray-600"
-              aria-label={t("clubs.indoorOnly")}
-            />
-            <span className="text-gray-700 dark:text-gray-300">
-              {t("clubs.indoorOnly")}
-            </span>
-          </label>
-
           {/* Search button for hero (navigateOnSearch mode) */}
           {navigateOnSearch && (
             <Button type="submit" className="tm-search-button">

@@ -11,6 +11,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
   *,
   ::after,
   ::before,
@@ -58,6 +59,10 @@ body {
   background-color: var(--rsp-background);
   color: var(--rsp-foreground);
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+* {
+  outline: none;
 }
 
 /* Hero section styles */

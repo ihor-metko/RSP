@@ -1,18 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect, useCallback } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, Input, IMLink } from "@/components/ui";
+import { getRoleHomepage } from "@/utils/roleRedirect";
+import type { UserRole } from "@/lib/auth";
 
 export default function SignInPage() {
   const router = useRouter();
+  const { data: session, status, update: updateSession } = useSession();
   const t = useTranslations();
   const [email, setEmail] = useState("ihor.metko@gmail.com");
   const [password, setPassword] = useState("12345678");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Clear toast after display
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  // Redirect already logged-in users to their role-specific homepage
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const redirectPath = getRoleHomepage(session.user.role as UserRole | undefined);
+      router.push(redirectPath);
+    }
+  }, [status, session, router]);
+
+  const handleRedirect = useCallback((userName: string | null | undefined, userRole: UserRole | undefined) => {
+    const redirectPath = getRoleHomepage(userRole);
+    
+    // Show welcome toast if user has a name
+    if (userName) {
+      setToast(t("auth.welcomeBack", { name: userName }));
+      // Wait briefly to show toast before redirect
+      setTimeout(() => {
+        router.push(redirectPath);
+        router.refresh();
+      }, 1000);
+    } else {
+      router.push(redirectPath);
+      router.refresh();
+    }
+  }, [router, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +66,19 @@ export default function SignInPage() {
       if (result?.error) {
         setError(t("auth.invalidCredentials"));
       } else {
-        router.push("/");
-        router.refresh();
+        // Refresh the session to get updated user data
+        const updatedSession = await updateSession();
+        
+        if (updatedSession?.user) {
+          handleRedirect(
+            updatedSession.user.name,
+            updatedSession.user.role as UserRole | undefined
+          );
+        } else {
+          // Fallback: redirect to default player page if session update fails
+          router.push(getRoleHomepage(undefined));
+          router.refresh();
+        }
       }
     } catch {
       setError(t("auth.errorOccurred"));
@@ -39,8 +87,36 @@ export default function SignInPage() {
     }
   };
 
+  // Show loading state while checking session
+  if (status === "loading") {
+    return (
+      <main className="rsp-container min-h-screen p-8 flex items-center justify-center">
+        <div className="rsp-loading text-center">{t("common.loading")}</div>
+      </main>
+    );
+  }
+
+  // If already authenticated, show loading while redirecting
+  if (status === "authenticated") {
+    return (
+      <main className="rsp-container min-h-screen p-8 flex items-center justify-center">
+        <div className="rsp-loading text-center">{t("common.loading")}</div>
+      </main>
+    );
+  }
+
   return (
     <main className="rsp-container min-h-screen p-8 flex items-center justify-center">
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          role="alert"
+          className="fixed top-4 right-4 z-50 px-4 py-3 rounded shadow-lg bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-400"
+        >
+          {toast}
+        </div>
+      )}
+
       <Card title={t("auth.login")} className="w-full max-w-md">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
