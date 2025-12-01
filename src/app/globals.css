@@ -46,3 +46,32 @@ body {
   color: var(--rsp-foreground);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* Hero section styles */
+.tm-hero {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tm-hero-view-clubs {
+  @apply border-white text-white;
+}
+
+.tm-hero-view-clubs:hover {
+  @apply bg-white/10;
+}
+
+.tm-hero-search .tm-search-input,
+.tm-hero-search .tm-city-input {
+  @apply bg-white/90 dark:bg-gray-800/90;
+}
+
+.tm-hero-search .tm-indoor-filter span {
+  @apply text-gray-100;
+}
+
+.tm-hero-search .tm-search-button {
+  @apply whitespace-nowrap;
+}

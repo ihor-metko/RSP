@@ -87,8 +87,12 @@ describe("Public Flow API Endpoints", () => {
       expect(prisma.club.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              expect.objectContaining({ name: expect.objectContaining({ contains: "Match" }) }),
+            AND: expect.arrayContaining([
+              expect.objectContaining({
+                OR: expect.arrayContaining([
+                  expect.objectContaining({ name: expect.objectContaining({ contains: "Match" }) }),
+                ]),
+              }),
             ]),
           }),
         })

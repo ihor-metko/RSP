@@ -7,23 +7,43 @@ export async function GET(request: Request) {
   try {
     // Parse query parameters for search
     const url = new URL(request.url);
-    const search = url.searchParams.get("search")?.trim() || "";
+    // Support both 'q' (new) and 'search' (legacy) params
+    const q = url.searchParams.get("q")?.trim() || url.searchParams.get("search")?.trim() || "";
+    const city = url.searchParams.get("city")?.trim() || "";
     const indoor = url.searchParams.get("indoor");
+    const popular = url.searchParams.get("popular");
+    const limit = url.searchParams.get("limit");
 
     // Build where clause for filtering
     const whereClause: Prisma.ClubWhereInput = {};
+    const conditions: Prisma.ClubWhereInput[] = [];
 
-    if (search) {
-      whereClause.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { location: { contains: search, mode: "insensitive" } },
-      ];
+    // q -> search name and address (case-insensitive)
+    if (q) {
+      conditions.push({
+        OR: [
+          { name: { contains: q, mode: "insensitive" } },
+          { location: { contains: q, mode: "insensitive" } },
+        ],
+      });
+    }
+
+    // city -> match city or part of address
+    if (city) {
+      conditions.push({
+        location: { contains: city, mode: "insensitive" },
+      });
+    }
+
+    if (conditions.length > 0) {
+      whereClause.AND = conditions;
     }
 
     // Fetch clubs with optional filtering
     const clubs = await prisma.club.findMany({
       where: Object.keys(whereClause).length > 0 ? whereClause : undefined,
-      orderBy: { createdAt: "desc" },
+      orderBy: popular === "true" ? { createdAt: "desc" } : { createdAt: "desc" },
+      take: limit ? parseInt(limit, 10) : undefined,
       select: {
         id: true,
         name: true,

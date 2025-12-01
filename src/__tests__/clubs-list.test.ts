@@ -160,8 +160,12 @@ describe("GET /api/clubs", () => {
     expect(prisma.club.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          OR: expect.arrayContaining([
-            expect.objectContaining({ name: expect.objectContaining({ contains: "Main" }) }),
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              OR: expect.arrayContaining([
+                expect.objectContaining({ name: expect.objectContaining({ contains: "Main" }) }),
+              ]),
+            }),
           ]),
         }),
       })
@@ -205,5 +209,168 @@ describe("GET /api/clubs", () => {
     // Only the club with indoor courts should be returned
     expect(data).toHaveLength(1);
     expect(data[0].name).toBe("Indoor Club");
+  });
+
+  it("should filter clubs by q param (new search syntax)", async () => {
+    const mockClubs = [
+      {
+        id: "club-1",
+        name: "Test Club",
+        location: "123 Main St",
+        contactInfo: null,
+        openingHours: null,
+        logo: null,
+        createdAt: new Date().toISOString(),
+        courts: [],
+      },
+    ];
+
+    (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
+
+    const request = new Request("http://localhost:3000/api/clubs?q=Test", {
+      method: "GET",
+    });
+
+    const response = await GET(request);
+    await response.json();
+
+    expect(response.status).toBe(200);
+    expect(prisma.club.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              OR: expect.arrayContaining([
+                expect.objectContaining({ name: expect.objectContaining({ contains: "Test" }) }),
+              ]),
+            }),
+          ]),
+        }),
+      })
+    );
+  });
+
+  it("should filter clubs by city param", async () => {
+    const mockClubs = [
+      {
+        id: "club-1",
+        name: "City Club",
+        location: "Kyiv, Ukraine",
+        contactInfo: null,
+        openingHours: null,
+        logo: null,
+        createdAt: new Date().toISOString(),
+        courts: [],
+      },
+    ];
+
+    (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
+
+    const request = new Request("http://localhost:3000/api/clubs?city=Kyiv", {
+      method: "GET",
+    });
+
+    const response = await GET(request);
+    await response.json();
+
+    expect(response.status).toBe(200);
+    expect(prisma.club.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          AND: expect.arrayContaining([
+            expect.objectContaining({
+              location: expect.objectContaining({ contains: "Kyiv" }),
+            }),
+          ]),
+        }),
+      })
+    );
+  });
+
+  it("should filter by q, city and indoor together", async () => {
+    const mockClubs = [
+      {
+        id: "club-1",
+        name: "Premium Club",
+        location: "Kyiv Downtown",
+        contactInfo: null,
+        openingHours: null,
+        logo: null,
+        createdAt: new Date().toISOString(),
+        courts: [{ id: "court-1", indoor: true }],
+      },
+    ];
+
+    (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
+
+    const request = new Request(
+      "http://localhost:3000/api/clubs?q=Premium&city=Kyiv&indoor=true",
+      { method: "GET" }
+    );
+
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toHaveLength(1);
+    expect(data[0].name).toBe("Premium Club");
+  });
+
+  it("should limit results when limit param is provided", async () => {
+    const mockClubs = [
+      {
+        id: "club-1",
+        name: "Club 1",
+        location: "Location 1",
+        contactInfo: null,
+        openingHours: null,
+        logo: null,
+        createdAt: new Date().toISOString(),
+        courts: [],
+      },
+      {
+        id: "club-2",
+        name: "Club 2",
+        location: "Location 2",
+        contactInfo: null,
+        openingHours: null,
+        logo: null,
+        createdAt: new Date().toISOString(),
+        courts: [],
+      },
+    ];
+
+    (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
+
+    const request = new Request("http://localhost:3000/api/clubs?limit=2", {
+      method: "GET",
+    });
+
+    const response = await GET(request);
+
+    expect(response.status).toBe(200);
+    expect(prisma.club.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        take: 2,
+      })
+    );
+  });
+
+  it("should accept popular param for ordering", async () => {
+    (prisma.club.findMany as jest.Mock).mockResolvedValue([]);
+
+    const request = new Request("http://localhost:3000/api/clubs?popular=true&limit=4", {
+      method: "GET",
+    });
+
+    const response = await GET(request);
+
+    expect(response.status).toBe(200);
+    expect(prisma.club.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { createdAt: "desc" },
+        take: 4,
+      })
+    );
   });
 });

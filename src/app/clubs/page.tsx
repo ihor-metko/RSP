@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { PublicClubCard } from "@/components/PublicClubCard";
-import { PublicSearchBar } from "@/components/PublicSearchBar";
+import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
 import "@/components/ClubsList.css";
 
 interface ClubWithCounts {
@@ -22,31 +23,54 @@ interface ClubWithCounts {
 
 // Helper function to determine empty state message
 function getEmptyStateMessage(
-  searchTerm: string,
-  indoorOnly: boolean,
+  q: string,
+  city: string,
+  indoor: boolean,
   t: ReturnType<typeof useTranslations>
 ): string {
-  const hasFilters = searchTerm || indoorOnly;
+  const hasFilters = q || city || indoor;
   return hasFilters ? t("clubs.noClubsFound") : t("clubs.noClubs");
 }
 
 export default function ClubsPage() {
   const { data: session, status } = useSession();
   const t = useTranslations();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Read initial values from URL
+  const urlQ = searchParams.get("q") || "";
+  const urlCity = searchParams.get("city") || "";
+  const urlIndoor = searchParams.get("indoor") === "true";
+  
   const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [indoorOnly, setIndoorOnly] = useState(false);
+  const [currentParams, setCurrentParams] = useState<SearchParams>({
+    q: urlQ,
+    city: urlCity,
+    indoor: urlIndoor,
+  });
 
-  const fetchClubs = useCallback(async (search: string, indoor: boolean) => {
+  // Update URL when search params change
+  const updateUrl = useCallback((params: SearchParams) => {
+    const urlParams = new URLSearchParams();
+    if (params.q) urlParams.set("q", params.q);
+    if (params.city) urlParams.set("city", params.city);
+    if (params.indoor) urlParams.set("indoor", "true");
+    const queryString = urlParams.toString();
+    router.replace(`/clubs${queryString ? `?${queryString}` : ""}`, { scroll: false });
+  }, [router]);
+
+  const fetchClubs = useCallback(async (params: SearchParams) => {
     try {
       setLoading(true);
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-      if (indoor) params.set("indoor", "true");
+      const urlParams = new URLSearchParams();
+      if (params.q) urlParams.set("q", params.q);
+      if (params.city) urlParams.set("city", params.city);
+      if (params.indoor) urlParams.set("indoor", "true");
       
-      const url = `/api/clubs${params.toString() ? `?${params.toString()}` : ""}`;
+      const url = `/api/clubs${urlParams.toString() ? `?${urlParams.toString()}` : ""}`;
       const response = await fetch(url);
       
       if (!response.ok) {
@@ -62,14 +86,19 @@ export default function ClubsPage() {
     }
   }, [t]);
 
+  // Sync with URL changes (back/forward navigation)
   useEffect(() => {
-    fetchClubs(searchTerm, indoorOnly);
-  }, [fetchClubs, searchTerm, indoorOnly]);
+    const params = { q: urlQ, city: urlCity, indoor: urlIndoor };
+    setCurrentParams(params);
+    fetchClubs(params);
+  }, [urlQ, urlCity, urlIndoor, fetchClubs]);
 
-  const handleSearchChange = useCallback((search: string, indoor: boolean) => {
-    setSearchTerm(search);
-    setIndoorOnly(indoor);
-  }, []);
+  // Handle search from PublicSearchBar
+  const handleSearch = useCallback((params: SearchParams) => {
+    setCurrentParams(params);
+    updateUrl(params);
+    fetchClubs(params);
+  }, [updateUrl, fetchClubs]);
 
   // Determine if user is authenticated
   const isAuthenticated = status === "authenticated" && session?.user;
@@ -117,11 +146,12 @@ export default function ClubsPage() {
         </div>
       )}
 
-      {/* Search bar */}
+      {/* Search bar with URL-driven values */}
       <PublicSearchBar
-        initialSearch={searchTerm}
-        initialIndoorOnly={indoorOnly}
-        onSearchChange={handleSearchChange}
+        initialQ={currentParams.q}
+        initialCity={currentParams.city}
+        initialIndoor={currentParams.indoor}
+        onSearch={handleSearch}
       />
 
       {loading ? (
@@ -143,8 +173,13 @@ export default function ClubsPage() {
       ) : clubs.length === 0 ? (
         <div className="tm-clubs-empty">
           <p className="tm-clubs-empty-text">
-            {getEmptyStateMessage(searchTerm, indoorOnly, t)}
+            {getEmptyStateMessage(currentParams.q, currentParams.city, currentParams.indoor, t)}
           </p>
+          {(currentParams.q || currentParams.city || currentParams.indoor) && (
+            <p className="tm-clubs-empty-suggestion text-gray-400 text-sm mt-2">
+              {t("clubs.trySuggestion")}
+            </p>
+          )}
         </div>
       ) : (
         <section className="tm-clubs-grid">
