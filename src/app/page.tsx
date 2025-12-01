@@ -160,9 +160,14 @@ export default function Home() {
 
               {/* Player links */}
               {session?.user?.role === "player" && (
-                <Link href="/trainings" className="rsp-link text-blue-500 hover:underline">
-                  {t("training.history.title")}
-                </Link>
+                <>
+                  <Link href="/dashboard" className="rsp-link text-blue-500 hover:underline">
+                    {t("home.dashboard")}
+                  </Link>
+                  <Link href="/trainings" className="rsp-link text-blue-500 hover:underline">
+                    {t("training.history.title")}
+                  </Link>
+                </>
               )}
 
               {/* Coach links */}
