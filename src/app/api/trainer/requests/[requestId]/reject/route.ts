@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { createAdminNotification } from "@/lib/adminNotifications";
 
 /**
  * PUT /api/trainer/requests/[requestId]/reject
@@ -72,6 +73,28 @@ export async function PUT(
       }
 
       return updatedRequest;
+    });
+
+    // Get court name for notification
+    let courtName = null;
+    if (trainingRequest.courtId) {
+      const court = await prisma.court.findUnique({
+        where: { id: trainingRequest.courtId },
+        select: { name: true },
+      });
+      courtName = court?.name || null;
+    }
+
+    // Emit admin notification for declined training request
+    await createAdminNotification({
+      type: "DECLINED",
+      playerId: result.playerId,
+      coachId: result.trainerId,
+      trainingRequestId: result.id,
+      bookingId: result.bookingId || undefined,
+      sessionDate: result.date,
+      sessionTime: result.time,
+      courtInfo: courtName || undefined,
     });
 
     return NextResponse.json({

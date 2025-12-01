@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { createAdminNotification } from "@/lib/adminNotifications";
 
 /**
  * GET /api/trainings/[id]
@@ -222,6 +223,44 @@ export async function PATCH(
         select: { name: true },
       });
       courtName = court?.name || null;
+    }
+
+    // Emit admin notification for status changes
+    // Note: We emit CANCELED for both cancelled and cancelled_by_player
+    // ACCEPTED and DECLINED are emitted via the dedicated confirm/reject endpoints
+    if (body.status === "cancelled" || body.status === "cancelled_by_player") {
+      await createAdminNotification({
+        type: "CANCELED",
+        playerId: updatedTraining.playerId,
+        coachId: updatedTraining.trainerId,
+        trainingRequestId: updatedTraining.id,
+        bookingId: updatedTraining.bookingId || undefined,
+        sessionDate: updatedTraining.date,
+        sessionTime: updatedTraining.time,
+        courtInfo: courtName || undefined,
+      });
+    } else if (body.status === "confirmed") {
+      await createAdminNotification({
+        type: "ACCEPTED",
+        playerId: updatedTraining.playerId,
+        coachId: updatedTraining.trainerId,
+        trainingRequestId: updatedTraining.id,
+        bookingId: updatedTraining.bookingId || undefined,
+        sessionDate: updatedTraining.date,
+        sessionTime: updatedTraining.time,
+        courtInfo: courtName || undefined,
+      });
+    } else if (body.status === "rejected") {
+      await createAdminNotification({
+        type: "DECLINED",
+        playerId: updatedTraining.playerId,
+        coachId: updatedTraining.trainerId,
+        trainingRequestId: updatedTraining.id,
+        bookingId: updatedTraining.bookingId || undefined,
+        sessionDate: updatedTraining.date,
+        sessionTime: updatedTraining.time,
+        courtInfo: courtName || undefined,
+      });
     }
 
     return NextResponse.json({

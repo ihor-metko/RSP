@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/requireRole";
 import { isValidDateFormat, isValidTimeFormat, doTimesOverlap } from "@/utils/dateTime";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
 import { getCourtAvailabilitySuggestions, findAvailableCourts } from "@/lib/courtAvailability";
+import { createAdminNotification } from "@/lib/adminNotifications";
 
 interface TrainingRequest {
   trainerId: string;
@@ -371,6 +372,18 @@ export async function POST(request: Request) {
       });
 
       return { booking, trainingRequest };
+    });
+
+    // Emit admin notification for new training request
+    await createAdminNotification({
+      type: "REQUESTED",
+      playerId: body.playerId,
+      coachId: body.trainerId,
+      trainingRequestId: result.trainingRequest.id,
+      bookingId: result.trainingRequest.bookingId || undefined,
+      sessionDate: new Date(body.date),
+      sessionTime: body.time,
+      courtInfo: availableCourt.name,
     });
 
     return NextResponse.json(

@@ -220,3 +220,20 @@ model TrainingRequest {
   @@index([courtId])
   @@index([bookingId])
 }
+
+model AdminNotification {
+  id                String   @id @default(uuid())
+  type              String   // "REQUESTED", "ACCEPTED", "DECLINED", "CANCELED"
+  playerId          String
+  coachId           String
+  trainingRequestId String?
+  bookingId         String?
+  sessionDate       DateTime? @db.Date  // Optional metadata: date of session
+  sessionTime       String?             // Optional metadata: time of session
+  courtInfo         String?             // Optional metadata: court info
+  read              Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  @@index([read])
+  @@index([createdAt])
+}

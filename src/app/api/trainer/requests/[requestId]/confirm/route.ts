@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 import { getCourtAvailabilitySuggestions } from "@/lib/courtAvailability";
+import { createAdminNotification } from "@/lib/adminNotifications";
 
 /**
  * PUT /api/trainer/requests/[requestId]/confirm
@@ -142,6 +143,18 @@ export async function PUT(
         });
         courtName = court?.name || null;
       }
+
+      // Emit admin notification for confirmed training request
+      await createAdminNotification({
+        type: "ACCEPTED",
+        playerId: result.playerId,
+        coachId: result.trainerId,
+        trainingRequestId: result.id,
+        bookingId: result.bookingId || undefined,
+        sessionDate: result.date,
+        sessionTime: result.time,
+        courtInfo: courtName || undefined,
+      });
 
       return NextResponse.json({
         id: result.id,
