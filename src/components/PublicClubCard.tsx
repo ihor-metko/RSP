@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui";
+import { Button, IMLink } from "@/components/ui";
 
 interface PublicClubCardProps {
   club: {
@@ -75,9 +74,9 @@ export function PublicClubCard({ club }: PublicClubCardProps) {
         )}
       </div>
 
-      <Link href={`/clubs/${club.id}`}>
+      <IMLink href={`/clubs/${club.id}`}>
         <Button className="tm-view-courts-button">{t("clubs.viewClub")}</Button>
-      </Link>
+      </IMLink>
     </div>
   );
 }

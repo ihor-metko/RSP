@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Button, Card, DarkModeToggle, LanguageSwitcher } from "@/components/ui";
+import { Button, Card, DarkModeToggle, LanguageSwitcher, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { PublicSearchBar } from "@/components/PublicSearchBar";
 import { PublicClubCard } from "@/components/PublicClubCard";
@@ -77,15 +76,15 @@ export default function Home() {
           {/* Hero CTA buttons */}
           <div className="tm-hero-cta flex flex-col sm:flex-row gap-4 justify-center mb-8">
             {!isAuthenticated && (
-              <Link href="/auth/sign-up">
+              <IMLink href="/auth/sign-up">
                 <Button className="w-full sm:w-auto">{t("common.register")}</Button>
-              </Link>
+              </IMLink>
             )}
-            <Link href="/clubs">
+            <IMLink href="/clubs">
               <Button variant="outline" className="w-full sm:w-auto tm-hero-view-clubs">
                 {t("home.viewClubs")}
               </Button>
-            </Link>
+            </IMLink>
           </div>
 
           {/* Search bar in hero */}
@@ -130,9 +129,9 @@ export default function Home() {
           ) : (
             <div className="text-center py-8 text-gray-500">
               <p>{t("clubs.noClubs")}</p>
-              <Link href="/clubs" className="text-blue-500 hover:underline mt-2 inline-block">
+              <IMLink href="/clubs" className="mt-2 inline-block">
                 {t("home.viewClubs")}
-              </Link>
+              </IMLink>
             </div>
           )}
         </div>
@@ -162,53 +161,53 @@ export default function Home() {
           <Card title={t("home.quickLinks")}>
             <div className="rsp-links flex flex-col gap-2">
               {/* Public link - always visible */}
-              <Link href="/clubs" className="rsp-link text-blue-500 hover:underline">
+              <IMLink href="/clubs">
                 {t("home.viewClubs")}
-              </Link>
+              </IMLink>
 
               {/* Player links */}
               {session?.user?.role === "player" && (
                 <>
-                  <Link href="/dashboard" className="rsp-link text-blue-500 hover:underline">
+                  <IMLink href="/dashboard">
                     {t("home.dashboard")}
-                  </Link>
-                  <Link href="/trainings" className="rsp-link text-blue-500 hover:underline">
+                  </IMLink>
+                  <IMLink href="/trainings">
                     {t("training.history.title")}
-                  </Link>
+                  </IMLink>
                 </>
               )}
 
               {/* Coach links */}
               {session?.user?.role === "coach" && (
-                <Link href="/coach/dashboard" className="rsp-link text-blue-500 hover:underline">
+                <IMLink href="/coach/dashboard">
                   {t("home.dashboard")}
-                </Link>
+                </IMLink>
               )}
 
               {/* Admin links */}
               {session?.user?.role === "admin" && (
                 <>
-                  <Link href="/admin/clubs" className="rsp-link text-blue-500 hover:underline">
+                  <IMLink href="/admin/clubs">
                     {t("home.manageClubs")}
-                  </Link>
-                  <Link href="/admin/coaches" className="rsp-link text-blue-500 hover:underline">
+                  </IMLink>
+                  <IMLink href="/admin/coaches">
                     {t("home.manageCoaches")}
-                  </Link>
-                  <Link href="/admin/notifications" className="rsp-link text-blue-500 hover:underline">
+                  </IMLink>
+                  <IMLink href="/admin/notifications">
                     {t("home.manageNotifications")}
-                  </Link>
+                  </IMLink>
                 </>
               )}
 
               {/* Auth links for unauthenticated users */}
               {!isAuthenticated && (
                 <>
-                  <Link href="/auth/sign-in" className="rsp-link text-blue-500 hover:underline">
+                  <IMLink href="/auth/sign-in">
                     {t("common.signIn")}
-                  </Link>
-                  <Link href="/auth/sign-up" className="rsp-link text-blue-500 hover:underline">
+                  </IMLink>
+                  <IMLink href="/auth/sign-up">
                     {t("common.register")}
-                  </Link>
+                  </IMLink>
                 </>
               )}
             </div>

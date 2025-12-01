@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button, Card, Input, Modal } from "@/components/ui";
+import { Button, Card, Input, Modal, IMLink } from "@/components/ui";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import type { Club, ClubFormData } from "@/types/club";
@@ -199,9 +198,9 @@ export default function AdminClubsPage() {
 
       <section className="rsp-content">
         <div className="flex justify-between items-center mb-6">
-          <Link href="/" className="rsp-link text-blue-500 hover:underline">
+          <IMLink href="/">
             ← Back to Home
-          </Link>
+          </IMLink>
           <Button onClick={handleOpenCreateModal}>Create Club</Button>
         </div>
 

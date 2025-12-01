@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button, Card, Modal } from "@/components/ui";
+import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { PriceRuleForm, PriceRuleFormData } from "@/components/admin/PriceRuleForm";
 import { formatPrice } from "@/utils/price";
@@ -281,12 +280,9 @@ export default function PriceRulesPage({
 
       <section className="rsp-content">
         <div className="flex justify-between items-center mb-6">
-          <Link
-            href={`/admin/clubs/${clubId}/courts`}
-            className="rsp-link text-blue-500 hover:underline"
-          >
+          <IMLink href={`/admin/clubs/${clubId}/courts`}>
             ← Back to Courts
-          </Link>
+          </IMLink>
           <Button onClick={handleOpenCreateModal}>+ Add Price Rule</Button>
         </div>
 

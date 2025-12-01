@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, IMLink } from "@/components/ui";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -104,9 +103,9 @@ export default function RegisterPage() {
           </div>
           <p className="rsp-text text-center text-sm">
             {t("auth.alreadyHaveAccount")}{" "}
-            <Link href="/auth/sign-in" className="rsp-link text-blue-500 hover:underline">
+            <IMLink href="/auth/sign-in">
               {t("common.signIn")}
-            </Link>
+            </IMLink>
           </p>
         </form>
       </Card>

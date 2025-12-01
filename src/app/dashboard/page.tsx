@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Button, Card, Modal } from "@/components/ui";
+import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { RequestTrainingModal } from "@/components/training/RequestTrainingModal";
@@ -432,9 +431,9 @@ export default function PlayerDashboardPage() {
                 <p className="text-gray-500 dark:text-gray-400">
                   {t("playerDashboard.upcomingBookings.noBookings")}
                 </p>
-                <Link href="/clubs" className="text-(--rsp-primary) hover:underline mt-2 inline-block">
+                <IMLink href="/clubs" className="mt-2 inline-block">
                   {t("playerDashboard.upcomingBookings.browseClubs")}
-                </Link>
+                </IMLink>
               </div>
             ) : (
               <div className="tm-bookings-list space-y-3" role="list">
@@ -590,7 +589,7 @@ export default function PlayerDashboardPage() {
         <section className="tm-navigation-section" aria-labelledby="navigation-heading">
           <Card title={t("playerDashboard.navigation.title")}>
             <div className="tm-nav-links grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Link
+              <IMLink
                 href="/trainings"
                 className="tm-nav-link flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
@@ -598,8 +597,8 @@ export default function PlayerDashboardPage() {
                 <span className="text-sm font-medium text-center">
                   {t("playerDashboard.navigation.myTrainings")}
                 </span>
-              </Link>
-              <Link
+              </IMLink>
+              <IMLink
                 href="/clubs"
                 className="tm-nav-link flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
@@ -607,8 +606,8 @@ export default function PlayerDashboardPage() {
                 <span className="text-sm font-medium text-center">
                   {t("playerDashboard.navigation.browseClubs")}
                 </span>
-              </Link>
-              <Link
+              </IMLink>
+              <IMLink
                 href="/"
                 className="tm-nav-link flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
@@ -616,7 +615,7 @@ export default function PlayerDashboardPage() {
                 <span className="text-sm font-medium text-center">
                   {t("playerDashboard.navigation.home")}
                 </span>
-              </Link>
+              </IMLink>
               <button
                 onClick={() => {
                   // TODO: Navigate to profile page when implemented

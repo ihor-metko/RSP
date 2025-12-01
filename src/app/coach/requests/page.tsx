@@ -3,8 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui";
+import { Button, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { TrainerRequests } from "@/components/training/TrainerRequests";
 
@@ -55,12 +54,12 @@ export default function TrainerRequestsPage() {
 
       {/* Navigation */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <Link href="/coach/dashboard" className="rsp-link text-blue-500 hover:underline">
+        <IMLink href="/coach/dashboard">
           ← Back to Dashboard
-        </Link>
-        <Link href="/coach/availability">
+        </IMLink>
+        <IMLink href="/coach/availability">
           <Button variant="outline">Manage Weekly Availability</Button>
-        </Link>
+        </IMLink>
       </div>
 
       {/* Training Requests Component */}

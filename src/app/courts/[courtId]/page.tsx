@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Card, Button } from "@/components/ui";
+import { Card, Button, IMLink } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { formatPrice } from "@/utils/price";
@@ -265,9 +264,9 @@ export default function CourtDetailPage({
           {error || "Court not found"}
         </div>
         <div className="mt-4 text-center">
-          <Link href="/clubs" className="text-blue-500 hover:underline">
+          <IMLink href="/clubs">
             {t("common.backToClubs")}
-          </Link>
+          </IMLink>
         </div>
       </main>
     );
@@ -295,9 +294,9 @@ export default function CourtDetailPage({
       {!isAuthenticated && (
         <div className="tm-auth-cta mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-blue-800 dark:text-blue-200 text-sm">
-            <Link href="/auth/sign-in" className="font-semibold underline hover:no-underline">
+            <IMLink href="/auth/sign-in" className="font-semibold underline hover:no-underline">
               {t("auth.signInToBook")}
-            </Link>
+            </IMLink>
           </p>
         </div>
       )}
@@ -439,13 +438,13 @@ export default function CourtDetailPage({
       {/* Back link */}
       <div className="mt-8">
         {court.clubId ? (
-          <Link href={`/clubs/${court.clubId}`} className="text-blue-500 hover:underline">
+          <IMLink href={`/clubs/${court.clubId}`}>
             ← Back to Club
-          </Link>
+          </IMLink>
         ) : (
-          <Link href="/clubs" className="text-blue-500 hover:underline">
+          <IMLink href="/clubs">
             {t("common.backToClubs")}
-          </Link>
+          </IMLink>
         )}
       </div>
 

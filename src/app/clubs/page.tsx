@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import { IMLink } from "@/components/ui";
 import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
 import "@/components/ClubsList.css";
@@ -120,9 +120,9 @@ export default function ClubsPage() {
         <div className="tm-access-denied">
           <h1 className="tm-access-denied-title">{t("common.error")}</h1>
           <p className="tm-access-denied-text">{error}</p>
-          <Link href="/" className="tm-clubs-link">
+          <IMLink href="/" className="tm-clubs-link">
             {t("common.backToHome")}
-          </Link>
+          </IMLink>
         </div>
       </main>
     );
@@ -139,9 +139,9 @@ export default function ClubsPage() {
       {!isAuthenticated && (
         <div className="tm-auth-cta mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-blue-800 dark:text-blue-200 text-sm">
-            <Link href="/auth/sign-in" className="font-semibold underline hover:no-underline">
+            <IMLink href="/auth/sign-in" className="font-semibold underline hover:no-underline">
               {t("auth.signInToBook")}
-            </Link>
+            </IMLink>
           </p>
         </div>
       )}
@@ -190,9 +190,9 @@ export default function ClubsPage() {
       )}
 
       <div className="tm-clubs-navigation">
-        <Link href="/" className="tm-clubs-link">
+        <IMLink href="/" className="tm-clubs-link">
           {t("common.backToHome")}
-        </Link>
+        </IMLink>
       </div>
     </main>
   );

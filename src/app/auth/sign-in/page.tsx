@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, IMLink } from "@/components/ui";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -76,9 +75,9 @@ export default function SignInPage() {
           </div>
           <p className="rsp-text text-center text-sm">
             {t("auth.dontHaveAccount")}{" "}
-            <Link href="/auth/sign-up" className="rsp-link text-blue-500 hover:underline">
+            <IMLink href="/auth/sign-up">
               {t("common.register")}
-            </Link>
+            </IMLink>
           </p>
         </form>
       </Card>

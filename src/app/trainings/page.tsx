@@ -3,8 +3,8 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { TrainingHistory } from "@/components/training/TrainingHistory";
 
@@ -55,9 +55,9 @@ export default function TrainingsPage() {
 
       {/* Navigation */}
       <div className="mb-6">
-        <Link href="/clubs" className="rsp-link text-blue-500 hover:underline">
+        <IMLink href="/clubs">
           ← Back to Clubs
-        </Link>
+        </IMLink>
       </div>
 
       {/* Training History Component */}

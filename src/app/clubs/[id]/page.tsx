@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -13,7 +12,7 @@ import { CourtSlotsToday } from "@/components/CourtSlotsToday";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
-import { Button } from "@/components/ui";
+import { Button, IMLink } from "@/components/ui";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 
 interface Coach {
@@ -303,9 +302,9 @@ export default function ClubDetailPage({
           {error || t("clubs.clubNotFound")}
         </div>
         <div className="mt-4 text-center">
-          <Link href="/clubs" className="text-blue-500 hover:underline">
+          <IMLink href="/clubs">
             {t("common.backToClubs")}
-          </Link>
+          </IMLink>
         </div>
       </main>
     );
@@ -319,12 +318,9 @@ export default function ClubDetailPage({
           <p className="text-gray-500 mt-2">{club.location}</p>
         </div>
         {session?.user?.role === "admin" && (
-          <Link
-            href={`/admin/clubs/${club.id}/courts`}
-            className="rsp-link text-blue-500 hover:underline"
-          >
+          <IMLink href={`/admin/clubs/${club.id}/courts`}>
             {t("clubs.adminCourts")}
-          </Link>
+          </IMLink>
         )}
       </header>
 
@@ -332,9 +328,9 @@ export default function ClubDetailPage({
       {!isAuthenticated && (
         <div className="tm-auth-cta mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-blue-800 dark:text-blue-200 text-sm">
-            <Link href="/auth/sign-in" className="font-semibold underline hover:no-underline">
+            <IMLink href="/auth/sign-in" className="font-semibold underline hover:no-underline">
               {t("auth.signInToBook")}
-            </Link>
+            </IMLink>
           </p>
         </div>
       )}
@@ -404,9 +400,9 @@ export default function ClubDetailPage({
       )}
 
       <div className="mt-8">
-        <Link href="/clubs" className="text-blue-500 hover:underline">
+        <IMLink href="/clubs">
           {t("common.backToClubs")}
-        </Link>
+        </IMLink>
       </div>
 
       {/* Booking Modal - only rendered for authenticated users */}

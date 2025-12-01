@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { CoachWeeklyAvailability } from "@/components/coach";
 
@@ -87,9 +86,9 @@ export default function CoachAvailabilityPage() {
         <Card>
           <div className="text-center py-8">
             <p className="text-red-500 mb-4">{error}</p>
-            <Link href="/coach/dashboard">
+            <IMLink href="/coach/dashboard">
               <Button variant="outline">Back to Dashboard</Button>
-            </Link>
+            </IMLink>
           </div>
         </Card>
       </main>
@@ -113,9 +112,9 @@ export default function CoachAvailabilityPage() {
 
       {/* Navigation */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <Link href="/coach/dashboard" className="rsp-link text-blue-500 hover:underline">
+        <IMLink href="/coach/dashboard">
           ← Back to Dashboard
-        </Link>
+        </IMLink>
       </div>
 
       {/* Coach Weekly Availability Component */}

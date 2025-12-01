@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button, Card, Modal } from "@/components/ui";
+import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 
 interface Booking {
@@ -350,19 +349,19 @@ export default function CoachDashboardPage() {
 
       {/* Navigation and Back Link */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-        <Link href="/" className="rsp-link text-blue-500 hover:underline">
+        <IMLink href="/">
           ← Back to Home
-        </Link>
+        </IMLink>
         <div className="flex gap-2">
-          <Link href="/coach/requests">
+          <IMLink href="/coach/requests">
             <Button variant="outline">Training Requests</Button>
-          </Link>
-          <Link href="/coach/availability">
+          </IMLink>
+          <IMLink href="/coach/availability">
             <Button variant="outline">Manage Weekly Availability</Button>
-          </Link>
-          <Link href="/coach/timeoff">
+          </IMLink>
+          <IMLink href="/coach/timeoff">
             <Button variant="outline">Manage Time Off</Button>
-          </Link>
+          </IMLink>
         </div>
       </div>
 

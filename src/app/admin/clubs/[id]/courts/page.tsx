@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button, Card, Modal } from "@/components/ui";
+import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { formatPrice } from "@/utils/price";
@@ -211,12 +210,9 @@ export default function AdminCourtsPage({
 
       <section className="rsp-content">
         <div className="flex justify-between items-center mb-6">
-          <Link
-            href="/admin/clubs"
-            className="rsp-link text-blue-500 hover:underline"
-          >
+          <IMLink href="/admin/clubs">
             ← Back to Clubs
-          </Link>
+          </IMLink>
           <Button onClick={handleOpenCreateModal}>+ Add Court</Button>
         </div>
 
@@ -281,12 +277,12 @@ export default function AdminCourtsPage({
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <Link
+                          <IMLink
                             href={`/admin/clubs/${clubId}/courts/${court.id}/price-rules`}
                             className="inline-flex items-center justify-center px-4 py-2 border rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
                           >
                             Pricing
-                          </Link>
+                          </IMLink>
                           <Button
                             variant="outline"
                             onClick={() => handleOpenEditModal(court)}

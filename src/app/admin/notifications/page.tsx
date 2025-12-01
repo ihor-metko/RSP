@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Link from "next/link";
+import { IMLink } from "@/components/ui";
 import { AdminNotificationsPanel } from "@/components/admin/AdminNotifications";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
@@ -49,9 +49,9 @@ export default function AdminNotificationsPage() {
 
       <section className="rsp-content">
         <div className="flex justify-between items-center mb-6">
-          <Link href="/" className="rsp-link text-blue-500 hover:underline">
+          <IMLink href="/">
             ← Back to Home
-          </Link>
+          </IMLink>
         </div>
 
         <AdminNotificationsPanel pollInterval={30000} />

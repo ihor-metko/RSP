@@ -1,0 +1,21 @@
+.im-link {
+  color: var(--rsp-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.im-link:hover {
+  color: var(--rsp-primary-hover);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.im-link:focus {
+  outline: 2px solid var(--rsp-primary);
+  outline-offset: 2px;
+}
+
+.im-link:active {
+  color: var(--rsp-accent);
+}

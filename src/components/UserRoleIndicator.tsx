@@ -1,8 +1,8 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { IMLink } from "@/components/ui";
 import type { UserRole } from "@/lib/auth";
 
 const roleColors: Record<UserRole, string> = {
@@ -38,18 +38,18 @@ export function UserRoleIndicator() {
   if (!session?.user) {
     return (
       <div className="rsp-user-indicator flex items-center gap-4">
-        <Link
+        <IMLink
           href="/auth/sign-in"
-          className="rsp-link text-blue-500 hover:underline text-sm"
+          className="text-sm"
         >
           {t("common.signIn")}
-        </Link>
-        <Link
+        </IMLink>
+        <IMLink
           href="/auth/sign-up"
-          className="rsp-link text-blue-500 hover:underline text-sm"
+          className="text-sm"
         >
           {t("common.register")}
-        </Link>
+        </IMLink>
       </div>
     );
   }
