@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .tm-quick-booking-modal {
   @apply w-full;
 }

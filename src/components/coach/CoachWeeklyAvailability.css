@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 /* Coach Weekly Availability Styles */
 .tm-coach-availability {
   @apply w-full;

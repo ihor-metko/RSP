@@ -160,14 +160,14 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     return (
       <section className="tm-personalized-section py-8 px-4 md:px-8" aria-label={t("home.personalized.title")}>
         <div className="max-w-6xl mx-auto">
-          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-6" />
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-6" />
           <div className="grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="tm-personalized-block">
-                <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
+                <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-4" />
                 <div className="space-y-3">
-                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
+                  <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
                 </div>
               </div>
             ))}
@@ -182,7 +182,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     return (
       <section className="tm-personalized-section py-8 px-4 md:px-8" aria-label={t("home.personalized.title")}>
         <div className="max-w-6xl mx-auto">
-          <div className="tm-error-banner p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded" role="alert">
+          <div className="tm-error-banner p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-sm" role="alert">
             {error}
           </div>
         </div>
@@ -206,7 +206,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                   <button
                     key={booking.id}
                     onClick={() => handleBookingClick(booking)}
-                    className="w-full text-left p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--rsp-primary)]"
+                    className="w-full text-left p-3 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-hidden focus:ring-2 focus:ring-(--rsp-primary)"
                     role="listitem"
                     aria-label={`${t("booking.book")} - ${formatDate(booking.startTime, currentLocale)} ${formatTime(booking.startTime)}`}
                   >
@@ -220,7 +220,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                       {booking.club?.name} - {booking.court.name}
                     </div>
                     {booking.coach?.name && (
-                      <div className="text-sm text-[var(--rsp-primary)]">
+                      <div className="text-sm text-(--rsp-primary)">
                         {t("training.history.trainer")}: {booking.coach.name}
                       </div>
                     )}
@@ -240,7 +240,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
           <Card title={t("home.personalized.quickBooking")} className="tm-personalized-quick-booking">
             <div className="space-y-4">
               {clubsLoading ? (
-                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
               ) : (
                 <>
                   <div>

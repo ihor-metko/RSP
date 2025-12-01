@@ -354,7 +354,7 @@ export function BookingModal({
 
           {/* Show selected slot price */}
           {selectedSlot?.priceCents !== undefined && (
-            <div className="tm-booking-price-info mt-3 p-3 rounded bg-gray-50 dark:bg-gray-800">
+            <div className="tm-booking-price-info mt-3 p-3 rounded-sm bg-gray-50 dark:bg-gray-800">
               <span className="text-sm text-gray-600 dark:text-gray-400">{t("common.price")}: </span>
               <span className="font-semibold">{formatPrice(selectedSlot.priceCents)}</span>
             </div>

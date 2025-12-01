@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .rsp-input-wrapper {
   @apply block;
 }

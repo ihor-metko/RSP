@@ -206,7 +206,7 @@ export default function AdminClubsPage() {
         </div>
 
         {error && (
-          <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
+          <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
             {error}
           </div>
         )}
@@ -307,7 +307,7 @@ export default function AdminClubsPage() {
                                   <img
                                     src={club.logo as string}
                                     alt={`${club.name} logo`}
-                                    className="w-16 h-16 rounded object-cover mt-1"
+                                    className="w-16 h-16 rounded-sm object-cover mt-1"
                                   />
                                 </div>
                               )}
@@ -340,7 +340,7 @@ export default function AdminClubsPage() {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           {formError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
               {formError}
             </div>
           )}

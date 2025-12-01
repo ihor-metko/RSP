@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .rsp-modal-overlay {
   @apply fixed inset-0 z-50 flex items-center justify-center;
   background-color: rgba(0, 0, 0, 0.5);

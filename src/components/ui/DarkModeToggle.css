@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .rsp-dark-toggle {
   @apply p-2 rounded-md transition-colors;
   background-color: var(--rsp-card-bg);

@@ -315,8 +315,8 @@ export default function PlayerDashboardPage() {
     return (
       <main className="tm-player-dashboard min-h-screen p-4 md:p-8">
         <div className="tm-loading-skeleton">
-          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
-          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-4" />
+          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
         </div>
       </main>
     );
@@ -357,7 +357,7 @@ export default function PlayerDashboardPage() {
                   {t("playerDashboard.quickBook.selectClub")}
                 </label>
                 {clubsLoading ? (
-                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
                 ) : (
                   <select
                     id="club-select"
@@ -387,9 +387,9 @@ export default function PlayerDashboardPage() {
                     <button
                       key={day.date}
                       onClick={() => setSelectedDate(day.date)}
-                      className={`tm-calendar-day flex-shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`tm-calendar-day shrink-0 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                         day.isSelected
-                          ? "bg-[var(--rsp-primary)] text-white"
+                          ? "bg-(--rsp-primary) text-white"
                           : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                       }`}
                       role="option"
@@ -420,11 +420,11 @@ export default function PlayerDashboardPage() {
             {bookingsLoading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
                 ))}
               </div>
             ) : bookingsError ? (
-              <div className="tm-error-banner p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded" role="alert">
+              <div className="tm-error-banner p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-sm" role="alert">
                 {bookingsError}
               </div>
             ) : upcomingBookings.length === 0 ? (
@@ -432,7 +432,7 @@ export default function PlayerDashboardPage() {
                 <p className="text-gray-500 dark:text-gray-400">
                   {t("playerDashboard.upcomingBookings.noBookings")}
                 </p>
-                <Link href="/clubs" className="text-[var(--rsp-primary)] hover:underline mt-2 inline-block">
+                <Link href="/clubs" className="text-(--rsp-primary) hover:underline mt-2 inline-block">
                   {t("playerDashboard.upcomingBookings.browseClubs")}
                 </Link>
               </div>
@@ -500,7 +500,7 @@ export default function PlayerDashboardPage() {
             {coachesLoading ? (
               <div className="space-y-3">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
                 ))}
               </div>
             ) : coaches.length === 0 ? (
@@ -542,7 +542,7 @@ export default function PlayerDashboardPage() {
             {eventsLoading ? (
               <div className="space-y-3">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  <div key={i} className="h-20 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
                 ))}
               </div>
             ) : events.length === 0 ? (

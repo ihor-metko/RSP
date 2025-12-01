@@ -343,7 +343,7 @@ export default function CoachDashboardPage() {
 
       {/* Error State */}
       {error && (
-        <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
+        <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
           {error}
         </div>
       )}
@@ -391,19 +391,19 @@ export default function CoachDashboardPage() {
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mb-6">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600"></div>
+          <div className="w-4 h-4 rounded-sm bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600"></div>
           <span className="text-sm">Available</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600"></div>
+          <div className="w-4 h-4 rounded-sm bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600"></div>
           <span className="text-sm">Booked</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600"></div>
+          <div className="w-4 h-4 rounded-sm bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600"></div>
           <span className="text-sm">Not Set</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded bg-gray-200 dark:bg-gray-700 opacity-50"></div>
+          <div className="w-4 h-4 rounded-sm bg-gray-200 dark:bg-gray-700 opacity-50"></div>
           <span className="text-sm">Outside Club Hours</span>
         </div>
       </div>
@@ -416,7 +416,7 @@ export default function CoachDashboardPage() {
             {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+                className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse"
               ></div>
             ))}
           </div>
@@ -427,7 +427,7 @@ export default function CoachDashboardPage() {
                 key={slot.time}
                 onClick={() => handleSlotClick(slot)}
                 disabled={slot.isOutsideClubHours}
-                className={`w-full p-4 rounded border text-left transition-colors ${getSlotColor(slot)}`}
+                className={`w-full p-4 rounded-sm border text-left transition-colors ${getSlotColor(slot)}`}
                 aria-label={`Time slot ${slot.time}${slot.isBooked ? ", booked" : slot.isAvailable ? ", available" : ", not set"}${slot.isOutsideClubHours ? ", outside club hours" : ""}`}
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">

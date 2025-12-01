@@ -250,9 +250,9 @@ export default function CourtDetailPage({
     return (
       <main className="tm-court-page min-h-screen p-8">
         <div className="tm-loading-skeleton">
-          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
-          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-6" />
-          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-4" />
+          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-6" />
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
         </div>
       </main>
     );
@@ -261,7 +261,7 @@ export default function CourtDetailPage({
   if (error || !court) {
     return (
       <main className="tm-court-page min-h-screen p-8">
-        <div className="tm-error-banner text-center p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded">
+        <div className="tm-error-banner text-center p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-sm">
           {error || "Court not found"}
         </div>
         <div className="mt-4 text-center">
@@ -352,7 +352,7 @@ export default function CourtDetailPage({
               type="date"
               value={formatDateString(selectedDate)}
               onChange={handleDateChange}
-              className="tm-date-input px-3 py-2 border rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+              className="tm-date-input px-3 py-2 border rounded-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
               aria-label="Select date"
             />
           </div>
@@ -374,13 +374,13 @@ export default function CourtDetailPage({
       <section className="tm-slots-legend mb-4">
         <div className="flex justify-center gap-4 text-sm">
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-green-500" /> {t("common.available")}
+            <span className="w-3 h-3 rounded-sm bg-green-500" /> {t("common.available")}
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-red-500" /> {t("common.booked")}
+            <span className="w-3 h-3 rounded-sm bg-red-500" /> {t("common.booked")}
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-yellow-500" /> Limited
+            <span className="w-3 h-3 rounded-sm bg-yellow-500" /> Limited
           </span>
         </div>
       </section>
@@ -392,12 +392,12 @@ export default function CourtDetailPage({
             {Array.from({ length: 12 }).map((_, i) => (
               <div
                 key={i}
-                className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+                className="h-16 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse"
               />
             ))}
           </div>
         ) : availability.length === 0 ? (
-          <div className="tm-no-slots text-center p-8 bg-gray-50 dark:bg-gray-800 rounded">
+          <div className="tm-no-slots text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-sm">
             <p className="text-gray-500 dark:text-gray-400">
               No availability data for this date.
             </p>
@@ -406,7 +406,7 @@ export default function CourtDetailPage({
             </Button>
           </div>
         ) : !hasAvailableSlots ? (
-          <div className="tm-no-slots text-center p-8 bg-gray-50 dark:bg-gray-800 rounded">
+          <div className="tm-no-slots text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-sm">
             <p className="text-gray-500 dark:text-gray-400">
               No slots available for this date.
             </p>
@@ -419,7 +419,7 @@ export default function CourtDetailPage({
             {availability.map((slot) => (
               <button
                 key={slot.start}
-                className={`tm-slot-button p-3 rounded border text-center transition-colors ${getStatusColor(slot.status)}`}
+                className={`tm-slot-button p-3 rounded-sm border text-center transition-colors ${getStatusColor(slot.status)}`}
                 onClick={() => handleSlotClick(slot)}
                 disabled={slot.status === "booked"}
                 aria-label={`${formatTime(slot.start)} - ${formatTime(slot.end)}: ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}

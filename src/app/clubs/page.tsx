@@ -160,13 +160,13 @@ export default function ClubsPage() {
             <div key={i} className="tm-club-card animate-pulse">
               <div className="tm-club-card-header">
                 <div className="tm-club-logo-placeholder bg-gray-200 dark:bg-gray-700" />
-                <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-sm" />
               </div>
               <div className="tm-club-details space-y-2">
-                <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded" />
-                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-sm" />
+                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded-sm" />
               </div>
-              <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded mt-4" />
+              <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-sm mt-4" />
             </div>
           ))}
         </div>

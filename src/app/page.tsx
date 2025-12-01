@@ -62,7 +62,7 @@ export default function Home() {
       </header>
 
       {/* Hero section with background and search */}
-      <section className="tm-hero relative overflow-hidden bg-gradient-to-br from-[var(--rsp-primary)] via-[#0a1040] to-[var(--rsp-primary)]">
+      <section className="tm-hero relative overflow-hidden bg-linear-to-br from-(--rsp-primary) via-[#0a1040] to-(--rsp-primary)">
         <div className="tm-hero-overlay absolute inset-0 bg-[url('/hero-pattern.svg')] opacity-10" />
         <div className="tm-hero-bg absolute inset-0 bg-[url('/platform/paddle-club-banner.webp')] bg-cover bg-center bg-no-repeat opacity-70" />
 
@@ -89,7 +89,7 @@ export default function Home() {
           </div>
 
           {/* Search bar in hero */}
-          <div className="tm-hero-search max-w-2xl mx-auto bg-white/10 backdrop-blur-sm rounded-lg p-4">
+          <div className="tm-hero-search max-w-2xl mx-auto bg-white/10 backdrop-blur-xs rounded-lg p-4">
             <PublicSearchBar navigateOnSearch compact />
           </div>
         </div>
@@ -111,13 +111,13 @@ export default function Home() {
                 <div key={i} className="tm-club-card animate-pulse">
                   <div className="tm-club-card-header">
                     <div className="tm-club-logo-placeholder bg-gray-200 dark:bg-gray-700" />
-                    <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
+                    <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-sm" />
                   </div>
                   <div className="tm-club-details space-y-2">
-                    <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded" />
-                    <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded" />
+                    <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-sm" />
+                    <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded-sm" />
                   </div>
-                  <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded mt-4" />
+                  <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-sm mt-4" />
                 </div>
               ))}
             </div>

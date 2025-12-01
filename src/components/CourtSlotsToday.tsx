@@ -57,7 +57,7 @@ export function CourtSlotsToday({
         {Array.from({ length: maxSlots }).map((_, i) => (
           <div
             key={i}
-            className="tm-slot-skeleton w-16 h-6 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"
+            className="tm-slot-skeleton w-16 h-6 rounded-sm bg-gray-200 dark:bg-gray-700 animate-pulse"
           />
         ))}
       </div>
@@ -88,7 +88,7 @@ export function CourtSlotsToday({
         {displaySlots.map((slot) => (
           <span
             key={slot.start}
-            className={`tm-slot-chip inline-block px-2 py-0.5 text-xs rounded border ${getStatusColor(slot.status)}`}
+            className={`tm-slot-chip inline-block px-2 py-0.5 text-xs rounded-sm border ${getStatusColor(slot.status)}`}
             title={`${formatTime(slot.start)} - ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? ` · ${formatPrice(slot.priceCents)}` : ""}`}
             aria-label={`${formatTime(slot.start)}: ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
           >
@@ -99,7 +99,7 @@ export function CourtSlotsToday({
           </span>
         ))}
         {remainingCount > 0 && (
-          <span className="tm-slot-more inline-block px-2 py-0.5 text-xs rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+          <span className="tm-slot-more inline-block px-2 py-0.5 text-xs rounded-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
             +{remainingCount} more
             {showPrices && minPrice !== null && (
               <span className="ml-1">from {formatPrice(minPrice)}</span>

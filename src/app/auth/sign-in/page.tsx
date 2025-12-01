@@ -45,7 +45,7 @@ export default function SignInPage() {
       <Card title={t("auth.login")} className="w-full max-w-md">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
               {error}
             </div>
           )}

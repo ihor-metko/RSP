@@ -129,7 +129,7 @@ export function PriceRuleForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+        <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
           {error}
         </div>
       )}
@@ -179,7 +179,7 @@ export function PriceRuleForm({
             value={formData.dayOfWeek ?? 1}
             onChange={handleInputChange}
             disabled={isSubmitting}
-            className="tm-booking-select w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+            className="tm-booking-select w-full px-3 py-2 border rounded-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
           >
             {DAY_OF_WEEK_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -203,7 +203,7 @@ export function PriceRuleForm({
             value={formData.date || ""}
             onChange={handleInputChange}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+            className="w-full px-3 py-2 border rounded-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
           />
         </div>
       )}
@@ -221,7 +221,7 @@ export function PriceRuleForm({
             value={formData.startTime}
             onChange={handleInputChange}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+            className="w-full px-3 py-2 border rounded-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
           />
         </div>
         <div className="rsp-input-wrapper">
@@ -235,7 +235,7 @@ export function PriceRuleForm({
             value={formData.endTime}
             onChange={handleInputChange}
             disabled={isSubmitting}
-            className="w-full px-3 py-2 border rounded bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+            className="w-full px-3 py-2 border rounded-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
           />
         </div>
       </div>

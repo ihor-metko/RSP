@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 /* Weekly Availability Timeline Styles */
 .tm-weekly-timeline {
   @apply w-full overflow-x-auto;

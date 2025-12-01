@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 /* Toast Container */
 .tm-notification-toast-container {
   @apply fixed top-4 right-4 z-50 space-y-2;
@@ -7,7 +9,7 @@
 /* Individual Toast */
 .tm-notification-toast {
   @apply flex items-start gap-3 p-4 rounded-lg shadow-lg;
-  @apply animate-slide-in-right;
+  animation: slide-in-right 0.3s ease forwards;
   background-color: var(--rsp-card-bg);
   border: 1px solid var(--rsp-border);
   transform: translateX(0);

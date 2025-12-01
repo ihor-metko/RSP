@@ -284,11 +284,11 @@ export default function ClubDetailPage({
     return (
       <main className="tm-club-page min-h-screen p-8">
         <div className="tm-loading-skeleton">
-          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
-          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-8" />
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-2" />
+          <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-8" />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div key={i} className="h-48 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
             ))}
           </div>
         </div>
@@ -299,7 +299,7 @@ export default function ClubDetailPage({
   if (error || !club) {
     return (
       <main className="tm-club-page min-h-screen p-8">
-        <div className="tm-error-banner text-center p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded">
+        <div className="tm-error-banner text-center p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-sm">
           {error || t("clubs.clubNotFound")}
         </div>
         <div className="mt-4 text-center">
@@ -363,7 +363,7 @@ export default function ClubDetailPage({
 
       <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {club.courts.length === 0 ? (
-          <div className="tm-empty-state col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800 rounded">
+          <div className="tm-empty-state col-span-full text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-sm">
             <p className="text-gray-500 dark:text-gray-400">
               {t("clubs.noCourts")}
             </p>

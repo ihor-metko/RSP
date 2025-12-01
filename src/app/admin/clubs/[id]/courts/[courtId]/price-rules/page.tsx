@@ -291,7 +291,7 @@ export default function PriceRulesPage({
         </div>
 
         {error && (
-          <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
+          <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
             {error}
           </div>
         )}
@@ -328,7 +328,7 @@ export default function PriceRulesPage({
                       <td className="py-3 px-4">
                         <span className="font-medium">{formatRuleDay(rule)}</span>
                         {rule.date && (
-                          <span className="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                          <span className="ml-2 text-xs px-2 py-0.5 rounded-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
                             Specific date
                           </span>
                         )}

@@ -141,7 +141,7 @@ export function PublicSearchBar({
               type="checkbox"
               checked={indoor}
               onChange={(e) => setIndoor(e.target.checked)}
-              className="tm-indoor-checkbox w-4 h-4 rounded border-gray-300 dark:border-gray-600"
+              className="tm-indoor-checkbox w-4 h-4 rounded-sm border-gray-300 dark:border-gray-600"
               aria-label={t("clubs.indoorOnly")}
             />
             <span className="text-gray-700 dark:text-gray-300">
