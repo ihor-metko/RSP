@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Modal, Button, Card } from "@/components/ui";
+import { Modal, Button, Card, Select } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import "./QuickBookingModal.css";
 
@@ -190,44 +190,32 @@ export function QuickBookingModal({
           </div>
 
           {/* Time picker */}
-          <div className="tm-booking-select-wrapper">
-            <label htmlFor="quick-booking-time" className="tm-booking-label">
-              {t("booking.quickBooking.startTime")}
-            </label>
-            <select
-              id="quick-booking-time"
-              className="tm-booking-select"
-              value={startTime}
-              onChange={(e) => handleTimeChange(e.target.value)}
-              disabled={isLoading}
-            >
-              {TIME_OPTIONS.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            id="quick-booking-time"
+            label={t("booking.quickBooking.startTime")}
+            options={TIME_OPTIONS.map((time) => ({
+              value: time,
+              label: time,
+            }))}
+            value={startTime}
+            onChange={(value) => handleTimeChange(value)}
+            disabled={isLoading}
+            className="tm-booking-select"
+          />
 
           {/* Duration picker */}
-          <div className="tm-booking-select-wrapper">
-            <label htmlFor="quick-booking-duration" className="tm-booking-label">
-              {t("common.duration")}
-            </label>
-            <select
-              id="quick-booking-duration"
-              className="tm-booking-select"
-              value={duration}
-              onChange={(e) => handleDurationChange(parseInt(e.target.value, 10))}
-              disabled={isLoading}
-            >
-              {DURATION_OPTIONS.map((mins) => (
-                <option key={mins} value={mins}>
-                  {mins} {t("common.minutes")}
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            id="quick-booking-duration"
+            label={t("common.duration")}
+            options={DURATION_OPTIONS.map((mins) => ({
+              value: String(mins),
+              label: `${mins} ${t("common.minutes")}`,
+            }))}
+            value={String(duration)}
+            onChange={(value) => handleDurationChange(parseInt(value, 10))}
+            disabled={isLoading}
+            className="tm-booking-select"
+          />
 
           {/* Find courts button */}
           <div className="tm-quick-booking-search">

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Button, Card, Modal, IMLink } from "@/components/ui";
+import { Button, Card, Modal, IMLink, Select } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { RequestTrainingModal } from "@/components/training/RequestTrainingModal";
@@ -352,29 +352,25 @@ export default function PlayerDashboardPage() {
             <div className="tm-quick-book-content">
               {/* Club Selection */}
               <div className="tm-club-selector mb-4">
-                <label htmlFor="club-select" className="block text-sm font-medium mb-2">
-                  {t("playerDashboard.quickBook.selectClub")}
-                </label>
                 {clubsLoading ? (
                   <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse" />
                 ) : (
-                  <select
+                  <Select
                     id="club-select"
-                    className="tm-booking-select w-full"
+                    label={t("playerDashboard.quickBook.selectClub")}
+                    options={
+                      clubs.length === 0
+                        ? [{ value: "", label: t("playerDashboard.quickBook.noClubs") }]
+                        : clubs.map((club) => ({
+                            value: club.id,
+                            label: `${club.name} - ${club.location}`,
+                          }))
+                    }
                     value={selectedClubId}
-                    onChange={(e) => setSelectedClubId(e.target.value)}
+                    onChange={(value) => setSelectedClubId(value)}
                     aria-label={t("playerDashboard.quickBook.selectClub")}
-                  >
-                    {clubs.length === 0 ? (
-                      <option value="">{t("playerDashboard.quickBook.noClubs")}</option>
-                    ) : (
-                      clubs.map((club) => (
-                        <option key={club.id} value={club.id}>
-                          {club.name} - {club.location}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                    className="tm-booking-select w-full"
+                  />
                 )}
               </div>
 

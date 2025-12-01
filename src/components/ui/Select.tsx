@@ -1,15 +1,16 @@
 import "./Select.css";
 
-interface SelectOption {
+export interface SelectOption {
   value: string;
   label: string;
+  disabled?: boolean;
 }
 
 interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
   label?: string;
   options: SelectOption[];
   placeholder?: string;
-  onChange?: (value: string | string[]) => void;
+  onChange?: (value: string) => void;
 }
 
 export function Select({
@@ -18,20 +19,17 @@ export function Select({
   placeholder,
   className = "",
   id,
-  multiple,
   value,
   onChange,
+  disabled,
+  "aria-label": ariaLabel,
+  "aria-describedby": ariaDescribedBy,
   ...props
 }: SelectProps) {
   const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!onChange) return;
-    
-    if (multiple) {
-      const selectedValues = Array.from(e.target.selectedOptions).map(opt => opt.value);
-      onChange(selectedValues);
-    } else {
+    if (onChange) {
       onChange(e.target.value);
     }
   };
@@ -49,18 +47,24 @@ export function Select({
       <select
         id={selectId}
         className={`rsp-select ${className}`.trim()}
-        multiple={multiple}
         value={value}
         onChange={handleChange}
+        disabled={disabled}
+        aria-label={ariaLabel || (!label ? undefined : undefined)}
+        aria-describedby={ariaDescribedBy}
         {...props}
       >
-        {placeholder && !multiple && (
+        {placeholder && (
           <option value="" disabled>
             {placeholder}
           </option>
         )}
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option 
+            key={option.value} 
+            value={option.value}
+            disabled={option.disabled}
+          >
             {option.label}
           </option>
         ))}
