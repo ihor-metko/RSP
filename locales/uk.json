@@ -229,6 +229,13 @@
     "reserve": "Забронювати",
     "book": "Забронювати",
     "viewSchedule": "Переглянути розклад",
+    "loadingCoachAvailability": "Завантаження доступності тренера...",
+    "coachUnavailable": "Тренер недоступний",
+    "coachNotWorkingOnDay": "Тренер не працює в цей день.",
+    "coachNotWorkingAtTime": "Тренер недоступний у цей час.",
+    "coachUnavailableOnDay": "Тренер недоступний у цей день.",
+    "coachUnavailableAtTime": "Тренер недоступний у цей час.",
+    "coachAlreadyBooked": "Тренер вже зайнятий у цей час.",
     "quickBooking": {
       "title": "Швидке бронювання",
       "startTime": "Час початку",

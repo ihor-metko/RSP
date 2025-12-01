@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Modal, Button } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
@@ -15,6 +15,21 @@ interface Slot {
 interface Coach {
   id: string;
   name: string;
+}
+
+interface TimeOffEntry {
+  fullDay: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  reason: string | null;
+}
+
+interface CoachAvailabilityData {
+  trainerId: string;
+  trainerName: string;
+  availability: Record<string, { start: string; end: string }[]>;
+  busyTimes: Record<string, string[]>;
+  timeOff?: Record<string, TimeOffEntry[]>;
 }
 
 interface BookingModalProps {
@@ -37,6 +52,28 @@ interface BookingResponse {
   priceCents?: number;
 }
 
+// Helper to check if two time ranges overlap
+function doTimesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
+  const [s1h, s1m] = start1.split(":").map(Number);
+  const [e1h, e1m] = end1.split(":").map(Number);
+  const [s2h, s2m] = start2.split(":").map(Number);
+  const [e2h, e2m] = end2.split(":").map(Number);
+  
+  const start1Minutes = s1h * 60 + s1m;
+  const end1Minutes = e1h * 60 + e1m;
+  const start2Minutes = s2h * 60 + s2m;
+  const end2Minutes = e2h * 60 + e2m;
+  
+  return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
+}
+
+// Format a Date to HH:mm string
+function formatTimeHHMM(date: Date): string {
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+}
+
 export function BookingModal({
   courtId,
   availableSlots,
@@ -51,8 +88,106 @@ export function BookingModal({
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [coachAvailability, setCoachAvailability] = useState<CoachAvailabilityData | null>(null);
+  const [isLoadingCoachAvailability, setIsLoadingCoachAvailability] = useState(false);
 
   const selectedSlot = selectedSlotIndex !== null ? availableSlots[selectedSlotIndex] : null;
+
+  // Fetch coach availability when coach is selected
+  const fetchCoachAvailability = useCallback(async (coachId: string) => {
+    if (!coachId) {
+      setCoachAvailability(null);
+      return;
+    }
+
+    setIsLoadingCoachAvailability(true);
+    try {
+      const response = await fetch(`/api/trainers/${coachId}/availability`);
+      if (response.ok) {
+        const data = await response.json();
+        setCoachAvailability(data);
+      } else {
+        setCoachAvailability(null);
+      }
+    } catch {
+      setCoachAvailability(null);
+    } finally {
+      setIsLoadingCoachAvailability(false);
+    }
+  }, []);
+
+  // Effect to fetch coach availability when coach selection changes
+  useEffect(() => {
+    if (selectedCoachId) {
+      fetchCoachAvailability(selectedCoachId);
+    } else {
+      setCoachAvailability(null);
+    }
+  }, [selectedCoachId, fetchCoachAvailability]);
+
+  // Check if a slot is available for the selected coach
+  const isSlotAvailableForCoach = (slot: Slot): { available: boolean; reason?: string } => {
+    if (!selectedCoachId || !coachAvailability) {
+      return { available: true };
+    }
+
+    const slotStart = new Date(slot.startTime);
+    const slotEnd = new Date(slot.endTime);
+    const dateKey = slotStart.toISOString().split("T")[0];
+    const startTimeStr = formatTimeHHMM(slotStart);
+    const endTimeStr = formatTimeHHMM(slotEnd);
+
+    // Check if coach works on this day
+    const coachDayAvailability = coachAvailability.availability[dateKey];
+    if (!coachDayAvailability || coachDayAvailability.length === 0) {
+      return { available: false, reason: t("booking.coachNotWorkingOnDay") };
+    }
+
+    // Check if slot is within coach's working hours
+    const isWithinWorkingHours = coachDayAvailability.some(
+      (workSlot) => startTimeStr >= workSlot.start && endTimeStr <= workSlot.end
+    );
+    if (!isWithinWorkingHours) {
+      return { available: false, reason: t("booking.coachNotWorkingAtTime") };
+    }
+
+    // Check if coach has time off on this day
+    const timeOffEntries = coachAvailability.timeOff?.[dateKey] || [];
+    for (const timeOff of timeOffEntries) {
+      // Full-day time off blocks the entire day
+      if (timeOff.fullDay) {
+        return { available: false, reason: t("booking.coachUnavailableOnDay") };
+      }
+      // Partial-day time off - check if slot overlaps with time off
+      if (timeOff.startTime && timeOff.endTime) {
+        if (doTimesOverlap(startTimeStr, endTimeStr, timeOff.startTime, timeOff.endTime)) {
+          return { available: false, reason: t("booking.coachUnavailableAtTime") };
+        }
+      }
+    }
+
+    // Check if coach is already busy at this time
+    const busyTimes = coachAvailability.busyTimes[dateKey] || [];
+    if (busyTimes.includes(startTimeStr)) {
+      return { available: false, reason: t("booking.coachAlreadyBooked") };
+    }
+
+    return { available: true };
+  };
+
+  // Get filtered slots based on coach availability
+  const getFilteredSlots = () => {
+    if (!selectedCoachId || !coachAvailability) {
+      return availableSlots.map((slot, index) => ({ slot, index, available: true, reason: undefined }));
+    }
+
+    return availableSlots.map((slot, index) => {
+      const { available, reason } = isSlotAvailableForCoach(slot);
+      return { slot, index, available, reason };
+    });
+  };
+
+  const filteredSlots = getFilteredSlots();
 
   const handleConfirm = async () => {
     if (selectedSlotIndex === null || !selectedSlot) {
@@ -130,7 +265,15 @@ export function BookingModal({
     setSelectedSlotIndex(null);
     setSelectedCoachId(null);
     setAlert(null);
+    setCoachAvailability(null);
     onClose();
+  };
+
+  const handleCoachChange = (coachId: string | null) => {
+    setSelectedCoachId(coachId);
+    // Reset slot selection when coach changes as availability may differ
+    setSelectedSlotIndex(null);
+    setAlert(null);
   };
 
   const formatSlot = (slot: Slot) => {
@@ -159,36 +302,6 @@ export function BookingModal({
         )}
 
         <div className="tm-booking-form">
-          <div className="tm-booking-select-wrapper">
-            <label htmlFor="slot-select" className="tm-booking-label">
-              {t("booking.selectTimeSlot")}
-            </label>
-            <select
-              id="slot-select"
-              className="tm-booking-select"
-              value={selectedSlotIndex ?? ""}
-              onChange={(e) =>
-                setSelectedSlotIndex(e.target.value ? parseInt(e.target.value, 10) : null)
-              }
-              disabled={isLoading}
-            >
-              <option value="">{t("booking.chooseTimeSlot")}</option>
-              {availableSlots.map((slot, index) => (
-                <option key={`${slot.startTime}-${slot.endTime}`} value={index}>
-                  {formatSlot(slot)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Show selected slot price */}
-          {selectedSlot?.priceCents !== undefined && (
-            <div className="tm-booking-price-info mt-3 p-3 rounded bg-gray-50 dark:bg-gray-800">
-              <span className="text-sm text-gray-600 dark:text-gray-400">{t("common.price")}: </span>
-              <span className="font-semibold">{formatPrice(selectedSlot.priceCents)}</span>
-            </div>
-          )}
-
           {coachList && coachList.length > 0 && (
             <div className="tm-booking-select-wrapper">
               <label htmlFor="coach-select" className="tm-booking-label">
@@ -198,7 +311,7 @@ export function BookingModal({
                 id="coach-select"
                 className="tm-booking-select"
                 value={selectedCoachId ?? ""}
-                onChange={(e) => setSelectedCoachId(e.target.value || null)}
+                onChange={(e) => handleCoachChange(e.target.value || null)}
                 disabled={isLoading}
               >
                 <option value="">{t("booking.noCoach")}</option>
@@ -211,11 +324,70 @@ export function BookingModal({
             </div>
           )}
 
+          {isLoadingCoachAvailability && (
+            <div className="tm-booking-info">{t("booking.loadingCoachAvailability")}</div>
+          )}
+
+          <div className="tm-booking-select-wrapper">
+            <label htmlFor="slot-select" className="tm-booking-label">
+              {t("booking.selectTimeSlot")}
+            </label>
+            <select
+              id="slot-select"
+              className="tm-booking-select"
+              value={selectedSlotIndex ?? ""}
+              onChange={(e) =>
+                setSelectedSlotIndex(e.target.value ? parseInt(e.target.value, 10) : null)
+              }
+              disabled={isLoading || isLoadingCoachAvailability}
+            >
+              <option value="">{t("booking.chooseTimeSlot")}</option>
+              {filteredSlots.map(({ slot, index, available }) => (
+                <option 
+                  key={`${slot.startTime}-${slot.endTime}`} 
+                  value={index}
+                  disabled={!available}
+                >
+                  {formatSlot(slot)}{!available ? ` (${t("booking.coachUnavailable")})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Show warning if selected slot is unavailable for coach */}
+          {selectedSlotIndex !== null && selectedCoachId && (() => {
+            const slotInfo = filteredSlots.find(s => s.index === selectedSlotIndex);
+            if (slotInfo && !slotInfo.available && slotInfo.reason) {
+              return (
+                <div className="tm-booking-alert tm-booking-alert--error" role="alert">
+                  {slotInfo.reason}
+                </div>
+              );
+            }
+            return null;
+          })()}
+
+          {/* Show selected slot price */}
+          {selectedSlot?.priceCents !== undefined && (
+            <div className="tm-booking-price-info mt-3 p-3 rounded bg-gray-50 dark:bg-gray-800">
+              <span className="text-sm text-gray-600 dark:text-gray-400">{t("common.price")}: </span>
+              <span className="font-semibold">{formatPrice(selectedSlot.priceCents)}</span>
+            </div>
+          )}
+
           <div className="tm-booking-actions">
             <Button variant="outline" onClick={handleClose} disabled={isLoading}>
               {t("common.cancel")}
             </Button>
-            <Button onClick={handleConfirm} disabled={isLoading || selectedSlotIndex === null}>
+            <Button 
+              onClick={handleConfirm} 
+              disabled={
+                isLoading || 
+                isLoadingCoachAvailability ||
+                selectedSlotIndex === null ||
+                (selectedCoachId !== null && filteredSlots.find(s => s.index === selectedSlotIndex)?.available === false)
+              }
+            >
               {isLoading ? t("booking.reserving") : t("booking.reserve")}
             </Button>
           </div>

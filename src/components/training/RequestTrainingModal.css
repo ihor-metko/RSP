@@ -30,6 +30,28 @@
   color: var(--rsp-primary);
 }
 
+/* Time off indicator - shows coach is unavailable */
+.tm-trainer-timeoff-indicator {
+  @apply text-xs px-2 py-0.5 rounded;
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.dark .tm-trainer-timeoff-indicator {
+  background-color: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+/* Partial time off indicator */
+.tm-trainer-timeoff-partial {
+  @apply text-xs ml-1;
+  color: #dc2626;
+}
+
+.dark .tm-trainer-timeoff-partial {
+  color: #f87171;
+}
+
 .tm-trainer-availability-none {
   @apply text-sm;
   color: var(--rsp-foreground);

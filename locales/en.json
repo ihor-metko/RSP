@@ -229,6 +229,13 @@
     "reserve": "Reserve Booking",
     "book": "Book",
     "viewSchedule": "View schedule",
+    "loadingCoachAvailability": "Loading coach availability...",
+    "coachUnavailable": "Coach unavailable",
+    "coachNotWorkingOnDay": "Coach does not work on this day.",
+    "coachNotWorkingAtTime": "Coach is not available at this time.",
+    "coachUnavailableOnDay": "Coach is unavailable on this day.",
+    "coachUnavailableAtTime": "Coach is unavailable during this time.",
+    "coachAlreadyBooked": "Coach is already booked at this time.",
     "quickBooking": {
       "title": "Quick booking",
       "startTime": "Start time",

@@ -56,6 +56,7 @@ describe("GET /api/trainers/[id]/availability", () => {
           note: null,
         },
       ],
+      timeOffs: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
@@ -86,6 +87,7 @@ describe("GET /api/trainers/[id]/availability", () => {
       id: "trainer-123",
       user: { name: "John Trainer" },
       weeklyAvailabilities: [],
+      timeOffs: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([
@@ -114,6 +116,7 @@ describe("GET /api/trainers/[id]/availability", () => {
       id: "trainer-123",
       user: { name: "John Trainer" },
       weeklyAvailabilities: [],
+      timeOffs: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
@@ -132,6 +135,7 @@ describe("GET /api/trainers/[id]/availability", () => {
       id: "trainer-123",
       user: { name: null },
       weeklyAvailabilities: [],
+      timeOffs: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
@@ -170,6 +174,7 @@ describe("GET /api/trainers/[id]/availability", () => {
           note: "Afternoon",
         },
       ],
+      timeOffs: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
@@ -204,6 +209,7 @@ describe("GET /api/trainers/[id]/availability", () => {
           note: null,
         },
       ],
+      timeOffs: [],
     });
 
     (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
@@ -231,5 +237,107 @@ describe("GET /api/trainers/[id]/availability", () => {
         { start: "10:00", end: "17:00" },
       ]);
     }
+  });
+
+  it("should include time off entries in response", async () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrowDayOfWeek = tomorrow.getDay();
+
+    (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
+      id: "trainer-123",
+      user: { name: "John Trainer" },
+      weeklyAvailabilities: [
+        {
+          id: "weekly-1",
+          coachId: "trainer-123",
+          dayOfWeek: tomorrowDayOfWeek,
+          startTime: "09:00",
+          endTime: "18:00",
+          note: null,
+        },
+      ],
+      timeOffs: [
+        {
+          id: "timeoff-1",
+          coachId: "trainer-123",
+          date: tomorrow,
+          startTime: "12:00",
+          endTime: "14:00",
+          reason: "Lunch break",
+        },
+      ],
+    });
+
+    (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
+
+    const request = new Request("http://localhost:3000/api/trainers/trainer-123/availability");
+    const response = await GET(request, createContext("trainer-123"));
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.timeOff).toBeDefined();
+
+    const tomorrowKey = tomorrow.toISOString().split("T")[0];
+    expect(data.timeOff[tomorrowKey]).toBeDefined();
+    expect(data.timeOff[tomorrowKey]).toHaveLength(1);
+    expect(data.timeOff[tomorrowKey][0]).toEqual({
+      fullDay: false,
+      startTime: "12:00",
+      endTime: "14:00",
+      reason: "Lunch break",
+    });
+  });
+
+  it("should include full-day time off entries", async () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const tomorrowDayOfWeek = tomorrow.getDay();
+
+    (prisma.coach.findUnique as jest.Mock).mockResolvedValue({
+      id: "trainer-123",
+      user: { name: "John Trainer" },
+      weeklyAvailabilities: [
+        {
+          id: "weekly-1",
+          coachId: "trainer-123",
+          dayOfWeek: tomorrowDayOfWeek,
+          startTime: "09:00",
+          endTime: "18:00",
+          note: null,
+        },
+      ],
+      timeOffs: [
+        {
+          id: "timeoff-1",
+          coachId: "trainer-123",
+          date: tomorrow,
+          startTime: null,
+          endTime: null,
+          reason: "Vacation",
+        },
+      ],
+    });
+
+    (prisma.trainingRequest.findMany as jest.Mock).mockResolvedValue([]);
+
+    const request = new Request("http://localhost:3000/api/trainers/trainer-123/availability");
+    const response = await GET(request, createContext("trainer-123"));
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.timeOff).toBeDefined();
+
+    const tomorrowKey = tomorrow.toISOString().split("T")[0];
+    expect(data.timeOff[tomorrowKey]).toBeDefined();
+    expect(data.timeOff[tomorrowKey]).toHaveLength(1);
+    expect(data.timeOff[tomorrowKey][0]).toEqual({
+      fullDay: true,
+      startTime: null,
+      endTime: null,
+      reason: "Vacation",
+    });
   });
 });

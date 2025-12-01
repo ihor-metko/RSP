@@ -205,6 +205,7 @@ describe("Training Requests API", () => {
             endTime: "18:00",
           },
         ],
+        timeOffs: [],
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue({
@@ -244,6 +245,7 @@ describe("Training Requests API", () => {
             endTime: "18:00",
           },
         ],
+        timeOffs: [],
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
@@ -276,6 +278,7 @@ describe("Training Requests API", () => {
             endTime: "18:00",
           },
         ],
+        timeOffs: [],
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
@@ -312,6 +315,7 @@ describe("Training Requests API", () => {
             endTime: "18:00",
           },
         ],
+        timeOffs: [],
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
@@ -352,6 +356,7 @@ describe("Training Requests API", () => {
             endTime: "18:00",
           },
         ],
+        timeOffs: [],
       });
 
       (prisma.trainingRequest.findFirst as jest.Mock).mockResolvedValue(null);
@@ -410,6 +415,84 @@ describe("Training Requests API", () => {
       expect(data.courtName).toBe("Court 1");
       expect(data.bookingId).toBe("booking-123");
       expect(data.message).toContain("court has been reserved");
+    });
+
+    it("should return 400 if trainer has full-day time off on selected date", async () => {
+      // 2024-01-15 is a Monday (dayOfWeek = 1)
+      (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        weeklyAvailabilities: [
+          {
+            id: "weekly-1",
+            dayOfWeek: 1, // Monday
+            startTime: "09:00",
+            endTime: "18:00",
+          },
+        ],
+        timeOffs: [
+          {
+            id: "timeoff-1",
+            coachId: "trainer-123",
+            date: new Date("2024-01-15"),
+            startTime: null,
+            endTime: null,
+            reason: "Vacation",
+          },
+        ],
+      });
+
+      const request = createRequest({
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        clubId: "club-123",
+        date: "2024-01-15", // Monday
+        time: "10:00",
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("This coach is unavailable on the selected day.");
+    });
+
+    it("should return 400 if trainer has partial time off overlapping with training time", async () => {
+      // 2024-01-15 is a Monday (dayOfWeek = 1)
+      (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
+        id: "trainer-123",
+        weeklyAvailabilities: [
+          {
+            id: "weekly-1",
+            dayOfWeek: 1, // Monday
+            startTime: "09:00",
+            endTime: "18:00",
+          },
+        ],
+        timeOffs: [
+          {
+            id: "timeoff-1",
+            coachId: "trainer-123",
+            date: new Date("2024-01-15"),
+            startTime: "10:00",
+            endTime: "12:00",
+            reason: "Doctor appointment",
+          },
+        ],
+      });
+
+      const request = createRequest({
+        trainerId: "trainer-123",
+        playerId: "player-123",
+        clubId: "club-123",
+        date: "2024-01-15", // Monday
+        time: "10:30", // Overlaps with 10:00-12:00 time off
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("This coach is unavailable during the selected time.");
     });
 
     it("should return 401 if user is not authenticated", async () => {

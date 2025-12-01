@@ -9,11 +9,19 @@ interface Trainer {
   name: string;
 }
 
+interface TimeOffEntry {
+  fullDay: boolean;
+  startTime: string | null;
+  endTime: string | null;
+  reason: string | null;
+}
+
 interface TrainerAvailability {
   trainerId: string;
   trainerName: string;
   availability: Record<string, { start: string; end: string }[]>;
   busyTimes: Record<string, string[]>;
+  timeOff?: Record<string, TimeOffEntry[]>;
 }
 
 interface RequestTrainingModalProps {
@@ -47,6 +55,24 @@ function generateTimeOptions(): string[] {
 }
 
 const TIME_OPTIONS = generateTimeOptions();
+
+// Training session duration in minutes
+const TRAINING_DURATION_MINUTES = 60;
+
+// Helper to check if two time ranges overlap
+function doTimesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
+  const [s1h, s1m] = start1.split(":").map(Number);
+  const [e1h, e1m] = end1.split(":").map(Number);
+  const [s2h, s2m] = start2.split(":").map(Number);
+  const [e2h, e2m] = end2.split(":").map(Number);
+  
+  const start1Minutes = s1h * 60 + s1m;
+  const end1Minutes = e1h * 60 + e1m;
+  const start2Minutes = s2h * 60 + s2m;
+  const end2Minutes = e2h * 60 + e2m;
+  
+  return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
+}
 
 // Format date for display
 function formatDateDisplay(dateStr: string): string {
@@ -204,6 +230,36 @@ export function RequestTrainingModal({
         isValid: false,
         message: "Trainer already has training at this time. Choose another slot.",
       };
+    }
+
+    // Check for coach time off
+    const timeOffEntries = trainerAvailability.timeOff?.[selectedDate] || [];
+    if (timeOffEntries.length > 0) {
+      // Calculate end time for the training session
+      const [hours, mins] = selectedTime.split(":").map(Number);
+      const totalMinutes = hours * 60 + mins + TRAINING_DURATION_MINUTES;
+      const endHours = Math.floor(totalMinutes / 60);
+      const endMins = totalMinutes % 60;
+      const trainingEndTime = `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
+
+      for (const timeOff of timeOffEntries) {
+        // Full-day time off blocks the entire day
+        if (timeOff.fullDay) {
+          return {
+            isValid: false,
+            message: "This coach is unavailable on the selected day.",
+          };
+        }
+        // Partial-day time off - check if training time overlaps with time off
+        if (timeOff.startTime && timeOff.endTime) {
+          if (doTimesOverlap(selectedTime, trainingEndTime, timeOff.startTime, timeOff.endTime)) {
+            return {
+              isValid: false,
+              message: "This coach is unavailable during the selected time.",
+            };
+          }
+        }
+      }
     }
 
     // Check if court is available
@@ -368,11 +424,26 @@ export function RequestTrainingModal({
         <p className="tm-trainer-availability-title">Trainer availability:</p>
         {availabilityDates.map((date) => {
           const slots = trainerAvailability.availability[date];
+          const timeOffEntries = trainerAvailability.timeOff?.[date] || [];
+          const hasFullDayOff = timeOffEntries.some(t => t.fullDay);
+          const partialTimeOff = timeOffEntries.filter(t => !t.fullDay && t.startTime && t.endTime);
           const hoursStr = slots.map((s) => `${s.start}-${s.end}`).join(", ");
+          
           return (
             <div key={date} className="tm-trainer-availability-item">
               <span className="tm-trainer-availability-date">{formatDateDisplay(date)}</span>
-              <span className="tm-trainer-availability-hours">{hoursStr}</span>
+              {hasFullDayOff ? (
+                <span className="tm-trainer-timeoff-indicator">Unavailable</span>
+              ) : (
+                <span className="tm-trainer-availability-hours">
+                  {hoursStr}
+                  {partialTimeOff.length > 0 && (
+                    <span className="tm-trainer-timeoff-partial">
+                      {" "}(off: {partialTimeOff.map(t => `${t.startTime}-${t.endTime}`).join(", ")})
+                    </span>
+                  )}
+                </span>
+              )}
             </div>
           );
         })}

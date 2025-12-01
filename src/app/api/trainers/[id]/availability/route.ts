@@ -19,7 +19,7 @@ export async function GET(
     const resolvedParams = await params;
     const trainerId = resolvedParams.id;
 
-    // Fetch trainer with weekly availability
+    // Fetch trainer with weekly availability and time off
     const trainer = await prisma.coach.findUnique({
       where: { id: trainerId },
       include: {
@@ -31,6 +31,15 @@ export async function GET(
         weeklyAvailabilities: {
           orderBy: [
             { dayOfWeek: "asc" },
+            { startTime: "asc" },
+          ],
+        },
+        timeOffs: {
+          where: {
+            date: { gte: new Date() },
+          },
+          orderBy: [
+            { date: "asc" },
             { startTime: "asc" },
           ],
         },
@@ -87,11 +96,28 @@ export async function GET(
       busyTimesByDate[dateKey].push(training.time);
     }
 
+    // Group time off entries by date
+    // Each entry can be full-day (no startTime/endTime) or partial-day (with startTime/endTime)
+    const timeOffByDate: Record<string, { fullDay: boolean; startTime: string | null; endTime: string | null; reason: string | null }[]> = {};
+    for (const timeOff of trainer.timeOffs) {
+      const dateKey = timeOff.date.toISOString().split("T")[0];
+      if (!timeOffByDate[dateKey]) {
+        timeOffByDate[dateKey] = [];
+      }
+      timeOffByDate[dateKey].push({
+        fullDay: !timeOff.startTime && !timeOff.endTime,
+        startTime: timeOff.startTime,
+        endTime: timeOff.endTime,
+        reason: timeOff.reason,
+      });
+    }
+
     return NextResponse.json({
       trainerId: trainer.id,
       trainerName: trainer.user.name || "Unknown Trainer",
       availability: availabilityByDate,
       busyTimes: busyTimesByDate,
+      timeOff: timeOffByDate,
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

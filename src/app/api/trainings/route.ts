@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
-import { isValidDateFormat, isValidTimeFormat } from "@/utils/dateTime";
+import { isValidDateFormat, isValidTimeFormat, doTimesOverlap } from "@/utils/dateTime";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
 import { getCourtAvailabilitySuggestions, findAvailableCourts } from "@/lib/courtAvailability";
 
@@ -176,6 +176,11 @@ export async function POST(request: Request) {
       },
       include: {
         weeklyAvailabilities: true,
+        timeOffs: {
+          where: {
+            date: new Date(body.date),
+          },
+        },
       },
     });
 
@@ -215,6 +220,35 @@ export async function POST(request: Request) {
         { error: "Trainer is not available at this time. Choose another slot." },
         { status: 400 }
       );
+    }
+
+    // Check if trainer has time off on this day
+    if (trainer.timeOffs.length > 0) {
+      // Calculate end time for the training session
+      const [hours, mins] = body.time.split(":").map(Number);
+      const totalMinutes = hours * 60 + mins + TRAINING_DURATION_MINUTES;
+      const endHours = Math.floor(totalMinutes / 60);
+      const endMins = totalMinutes % 60;
+      const trainingEndTime = `${endHours.toString().padStart(2, "0")}:${endMins.toString().padStart(2, "0")}`;
+
+      for (const timeOff of trainer.timeOffs) {
+        // Full-day time off blocks the entire day
+        if (!timeOff.startTime && !timeOff.endTime) {
+          return NextResponse.json(
+            { error: "This coach is unavailable on the selected day." },
+            { status: 400 }
+          );
+        }
+        // Partial-day time off - check if training time overlaps with time off
+        if (timeOff.startTime && timeOff.endTime) {
+          if (doTimesOverlap(body.time, trainingEndTime, timeOff.startTime, timeOff.endTime)) {
+            return NextResponse.json(
+              { error: "This coach is unavailable during the selected time." },
+              { status: 400 }
+            );
+          }
+        }
+      }
     }
 
     // Check for existing training at the same time
