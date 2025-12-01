@@ -7,6 +7,7 @@ import { Button, Card, DarkModeToggle, LanguageSwitcher } from "@/components/ui"
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { PublicSearchBar } from "@/components/PublicSearchBar";
 import { PublicClubCard } from "@/components/PublicClubCard";
+import { PersonalizedSection } from "@/components/PersonalizedSection";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { useEffect, useState } from "react";
 
@@ -91,6 +92,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Personalized section for authenticated users */}
+      {isAuthenticated && session?.user?.name && (
+        <PersonalizedSection userName={session.user.name} />
+      )}
 
       {/* Popular clubs section */}
       <section className="tm-popular-clubs py-12 px-4 md:px-8">

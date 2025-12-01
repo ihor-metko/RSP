@@ -72,7 +72,21 @@
     "feature2Title": "Top Clubs",
     "feature2Desc": "Access the best paddle clubs with quality courts and facilities.",
     "feature3Title": "Train with Pros",
-    "feature3Desc": "Connect with professional coaches to improve your game."
+    "feature3Desc": "Connect with professional coaches to improve your game.",
+    "personalized": {
+      "title": "Your Personalized Section",
+      "greeting": "Welcome back, {name}!",
+      "upcomingBookings": "Upcoming Bookings",
+      "noUpcomingBookings": "No upcoming bookings.",
+      "quickBooking": "Quick Booking",
+      "findCourt": "Find Available Court",
+      "notifications": "Notifications",
+      "noNotifications": "No new notifications.",
+      "notificationRequested": "Training request submitted",
+      "notificationAccepted": "Training request accepted",
+      "notificationDeclined": "Training request declined",
+      "notificationCanceled": "Training was canceled"
+    }
   },
   "auth": {
     "login": "Login",

@@ -72,7 +72,21 @@
     "feature2Title": "Топ клуби",
     "feature2Desc": "Доступ до найкращих падел клубів з якісними кортами та зручностями.",
     "feature3Title": "Тренуйтесь з професіоналами",
-    "feature3Desc": "Зв'яжіться з професійними тренерами, щоб покращити свою гру."
+    "feature3Desc": "Зв'яжіться з професійними тренерами, щоб покращити свою гру.",
+    "personalized": {
+      "title": "Персоналізований розділ",
+      "greeting": "Вітаємо, {name}!",
+      "upcomingBookings": "Майбутні бронювання",
+      "noUpcomingBookings": "Немає майбутніх бронювань.",
+      "quickBooking": "Швидке бронювання",
+      "findCourt": "Знайти доступний корт",
+      "notifications": "Сповіщення",
+      "noNotifications": "Немає нових сповіщень.",
+      "notificationRequested": "Запит на тренування надіслано",
+      "notificationAccepted": "Запит на тренування прийнято",
+      "notificationDeclined": "Запит на тренування відхилено",
+      "notificationCanceled": "Тренування скасовано"
+    }
   },
   "auth": {
     "login": "Вхід",
