@@ -25,7 +25,20 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, location, contactInfo, openingHours, logo } = body;
+    const {
+      name,
+      location,
+      contactInfo,
+      openingHours,
+      logo,
+      descriptionUA,
+      descriptionEN,
+      phone,
+      email,
+      instagram,
+      heroImage,
+      galleryImages,
+    } = body;
 
     if (!name || !location) {
       return NextResponse.json(
@@ -42,6 +55,13 @@ export async function PUT(
         contactInfo: contactInfo || null,
         openingHours: openingHours || null,
         logo: logo || null,
+        descriptionUA: descriptionUA || null,
+        descriptionEN: descriptionEN || null,
+        phone: phone || null,
+        email: email || null,
+        instagram: instagram || null,
+        heroImage: heroImage || null,
+        galleryImages: galleryImages || [],
       },
     });
 

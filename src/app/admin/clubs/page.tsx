@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button, Card, Input, Modal } from "@/components/ui";
+import { Button, Card, Input, Modal, Textarea } from "@/components/ui";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import type { Club, ClubFormData } from "@/types/club";
@@ -15,6 +15,13 @@ const initialFormData: ClubFormData = {
   contactInfo: "",
   openingHours: "",
   logo: "",
+  descriptionUA: "",
+  descriptionEN: "",
+  phone: "",
+  email: "",
+  instagram: "",
+  heroImage: "",
+  galleryImages: [],
 };
 
 function isValidImageUrl(url: string | null | undefined): boolean {
@@ -89,6 +96,13 @@ export default function AdminClubsPage() {
       contactInfo: club.contactInfo || "",
       openingHours: club.openingHours || "",
       logo: club.logo || "",
+      descriptionUA: club.descriptionUA || "",
+      descriptionEN: club.descriptionEN || "",
+      phone: club.phone || "",
+      email: club.email || "",
+      instagram: club.instagram || "",
+      heroImage: club.heroImage || "",
+      galleryImages: club.galleryImages || [],
     });
     setFormError("");
     setIsModalOpen(true);
@@ -111,9 +125,16 @@ export default function AdminClubsPage() {
     setDeletingClub(null);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleGalleryImagesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    // Split by newlines and filter empty strings
+    const images = value.split("\n").map(s => s.trim()).filter(s => s.length > 0);
+    setFormData((prev) => ({ ...prev, galleryImages: images }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -338,7 +359,7 @@ export default function AdminClubsPage() {
         onClose={handleCloseModal}
         title={editingClub ? "Edit Club" : "Create Club"}
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
           {formError && (
             <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded">
               {formError}
@@ -352,6 +373,22 @@ export default function AdminClubsPage() {
             placeholder="Club name"
             required
           />
+          <Textarea
+            label="Description (UA)"
+            name="descriptionUA"
+            value={formData.descriptionUA}
+            onChange={handleInputChange}
+            placeholder="Опис клубу українською"
+            rows={3}
+          />
+          <Textarea
+            label="Description (EN)"
+            name="descriptionEN"
+            value={formData.descriptionEN}
+            onChange={handleInputChange}
+            placeholder="Club description in English"
+            rows={3}
+          />
           <Input
             label="Address"
             name="location"
@@ -361,18 +398,40 @@ export default function AdminClubsPage() {
             required
           />
           <Input
-            label="Contact Info"
+            label="Phone"
+            name="phone"
+            value={formData.phone}
+            onChange={handleInputChange}
+            placeholder="+380 67 123 45 67"
+          />
+          <Input
+            label="Email"
+            name="email"
+            type="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            placeholder="info@club.com"
+          />
+          <Input
+            label="Instagram"
+            name="instagram"
+            value={formData.instagram}
+            onChange={handleInputChange}
+            placeholder="@clubhandle"
+          />
+          <Input
+            label="Contact Info (deprecated)"
             name="contactInfo"
             value={formData.contactInfo}
             onChange={handleInputChange}
-            placeholder="Phone or email"
+            placeholder="Phone or email (legacy field)"
           />
           <Input
             label="Opening Hours"
             name="openingHours"
             value={formData.openingHours}
             onChange={handleInputChange}
-            placeholder="e.g., Mon-Fri 9am-10pm"
+            placeholder="Mon-Fri 08:00-22:00, Sat-Sun 08:00-23:00"
           />
           <Input
             label="Logo URL"
@@ -380,6 +439,21 @@ export default function AdminClubsPage() {
             value={formData.logo}
             onChange={handleInputChange}
             placeholder="https://example.com/logo.png"
+          />
+          <Input
+            label="Hero Image URL"
+            name="heroImage"
+            value={formData.heroImage}
+            onChange={handleInputChange}
+            placeholder="https://example.com/hero.jpg"
+          />
+          <Textarea
+            label="Gallery Images (one URL per line)"
+            name="galleryImages"
+            value={formData.galleryImages.join("\n")}
+            onChange={handleGalleryImagesChange}
+            placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+            rows={3}
           />
           <div className="flex justify-end gap-2 mt-4">
             <Button type="button" variant="outline" onClick={handleCloseModal}>

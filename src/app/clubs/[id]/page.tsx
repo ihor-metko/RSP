@@ -24,6 +24,16 @@ interface Club {
   id: string;
   name: string;
   location: string;
+  contactInfo?: string | null;
+  openingHours?: string | null;
+  logo?: string | null;
+  descriptionUA?: string | null;
+  descriptionEN?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  instagram?: string | null;
+  heroImage?: string | null;
+  galleryImages?: string[];
 }
 
 interface ClubWithDetails extends Club {
@@ -305,6 +315,18 @@ export default function ClubDetailPage({
 
   return (
     <main className="tm-club-page min-h-screen p-8">
+      {/* Hero Image */}
+      {club.heroImage && (
+        <div className="tm-hero-image mb-8 rounded-lg overflow-hidden h-64 md:h-80">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={club.heroImage}
+            alt={`${club.name} hero`}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       <header className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">{club.name}</h1>
@@ -319,6 +341,62 @@ export default function ClubDetailPage({
           </Link>
         )}
       </header>
+
+      {/* Club Description */}
+      {(club.descriptionEN || club.descriptionUA) && (
+        <section className="tm-club-description mb-8 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <p className="text-gray-700 dark:text-gray-300">
+            {club.descriptionEN || club.descriptionUA}
+          </p>
+        </section>
+      )}
+
+      {/* Club Info */}
+      <section className="tm-club-info mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {club.openingHours && (
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <h3 className="font-semibold text-sm text-gray-500 dark:text-gray-400 mb-1">
+              {t("clubs.openingHours") || "Opening Hours"}
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300">{club.openingHours}</p>
+          </div>
+        )}
+        {club.phone && (
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <h3 className="font-semibold text-sm text-gray-500 dark:text-gray-400 mb-1">
+              {t("clubs.phone") || "Phone"}
+            </h3>
+            <a href={`tel:${club.phone}`} className="text-blue-500 hover:underline">
+              {club.phone}
+            </a>
+          </div>
+        )}
+        {club.email && (
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <h3 className="font-semibold text-sm text-gray-500 dark:text-gray-400 mb-1">
+              {t("clubs.email") || "Email"}
+            </h3>
+            <a href={`mailto:${club.email}`} className="text-blue-500 hover:underline">
+              {club.email}
+            </a>
+          </div>
+        )}
+        {club.instagram && (
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <h3 className="font-semibold text-sm text-gray-500 dark:text-gray-400 mb-1">
+              Instagram
+            </h3>
+            <a
+              href={`https://instagram.com/${club.instagram.replace("@", "")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              {club.instagram}
+            </a>
+          </div>
+        )}
+      </section>
 
       {/* Quick booking button - above courts list */}
       <div className="tm-quick-booking-action mb-6">
@@ -380,6 +458,25 @@ export default function ClubDetailPage({
             {t("clubs.requestTraining")}
           </Button>
         </div>
+      )}
+
+      {/* Gallery Images */}
+      {club.galleryImages && club.galleryImages.length > 0 && (
+        <section className="tm-gallery mt-8">
+          <h2 className="text-2xl font-bold mb-4">{t("clubs.gallery") || "Gallery"}</h2>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {club.galleryImages.map((image, index) => (
+              <div key={index} className="rounded-lg overflow-hidden h-40">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={image}
+                  alt={`${club.name} gallery ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       <div className="mt-8">

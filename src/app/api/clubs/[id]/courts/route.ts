@@ -30,6 +30,7 @@ export async function GET(
         surface: true,
         indoor: true,
         defaultPriceCents: true,
+        photo: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -71,7 +72,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { name, slug, type, surface, indoor, defaultPriceCents } = body;
+    const { name, slug, type, surface, indoor, defaultPriceCents, photo } = body;
 
     if (!name || typeof name !== "string" || name.trim() === "") {
       return NextResponse.json(
@@ -102,6 +103,7 @@ export async function POST(
         surface: surface?.trim() || null,
         indoor: indoor ?? false,
         defaultPriceCents: defaultPriceCents ?? 0,
+        photo: photo?.trim() || null,
       },
     });
 

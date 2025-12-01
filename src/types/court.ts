@@ -6,6 +6,7 @@ export interface Court {
   surface?: string | null;
   indoor: boolean;
   defaultPriceCents: number;
+  photo?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

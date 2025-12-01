@@ -17,6 +17,7 @@ interface Court {
   surface: string | null;
   indoor: boolean;
   defaultPriceCents: number;
+  photo: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -327,6 +328,7 @@ export default function AdminCourtsPage({
                   surface: editingCourt.surface || "",
                   indoor: editingCourt.indoor,
                   defaultPriceCents: editingCourt.defaultPriceCents,
+                  photo: editingCourt.photo || "",
                 }
               : undefined
           }

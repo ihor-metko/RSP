@@ -19,6 +19,13 @@ export async function GET(request: Request) {
         contactInfo: true,
         openingHours: true,
         logo: true,
+        descriptionUA: true,
+        descriptionEN: true,
+        phone: true,
+        email: true,
+        instagram: true,
+        heroImage: true,
+        galleryImages: true,
         createdAt: true,
       },
     });
@@ -44,7 +51,20 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, location, contactInfo, openingHours, logo } = body;
+    const {
+      name,
+      location,
+      contactInfo,
+      openingHours,
+      logo,
+      descriptionUA,
+      descriptionEN,
+      phone,
+      email,
+      instagram,
+      heroImage,
+      galleryImages,
+    } = body;
 
     if (!name || !location) {
       return NextResponse.json(
@@ -60,6 +80,13 @@ export async function POST(request: Request) {
         contactInfo: contactInfo || null,
         openingHours: openingHours || null,
         logo: logo || null,
+        descriptionUA: descriptionUA || null,
+        descriptionEN: descriptionEN || null,
+        phone: phone || null,
+        email: email || null,
+        instagram: instagram || null,
+        heroImage: heroImage || null,
+        galleryImages: galleryImages || [],
       },
     });
 

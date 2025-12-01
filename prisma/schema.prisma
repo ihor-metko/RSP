@@ -61,16 +61,23 @@ model VerificationToken {
 }
 
 model Club {
-  id           String        @id @default(uuid())
-  name         String
-  location     String
-  contactInfo  String?
-  openingHours String?
-  logo         String?
-  createdAt    DateTime      @default(now())
-  courts       Court[]
-  coaches      Coach[]
-  pricingRules PricingRule[]
+  id             String        @id @default(uuid())
+  name           String
+  location       String
+  contactInfo    String?
+  openingHours   String?
+  logo           String?
+  descriptionUA  String?       @db.Text
+  descriptionEN  String?       @db.Text
+  phone          String?
+  email          String?
+  instagram      String?
+  heroImage      String?
+  galleryImages  String[]      @default([])
+  createdAt      DateTime      @default(now())
+  courts         Court[]
+  coaches        Coach[]
+  pricingRules   PricingRule[]
 }
 
 model Court {
@@ -82,6 +89,7 @@ model Court {
   surface           String?
   indoor            Boolean       @default(false)
   defaultPriceCents Int           @default(0)
+  photo             String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 

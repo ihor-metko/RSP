@@ -11,6 +11,7 @@ export interface CourtFormData {
   surface: string;
   indoor: boolean;
   defaultPriceCents: number;
+  photo: string;
 }
 
 interface CourtFormProps {
@@ -33,6 +34,7 @@ export function CourtForm({
     surface: initialValues?.surface || "",
     indoor: initialValues?.indoor ?? false,
     defaultPriceCents: initialValues?.defaultPriceCents ?? 0,
+    photo: initialValues?.photo || "",
   });
 
   const [error, setError] = useState("");
@@ -103,7 +105,7 @@ export function CourtForm({
         name="type"
         value={formData.type}
         onChange={handleInputChange}
-        placeholder="e.g., padel, tennis"
+        placeholder="e.g., padel, tennis, indoor, outdoor"
         disabled={isSubmitting}
       />
 
@@ -112,13 +114,13 @@ export function CourtForm({
         name="surface"
         value={formData.surface}
         onChange={handleInputChange}
-        placeholder="e.g., artificial, clay"
+        placeholder="e.g., synthetic grass, carpet, clay"
         disabled={isSubmitting}
       />
 
       <div className="rsp-input-wrapper">
         <label className="rsp-label mb-1 block text-sm font-medium">
-          Default Price
+          Default Price (in cents)
         </label>
         <Input
           name="defaultPrice"
@@ -146,6 +148,15 @@ export function CourtForm({
           Indoor
         </label>
       </div>
+
+      <Input
+        label="Photo URL"
+        name="photo"
+        value={formData.photo}
+        onChange={handleInputChange}
+        placeholder="https://example.com/court-photo.jpg"
+        disabled={isSubmitting}
+      />
 
       <div className="flex justify-end gap-2 mt-4">
         <Button

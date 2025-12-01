@@ -33,7 +33,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, slug, type, surface, indoor, defaultPriceCents } = body;
+    const { name, slug, type, surface, indoor, defaultPriceCents, photo } = body;
 
     // Validate name if provided
     if (name !== undefined && (typeof name !== "string" || name.trim() === "")) {
@@ -63,6 +63,7 @@ export async function PUT(
     if (surface !== undefined) updateData.surface = surface?.trim() || null;
     if (indoor !== undefined) updateData.indoor = indoor;
     if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
+    if (photo !== undefined) updateData.photo = photo?.trim() || null;
 
     const updatedCourt = await prisma.court.update({
       where: { id: courtId },
