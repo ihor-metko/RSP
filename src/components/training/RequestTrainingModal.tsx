@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Modal, Button, Input } from "@/components/ui";
+import { doTimesOverlap } from "@/utils/dateTime";
 import "./RequestTrainingModal.css";
 
 interface Trainer {
@@ -38,6 +39,9 @@ const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 22;
 const DEFAULT_TIME = "10:00";
 
+// Training session duration in minutes
+const TRAINING_DURATION_MINUTES = 60;
+
 // Get today's date in YYYY-MM-DD format
 function getTodayDateString(): string {
   return new Date().toISOString().split("T")[0];
@@ -55,24 +59,6 @@ function generateTimeOptions(): string[] {
 }
 
 const TIME_OPTIONS = generateTimeOptions();
-
-// Training session duration in minutes
-const TRAINING_DURATION_MINUTES = 60;
-
-// Helper to check if two time ranges overlap
-function doTimesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
-  const [s1h, s1m] = start1.split(":").map(Number);
-  const [e1h, e1m] = end1.split(":").map(Number);
-  const [s2h, s2m] = start2.split(":").map(Number);
-  const [e2h, e2m] = end2.split(":").map(Number);
-  
-  const start1Minutes = s1h * 60 + s1m;
-  const end1Minutes = e1h * 60 + e1m;
-  const start2Minutes = s2h * 60 + s2m;
-  const end2Minutes = e2h * 60 + e2m;
-  
-  return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
-}
 
 // Format date for display
 function formatDateDisplay(dateStr: string): string {

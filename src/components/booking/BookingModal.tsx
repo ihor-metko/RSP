@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Modal, Button } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
+import { doTimesOverlap, formatTimeHHMM } from "@/utils/dateTime";
 import "./BookingModal.css";
 
 interface Slot {
@@ -50,28 +51,6 @@ interface BookingResponse {
   endTime: string;
   coachId: string | null;
   priceCents?: number;
-}
-
-// Helper to check if two time ranges overlap
-function doTimesOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
-  const [s1h, s1m] = start1.split(":").map(Number);
-  const [e1h, e1m] = end1.split(":").map(Number);
-  const [s2h, s2m] = start2.split(":").map(Number);
-  const [e2h, e2m] = end2.split(":").map(Number);
-  
-  const start1Minutes = s1h * 60 + s1m;
-  const end1Minutes = e1h * 60 + e1m;
-  const start2Minutes = s2h * 60 + s2m;
-  const end2Minutes = e2h * 60 + e2m;
-  
-  return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
-}
-
-// Format a Date to HH:mm string
-function formatTimeHHMM(date: Date): string {
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
 }
 
 export function BookingModal({
@@ -188,6 +167,18 @@ export function BookingModal({
   };
 
   const filteredSlots = getFilteredSlots();
+
+  // Get unavailability reason for selected slot
+  const getSelectedSlotUnavailabilityReason = (): string | null => {
+    if (selectedSlotIndex === null || !selectedCoachId) {
+      return null;
+    }
+    const slotInfo = filteredSlots.find(s => s.index === selectedSlotIndex);
+    if (slotInfo && !slotInfo.available && slotInfo.reason) {
+      return slotInfo.reason;
+    }
+    return null;
+  };
 
   const handleConfirm = async () => {
     if (selectedSlotIndex === null || !selectedSlot) {
@@ -355,17 +346,11 @@ export function BookingModal({
           </div>
 
           {/* Show warning if selected slot is unavailable for coach */}
-          {selectedSlotIndex !== null && selectedCoachId && (() => {
-            const slotInfo = filteredSlots.find(s => s.index === selectedSlotIndex);
-            if (slotInfo && !slotInfo.available && slotInfo.reason) {
-              return (
-                <div className="tm-booking-alert tm-booking-alert--error" role="alert">
-                  {slotInfo.reason}
-                </div>
-              );
-            }
-            return null;
-          })()}
+          {getSelectedSlotUnavailabilityReason() && (
+            <div className="tm-booking-alert tm-booking-alert--error" role="alert">
+              {getSelectedSlotUnavailabilityReason()}
+            </div>
+          )}
 
           {/* Show selected slot price */}
           {selectedSlot?.priceCents !== undefined && (
@@ -385,7 +370,7 @@ export function BookingModal({
                 isLoading || 
                 isLoadingCoachAvailability ||
                 selectedSlotIndex === null ||
-                (selectedCoachId !== null && filteredSlots.find(s => s.index === selectedSlotIndex)?.available === false)
+                getSelectedSlotUnavailabilityReason() !== null
               }
             >
               {isLoading ? t("booking.reserving") : t("booking.reserve")}
