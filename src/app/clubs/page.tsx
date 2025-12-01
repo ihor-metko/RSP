@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { IMLink } from "@/components/ui";
 import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
+import { PublicFooter } from "@/components/layout";
 import "@/components/ClubsList.css";
 
 interface ClubWithCounts {
@@ -194,6 +195,9 @@ export default function ClubsPage() {
           {t("common.backToHome")}
         </IMLink>
       </div>
+
+      {/* Footer */}
+      <PublicFooter />
     </main>
   );
 }

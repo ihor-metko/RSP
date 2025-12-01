@@ -7,6 +7,7 @@ import { IMLink } from "@/components/ui";
 import { AdminNotificationsPanel } from "@/components/admin/AdminNotifications";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
+import { DashboardFooter } from "@/components/layout";
 
 export default function AdminNotificationsPage() {
   const { data: session, status } = useSession();
@@ -56,6 +57,9 @@ export default function AdminNotificationsPage() {
 
         <AdminNotificationsPanel pollInterval={30000} />
       </section>
+
+      {/* Dashboard Footer */}
+      <DashboardFooter />
     </main>
   );
 }

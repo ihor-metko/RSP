@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
+import { DashboardFooter } from "@/components/layout";
 
 interface Booking {
   bookingId: string;
@@ -560,6 +561,9 @@ export default function CoachDashboardPage() {
           </div>
         )}
       </Modal>
+
+      {/* Dashboard Footer */}
+      <DashboardFooter />
     </main>
   );
 }

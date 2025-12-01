@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card, Input, Modal, Select, Multiselect, IMLink } from "@/components/ui";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
+import { DashboardFooter } from "@/components/layout";
 import type { Club } from "@/types/club";
 
 interface User {
@@ -529,6 +530,9 @@ export default function AdminCoachesPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Dashboard Footer */}
+      <DashboardFooter />
     </main>
   );
 }

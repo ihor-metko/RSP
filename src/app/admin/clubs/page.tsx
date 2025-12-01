@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card, Input, Modal, IMLink } from "@/components/ui";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
+import { DashboardFooter } from "@/components/layout";
 import type { Club, ClubFormData } from "@/types/club";
 
 const initialFormData: ClubFormData = {
@@ -414,6 +415,9 @@ export default function AdminClubsPage() {
           </Button>
         </div>
       </Modal>
+
+      {/* Dashboard Footer */}
+      <DashboardFooter />
     </main>
   );
 }

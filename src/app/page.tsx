@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import { PublicFooter } from "@/components/layout";
 import { Card, IMLink } from "@/components/ui";
 import { PublicSearchBar } from "@/components/PublicSearchBar";
 import { PublicClubCard } from "@/components/PublicClubCard";
@@ -188,6 +189,9 @@ export default function Home() {
           </Card>
         </div>
       </section>
+
+      {/* Footer */}
+      <PublicFooter />
     </main>
   );
 }
