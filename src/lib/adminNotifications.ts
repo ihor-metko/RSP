@@ -73,8 +73,8 @@ export async function createAdminNotification(
       courtInfo: notification.courtInfo,
       summary: generateSummary(
         notification.type as NotificationType,
-        params.sessionDate,
-        params.sessionTime
+        notification.sessionDate || undefined,
+        notification.sessionTime || undefined
       ),
       createdAt: notification.createdAt.toISOString(),
     };

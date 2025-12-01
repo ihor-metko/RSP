@@ -48,6 +48,8 @@ interface UseAdminNotificationsReturn {
 const MAX_RECONNECT_ATTEMPTS = 3;
 // Initial reconnection delay in ms
 const INITIAL_RECONNECT_DELAY = 1000;
+// Maximum reconnection delay in ms (30 seconds)
+const MAX_RECONNECT_DELAY = 30000;
 // Maximum toast rate (1 per second)
 const TOAST_RATE_LIMIT_MS = 1000;
 
@@ -83,7 +85,7 @@ export function useAdminNotifications(
 
   // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
-    if (typeof document !== "undefined" && document.hidden) {
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
       return; // Skip fetching if page is not visible
     }
 
@@ -171,7 +173,10 @@ export function useAdminNotifications(
 
         // Attempt reconnection with exponential backoff
         if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
-          const delay = INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttemptsRef.current);
+          const delay = Math.min(
+            INITIAL_RECONNECT_DELAY * Math.pow(2, reconnectAttemptsRef.current),
+            MAX_RECONNECT_DELAY
+          );
           reconnectAttemptsRef.current++;
           
           reconnectTimeoutRef.current = setTimeout(() => {
