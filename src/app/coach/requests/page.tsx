@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Button, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
+import { DashboardFooter } from "@/components/layout";
 import { TrainerRequests } from "@/components/training/TrainerRequests";
 
 export default function TrainerRequestsPage() {
@@ -64,6 +65,9 @@ export default function TrainerRequestsPage() {
 
       {/* Training Requests Component */}
       <TrainerRequests />
+
+      {/* Dashboard Footer */}
+      <DashboardFooter />
     </main>
   );
 }

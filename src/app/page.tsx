@@ -2,11 +2,12 @@
 
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Button, Card, DarkModeToggle, LanguageSwitcher, IMLink } from "@/components/ui";
+import { Card, DarkModeToggle, LanguageSwitcher, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { PublicSearchBar } from "@/components/PublicSearchBar";
 import { PublicClubCard } from "@/components/PublicClubCard";
 import { PersonalizedSection } from "@/components/PersonalizedSection";
+import { PublicFooter } from "@/components/layout";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { useEffect, useState } from "react";
 
@@ -200,6 +201,9 @@ export default function Home() {
           </Card>
         </div>
       </section>
+
+      {/* Footer */}
+      <PublicFooter />
     </main>
   );
 }

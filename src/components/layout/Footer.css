@@ -1,0 +1,131 @@
+@reference "tailwindcss";
+
+/* Footer CSS variables - mirrors rsp-* variables for footer-specific styling */
+:root {
+  --im-footer-bg: #f9fafb;
+  --im-footer-text: #4b5563;
+  --im-footer-text-muted: #6b7280;
+  --im-footer-link: #1ABC9C;
+  --im-footer-link-hover: #16A085;
+  --im-footer-border: #e5e7eb;
+}
+
+.dark {
+  --im-footer-bg: #0A0A0A;
+  --im-footer-text: #EAEAEA;
+  --im-footer-text-muted: #9CA3AF;
+  --im-footer-link: #6C63FF;
+  --im-footer-link-hover: #837DFF;
+  --im-footer-border: #1A1A1A;
+}
+
+/* PublicFooter styles */
+.im-public-footer {
+  @apply w-full py-8 px-4 md:px-8;
+  background-color: var(--im-footer-bg);
+  border-top: 1px solid var(--im-footer-border);
+  color: var(--im-footer-text);
+}
+
+.im-public-footer-container {
+  @apply max-w-6xl mx-auto;
+}
+
+.im-public-footer-grid {
+  @apply grid gap-8 md:grid-cols-3 lg:grid-cols-4;
+}
+
+.im-public-footer-section {
+  @apply flex flex-col gap-2;
+}
+
+.im-public-footer-title {
+  @apply text-lg font-semibold mb-2;
+  color: var(--im-footer-text);
+}
+
+.im-public-footer-links {
+  @apply flex flex-col gap-1;
+}
+
+.im-public-footer-link {
+  @apply text-sm transition-colors;
+  color: var(--im-footer-text-muted);
+}
+
+.im-public-footer-link:hover,
+.im-public-footer-link:focus {
+  color: var(--im-footer-link-hover);
+  outline: none;
+}
+
+.im-public-footer-link:focus-visible {
+  @apply ring-2 ring-offset-2 rounded-sm;
+  --tw-ring-color: var(--im-footer-link);
+}
+
+.im-public-footer-bottom {
+  @apply mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm;
+  border-top: 1px solid var(--im-footer-border);
+  color: var(--im-footer-text-muted);
+}
+
+.im-public-footer-copyright {
+  @apply text-center md:text-left;
+}
+
+.im-public-footer-social {
+  @apply flex gap-4;
+}
+
+.im-public-footer-social-link {
+  @apply p-2 rounded-full transition-colors;
+  color: var(--im-footer-text-muted);
+}
+
+.im-public-footer-social-link:hover,
+.im-public-footer-social-link:focus {
+  color: var(--im-footer-link-hover);
+  background-color: var(--im-footer-border);
+}
+
+.im-public-footer-social-link:focus-visible {
+  @apply ring-2 ring-offset-2;
+  --tw-ring-color: var(--im-footer-link);
+}
+
+/* DashboardFooter styles - compact version for admin/coach */
+.im-dashboard-footer {
+  @apply w-full py-4 px-4 md:px-8 text-center text-sm;
+  background-color: var(--im-footer-bg);
+  border-top: 1px solid var(--im-footer-border);
+  color: var(--im-footer-text-muted);
+}
+
+.im-dashboard-footer-container {
+  @apply max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2;
+}
+
+.im-dashboard-footer-copyright {
+  @apply text-center md:text-left;
+}
+
+.im-dashboard-footer-links {
+  @apply flex gap-4;
+}
+
+.im-dashboard-footer-link {
+  @apply transition-colors;
+  color: var(--im-footer-text-muted);
+}
+
+.im-dashboard-footer-link:hover,
+.im-dashboard-footer-link:focus {
+  color: var(--im-footer-link-hover);
+  outline: none;
+}
+
+.im-dashboard-footer-link:focus-visible {
+  @apply ring-2 ring-offset-2 rounded-sm;
+  --tw-ring-color: var(--im-footer-link);
+}

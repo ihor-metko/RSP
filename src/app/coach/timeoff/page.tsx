@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card, IMLink } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
+import { DashboardFooter } from "@/components/layout";
 import { CoachTimeOff } from "@/components/coach";
 
 interface CoachProfile {
@@ -121,6 +122,9 @@ export default function CoachTimeOffPage() {
       {coachProfile && (
         <CoachTimeOff coachId={coachProfile.id} />
       )}
+
+      {/* Dashboard Footer */}
+      <DashboardFooter />
     </main>
   );
 }

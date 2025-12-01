@@ -9,6 +9,7 @@ import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { RequestTrainingModal } from "@/components/training/RequestTrainingModal";
 import { DarkModeToggle, LanguageSwitcher } from "@/components/ui";
+import { PublicFooter } from "@/components/layout";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
 import "./player-dashboard.css";
@@ -740,6 +741,9 @@ export default function PlayerDashboardPage() {
           </div>
         </div>
       </Modal>
+
+      {/* Footer */}
+      <PublicFooter />
     </main>
   );
 }

@@ -406,5 +406,21 @@
       "message": "Are you sure you want to cancel this booking? This action cannot be undone."
     },
     "bookingsError": "Failed to load bookings. Please try again."
+  },
+  "footer": {
+    "brandName": "Paddle Club",
+    "tagline": "Find and book paddle courts at the best clubs near you.",
+    "quickLinks": "Quick Links",
+    "home": "Home",
+    "clubs": "Clubs",
+    "support": "Support",
+    "help": "Help Center",
+    "contact": "Contact Us",
+    "faq": "FAQ",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "allRightsReserved": "All rights reserved.",
+    "socialLinks": "Social Links"
   }
 }
