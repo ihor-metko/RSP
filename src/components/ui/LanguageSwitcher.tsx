@@ -3,6 +3,7 @@
 import { useLocale } from "@/i18n/client";
 import { locales, type Locale } from "@/i18n/config";
 import { useTranslations } from "next-intl";
+import { Select, type SelectOption } from "./Select";
 import "./LanguageSwitcher.css";
 
 const languageNames: Record<Locale, string> = {
@@ -23,25 +24,26 @@ export function LanguageSwitcher({ currentLocale }: LanguageSwitcherProps) {
   const { setLocale, isPending } = useLocale();
   const t = useTranslations("common");
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLocale(e.target.value as Locale);
+  const handleChange = (value: string) => {
+    setLocale(value as Locale);
   };
 
+  const options: SelectOption[] = locales.map((locale) => ({
+    value: locale,
+    label: languageNames[locale],
+    icon: <span className="im-language-flag">{languageFlags[locale]}</span>,
+  }));
+
   return (
-    <div className="rsp-language-switcher">
-      <select
+    <div className="im-language-switcher">
+      <Select
+        options={options}
         value={currentLocale}
         onChange={handleChange}
         disabled={isPending}
-        className="rsp-language-select"
         aria-label={t("language")}
-      >
-        {locales.map((locale) => (
-          <option key={locale} value={locale}>
-            {languageFlags[locale]} {languageNames[locale]}
-          </option>
-        ))}
-      </select>
+        placeholder={t("language")}
+      />
     </div>
   );
 }
