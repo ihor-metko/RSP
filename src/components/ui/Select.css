@@ -19,16 +19,52 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  min-height: 38px;
 }
 
 .im-select-display:hover {
   border-color: var(--rsp-primary);
 }
 
+.im-select-display:focus {
+  outline: none;
+  border-color: var(--rsp-primary);
+  box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.25);
+}
+
+.dark .im-select-display:focus {
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.25);
+}
+
+.im-select-display.im-open {
+  border-color: var(--rsp-primary);
+}
+
 .im-select-display.im-disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.im-select-value {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.im-select-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.im-select-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .im-arrow {
@@ -38,6 +74,8 @@
   padding: 3px;
   transform: rotate(45deg);
   transition: transform 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0.6;
 }
 
 .im-arrow.im-open {
@@ -55,18 +93,31 @@
   max-height: 200px;
   overflow-y: auto;
   z-index: 50;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
 }
 
 .im-select-option {
   padding: 0.5rem 0.75rem;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  color: var(--rsp-foreground);
 }
 
-.im-select-option:hover {
-  background-color: var(--rsp-primary-hover);
-  color: var(--rsp-background);
+.im-select-option:hover,
+.im-select-option.im-focused {
+  background-color: var(--rsp-card-bg);
+  filter: brightness(0.95);
+}
+
+.dark .im-select-option:hover,
+.dark .im-select-option.im-focused {
+  filter: brightness(1.2);
 }
 
 .im-select-option.im-selected {
@@ -75,9 +126,36 @@
   font-weight: 500;
 }
 
+.im-select-option.im-selected:hover,
+.im-select-option.im-selected.im-focused {
+  background-color: var(--rsp-primary-hover);
+  filter: none;
+}
+
 .im-select-option.im-disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.im-select-option.im-disabled:hover {
+  background-color: transparent;
+  filter: none;
+}
+
+.im-select-option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.125rem;
+}
+
+.im-select-option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Scrollbar styling */

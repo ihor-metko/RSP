@@ -12,6 +12,7 @@ const DEFAULT_INDOOR = false;
 export interface SearchParams {
   q: string;
   city: string;
+  indoor?: boolean;
 }
 
 interface PublicSearchBarProps {
