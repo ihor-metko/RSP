@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button, IMLink } from "@/components/ui";
+import "./ClubsList.css";
 
 interface PublicClubCardProps {
   club: {
@@ -30,43 +31,43 @@ export function PublicClubCard({ club }: PublicClubCardProps) {
   const t = useTranslations();
 
   return (
-    <div className="tm-club-card">
-      <div className="tm-club-card-header">
+    <article className="rsp-club-card" aria-labelledby={`club-name-${club.id}`}>
+      <header className="rsp-club-card-header">
         {isValidImageUrl(club.logo) ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={club.logo as string}
             alt={`${club.name} logo`}
-            className="tm-club-logo"
+            className="rsp-club-logo"
           />
         ) : (
-          <div className="tm-club-logo-placeholder">
+          <div className="rsp-club-logo-placeholder" aria-hidden="true">
             {club.name.charAt(0).toUpperCase()}
           </div>
         )}
-        <h2 className="tm-club-name">{club.name}</h2>
-      </div>
+        <h2 id={`club-name-${club.id}`} className="rsp-club-name">{club.name}</h2>
+      </header>
 
-      <div className="tm-club-details">
-        <div className="tm-club-detail-row">
-          <span className="tm-club-detail-label">{t("common.address")}:</span>
-          <span className="tm-club-detail-value">{club.location}</span>
+      <div className="rsp-club-details">
+        <div className="rsp-club-detail-row">
+          <span className="rsp-club-detail-label">{t("common.address")}</span>
+          <span className="rsp-club-detail-value">{club.location}</span>
         </div>
         {club.openingHours && (
-          <div className="tm-club-detail-row">
-            <span className="tm-club-detail-label">{t("common.hours")}:</span>
-            <span className="tm-club-detail-value">{club.openingHours}</span>
+          <div className="rsp-club-detail-row">
+            <span className="rsp-club-detail-label">{t("common.hours")}</span>
+            <span className="rsp-club-detail-value">{club.openingHours}</span>
           </div>
         )}
         {(club.indoorCount !== undefined || club.outdoorCount !== undefined) && (
-          <div className="tm-club-badges mt-2 flex gap-2">
+          <div className="rsp-club-badges" role="list" aria-label="Court types">
             {club.indoorCount !== undefined && club.indoorCount > 0 && (
-              <span className="tm-badge tm-badge-indoor inline-block px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+              <span className="rsp-badge rsp-badge-indoor" role="listitem">
                 {club.indoorCount} {t("common.indoor")}
               </span>
             )}
             {club.outdoorCount !== undefined && club.outdoorCount > 0 && (
-              <span className="tm-badge tm-badge-outdoor inline-block px-2 py-0.5 text-xs rounded-full bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+              <span className="rsp-badge rsp-badge-outdoor" role="listitem">
                 {club.outdoorCount} {t("common.outdoor")}
               </span>
             )}
@@ -75,8 +76,8 @@ export function PublicClubCard({ club }: PublicClubCardProps) {
       </div>
 
       <IMLink href={`/clubs/${club.id}`}>
-        <Button className="tm-view-courts-button">{t("clubs.viewClub")}</Button>
+        <Button className="rsp-view-club-button">{t("clubs.viewClub")}</Button>
       </IMLink>
-    </div>
+    </article>
   );
 }

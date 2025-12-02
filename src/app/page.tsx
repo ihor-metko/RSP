@@ -78,28 +78,28 @@ export default function Home() {
         )}
 
         {/* Popular clubs section */}
-        <section className="tm-popular-clubs py-12 px-4 md:px-8">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">{t("home.popularClubs")}</h2>
+        <section className="rsp-popular-clubs-section">
+          <div className="rsp-popular-clubs-container">
+            <h2 className="rsp-popular-clubs-title">{t("home.popularClubs")}</h2>
 
             {loadingClubs ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <div className="rsp-popular-clubs-grid">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="tm-club-card animate-pulse">
-                    <div className="tm-club-card-header">
-                      <div className="tm-club-logo-placeholder bg-gray-200 dark:bg-gray-700" />
-                      <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-sm" />
+                  <div key={i} className="rsp-club-card animate-pulse">
+                    <div className="rsp-club-card-header">
+                      <div className="rsp-club-logo-placeholder bg-gray-200 dark:bg-gray-700" style={{ background: 'none' }} />
+                      <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-md" />
                     </div>
-                    <div className="tm-club-details space-y-2">
-                      <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-sm" />
-                      <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded-sm" />
+                    <div className="rsp-club-details space-y-2">
+                      <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-md" />
+                      <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded-md" />
                     </div>
-                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-sm mt-4" />
+                    <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-md mt-4" />
                   </div>
                 ))}
               </div>
             ) : popularClubs.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              <div className="rsp-popular-clubs-grid">
                 {popularClubs.map((club) => (
                   <PublicClubCard key={club.id} club={club} />
                 ))}
