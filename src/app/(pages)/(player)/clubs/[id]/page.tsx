@@ -127,12 +127,12 @@ function getGoogleMapsEmbedUrl(latitude: number, longitude: number, apiKey: stri
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
     return null;
   }
-  
+
   // Use encodeURIComponent for safety and construct URL with validated coordinates
   const lat = encodeURIComponent(latitude.toString());
   const lng = encodeURIComponent(longitude.toString());
   const key = encodeURIComponent(apiKey || "");
-  
+
   return `https://www.google.com/maps/embed/v1/place?key=${key}&q=${lat},${lng}&zoom=15`;
 }
 
@@ -362,7 +362,7 @@ export default function ClubDetailPage({
   const getCourtAvailabilityStatus = (courtId: string): "available" | "limited" | "booked" => {
     const slots = courtAvailability[courtId] || [];
     if (slots.length === 0) return "booked";
-    
+
     const availableSlots = slots.filter((slot) => slot.status === "available");
     if (availableSlots.length === 0) return "booked";
     if (availableSlots.length < slots.length / 2) return "limited";
@@ -410,7 +410,7 @@ export default function ClubDetailPage({
   const priceRange = getPriceRange(club.courts);
   const courtCounts = getCourtCounts(club.courts);
   const hasValidCoordinates = club.latitude !== null && club.longitude !== null && club.latitude !== undefined && club.longitude !== undefined;
-  const mapsEmbedUrl = hasValidCoordinates 
+  const mapsEmbedUrl = hasValidCoordinates
     ? getGoogleMapsEmbedUrl(club.latitude as number, club.longitude as number, process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
     : null;
   const hasMap = mapsEmbedUrl !== null;
@@ -422,7 +422,7 @@ export default function ClubDetailPage({
   const galleryImages = (club.gallery || [])
     .map((image) => {
       const imageUrl = getSupabaseStorageUrl(image.imageUrl);
-      return isValidImageUrl(imageUrl) 
+      return isValidImageUrl(imageUrl)
         ? { url: imageUrl as string, alt: image.altText || `${club.name} gallery image` }
         : null;
     })
@@ -492,45 +492,12 @@ export default function ClubDetailPage({
           </div>
         )}
 
-        {/* Court Availability Quick View - directly below header */}
-        {club.courts.length > 0 && (
-          <div className="rsp-club-availability-quick">
-            <div className="rsp-club-availability-quick-header">
-              <h2 className="rsp-club-availability-quick-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12,6 12,12 16,14" />
-                </svg>
-                {t("clubDetail.courtAvailability")}
-              </h2>
-            </div>
-            <div className="rsp-club-availability-quick-grid">
-              {club.courts.slice(0, 6).map((court) => {
-                const status = availabilityLoading ? "loading" : getCourtAvailabilityStatus(court.id);
-                return (
-                  <div key={court.id} className="rsp-club-availability-court-chip">
-                    <span className="rsp-club-availability-court-name">{court.name}</span>
-                    {availabilityLoading ? (
-                      <span className="rsp-club-availability-status animate-pulse bg-gray-200 dark:bg-gray-700 w-16 h-5 rounded-full" />
-                    ) : (
-                      <span className={`rsp-club-availability-status rsp-club-availability-status--${status}`}>
-                        {status === "available" && t("common.available")}
-                        {status === "limited" && t("clubDetail.limited")}
-                        {status === "booked" && t("common.booked")}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Quick Actions Bar */}
         <div className="rsp-club-actions-bar">
           <Button onClick={handleQuickBookingClick} className="rsp-club-action-button" aria-label={t("clubs.quickBooking")}>
             {t("clubs.quickBooking")}
           </Button>
+
           {club.coaches.length > 0 && (
             <Button
               onClick={handleRequestTrainingClick}
@@ -542,6 +509,17 @@ export default function ClubDetailPage({
             </Button>
           )}
         </div>
+
+        {/* Weekly Availability Timeline */}
+        {club.courts.length > 0 && (
+          <section className="rsp-club-timeline-section mt-8">
+            <WeeklyAvailabilityTimeline
+              key={timelineKey}
+              clubId={club.id}
+              onSlotClick={handleTimelineSlotClick}
+            />
+          </section>
+        )}
 
         {/* Full Club Description Section */}
         {club.longDescription && (
@@ -576,7 +554,7 @@ export default function ClubDetailPage({
                 </svg>
                 {t("clubDetail.courts")}
               </h2>
-              
+
               {/* Court type badges */}
               <div className="rsp-club-courts-summary">
                 {courtCounts.indoor > 0 && (
@@ -738,17 +716,6 @@ export default function ClubDetailPage({
             )}
           </div>
         </div>
-
-        {/* Weekly Availability Timeline */}
-        {club.courts.length > 0 && (
-          <section className="rsp-club-timeline-section mt-8">
-            <WeeklyAvailabilityTimeline
-              key={timelineKey}
-              clubId={club.id}
-              onSlotClick={handleTimelineSlotClick}
-            />
-          </section>
-        )}
 
         {/* Courts Grid Section */}
         <section className="rsp-club-courts-section">
