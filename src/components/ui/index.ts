@@ -9,4 +9,6 @@ export { Multiselect } from "./Multiselect";
 export type { MultiselectOption } from "./Multiselect";
 export { LanguageSwitcher } from "./LanguageSwitcher";
 export { IMLink } from "./IMLink";
+export { PageHeader } from "./PageHeader";
+export type { PageHeaderProps } from "./PageHeader";
 export { ClubCardSkeleton, ClubCardsGridSkeleton, PersonalizedSectionSkeleton } from "./LoadingSkeleton";
