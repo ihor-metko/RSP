@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -16,9 +17,15 @@ import { GalleryModal } from "@/components/GalleryModal";
 import { Button, IMLink, Breadcrumbs } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
-import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
+import { parseTags, getPriceRange, getCourtCounts } from "@/utils/club";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
+
+// Lazy load the ClubMap component for performance optimization
+const ClubMap = dynamic(() => import("@/components/ClubMap").then((mod) => mod.ClubMap), {
+  ssr: false,
+  loading: () => <div className="rsp-club-map-placeholder"><span className="rsp-club-map-placeholder-text">Loading map...</span></div>,
+});
 
 interface Coach {
   id: string;
@@ -339,10 +346,6 @@ export default function ClubDetailPage({
   const priceRange = getPriceRange(club.courts);
   const courtCounts = getCourtCounts(club.courts);
   const hasValidCoordinates = club.latitude !== null && club.longitude !== null && club.latitude !== undefined && club.longitude !== undefined;
-  const mapsEmbedUrl = hasValidCoordinates
-    ? getGoogleMapsEmbedUrl(club.latitude as number, club.longitude as number, process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
-    : null;
-  const hasMap = mapsEmbedUrl !== null;
 
   // Format location display
   const locationDisplay = [club.city, club.country].filter(Boolean).join(", ") || club.location;
@@ -533,7 +536,7 @@ export default function ClubDetailPage({
             </div>
 
             {/* Map Section */}
-            {hasMap && (
+            {hasValidCoordinates && (
               <div className="rsp-club-info-card">
                 <h2 className="rsp-club-info-card-title">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -543,17 +546,11 @@ export default function ClubDetailPage({
                   </svg>
                   {t("clubDetail.location")}
                 </h2>
-                <div className="rsp-club-map-container">
-                  <iframe
-                    title={`${club.name} location map`}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    src={mapsEmbedUrl as string}
-                  />
-                </div>
+                <ClubMap
+                  latitude={club.latitude as number}
+                  longitude={club.longitude as number}
+                  clubName={club.name}
+                />
                 <p className="mt-3 text-sm opacity-70">{club.location}</p>
               </div>
             )}

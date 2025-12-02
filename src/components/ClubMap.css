@@ -1,0 +1,88 @@
+@reference "tailwindcss";
+
+/* ===== Club Map Component ===== */
+.rsp-club-map {
+  @apply w-full rounded-xl overflow-hidden;
+  height: 200px;
+  border: 1px solid var(--rsp-border);
+  z-index: 0;
+}
+
+@media (min-width: 768px) {
+  .rsp-club-map {
+    height: 240px;
+  }
+}
+
+/* Ensure Leaflet controls work properly with the design system */
+.rsp-club-map .leaflet-control-zoom {
+  border: 1px solid var(--rsp-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rsp-club-map .leaflet-control-zoom a {
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.rsp-club-map .leaflet-control-zoom a:hover {
+  background-color: var(--rsp-background);
+}
+
+.rsp-club-map .leaflet-control-zoom a:last-child {
+  border-bottom: none;
+}
+
+/* Dark theme map styling */
+.dark .rsp-club-map .leaflet-control-zoom a {
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+}
+
+.dark .rsp-club-map .leaflet-control-zoom a:hover {
+  background-color: var(--rsp-background);
+}
+
+/* Attribution styling */
+.rsp-club-map .leaflet-control-attribution {
+  @apply text-xs;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.dark .rsp-club-map .leaflet-control-attribution {
+  background-color: rgba(0, 0, 0, 0.8);
+  color: var(--rsp-foreground);
+}
+
+.dark .rsp-club-map .leaflet-control-attribution a {
+  color: var(--rsp-primary);
+}
+
+/* Popup styling */
+.rsp-club-map .leaflet-popup-content-wrapper {
+  @apply rounded-lg;
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+  border: 1px solid var(--rsp-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rsp-club-map .leaflet-popup-tip {
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.rsp-club-map .leaflet-popup-content {
+  @apply text-sm font-medium;
+  margin: 10px 12px;
+}
+
+.rsp-club-map .leaflet-popup-close-button {
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-map .leaflet-popup-close-button:hover {
+  color: var(--rsp-primary);
+}
