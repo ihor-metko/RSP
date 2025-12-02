@@ -1,0 +1,70 @@
+@reference "tailwindcss";
+
+/* Breadcrumbs container */
+.im-breadcrumbs {
+  @apply flex flex-wrap items-center gap-2 text-sm;
+  color: var(--im-muted);
+}
+
+/* Breadcrumbs navigation element for accessibility */
+.im-breadcrumbs-nav {
+  @apply flex items-center gap-1;
+}
+
+/* Breadcrumbs list */
+.im-breadcrumbs-list {
+  @apply flex flex-wrap items-center gap-1 list-none p-0 m-0;
+}
+
+/* Breadcrumb item */
+.im-breadcrumb-item {
+  @apply flex items-center gap-1;
+}
+
+/* Breadcrumb link (clickable items) */
+.im-breadcrumb-link {
+  color: var(--im-primary);
+  @apply font-medium no-underline transition-colors duration-200;
+}
+
+.im-breadcrumb-link:hover {
+  color: var(--im-primary-hover);
+  @apply underline cursor-pointer;
+}
+
+.im-breadcrumb-link:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+.im-breadcrumb-link:active {
+  color: var(--im-primary-hover);
+}
+
+/* Current/active breadcrumb (last item, not clickable) */
+.im-breadcrumb-current {
+  color: var(--im-foreground);
+  @apply font-medium;
+}
+
+/* Separator between breadcrumb items */
+.im-breadcrumb-separator {
+  color: var(--im-muted);
+  @apply mx-1 select-none;
+}
+
+/* Home icon styling */
+.im-breadcrumb-home-icon {
+  @apply w-4 h-4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .im-breadcrumbs {
+    @apply text-xs gap-1;
+  }
+
+  .im-breadcrumb-separator {
+    @apply mx-0.5;
+  }
+}

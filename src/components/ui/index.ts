@@ -11,4 +11,6 @@ export { LanguageSwitcher } from "./LanguageSwitcher";
 export { IMLink } from "./IMLink";
 export { PageHeader } from "./PageHeader";
 export type { PageHeaderProps } from "./PageHeader";
+export { Breadcrumbs } from "./Breadcrumbs";
+export type { BreadcrumbItem, BreadcrumbsProps } from "./Breadcrumbs";
 export { ClubCardSkeleton, ClubCardsGridSkeleton, PersonalizedSectionSkeleton } from "./LoadingSkeleton";

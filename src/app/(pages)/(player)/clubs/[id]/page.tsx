@@ -13,7 +13,7 @@ import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimel
 import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
-import { Button, IMLink } from "@/components/ui";
+import { Button, IMLink, Breadcrumbs } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
@@ -403,6 +403,17 @@ export default function ClubDetailPage({
 
       {/* Main Content */}
       <div className="rsp-club-content">
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: t("breadcrumbs.home"), href: "/" },
+            { label: t("breadcrumbs.clubs"), href: "/clubs" },
+            { label: club.name },
+          ]}
+          className="mb-6"
+          ariaLabel={t("breadcrumbs.navigation")}
+        />
+
         {/* Admin Link */}
         {session?.user?.role === "admin" && (
           <div className="mb-4 text-right">

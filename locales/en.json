@@ -627,5 +627,14 @@
     "continue": "Continue",
     "bookingConfirmed": "Booking Confirmed!",
     "bookingConfirmedMessage": "Your court has been reserved successfully."
+  },
+  "breadcrumbs": {
+    "home": "Home",
+    "clubs": "Clubs",
+    "club": "Club",
+    "admin": "Admin",
+    "courts": "Courts",
+    "dashboard": "Dashboard",
+    "navigation": "Breadcrumb navigation"
   }
 }
