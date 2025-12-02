@@ -1,13 +1,16 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { AvailabilitySlot } from "@/types/court";
 import { formatPrice } from "@/utils/price";
+import "./CourtSlotsToday.css";
 
 interface CourtSlotsTodayProps {
   slots: AvailabilitySlot[];
   maxSlots?: number;
   isLoading?: boolean;
   showPrices?: boolean;
+  showLegend?: boolean;
 }
 
 function formatTime(isoString: string): string {
@@ -15,33 +18,18 @@ function formatTime(isoString: string): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
-function getStatusColor(status: AvailabilitySlot["status"]): string {
+function getSlotStatusClass(status: AvailabilitySlot["status"]): string {
   switch (status) {
     case "available":
-      return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700";
+      return "im-slot-chip--available";
     case "booked":
-      return "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600";
+      return "im-slot-chip--booked";
     case "partial":
-      return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border-yellow-300 dark:border-yellow-700";
+      return "im-slot-chip--partial";
     case "pending":
-      return "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 border-orange-300 dark:border-orange-700";
+      return "im-slot-chip--pending";
     default:
-      return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600";
-  }
-}
-
-function getStatusLabel(status: AvailabilitySlot["status"]): string {
-  switch (status) {
-    case "available":
-      return "Available";
-    case "booked":
-      return "Booked";
-    case "partial":
-      return "Limited";
-    case "pending":
-      return "Pending";
-    default:
-      return "Unknown";
+      return "";
   }
 }
 
@@ -50,15 +38,15 @@ export function CourtSlotsToday({
   maxSlots = 6,
   isLoading = false,
   showPrices = true,
+  showLegend = true,
 }: CourtSlotsTodayProps) {
+  const t = useTranslations();
+
   if (isLoading) {
     return (
-      <div className="tm-slots-loading flex gap-1 flex-wrap">
+      <div className="im-slots-loading">
         {Array.from({ length: maxSlots }).map((_, i) => (
-          <div
-            key={i}
-            className="tm-slot-skeleton w-16 h-6 rounded-sm bg-gray-200 dark:bg-gray-700 animate-pulse"
-          />
+          <div key={i} className="im-slot-skeleton" />
         ))}
       </div>
     );
@@ -66,8 +54,8 @@ export function CourtSlotsToday({
 
   if (!slots || slots.length === 0) {
     return (
-      <p className="tm-slots-empty text-sm text-gray-500">
-        No availability data
+      <p className="im-slots-empty">
+        {t("court.noAvailabilityData")}
       </p>
     );
   }
@@ -83,44 +71,50 @@ export function CourtSlotsToday({
     : null;
 
   return (
-    <div className="tm-slots-today">
-      <div className="flex gap-1 flex-wrap">
+    <div className="im-slots-today">
+      <div className="im-slots-container">
         {displaySlots.map((slot) => (
           <span
             key={slot.start}
-            className={`tm-slot-chip inline-block px-2 py-0.5 text-xs rounded-sm border ${getStatusColor(slot.status)}`}
-            title={`${formatTime(slot.start)} - ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? ` · ${formatPrice(slot.priceCents)}` : ""}`}
-            aria-label={`${formatTime(slot.start)}: ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
+            className={`im-slot-chip ${getSlotStatusClass(slot.status)}`}
+            title={`${formatTime(slot.start)} - ${slot.status === "available" ? t("common.available") : slot.status === "booked" ? t("common.booked") : slot.status === "partial" ? t("clubDetail.limited") : t("common.pending")}${slot.priceCents !== undefined ? ` · ${formatPrice(slot.priceCents)}` : ""}`}
+            aria-label={`${formatTime(slot.start)}: ${slot.status}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
           >
             {formatTime(slot.start)}
             {showPrices && slot.priceCents !== undefined && slot.status === "available" && (
-              <span className="ml-1 opacity-75">· {formatPrice(slot.priceCents)}</span>
+              <span className="im-slot-price">· {formatPrice(slot.priceCents)}</span>
             )}
           </span>
         ))}
         {remainingCount > 0 && (
-          <span className="tm-slot-more inline-block px-2 py-0.5 text-xs rounded-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-            +{remainingCount} more
+          <span className="im-slot-more">
+            +{remainingCount} {t("court.moreSlots")}
             {showPrices && minPrice !== null && (
-              <span className="ml-1">from {formatPrice(minPrice)}</span>
+              <span className="im-slot-price"> from {formatPrice(minPrice)}</span>
             )}
           </span>
         )}
       </div>
-      <div className="tm-slots-legend mt-2 flex gap-3 text-xs text-gray-500 dark:text-gray-400">
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-green-500" /> Available
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-gray-400" /> Booked
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-yellow-500" /> Limited
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-orange-500" /> Pending
-        </span>
-      </div>
+      {showLegend && (
+        <div className="im-slots-legend">
+          <span className="im-slots-legend-item">
+            <span className="im-slots-legend-dot im-slots-legend-dot--available" />
+            {t("common.available")}
+          </span>
+          <span className="im-slots-legend-item">
+            <span className="im-slots-legend-dot im-slots-legend-dot--booked" />
+            {t("common.booked")}
+          </span>
+          <span className="im-slots-legend-item">
+            <span className="im-slots-legend-dot im-slots-legend-dot--partial" />
+            {t("clubDetail.limited")}
+          </span>
+          <span className="im-slots-legend-item">
+            <span className="im-slots-legend-dot im-slots-legend-dot--pending" />
+            {t("common.pending")}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

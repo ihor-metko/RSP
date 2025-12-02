@@ -1,0 +1,100 @@
+@reference "tailwindcss";
+
+/* ===== Court Slots Today Component ===== */
+.im-slots-today {
+  @apply space-y-2;
+}
+
+/* ===== Slots Container ===== */
+.im-slots-container {
+  @apply flex flex-wrap gap-1;
+}
+
+/* ===== Individual Slot Chip ===== */
+.im-slot-chip {
+  @apply inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border transition-colors;
+}
+
+/* Slot Status Colors using im-* variables */
+.im-slot-chip--available {
+  background-color: var(--im-availability-available-bg);
+  color: var(--im-availability-available-text);
+  border-color: transparent;
+}
+
+.im-slot-chip--booked {
+  background-color: var(--im-availability-booked-bg);
+  color: var(--im-availability-booked-text);
+  border-color: transparent;
+  opacity: 0.7;
+}
+
+.im-slot-chip--partial {
+  background-color: var(--im-availability-partial-bg);
+  color: var(--im-availability-partial-text);
+  border-color: transparent;
+}
+
+.im-slot-chip--pending {
+  background-color: var(--im-availability-pending-bg);
+  color: var(--im-availability-pending-text);
+  border-color: transparent;
+}
+
+/* More slots indicator */
+.im-slot-more {
+  @apply inline-flex items-center px-2 py-0.5 text-xs rounded;
+  background-color: rgba(107, 114, 128, 0.1);
+  color: var(--im-muted);
+}
+
+/* ===== Slots Loading Skeleton ===== */
+.im-slots-loading {
+  @apply flex flex-wrap gap-1;
+}
+
+.im-slot-skeleton {
+  @apply w-16 h-6 rounded-sm animate-pulse;
+  background-color: var(--im-border);
+}
+
+/* ===== Empty State ===== */
+.im-slots-empty {
+  @apply text-sm;
+  color: var(--im-muted);
+}
+
+/* ===== Slots Legend ===== */
+.im-slots-legend {
+  @apply flex flex-wrap gap-3 text-xs;
+  color: var(--im-muted);
+}
+
+.im-slots-legend-item {
+  @apply flex items-center gap-1;
+}
+
+.im-slots-legend-dot {
+  @apply w-2 h-2 rounded-full flex-shrink-0;
+}
+
+.im-slots-legend-dot--available {
+  background-color: var(--im-availability-available-bg);
+}
+
+.im-slots-legend-dot--booked {
+  background-color: var(--im-availability-booked-bg);
+}
+
+.im-slots-legend-dot--partial {
+  background-color: var(--im-availability-partial-bg);
+}
+
+.im-slots-legend-dot--pending {
+  background-color: var(--im-availability-pending-bg);
+}
+
+/* ===== Price Display ===== */
+.im-slot-price {
+  @apply ml-1 opacity-75;
+}

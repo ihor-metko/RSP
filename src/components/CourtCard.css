@@ -1,0 +1,309 @@
+@reference "tailwindcss";
+
+/* ===== Court Card Component ===== */
+.im-court-card {
+  @apply relative rounded-xl overflow-hidden transition-all duration-200;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+}
+
+.im-court-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark .im-court-card:hover {
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Card Image Section ===== */
+.im-court-card-image-container {
+  @apply relative w-full overflow-hidden;
+  height: 160px;
+}
+
+@media (min-width: 768px) {
+  .im-court-card-image-container {
+    height: 180px;
+  }
+}
+
+.im-court-card-image {
+  @apply w-full h-full object-cover transition-transform duration-300;
+}
+
+.im-court-card:hover .im-court-card-image {
+  transform: scale(1.05);
+}
+
+.im-court-card-image-placeholder {
+  @apply w-full h-full flex items-center justify-center;
+  background: linear-gradient(135deg, var(--im-primary) 0%, var(--im-primary-hover) 100%);
+}
+
+.im-court-card-image-placeholder-icon {
+  @apply w-12 h-12 opacity-50;
+  color: white;
+}
+
+/* ===== Image Overlay ===== */
+.im-court-card-overlay {
+  @apply absolute inset-0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+.im-court-card-overlay-content {
+  @apply absolute bottom-0 left-0 right-0 p-4;
+  color: white;
+}
+
+.im-court-card-name {
+  @apply text-lg font-bold mb-1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.im-court-card-price {
+  @apply text-sm font-semibold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  opacity: 0.95;
+}
+
+/* ===== Badges on Image ===== */
+.im-court-card-badges {
+  @apply absolute top-3 left-3 right-3 flex flex-wrap gap-1.5;
+}
+
+.im-court-card-badge {
+  @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #374151;
+  backdrop-filter: blur(4px);
+}
+
+.im-court-card-badge--indoor {
+  background-color: rgba(59, 130, 246, 0.9);
+  color: white;
+}
+
+/* ===== Card Body ===== */
+.im-court-card-body {
+  @apply p-4;
+}
+
+/* ===== Availability Section ===== */
+.im-court-card-availability {
+  @apply mb-3;
+}
+
+.im-court-card-availability-header {
+  @apply flex items-center justify-between mb-2;
+}
+
+.im-court-card-availability-title {
+  @apply text-xs font-medium uppercase tracking-wide;
+  color: var(--im-muted);
+}
+
+.im-court-card-availability-toggle {
+  @apply text-xs font-medium cursor-pointer px-2 py-0.5 rounded transition-colors;
+  color: var(--im-primary);
+  background-color: transparent;
+  border: none;
+}
+
+.im-court-card-availability-toggle:hover {
+  background-color: rgba(var(--im-primary-rgb, 26, 188, 156), 0.1);
+}
+
+.dark .im-court-card-availability-toggle:hover {
+  background-color: rgba(108, 99, 255, 0.15);
+}
+
+/* ===== Availability Slots Grid ===== */
+.im-court-card-slots {
+  @apply flex flex-wrap gap-1;
+}
+
+.im-court-card-slots--expanded {
+  @apply grid gap-1;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (min-width: 768px) {
+  .im-court-card-slots--expanded {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.im-court-card-slot {
+  @apply inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-md border transition-all;
+  min-width: 48px;
+}
+
+.im-court-card-slot:focus-visible {
+  @apply ring-2 ring-offset-1;
+  ring-color: var(--im-primary);
+}
+
+/* Slot Status Colors using im-* variables */
+.im-court-card-slot--available {
+  background-color: var(--im-availability-available-bg);
+  color: var(--im-availability-available-text);
+  border-color: transparent;
+}
+
+.im-court-card-slot--booked {
+  background-color: var(--im-availability-booked-bg);
+  color: var(--im-availability-booked-text);
+  border-color: transparent;
+  opacity: 0.7;
+}
+
+.im-court-card-slot--partial {
+  background-color: var(--im-availability-partial-bg);
+  color: var(--im-availability-partial-text);
+  border-color: transparent;
+}
+
+.im-court-card-slot--pending {
+  background-color: var(--im-availability-pending-bg);
+  color: var(--im-availability-pending-text);
+  border-color: transparent;
+}
+
+/* More slots indicator */
+.im-court-card-slots-more {
+  @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md cursor-pointer;
+  background-color: rgba(107, 114, 128, 0.1);
+  color: var(--im-muted);
+  border: 1px dashed var(--im-border);
+}
+
+.im-court-card-slots-more:hover {
+  background-color: rgba(107, 114, 128, 0.2);
+}
+
+/* ===== Availability Legend ===== */
+.im-court-card-legend {
+  @apply mt-3 pt-3 flex flex-wrap gap-3 text-xs border-t;
+  border-color: var(--im-border);
+  color: var(--im-muted);
+}
+
+.im-court-card-legend-item {
+  @apply flex items-center gap-1.5;
+}
+
+.im-court-card-legend-dot {
+  @apply w-2.5 h-2.5 rounded-full flex-shrink-0;
+}
+
+.im-court-card-legend-dot--available {
+  background-color: var(--im-availability-available-bg);
+}
+
+.im-court-card-legend-dot--booked {
+  background-color: var(--im-availability-booked-bg);
+}
+
+.im-court-card-legend-dot--partial {
+  background-color: var(--im-availability-partial-bg);
+}
+
+.im-court-card-legend-dot--pending {
+  background-color: var(--im-availability-pending-bg);
+}
+
+/* ===== Card Footer / Actions ===== */
+.im-court-card-actions {
+  @apply flex gap-2 p-4 pt-0;
+}
+
+.im-court-card-actions .rsp-button {
+  @apply flex-1;
+}
+
+/* ===== Loading Skeleton ===== */
+.im-court-card-skeleton {
+  @apply animate-pulse;
+}
+
+.im-court-card-skeleton-image {
+  @apply w-full bg-gray-200;
+  height: 160px;
+}
+
+.dark .im-court-card-skeleton-image {
+  @apply bg-gray-700;
+}
+
+.im-court-card-skeleton-body {
+  @apply p-4 space-y-3;
+}
+
+.im-court-card-skeleton-line {
+  @apply h-3 rounded;
+  background-color: var(--im-border);
+}
+
+.im-court-card-skeleton-line--short {
+  @apply w-1/2;
+}
+
+.im-court-card-skeleton-line--medium {
+  @apply w-3/4;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 640px) {
+  .im-court-card-name {
+    @apply text-base;
+  }
+  
+  .im-court-card-legend {
+    @apply gap-2;
+  }
+  
+  .im-court-card-legend-item {
+    @apply text-xs;
+  }
+}
+
+/* ===== Focus States for Accessibility ===== */
+.im-court-card:focus-within {
+  @apply ring-2 ring-offset-2;
+  ring-color: var(--im-primary);
+}
+
+/* ===== Slot Compact View ===== */
+.im-court-card-slots-compact {
+  @apply flex gap-0.5;
+}
+
+.im-court-card-slot-dot {
+  @apply w-3 h-3 rounded-full transition-transform cursor-pointer;
+}
+
+.im-court-card-slot-dot:hover {
+  transform: scale(1.3);
+}
+
+.im-court-card-slot-dot--available {
+  background-color: var(--im-availability-available-bg);
+}
+
+.im-court-card-slot-dot--booked {
+  background-color: var(--im-availability-booked-bg);
+}
+
+.im-court-card-slot-dot--partial {
+  background-color: var(--im-availability-partial-bg);
+}
+
+.im-court-card-slot-dot--pending {
+  background-color: var(--im-availability-pending-bg);
+}

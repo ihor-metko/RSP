@@ -9,7 +9,6 @@ import { BookingModal } from "@/components/booking/BookingModal";
 import { QuickBookingWizard } from "@/components/QuickBookingWizard";
 import { RequestTrainingModal } from "../../../../../../archived_features/components/training/RequestTrainingModal";
 import { CourtCard } from "@/components/CourtCard";
-import { CourtSlotsToday } from "@/components/CourtSlotsToday";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
@@ -487,54 +486,6 @@ export default function ClubDetailPage({
         <div className="rsp-club-info-grid">
           {/* Left Column - Details */}
           <div className="space-y-6">
-            {/* Courts Summary Card */}
-            <div className="rsp-club-info-card">
-              <h2 className="rsp-club-info-card-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="12" y1="3" x2="12" y2="21" />
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                </svg>
-                {t("clubDetail.courts")}
-              </h2>
-
-              {/* Court type badges */}
-              <div className="rsp-club-courts-summary">
-                {courtCounts.indoor > 0 && (
-                  <span className="rsp-badge rsp-badge-indoor">
-                    <span className="rsp-club-court-type-count">{courtCounts.indoor}</span> {t("common.indoor")}
-                  </span>
-                )}
-                {courtCounts.outdoor > 0 && (
-                  <span className="rsp-badge rsp-badge-outdoor">
-                    <span className="rsp-club-court-type-count">{courtCounts.outdoor}</span> {t("common.outdoor")}
-                  </span>
-                )}
-              </div>
-
-              {/* Price range */}
-              {priceRange && (
-                <div className="rsp-club-price-range">
-                  <span className="rsp-club-price-label">{t("clubDetail.priceRange")}:</span>
-                  <span className="rsp-club-price-value">
-                    {priceRange.min === priceRange.max
-                      ? formatPrice(priceRange.min)
-                      : `${formatPrice(priceRange.min)} - ${formatPrice(priceRange.max)}`}
-                  </span>
-                  <span className="rsp-club-price-label">{t("common.perHour")}</span>
-                </div>
-              )}
-
-              {/* Tags */}
-              {clubTags.length > 0 && (
-                <div className="rsp-club-tags-list mt-4">
-                  {clubTags.map((tag, index) => (
-                    <span key={index} className="rsp-club-tag">{tag}</span>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Map Section */}
             {hasValidCoordinates && (
               <div className="rsp-club-info-card">
@@ -673,13 +624,10 @@ export default function ClubDetailPage({
                   onViewSchedule={handleViewSchedule}
                   isBookDisabled={!isAuthenticated}
                   bookDisabledTooltip={t("auth.signInToBookTooltip")}
-                  todaySlots={
-                    <CourtSlotsToday
-                      slots={courtAvailability[court.id] || []}
-                      isLoading={availabilityLoading}
-                      maxSlots={6}
-                    />
-                  }
+                  availabilitySlots={courtAvailability[court.id] || []}
+                  isLoadingAvailability={availabilityLoading}
+                  maxVisibleSlots={6}
+                  showLegend={true}
                 />
               ))
             )}

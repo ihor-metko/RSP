@@ -31,11 +31,11 @@ interface ClubMapProps {
 // Helper component to recenter map when coordinates change
 function MapCenterUpdater({ latitude, longitude }: { latitude: number; longitude: number }) {
   const map = useMap();
-  
+
   useEffect(() => {
     map.setView([latitude, longitude], 15);
   }, [map, latitude, longitude]);
-  
+
   return null;
 }
 
