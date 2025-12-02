@@ -1,0 +1,381 @@
+@reference "tailwindcss";
+
+/* ===== Club Detail Page Layout ===== */
+.rsp-club-detail-page {
+  @apply min-h-screen;
+  background-color: var(--rsp-background);
+  color: var(--rsp-foreground);
+}
+
+/* ===== Hero Section ===== */
+.rsp-club-hero {
+  @apply relative w-full overflow-hidden;
+  height: 280px;
+}
+
+@media (min-width: 768px) {
+  .rsp-club-hero {
+    height: 360px;
+  }
+}
+
+.rsp-club-hero-image {
+  @apply absolute inset-0 w-full h-full object-cover;
+}
+
+.rsp-club-hero-overlay {
+  @apply absolute inset-0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
+}
+
+.rsp-club-hero-placeholder {
+  @apply absolute inset-0 flex items-center justify-center;
+  background: linear-gradient(135deg, var(--rsp-primary) 0%, var(--rsp-primary-hover) 100%);
+}
+
+.rsp-club-hero-placeholder-text {
+  @apply text-7xl font-bold text-white opacity-50;
+}
+
+.rsp-club-hero-content {
+  @apply absolute bottom-0 left-0 right-0 p-6 md:p-8;
+  color: white;
+}
+
+.rsp-club-hero-logo {
+  @apply w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover border-2 border-white shadow-lg mb-3;
+  background-color: var(--rsp-card-bg);
+}
+
+.rsp-club-hero-name {
+  @apply text-2xl md:text-4xl font-bold mb-1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.rsp-club-hero-location {
+  @apply flex items-center gap-2 text-sm md:text-base opacity-90;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Main Content Container ===== */
+.rsp-club-content {
+  @apply px-4 md:px-8 py-6 md:py-8;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ===== Info Grid Layout ===== */
+.rsp-club-info-grid {
+  @apply grid gap-6;
+}
+
+@media (min-width: 1024px) {
+  .rsp-club-info-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+/* ===== Info Card Styling ===== */
+.rsp-club-info-card {
+  @apply rounded-xl p-5 md:p-6;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.rsp-club-info-card-title {
+  @apply text-lg font-semibold mb-4 flex items-center gap-2;
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-info-card-title svg {
+  @apply w-5 h-5 opacity-70;
+}
+
+/* ===== Description Section ===== */
+.rsp-club-description-text {
+  @apply text-sm md:text-base leading-relaxed;
+  color: var(--rsp-foreground);
+  opacity: 0.85;
+}
+
+/* ===== Contact Info ===== */
+.rsp-club-contact-list {
+  @apply space-y-3;
+}
+
+.rsp-club-contact-item {
+  @apply flex items-start gap-3;
+}
+
+.rsp-club-contact-icon {
+  @apply w-5 h-5 flex-shrink-0 mt-0.5;
+  color: var(--rsp-primary);
+}
+
+.rsp-club-contact-label {
+  @apply text-xs uppercase tracking-wide font-medium block;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.rsp-club-contact-value {
+  @apply text-sm;
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-contact-link {
+  color: var(--rsp-primary);
+  @apply hover:underline;
+}
+
+/* ===== Business Hours ===== */
+.rsp-club-hours-list {
+  @apply space-y-2;
+}
+
+.rsp-club-hours-row {
+  @apply flex justify-between items-center py-1.5 border-b;
+  border-color: var(--rsp-border);
+}
+
+.rsp-club-hours-row:last-child {
+  @apply border-b-0;
+}
+
+.rsp-club-hours-day {
+  @apply text-sm font-medium;
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-hours-time {
+  @apply text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.8;
+}
+
+.rsp-club-hours-closed {
+  @apply text-sm italic;
+  opacity: 0.5;
+}
+
+/* ===== Court Types Summary ===== */
+.rsp-club-courts-summary {
+  @apply flex flex-wrap gap-3 mb-4;
+}
+
+.rsp-club-court-type-badge {
+  @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium;
+  background-color: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+
+.dark .rsp-club-court-type-badge {
+  background-color: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+}
+
+.rsp-club-court-type-count {
+  @apply font-bold;
+}
+
+/* ===== Price Range ===== */
+.rsp-club-price-range {
+  @apply flex items-center gap-2 mb-4;
+}
+
+.rsp-club-price-label {
+  @apply text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.rsp-club-price-value {
+  @apply text-lg font-semibold;
+  color: var(--rsp-primary);
+}
+
+/* ===== Google Map ===== */
+.rsp-club-map-container {
+  @apply rounded-xl overflow-hidden;
+  height: 200px;
+  border: 1px solid var(--rsp-border);
+}
+
+@media (min-width: 768px) {
+  .rsp-club-map-container {
+    height: 240px;
+  }
+}
+
+.rsp-club-map-placeholder {
+  @apply w-full h-full flex items-center justify-center;
+  background-color: var(--rsp-border);
+}
+
+.rsp-club-map-placeholder-text {
+  @apply text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.5;
+}
+
+/* ===== Tags Section ===== */
+.rsp-club-tags-list {
+  @apply flex flex-wrap gap-2;
+}
+
+.rsp-club-tag {
+  @apply inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium;
+  background-color: rgba(var(--rsp-primary-rgb, 26, 188, 156), 0.1);
+  color: var(--rsp-primary);
+}
+
+.dark .rsp-club-tag {
+  background-color: rgba(108, 99, 255, 0.2);
+}
+
+/* ===== Quick Actions Bar ===== */
+.rsp-club-actions-bar {
+  @apply flex flex-wrap gap-3 mb-6;
+}
+
+.rsp-club-action-button {
+  @apply flex-1 min-w-32;
+}
+
+/* ===== Auth CTA Banner ===== */
+.rsp-club-auth-cta {
+  @apply mb-6 p-4 rounded-lg border;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.dark .rsp-club-auth-cta {
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.rsp-club-auth-cta-text {
+  @apply text-sm;
+  color: #2563eb;
+}
+
+.dark .rsp-club-auth-cta-text {
+  color: #93c5fd;
+}
+
+.rsp-club-auth-cta-link {
+  @apply font-semibold underline hover:no-underline;
+}
+
+/* ===== Courts Section ===== */
+.rsp-club-courts-section {
+  @apply mt-8;
+}
+
+.rsp-club-courts-header {
+  @apply flex items-center justify-between mb-6;
+}
+
+.rsp-club-courts-title {
+  @apply text-xl md:text-2xl font-bold;
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-courts-grid {
+  @apply grid gap-4 md:gap-6;
+}
+
+@media (min-width: 768px) {
+  .rsp-club-courts-grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .rsp-club-courts-grid {
+    @apply grid-cols-3;
+  }
+}
+
+/* ===== Empty State ===== */
+.rsp-club-empty-courts {
+  @apply col-span-full text-center py-12 rounded-lg;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.rsp-club-empty-courts-text {
+  @apply text-gray-500;
+}
+
+.dark .rsp-club-empty-courts-text {
+  @apply text-gray-400;
+}
+
+/* ===== Gallery Section ===== */
+.rsp-club-gallery-section {
+  @apply mt-8;
+}
+
+.rsp-club-gallery-title {
+  @apply text-xl font-bold mb-4;
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-gallery-grid {
+  @apply grid grid-cols-2 md:grid-cols-3 gap-3;
+}
+
+.rsp-club-gallery-item {
+  @apply rounded-lg overflow-hidden aspect-video;
+  background-color: var(--rsp-border);
+}
+
+.rsp-club-gallery-image {
+  @apply w-full h-full object-cover transition-transform duration-300 hover:scale-105;
+}
+
+/* ===== Back Link ===== */
+.rsp-club-back-link {
+  @apply mt-8 inline-block;
+}
+
+/* ===== Loading Skeleton ===== */
+.rsp-club-skeleton-hero {
+  @apply w-full animate-pulse;
+  height: 280px;
+  background-color: var(--rsp-border);
+}
+
+@media (min-width: 768px) {
+  .rsp-club-skeleton-hero {
+    height: 360px;
+  }
+}
+
+.rsp-club-skeleton-content {
+  @apply space-y-4 p-8;
+}
+
+.rsp-club-skeleton-title {
+  @apply h-8 w-64 rounded animate-pulse;
+  background-color: var(--rsp-border);
+}
+
+.rsp-club-skeleton-text {
+  @apply h-4 w-48 rounded animate-pulse;
+  background-color: var(--rsp-border);
+}
+
+/* ===== Timeline Section ===== */
+.rsp-club-timeline-section {
+  @apply mb-8;
+}
+
+/* ===== Training Button ===== */
+.rsp-club-training-section {
+  @apply mt-6;
+}

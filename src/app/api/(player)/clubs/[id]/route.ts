@@ -31,6 +31,13 @@ export async function GET(
             },
           },
         },
+        businessHours: {
+          orderBy: { dayOfWeek: "asc" },
+        },
+        gallery: {
+          orderBy: { sortOrder: "asc" },
+          take: 6,
+        },
       },
     });
 
@@ -44,12 +51,33 @@ export async function GET(
       name: coach.user.name || "Unknown Coach",
     }));
 
+    // Return full club details for the redesigned player page
     return NextResponse.json({
       id: club.id,
       name: club.name,
+      slug: club.slug,
+      shortDescription: club.shortDescription,
+      longDescription: club.longDescription,
       location: club.location,
+      city: club.city,
+      country: club.country,
+      latitude: club.latitude,
+      longitude: club.longitude,
+      phone: club.phone,
+      email: club.email,
+      website: club.website,
+      socialLinks: club.socialLinks,
+      contactInfo: club.contactInfo,
+      openingHours: club.openingHours,
+      logo: club.logo,
+      heroImage: club.heroImage,
+      defaultCurrency: club.defaultCurrency,
+      timezone: club.timezone,
+      tags: club.tags,
       courts: club.courts,
       coaches,
+      businessHours: club.businessHours,
+      gallery: club.gallery,
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

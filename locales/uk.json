@@ -135,6 +135,21 @@
     "noClubsFound": "Клуби не знайдено — спробуйте інші фільтри.",
     "trySuggestion": "Спробуйте змінити пошук або перевірте інші локації."
   },
+  "clubDetail": {
+    "about": "Про клуб",
+    "courts": "Корти",
+    "contact": "Контакти",
+    "hours": "Години роботи",
+    "location": "Розташування",
+    "gallery": "Галерея",
+    "availableCourts": "Доступні корти",
+    "priceRange": "Ціна",
+    "phone": "Телефон",
+    "email": "Email",
+    "website": "Сайт",
+    "address": "Адреса",
+    "closed": "Зачинено"
+  },
   "admin": {
     "clubs": {
       "title": "Адмін - Клуби",

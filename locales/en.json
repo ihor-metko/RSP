@@ -135,6 +135,21 @@
     "noClubsFound": "No clubs found — try other filters.",
     "trySuggestion": "Try adjusting your search or check different locations."
   },
+  "clubDetail": {
+    "about": "About",
+    "courts": "Courts",
+    "contact": "Contact",
+    "hours": "Business Hours",
+    "location": "Location",
+    "gallery": "Gallery",
+    "availableCourts": "Available Courts",
+    "priceRange": "Price",
+    "phone": "Phone",
+    "email": "Email",
+    "website": "Website",
+    "address": "Address",
+    "closed": "Closed"
+  },
   "admin": {
     "clubs": {
       "title": "Admin - Clubs",
