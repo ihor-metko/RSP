@@ -202,7 +202,12 @@ export default function AdminClubsPage() {
           <IMLink href="/">
             ← Back to Home
           </IMLink>
-          <Button onClick={handleOpenCreateModal}>Create Club</Button>
+          <div className="flex gap-2">
+            <Button onClick={handleOpenCreateModal} variant="outline">Quick Create</Button>
+            <IMLink href="/admin/clubs/new" className="rsp-button">
+              Create Club
+            </IMLink>
+          </div>
         </div>
 
         {error && (
@@ -415,9 +420,6 @@ export default function AdminClubsPage() {
           </Button>
         </div>
       </Modal>
-
-      {/* Dashboard Footer */}
-      <DashboardFooter />
     </main>
   );
 }

@@ -1,0 +1,95 @@
+.im-business-hours {
+  width: 100%;
+}
+
+.im-business-hours-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.im-business-hours-row {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: var(--rsp-background);
+  border-radius: 0.375rem;
+}
+
+@media (max-width: 640px) {
+  .im-business-hours-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
+.im-business-hours-day {
+  font-weight: 500;
+  color: var(--rsp-foreground);
+  font-size: 0.875rem;
+}
+
+.im-business-hours-times {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.im-business-hours-input {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--rsp-border);
+  border-radius: 0.375rem;
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+  font-size: 0.875rem;
+  min-width: 100px;
+}
+
+.im-business-hours-input:focus {
+  outline: none;
+  border-color: var(--rsp-primary);
+}
+
+.im-business-hours-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.im-business-hours-separator {
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+  font-size: 0.875rem;
+}
+
+.im-business-hours-closed-text {
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.im-business-hours-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.im-business-hours-checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.im-business-hours-checkbox:disabled {
+  cursor: not-allowed;
+}
+
+.im-business-hours-toggle-label {
+  font-size: 0.75rem;
+  color: var(--rsp-foreground);
+  opacity: 0.8;
+}

@@ -1,0 +1,153 @@
+.im-upload-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.im-upload-field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--rsp-foreground);
+}
+
+.im-upload-field-required {
+  color: var(--rsp-secondary);
+  margin-left: 0.25rem;
+}
+
+.im-upload-field-helper {
+  font-size: 0.75rem;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+  margin: 0;
+}
+
+.im-upload-field {
+  position: relative;
+  border: 2px dashed var(--rsp-border);
+  border-radius: 0.5rem;
+  background-color: var(--rsp-card-bg);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.im-upload-field:hover {
+  border-color: var(--rsp-primary);
+  background-color: var(--rsp-background);
+}
+
+.im-upload-field:focus {
+  outline: none;
+  border-color: var(--rsp-primary);
+  box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.25);
+}
+
+.dark .im-upload-field:focus {
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.25);
+}
+
+.im-upload-field--dragging {
+  border-color: var(--rsp-primary);
+  background-color: var(--rsp-background);
+}
+
+.im-upload-field--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.im-upload-field--error {
+  border-color: #ef4444;
+}
+
+.im-upload-field--square {
+  aspect-ratio: 1 / 1;
+  max-width: 200px;
+}
+
+.im-upload-field--wide {
+  aspect-ratio: 16 / 9;
+}
+
+.im-upload-field-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.im-upload-field-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.im-upload-field-icon {
+  font-size: 2rem;
+}
+
+.im-upload-field-text {
+  font-size: 0.875rem;
+  color: var(--rsp-foreground);
+}
+
+.im-upload-field-hint {
+  font-size: 0.75rem;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.im-upload-field-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+}
+
+.im-upload-field-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.im-upload-field-remove {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.im-upload-field-remove:hover {
+  background-color: rgba(239, 68, 68, 0.9);
+}
+
+.im-upload-field-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.im-upload-field-error-text {
+  font-size: 0.75rem;
+  color: #ef4444;
+  margin: 0.25rem 0 0;
+}

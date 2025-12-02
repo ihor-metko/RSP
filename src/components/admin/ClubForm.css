@@ -1,0 +1,265 @@
+.im-club-form {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.im-club-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.im-club-form-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.im-club-form-breadcrumb-link {
+  color: var(--rsp-primary);
+  text-decoration: none;
+}
+
+.im-club-form-breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.im-club-form-breadcrumb-separator {
+  color: var(--rsp-foreground);
+  opacity: 0.5;
+}
+
+.im-club-form-breadcrumb-current {
+  color: var(--rsp-foreground);
+  font-weight: 500;
+}
+
+.im-club-form-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.im-club-form-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.im-club-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.im-club-form-section {
+  padding: 1.5rem;
+}
+
+.im-club-form-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--rsp-foreground);
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.im-club-form-section-hint {
+  font-size: 0.875rem;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+  margin: 0 0 1rem;
+}
+
+.im-club-form-row {
+  margin-bottom: 1rem;
+}
+
+.im-club-form-row:last-child {
+  margin-bottom: 0;
+}
+
+.im-club-form-row--two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .im-club-form-row--two {
+    grid-template-columns: 1fr;
+  }
+}
+
+.im-club-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.im-club-form-field--full {
+  grid-column: 1 / -1;
+}
+
+.im-club-form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--rsp-foreground);
+  margin-bottom: 0.25rem;
+}
+
+.im-club-form-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--rsp-border);
+  border-radius: 0.375rem;
+  background-color: var(--rsp-background);
+  color: var(--rsp-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.im-club-form-textarea:focus {
+  outline: none;
+  border-color: var(--rsp-primary);
+}
+
+.im-club-form-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.im-club-form-textarea::placeholder {
+  opacity: 0.6;
+}
+
+.im-club-form-field-hint {
+  font-size: 0.75rem;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.im-club-form-field-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+}
+
+.im-club-form-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.im-club-form-checkbox {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.im-club-form-checkbox:disabled {
+  cursor: not-allowed;
+}
+
+.im-club-form-checkbox-label {
+  font-size: 0.875rem;
+  color: var(--rsp-foreground);
+}
+
+/* Gallery field styles */
+.im-gallery-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.im-gallery-field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.im-gallery-field-item {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.im-gallery-field-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.im-gallery-field-remove {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  transition: background-color 0.2s ease;
+}
+
+.im-gallery-field-remove:hover {
+  background-color: rgba(239, 68, 68, 0.9);
+}
+
+.im-gallery-field-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.im-gallery-field-add {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border: 2px dashed var(--rsp-border);
+  border-radius: 0.5rem;
+  background-color: var(--rsp-card-bg);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+.im-gallery-field-add:hover {
+  border-color: var(--rsp-primary);
+  opacity: 1;
+}
+
+.im-gallery-field-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.im-gallery-field-add-icon {
+  font-size: 1.5rem;
+  font-weight: 300;
+}
