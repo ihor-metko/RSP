@@ -61,16 +61,80 @@ model VerificationToken {
 }
 
 model Club {
-  id           String        @id @default(uuid())
-  name         String
-  location     String
-  contactInfo  String?
-  openingHours String?
-  logo         String?
-  createdAt    DateTime      @default(now())
-  courts       Court[]
-  coaches      Coach[]
-  pricingRules PricingRule[]
+  id               String        @id @default(uuid())
+  name             String
+  slug             String?       @unique
+  shortDescription String?
+  longDescription  String?       @db.Text
+  location         String
+  city             String?
+  country          String?
+  latitude         Float?
+  longitude        Float?
+  phone            String?
+  email            String?
+  website          String?
+  socialLinks      String?       @db.Text  // JSON string for social links
+  contactInfo      String?
+  openingHours     String?
+  logo             String?
+  heroImage        String?
+  defaultCurrency  String?       @default("USD")
+  timezone         String?       @default("UTC")
+  isPublic         Boolean       @default(true)
+  tags             String?       // JSON array of tags
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @default(now()) @updatedAt
+  courts           Court[]
+  coaches          Coach[]
+  pricingRules     PricingRule[]
+  gallery          ClubGallery[]
+  businessHours    ClubBusinessHours[]
+  specialHours     ClubSpecialHours[]
+}
+
+model ClubGallery {
+  id        String   @id @default(uuid())
+  clubId    String
+  imageUrl  String
+  imageKey  String?
+  altText   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+}
+
+model ClubBusinessHours {
+  id        String   @id @default(uuid())
+  clubId    String
+  dayOfWeek Int      // 0=Sunday, 1=Monday, ..., 6=Saturday
+  openTime  String?  // "HH:mm" format, null if closed
+  closeTime String?  // "HH:mm" format, null if closed
+  isClosed  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, dayOfWeek])
+  @@index([clubId])
+}
+
+model ClubSpecialHours {
+  id        String   @id @default(uuid())
+  clubId    String
+  date      DateTime @db.Date
+  openTime  String?  // "HH:mm" format, null if closed
+  closeTime String?  // "HH:mm" format, null if closed
+  isClosed  Boolean  @default(false)
+  reason    String?  // e.g., "Holiday", "Maintenance"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, date])
+  @@index([clubId])
 }
 
 model Court {
