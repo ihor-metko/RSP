@@ -92,29 +92,29 @@
 }
 
 .tm-availability-block--available {
-  background-color: #22c55e;
-  color: white;
+  background-color: var(--im-availability-available-bg);
+  color: var(--im-availability-available-text);
 }
 
 .tm-availability-block--partial {
-  background-color: #eab308;
-  color: #1f2937;
+  background-color: var(--im-availability-partial-bg);
+  color: var(--im-availability-partial-text);
 }
 
 .tm-availability-block--booked {
-  background-color: #ef4444;
-  color: white;
+  background-color: var(--im-availability-booked-bg);
+  color: var(--im-availability-booked-text);
 }
 
 .tm-availability-block--pending {
-  background-color: #f97316;
-  color: white;
+  background-color: var(--im-availability-pending-bg);
+  color: var(--im-availability-pending-text);
 }
 
 /* Blocked/past state - non-interactive */
 .tm-availability-block--blocked-past {
-  background-color: #9ca3af;
-  color: #6b7280;
+  background-color: var(--im-availability-blocked-bg);
+  color: var(--im-availability-blocked-text);
   opacity: 0.6;
   cursor: not-allowed;
   pointer-events: auto; /* Allow hover for tooltip; click prevention is handled in JavaScript */
@@ -128,29 +128,6 @@
 .tm-availability-block--blocked-past:focus {
   outline: none;
   ring-color: transparent;
-}
-
-/* Dark theme adjustments */
-.dark .tm-availability-block--available {
-  background-color: #16a34a;
-}
-
-.dark .tm-availability-block--partial {
-  background-color: #ca8a04;
-  color: white;
-}
-
-.dark .tm-availability-block--booked {
-  background-color: #dc2626;
-}
-
-.dark .tm-availability-block--pending {
-  background-color: #ea580c;
-}
-
-.dark .tm-availability-block--blocked-past {
-  background-color: #4b5563;
-  color: #9ca3af;
 }
 
 /* Tooltip */
@@ -188,19 +165,19 @@
 }
 
 .tm-tooltip-dot--available {
-  background-color: #22c55e;
+  background-color: var(--im-availability-available-bg);
 }
 
 .tm-tooltip-dot--partial {
-  background-color: #eab308;
+  background-color: var(--im-availability-partial-bg);
 }
 
 .tm-tooltip-dot--booked {
-  background-color: #ef4444;
+  background-color: var(--im-availability-booked-bg);
 }
 
 .tm-tooltip-dot--pending {
-  background-color: #f97316;
+  background-color: var(--im-availability-pending-bg);
 }
 
 /* Legend */
@@ -217,23 +194,23 @@
 }
 
 .tm-legend-dot--available {
-  background-color: #22c55e;
+  background-color: var(--im-availability-available-bg);
 }
 
 .tm-legend-dot--partial {
-  background-color: #eab308;
+  background-color: var(--im-availability-partial-bg);
 }
 
 .tm-legend-dot--booked {
-  background-color: #ef4444;
+  background-color: var(--im-availability-booked-bg);
 }
 
 .tm-legend-dot--pending {
-  background-color: #f97316;
+  background-color: var(--im-availability-pending-bg);
 }
 
 .tm-legend-dot--blocked-past {
-  background-color: #9ca3af;
+  background-color: var(--im-availability-blocked-bg);
 }
 
 /* Tooltip blocked state */
@@ -277,7 +254,7 @@
 
 .tm-weekly-error-title {
   @apply text-lg font-semibold mb-1;
-  color: #ef4444;
+  color: var(--im-availability-error);
 }
 
 .tm-weekly-error-message {

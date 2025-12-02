@@ -51,6 +51,19 @@
   --im-surface: #ffffff;
   --im-muted: #6b7280;
   --im-icon-color: #374151;
+
+  /* Weekly availability colors (light theme) */
+  --im-availability-available-bg: #22c55e;
+  --im-availability-available-text: #ffffff;
+  --im-availability-partial-bg: #eab308;
+  --im-availability-partial-text: #1f2937;
+  --im-availability-booked-bg: #ef4444;
+  --im-availability-booked-text: #ffffff;
+  --im-availability-pending-bg: #f97316;
+  --im-availability-pending-text: #ffffff;
+  --im-availability-blocked-bg: #9ca3af;
+  --im-availability-blocked-text: #6b7280;
+  --im-availability-error: #ef4444;
 }
 
 .dark {
@@ -75,6 +88,19 @@
   --im-surface: #0A0A0A;
   --im-muted: #9ca3af;
   --im-icon-color: #EAEAEA;
+
+  /* Weekly availability colors (dark theme) */
+  --im-availability-available-bg: #16a34a;
+  --im-availability-available-text: #ffffff;
+  --im-availability-partial-bg: #ca8a04;
+  --im-availability-partial-text: #ffffff;
+  --im-availability-booked-bg: #dc2626;
+  --im-availability-booked-text: #ffffff;
+  --im-availability-pending-bg: #ea580c;
+  --im-availability-pending-text: #ffffff;
+  --im-availability-blocked-bg: #4b5563;
+  --im-availability-blocked-text: #9ca3af;
+  --im-availability-error: #ef4444;
 }
 
 html,
