@@ -47,10 +47,14 @@ export async function GET(request: Request) {
       select: {
         id: true,
         name: true,
+        shortDescription: true,
         location: true,
+        city: true,
         contactInfo: true,
         openingHours: true,
         logo: true,
+        heroImage: true,
+        tags: true,
         createdAt: true,
         courts: {
           select: {
@@ -74,10 +78,14 @@ export async function GET(request: Request) {
       return {
         id: club.id,
         name: club.name,
+        shortDescription: club.shortDescription,
         location: club.location,
+        city: club.city,
         contactInfo: club.contactInfo,
         openingHours: club.openingHours,
         logo: club.logo,
+        heroImage: club.heroImage,
+        tags: club.tags,
         createdAt: club.createdAt,
         indoorCount,
         outdoorCount,

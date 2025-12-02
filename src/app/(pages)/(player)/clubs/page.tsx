@@ -11,10 +11,14 @@ import "@/components/ClubsList.css";
 interface ClubWithCounts {
   id: string;
   name: string;
+  shortDescription?: string | null;
   location: string;
+  city?: string | null;
   contactInfo?: string | null;
   openingHours?: string | null;
   logo?: string | null;
+  heroImage?: string | null;
+  tags?: string | null;
   createdAt: string;
   indoorCount: number;
   outdoorCount: number;
@@ -141,16 +145,24 @@ export default function ClubsPage() {
       {loading ? (
         <div className="tm-clubs-grid">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="tm-club-card animate-pulse">
-              <div className="tm-club-card-header">
-                <div className="tm-club-logo-placeholder bg-gray-200 dark:bg-gray-700" />
-                <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-sm" />
+            <div key={i} className="rsp-club-card rsp-club-card--modern animate-pulse">
+              {/* Image skeleton */}
+              <div className="rsp-club-card-image bg-gray-200 dark:bg-gray-700" />
+              {/* Content skeleton */}
+              <div className="rsp-club-card-content">
+                <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
+                <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded mb-1" />
+                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
+                <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
+                <div className="flex gap-2">
+                  <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                  <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full" />
+                </div>
               </div>
-              <div className="tm-club-details space-y-2">
-                <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-sm" />
-                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded-sm" />
+              {/* Button skeleton */}
+              <div className="rsp-club-card-actions">
+                <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded" />
               </div>
-              <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-sm mt-4" />
             </div>
           ))}
         </div>

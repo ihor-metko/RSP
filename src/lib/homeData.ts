@@ -16,6 +16,7 @@ export async function getPopularClubs(limit: number = 4): Promise<ClubWithCounts
         location: true,
         contactInfo: true,
         openingHours: true,
+        shortDescription: true,
         logo: true,
         courts: {
           select: {
@@ -32,6 +33,7 @@ export async function getPopularClubs(limit: number = 4): Promise<ClubWithCounts
       location: club.location,
       contactInfo: club.contactInfo,
       openingHours: club.openingHours,
+      shortDescription: club.shortDescription,
       logo: club.logo,
       indoorCount: club.courts.filter((c) => c.indoor).length,
       outdoorCount: club.courts.filter((c) => !c.indoor).length,
