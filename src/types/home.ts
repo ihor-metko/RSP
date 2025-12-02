@@ -14,6 +14,7 @@ export interface ClubWithCounts {
   logo?: string | null;
   indoorCount: number;
   outdoorCount: number;
+  shortDescription: string;
 }
 
 /**
