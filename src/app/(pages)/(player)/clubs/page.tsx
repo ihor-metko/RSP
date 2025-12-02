@@ -106,10 +106,10 @@ export default function ClubsPage() {
 
   if (loading && clubs.length === 0) {
     return (
-      <main className="tm-clubs-page">
-        <div className="tm-clubs-loading">
-          <div className="tm-clubs-loading-spinner" />
-          <span className="tm-clubs-loading-text">{t("clubs.loadingClubs")}</span>
+      <main className="im-clubs-page">
+        <div className="im-clubs-loading">
+          <div className="im-clubs-loading-spinner" />
+          <span className="im-clubs-loading-text">{t("clubs.loadingClubs")}</span>
         </div>
       </main>
     );
@@ -117,11 +117,11 @@ export default function ClubsPage() {
 
   if (error && clubs.length === 0) {
     return (
-      <main className="tm-clubs-page">
-        <div className="tm-access-denied">
-          <h1 className="tm-access-denied-title">{t("common.error")}</h1>
-          <p className="tm-access-denied-text">{error}</p>
-          <IMLink href="/" className="tm-clubs-link">
+      <main className="im-clubs-page">
+        <div className="im-access-denied">
+          <h1 className="im-access-denied-title">{t("common.error")}</h1>
+          <p className="im-access-denied-text">{error}</p>
+          <IMLink href="/" className="im-clubs-link">
             {t("common.backToHome")}
           </IMLink>
         </div>
@@ -130,15 +130,15 @@ export default function ClubsPage() {
   }
 
   return (
-    <main className="tm-clubs-page">
-      <header className="tm-clubs-header">
-        <h1 className="tm-clubs-title">{t("clubs.title")}</h1>
-        <p className="tm-clubs-subtitle">{t("clubs.subtitle")}</p>
+    <main className="im-clubs-page">
+      <header className="im-clubs-header">
+        <h1 className="im-clubs-title">{t("clubs.title")}</h1>
+        <p className="im-clubs-subtitle">{t("clubs.subtitle")}</p>
       </header>
 
       {/* Sign in prompt for unauthenticated users */}
       {!isAuthenticated && (
-        <div className="tm-auth-cta mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="im-auth-cta mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-blue-800 dark:text-blue-200 text-sm">
             <IMLink href="/auth/sign-in" className="font-semibold underline hover:no-underline">
               {t("auth.signInToBook")}
@@ -156,42 +156,42 @@ export default function ClubsPage() {
       />
 
       {loading ? (
-        <div className="tm-clubs-grid">
+        <div className="im-clubs-grid">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="tm-club-card animate-pulse">
-              <div className="tm-club-card-header">
-                <div className="tm-club-logo-placeholder bg-gray-200 dark:bg-gray-700" />
-                <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-sm" />
+            <div key={i} className="im-club-card-skeleton" aria-hidden="true">
+              <div className="im-club-card-header">
+                <div className="im-skeleton-logo" />
+                <div className="im-skeleton-text-lg w-32" />
               </div>
-              <div className="tm-club-details space-y-2">
-                <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded-sm" />
-                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded-sm" />
+              <div className="im-club-details space-y-2">
+                <div className="im-skeleton-text w-full" />
+                <div className="im-skeleton-text w-2/3" />
               </div>
-              <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-sm mt-4" />
+              <div className="im-skeleton-button" />
             </div>
           ))}
         </div>
       ) : clubs.length === 0 ? (
-        <div className="tm-clubs-empty">
-          <p className="tm-clubs-empty-text">
+        <div className="im-clubs-empty">
+          <p className="im-clubs-empty-text">
             {getEmptyStateMessage(currentParams.q, currentParams.city, currentParams.indoor ?? false, t)}
           </p>
           {(currentParams.q || currentParams.city || currentParams.indoor) && (
-            <p className="tm-clubs-empty-suggestion text-gray-400 text-sm mt-2">
+            <p className="im-clubs-empty-suggestion text-sm mt-2" style={{ opacity: 0.6 }}>
               {t("clubs.trySuggestion")}
             </p>
           )}
         </div>
       ) : (
-        <section className="tm-clubs-grid">
+        <section className="im-clubs-grid">
           {clubs.map((club) => (
             <PublicClubCard key={club.id} club={club} />
           ))}
         </section>
       )}
 
-      <div className="tm-clubs-navigation">
-        <IMLink href="/" className="tm-clubs-link">
+      <div className="im-clubs-navigation">
+        <IMLink href="/" className="im-clubs-link">
           {t("common.backToHome")}
         </IMLink>
       </div>
