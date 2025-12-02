@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { deleteFromStorage, isSupabaseStorageConfigured } from "@/lib/supabase";
 
 export async function DELETE(
   request: Request,
@@ -38,7 +39,15 @@ export async function DELETE(
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
-    // In production, this would also delete from cloud storage
+    // Delete from Supabase Storage if configured and imageKey exists
+    if (isSupabaseStorageConfigured() && image.imageKey) {
+      const deleteResult = await deleteFromStorage(image.imageKey);
+      if ("error" in deleteResult) {
+        console.error("Failed to delete from Supabase Storage:", deleteResult.error);
+        // Continue with DB deletion even if storage deletion fails
+      }
+    }
+
     // Delete the gallery record
     await prisma.clubGallery.delete({
       where: { id: imageId },
@@ -46,9 +55,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Image deleted successfully" });
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error deleting club image:", error);
-    }
+    console.error("Error deleting club image:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

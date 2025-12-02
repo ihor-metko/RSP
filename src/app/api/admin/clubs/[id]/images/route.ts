@@ -2,25 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 import { randomUUID } from "crypto";
-
-// Allowed file types
-const ALLOWED_MIME_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-];
-
-// Allowed file extensions (whitelist)
-const ALLOWED_EXTENSIONS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/jpg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
-// Max file size: 5MB
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+import {
+  uploadToStorage,
+  validateFileForUpload,
+  getExtensionForMimeType,
+  isSupabaseStorageConfigured,
+} from "@/lib/supabase";
 
 export async function POST(
   request: Request,
@@ -55,29 +42,43 @@ export async function POST(
       );
     }
 
-    // Validate file type
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    // Validate file type and size
+    const validationError = validateFileForUpload(file.type, file.size);
+    if (validationError) {
       return NextResponse.json(
-        { error: "Invalid file type. Allowed: jpg, png, webp" },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: "File too large. Maximum size: 5MB" },
+        { error: validationError },
         { status: 400 }
       );
     }
 
     // Generate unique key for the file using validated extension from MIME type
-    const extension = ALLOWED_EXTENSIONS[file.type] || "jpg";
+    const extension = getExtensionForMimeType(file.type);
+    // Path inside the bucket: clubs/{clubId}/{uuid}.{ext}
     const imageKey = `clubs/${clubId}/${randomUUID()}.${extension}`;
 
-    // In production, this would upload to Supabase/S3/Cloudinary
-    // For now, we return a mock URL (development mode)
-    const imageUrl = `/uploads/${imageKey}`;
+    let imageUrl: string;
+
+    // Upload to Supabase Storage if configured, otherwise use mock URL
+    if (isSupabaseStorageConfigured()) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const uploadResult = await uploadToStorage(imageKey, buffer, file.type);
+
+      if ("error" in uploadResult) {
+        console.error("Failed to upload to Supabase Storage:", uploadResult.error);
+        return NextResponse.json(
+          { error: `Upload failed: ${uploadResult.error}` },
+          { status: 500 }
+        );
+      }
+
+      // Store the relative path returned by Supabase (e.g., "clubs/{clubId}/{uuid}.jpg")
+      // The getSupabaseStorageUrl utility will convert this to a full URL
+      imageUrl = uploadResult.path;
+    } else {
+      // Development fallback: store as mock URL
+      console.warn("Supabase Storage not configured, using mock URL");
+      imageUrl = `/uploads/${imageKey}`;
+    }
 
     // Get current max sortOrder for this club's gallery
     const maxSortOrder = await prisma.clubGallery.aggregate({
@@ -111,9 +112,7 @@ export async function POST(
       { status: 201 }
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error uploading club image:", error);
-    }
+    console.error("Error uploading club image:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

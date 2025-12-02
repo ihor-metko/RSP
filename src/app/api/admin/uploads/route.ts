@@ -1,25 +1,12 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/requireRole";
 import { randomUUID } from "crypto";
-
-// Allowed file types
-const ALLOWED_MIME_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-];
-
-// Allowed file extensions (whitelist)
-const ALLOWED_EXTENSIONS: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/jpg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
-
-// Max file size: 5MB
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+import {
+  uploadToStorage,
+  validateFileForUpload,
+  getExtensionForMimeType,
+  isSupabaseStorageConfigured,
+} from "@/lib/supabase";
 
 export async function POST(request: Request) {
   const authResult = await requireRole(request, ["admin"]);
@@ -39,35 +26,48 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate file type
-    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+    // Validate file type and size
+    const validationError = validateFileForUpload(file.type, file.size);
+    if (validationError) {
       return NextResponse.json(
-        { error: "Invalid file type. Allowed: jpg, png, webp" },
-        { status: 400 }
-      );
-    }
-
-    // Validate file size
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { error: "File too large. Maximum size: 5MB" },
+        { error: validationError },
         { status: 400 }
       );
     }
 
     // Generate unique key for the file using validated extension from MIME type
-    const extension = ALLOWED_EXTENSIONS[file.type] || "jpg";
+    const extension = getExtensionForMimeType(file.type);
+    // Path inside the bucket: clubs/{uuid}.{ext}
     const key = `clubs/${randomUUID()}.${extension}`;
 
-    // In production, this would upload to Supabase/S3/Cloudinary
-    // For now, we return a mock URL (development mode)
-    // This can be replaced with actual cloud storage integration
-    const mockUrl = `/uploads/${key}`;
+    let url: string;
+
+    // Upload to Supabase Storage if configured, otherwise use mock URL
+    if (isSupabaseStorageConfigured()) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const uploadResult = await uploadToStorage(key, buffer, file.type);
+
+      if ("error" in uploadResult) {
+        console.error("Failed to upload to Supabase Storage:", uploadResult.error);
+        return NextResponse.json(
+          { error: `Upload failed: ${uploadResult.error}` },
+          { status: 500 }
+        );
+      }
+
+      // Store the relative path returned by Supabase (e.g., "clubs/{uuid}.jpg")
+      // The getSupabaseStorageUrl utility will convert this to a full URL
+      url = uploadResult.path;
+    } else {
+      // Development fallback: store as mock URL
+      console.warn("Supabase Storage not configured, using mock URL");
+      url = `/uploads/${key}`;
+    }
 
     return NextResponse.json(
       {
-        url: mockUrl,
-        key: key,
+        url,
+        key,
         originalName: file.name,
         size: file.size,
         mimeType: file.type,
@@ -75,9 +75,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error uploading file:", error);
-    }
+    console.error("Error uploading file:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

@@ -93,7 +93,7 @@ describe("Admin Uploads API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Invalid file type. Allowed: jpg, png, webp");
+      expect(data.error).toBe("Invalid file type. Allowed: jpg, png, webp, avif");
     });
 
     it("should return 400 for file too large", async () => {
@@ -170,6 +170,25 @@ describe("Admin Uploads API", () => {
       const formData = new FormData();
       const file = new Blob(["test"], { type: "image/webp" });
       formData.append("file", file, "test.webp");
+
+      const request = new Request("http://localhost:3000/api/admin/uploads", {
+        method: "POST",
+        body: formData,
+      });
+
+      const response = await POST(request);
+
+      expect(response.status).toBe(201);
+    });
+
+    it("should accept avif images", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", role: "admin" },
+      });
+
+      const formData = new FormData();
+      const file = new Blob(["test"], { type: "image/avif" });
+      formData.append("file", file, "test.avif");
 
       const request = new Request("http://localhost:3000/api/admin/uploads", {
         method: "POST",
