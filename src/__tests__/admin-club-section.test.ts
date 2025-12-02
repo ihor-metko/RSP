@@ -25,6 +25,12 @@ jest.mock("@/lib/prisma", () => ({
     coach: {
       updateMany: jest.fn(),
     },
+    court: {
+      findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     $transaction: jest.fn(),
   },
 }));
@@ -521,6 +527,49 @@ describe("Admin Club Section API", () => {
               section: "coaches",
               payload: {
                 coachIds: ["coach-1", "coach-2"],
+              },
+            }),
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        const response = await PATCH(request, { params: mockParams });
+        await response.json();
+
+        expect(response.status).toBe(200);
+        expect(prisma.$transaction).toHaveBeenCalled();
+      });
+    });
+
+    describe("courts section", () => {
+      it("should update courts section successfully", async () => {
+        mockAuth.mockResolvedValue({
+          user: { id: "admin-123", role: "admin" },
+        });
+
+        (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+
+        const updatedClub = {
+          ...mockClub,
+          courts: [{ id: "court-1", name: "Court 1", indoor: false }],
+          coaches: [],
+          gallery: [],
+          businessHours: [],
+          specialHours: [],
+        };
+
+        (prisma.$transaction as jest.Mock).mockResolvedValue(updatedClub);
+
+        const request = new Request(
+          "http://localhost:3000/api/admin/clubs/club-123/section",
+          {
+            method: "PATCH",
+            body: JSON.stringify({
+              section: "courts",
+              payload: {
+                courts: [
+                  { name: "Court 1", type: "padel", surface: "artificial", indoor: false, defaultPriceCents: 5000 },
+                ],
               },
             }),
             headers: { "Content-Type": "application/json" },
