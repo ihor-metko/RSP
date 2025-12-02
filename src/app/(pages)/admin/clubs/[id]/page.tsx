@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
-import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { ClubHeaderView } from "@/components/admin/club/ClubHeaderView";
 import { ClubContactsView } from "@/components/admin/club/ClubContactsView";
@@ -12,6 +11,10 @@ import { ClubHoursView } from "@/components/admin/club/ClubHoursView";
 import { ClubCourtsQuickList } from "@/components/admin/club/ClubCourtsQuickList";
 import { ClubGalleryView } from "@/components/admin/club/ClubGalleryView";
 import { ClubCoachesView } from "@/components/admin/club/ClubCoachesView";
+import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
+import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
+import { formatPrice } from "@/utils/price";
+import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
 import type { ClubDetail } from "@/types/club";
 import "./page.css";
 
@@ -29,6 +32,7 @@ export default function AdminClubDetailPage({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -144,21 +148,31 @@ export default function AdminClubDetailPage({
     }
   };
 
+  // Loading skeleton
   if (status === "loading" || loading) {
     return (
-      <main className="rsp-container p-8">
-        <div className="rsp-loading text-center">Loading...</div>
+      <main className="im-admin-club-detail-page">
+        <div className="im-admin-club-skeleton-hero" />
+        <div className="im-admin-club-skeleton-content">
+          <div className="im-admin-club-skeleton-title" />
+          <div className="im-admin-club-skeleton-text" />
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-48 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        </div>
       </main>
     );
   }
 
   if (error) {
     return (
-      <main className="rsp-container p-8">
-        <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+      <main className="im-admin-club-detail-page p-8">
+        <div className="tm-error-banner text-center p-6 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl">
           {error}
         </div>
-        <div className="mt-4">
+        <div className="mt-4 text-center">
           <IMLink href="/admin/clubs">← Back to Clubs</IMLink>
         </div>
       </main>
@@ -169,8 +183,25 @@ export default function AdminClubDetailPage({
     return null;
   }
 
+  // Prepare derived data
+  const heroImageUrl = getSupabaseStorageUrl(club.heroImage);
+  const logoUrl = getSupabaseStorageUrl(club.logo);
+  const hasHeroImage = isValidImageUrl(heroImageUrl);
+  const hasLogo = isValidImageUrl(logoUrl);
+  const clubTags = parseTags(club.tags);
+  const priceRange = getPriceRange(club.courts);
+  const courtCounts = getCourtCounts(club.courts);
+  const hasValidCoordinates = club.latitude != null && club.longitude != null;
+  const mapsEmbedUrl = hasValidCoordinates
+    ? getGoogleMapsEmbedUrl(club.latitude as number, club.longitude as number, process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
+    : null;
+  const hasMap = mapsEmbedUrl !== null;
+
+  // Format location display
+  const locationDisplay = [club.city, club.country].filter(Boolean).join(", ") || club.location;
+
   return (
-    <main className="rsp-container p-8">
+    <main className="im-admin-club-detail-page">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -181,27 +212,71 @@ export default function AdminClubDetailPage({
         </div>
       )}
 
-      <header className="rsp-header flex items-center justify-between mb-8">
-        <div>
-          <div className="im-club-view-breadcrumb">
-            <IMLink href="/admin/clubs" className="im-club-view-breadcrumb-link">
-              Clubs
-            </IMLink>
-            <span className="im-club-view-breadcrumb-separator">/</span>
-            <span className="im-club-view-breadcrumb-current">{club.name}</span>
+      {/* Hero Section - matching player page design */}
+      <section className="im-admin-club-hero">
+        {hasHeroImage ? (
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroImageUrl as string}
+              alt={`${club.name} hero image`}
+              className="im-admin-club-hero-image"
+            />
+            <div className="im-admin-club-hero-overlay" />
+          </>
+        ) : (
+          <div className="im-admin-club-hero-placeholder">
+            <span className="im-admin-club-hero-placeholder-text">
+              {club.name.charAt(0).toUpperCase()}
+            </span>
           </div>
-          <h1 className="rsp-title text-3xl font-bold mt-2">{club.name}</h1>
+        )}
+        <div className="im-admin-club-hero-content">
+          {hasLogo && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={logoUrl as string}
+              alt={`${club.name} logo`}
+              className="im-admin-club-hero-logo"
+            />
+          )}
+          <h1 className="im-admin-club-hero-name">{club.name}</h1>
+          {club.shortDescription && (
+            <p className="im-admin-club-hero-description">{club.shortDescription}</p>
+          )}
+          <p className="im-admin-club-hero-location">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            {locationDisplay}
+          </p>
+          {/* Status badge */}
+          <span
+            className={`im-admin-club-status-badge ${club.isPublic
+              ? "im-admin-club-status-badge--published"
+              : "im-admin-club-status-badge--unpublished"
+              }`}
+          >
+            {club.isPublic ? "Published" : "Unpublished"}
+          </span>
         </div>
-        <div className="flex items-center gap-4">
+        {/* Admin controls on hero */}
+        <div className="im-admin-club-hero-controls">
           <NotificationBell />
-          <UserRoleIndicator />
         </div>
-      </header>
+      </section>
 
-      <section className="rsp-content">
-        <div className="flex justify-between items-center mb-6">
-          <IMLink href="/admin/clubs">← Back to Clubs</IMLink>
-          <div className="flex gap-2">
+      {/* Main Content */}
+      <div className="im-admin-club-content">
+        {/* Breadcrumb & Actions Bar */}
+        <div className="im-admin-club-actions-bar">
+          <div className="im-admin-club-breadcrumb">
+            <IMLink href="/admin/clubs" className="im-admin-club-breadcrumb-link">
+              ← Back to Clubs
+            </IMLink>
+          </div>
+          <div className="im-admin-club-actions">
             <Button
               variant="outline"
               onClick={handleTogglePublish}
@@ -211,60 +286,184 @@ export default function AdminClubDetailPage({
             <Button
               variant="outline"
               onClick={() => setIsDeleteModalOpen(true)}
-              className="text-red-500 hover:text-red-700"
+              className="im-admin-club-delete-btn"
             >
               Delete Club
             </Button>
           </div>
         </div>
 
-        <div className="im-club-view-grid">
-          {/* Header Section */}
-          <Card className="im-club-view-section">
-            <ClubHeaderView
-              club={club}
-              onUpdate={(payload) => handleSectionUpdate("header", payload)}
-            />
-          </Card>
+        {/* Court Availability Section */}
+        {club.courts.length > 0 && (
+          <section className="im-admin-club-availability-section">
+            <WeeklyAvailabilityTimeline clubId={club.id} />
+          </section>
+        )}
 
-          {/* Contacts Section */}
-          <Card className="im-club-view-section">
-            <ClubContactsView
-              club={club}
-              onUpdate={(payload) => handleSectionUpdate("contacts", payload)}
-            />
-          </Card>
+        {/* Info Grid - matching player page layout */}
+        <div className="im-admin-club-info-grid">
+          {/* Left Column - Description & Details */}
+          <div className="im-admin-club-info-column">
+            {/* Description Card with Edit */}
+            <Card className="im-admin-club-info-card">
+              <ClubHeaderView
+                club={club}
+                onUpdate={(payload) => handleSectionUpdate("header", payload)}
+              />
+            </Card>
 
-          {/* Business Hours Section */}
-          <Card className="im-club-view-section">
-            <ClubHoursView
-              club={club}
-              onUpdate={(payload) => handleSectionUpdate("hours", payload)}
-            />
-          </Card>
+            {/* Courts Summary with Edit */}
+            <Card className="im-admin-club-info-card">
+              <ClubCourtsQuickList club={club} />
 
-          {/* Courts Quick List */}
-          <Card className="im-club-view-section">
-            <ClubCourtsQuickList club={club} />
-          </Card>
+              {/* Court type badges */}
+              <div className="im-admin-club-courts-summary">
+                {courtCounts.indoor > 0 && (
+                  <span className="im-admin-club-badge im-admin-club-badge-indoor">
+                    <span className="im-admin-club-court-type-count">{courtCounts.indoor}</span> Indoor
+                  </span>
+                )}
+                {courtCounts.outdoor > 0 && (
+                  <span className="im-admin-club-badge im-admin-club-badge-outdoor">
+                    <span className="im-admin-club-court-type-count">{courtCounts.outdoor}</span> Outdoor
+                  </span>
+                )}
+              </div>
 
-          {/* Gallery Section */}
-          <Card className="im-club-view-section">
+              {/* Price range */}
+              {priceRange && (
+                <div className="im-admin-club-price-range">
+                  <span className="im-admin-club-price-label">Price Range:</span>
+                  <span className="im-admin-club-price-value">
+                    {priceRange.min === priceRange.max
+                      ? formatPrice(priceRange.min)
+                      : `${formatPrice(priceRange.min)} - ${formatPrice(priceRange.max)}`}
+                  </span>
+                  <span className="im-admin-club-price-label">per hour</span>
+                </div>
+              )}
+
+              {/* Tags */}
+              {clubTags.length > 0 && (
+                <div className="im-admin-club-tags-list">
+                  {clubTags.map((tag, index) => (
+                    <span key={index} className="im-admin-club-tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </Card>
+
+            {/* Map Section */}
+            {hasMap && (
+              <Card className="im-admin-club-info-card">
+                <div className="im-admin-club-section-header">
+                  <h2 className="im-admin-club-section-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2 1,6" />
+                      <line x1="8" y1="2" x2="8" y2="18" />
+                      <line x1="16" y1="6" x2="16" y2="22" />
+                    </svg>
+                    Location
+                  </h2>
+                </div>
+                <div className="im-admin-club-map-container">
+                  <iframe
+                    title={`${club.name} location map`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={mapsEmbedUrl as string}
+                  />
+                </div>
+                <p className="im-admin-club-map-address">{club.location}</p>
+              </Card>
+            )}
+          </div>
+
+          {/* Right Column - Contact & Hours */}
+          <div className="im-admin-club-info-column">
+            {/* Contact Info Card with Edit */}
+            <Card className="im-admin-club-info-card">
+              <ClubContactsView
+                club={club}
+                onUpdate={(payload) => handleSectionUpdate("contacts", payload)}
+              />
+            </Card>
+
+            {/* Business Hours Card with Edit */}
+            <Card className="im-admin-club-info-card">
+              <ClubHoursView
+                club={club}
+                onUpdate={(payload) => handleSectionUpdate("hours", payload)}
+              />
+            </Card>
+
+            {/* Coaches Card with Edit */}
+            <Card className="im-admin-club-info-card">
+              <ClubCoachesView
+                club={club}
+                onUpdate={(payload) => handleSectionUpdate("coaches", payload)}
+              />
+            </Card>
+          </div>
+        </div>
+
+        {/* Gallery Section */}
+        <section className="im-admin-club-gallery-section">
+          <Card className="im-admin-club-info-card">
             <ClubGalleryView
               club={club}
               onUpdate={(payload) => handleSectionUpdate("gallery", payload)}
             />
           </Card>
 
-          {/* Coaches Section */}
-          <Card className="im-club-view-section">
-            <ClubCoachesView
-              club={club}
-              onUpdate={(payload) => handleSectionUpdate("coaches", payload)}
-            />
-          </Card>
+          {/* Gallery Grid with Fullscreen View */}
+          {club.gallery && club.gallery.length > 0 && (
+            <div className="im-admin-club-gallery-grid">
+              {club.gallery.map((image, index) => {
+                const imageUrl = getSupabaseStorageUrl(image.imageUrl);
+                return isValidImageUrl(imageUrl) ? (
+                  <div
+                    key={image.id}
+                    className="im-admin-club-gallery-item"
+                    onClick={() => setFullscreenImage(imageUrl as string)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        setFullscreenImage(imageUrl as string);
+                      }
+                    }}
+                    aria-label={`View ${image.altText || `Gallery image ${index + 1}`} fullscreen`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageUrl as string}
+                      alt={image.altText || `${club.name} gallery image ${index + 1}`}
+                      className="im-admin-club-gallery-image"
+                    />
+                    <div className="im-admin-club-gallery-overlay">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="15,3 21,3 21,9" />
+                        <polyline points="9,21 3,21 3,15" />
+                        <line x1="21" y1="3" x2="14" y2="10" />
+                        <line x1="3" y1="21" x2="10" y2="14" />
+                      </svg>
+                    </div>
+                  </div>
+                ) : null;
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Back Link */}
+        <div className="im-admin-club-back-link">
+          <IMLink href="/admin/clubs">← Back to Clubs</IMLink>
         </div>
-      </section>
+      </div>
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -290,6 +489,32 @@ export default function AdminClubDetailPage({
           </Button>
         </div>
       </Modal>
+
+      {/* Fullscreen Image Modal */}
+      {fullscreenImage && (
+        <div
+          className="im-admin-club-fullscreen-overlay"
+          onClick={() => setFullscreenImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Fullscreen image viewer"
+        >
+          <button
+            className="im-admin-club-fullscreen-close"
+            onClick={() => setFullscreenImage(null)}
+            aria-label="Close fullscreen view"
+          >
+            ✕
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={fullscreenImage}
+            alt="Fullscreen gallery view"
+            className="im-admin-club-fullscreen-image"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </main>
   );
 }

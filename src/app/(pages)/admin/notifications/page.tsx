@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { IMLink } from "@/components/ui";
 import { AdminNotificationsPanel } from "@/components/admin/AdminNotifications";
 import { NotificationBell } from "@/components/admin/NotificationBell";
-import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { DashboardFooter } from "@/components/layout";
 
 export default function AdminNotificationsPage() {
@@ -44,7 +43,6 @@ export default function AdminNotificationsPage() {
         </div>
         <div className="flex items-center gap-4">
           <NotificationBell />
-          <UserRoleIndicator />
         </div>
       </header>
 

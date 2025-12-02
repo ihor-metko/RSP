@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
-import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { formatPrice } from "@/utils/price";
 
@@ -202,9 +201,6 @@ export default function AdminCourtsPage({
           <p className="rsp-subtitle text-gray-500 mt-2">
             Manage courts for this club
           </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <UserRoleIndicator />
         </div>
       </header>
 

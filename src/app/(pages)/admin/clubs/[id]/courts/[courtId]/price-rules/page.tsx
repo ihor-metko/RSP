@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
-import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { PriceRuleForm, PriceRuleFormData } from "@/components/admin/PriceRuleForm";
 import { formatPrice } from "@/utils/price";
 
@@ -254,8 +253,8 @@ export default function PriceRulesPage({
       {toast && (
         <div
           className={`fixed top-4 right-4 p-4 rounded shadow-lg z-50 ${toast.type === "success"
-              ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-              : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
+            ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
+            : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
             }`}
           role="alert"
         >
@@ -271,9 +270,6 @@ export default function PriceRulesPage({
           <p className="rsp-subtitle text-gray-500 mt-2">
             {club?.name || "Loading..."} - Manage time-based pricing for this court
           </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <UserRoleIndicator />
         </div>
       </header>
 

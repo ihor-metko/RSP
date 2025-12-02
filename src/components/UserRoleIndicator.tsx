@@ -55,7 +55,7 @@ export function UserRoleIndicator() {
   }
 
   const role = session.user.role;
-  
+
   // Handle case where role is undefined or invalid
   if (!isValidRole(role)) {
     return (
