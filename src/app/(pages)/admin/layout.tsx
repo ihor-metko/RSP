@@ -16,7 +16,7 @@ export default function AdminLayout({
     <div className="flex flex-col min-h-screen">
       <Header />
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto flex flex-col">
         {children}
 
         <DashboardFooter />

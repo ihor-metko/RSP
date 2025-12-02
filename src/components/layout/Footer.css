@@ -96,7 +96,7 @@
 
 /* DashboardFooter styles - compact version for admin/coach */
 .im-dashboard-footer {
-  @apply w-full py-4 px-4 md:px-8 text-center text-sm;
+  @apply w-full py-4 px-4 mt-auto md:px-8 text-center text-sm;
   background-color: var(--im-footer-bg);
   border-top: 1px solid var(--im-footer-border);
   color: var(--im-footer-text-muted);
