@@ -12,6 +12,7 @@ import { CourtSlotsToday } from "@/components/CourtSlotsToday";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
+import { GalleryModal } from "@/components/GalleryModal";
 import { Button, IMLink } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
@@ -161,6 +162,8 @@ export default function ClubDetailPage({
   } | null>(null);
   const [timelineKey, setTimelineKey] = useState(0);
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
   // Get user ID from session, or use a placeholder for unauthenticated users
   const userId = session?.user?.id || "guest";
@@ -341,6 +344,31 @@ export default function ClubDetailPage({
     return getAvailableSlotsForCourt(courtId);
   };
 
+  // Gallery modal handlers
+  const handleGalleryOpen = (index: number) => {
+    setGalleryIndex(index);
+    setIsGalleryOpen(true);
+  };
+
+  const handleGalleryClose = () => {
+    setIsGalleryOpen(false);
+  };
+
+  const handleGalleryNavigate = (index: number) => {
+    setGalleryIndex(index);
+  };
+
+  // Get availability status for quick view
+  const getCourtAvailabilityStatus = (courtId: string): "available" | "limited" | "booked" => {
+    const slots = courtAvailability[courtId] || [];
+    if (slots.length === 0) return "booked";
+    
+    const availableSlots = slots.filter((slot) => slot.status === "available");
+    if (availableSlots.length === 0) return "booked";
+    if (availableSlots.length < slots.length / 2) return "limited";
+    return "available";
+  };
+
   // Loading skeleton
   if (isLoading) {
     return (
@@ -390,9 +418,19 @@ export default function ClubDetailPage({
   // Format location display
   const locationDisplay = [club.city, club.country].filter(Boolean).join(", ") || club.location;
 
+  // Prepare gallery images for modal
+  const galleryImages = (club.gallery || [])
+    .map((image) => {
+      const imageUrl = getSupabaseStorageUrl(image.imageUrl);
+      return isValidImageUrl(imageUrl) 
+        ? { url: imageUrl as string, alt: image.altText || `${club.name} gallery image` }
+        : null;
+    })
+    .filter((img): img is { url: string; alt: string } => img !== null);
+
   return (
     <main className="rsp-club-detail-page">
-      {/* Hero Section */}
+      {/* Hero Section with Club Name & Short Description */}
       <section className="rsp-club-hero">
         {hasHeroImage ? (
           <>
@@ -421,6 +459,9 @@ export default function ClubDetailPage({
             />
           )}
           <h1 className="rsp-club-hero-name">{club.name}</h1>
+          {club.shortDescription && (
+            <p className="rsp-club-hero-short-desc">{club.shortDescription}</p>
+          )}
           <p className="rsp-club-hero-location">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -451,6 +492,40 @@ export default function ClubDetailPage({
           </div>
         )}
 
+        {/* Court Availability Quick View - directly below header */}
+        {club.courts.length > 0 && (
+          <div className="rsp-club-availability-quick">
+            <div className="rsp-club-availability-quick-header">
+              <h2 className="rsp-club-availability-quick-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12,6 12,12 16,14" />
+                </svg>
+                {t("clubDetail.courtAvailability")}
+              </h2>
+            </div>
+            <div className="rsp-club-availability-quick-grid">
+              {club.courts.slice(0, 6).map((court) => {
+                const status = availabilityLoading ? "loading" : getCourtAvailabilityStatus(court.id);
+                return (
+                  <div key={court.id} className="rsp-club-availability-court-chip">
+                    <span className="rsp-club-availability-court-name">{court.name}</span>
+                    {availabilityLoading ? (
+                      <span className="rsp-club-availability-status animate-pulse bg-gray-200 dark:bg-gray-700 w-16 h-5 rounded-full" />
+                    ) : (
+                      <span className={`rsp-club-availability-status rsp-club-availability-status--${status}`}>
+                        {status === "available" && t("common.available")}
+                        {status === "limited" && t("clubDetail.limited")}
+                        {status === "booked" && t("common.booked")}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions Bar */}
         <div className="rsp-club-actions-bar">
           <Button onClick={handleQuickBookingClick} className="rsp-club-action-button" aria-label={t("clubs.quickBooking")}>
@@ -468,30 +543,30 @@ export default function ClubDetailPage({
           )}
         </div>
 
+        {/* Full Club Description Section */}
+        {club.longDescription && (
+          <div className="rsp-club-full-description">
+            <div className="rsp-club-full-description-card">
+              <h2 className="rsp-club-full-description-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <polyline points="10,9 9,9 8,9" />
+                </svg>
+                {t("clubDetail.aboutClub")}
+              </h2>
+              <p className="rsp-club-full-description-text">{club.longDescription}</p>
+            </div>
+          </div>
+        )}
+
         {/* Info Grid */}
         <div className="rsp-club-info-grid">
-          {/* Left Column - Description & Details */}
+          {/* Left Column - Details */}
           <div className="space-y-6">
-            {/* Description Card */}
-            {(club.shortDescription || club.longDescription) && (
-              <div className="rsp-club-info-card">
-                <h2 className="rsp-club-info-card-title">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14,2 14,8 20,8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <polyline points="10,9 9,9 8,9" />
-                  </svg>
-                  {t("clubDetail.about")}
-                </h2>
-                <p className="rsp-club-description-text">
-                  {club.longDescription || club.shortDescription}
-                </p>
-              </div>
-            )}
-
-            {/* Courts Summary */}
+            {/* Courts Summary Card */}
             <div className="rsp-club-info-card">
               <h2 className="rsp-club-info-card-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -707,24 +782,34 @@ export default function ClubDetailPage({
           </div>
         </section>
 
-        {/* Gallery Section */}
-        {club.gallery && club.gallery.length > 0 && (
+        {/* Gallery Section with Fullscreen Modal */}
+        {galleryImages.length > 0 && (
           <section className="rsp-club-gallery-section">
             <h2 className="rsp-club-gallery-title">{t("clubDetail.gallery")}</h2>
             <div className="rsp-club-gallery-grid">
-              {club.gallery.map((image, index) => {
-                const imageUrl = getSupabaseStorageUrl(image.imageUrl);
-                return isValidImageUrl(imageUrl) ? (
-                  <div key={image.id} className="rsp-club-gallery-item">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={imageUrl as string}
-                      alt={image.altText || `${club.name} gallery image ${index + 1}`}
-                      className="rsp-club-gallery-image"
-                    />
-                  </div>
-                ) : null;
-              })}
+              {galleryImages.map((image, index) => (
+                <button
+                  key={index}
+                  className="rsp-club-gallery-item"
+                  onClick={() => handleGalleryOpen(index)}
+                  aria-label={`View ${image.alt}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.url}
+                    alt={image.alt}
+                    className="rsp-club-gallery-image"
+                  />
+                  <span className="rsp-club-gallery-zoom-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="M21 21l-4.35-4.35" />
+                      <line x1="11" y1="8" x2="11" y2="14" />
+                      <line x1="8" y1="11" x2="14" y2="11" />
+                    </svg>
+                  </span>
+                </button>
+              ))}
             </div>
           </section>
         )}
@@ -782,6 +867,15 @@ export default function ClubDetailPage({
       <AuthPromptModal
         isOpen={isAuthPromptOpen}
         onClose={() => setIsAuthPromptOpen(false)}
+      />
+
+      {/* Gallery Modal */}
+      <GalleryModal
+        isOpen={isGalleryOpen}
+        onClose={handleGalleryClose}
+        images={galleryImages}
+        currentIndex={galleryIndex}
+        onNavigate={handleGalleryNavigate}
       />
     </main>
   );

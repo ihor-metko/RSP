@@ -139,18 +139,21 @@
   },
   "clubDetail": {
     "about": "Про клуб",
+    "aboutClub": "Про клуб",
     "courts": "Корти",
     "contact": "Контакти",
     "hours": "Години роботи",
     "location": "Розташування",
     "gallery": "Галерея",
     "availableCourts": "Доступні корти",
+    "courtAvailability": "Доступність кортів",
     "priceRange": "Ціна",
     "phone": "Телефон",
     "email": "Email",
     "website": "Сайт",
     "address": "Адреса",
-    "closed": "Зачинено"
+    "closed": "Зачинено",
+    "limited": "Обмежено"
   },
   "admin": {
     "clubs": {

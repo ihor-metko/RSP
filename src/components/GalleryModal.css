@@ -1,0 +1,119 @@
+@reference "tailwindcss";
+
+/* ===== Gallery Modal Overlay ===== */
+.rsp-gallery-modal-overlay {
+  @apply fixed inset-0 z-50 flex items-center justify-center;
+  background-color: rgba(0, 0, 0, 0.95);
+}
+
+/* ===== Gallery Modal Content ===== */
+.rsp-gallery-modal-content {
+  @apply relative w-full h-full flex flex-col items-center justify-center;
+  max-width: 100vw;
+  max-height: 100vh;
+  padding: 60px 16px 100px;
+}
+
+@media (min-width: 768px) {
+  .rsp-gallery-modal-content {
+    padding: 60px 80px 120px;
+  }
+}
+
+/* ===== Close Button ===== */
+.rsp-gallery-modal-close {
+  @apply absolute top-4 right-4 p-2 rounded-full z-10;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.rsp-gallery-modal-close:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== Navigation Buttons ===== */
+.rsp-gallery-modal-nav {
+  @apply absolute top-1/2 -translate-y-1/2 p-3 rounded-full z-10;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.rsp-gallery-modal-nav:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.rsp-gallery-modal-nav--prev {
+  left: 16px;
+}
+
+.rsp-gallery-modal-nav--next {
+  right: 16px;
+}
+
+@media (min-width: 768px) {
+  .rsp-gallery-modal-nav--prev {
+    left: 24px;
+  }
+  
+  .rsp-gallery-modal-nav--next {
+    right: 24px;
+  }
+}
+
+/* ===== Image Container ===== */
+.rsp-gallery-modal-image-container {
+  @apply flex items-center justify-center flex-1 w-full;
+  max-height: calc(100vh - 200px);
+}
+
+/* ===== Main Image ===== */
+.rsp-gallery-modal-image {
+  @apply max-w-full max-h-full object-contain rounded-lg;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== Footer ===== */
+.rsp-gallery-modal-footer {
+  @apply absolute bottom-24 left-0 right-0 flex flex-col items-center gap-1;
+  color: white;
+}
+
+.rsp-gallery-modal-counter {
+  @apply text-sm font-medium opacity-80;
+}
+
+.rsp-gallery-modal-caption {
+  @apply text-sm opacity-70 max-w-md text-center px-4;
+}
+
+/* ===== Thumbnails ===== */
+.rsp-gallery-modal-thumbnails {
+  @apply absolute bottom-4 left-0 right-0 flex justify-center gap-2 px-4 overflow-x-auto;
+}
+
+.rsp-gallery-modal-thumbnail {
+  @apply flex-shrink-0 w-12 h-12 rounded-md overflow-hidden transition-all duration-200;
+  border: 2px solid transparent;
+  opacity: 0.5;
+}
+
+.rsp-gallery-modal-thumbnail:hover {
+  opacity: 0.8;
+}
+
+.rsp-gallery-modal-thumbnail--active {
+  opacity: 1;
+  border-color: white;
+}
+
+.rsp-gallery-modal-thumbnail-image {
+  @apply w-full h-full object-cover;
+}
+
+@media (min-width: 768px) {
+  .rsp-gallery-modal-thumbnail {
+    @apply w-16 h-16;
+  }
+}

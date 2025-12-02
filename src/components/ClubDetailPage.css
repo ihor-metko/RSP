@@ -10,12 +10,12 @@
 /* ===== Hero Section ===== */
 .rsp-club-hero {
   @apply relative w-full overflow-hidden;
-  height: 280px;
+  height: 320px;
 }
 
 @media (min-width: 768px) {
   .rsp-club-hero {
-    height: 360px;
+    height: 400px;
   }
 }
 
@@ -28,7 +28,7 @@
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.6) 100%
+    rgba(0, 0, 0, 0.7) 100%
   );
 }
 
@@ -52,8 +52,15 @@
 }
 
 .rsp-club-hero-name {
-  @apply text-2xl md:text-4xl font-bold mb-1;
+  @apply text-2xl md:text-4xl font-bold mb-2;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Short description on hero */
+.rsp-club-hero-short-desc {
+  @apply text-sm md:text-base max-w-2xl mb-3 leading-relaxed;
+  opacity: 0.95;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .rsp-club-hero-location {
@@ -351,16 +358,137 @@
 }
 
 .rsp-club-gallery-grid {
-  @apply grid grid-cols-2 md:grid-cols-3 gap-3;
+  @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3;
 }
 
 .rsp-club-gallery-item {
-  @apply rounded-lg overflow-hidden aspect-video;
+  @apply rounded-lg overflow-hidden aspect-video cursor-pointer relative;
   background-color: var(--rsp-border);
 }
 
+.rsp-club-gallery-item::after {
+  @apply absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200;
+  content: "";
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.rsp-club-gallery-item:hover::after {
+  opacity: 1;
+}
+
+.rsp-club-gallery-item:hover .rsp-club-gallery-zoom-icon {
+  opacity: 1;
+}
+
+.rsp-club-gallery-zoom-icon {
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: white;
+}
+
 .rsp-club-gallery-image {
-  @apply w-full h-full object-cover transition-transform duration-300 hover:scale-105;
+  @apply w-full h-full object-cover transition-transform duration-300;
+}
+
+.rsp-club-gallery-item:hover .rsp-club-gallery-image {
+  transform: scale(1.05);
+}
+
+/* ===== Court Availability Quick View ===== */
+.rsp-club-availability-quick {
+  @apply py-6;
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.rsp-club-availability-quick-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.rsp-club-availability-quick-title {
+  @apply text-lg font-semibold flex items-center gap-2;
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-availability-quick-title svg {
+  @apply w-5 h-5;
+  color: var(--rsp-primary);
+}
+
+.rsp-club-availability-quick-grid {
+  @apply grid gap-3;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.rsp-club-availability-court-chip {
+  @apply rounded-lg p-3 flex items-center justify-between;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.rsp-club-availability-court-name {
+  @apply text-sm font-medium;
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-availability-status {
+  @apply text-xs px-2 py-0.5 rounded-full font-medium;
+}
+
+.rsp-club-availability-status--available {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.dark .rsp-club-availability-status--available {
+  background-color: rgba(34, 197, 94, 0.25);
+  color: #86efac;
+}
+
+.rsp-club-availability-status--limited {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
+}
+
+.dark .rsp-club-availability-status--limited {
+  background-color: rgba(234, 179, 8, 0.25);
+  color: #fde047;
+}
+
+.rsp-club-availability-status--booked {
+  background-color: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
+
+.dark .rsp-club-availability-status--booked {
+  background-color: rgba(107, 114, 128, 0.25);
+  color: #9ca3af;
+}
+
+/* ===== Full Description Section ===== */
+.rsp-club-full-description {
+  @apply mb-6;
+}
+
+.rsp-club-full-description-card {
+  @apply rounded-xl p-5 md:p-6;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.rsp-club-full-description-title {
+  @apply text-lg font-semibold mb-3 flex items-center gap-2;
+  color: var(--rsp-foreground);
+}
+
+.rsp-club-full-description-title svg {
+  @apply w-5 h-5 opacity-70;
+}
+
+.rsp-club-full-description-text {
+  @apply text-sm md:text-base leading-relaxed whitespace-pre-line;
+  color: var(--rsp-foreground);
+  opacity: 0.85;
 }
 
 /* ===== Back Link ===== */
@@ -371,13 +499,13 @@
 /* ===== Loading Skeleton ===== */
 .rsp-club-skeleton-hero {
   @apply w-full animate-pulse;
-  height: 280px;
+  height: 320px;
   background-color: var(--rsp-border);
 }
 
 @media (min-width: 768px) {
   .rsp-club-skeleton-hero {
-    height: 360px;
+    height: 400px;
   }
 }
 
