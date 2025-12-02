@@ -8,12 +8,27 @@
   color: var(--rsp-foreground);
 }
 
+/* Field wrapper for consistent structure */
+.rsp-input-field-wrapper {
+  @apply relative;
+}
+
+/* Password wrapper with toggle button positioning */
+.rsp-input-password-wrapper {
+  @apply relative;
+}
+
 .rsp-input {
   @apply w-full rounded-md px-3 py-2 text-sm transition-colors;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
   background-color: var(--rsp-background);
   color: var(--rsp-foreground);
   border: 1px solid var(--rsp-border);
+}
+
+/* Input with toggle button needs extra right padding */
+.rsp-input--with-toggle {
+  @apply pr-12;
 }
 
 .rsp-input:focus {
@@ -27,4 +42,26 @@
 
 .rsp-input:disabled {
   @apply opacity-50 cursor-not-allowed;
+}
+
+/* Password toggle button */
+.rsp-input-password-toggle {
+  @apply absolute right-3 top-1/2 -translate-y-1/2;
+  @apply p-2 rounded-md;
+  @apply transition-colors duration-200;
+  @apply cursor-pointer;
+  @apply flex items-center justify-center;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+  background: transparent;
+  border: none;
+}
+
+.rsp-input-password-toggle:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dark .rsp-input-password-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
 }

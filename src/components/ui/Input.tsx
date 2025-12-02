@@ -26,17 +26,17 @@ export function Input({ label, className = "", id, type, showPasswordToggle = fa
           {label}
         </label>
       )}
-      <div className={shouldShowToggle ? "im-auth-password-wrapper" : ""}>
+      <div className={shouldShowToggle ? "rsp-input-password-wrapper" : "rsp-input-field-wrapper"}>
         <input 
           id={inputId} 
           type={actualType}
-          className={`rsp-input ${shouldShowToggle ? "im-auth-password-input" : ""} ${className}`.trim()} 
+          className={`rsp-input ${shouldShowToggle ? "rsp-input--with-toggle" : ""} ${className}`.trim()} 
           {...props} 
         />
         {shouldShowToggle && (
           <button
             type="button"
-            className="im-auth-password-toggle"
+            className="rsp-input-password-toggle"
             onClick={() => setShowPassword(!showPassword)}
             aria-label={showPassword ? "Hide password" : "Show password"}
           >

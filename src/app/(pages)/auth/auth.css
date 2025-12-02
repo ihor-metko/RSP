@@ -129,35 +129,6 @@
   box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
 }
 
-/* Password input wrapper with toggle */
-.im-auth-password-wrapper {
-  @apply relative;
-}
-
-.im-auth-password-input {
-  @apply pr-12;
-}
-
-.im-auth-password-toggle {
-  @apply absolute right-3 top-1/2 -translate-y-1/2;
-  @apply p-2 rounded-md;
-  @apply transition-colors duration-200;
-  @apply cursor-pointer;
-  @apply flex items-center justify-center;
-  color: var(--im-auth-text-muted);
-  background: transparent;
-  border: none;
-}
-
-.im-auth-password-toggle:hover {
-  color: var(--im-auth-text);
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.dark .im-auth-password-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
 /* Primary button styling */
 .im-auth-button {
   @apply w-full py-3 px-4 rounded-lg;
