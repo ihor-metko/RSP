@@ -306,14 +306,14 @@ export default function CoachDashboardPage() {
 
   if (status === "loading") {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="rsp-container min-h-screen p-8">
+    <main className="rsp-container p-8">
       {/* Header */}
       <header className="rsp-header flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
         <div>
@@ -331,11 +331,10 @@ export default function CoachDashboardPage() {
       {toast && (
         <div
           role="alert"
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded shadow-lg ${
-            toast.type === "success"
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded shadow-lg ${toast.type === "success"
               ? "bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-400"
               : "bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400"
-          }`}
+            }`}
         >
           {toast.message}
         </div>
@@ -554,8 +553,8 @@ export default function CoachDashboardPage() {
                 {submitting
                   ? "Processing..."
                   : selectedTimeSlot.isAvailable
-                  ? "Mark Unavailable"
-                  : "Mark Available"}
+                    ? "Mark Unavailable"
+                    : "Mark Available"}
               </Button>
             </div>
           </div>

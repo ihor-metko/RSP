@@ -242,22 +242,21 @@ export default function PriceRulesPage({
 
   if (status === "loading" || loading) {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="rsp-container min-h-screen p-8">
+    <main className="rsp-container p-8">
       {/* Toast notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 p-4 rounded shadow-lg z-50 ${
-            toast.type === "success"
+          className={`fixed top-4 right-4 p-4 rounded shadow-lg z-50 ${toast.type === "success"
               ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
               : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
-          }`}
+            }`}
           role="alert"
         >
           {toast.message}
@@ -368,12 +367,12 @@ export default function PriceRulesPage({
           initialValues={
             editingRule
               ? {
-                  dayOfWeek: editingRule.dayOfWeek,
-                  date: editingRule.date,
-                  startTime: editingRule.startTime,
-                  endTime: editingRule.endTime,
-                  priceCents: editingRule.priceCents,
-                }
+                dayOfWeek: editingRule.dayOfWeek,
+                date: editingRule.date,
+                startTime: editingRule.startTime,
+                endTime: editingRule.endTime,
+                priceCents: editingRule.priceCents,
+              }
               : undefined
           }
           onSubmit={handleSubmit}
