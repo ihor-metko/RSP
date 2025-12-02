@@ -2,10 +2,10 @@
 
 /**
  * Header Component Styles
- * 
+ *
  * Uses im-* class prefix and global CSS variables only.
  * All colors reference --im-* variables.
- * 
+ *
  * CSS Variables used:
  * - --im-surface: Background color for surfaces
  * - --im-background: Page background color
@@ -15,7 +15,7 @@
  * - --im-card-bg: Card/dropdown background
  * - --im-muted: Muted text color
  * - --im-icon-color: Icon color
- * 
+ *
  * Header dimensions:
  * - Desktop: 56px height
  * - Mobile: 48px height
@@ -70,30 +70,6 @@
   .im-header-title {
     @apply hidden;
   }
-}
-
-/* Header navigation */
-.im-header-nav {
-  @apply hidden md:flex items-center gap-1;
-}
-
-.im-header-nav-link {
-  @apply px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-2 no-underline;
-  color: var(--im-foreground);
-}
-
-.im-header-nav-link:hover {
-  background-color: var(--im-card-bg);
-  color: var(--im-primary);
-}
-
-.im-header-nav-link:hover .im-header-icon {
-  color: var(--im-primary);
-}
-
-.im-header-nav-link:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
 }
 
 /* Header right section */

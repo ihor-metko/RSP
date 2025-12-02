@@ -21,7 +21,7 @@ export interface HeaderProps {
 /**
  * Outline icon components for navigation
  * Uses consistent 18-20px sizing with color: var(--im-icon-color)
- * 
+ *
  * ARIA: Icons are decorative (aria-hidden="true")
  */
 
@@ -158,15 +158,15 @@ const primaryNavItems: NavItem[] = [
 
 /**
  * Global Header component
- * 
+ *
  * Left side: Logo (clickable link to /) + primary navigation (Clubs, Courts, Coaches, Events)
  * Right side: compact user avatar with dropdown (no role visible for players)
- * 
+ *
  * ACCESSIBILITY:
  * - Keyboard navigation: Tab to avatar, Enter/Space opens menu, Arrow keys navigate inside menu, Escape closes
  * - Focus ring using outline: 2px solid var(--im-primary)
  * - role="menu" and role="menuitem" semantics in UserMenu
- * 
+ *
  * STYLING:
  * - All classes use im-* prefix
  * - All colors use global CSS variables (--im-*)
@@ -233,20 +233,6 @@ export default function Header({ title, showSearch = false, hideProfile = false 
           <Link href="/" className="im-header-brand" aria-label={t("home.title")}>
             <span className="im-header-title">{title || t("home.title")}</span>
           </Link>
-
-          {/* Desktop navigation - inline with logo */}
-          <nav className="im-header-nav" aria-label={t("playerDashboard.navigation.title")}>
-            {primaryNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="im-header-nav-link"
-              >
-                {item.icon}
-                <span>{getNavLabel(item.labelKey)}</span>
-              </Link>
-            ))}
-          </nav>
         </div>
 
         {/* Right section: Search, controls, profile/auth */}

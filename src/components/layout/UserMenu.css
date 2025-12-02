@@ -2,10 +2,10 @@
 
 /**
  * UserMenu Component Styles
- * 
+ *
  * Uses im-* class prefix and global CSS variables only.
  * All colors reference --im-* variables.
- * 
+ *
  * CSS Variables used:
  * - --im-surface: Background color for surfaces
  * - --im-foreground: Text color
@@ -31,11 +31,6 @@
 
 .im-user-menu-trigger:hover {
   background-color: var(--im-card-bg);
-}
-
-.im-user-menu-trigger:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
 }
 
 /* Avatar circle */
