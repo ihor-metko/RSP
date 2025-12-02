@@ -1,5 +1,6 @@
 "use client";
 
+import { DashboardFooter } from "@/components/layout";
 import Header from "@/components/layout/Header";
 
 /**
@@ -14,8 +15,11 @@ export default function AdminLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <div className="flex-1">
+
+      <div className="flex-1 overflow-auto">
         {children}
+
+        <DashboardFooter />
       </div>
     </div>
   );

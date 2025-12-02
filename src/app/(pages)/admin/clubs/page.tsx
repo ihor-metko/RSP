@@ -420,9 +420,6 @@ export default function AdminClubsPage() {
           </Button>
         </div>
       </Modal>
-
-      {/* Dashboard Footer */}
-      <DashboardFooter />
     </main>
   );
 }

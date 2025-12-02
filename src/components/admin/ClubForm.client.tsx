@@ -57,7 +57,7 @@ interface ClubFormData {
 }
 
 const initialBusinessHours: BusinessHour[] = [
-  { dayOfWeek: 0, openTime: null, closeTime: null, isClosed: true }, // Sunday
+  { dayOfWeek: 0, openTime: "09:00", closeTime: "21:00", isClosed: false },
   { dayOfWeek: 1, openTime: "09:00", closeTime: "21:00", isClosed: false },
   { dayOfWeek: 2, openTime: "09:00", closeTime: "21:00", isClosed: false },
   { dayOfWeek: 3, openTime: "09:00", closeTime: "21:00", isClosed: false },
@@ -67,23 +67,23 @@ const initialBusinessHours: BusinessHour[] = [
 ];
 
 const initialFormData: ClubFormData = {
-  name: "",
+  name: "Padel Pulse Arena",
   slug: "",
-  shortDescription: "",
-  longDescription: "",
-  location: "",
-  city: "",
-  country: "",
-  latitude: "",
-  longitude: "",
-  phone: "",
-  email: "",
-  website: "",
-  socialLinks: "",
-  defaultCurrency: "USD",
-  timezone: "UTC",
+  shortDescription: "Сучасний падел-клуб у центрі міста з професійними кортами і тренерською командою.",
+  longDescription: "Padel Pulse Arena — сучасний падел-клуб з критими та відкритими кортами, зручною лаунж-зоною та програмами для новачків і профі. Пропонуємо індивідуальні та групові тренування, оренду інвентарю та корпоративні заходи.",
+  location: "вул. Спортивна 12, Київ",
+  city: "Київ",
+  country: "Україна",
+  latitude: "50.4501",
+  longitude: "30.5234",
+  phone: "+380671234567",
+  email: "info@paddlepulse.ua",
+  website: "https://paddlepulse.ua",
+  socialLinks: "{\"instagram\":\"https://instagram.com/paddlepulse.kyiv\",\"facebook\":\"https://facebook.com/paddlepulse.kyiv\"}",
+  defaultCurrency: "UAH",
+  timezone: "Europe/Kiev",
   isPublic: true,
-  tags: "",
+  tags: "[\"padel\",\"indoor\",\"training\"]",
   heroImage: null,
   logo: null,
   gallery: [],
@@ -101,12 +101,12 @@ export function ClubForm() {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    
+
     // Clear field error when user types
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
@@ -332,7 +332,7 @@ export function ClubForm() {
         {/* Basic Info Section */}
         <Card className="im-club-form-section">
           <h2 className="im-club-form-section-title">Basic Information</h2>
-          
+
           <div className="im-club-form-row">
             <div className="im-club-form-field im-club-form-field--full">
               <Input
@@ -405,7 +405,7 @@ export function ClubForm() {
         {/* Location & Contact Section */}
         <Card className="im-club-form-section">
           <h2 className="im-club-form-section-title">Location &amp; Contact</h2>
-          
+
           <div className="im-club-form-row">
             <div className="im-club-form-field im-club-form-field--full">
               <Input
@@ -545,7 +545,7 @@ export function ClubForm() {
         {/* Images & Media Section */}
         <Card className="im-club-form-section">
           <h2 className="im-club-form-section-title">Images &amp; Media</h2>
-          
+
           <div className="im-club-form-row im-club-form-row--two">
             <div className="im-club-form-field">
               <UploadField
@@ -605,7 +605,7 @@ export function ClubForm() {
         {/* Settings Section */}
         <Card className="im-club-form-section">
           <h2 className="im-club-form-section-title">Settings</h2>
-          
+
           <div className="im-club-form-row im-club-form-row--two">
             <div className="im-club-form-field">
               <Input
@@ -702,7 +702,7 @@ function GalleryField({ label, value, onChange, disabled }: GalleryFieldProps) {
   return (
     <div className="im-gallery-field">
       <label className="im-upload-field-label">{label}</label>
-      
+
       <div className="im-gallery-field-grid">
         {value.map((item, index) => (
           <div key={index} className="im-gallery-field-item">
@@ -723,7 +723,7 @@ function GalleryField({ label, value, onChange, disabled }: GalleryFieldProps) {
             </button>
           </div>
         ))}
-        
+
         <button
           type="button"
           className="im-gallery-field-add"
@@ -734,7 +734,7 @@ function GalleryField({ label, value, onChange, disabled }: GalleryFieldProps) {
           <span>Add Image</span>
         </button>
       </div>
-      
+
       <input
         ref={inputRef}
         type="file"
