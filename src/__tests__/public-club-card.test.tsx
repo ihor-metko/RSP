@@ -112,6 +112,45 @@ describe("PublicClubCard", () => {
       render(<PublicClubCard club={baseClub} />);
       expect(screen.getByText("T")).toBeInTheDocument(); // First letter of "Test Club"
     });
+
+    it("converts Supabase Storage paths to full URLs when NEXT_PUBLIC_SUPABASE_URL is set", () => {
+      // Set the Supabase URL environment variable
+      const originalEnv = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://xyz.supabase.co";
+
+      const clubWithStoragePath = {
+        ...baseClub,
+        heroImage: "/uploads/clubs/abc123.jpg",
+      };
+      render(<PublicClubCard club={clubWithStoragePath} />);
+      const img = screen.getByAltText("Test Club main image");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute(
+        "src",
+        "https://xyz.supabase.co/storage/v1/object/public/uploads/clubs/abc123.jpg"
+      );
+
+      // Restore original environment
+      process.env.NEXT_PUBLIC_SUPABASE_URL = originalEnv;
+    });
+
+    it("uses original path when NEXT_PUBLIC_SUPABASE_URL is not set", () => {
+      // Remove the Supabase URL environment variable
+      const originalEnv = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+      const clubWithStoragePath = {
+        ...baseClub,
+        heroImage: "/uploads/clubs/abc123.jpg",
+      };
+      render(<PublicClubCard club={clubWithStoragePath} />);
+      const img = screen.getByAltText("Test Club main image");
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute("src", "/uploads/clubs/abc123.jpg");
+
+      // Restore original environment
+      process.env.NEXT_PUBLIC_SUPABASE_URL = originalEnv;
+    });
   });
 
   describe("Short Description", () => {

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card, Input, Modal, IMLink } from "@/components/ui";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
-import { DashboardFooter } from "@/components/layout";
+import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Club, ClubFormData } from "@/types/club";
 
 const initialFormData: ClubFormData = {
@@ -16,16 +16,6 @@ const initialFormData: ClubFormData = {
   openingHours: "",
   logo: "",
 };
-
-function isValidImageUrl(url: string | null | undefined): boolean {
-  if (!url) return false;
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return false;
-  }
-}
 
 export default function AdminClubsPage() {
   const { data: session, status } = useSession();
@@ -249,7 +239,7 @@ export default function AdminClubsPage() {
                             {isValidImageUrl(club.logo) && (
                               /* eslint-disable-next-line @next/next/no-img-element */
                               <img
-                                src={club.logo as string}
+                                src={getSupabaseStorageUrl(club.logo)!}
                                 alt={`${club.name} logo`}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -310,7 +300,7 @@ export default function AdminClubsPage() {
                                   <span className="font-semibold">Logo: </span>
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
-                                    src={club.logo as string}
+                                    src={getSupabaseStorageUrl(club.logo)!}
                                     alt={`${club.name} logo`}
                                     className="w-16 h-16 rounded-sm object-cover mt-1"
                                   />

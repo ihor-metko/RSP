@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button, IMLink } from "@/components/ui";
+import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import "./ClubsList.css";
 
 export interface PublicClubCardProps {
@@ -21,16 +22,6 @@ export interface PublicClubCardProps {
   };
   /** User role for permission-based rendering (player, admin, coach) */
   role?: "player" | "admin" | "coach";
-}
-
-function isValidImageUrl(url: string | null | undefined): boolean {
-  if (!url) return false;
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return false;
-  }
 }
 
 /**
@@ -69,9 +60,13 @@ function parseTags(tags: string | null | undefined): string[] {
 export function PublicClubCard({ club, role = "player" }: PublicClubCardProps) {
   const t = useTranslations();
   
+  // Convert stored paths to full Supabase Storage URLs
+  const heroImageUrl = getSupabaseStorageUrl(club.heroImage);
+  const logoUrl = getSupabaseStorageUrl(club.logo);
+  
   // Determine the main image: heroImage first, then logo as fallback
-  const mainImage = isValidImageUrl(club.heroImage) ? club.heroImage : null;
-  const hasLogo = isValidImageUrl(club.logo);
+  const mainImage = isValidImageUrl(heroImageUrl) ? heroImageUrl : null;
+  const hasLogo = isValidImageUrl(logoUrl);
   const formattedAddress = formatAddress(club.city, club.location);
   const clubTags = parseTags(club.tags);
 
@@ -100,7 +95,7 @@ export function PublicClubCard({ club, role = "player" }: PublicClubCardProps) {
         ) : hasLogo ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={club.logo as string}
+            src={logoUrl as string}
             alt={`${club.name} logo`}
             className="rsp-club-hero-image rsp-club-hero-image--logo"
           />
