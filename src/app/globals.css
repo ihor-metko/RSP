@@ -83,6 +83,20 @@ body {
   justify-content: center;
 }
 
+/* Hero background overlay - lighter in dark mode for visual balance */
+.tm-hero-bg {
+  opacity: 0.5;
+}
+
+.dark .tm-hero-bg {
+  opacity: 0.4;
+}
+
+/* Hero overlay pattern - more subtle in dark mode */
+.dark .tm-hero-overlay {
+  opacity: 0.05;
+}
+
 .tm-hero-view-clubs {
   @apply border-white text-white;
 }
@@ -91,15 +105,65 @@ body {
   @apply bg-white/10;
 }
 
-.tm-hero-search .tm-search-input,
-.tm-hero-search .tm-city-input {
-  @apply bg-white/90 dark:bg-gray-800/90;
+/* Hero search container */
+.tm-hero-search {
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+}
+
+.dark .tm-hero-search {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Hero search inputs - clear visibility in both themes */
+.tm-hero-search .rsp-input {
+  background-color: var(--rsp-background);
+  color: var(--rsp-foreground);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-hero-search .rsp-input::placeholder {
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.tm-hero-search .rsp-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Hero search button */
+.tm-hero-search .rsp-button {
+  @apply whitespace-nowrap;
+  background-color: var(--rsp-primary);
+  color: var(--rsp-accent);
+}
+
+.tm-hero-search .rsp-button:hover {
+  background-color: var(--rsp-primary-hover);
+}
+
+.tm-hero-search .rsp-button:focus {
+  outline: 2px solid var(--rsp-secondary);
+  outline-offset: 2px;
+}
+
+.tm-hero-search .rsp-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Hero search outline button */
+.tm-hero-search .rsp-button--outline {
+  background-color: transparent;
+  color: var(--rsp-foreground);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-hero-search .rsp-button--outline:hover {
+  background-color: var(--rsp-card-bg);
 }
 
 .tm-hero-search .tm-indoor-filter span {
   @apply text-gray-100;
-}
-
-.tm-hero-search .tm-search-button {
-  @apply whitespace-nowrap;
 }
