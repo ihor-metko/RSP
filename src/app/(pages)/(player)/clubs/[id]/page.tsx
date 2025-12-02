@@ -302,18 +302,6 @@ export default function ClubDetailPage({
     setGalleryIndex(index);
   };
 
-  // Get availability status for quick view
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _getCourtAvailabilityStatus = (courtId: string): "available" | "limited" | "booked" => {
-    const slots = courtAvailability[courtId] || [];
-    if (slots.length === 0) return "booked";
-
-    const availableSlots = slots.filter((slot) => slot.status === "available");
-    if (availableSlots.length === 0) return "booked";
-    if (availableSlots.length < slots.length / 2) return "limited";
-    return "available";
-  };
-
   // Loading skeleton
   if (isLoading) {
     return (
