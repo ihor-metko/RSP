@@ -3,7 +3,6 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import Header from "@/components/layout/Header";
 
 export const metadata: Metadata = {
   title: "Paddle Club MVP",
@@ -20,10 +19,9 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} className="dark">
-      <body className="antialiased">
+      <body className="antialiased min-h-screen flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
-            <Header />
             {children}
           </AuthProvider>
         </NextIntlClientProvider>

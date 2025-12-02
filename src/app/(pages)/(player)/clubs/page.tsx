@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl";
 import { IMLink } from "@/components/ui";
 import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
-import { PublicFooter } from "@/components/layout";
 import "@/components/ClubsList.css";
 
 interface ClubWithCounts {
@@ -38,12 +37,12 @@ export default function ClubsPage() {
   const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Read initial values from URL
   const urlQ = searchParams.get("q") || "";
   const urlCity = searchParams.get("city") || "";
   const urlIndoor = searchParams.get("indoor") === "true";
-  
+
   const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -70,10 +69,10 @@ export default function ClubsPage() {
       if (params.q) urlParams.set("q", params.q);
       if (params.city) urlParams.set("city", params.city);
       if (params.indoor) urlParams.set("indoor", "true");
-      
+
       const url = `/api/clubs${urlParams.toString() ? `?${urlParams.toString()}` : ""}`;
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch clubs");
       }
@@ -195,9 +194,6 @@ export default function ClubsPage() {
           {t("common.backToHome")}
         </IMLink>
       </div>
-
-      {/* Footer */}
-      <PublicFooter />
     </main>
   );
 }

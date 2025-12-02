@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .tm-clubs-page {
-  @apply min-h-screen p-8;
+  @apply p-8;
   background-color: var(--rsp-background);
   color: var(--rsp-foreground);
 }

@@ -13,7 +13,6 @@ import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimel
 import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { Button, IMLink } from "@/components/ui";
-import { PublicFooter } from "@/components/layout";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 
 interface Coach {
@@ -457,9 +456,6 @@ export default function ClubDetailPage({
         isOpen={isAuthPromptOpen}
         onClose={() => setIsAuthPromptOpen(false)}
       />
-
-      {/* Footer */}
-      <PublicFooter />
     </main>
   );
 }
