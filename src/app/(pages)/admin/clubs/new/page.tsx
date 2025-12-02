@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { ClubForm } from "@/components/admin/ClubForm.client";
+import { ClubCreationStepper } from "@/components/admin/ClubCreationStepper.client";
 
 export default function NewClubPage() {
   const { data: session, status } = useSession();
@@ -32,7 +32,7 @@ export default function NewClubPage() {
 
   return (
     <main className="rsp-container min-h-screen">
-      <ClubForm />
+      <ClubCreationStepper />
     </main>
   );
 }
