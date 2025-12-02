@@ -238,7 +238,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
           {isValidImageUrl(club.heroImage) ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={getSupabaseStorageUrl(club.heroImage)!}
+              src={getSupabaseStorageUrl(club.heroImage) ?? ""}
               alt="Club hero"
               className="im-gallery-view-hero-img"
             />
@@ -253,7 +253,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 key={img.id}
-                src={getSupabaseStorageUrl(img.imageUrl)!}
+                src={getSupabaseStorageUrl(img.imageUrl) ?? ""}
                 alt={img.altText || "Gallery image"}
                 className="im-gallery-view-thumb"
               />
@@ -277,7 +277,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
             {isValidImageUrl(heroImage) ? (
               <div className="im-gallery-edit-hero-preview">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={getSupabaseStorageUrl(heroImage)!} alt="Hero preview" />
+                <img src={getSupabaseStorageUrl(heroImage) ?? ""} alt="Hero preview" />
                 <Button
                   type="button"
                   variant="outline"
@@ -315,7 +315,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
             {isValidImageUrl(logo) ? (
               <div className="im-gallery-edit-logo-preview">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={getSupabaseStorageUrl(logo)!} alt="Logo preview" />
+                <img src={getSupabaseStorageUrl(logo) ?? ""} alt="Logo preview" />
                 <Button
                   type="button"
                   variant="outline"
@@ -375,7 +375,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
                 <div key={img.id || index} className="im-gallery-edit-item">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={img.preview || getSupabaseStorageUrl(img.imageUrl)!}
+                    src={img.preview || getSupabaseStorageUrl(img.imageUrl) ?? ""}
                     alt={img.altText || `Gallery image ${index + 1}`}
                   />
                   <div className="im-gallery-edit-item-actions">

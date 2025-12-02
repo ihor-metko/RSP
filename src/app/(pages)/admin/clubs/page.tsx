@@ -239,7 +239,7 @@ export default function AdminClubsPage() {
                             {isValidImageUrl(club.logo) && (
                               /* eslint-disable-next-line @next/next/no-img-element */
                               <img
-                                src={getSupabaseStorageUrl(club.logo)!}
+                                src={getSupabaseStorageUrl(club.logo) ?? ""}
                                 alt={`${club.name} logo`}
                                 className="w-8 h-8 rounded-full object-cover"
                               />
@@ -300,7 +300,7 @@ export default function AdminClubsPage() {
                                   <span className="font-semibold">Logo: </span>
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
                                   <img
-                                    src={getSupabaseStorageUrl(club.logo)!}
+                                    src={getSupabaseStorageUrl(club.logo) ?? ""}
                                     alt={`${club.name} logo`}
                                     className="w-16 h-16 rounded-sm object-cover mt-1"
                                   />

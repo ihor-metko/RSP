@@ -92,7 +92,7 @@ export function ClubHeaderView({ club, onUpdate }: ClubHeaderViewProps) {
           {isValidImageUrl(club.logo) && (
             <div className="im-header-view-logo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={getSupabaseStorageUrl(club.logo)!} alt={`${club.name} logo`} />
+              <img src={getSupabaseStorageUrl(club.logo) ?? ""} alt={`${club.name} logo`} />
             </div>
           )}
           <div className="im-header-view-info">

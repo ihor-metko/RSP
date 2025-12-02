@@ -20,7 +20,15 @@ function getSupabaseUrl(): string {
 const STORAGE_BUCKET = "uploads";
 
 /**
- * Check if a URL is already a full HTTP/HTTPS URL
+ * Path prefixes that indicate a valid storage path.
+ */
+const VALID_PATH_PREFIXES = ["/", "uploads/", "clubs/"] as const;
+
+/**
+ * Check if a URL is already a full HTTP/HTTPS URL.
+ * 
+ * Note: HTTP URLs are accepted to support legacy data and local development.
+ * In production, images should use HTTPS for security.
  */
 function isFullUrl(url: string): boolean {
   try {
@@ -42,8 +50,8 @@ function extractFilePath(storedPath: string): string {
   let path = storedPath.startsWith("/") ? storedPath.slice(1) : storedPath;
   
   // Remove "uploads/" prefix if present (since we specify bucket separately)
-  if (path.startsWith("uploads/")) {
-    path = path.slice("uploads/".length);
+  if (path.startsWith(`${STORAGE_BUCKET}/`)) {
+    path = path.slice(`${STORAGE_BUCKET}/`.length);
   }
   
   return path;
@@ -54,9 +62,10 @@ function extractFilePath(storedPath: string): string {
  * 
  * If the URL is already a full HTTP/HTTPS URL, it's returned as-is.
  * If NEXT_PUBLIC_SUPABASE_URL is not configured, returns the original path.
+ * Returns null only if the input is null, undefined, or empty.
  * 
  * @param storedPath - The path as stored in the database (e.g., "/uploads/clubs/uuid.jpg")
- * @returns Full public URL for the image or the original path if conversion not possible
+ * @returns Full public URL for the image, or the original path if conversion not possible, or null for invalid input
  * 
  * @example
  * // With NEXT_PUBLIC_SUPABASE_URL="https://xyz.supabase.co"
@@ -112,7 +121,7 @@ export function isValidImageUrl(url: string | null | undefined): boolean {
 
   // Check if we have Supabase URL configured for path-based URLs
   const supabaseUrl = getSupabaseUrl();
-  if (supabaseUrl && (url.startsWith("/") || url.startsWith("uploads/") || url.startsWith("clubs/"))) {
+  if (supabaseUrl && VALID_PATH_PREFIXES.some(prefix => url.startsWith(prefix))) {
     return true;
   }
 
