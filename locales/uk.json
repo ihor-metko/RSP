@@ -624,5 +624,13 @@
     "continue": "Продовжити",
     "bookingConfirmed": "Бронювання підтверджено!",
     "bookingConfirmedMessage": "Ваш корт успішно заброньований."
+  },
+  "breadcrumbs": {
+    "home": "Головна",
+    "clubs": "Клуби",
+    "admin": "Адмін",
+    "courts": "Корти",
+    "dashboard": "Панель",
+    "navigation": "Навігація хлібними крихтами"
   }
 }

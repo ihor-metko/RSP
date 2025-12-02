@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Modal, IMLink } from "@/components/ui";
+import { useTranslations } from "next-intl";
+import { Button, Card, Modal, IMLink, Breadcrumbs } from "@/components/ui";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { ClubHeaderView } from "@/components/admin/club/ClubHeaderView";
 import { ClubContactsView } from "@/components/admin/club/ClubContactsView";
@@ -25,6 +26,7 @@ export default function AdminClubDetailPage({
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const t = useTranslations();
   const [clubId, setClubId] = useState<string | null>(null);
   const [club, setClub] = useState<ClubDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -269,7 +271,19 @@ export default function AdminClubDetailPage({
 
       {/* Main Content */}
       <div className="im-admin-club-content">
-        {/* Breadcrumb & Actions Bar */}
+        {/* Breadcrumbs */}
+        <Breadcrumbs
+          items={[
+            { label: t("breadcrumbs.home"), href: "/" },
+            { label: t("breadcrumbs.admin"), href: "/admin/clubs" },
+            { label: t("breadcrumbs.clubs"), href: "/admin/clubs" },
+            { label: club.name },
+          ]}
+          className="mb-6"
+          ariaLabel={t("breadcrumbs.navigation")}
+        />
+
+        {/* Actions Bar */}
         <div className="im-admin-club-actions-bar">
           <div className="im-admin-club-breadcrumb">
             <IMLink href="/admin/clubs" className="im-admin-club-breadcrumb-link">
