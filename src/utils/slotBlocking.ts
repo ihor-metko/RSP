@@ -21,6 +21,15 @@ export interface SlotBlockStatus {
 }
 
 /**
+ * Parse a YYYY-MM-DD date string into year, month, day components
+ * This avoids timezone issues by not using Date constructor with string
+ */
+function parseDateComponents(dateStr: string): { year: number; month: number; day: number } {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return { year, month: month - 1, day }; // month is 0-indexed for Date constructor
+}
+
+/**
  * Determine if a slot is blocked based on current time.
  * 
  * @param slotDate - The date string (YYYY-MM-DD) of the slot
@@ -39,9 +48,12 @@ export function isSlotBlocked(
   slotHour: number,
   now: Date
 ): SlotBlockStatus {
-  const slotDateObj = new Date(slotDate + "T00:00:00");
+  // Parse slot date components to avoid timezone issues
+  const { year: slotYear, month: slotMonth, day: slotDay } = parseDateComponents(slotDate);
+  
+  // Create date objects using explicit year/month/day (local timezone)
+  const slotDateOnly = new Date(slotYear, slotMonth, slotDay);
   const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const slotDateOnly = new Date(slotDateObj.getFullYear(), slotDateObj.getMonth(), slotDateObj.getDate());
   
   // Past day check
   if (slotDateOnly.getTime() < nowDateOnly.getTime()) {

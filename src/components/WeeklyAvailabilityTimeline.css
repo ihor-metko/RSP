@@ -117,7 +117,7 @@
   color: #6b7280;
   opacity: 0.6;
   cursor: not-allowed;
-  pointer-events: auto; /* Allow hover for tooltip but prevent click through CSS */
+  pointer-events: auto; /* Allow hover for tooltip; click prevention is handled in JavaScript */
 }
 
 .tm-availability-block--blocked-past:hover {

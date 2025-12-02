@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui";
 import { isSlotBlocked } from "@/utils/slotBlocking";
 import type {
@@ -85,9 +85,19 @@ function formatHour(hour: number, locale: string): string {
   return new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit", hour12: false }).format(date);
 }
 
+/**
+ * Parse a YYYY-MM-DD date string into year, month, day components
+ * This avoids timezone issues by not using Date constructor with string
+ */
+function parseDateComponents(dateStr: string): { year: number; month: number; day: number } {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return { year, month: month - 1, day }; // month is 0-indexed for Date constructor
+}
+
 // Get localized day name
 function getLocalizedDayName(dateStr: string, locale: string, format: "short" | "long" = "short"): string {
-  const date = new Date(dateStr + "T00:00:00");
+  const { year, month, day } = parseDateComponents(dateStr);
+  const date = new Date(year, month, day);
   return new Intl.DateTimeFormat(locale, { weekday: format }).format(date);
 }
 
@@ -208,8 +218,8 @@ export function WeeklyAvailabilityTimeline({
   } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Get browser locale for Intl formatting
-  const locale = typeof window !== "undefined" ? navigator.language : "en-US";
+  // Get locale from next-intl context for consistent i18n
+  const locale = useLocale();
   
   // Compute current time once per render for consistent blocking checks
   const now = useMemo(() => new Date(), []);
@@ -375,13 +385,14 @@ export function WeeklyAvailabilityTimeline({
           {/* Day rows */}
           {data.days.map((day) => {
             const localizedDayName = getLocalizedDayName(day.date, locale, "short");
+            const { day: dayOfMonth } = parseDateComponents(day.date);
             
             return (
               <div key={day.date} className="tm-weekly-grid-row" role="row">
                 <div className="tm-weekly-grid-day-label" role="rowheader">
                   <span>{localizedDayName}</span>
                   <span className="ml-1 opacity-60 text-[10px]">
-                    {new Date(day.date + "T00:00:00").getDate()}
+                    {dayOfMonth}
                   </span>
                 </div>
                 {day.hours.map((slot) => {
