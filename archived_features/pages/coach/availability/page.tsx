@@ -75,7 +75,7 @@ export default function CoachAvailabilityPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
       </main>
     );
@@ -83,7 +83,7 @@ export default function CoachAvailabilityPage() {
 
   if (error) {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <Card>
           <div className="text-center py-8">
             <p className="text-red-500 mb-4">{error}</p>
@@ -97,7 +97,7 @@ export default function CoachAvailabilityPage() {
   }
 
   return (
-    <main className="rsp-container min-h-screen p-8">
+    <main className="rsp-container p-8">
       {/* Header */}
       <header className="rsp-header flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
         <div>

@@ -36,7 +36,7 @@ export default function SignInPage() {
 
   const handleRedirect = useCallback((userName: string | null | undefined, userRole: UserRole | undefined) => {
     const redirectPath = getRoleHomepage(userRole);
-    
+
     // Show welcome toast if user has a name
     if (userName) {
       setToast(t("auth.welcomeBack", { name: userName }));
@@ -68,7 +68,7 @@ export default function SignInPage() {
       } else {
         // Refresh the session to get updated user data
         const updatedSession = await updateSession();
-        
+
         if (updatedSession?.user) {
           handleRedirect(
             updatedSession.user.name,
@@ -90,7 +90,7 @@ export default function SignInPage() {
   // Show loading state while checking session
   if (status === "loading") {
     return (
-      <main className="rsp-container min-h-screen p-8 flex items-center justify-center">
+      <main className="rsp-container p-8 flex items-center justify-center">
         <div className="rsp-loading text-center">{t("common.loading")}</div>
       </main>
     );
@@ -99,14 +99,14 @@ export default function SignInPage() {
   // If already authenticated, show loading while redirecting
   if (status === "authenticated") {
     return (
-      <main className="rsp-container min-h-screen p-8 flex items-center justify-center">
+      <main className="rsp-container p-8 flex items-center justify-center">
         <div className="rsp-loading text-center">{t("common.loading")}</div>
       </main>
     );
   }
 
   return (
-    <main className="rsp-container min-h-screen p-8 flex items-center justify-center">
+    <main className="rsp-container p-8 flex items-center justify-center">
       {/* Toast Notification */}
       {toast && (
         <div

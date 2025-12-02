@@ -20,7 +20,7 @@ export default function NewClubPage() {
 
   if (status === "loading") {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
       </main>
     );
@@ -31,7 +31,7 @@ export default function NewClubPage() {
   }
 
   return (
-    <main className="rsp-container min-h-screen">
+    <main className="rsp-container">
       <ClubCreationStepper />
     </main>
   );

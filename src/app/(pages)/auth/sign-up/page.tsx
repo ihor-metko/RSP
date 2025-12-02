@@ -53,7 +53,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="rsp-container min-h-screen p-8 flex items-center justify-center">
+    <main className="rsp-container p-8 flex items-center justify-center">
       <Card title={t("auth.registerTitle")} className="w-full max-w-md">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (

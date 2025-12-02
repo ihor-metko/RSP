@@ -176,14 +176,14 @@ export default function AdminClubsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="rsp-container min-h-screen p-8">
+    <main className="rsp-container p-8">
       <header className="rsp-header flex items-center justify-between mb-8">
         <div>
           <h1 className="rsp-title text-3xl font-bold">Admin - Clubs</h1>

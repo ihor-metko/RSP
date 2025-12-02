@@ -30,7 +30,7 @@ export default function TrainingsPage() {
 
   if (status === "loading") {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
       </main>
     );
@@ -41,7 +41,7 @@ export default function TrainingsPage() {
   }
 
   return (
-    <main className="rsp-container min-h-screen p-8">
+    <main className="rsp-container p-8">
       {/* Header */}
       <header className="rsp-header flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
         <div>
