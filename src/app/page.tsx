@@ -87,7 +87,7 @@ export default function Home() {
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="rsp-club-card animate-pulse">
                     <div className="rsp-club-card-header">
-                      <div className="rsp-club-logo-placeholder bg-gray-200 dark:bg-gray-700" style={{ background: 'none' }} />
+                      <div className="rsp-club-logo-placeholder-skeleton bg-gray-200 dark:bg-gray-700" />
                       <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-md" />
                     </div>
                     <div className="rsp-club-details space-y-2">

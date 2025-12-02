@@ -124,6 +124,11 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
+.rsp-club-logo-placeholder-skeleton {
+  @apply w-14 h-14 rounded-xl flex-shrink-0;
+  background-color: var(--rsp-border);
+}
+
 .rsp-club-name {
   @apply text-lg font-semibold leading-tight;
   color: var(--rsp-foreground);
