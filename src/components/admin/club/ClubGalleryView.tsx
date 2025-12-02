@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
+import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { ClubDetail } from "@/types/club";
 import "./ClubGalleryView.css";
 
@@ -23,16 +24,6 @@ interface ClubGalleryViewProps {
     logo: string | null;
     gallery: GalleryImage[];
   }) => Promise<unknown>;
-}
-
-function isValidImageUrl(url: string | null): boolean {
-  if (!url) return false;
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return url.startsWith("/");
-  }
 }
 
 export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
@@ -247,7 +238,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
           {isValidImageUrl(club.heroImage) ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={club.heroImage!}
+              src={getSupabaseStorageUrl(club.heroImage) ?? ""}
               alt="Club hero"
               className="im-gallery-view-hero-img"
             />
@@ -262,7 +253,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 key={img.id}
-                src={img.imageUrl}
+                src={getSupabaseStorageUrl(img.imageUrl) ?? ""}
                 alt={img.altText || "Gallery image"}
                 className="im-gallery-view-thumb"
               />
@@ -286,7 +277,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
             {isValidImageUrl(heroImage) ? (
               <div className="im-gallery-edit-hero-preview">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={heroImage!} alt="Hero preview" />
+                <img src={getSupabaseStorageUrl(heroImage) ?? ""} alt="Hero preview" />
                 <Button
                   type="button"
                   variant="outline"
@@ -324,7 +315,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
             {isValidImageUrl(logo) ? (
               <div className="im-gallery-edit-logo-preview">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logo!} alt="Logo preview" />
+                <img src={getSupabaseStorageUrl(logo) ?? ""} alt="Logo preview" />
                 <Button
                   type="button"
                   variant="outline"
@@ -384,7 +375,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
                 <div key={img.id || index} className="im-gallery-edit-item">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={img.preview || img.imageUrl}
+                    src={img.preview || getSupabaseStorageUrl(img.imageUrl) ?? ""}
                     alt={img.altText || `Gallery image ${index + 1}`}
                   />
                   <div className="im-gallery-edit-item-actions">
