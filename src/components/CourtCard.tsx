@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
@@ -76,9 +76,9 @@ export function CourtCard({
   const t = useTranslations();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Get the court image URL
-  const imageUrl = getSupabaseStorageUrl(court.imageUrl);
-  const hasImage = isValidImageUrl(imageUrl);
+  // Memoize the court image URL to avoid recalculating on every render
+  const imageUrl = useMemo(() => getSupabaseStorageUrl(court.imageUrl), [court.imageUrl]);
+  const hasImage = useMemo(() => isValidImageUrl(imageUrl), [imageUrl]);
 
   // Determine which slots to display
   const displaySlots = isExpanded ? availabilitySlots : availabilitySlots.slice(0, maxVisibleSlots);
@@ -103,7 +103,7 @@ export function CourtCard({
     if (availabilitySlots.length === 0 && !todaySlots) {
       return (
         <p className="text-sm" style={{ color: "var(--im-muted)" }}>
-          {t("court.noCourtsFound").replace("courts", "availability")}
+          {t("court.noAvailabilityData")}
         </p>
       );
     }
@@ -132,9 +132,9 @@ export function CourtCard({
               className="im-court-card-slots-more"
               onClick={() => setIsExpanded(true)}
               aria-expanded={false}
-              aria-label={t("common.actions")}
+              aria-label={t("court.showMoreSlots")}
             >
-              +{remainingCount}
+              +{remainingCount} {t("court.moreSlots")}
             </button>
           )}
         </div>
@@ -274,4 +274,3 @@ export function CourtCard({
     </article>
   );
 }
-

@@ -501,7 +501,10 @@
     "noCourtsFound": "No courts found for this club.",
     "partiallyBooked": "Partially booked",
     "pending": "Pending",
-    "noAvailableAtTime": "No courts available at this time. Try another slot."
+    "noAvailableAtTime": "No courts available at this time. Try another slot.",
+    "noAvailabilityData": "No availability data",
+    "showMoreSlots": "Show more time slots",
+    "moreSlots": "more"
   },
   "weeklyAvailability": {
     "title": "Weekly Court Availability",

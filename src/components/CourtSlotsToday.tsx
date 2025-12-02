@@ -55,7 +55,7 @@ export function CourtSlotsToday({
   if (!slots || slots.length === 0) {
     return (
       <p className="im-slots-empty">
-        {t("court.noCourtsFound").replace("courts", "availability")}
+        {t("court.noAvailabilityData")}
       </p>
     );
   }
@@ -88,9 +88,9 @@ export function CourtSlotsToday({
         ))}
         {remainingCount > 0 && (
           <span className="im-slot-more">
-            +{remainingCount} {t("common.actions").toLowerCase()}
+            +{remainingCount} {t("court.moreSlots")}
             {showPrices && minPrice !== null && (
-              <span className="im-slot-price">from {formatPrice(minPrice)}</span>
+              <span className="im-slot-price"> from {formatPrice(minPrice)}</span>
             )}
           </span>
         )}
