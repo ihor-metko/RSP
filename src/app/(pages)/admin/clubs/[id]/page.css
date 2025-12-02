@@ -305,11 +305,6 @@
   @apply max-w-[90vw] max-h-[90vh] object-contain;
 }
 
-/* ===== Back Link ===== */
-.im-admin-club-back-link {
-  @apply mt-8 inline-block;
-}
-
 /* ===== Loading Skeleton ===== */
 .im-admin-club-skeleton-hero {
   @apply w-full animate-pulse;

@@ -698,11 +698,6 @@ export default function ClubDetailPage({
             />
           </section>
         )}
-
-        {/* Back Link */}
-        <div className="rsp-club-back-link">
-          <IMLink href="/clubs">{t("common.backToClubs")}</IMLink>
-        </div>
       </div>
 
       {/* Modals */}

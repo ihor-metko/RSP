@@ -471,11 +471,6 @@ export default function AdminClubDetailPage({
             </div>
           )}
         </section>
-
-        {/* Back Link */}
-        <div className="im-admin-club-back-link">
-          <IMLink href="/admin/clubs">← Back to Clubs</IMLink>
-        </div>
       </div>
 
       {/* Delete Confirmation Modal */}
