@@ -1,37 +1,25 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Button, Card, Input } from "@/components/ui";
-import { BusinessHoursField } from "./BusinessHoursField.client";
-import { UploadField } from "./UploadField.client";
+import { Button, Card } from "@/components/ui";
+import {
+  GeneralInfoStep,
+  ContactsStep,
+  HoursStep,
+  CourtsStep,
+  GalleryStep,
+  type GeneralInfoData,
+  type ContactsData,
+  type HoursData,
+  type CourtsData,
+  type GalleryData,
+} from "./steps";
+import type { UploadedFile, BusinessHour, InlineCourt } from "@/types/admin";
 import "./ClubCreationStepper.css";
 import "./InlineCourtsField.css";
-
-// Types
-interface UploadedFile {
-  url: string;
-  key: string;
-  file?: File;
-  preview?: string;
-}
-
-interface BusinessHour {
-  dayOfWeek: number;
-  openTime: string | null;
-  closeTime: string | null;
-  isClosed: boolean;
-}
-
-interface InlineCourt {
-  id: string;
-  name: string;
-  type: string;
-  surface: string;
-  indoor: boolean;
-  defaultPriceCents: number;
-}
+import "./steps/steps.css";
 
 interface StepperFormData {
   // Step 1: General Information
@@ -90,14 +78,6 @@ const STEPS = [
   { id: 5, label: "Gallery" },
 ];
 
-const CLUB_TYPES = [
-  { value: "padel", label: "Padel" },
-];
-
-function generateTempId(): string {
-  return `temp-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-}
-
 export function ClubCreationStepper() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -106,33 +86,64 @@ export function ClubCreationStepper() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 5000);
   }, []);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // Generic update handlers for step components
+  const handleGeneralInfoChange = useCallback((data: Partial<GeneralInfoData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+    Object.keys(data).forEach((key) => {
+      if (fieldErrors[key]) {
+        setFieldErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[key];
+          return newErrors;
+        });
+      }
+    });
+  }, [fieldErrors]);
 
-    if (fieldErrors[name]) {
+  const handleContactsChange = useCallback((data: Partial<ContactsData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+    Object.keys(data).forEach((key) => {
+      if (fieldErrors[key]) {
+        setFieldErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[key];
+          return newErrors;
+        });
+      }
+    });
+  }, [fieldErrors]);
+
+  const handleHoursChange = useCallback((data: Partial<HoursData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+    if (data.businessHours && fieldErrors.businessHours) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
-        delete newErrors[name];
+        delete newErrors.businessHours;
         return newErrors;
       });
     }
   }, [fieldErrors]);
 
-  const handleBusinessHoursChange = useCallback((hours: BusinessHour[]) => {
-    setFormData((prev) => ({ ...prev, businessHours: hours }));
-  }, []);
+  const handleCourtsChange = useCallback((data: Partial<CourtsData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+    if (data.courts && fieldErrors.courts) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.courts;
+        return newErrors;
+      });
+    }
+  }, [fieldErrors]);
 
-  const handleLogoChange = useCallback((file: UploadedFile | null) => {
-    setFormData((prev) => ({ ...prev, logo: file }));
-    if (fieldErrors.logo) {
+  const handleGalleryChange = useCallback((data: Partial<GalleryData>) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+    if (data.logo !== undefined && fieldErrors.logo) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.logo;
@@ -140,53 +151,6 @@ export function ClubCreationStepper() {
       });
     }
   }, [fieldErrors]);
-
-  const handleGalleryAdd = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const newItems: UploadedFile[] = files.map((file) => ({
-      url: "",
-      key: "",
-      file,
-      preview: URL.createObjectURL(file),
-    }));
-    setFormData((prev) => ({ ...prev, gallery: [...prev.gallery, ...newItems] }));
-  }, []);
-
-  const handleGalleryRemove = useCallback((index: number) => {
-    setFormData((prev) => {
-      const item = prev.gallery[index];
-      if (item.preview) {
-        URL.revokeObjectURL(item.preview);
-      }
-      return { ...prev, gallery: prev.gallery.filter((_, i) => i !== index) };
-    });
-  }, []);
-
-  // Court handlers
-  const handleAddCourt = useCallback(() => {
-    const newCourt: InlineCourt = {
-      id: generateTempId(),
-      name: "",
-      type: "",
-      surface: "",
-      indoor: false,
-      defaultPriceCents: 0,
-    };
-    setFormData((prev) => ({ ...prev, courts: [...prev.courts, newCourt] }));
-  }, []);
-
-  const handleRemoveCourt = useCallback((id: string) => {
-    setFormData((prev) => ({ ...prev, courts: prev.courts.filter((c) => c.id !== id) }));
-  }, []);
-
-  const handleCourtChange = useCallback((id: string, field: keyof InlineCourt, value: string | boolean | number) => {
-    setFormData((prev) => ({
-      ...prev,
-      courts: prev.courts.map((court) =>
-        court.id === id ? { ...court, [field]: value } : court
-      ),
-    }));
-  }, []);
 
   // Validation per step
   const validateStep = useCallback((step: number): boolean => {
@@ -350,73 +314,17 @@ export function ClubCreationStepper() {
             <p className="im-stepper-section-description">
               Enter the basic details about your club.
             </p>
-
-            <div className="im-stepper-row">
-              <div className="im-stepper-field im-stepper-field--full">
-                <Input
-                  label="Club Name *"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Enter club name"
-                  disabled={isSubmitting}
-                />
-                {fieldErrors.name && (
-                  <span className="im-stepper-field-error">{fieldErrors.name}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="im-stepper-row im-stepper-row--two">
-              <div className="im-stepper-field">
-                <Input
-                  label="Slug (optional)"
-                  name="slug"
-                  value={formData.slug}
-                  onChange={handleInputChange}
-                  placeholder="club-name-slug"
-                  disabled={isSubmitting}
-                />
-                <span className="im-stepper-field-hint">
-                  Auto-generated from name if empty
-                </span>
-                {fieldErrors.slug && (
-                  <span className="im-stepper-field-error">{fieldErrors.slug}</span>
-                )}
-              </div>
-              <div className="im-stepper-field">
-                <label className="im-stepper-label">Club Type</label>
-                <select
-                  name="clubType"
-                  value={formData.clubType}
-                  onChange={handleInputChange}
-                  className="im-stepper-select"
-                  disabled={isSubmitting}
-                >
-                  <option value="">Select type...</option>
-                  {CLUB_TYPES.map((type) => (
-                    <option key={type.value} value={type.value}>
-                      {type.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="im-stepper-row">
-              <div className="im-stepper-field im-stepper-field--full">
-                <label className="im-stepper-label">Short Description</label>
-                <textarea
-                  name="shortDescription"
-                  value={formData.shortDescription}
-                  onChange={handleInputChange}
-                  placeholder="Brief description of the club..."
-                  className="im-stepper-textarea"
-                  rows={3}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
+            <GeneralInfoStep
+              data={{
+                name: formData.name,
+                slug: formData.slug,
+                clubType: formData.clubType,
+                shortDescription: formData.shortDescription,
+              }}
+              onChange={handleGeneralInfoChange}
+              errors={fieldErrors}
+              disabled={isSubmitting}
+            />
           </Card>
         );
 
@@ -427,82 +335,20 @@ export function ClubCreationStepper() {
             <p className="im-stepper-section-description">
               Provide contact information and location details.
             </p>
-
-            <div className="im-stepper-row">
-              <div className="im-stepper-field im-stepper-field--full">
-                <Input
-                  label="Address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="Street address"
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
-            <div className="im-stepper-row im-stepper-row--two">
-              <div className="im-stepper-field">
-                <Input
-                  label="City"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  placeholder="City"
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="im-stepper-field">
-                <Input
-                  label="Postal Code"
-                  name="postalCode"
-                  value={formData.postalCode}
-                  onChange={handleInputChange}
-                  placeholder="Postal code"
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
-            <div className="im-stepper-row im-stepper-row--two">
-              <div className="im-stepper-field">
-                <Input
-                  label="Phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+1 (555) 123-4567"
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="im-stepper-field">
-                <Input
-                  label="Email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="contact@club.com"
-                  disabled={isSubmitting}
-                />
-                {fieldErrors.email && (
-                  <span className="im-stepper-field-error">{fieldErrors.email}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="im-stepper-row">
-              <div className="im-stepper-field im-stepper-field--full">
-                <Input
-                  label="Website"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                  placeholder="https://www.club.com"
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
+            <ContactsStep
+              data={{
+                address: formData.address,
+                city: formData.city,
+                postalCode: formData.postalCode,
+                country: "",
+                phone: formData.phone,
+                email: formData.email,
+                website: formData.website,
+              }}
+              onChange={handleContactsChange}
+              errors={fieldErrors}
+              disabled={isSubmitting}
+            />
           </Card>
         );
 
@@ -513,9 +359,10 @@ export function ClubCreationStepper() {
             <p className="im-stepper-section-description">
               Set the standard operating hours for each day of the week.
             </p>
-            <BusinessHoursField
-              value={formData.businessHours}
-              onChange={handleBusinessHoursChange}
+            <HoursStep
+              data={{ businessHours: formData.businessHours }}
+              onChange={handleHoursChange}
+              errors={fieldErrors}
               disabled={isSubmitting}
             />
           </Card>
@@ -528,94 +375,12 @@ export function ClubCreationStepper() {
             <p className="im-stepper-section-description">
               Add courts for your club. You can add more later from the club detail page.
             </p>
-
-            {formData.courts.length > 0 && (
-              <div className="im-inline-courts-list">
-                {formData.courts.map((court, index) => (
-                  <div key={court.id} className="im-inline-courts-item">
-                    <div className="im-inline-courts-header">
-                      <span className="im-inline-courts-number">Court {index + 1}</span>
-                      <button
-                        type="button"
-                        className="im-inline-courts-remove"
-                        onClick={() => handleRemoveCourt(court.id)}
-                        disabled={isSubmitting}
-                        aria-label={`Remove court ${index + 1}`}
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="im-inline-courts-fields">
-                      <div className="im-inline-courts-field">
-                        <Input
-                          label="Name"
-                          value={court.name}
-                          onChange={(e) => handleCourtChange(court.id, "name", e.target.value)}
-                          placeholder="Court name"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-
-                      <div className="im-inline-courts-field">
-                        <Input
-                          label="Type"
-                          value={court.type}
-                          onChange={(e) => handleCourtChange(court.id, "type", e.target.value)}
-                          placeholder="e.g., padel, tennis"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-
-                      <div className="im-inline-courts-field">
-                        <Input
-                          label="Surface"
-                          value={court.surface}
-                          onChange={(e) => handleCourtChange(court.id, "surface", e.target.value)}
-                          placeholder="e.g., artificial, clay"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-
-                      <div className="im-inline-courts-field">
-                        <Input
-                          label="Default Price (cents)"
-                          type="number"
-                          min="0"
-                          value={court.defaultPriceCents.toString()}
-                          onChange={(e) => handleCourtChange(court.id, "defaultPriceCents", parseInt(e.target.value) || 0)}
-                          placeholder="0"
-                          disabled={isSubmitting}
-                        />
-                      </div>
-
-                      <div className="im-inline-courts-field im-inline-courts-checkbox-field">
-                        <label className="im-inline-courts-checkbox-wrapper">
-                          <input
-                            type="checkbox"
-                            checked={court.indoor}
-                            onChange={(e) => handleCourtChange(court.id, "indoor", e.target.checked)}
-                            disabled={isSubmitting}
-                            className="im-inline-courts-checkbox"
-                          />
-                          <span className="im-inline-courts-checkbox-label">Indoor</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleAddCourt}
+            <CourtsStep
+              data={{ courts: formData.courts }}
+              onChange={handleCourtsChange}
+              errors={fieldErrors}
               disabled={isSubmitting}
-              className="im-inline-courts-add"
-            >
-              + Add Court
-            </Button>
+            />
           </Card>
         );
 
@@ -626,70 +391,12 @@ export function ClubCreationStepper() {
             <p className="im-stepper-section-description">
               Upload your club logo and photos.
             </p>
-
-            <div className="im-stepper-row">
-              <div className="im-stepper-field">
-                <UploadField
-                  label="Club Logo"
-                  value={formData.logo}
-                  onChange={handleLogoChange}
-                  aspectRatio="square"
-                  helperText="Recommended: 512x512 square image"
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
-            <div className="im-stepper-row">
-              <div className="im-stepper-field im-stepper-field--full">
-                <label className="im-stepper-label">Gallery Photos</label>
-                <p className="im-stepper-field-hint" style={{ marginBottom: "0.5rem" }}>
-                  Add photos of your club facilities
-                </p>
-
-                <div className="im-stepper-gallery-grid">
-                  {formData.gallery.map((item, index) => (
-                    <div key={index} className="im-stepper-gallery-item">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={item.preview || item.url}
-                        alt={`Gallery image ${index + 1}`}
-                        className="im-stepper-gallery-image"
-                      />
-                      <button
-                        type="button"
-                        className="im-stepper-gallery-remove"
-                        onClick={() => handleGalleryRemove(index)}
-                        disabled={isSubmitting}
-                        aria-label={`Remove gallery image ${index + 1}`}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-
-                  <button
-                    type="button"
-                    className="im-stepper-gallery-add"
-                    onClick={() => galleryInputRef.current?.click()}
-                    disabled={isSubmitting}
-                  >
-                    <span className="im-stepper-gallery-add-icon">+</span>
-                    <span>Add Image</span>
-                  </button>
-                </div>
-
-                <input
-                  ref={galleryInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  onChange={handleGalleryAdd}
-                  style={{ display: "none" }}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
+            <GalleryStep
+              data={{ logo: formData.logo, gallery: formData.gallery }}
+              onChange={handleGalleryChange}
+              errors={fieldErrors}
+              disabled={isSubmitting}
+            />
           </Card>
         );
 

@@ -1,0 +1,38 @@
+/* Shared styles for step components used in both stepper and edit modals */
+
+.im-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.im-stepper-error-block {
+  margin-bottom: 0.5rem;
+}
+
+/* Checkbox wrapper styling for steps */
+.im-stepper-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.im-stepper-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--rsp-border, #e5e7eb);
+  cursor: pointer;
+}
+
+.im-stepper-checkbox-label {
+  font-size: 0.875rem;
+  color: var(--rsp-foreground, #1f2937);
+}
+
+@media (prefers-color-scheme: dark) {
+  .im-stepper-checkbox-label {
+    color: var(--rsp-foreground-dark, #f9fafb);
+  }
+}

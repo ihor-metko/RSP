@@ -146,7 +146,7 @@ export default function AdminClubDetailPage({
 
   if (status === "loading" || loading) {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
       </main>
     );
@@ -154,7 +154,7 @@ export default function AdminClubDetailPage({
 
   if (error) {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
           {error}
         </div>
@@ -170,7 +170,7 @@ export default function AdminClubDetailPage({
   }
 
   return (
-    <main className="rsp-container min-h-screen p-8">
+    <main className="rsp-container p-8">
       {/* Toast Notification */}
       {toast && (
         <div

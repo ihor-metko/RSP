@@ -76,7 +76,7 @@ export default function AdminCoachesPage() {
       const params = new URLSearchParams();
       if (searchQuery) params.set("search", searchQuery);
       if (roleFilter) params.set("role", roleFilter);
-      
+
       const response = await fetch(`/api/admin/users?${params.toString()}`);
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -233,8 +233,8 @@ export default function AdminCoachesPage() {
       handleCloseRoleModal();
       fetchUsers();
       showToast(
-        targetRole === "coach" 
-          ? "Trainer role assigned and linked to club(s) successfully." 
+        targetRole === "coach"
+          ? "Trainer role assigned and linked to club(s) successfully."
           : "Coach role removed successfully",
         "success"
       );
@@ -267,14 +267,14 @@ export default function AdminCoachesPage() {
 
   if (status === "loading" || loading) {
     return (
-      <main className="rsp-container min-h-screen p-8">
+      <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
       </main>
     );
   }
 
   return (
-    <main className="rsp-container min-h-screen p-8">
+    <main className="rsp-container p-8">
       <header className="rsp-header flex items-center justify-between mb-8">
         <div>
           <h1 className="rsp-title text-3xl font-bold">Admin - Coaches</h1>
@@ -291,11 +291,10 @@ export default function AdminCoachesPage() {
       {/* Toast Notification */}
       {toast && (
         <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded shadow-lg ${
-            toast.type === "success"
+          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded shadow-lg ${toast.type === "success"
               ? "bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-400"
               : "bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400"
-          }`}
+            }`}
         >
           {toast.message}
         </div>
@@ -495,7 +494,7 @@ export default function AdminCoachesPage() {
               </>
             )}
           </p>
-          
+
           {targetRole === "coach" && (
             <>
               <Multiselect
@@ -511,7 +510,7 @@ export default function AdminCoachesPage() {
               )}
             </>
           )}
-          
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={handleCloseRoleModal}>
               Cancel
@@ -524,8 +523,8 @@ export default function AdminCoachesPage() {
               {submitting
                 ? "Processing..."
                 : targetRole === "coach"
-                ? "Assign as Coach"
-                : "Remove Coach"}
+                  ? "Assign as Coach"
+                  : "Remove Coach"}
             </Button>
           </div>
         </div>
