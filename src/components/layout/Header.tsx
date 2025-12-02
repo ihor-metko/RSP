@@ -197,7 +197,7 @@ export default function Header({ title, showSearch = false, hideProfile = false 
   // Handle logout
   const handleLogout = async () => {
     setIsProfileOpen(false);
-    await signOut({ callbackUrl: "/auth/sign-in" });
+    await signOut({ callbackUrl: "/" });
   };
 
   return (
