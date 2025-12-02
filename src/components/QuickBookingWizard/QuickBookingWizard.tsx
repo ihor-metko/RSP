@@ -18,12 +18,15 @@ import {
 } from "./types";
 import "./QuickBookingWizard.css";
 
+// Constants for price calculations
+const MINUTES_PER_HOUR = 60;
+
 const initialState: WizardState = {
   currentStep: 1,
   step1: {
     date: getTodayDateString(),
     startTime: "10:00",
-    duration: 60,
+    duration: MINUTES_PER_HOUR, // Default 1 hour
   },
   step2: {
     selectedCourtId: null,
@@ -80,7 +83,7 @@ export function QuickBookingWizard({
           // Get average price across available courts
           if (courts.length > 0) {
             const avgPrice = Math.round(
-              courts.reduce((sum, c) => sum + (c.defaultPriceCents / 60) * duration, 0) / courts.length
+              courts.reduce((sum, c) => sum + (c.defaultPriceCents / MINUTES_PER_HOUR) * duration, 0) / courts.length
             );
             setState((prev) => ({ ...prev, estimatedPrice: avgPrice }));
           } else {
@@ -144,8 +147,8 @@ export function QuickBookingWizard({
                   startTime >= seg.start && startTime < seg.end
               );
               const priceCents = segment
-                ? Math.round((segment.priceCents / 60) * duration)
-                : Math.round((court.defaultPriceCents / 60) * duration);
+                ? Math.round((segment.priceCents / MINUTES_PER_HOUR) * duration)
+                : Math.round((court.defaultPriceCents / MINUTES_PER_HOUR) * duration);
               return { ...court, priceCents, available: true };
             }
           } catch {
@@ -153,7 +156,7 @@ export function QuickBookingWizard({
           }
           return {
             ...court,
-            priceCents: Math.round((court.defaultPriceCents / 60) * duration),
+            priceCents: Math.round((court.defaultPriceCents / MINUTES_PER_HOUR) * duration),
             available: true,
           };
         })
@@ -319,7 +322,7 @@ export function QuickBookingWizard({
     }
     if (state.step2.selectedCourt) {
       return Math.round(
-        (state.step2.selectedCourt.defaultPriceCents / 60) * state.step1.duration
+        (state.step2.selectedCourt.defaultPriceCents / MINUTES_PER_HOUR) * state.step1.duration
       );
     }
     return state.estimatedPrice || 0;
