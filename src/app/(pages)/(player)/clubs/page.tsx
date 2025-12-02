@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { IMLink } from "@/components/ui";
+import { IMLink, PageHeader } from "@/components/ui";
 import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
 import "@/components/ClubsList.css";
@@ -33,7 +32,6 @@ function getEmptyStateMessage(
 }
 
 export default function ClubsPage() {
-  const { data: session, status } = useSession();
   const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -100,9 +98,6 @@ export default function ClubsPage() {
     fetchClubs(params);
   }, [updateUrl, fetchClubs]);
 
-  // Determine if user is authenticated
-  const isAuthenticated = status === "authenticated" && session?.user;
-
   if (loading && clubs.length === 0) {
     return (
       <main className="tm-clubs-page">
@@ -130,21 +125,10 @@ export default function ClubsPage() {
 
   return (
     <main className="tm-clubs-page">
-      <header className="tm-clubs-header">
-        <h1 className="tm-clubs-title">{t("clubs.title")}</h1>
-        <p className="tm-clubs-subtitle">{t("clubs.subtitle")}</p>
-      </header>
-
-      {/* Sign in prompt for unauthenticated users */}
-      {!isAuthenticated && (
-        <div className="tm-auth-cta mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-blue-800 dark:text-blue-200 text-sm">
-            <IMLink href="/auth/sign-in" className="font-semibold underline hover:no-underline">
-              {t("auth.signInToBook")}
-            </IMLink>
-          </p>
-        </div>
-      )}
+      <PageHeader
+        title={t("clubs.title")}
+        description={t("clubs.subtitle")}
+      />
 
       {/* Search bar with URL-driven values */}
       <PublicSearchBar
@@ -188,12 +172,6 @@ export default function ClubsPage() {
           ))}
         </section>
       )}
-
-      <div className="tm-clubs-navigation">
-        <IMLink href="/" className="tm-clubs-link">
-          {t("common.backToHome")}
-        </IMLink>
-      </div>
     </main>
   );
 }

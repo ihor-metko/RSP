@@ -28,7 +28,7 @@
 }
 
 .im-public-footer-container {
-  @apply max-w-6xl mx-auto;
+  @apply w-7xl mx-auto;
 }
 
 .im-public-footer-grid {
@@ -103,7 +103,7 @@
 }
 
 .im-dashboard-footer-container {
-  @apply max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2;
+  @apply w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2;
 }
 
 .im-dashboard-footer-copyright {

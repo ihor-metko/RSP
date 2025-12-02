@@ -1,0 +1,55 @@
+@reference "tailwindcss";
+
+/* PageHeader CSS variables - extends rsp-* variables for page-specific styling */
+:root {
+  --im-page-header-bg: transparent;
+  --im-page-header-text: var(--rsp-foreground);
+  --im-page-header-border: var(--rsp-border);
+}
+
+/* PageHeader container */
+.im-page-header {
+  @apply flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8;
+  background-color: var(--im-page-header-bg);
+  color: var(--im-page-header-text);
+}
+
+/* Content section (title + description) */
+.im-page-header-content {
+  @apply flex flex-col gap-1;
+}
+
+/* Title styling */
+.im-title {
+  @apply text-2xl md:text-3xl font-bold;
+  color: var(--im-page-header-text);
+}
+
+/* Description/subtitle styling */
+.im-description {
+  @apply text-sm md:text-base mt-1 text-gray-500;
+}
+
+.dark .im-description {
+  @apply text-gray-400;
+}
+
+/* Actions container */
+.im-actions {
+  @apply flex flex-wrap items-center gap-2 mt-4 md:mt-0;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 767px) {
+  .im-page-header {
+    @apply mb-6;
+  }
+
+  .im-actions {
+    @apply w-full;
+  }
+
+  .im-actions > * {
+    @apply flex-1 sm:flex-none;
+  }
+}

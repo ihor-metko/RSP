@@ -54,7 +54,7 @@
 }
 
 .rsp-popular-clubs-container {
-  @apply max-w-6xl mx-auto;
+  @apply w-7xl mx-auto;
 }
 
 .rsp-popular-clubs-title {
@@ -288,10 +288,6 @@
 }
 
 /* ===== Navigation ===== */
-.tm-clubs-navigation {
-  @apply mt-8;
-}
-
 .tm-clubs-link {
   @apply text-blue-500 hover:underline;
 }

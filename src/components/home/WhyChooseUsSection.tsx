@@ -9,7 +9,7 @@ export async function WhyChooseUsSection() {
 
   return (
     <section className="tm-why-choose-us bg-gray-50 dark:bg-gray-900/50 py-12 px-4 md:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="w-7xl mx-auto">
         <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">{t("home.whyChooseUs")}</h2>
         <div className="grid gap-6 md:grid-cols-3">
           <Card title={t("home.feature1Title")}>

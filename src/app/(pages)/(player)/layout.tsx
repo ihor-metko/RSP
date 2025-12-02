@@ -10,7 +10,7 @@ export default function PlayerLayout({
     <div className="flex flex-col min-h-screen overflow-auto">
       <Header />
 
-      <div className="flex-1">
+      <div className="flex-1 w-7xl mx-auto">
         {children}
       </div>
 

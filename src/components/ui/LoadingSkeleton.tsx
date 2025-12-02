@@ -44,7 +44,7 @@ export function ClubCardsGridSkeleton({ count = 4 }: { count?: number }) {
 export function PersonalizedSectionSkeleton() {
   return (
     <section className="tm-personalized-section py-8 px-4 md:px-8" aria-label="Loading personalized content">
-      <div className="max-w-6xl mx-auto">
+      <div className="w-7xl mx-auto">
         <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-6" />
         <div className="grid gap-6 md:grid-cols-3">
           {[1, 2, 3].map((i) => (

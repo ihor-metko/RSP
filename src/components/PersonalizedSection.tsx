@@ -159,7 +159,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
   if (isLoading) {
     return (
       <section className="tm-personalized-section py-8 px-4 md:px-8" aria-label={t("home.personalized.title")}>
-        <div className="max-w-6xl mx-auto">
+        <div className="w-7xl mx-auto">
           <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded-sm animate-pulse mb-6" />
           <div className="grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((i) => (
@@ -181,7 +181,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
   if (error) {
     return (
       <section className="tm-personalized-section py-8 px-4 md:px-8" aria-label={t("home.personalized.title")}>
-        <div className="max-w-6xl mx-auto">
+        <div className="w-7xl mx-auto">
           <div className="tm-error-banner p-4 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-sm" role="alert">
             {error}
           </div>
@@ -192,7 +192,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
 
   return (
     <section className="tm-personalized-section bg-gray-50 dark:bg-gray-900/50 py-8 px-4 md:px-8" aria-label={t("home.personalized.title")}>
-      <div className="max-w-6xl mx-auto">
+      <div className="w-7xl mx-auto">
         <h2 className="text-2xl md:text-3xl font-bold mb-6">
           {t("home.personalized.greeting", { name: userName })}
         </h2>
@@ -250,9 +250,9 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                       clubs.length === 0
                         ? [{ value: "", label: t("playerDashboard.quickBook.noClubs") }]
                         : clubs.map((club) => ({
-                            value: club.id,
-                            label: club.name,
-                          }))
+                          value: club.id,
+                          label: club.name,
+                        }))
                     }
                     value={selectedClubId}
                     onChange={(value) => setSelectedClubId(value)}
