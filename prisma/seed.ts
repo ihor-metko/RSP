@@ -37,7 +37,7 @@ async function main() {
   // Create 1 club
   const club = await prisma.club.create({
     data: {
-      name: "Paddle Club Central",
+      name: "Padel Club Central",
       location: "123 Main St, City Center",
     },
   });
@@ -81,7 +81,7 @@ async function main() {
     data: {
       userId: coachUser.id,
       clubId: club.id,
-      bio: "Experienced paddle coach with 10 years of teaching.",
+      bio: "Experienced padel coach with 10 years of teaching.",
     },
   });
 

@@ -16,7 +16,7 @@ jest.mock("next-intl", () => ({
   useTranslations: () => {
     const t = (key: string, values?: Record<string, string>) => {
       const translations: Record<string, string> = {
-        "home.title": "Paddle Club MVP",
+        "home.title": "Padel Club MVP",
         "common.signIn": "Sign In",
         "common.signOut": "Sign Out",
         "common.register": "Register",
@@ -93,7 +93,7 @@ describe("Header Component", () => {
 
     it("renders the header with brand title", () => {
       render(<Header />);
-      expect(screen.getByText("Paddle Club MVP")).toBeInTheDocument();
+      expect(screen.getByText("Padel Club MVP")).toBeInTheDocument();
     });
 
     it("shows sign in and register links for unauthenticated users", () => {

@@ -30,7 +30,7 @@ describe("System Settings Module", () => {
     });
 
     it("should list incorrect terms to avoid", () => {
-      expect(BrandTerms.INCORRECT_TERMS).toContain("Paddle");
+      expect(BrandTerms.INCORRECT_TERMS).toContain("Padel");
       expect(BrandTerms.INCORRECT_TERMS).toContain("paddle");
       expect(BrandTerms.INCORRECT_TERMS).toContain("PADDLE");
     });
@@ -155,11 +155,11 @@ describe("System Settings Module", () => {
       expect(result.issues).toHaveLength(0);
     });
 
-    it('should detect incorrect "Paddle" usage', () => {
-      const result = validateBrandTerminology("Welcome to Paddle club");
+    it('should detect incorrect "Padel" usage', () => {
+      const result = validateBrandTerminology("Welcome to Padel club");
       expect(result.isValid).toBe(false);
       expect(result.issues).toHaveLength(1);
-      expect(result.issues[0]).toContain("Paddle");
+      expect(result.issues[0]).toContain("Padel");
     });
 
     it('should detect lowercase "paddle" usage', () => {

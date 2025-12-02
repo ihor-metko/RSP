@@ -11,7 +11,7 @@ export async function HomeHero() {
   return (
     <section className="tm-hero flex-col relative overflow-hidden bg-linear-to-br from-(--rsp-primary) via-[#0a1040] to-(--rsp-primary)">
       <div className="tm-hero-overlay absolute inset-0 bg-[url('/hero-pattern.svg')]" />
-      <div className="tm-hero-bg absolute inset-0 bg-[url('/platform/paddle-club-banner.webp')] bg-cover bg-center bg-no-repeat" />
+      <div className="tm-hero-bg absolute inset-0 bg-[url('/platform/padel-club-banner.webp')] bg-cover bg-center bg-no-repeat" />
 
       <div className="tm-hero-content relative z-10 max-w-4xl mx-auto px-4 py-8 md:py-4 text-center">
         <h2 className="tm-hero-headline text-3xl md:text-5xl font-bold text-white mb-4">

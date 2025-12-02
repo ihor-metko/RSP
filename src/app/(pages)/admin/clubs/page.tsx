@@ -188,7 +188,7 @@ export default function AdminClubsPage() {
         <div>
           <h1 className="rsp-title text-3xl font-bold">Admin - Clubs</h1>
           <p className="rsp-subtitle text-gray-500 mt-2">
-            Manage all paddle clubs
+            Manage all padel clubs
           </p>
         </div>
         <div className="flex items-center gap-4">

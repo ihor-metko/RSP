@@ -5,8 +5,8 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
 export const metadata: Metadata = {
-  title: "Paddle Club MVP",
-  description: "Paddle Club booking MVP",
+  title: "Padel Club MVP",
+  description: "Padel Club booking MVP",
 };
 
 export default async function RootLayout({

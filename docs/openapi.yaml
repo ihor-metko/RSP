@@ -1,6 +1,6 @@
 openapi: 3.1.0
 info:
-  title: Paddle Club MVP API
+  title: Padel Club MVP API
   version: 1.0.0
 servers:
   - url: http://localhost:3000/api

@@ -9,8 +9,8 @@ import { render, screen } from "@testing-library/react";
 jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => {
     const translations: Record<string, string> = {
-      "footer.brandName": "Paddle Club",
-      "footer.tagline": "Find and book paddle courts at the best clubs near you.",
+      "footer.brandName": "Padel Club",
+      "footer.tagline": "Find and book padel courts at the best clubs near you.",
       "footer.quickLinks": "Quick Links",
       "footer.home": "Home",
       "footer.clubs": "Clubs",
@@ -55,13 +55,13 @@ describe("Footer Components", () => {
   describe("PublicFooter", () => {
     it("renders the brand name", () => {
       render(<PublicFooter />);
-      expect(screen.getByText("Paddle Club")).toBeInTheDocument();
+      expect(screen.getByText("Padel Club")).toBeInTheDocument();
     });
 
     it("renders the tagline", () => {
       render(<PublicFooter />);
       expect(
-        screen.getByText("Find and book paddle courts at the best clubs near you.")
+        screen.getByText("Find and book padel courts at the best clubs near you.")
       ).toBeInTheDocument();
     });
 
@@ -91,7 +91,7 @@ describe("Footer Components", () => {
       render(<PublicFooter />);
       const currentYear = new Date().getFullYear();
       expect(
-        screen.getByText(new RegExp(`© ${currentYear}.*Paddle Club.*All rights reserved.`))
+        screen.getByText(new RegExp(`© ${currentYear}.*Padel Club.*All rights reserved.`))
       ).toBeInTheDocument();
     });
 
@@ -119,14 +119,14 @@ describe("Footer Components", () => {
   describe("DashboardFooter", () => {
     it("renders the brand name", () => {
       render(<DashboardFooter />);
-      expect(screen.getByText(/Paddle Club/)).toBeInTheDocument();
+      expect(screen.getByText(/Padel Club/)).toBeInTheDocument();
     });
 
     it("renders copyright text with current year", () => {
       render(<DashboardFooter />);
       const currentYear = new Date().getFullYear();
       expect(
-        screen.getByText(new RegExp(`© ${currentYear}.*Paddle Club`))
+        screen.getByText(new RegExp(`© ${currentYear}.*Padel Club`))
       ).toBeInTheDocument();
     });
 
