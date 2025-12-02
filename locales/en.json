@@ -45,7 +45,9 @@
     "cancelled": "Cancelled",
     "rejected": "Rejected",
     "processing": "Processing...",
-    "language": "Language"
+    "language": "Language",
+    "published": "Published",
+    "draft": "Draft"
   },
   "home": {
     "title": "Padel Club",
@@ -156,6 +158,7 @@
       "deleting": "Deleting...",
       "saving": "Saving...",
       "courts": "Courts",
+      "noCourts": "No courts",
       "form": {
         "basicInfo": "Basic Information",
         "locationContact": "Location & Contact",

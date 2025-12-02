@@ -1,0 +1,283 @@
+@reference "tailwindcss";
+
+/* ===== Admin Club Card (Modern Design) ===== */
+.im-admin-club-card {
+  @apply flex flex-col rounded-xl overflow-hidden transition-all duration-300;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.im-admin-club-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--rsp-primary);
+}
+
+.dark .im-admin-club-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+.im-admin-club-card:focus-within {
+  outline: 2px solid var(--rsp-primary);
+  outline-offset: 2px;
+}
+
+/* Card Image Section */
+.im-admin-club-card-image {
+  @apply relative w-full overflow-hidden;
+  aspect-ratio: 16 / 9;
+  background-color: var(--rsp-border);
+}
+
+.im-admin-club-hero-image {
+  @apply w-full h-full object-cover transition-transform duration-300;
+}
+
+.im-admin-club-card:hover .im-admin-club-hero-image {
+  transform: scale(1.05);
+}
+
+.im-admin-club-hero-image--logo {
+  @apply object-contain;
+  background-color: var(--rsp-card-bg);
+}
+
+.im-admin-club-image-placeholder {
+  @apply w-full h-full flex items-center justify-center;
+  background: linear-gradient(135deg, var(--rsp-primary) 0%, var(--rsp-primary-hover) 100%);
+}
+
+.im-admin-club-image-placeholder-text {
+  @apply text-4xl font-bold text-white;
+}
+
+/* Status Badge */
+.im-admin-club-status {
+  @apply absolute top-2 right-2;
+}
+
+.im-admin-status-badge {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full;
+}
+
+.im-admin-status-badge--published {
+  background-color: rgba(34, 197, 94, 0.9);
+  color: #ffffff;
+}
+
+.im-admin-status-badge--draft {
+  background-color: rgba(107, 114, 128, 0.9);
+  color: #ffffff;
+}
+
+/* Card Content Section */
+.im-admin-club-card-content {
+  @apply flex flex-col flex-grow p-4;
+}
+
+.im-admin-club-name {
+  @apply text-lg font-semibold leading-tight mb-2;
+  color: var(--rsp-foreground);
+}
+
+.im-admin-club-description {
+  @apply text-sm mb-3;
+  color: var(--rsp-foreground);
+  opacity: 0.8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Address Section */
+.im-admin-club-address {
+  @apply flex items-center gap-1.5 text-sm mb-3;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.im-admin-club-address-icon {
+  @apply flex-shrink-0;
+  opacity: 0.7;
+}
+
+.im-admin-club-address-text {
+  @apply truncate;
+  max-width: 100%;
+}
+
+/* Badges Section */
+.im-admin-club-badges-section {
+  @apply flex flex-col gap-2 mt-auto;
+}
+
+.im-admin-club-tags {
+  @apply flex flex-wrap gap-1.5;
+}
+
+.im-admin-club-court-badges {
+  @apply flex flex-wrap gap-1.5;
+}
+
+.im-admin-badge {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full;
+}
+
+.im-admin-badge-indoor {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.dark .im-admin-badge-indoor {
+  background-color: rgba(59, 130, 246, 0.25);
+  color: #93c5fd;
+}
+
+.im-admin-badge-outdoor {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.dark .im-admin-badge-outdoor {
+  background-color: rgba(34, 197, 94, 0.25);
+  color: #86efac;
+}
+
+.im-admin-badge-service {
+  background-color: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.dark .im-admin-badge-service {
+  background-color: rgba(139, 92, 246, 0.25);
+  color: #c4b5fd;
+}
+
+.im-admin-badge-more {
+  background-color: var(--rsp-border);
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.im-admin-badge-info {
+  background-color: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
+
+.dark .im-admin-badge-info {
+  background-color: rgba(107, 114, 128, 0.25);
+  color: #9ca3af;
+}
+
+/* Card Actions Section */
+.im-admin-club-card-actions {
+  @apply flex flex-wrap gap-2 p-4 pt-0;
+}
+
+.im-admin-club-action-link {
+  @apply flex-1;
+}
+
+.im-admin-view-button,
+.im-admin-courts-button,
+.im-admin-edit-button,
+.im-admin-delete-button {
+  @apply w-full;
+}
+
+.im-admin-delete-button {
+  @apply text-red-500 hover:text-red-700;
+}
+
+.dark .im-admin-delete-button {
+  @apply text-red-400 hover:text-red-300;
+}
+
+/* ===== Admin Clubs Page Layout ===== */
+.im-admin-clubs-page {
+  @apply p-8;
+  background-color: var(--rsp-background);
+  color: var(--rsp-foreground);
+}
+
+.im-admin-clubs-header {
+  @apply mb-8;
+}
+
+.im-admin-clubs-title {
+  @apply text-3xl font-bold;
+  color: var(--rsp-foreground);
+}
+
+.im-admin-clubs-subtitle {
+  @apply mt-2 text-gray-500;
+}
+
+.dark .im-admin-clubs-subtitle {
+  @apply text-gray-400;
+}
+
+/* ===== Clubs Grid ===== */
+.im-admin-clubs-grid {
+  @apply grid gap-6;
+}
+
+@media (min-width: 640px) {
+  .im-admin-clubs-grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .im-admin-clubs-grid {
+    @apply grid-cols-3;
+  }
+}
+
+@media (min-width: 1280px) {
+  .im-admin-clubs-grid {
+    @apply grid-cols-4;
+  }
+}
+
+/* ===== Loading and Empty States ===== */
+.im-admin-clubs-loading {
+  @apply flex items-center justify-center py-12;
+}
+
+.im-admin-clubs-loading-spinner {
+  @apply w-8 h-8 border-4 rounded-full animate-spin;
+  border-color: var(--rsp-border);
+  border-top-color: var(--rsp-primary);
+}
+
+.im-admin-clubs-loading-text {
+  @apply ml-3 text-gray-500;
+}
+
+.im-admin-clubs-empty {
+  @apply text-center py-12;
+}
+
+.im-admin-clubs-empty-text {
+  @apply text-gray-500 text-lg;
+}
+
+.dark .im-admin-clubs-empty-text {
+  @apply text-gray-400;
+}
+
+/* ===== Action Bar ===== */
+.im-admin-clubs-actions {
+  @apply flex justify-between items-center mb-6 flex-wrap gap-4;
+}
+
+.im-admin-clubs-actions-left {
+  @apply flex items-center gap-2;
+}
+
+.im-admin-clubs-actions-right {
+  @apply flex items-center gap-2;
+}

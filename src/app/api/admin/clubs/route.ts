@@ -15,15 +15,50 @@ export async function GET(request: Request) {
       select: {
         id: true,
         name: true,
+        shortDescription: true,
         location: true,
+        city: true,
         contactInfo: true,
         openingHours: true,
         logo: true,
+        heroImage: true,
+        tags: true,
+        isPublic: true,
         createdAt: true,
+        courts: {
+          select: {
+            id: true,
+            indoor: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json(clubs);
+    // Process clubs to add indoor/outdoor counts
+    const clubsWithCounts = clubs.map((club) => {
+      const indoorCount = club.courts.filter((c) => c.indoor).length;
+      const outdoorCount = club.courts.filter((c) => !c.indoor).length;
+
+      return {
+        id: club.id,
+        name: club.name,
+        shortDescription: club.shortDescription,
+        location: club.location,
+        city: club.city,
+        contactInfo: club.contactInfo,
+        openingHours: club.openingHours,
+        logo: club.logo,
+        heroImage: club.heroImage,
+        tags: club.tags,
+        isPublic: club.isPublic,
+        createdAt: club.createdAt,
+        indoorCount,
+        outdoorCount,
+        courtCount: club.courts.length,
+      };
+    });
+
+    return NextResponse.json(clubsWithCounts);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error fetching clubs:", error);

@@ -3,11 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Button, Card, Input, Modal, IMLink } from "@/components/ui";
-import { NotificationBell } from "@/components/admin/NotificationBell";
-import { UserRoleIndicator } from "@/components/UserRoleIndicator";
-import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
-import type { Club, ClubFormData } from "@/types/club";
+import { useTranslations } from "next-intl";
+import { Button, Input, Modal, IMLink, PageHeader } from "@/components/ui";
+import { AdminClubCard } from "@/components/admin/AdminClubCard";
+import type { ClubWithCounts, ClubFormData } from "@/types/club";
+import "@/components/admin/AdminClubCard.css";
 
 const initialFormData: ClubFormData = {
   name: "",
@@ -18,19 +18,19 @@ const initialFormData: ClubFormData = {
 };
 
 export default function AdminClubsPage() {
+  const t = useTranslations();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [clubs, setClubs] = useState<Club[]>([]);
+  const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editingClub, setEditingClub] = useState<Club | null>(null);
-  const [deletingClub, setDeletingClub] = useState<Club | null>(null);
+  const [editingClub, setEditingClub] = useState<ClubWithCounts | null>(null);
+  const [deletingClub, setDeletingClub] = useState<ClubWithCounts | null>(null);
   const [formData, setFormData] = useState<ClubFormData>(initialFormData);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [expandedClubId, setExpandedClubId] = useState<string | null>(null);
 
   const fetchClubs = useCallback(async () => {
     try {
@@ -47,11 +47,11 @@ export default function AdminClubsPage() {
       setClubs(data);
       setError("");
     } catch {
-      setError("Failed to load clubs");
+      setError(t("clubs.failedToLoad"));
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [router, t]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -71,7 +71,7 @@ export default function AdminClubsPage() {
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (club: Club) => {
+  const handleOpenEditModal = (club: ClubWithCounts) => {
     setEditingClub(club);
     setFormData({
       name: club.name,
@@ -84,7 +84,7 @@ export default function AdminClubsPage() {
     setIsModalOpen(true);
   };
 
-  const handleOpenDeleteModal = (club: Club) => {
+  const handleOpenDeleteModal = (club: ClubWithCounts) => {
     setDeletingClub(club);
     setIsDeleteModalOpen(true);
   };
@@ -160,42 +160,37 @@ export default function AdminClubsPage() {
     }
   };
 
-  const toggleExpandedClub = (clubId: string) => {
-    setExpandedClubId((prev) => (prev === clubId ? null : clubId));
-  };
-
   if (status === "loading" || loading) {
     return (
-      <main className="rsp-container p-8">
-        <div className="rsp-loading text-center">Loading...</div>
+      <main className="im-admin-clubs-page">
+        <div className="im-admin-clubs-loading">
+          <div className="im-admin-clubs-loading-spinner" />
+          <span className="im-admin-clubs-loading-text">{t("common.loading")}</span>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="rsp-container p-8">
-      <header className="rsp-header flex items-center justify-between mb-8">
-        <div>
-          <h1 className="rsp-title text-3xl font-bold">Admin - Clubs</h1>
-          <p className="rsp-subtitle text-gray-500 mt-2">
-            Manage all padel clubs
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <NotificationBell />
-          <UserRoleIndicator />
-        </div>
-      </header>
+    <main className="im-admin-clubs-page">
+      <PageHeader
+        title={t("admin.clubs.title")}
+        description={t("admin.clubs.subtitle")}
+      />
 
       <section className="rsp-content">
-        <div className="flex justify-between items-center mb-6">
-          <IMLink href="/">
-            ← Back to Home
-          </IMLink>
-          <div className="flex gap-2">
-            <Button onClick={handleOpenCreateModal} variant="outline">Quick Create</Button>
+        <div className="im-admin-clubs-actions">
+          <div className="im-admin-clubs-actions-left">
+            <IMLink href="/">
+              {t("common.backToHome")}
+            </IMLink>
+          </div>
+          <div className="im-admin-clubs-actions-right">
+            <Button onClick={handleOpenCreateModal} variant="outline">
+              {t("admin.clubs.quickCreate")}
+            </Button>
             <IMLink href="/admin/clubs/new" className="rsp-button">
-              Create Club
+              {t("admin.clubs.createClub")}
             </IMLink>
           </div>
         </div>
@@ -206,132 +201,31 @@ export default function AdminClubsPage() {
           </div>
         )}
 
-        <Card>
-          <div className="rsp-clubs-table overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b" style={{ borderColor: "var(--rsp-border)" }}>
-                  <th className="py-3 px-4 font-semibold">Name</th>
-                  <th className="py-3 px-4 font-semibold">Address</th>
-                  <th className="py-3 px-4 font-semibold hidden md:table-cell">Contact Info</th>
-                  <th className="py-3 px-4 font-semibold hidden lg:table-cell">Opening Hours</th>
-                  <th className="py-3 px-4 font-semibold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clubs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="py-8 text-center text-gray-500">
-                      No clubs found. Create your first club.
-                    </td>
-                  </tr>
-                ) : (
-                  clubs.map((club) => (
-                    <>
-                      <tr
-                        key={club.id}
-                        className="border-b hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
-                        style={{ borderColor: "var(--rsp-border)" }}
-                        onClick={() => toggleExpandedClub(club.id)}
-                      >
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            {isValidImageUrl(club.logo) && (
-                              /* eslint-disable-next-line @next/next/no-img-element */
-                              <img
-                                src={getSupabaseStorageUrl(club.logo) ?? ""}
-                                alt={`${club.name} logo`}
-                                className="w-8 h-8 rounded-full object-cover"
-                              />
-                            )}
-                            <span className="font-medium">{club.name}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">{club.location}</td>
-                        <td className="py-3 px-4 hidden md:table-cell">
-                          {club.contactInfo || "-"}
-                        </td>
-                        <td className="py-3 px-4 hidden lg:table-cell">
-                          {club.openingHours || "-"}
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/admin/clubs/${club.id}/courts`);
-                              }}
-                            >
-                              Courts
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenEditModal(club);
-                              }}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenDeleteModal(club);
-                              }}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                      {expandedClubId === club.id && (
-                        <tr
-                          key={`${club.id}-expanded`}
-                          className="md:hidden"
-                          style={{ backgroundColor: "var(--rsp-card-bg)" }}
-                        >
-                          <td colSpan={5} className="py-3 px-4">
-                            <div className="space-y-2 text-sm">
-                              {isValidImageUrl(club.logo) && (
-                                <div>
-                                  <span className="font-semibold">Logo: </span>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    src={getSupabaseStorageUrl(club.logo) ?? ""}
-                                    alt={`${club.name} logo`}
-                                    className="w-16 h-16 rounded-sm object-cover mt-1"
-                                  />
-                                </div>
-                              )}
-                              <div>
-                                <span className="font-semibold">Contact Info: </span>
-                                {club.contactInfo || "-"}
-                              </div>
-                              <div>
-                                <span className="font-semibold">Opening Hours: </span>
-                                {club.openingHours || "-"}
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </>
-                  ))
-                )}
-              </tbody>
-            </table>
+        {clubs.length === 0 ? (
+          <div className="im-admin-clubs-empty">
+            <p className="im-admin-clubs-empty-text">
+              {t("admin.clubs.noClubs")}
+            </p>
           </div>
-        </Card>
+        ) : (
+          <section className="im-admin-clubs-grid">
+            {clubs.map((club) => (
+              <AdminClubCard
+                key={club.id}
+                club={club}
+                onEdit={handleOpenEditModal}
+                onDelete={handleOpenDeleteModal}
+              />
+            ))}
+          </section>
+        )}
       </section>
 
       {/* Create/Edit Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        title={editingClub ? "Edit Club" : "Create Club"}
+        title={editingClub ? t("admin.clubs.editClub") : t("admin.clubs.createClub")}
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           {formError && (
@@ -340,48 +234,48 @@ export default function AdminClubsPage() {
             </div>
           )}
           <Input
-            label="Name"
+            label={t("common.name")}
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="Club name"
+            placeholder={t("admin.clubs.clubName")}
             required
           />
           <Input
-            label="Address"
+            label={t("common.address")}
             name="location"
             value={formData.location}
             onChange={handleInputChange}
-            placeholder="Club address"
+            placeholder={t("admin.clubs.clubAddress")}
             required
           />
           <Input
-            label="Contact Info"
+            label={t("admin.clubs.contactInfo")}
             name="contactInfo"
             value={formData.contactInfo}
             onChange={handleInputChange}
-            placeholder="Phone or email"
+            placeholder={t("admin.clubs.phoneOrEmail")}
           />
           <Input
-            label="Opening Hours"
+            label={t("admin.clubs.openingHours")}
             name="openingHours"
             value={formData.openingHours}
             onChange={handleInputChange}
-            placeholder="e.g., Mon-Fri 9am-10pm"
+            placeholder={t("admin.clubs.openingHoursExample")}
           />
           <Input
-            label="Logo URL"
+            label={t("admin.clubs.logoUrl")}
             name="logo"
             value={formData.logo}
             onChange={handleInputChange}
-            placeholder="https://example.com/logo.png"
+            placeholder={t("admin.clubs.logoUrlPlaceholder")}
           />
           <div className="flex justify-end gap-2 mt-4">
             <Button type="button" variant="outline" onClick={handleCloseModal}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Saving..." : editingClub ? "Update" : "Create"}
+              {submitting ? t("admin.clubs.saving") : editingClub ? t("common.update") : t("common.create")}
             </Button>
           </div>
         </form>
@@ -391,22 +285,21 @@ export default function AdminClubsPage() {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
-        title="Delete Club"
+        title={t("admin.clubs.deleteClub")}
       >
         <p className="mb-4">
-          Are you sure you want to delete &quot;{deletingClub?.name}&quot;? This action
-          cannot be undone.
+          {t("admin.clubs.deleteConfirm", { name: deletingClub?.name || "" })}
         </p>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={handleCloseDeleteModal}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={handleDelete}
             disabled={submitting}
             className="bg-red-500 hover:bg-red-600"
           >
-            {submitting ? "Deleting..." : "Delete"}
+            {submitting ? t("admin.clubs.deleting") : t("common.delete")}
           </Button>
         </div>
       </Modal>

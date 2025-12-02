@@ -70,20 +70,35 @@ describe("Admin Clubs API", () => {
         {
           id: "club-1",
           name: "Club A",
+          shortDescription: null,
           location: "Location A",
+          city: null,
           contactInfo: "contact@a.com",
           openingHours: "9am-10pm",
           logo: null,
+          heroImage: null,
+          tags: null,
+          isPublic: true,
           createdAt: new Date().toISOString(),
+          courts: [
+            { id: "court-1", indoor: true },
+            { id: "court-2", indoor: false },
+          ],
         },
         {
           id: "club-2",
           name: "Club B",
+          shortDescription: "Great club",
           location: "Location B",
+          city: "City B",
           contactInfo: null,
           openingHours: null,
           logo: "https://example.com/logo.png",
+          heroImage: null,
+          tags: null,
+          isPublic: false,
           createdAt: new Date().toISOString(),
+          courts: [],
         },
       ];
 
@@ -99,6 +114,12 @@ describe("Admin Clubs API", () => {
       expect(response.status).toBe(200);
       expect(data).toHaveLength(2);
       expect(data[0].name).toBe("Club A");
+      expect(data[0].indoorCount).toBe(1);
+      expect(data[0].outdoorCount).toBe(1);
+      expect(data[0].courtCount).toBe(2);
+      expect(data[1].indoorCount).toBe(0);
+      expect(data[1].outdoorCount).toBe(0);
+      expect(data[1].courtCount).toBe(0);
     });
 
     it("should return 500 for database errors", async () => {

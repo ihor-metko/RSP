@@ -375,7 +375,7 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
                 <div key={img.id || index} className="im-gallery-edit-item">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={img.preview || getSupabaseStorageUrl(img.imageUrl) ?? ""}
+                    src={img.preview || (getSupabaseStorageUrl(img.imageUrl) ?? "")}
                     alt={img.altText || `Gallery image ${index + 1}`}
                   />
                   <div className="im-gallery-edit-item-actions">

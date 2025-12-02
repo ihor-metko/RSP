@@ -45,7 +45,9 @@
     "cancelled": "Скасовано",
     "rejected": "Відхилено",
     "processing": "Обробка...",
-    "language": "Мова"
+    "language": "Мова",
+    "published": "Опубліковано",
+    "draft": "Чернетка"
   },
   "home": {
     "title": "Падел Клуб MVP",
@@ -156,6 +158,7 @@
       "deleting": "Видалення...",
       "saving": "Збереження...",
       "courts": "Корти",
+      "noCourts": "Немає кортів",
       "form": {
         "basicInfo": "Основна інформація",
         "locationContact": "Локація та контакти",

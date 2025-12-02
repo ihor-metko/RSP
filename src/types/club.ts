@@ -8,6 +8,18 @@ export interface Club {
   createdAt: string;
 }
 
+/** Extended club info with court counts for card display */
+export interface ClubWithCounts extends Club {
+  shortDescription?: string | null;
+  city?: string | null;
+  heroImage?: string | null;
+  tags?: string | null;
+  isPublic?: boolean;
+  indoorCount?: number;
+  outdoorCount?: number;
+  courtCount?: number;
+}
+
 export interface ClubFormData {
   name: string;
   location: string;
