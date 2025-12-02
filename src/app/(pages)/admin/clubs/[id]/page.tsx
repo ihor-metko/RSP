@@ -15,65 +15,9 @@ import { ClubCoachesView } from "@/components/admin/club/ClubCoachesView";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
+import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
 import type { ClubDetail } from "@/types/club";
 import "./page.css";
-
-// Parse tags from JSON string or comma-separated string
-function parseTags(tags: string | null | undefined): string[] {
-  if (!tags) return [];
-  try {
-    const parsed = JSON.parse(tags);
-    if (Array.isArray(parsed)) {
-      return parsed.filter((tag): tag is string => typeof tag === "string");
-    }
-  } catch {
-    // If not valid JSON, fall through to comma-separated parsing
-  }
-  return tags.split(",").map((t) => t.trim()).filter(Boolean);
-}
-
-// Calculate price range from courts
-function getPriceRange(courts: ClubDetail["courts"]): { min: number; max: number } | null {
-  if (courts.length === 0) return null;
-  const prices = courts.map((c) => c.defaultPriceCents);
-  return { min: Math.min(...prices), max: Math.max(...prices) };
-}
-
-// Count courts by type
-function getCourtCounts(courts: ClubDetail["courts"]): { indoor: number; outdoor: number } {
-  return courts.reduce(
-    (acc, court) => {
-      if (court.indoor) {
-        acc.indoor++;
-      } else {
-        acc.outdoor++;
-      }
-      return acc;
-    },
-    { indoor: 0, outdoor: 0 }
-  );
-}
-
-// Safely construct Google Maps embed URL with validated coordinates
-function getGoogleMapsEmbedUrl(latitude: number, longitude: number, apiKey: string | undefined): string | null {
-  // Validate latitude and longitude are valid numbers within range
-  if (typeof latitude !== "number" || typeof longitude !== "number") {
-    return null;
-  }
-  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-    return null;
-  }
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-    return null;
-  }
-  
-  // Use encodeURIComponent for safety and construct URL with validated coordinates
-  const lat = encodeURIComponent(latitude.toString());
-  const lng = encodeURIComponent(longitude.toString());
-  const key = encodeURIComponent(apiKey || "");
-  
-  return `https://www.google.com/maps/embed/v1/place?key=${key}&q=${lat},${lng}&zoom=15`;
-}
 
 export default function AdminClubDetailPage({
   params,
@@ -248,7 +192,7 @@ export default function AdminClubDetailPage({
   const clubTags = parseTags(club.tags);
   const priceRange = getPriceRange(club.courts);
   const courtCounts = getCourtCounts(club.courts);
-  const hasValidCoordinates = club.latitude !== null && club.longitude !== null && club.latitude !== undefined && club.longitude !== undefined;
+  const hasValidCoordinates = club.latitude != null && club.longitude != null;
   const mapsEmbedUrl = hasValidCoordinates 
     ? getGoogleMapsEmbedUrl(club.latitude as number, club.longitude as number, process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
     : null;
