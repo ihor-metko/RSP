@@ -211,7 +211,7 @@
 }
 
 .rsp-club-hero-image--logo {
-  @apply object-contain p-4;
+  @apply object-contain;
   background-color: var(--rsp-card-bg);
 }
 
