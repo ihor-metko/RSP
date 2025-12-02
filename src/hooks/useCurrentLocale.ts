@@ -30,10 +30,13 @@ export function useCurrentLocale(): Locale {
       }
     };
 
-    window.addEventListener(LOCALE_CHANGE_EVENT, handleLocaleChange);
-    return () => {
-      window.removeEventListener(LOCALE_CHANGE_EVENT, handleLocaleChange);
-    };
+    if (typeof window !== "undefined") {
+      window.addEventListener(LOCALE_CHANGE_EVENT, handleLocaleChange);
+      return () => {
+        window.removeEventListener(LOCALE_CHANGE_EVENT, handleLocaleChange);
+      };
+    }
+    return undefined;
   }, []);
 
   return locale;
