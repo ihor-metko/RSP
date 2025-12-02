@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -40,25 +40,33 @@ function MapCenterUpdater({ latitude, longitude }: { latitude: number; longitude
 }
 
 export function ClubMap({ latitude, longitude, clubName, className = "" }: ClubMapProps) {
+  // Generate a stable key based on coordinates to prevent re-initialization
+  // Only create a new map instance if coordinates change significantly
+  const mapKey = useMemo(() => `map-${latitude.toFixed(6)}-${longitude.toFixed(6)}`, [latitude, longitude]);
+
   return (
-    <MapContainer
-      center={[latitude, longitude]}
-      zoom={15}
-      scrollWheelZoom={true}
-      className={`rsp-club-map ${className}`.trim()}
+    <div
       role="application"
       aria-label={`Map showing location of ${clubName}`}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <Marker position={[latitude, longitude]}>
-        <Popup>
-          <strong>{clubName}</strong>
-        </Popup>
-      </Marker>
-      <MapCenterUpdater latitude={latitude} longitude={longitude} />
-    </MapContainer>
+      <MapContainer
+        key={mapKey}
+        center={[latitude, longitude]}
+        zoom={15}
+        scrollWheelZoom={true}
+        className={`rsp-club-map ${className}`.trim()}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={[latitude, longitude]}>
+          <Popup>
+            <strong>{clubName}</strong>
+          </Popup>
+        </Marker>
+        <MapCenterUpdater latitude={latitude} longitude={longitude} />
+      </MapContainer>
+    </div>
   );
 }
