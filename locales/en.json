@@ -210,6 +210,77 @@
           "invalidLongitude": "Must be a valid number",
           "slugConflict": "This slug is already in use"
         }
+      },
+      "stepper": {
+        "stepOf": "Step {current} of {total}",
+        "steps": {
+          "general": "General",
+          "contacts": "Contacts",
+          "hours": "Hours",
+          "courts": "Courts",
+          "gallery": "Gallery"
+        },
+        "generalInfo": {
+          "title": "General Information",
+          "description": "Enter the basic details about your club.",
+          "clubName": "Club Name",
+          "clubNameRequired": "Club name is required",
+          "slug": "Slug (optional)",
+          "slugHint": "Auto-generated from name if empty",
+          "clubType": "Club Type",
+          "selectType": "Select type...",
+          "shortDescription": "Short Description"
+        },
+        "contacts": {
+          "title": "Contacts and Address",
+          "description": "Provide contact information and location details.",
+          "address": "Address",
+          "city": "City",
+          "postalCode": "Postal Code",
+          "phone": "Phone",
+          "email": "Email",
+          "website": "Website"
+        },
+        "hours": {
+          "title": "Club Working Hours",
+          "description": "Set the standard operating hours for each day of the week."
+        },
+        "courts": {
+          "title": "Courts",
+          "description": "Add courts for your club. You can add more later from the club detail page.",
+          "addCourt": "+ Add Court",
+          "courtName": "Name",
+          "courtType": "Type",
+          "courtSurface": "Surface",
+          "courtPrice": "Default Price (cents)",
+          "courtIndoor": "Indoor"
+        },
+        "gallery": {
+          "title": "Gallery / Images",
+          "description": "Upload your club logo and photos.",
+          "clubLogo": "Club Logo",
+          "logoHint": "Recommended: 512x512 square image",
+          "galleryPhotos": "Gallery Photos",
+          "galleryHint": "Add photos of your club facilities",
+          "addImage": "Add Image"
+        },
+        "navigation": {
+          "cancel": "Cancel",
+          "back": "Back",
+          "next": "Next",
+          "createClub": "Create Club",
+          "creating": "Creating..."
+        },
+        "toast": {
+          "success": "Club created successfully!",
+          "error": "Failed to create club"
+        },
+        "clubTypes": {
+          "padel": "Padel",
+          "tennis": "Tennis",
+          "squash": "Squash",
+          "multi": "Multi-sport"
+        }
       }
     },
     "coaches": {
