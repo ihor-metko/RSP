@@ -283,7 +283,7 @@ export default function CourtDetailPage({
         items={[
           { label: t("breadcrumbs.home"), href: "/" },
           { label: t("breadcrumbs.clubs"), href: "/clubs" },
-          ...(court.clubId ? [{ label: t("breadcrumbs.clubs"), href: `/clubs/${court.clubId}` }] : []),
+          ...(court.clubId ? [{ label: t("breadcrumbs.club"), href: `/clubs/${court.clubId}` }] : []),
           { label: court.name },
         ]}
         className="mb-6"
