@@ -541,11 +541,11 @@
     display: flex;
     flex-direction: column;
   }
-  
+
   .im-club-description-gallery-left {
     order: 1;
   }
-  
+
   .im-club-contacts-column {
     order: 2;
   }
@@ -554,7 +554,7 @@
 /* On desktop: description/gallery on left, contacts on right */
 @media (min-width: 1024px) {
   .im-club-description-gallery-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
   }
 }
 

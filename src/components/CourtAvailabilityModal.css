@@ -19,6 +19,8 @@
 
 .tm-court-availability-list {
   @apply flex flex-col gap-3;
+  max-height: 400px;
+  overflow: auto;
 }
 
 .tm-court-availability-item {
