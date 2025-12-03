@@ -59,7 +59,7 @@ export async function POST(
   { params }: { params: Promise<{ courtId: string }> }
 ) {
   // Require admin role
-  const authResult = await requireRole(request, ["admin"]);
+  const authResult = await requireRole(request, ["super_admin"]);
   if (!authResult.authorized) {
     return authResult.response;
   }

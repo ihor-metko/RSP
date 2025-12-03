@@ -17,7 +17,7 @@ export async function GET(): Promise<Response> {
     });
   }
 
-  if (session.user.role !== "admin") {
+  if (session.user.role !== "super_admin") {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },

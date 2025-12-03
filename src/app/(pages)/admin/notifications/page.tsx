@@ -15,7 +15,7 @@ export default function AdminNotificationsPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || session.user.role !== "super_admin") {
       router.push("/auth/sign-in");
     }
   }, [session, status, router]);
@@ -28,7 +28,7 @@ export default function AdminNotificationsPage() {
     );
   }
 
-  if (!session?.user || session.user.role !== "admin") {
+  if (!session?.user || session.user.role !== "super_admin") {
     return null;
   }
 

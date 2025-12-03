@@ -240,8 +240,8 @@ describe("PublicClubCard", () => {
       expect(link).toHaveAttribute("href", "/clubs/club-1");
     });
 
-    it("links to /admin/clubs/{id} for admin role", () => {
-      render(<PublicClubCard club={baseClub} role="admin" />);
+    it("links to /admin/clubs/{id} for super_admin role", () => {
+      render(<PublicClubCard club={baseClub} role="super_admin" />);
       const link = screen.getByRole("link");
       expect(link).toHaveAttribute("href", "/admin/clubs/club-1");
     });

@@ -4,13 +4,13 @@ import { hash } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create 1 admin user
+  // Create 1 super_admin user
   const adminUser = await prisma.user.create({
     data: {
       name: "Admin User",
       email: "admin@test.com",
       password: await hash("password123", 12),
-      role: "admin",
+      role: "super_admin",
     },
   });
 

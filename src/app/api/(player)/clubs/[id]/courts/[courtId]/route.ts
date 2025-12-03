@@ -6,7 +6,7 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string; courtId: string }> }
 ) {
-  const authResult = await requireRole(request, ["admin"]);
+  const authResult = await requireRole(request, ["super_admin"]);
 
   if (!authResult.authorized) {
     return authResult.response;
@@ -85,7 +85,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string; courtId: string }> }
 ) {
-  const authResult = await requireRole(request, ["admin"]);
+  const authResult = await requireRole(request, ["super_admin"]);
 
   if (!authResult.authorized) {
     return authResult.response;

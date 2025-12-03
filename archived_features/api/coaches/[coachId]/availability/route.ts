@@ -78,7 +78,7 @@ export async function POST(
 ) {
   try {
     // Role check: Only coach and admin can access
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }
@@ -106,7 +106,7 @@ export async function POST(
     }
 
     // Verify the authenticated user is the coach or an admin
-    if (authResult.userRole !== "admin" && coach.userId !== authResult.userId) {
+    if (authResult.userRole !== "super_admin" && coach.userId !== authResult.userId) {
       return NextResponse.json(
         { error: "Forbidden: You can only modify your own availability" },
         { status: 403 }

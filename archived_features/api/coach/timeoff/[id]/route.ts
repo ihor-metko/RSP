@@ -14,7 +14,7 @@ export async function PUT(
 ) {
   try {
     // Role check: Only coach and admin can access
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }
@@ -53,7 +53,7 @@ export async function PUT(
       );
     }
 
-    if (existingTimeOff.coachId !== coach.id && authResult.userRole !== "admin") {
+    if (existingTimeOff.coachId !== coach.id && authResult.userRole !== "super_admin") {
       return NextResponse.json(
         { error: "Forbidden: You can only modify your own time off entries" },
         { status: 403 }
@@ -209,7 +209,7 @@ export async function DELETE(
 ) {
   try {
     // Role check: Only coach and admin can access
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }
@@ -248,7 +248,7 @@ export async function DELETE(
       );
     }
 
-    if (existingTimeOff.coachId !== coach.id && authResult.userRole !== "admin") {
+    if (existingTimeOff.coachId !== coach.id && authResult.userRole !== "super_admin") {
       return NextResponse.json(
         { error: "Forbidden: You can only delete your own time off entries" },
         { status: 403 }

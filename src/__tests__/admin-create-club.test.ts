@@ -83,7 +83,7 @@ describe("Admin Create Club API", () => {
 
     it("should return 400 when name is missing", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const invalidData = { ...validClubData, name: "" };
@@ -103,7 +103,7 @@ describe("Admin Create Club API", () => {
 
     it("should return 400 when short description is missing", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const invalidData = { ...validClubData, shortDescription: "" };
@@ -123,7 +123,7 @@ describe("Admin Create Club API", () => {
 
     it("should return 400 when address is missing", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const invalidData = { ...validClubData, location: "" };
@@ -143,7 +143,7 @@ describe("Admin Create Club API", () => {
 
     it("should return 409 when slug already exists", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue({
@@ -166,7 +166,7 @@ describe("Admin Create Club API", () => {
 
     it("should create a new club successfully", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(null);
@@ -202,7 +202,7 @@ describe("Admin Create Club API", () => {
 
     it("should create club with business hours", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(null);
@@ -238,7 +238,7 @@ describe("Admin Create Club API", () => {
 
     it("should create club with inline courts", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(null);
@@ -274,7 +274,7 @@ describe("Admin Create Club API", () => {
 
     it("should auto-generate slug from name if not provided", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(null);

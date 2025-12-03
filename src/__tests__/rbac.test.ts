@@ -31,7 +31,7 @@ describe("requireRole middleware", () => {
       method: "GET",
     });
 
-    const result = await requireRole(request, ["admin"]);
+    const result = await requireRole(request, ["super_admin"]);
 
     expect(result.authorized).toBe(false);
     if (!result.authorized) {
@@ -48,7 +48,7 @@ describe("requireRole middleware", () => {
       method: "GET",
     });
 
-    const result = await requireRole(request, ["admin"]);
+    const result = await requireRole(request, ["super_admin"]);
 
     expect(result.authorized).toBe(false);
     if (!result.authorized) {
@@ -67,7 +67,7 @@ describe("requireRole middleware", () => {
       method: "GET",
     });
 
-    const result = await requireRole(request, ["admin"]);
+    const result = await requireRole(request, ["super_admin"]);
 
     expect(result.authorized).toBe(false);
     if (!result.authorized) {
@@ -77,7 +77,7 @@ describe("requireRole middleware", () => {
     }
   });
 
-  it("should return 403 Forbidden when coach tries to access admin-only route", async () => {
+  it("should return 403 Forbidden when coach tries to access super_admin-only route", async () => {
     mockAuth.mockResolvedValue({
       user: { id: "user-123", role: "coach" },
     });
@@ -86,7 +86,7 @@ describe("requireRole middleware", () => {
       method: "GET",
     });
 
-    const result = await requireRole(request, ["admin"]);
+    const result = await requireRole(request, ["super_admin"]);
 
     expect(result.authorized).toBe(false);
     if (!result.authorized) {
@@ -96,39 +96,39 @@ describe("requireRole middleware", () => {
     }
   });
 
-  it("should authorize admin for admin-only routes", async () => {
+  it("should authorize super_admin for super_admin-only routes", async () => {
     mockAuth.mockResolvedValue({
-      user: { id: "admin-123", role: "admin" },
+      user: { id: "admin-123", role: "super_admin" },
     });
 
     const request = new Request("http://localhost:3000/api/admin", {
       method: "GET",
     });
 
-    const result = await requireRole(request, ["admin"]);
+    const result = await requireRole(request, ["super_admin"]);
 
     expect(result.authorized).toBe(true);
     if (result.authorized) {
       expect(result.userId).toBe("admin-123");
-      expect(result.userRole).toBe("admin");
+      expect(result.userRole).toBe("super_admin");
     }
   });
 
-  it("should authorize admin for coach routes", async () => {
+  it("should authorize super_admin for coach routes", async () => {
     mockAuth.mockResolvedValue({
-      user: { id: "admin-123", role: "admin" },
+      user: { id: "admin-123", role: "super_admin" },
     });
 
     const request = new Request("http://localhost:3000/api/coach", {
       method: "GET",
     });
 
-    const result = await requireRole(request, ["coach", "admin"]);
+    const result = await requireRole(request, ["coach", "super_admin"]);
 
     expect(result.authorized).toBe(true);
     if (result.authorized) {
       expect(result.userId).toBe("admin-123");
-      expect(result.userRole).toBe("admin");
+      expect(result.userRole).toBe("super_admin");
     }
   });
 
@@ -141,7 +141,7 @@ describe("requireRole middleware", () => {
       method: "GET",
     });
 
-    const result = await requireRole(request, ["coach", "admin"]);
+    const result = await requireRole(request, ["coach", "super_admin"]);
 
     expect(result.authorized).toBe(true);
     if (result.authorized) {
@@ -159,7 +159,7 @@ describe("requireRole middleware", () => {
       method: "POST",
     });
 
-    const result = await requireRole(request, ["player", "admin", "coach"]);
+    const result = await requireRole(request, ["player", "super_admin", "coach"]);
 
     expect(result.authorized).toBe(true);
     if (result.authorized) {
@@ -169,7 +169,7 @@ describe("requireRole middleware", () => {
   });
 
   it("should authorize all roles for clubs/booking pages", async () => {
-    const roles = ["player", "admin", "coach"] as const;
+    const roles = ["player", "super_admin", "coach"] as const;
     
     for (const role of roles) {
       mockAuth.mockResolvedValue({
@@ -180,7 +180,7 @@ describe("requireRole middleware", () => {
         method: "GET",
       });
 
-      const result = await requireRole(request, ["player", "admin", "coach"]);
+      const result = await requireRole(request, ["player", "super_admin", "coach"]);
 
       expect(result.authorized).toBe(true);
       if (result.authorized) {

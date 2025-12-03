@@ -76,10 +76,10 @@ describe("Admin Redirect Middleware", () => {
     });
   });
 
-  describe("admin users", () => {
-    it("should redirect admin users from landing page to admin dashboard", async () => {
+  describe("super_admin users", () => {
+    it("should redirect super_admin users from landing page to admin dashboard", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", role: "admin" },
+        user: { id: "admin1", email: "admin@test.com", role: "super_admin" },
       });
 
       const request = createMockRequest("/");
@@ -87,14 +87,14 @@ describe("Admin Redirect Middleware", () => {
 
       expect(response.status).toBe(307);
       const locationHeader = response.headers.get("location");
-      expect(locationHeader).toContain(ROLE_HOMEPAGES.admin);
+      expect(locationHeader).toContain(ROLE_HOMEPAGES.super_admin);
     });
   });
 
   describe("non-root paths", () => {
-    it("should not affect requests to other paths for admin users", async () => {
+    it("should not affect requests to other paths for super_admin users", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", role: "admin" },
+        user: { id: "admin1", email: "admin@test.com", role: "super_admin" },
       });
 
       const request = createMockRequest("/clubs");
@@ -104,9 +104,9 @@ describe("Admin Redirect Middleware", () => {
       expect(response.headers.get("location")).toBeNull();
     });
 
-    it("should allow admin access to /admin/* routes", async () => {
+    it("should allow super_admin access to /admin/* routes", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", role: "admin" },
+        user: { id: "admin1", email: "admin@test.com", role: "super_admin" },
       });
 
       const request = createMockRequest("/admin/clubs");
@@ -143,8 +143,8 @@ describe("Admin Redirect Middleware", () => {
 });
 
 describe("Role Homepage Configuration", () => {
-  it("should have admin homepage set to /admin/clubs", () => {
-    expect(ROLE_HOMEPAGES.admin).toBe("/admin/clubs");
+  it("should have super_admin homepage set to /admin/clubs", () => {
+    expect(ROLE_HOMEPAGES.super_admin).toBe("/admin/clubs");
   });
 
   it("should have player homepage set to root", () => {

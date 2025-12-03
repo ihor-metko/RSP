@@ -131,7 +131,7 @@ export default function PriceRulesPage({
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || session.user.role !== "super_admin") {
       router.push("/auth/sign-in");
       return;
     }

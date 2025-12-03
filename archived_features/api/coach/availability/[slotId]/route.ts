@@ -13,7 +13,7 @@ export async function PUT(
 ) {
   try {
     // Role check: Only coach and admin can access
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }
@@ -128,7 +128,7 @@ export async function DELETE(
 ) {
   try {
     // Role check: Only coach and admin can access
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }

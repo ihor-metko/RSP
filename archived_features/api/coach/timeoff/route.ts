@@ -11,7 +11,7 @@ import type { CoachTimeOffEntry, CreateTimeOffRequest } from "@/types/coach";
 export async function GET(request: Request) {
   try {
     // Role check: Only coach and admin can access
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }
@@ -67,7 +67,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     // Role check: Only coach and admin can access
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }

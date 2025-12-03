@@ -98,7 +98,7 @@ export default function AdminCoachesPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== "admin") {
+    if (!session?.user || session.user.role !== "super_admin") {
       router.push("/auth/sign-in");
       return;
     }
@@ -249,7 +249,7 @@ export default function AdminCoachesPage() {
 
   const getRoleBadgeClass = (role: string) => {
     switch (role) {
-      case "admin":
+      case "super_admin":
         return "bg-red-500";
       case "coach":
         return "bg-blue-500";
@@ -323,7 +323,7 @@ export default function AdminCoachesPage() {
                 { value: "", label: "All Roles" },
                 { value: "player", label: "Player" },
                 { value: "coach", label: "Coach" },
-                { value: "admin", label: "Admin" },
+                { value: "super_admin", label: "Admin" },
               ]}
               value={roleFilter}
               onChange={(value) => setRoleFilter(value)}
@@ -394,7 +394,7 @@ export default function AdminCoachesPage() {
                               Remove Coach
                             </Button>
                           )}
-                          {user.role === "admin" && (
+                          {user.role === "super_admin" && (
                             <span className="text-gray-400 text-sm">No actions available</span>
                           )}
                         </div>

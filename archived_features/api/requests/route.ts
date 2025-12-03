@@ -16,7 +16,7 @@ interface TrainingRequestFilter {
 export async function GET(request: Request) {
   try {
     // Role check: only coach or admin can access
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
       where: { userId: authResult.userId },
     });
 
-    if (!coach && authResult.userRole !== "admin") {
+    if (!coach && authResult.userRole !== "super_admin") {
       return NextResponse.json(
         { error: "Coach profile not found" },
         { status: 404 }

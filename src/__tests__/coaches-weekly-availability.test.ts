@@ -313,7 +313,7 @@ describe("POST /api/coaches/[coachId]/availability", () => {
 
     it("should allow admin to create slots for any coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-user", role: "admin" },
+        user: { id: "admin-user", role: "super_admin" },
       });
 
       const mockSlot = {

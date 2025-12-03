@@ -13,7 +13,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ userId: string }> }
 ) {
-  const authResult = await requireRole(request, ["admin"]);
+  const authResult = await requireRole(request, ["super_admin"]);
 
   if (!authResult.authorized) {
     return authResult.response;
@@ -43,7 +43,7 @@ export async function POST(
     }
 
     // Prevent modifying admin role
-    if (existingUser.role === "admin") {
+    if (existingUser.role === "super_admin") {
       return NextResponse.json(
         { error: "Cannot modify admin role" },
         { status: 403 }

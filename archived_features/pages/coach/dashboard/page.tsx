@@ -157,7 +157,7 @@ export default function CoachDashboardPage() {
       return;
     }
 
-    if (session.user.role !== "coach" && session.user.role !== "admin") {
+    if (session.user.role !== "coach" && session.user.role !== "super_admin") {
       setError("Access denied. Only coaches can access this page.");
       return;
     }

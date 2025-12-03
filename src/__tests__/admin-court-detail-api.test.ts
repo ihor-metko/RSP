@@ -59,7 +59,7 @@ describe("Admin Court Detail API", () => {
     (requireRole as jest.Mock).mockResolvedValue({
       authorized: true,
       userId: "admin-user",
-      userRole: "admin",
+      userRole: "super_admin",
     });
   });
 

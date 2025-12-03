@@ -12,7 +12,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireRole(request, ["admin"]);
+    const authResult = await requireRole(request, ["super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }

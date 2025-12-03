@@ -12,7 +12,7 @@ export async function PUT(
   { params }: { params: Promise<{ courtId: string; ruleId: string }> }
 ) {
   // Require admin role
-  const authResult = await requireRole(request, ["admin"]);
+  const authResult = await requireRole(request, ["super_admin"]);
   if (!authResult.authorized) {
     return authResult.response;
   }
@@ -186,7 +186,7 @@ export async function DELETE(
   { params }: { params: Promise<{ courtId: string; ruleId: string }> }
 ) {
   // Require admin role
-  const authResult = await requireRole(request, ["admin"]);
+  const authResult = await requireRole(request, ["super_admin"]);
   if (!authResult.authorized) {
     return authResult.response;
   }

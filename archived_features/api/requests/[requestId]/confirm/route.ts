@@ -14,7 +14,7 @@ export async function PUT(
   { params }: { params: Promise<{ requestId: string }> }
 ) {
   try {
-    const authResult = await requireRole(request, ["coach", "admin"]);
+    const authResult = await requireRole(request, ["coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }

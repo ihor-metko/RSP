@@ -530,7 +530,7 @@ describe("Trainer Requests API", () => {
       (requireRole as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-user-123",
-        userRole: "admin",
+        userRole: "super_admin",
       });
 
       (prisma.trainingRequest.findUnique as jest.Mock).mockResolvedValue({

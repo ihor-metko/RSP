@@ -12,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireRole(request, ["player", "coach", "admin"]);
+    const authResult = await requireRole(request, ["player", "coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }
@@ -107,7 +107,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireRole(request, ["player", "coach", "admin"]);
+    const authResult = await requireRole(request, ["player", "coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }

@@ -246,7 +246,7 @@ export default function UserMenu({ userName, userEmail, userRole }: UserMenuProp
     await signOut({ callbackUrl: "/" });
   };
 
-  const isAdmin = userRole === "admin";
+  const isAdmin = userRole === "super_admin";
 
   return (
     <div className="im-user-menu" ref={menuRef}>

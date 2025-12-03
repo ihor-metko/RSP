@@ -25,7 +25,7 @@ const TRAINING_DURATION_MINUTES = 60;
 export async function GET(request: Request) {
   try {
     // Role check: player, coach, admin can access
-    const authResult = await requireRole(request, ["player", "coach", "admin"]);
+    const authResult = await requireRole(request, ["player", "coach", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }
@@ -138,7 +138,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     // Role check: player, admin can create training requests
-    const authResult = await requireRole(request, ["player", "admin"]);
+    const authResult = await requireRole(request, ["player", "super_admin"]);
     if (!authResult.authorized) {
       return authResult.response;
     }

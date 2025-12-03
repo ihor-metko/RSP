@@ -20,8 +20,8 @@ export interface PublicClubCardProps {
     indoorCount?: number;
     outdoorCount?: number;
   };
-  /** User role for permission-based rendering (player, admin, coach) */
-  role?: "player" | "admin" | "coach";
+  /** User role for permission-based rendering (player, super_admin, coach) */
+  role?: "player" | "super_admin" | "coach";
 }
 
 /**
@@ -72,7 +72,7 @@ export function PublicClubCard({ club, role = "player" }: PublicClubCardProps) {
 
   // Determine the club link based on role
   const getClubLink = () => {
-    if (role === "admin") {
+    if (role === "super_admin") {
       return `/admin/clubs/${club.id}`;
     }
     if (role === "coach") {

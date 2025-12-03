@@ -26,7 +26,7 @@ import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
 export default async function Home() {
   // Server-side fallback: redirect admin users to admin dashboard
   const session = await auth();
-  if (session?.user?.role === "admin") {
+  if (session?.user?.role === "super_admin") {
     redirect(ROLE_HOMEPAGES.admin);
   }
   return (

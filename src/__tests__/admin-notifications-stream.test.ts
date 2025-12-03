@@ -67,7 +67,7 @@ describe("Admin Notifications Stream API", () => {
       (auth as jest.Mock).mockResolvedValue({
         user: {
           id: "admin-123",
-          role: "admin",
+          role: "super_admin",
         },
       });
 

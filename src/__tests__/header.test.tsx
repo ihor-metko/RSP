@@ -224,7 +224,7 @@ describe("Header Component", () => {
             id: "admin-1",
             name: "Admin User",
             email: "admin@test.com",
-            role: "admin",
+            role: "super_admin",
           },
         },
         status: "authenticated",

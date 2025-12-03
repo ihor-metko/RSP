@@ -143,7 +143,7 @@ export default function PlayerDashboardPage() {
       // Redirect non-player roles to appropriate pages
       if (session.user.role === "coach") {
         router.push("/coach/dashboard");
-      } else if (session.user.role === "admin") {
+      } else if (session.user.role === "super_admin") {
         router.push("/admin/clubs");
       } else {
         router.push("/");

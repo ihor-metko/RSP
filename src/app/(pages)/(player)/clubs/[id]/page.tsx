@@ -441,7 +441,7 @@ export default function ClubDetailPage({
         />
 
         {/* Admin Link */}
-        {session?.user?.role === "admin" && (
+        {session?.user?.role === "super_admin" && (
           <div className="mb-4 text-right">
             <IMLink href={`/admin/clubs/${club.id}/courts`}>{t("clubs.adminCourts")}</IMLink>
           </div>

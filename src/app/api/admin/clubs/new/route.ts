@@ -57,7 +57,7 @@ function generateSlug(name: string): string {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireRole(request, ["admin"]);
+  const authResult = await requireRole(request, ["super_admin"]);
 
   if (!authResult.authorized) {
     return authResult.response;

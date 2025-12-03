@@ -4,9 +4,9 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-export type UserRole = "player" | "coach" | "admin";
+export type UserRole = "player" | "coach" | "super_admin";
 
-const VALID_ROLES: UserRole[] = ["player", "coach", "admin"];
+const VALID_ROLES: UserRole[] = ["player", "coach", "super_admin"];
 const DEFAULT_ROLE: UserRole = "player";
 
 function isValidRole(role: unknown): role is UserRole {

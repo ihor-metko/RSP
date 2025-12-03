@@ -7,8 +7,8 @@ import type { UserRole } from "@/lib/auth";
 
 describe("Role Redirect Utilities", () => {
   describe("ROLE_HOMEPAGES", () => {
-    it("should have correct homepage for admin", () => {
-      expect(ROLE_HOMEPAGES.admin).toBe("/admin/clubs");
+    it("should have correct homepage for super_admin", () => {
+      expect(ROLE_HOMEPAGES.super_admin).toBe("/admin/clubs");
     });
 
     it("should have correct homepage for coach", () => {
@@ -21,8 +21,8 @@ describe("Role Redirect Utilities", () => {
   });
 
   describe("getRoleHomepage", () => {
-    it("should return admin homepage for admin role", () => {
-      expect(getRoleHomepage("admin")).toBe("/admin/clubs");
+    it("should return super_admin homepage for super_admin role", () => {
+      expect(getRoleHomepage("super_admin")).toBe("/admin/clubs");
     });
 
     it("should return coach homepage for coach role", () => {
@@ -42,9 +42,9 @@ describe("Role Redirect Utilities", () => {
       expect(getRoleHomepage("unknown" as UserRole)).toBe("/");
     });
 
-    it("should prioritize admin over coach in role priority", () => {
-      // Test that admin role gets admin page (admin > coach > player priority)
-      expect(getRoleHomepage("admin")).toBe("/admin/clubs");
+    it("should prioritize super_admin over coach in role priority", () => {
+      // Test that super_admin role gets admin page (super_admin > coach > player priority)
+      expect(getRoleHomepage("super_admin")).toBe("/admin/clubs");
     });
 
     it("should prioritize coach over player in role priority", () => {
@@ -55,7 +55,7 @@ describe("Role Redirect Utilities", () => {
 
   describe("Role-based redirect behavior", () => {
     it("should handle all valid roles correctly", () => {
-      const roles: UserRole[] = ["admin", "coach", "player"];
+      const roles: UserRole[] = ["super_admin", "coach", "player"];
       
       roles.forEach((role) => {
         const redirectPath = getRoleHomepage(role);
@@ -65,7 +65,7 @@ describe("Role Redirect Utilities", () => {
 
     it("should always return a valid path", () => {
       const testCases: (UserRole | undefined)[] = [
-        "admin",
+        "super_admin",
         "coach", 
         "player",
         undefined,

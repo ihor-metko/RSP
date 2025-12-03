@@ -27,8 +27,8 @@ function formatDateString(date: Date): string {
 
 export async function POST(request: Request) {
   try {
-    // Role check: Only player, admin, coach can create bookings
-    const authResult = await requireRole(request, ["player", "admin", "coach"]);
+    // Role check: Only player, super_admin, coach can create bookings
+    const authResult = await requireRole(request, ["player", "super_admin", "coach"]);
     if (!authResult.authorized) {
       return authResult.response;
     }

@@ -20,7 +20,7 @@ export default function TrainerRequestsPage() {
       return;
     }
 
-    if (session.user.role !== "coach" && session.user.role !== "admin") {
+    if (session.user.role !== "coach" && session.user.role !== "super_admin") {
       router.push("/");
       return;
     }
@@ -34,7 +34,7 @@ export default function TrainerRequestsPage() {
     );
   }
 
-  if (!session?.user || (session.user.role !== "coach" && session.user.role !== "admin")) {
+  if (!session?.user || (session.user.role !== "coach" && session.user.role !== "super_admin")) {
     return null;
   }
 

@@ -80,7 +80,7 @@ describe("Admin Users API", () => {
 
     it("should return all users for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const mockUsers = [
@@ -116,7 +116,7 @@ describe("Admin Users API", () => {
 
     it("should filter users by search query", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.user.findMany as jest.Mock).mockResolvedValue([]);
@@ -142,7 +142,7 @@ describe("Admin Users API", () => {
 
     it("should filter users by role", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.user.findMany as jest.Mock).mockResolvedValue([]);
@@ -165,7 +165,7 @@ describe("Admin Users API", () => {
 
     it("should return 500 for database errors", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.user.findMany as jest.Mock).mockRejectedValue(
@@ -229,7 +229,7 @@ describe("Admin Users API", () => {
 
     it("should create a new coach for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const newUser = {
@@ -263,7 +263,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 when email already exists", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
@@ -290,7 +290,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 when required fields are missing", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const request = new Request("http://localhost:3000/api/admin/users", {
@@ -354,7 +354,7 @@ describe("Admin Users API", () => {
 
     it("should update user role to coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const existingUser = {
@@ -428,7 +428,7 @@ describe("Admin Users API", () => {
 
     it("should update user role to coach and create coach with optional fields", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const existingUser = {
@@ -502,7 +502,7 @@ describe("Admin Users API", () => {
 
     it("should not create duplicate coach record when already exists for same club", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const existingUser = {
@@ -575,7 +575,7 @@ describe("Admin Users API", () => {
 
     it("should update user role to player (remove coach)", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const existingUser = {
@@ -638,7 +638,7 @@ describe("Admin Users API", () => {
 
     it("should return 404 when user not found", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
@@ -663,14 +663,14 @@ describe("Admin Users API", () => {
 
     it("should return 403 when trying to modify admin role", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const adminUser = {
         id: "admin-user",
         name: "Admin",
         email: "admin@test.com",
-        role: "admin",
+        role: "super_admin",
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(adminUser);
@@ -695,7 +695,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 for invalid role", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const request = new Request(
@@ -718,7 +718,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 when assigning coach role without clubIds", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const existingUser = {
@@ -750,7 +750,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 when assigning coach role with empty clubIds array", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const existingUser = {
@@ -782,7 +782,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 when selected clubs do not exist", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const existingUser = {
@@ -815,7 +815,7 @@ describe("Admin Users API", () => {
 
     it("should return 500 for database errors", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.user.findUnique as jest.Mock).mockRejectedValue(

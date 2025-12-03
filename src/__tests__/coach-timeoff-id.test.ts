@@ -205,7 +205,7 @@ describe("PUT /api/coach/timeoff/[id]", () => {
 
     it("should allow admin to update any coach's time off", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-user", role: "admin" },
+        user: { id: "admin-user", role: "super_admin" },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -373,7 +373,7 @@ describe("DELETE /api/coach/timeoff/[id]", () => {
 
     it("should allow admin to delete any coach's time off", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-user", role: "admin" },
+        user: { id: "admin-user", role: "super_admin" },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({

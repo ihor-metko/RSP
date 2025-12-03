@@ -191,7 +191,7 @@ describe("GET /api/coach/bookings", () => {
   describe("Admin access", () => {
     it("should allow admin to fetch coach bookings", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({

@@ -82,7 +82,7 @@ describe("Admin Notifications API", () => {
       (requireRole as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
-        userRole: "admin",
+        userRole: "super_admin",
       });
 
       const mockNotifications = [
@@ -131,7 +131,7 @@ describe("Admin Notifications API", () => {
       (requireRole as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
-        userRole: "admin",
+        userRole: "super_admin",
       });
 
       (prisma.adminNotification.findMany as jest.Mock).mockResolvedValue([]);
@@ -176,7 +176,7 @@ describe("Admin Notifications API", () => {
       (requireRole as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
-        userRole: "admin",
+        userRole: "super_admin",
       });
 
       const request = new Request("http://localhost:3000/api/admin/notifications/notif-1", {
@@ -195,7 +195,7 @@ describe("Admin Notifications API", () => {
       (requireRole as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
-        userRole: "admin",
+        userRole: "super_admin",
       });
 
       (prisma.adminNotification.findUnique as jest.Mock).mockResolvedValue(null);
@@ -216,7 +216,7 @@ describe("Admin Notifications API", () => {
       (requireRole as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
-        userRole: "admin",
+        userRole: "super_admin",
       });
 
       (prisma.adminNotification.findUnique as jest.Mock).mockResolvedValue({
@@ -267,7 +267,7 @@ describe("Admin Notifications API", () => {
       (requireRole as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
-        userRole: "admin",
+        userRole: "super_admin",
       });
 
       (prisma.adminNotification.updateMany as jest.Mock).mockResolvedValue({

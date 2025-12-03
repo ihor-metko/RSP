@@ -58,7 +58,7 @@ describe("Admin Uploads API", () => {
 
     it("should return 400 when no file is provided", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const formData = new FormData();
@@ -77,7 +77,7 @@ describe("Admin Uploads API", () => {
 
     it("should return 400 for invalid file type", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const formData = new FormData();
@@ -98,7 +98,7 @@ describe("Admin Uploads API", () => {
 
     it("should return 400 for file too large", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       // Create a mock file that's larger than 5MB
@@ -121,7 +121,7 @@ describe("Admin Uploads API", () => {
 
     it("should successfully upload a valid image", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const formData = new FormData();
@@ -145,7 +145,7 @@ describe("Admin Uploads API", () => {
 
     it("should accept png images", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const formData = new FormData();
@@ -164,7 +164,7 @@ describe("Admin Uploads API", () => {
 
     it("should accept webp images", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const formData = new FormData();
@@ -183,7 +183,7 @@ describe("Admin Uploads API", () => {
 
     it("should accept avif images", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "admin" },
+        user: { id: "admin-123", role: "super_admin" },
       });
 
       const formData = new FormData();
