@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noEmit": false,
+    "outDir": "./dist/scripts"
+  },
+  "include": ["scripts/**/*.ts", "prisma/**/*.ts", "src/**/*.ts"]
+}
