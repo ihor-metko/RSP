@@ -138,13 +138,13 @@ export function CourtCard({
 
   // Handle mouse enter/leave for desktop hover
   const handleMouseEnter = () => {
-    if (showDetailedAvailability && window.innerWidth >= 1024) {
+    if (showDetailedAvailability && typeof window !== 'undefined' && window.innerWidth >= 1024) {
       setShowDetails(true);
     }
   };
 
   const handleMouseLeave = () => {
-    if (showDetailedAvailability && window.innerWidth >= 1024) {
+    if (showDetailedAvailability && typeof window !== 'undefined' && window.innerWidth >= 1024) {
       setShowDetails(false);
     }
   };

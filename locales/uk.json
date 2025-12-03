@@ -430,6 +430,7 @@
     "reserve": "Забронювати",
     "book": "Забронювати",
     "viewSchedule": "Переглянути розклад",
+    "courtScheduleTitle": "{courtName} - Розклад",
     "loadingCoachAvailability": "Завантаження доступності тренера...",
     "coachUnavailable": "Тренер недоступний",
     "coachNotWorkingOnDay": "Тренер не працює в цей день.",

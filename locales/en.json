@@ -430,6 +430,7 @@
     "reserve": "Reserve Booking",
     "book": "Book",
     "viewSchedule": "View schedule",
+    "courtScheduleTitle": "{courtName} - Schedule",
     "loadingCoachAvailability": "Loading coach availability...",
     "coachUnavailable": "Coach unavailable",
     "coachNotWorkingOnDay": "Coach does not work on this day.",

@@ -106,7 +106,8 @@ export function CourtScheduleModal({
       }
       
       setWeeklySchedule(days);
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch schedule:", err);
       setError(t("clubs.failedToLoadClub"));
     } finally {
       setIsLoading(false);
@@ -240,7 +241,7 @@ export function CourtScheduleModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`${courtName} - ${t("booking.viewSchedule")}`}
+      title={t("booking.courtScheduleTitle", { courtName })}
     >
       <div className="im-schedule-modal">
         {isLoading ? (
