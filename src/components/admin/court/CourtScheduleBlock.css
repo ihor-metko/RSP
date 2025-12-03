@@ -1,0 +1,94 @@
+.im-court-schedule-block .im-block-header {
+  border-bottom: none;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.im-schedule-info {
+  font-size: 0.75rem;
+  color: var(--im-muted);
+  background-color: var(--im-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.im-schedule-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.im-schedule-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--im-surface);
+  border: 1px solid var(--im-border);
+  border-radius: 0.375rem;
+}
+
+.im-schedule-row--closed {
+  opacity: 0.6;
+}
+
+.im-schedule-day {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--im-foreground);
+  min-width: 80px;
+}
+
+.im-schedule-day-full {
+  display: inline;
+}
+
+.im-schedule-day-short {
+  display: none;
+}
+
+.im-schedule-hours {
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+.im-schedule-open {
+  font-family: monospace;
+  color: var(--im-foreground);
+}
+
+.im-schedule-closed {
+  color: var(--im-muted);
+  font-style: italic;
+}
+
+.im-schedule-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: var(--im-surface);
+  border: 1px dashed var(--im-border);
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.im-schedule-empty-text {
+  font-size: 0.875rem;
+  color: var(--im-muted);
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .im-schedule-day-full {
+    display: none;
+  }
+
+  .im-schedule-day-short {
+    display: inline;
+  }
+
+  .im-schedule-day {
+    min-width: 40px;
+  }
+}

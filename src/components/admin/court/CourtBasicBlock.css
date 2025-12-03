@@ -1,0 +1,167 @@
+.im-block {
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.im-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--im-border);
+}
+
+.im-block-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--im-foreground);
+  margin: 0;
+}
+
+.im-block-title svg {
+  color: var(--im-primary);
+}
+
+.im-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+}
+
+.im-edit-btn svg {
+  flex-shrink: 0;
+}
+
+.im-block-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.im-block-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.im-block-label {
+  font-size: 0.875rem;
+  color: var(--im-muted);
+  flex-shrink: 0;
+}
+
+.im-block-value {
+  font-size: 0.875rem;
+  color: var(--im-foreground);
+  text-align: right;
+  word-break: break-word;
+}
+
+.im-block-value--empty {
+  color: var(--im-muted);
+  font-style: italic;
+}
+
+.im-block-value--price {
+  font-weight: 600;
+  color: var(--im-primary);
+}
+
+.im-block-meta {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--im-border);
+  font-size: 0.75rem;
+  color: var(--im-muted);
+}
+
+/* Court badges */
+.im-court-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.im-court-badge--indoor {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.im-court-badge--outdoor {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.dark .im-court-badge--indoor {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark .im-court-badge--outdoor {
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
+/* Modal field styling */
+.im-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.im-modal-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.im-modal-row > .im-modal-field {
+  flex: 1;
+}
+
+.im-field-hint {
+  font-size: 0.75rem;
+  color: var(--im-muted);
+}
+
+.im-field-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+}
+
+/* Checkbox styling */
+.im-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.im-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--im-border);
+  cursor: pointer;
+}
+
+.im-checkbox-label {
+  font-size: 0.875rem;
+  color: var(--im-foreground);
+}
+
+@media (max-width: 640px) {
+  .im-modal-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

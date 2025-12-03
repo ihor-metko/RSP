@@ -1,0 +1,106 @@
+.im-court-pricing-block .im-block-content {
+  gap: 1rem;
+}
+
+.im-pricing-rules-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.im-pricing-rules-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.im-pricing-rules-count {
+  font-size: 0.75rem;
+  color: var(--im-muted);
+  background-color: var(--im-border);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.im-pricing-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.im-pricing-rule-group {
+  background-color: var(--im-surface);
+  border: 1px solid var(--im-border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.im-pricing-rule-day {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--im-primary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.im-pricing-rule-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.375rem 0;
+  border-top: 1px solid var(--im-border);
+}
+
+.im-pricing-rule-item:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.im-pricing-rule-time {
+  font-size: 0.875rem;
+  color: var(--im-foreground);
+  font-family: monospace;
+}
+
+.im-pricing-rule-price {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--im-primary);
+}
+
+.im-pricing-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background-color: var(--im-surface);
+  border: 1px dashed var(--im-border);
+  border-radius: 0.5rem;
+  text-align: center;
+}
+
+.im-pricing-empty-text {
+  font-size: 0.875rem;
+  color: var(--im-muted);
+  margin: 0;
+}
+
+.im-pricing-add-btn {
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--im-border);
+  border-radius: 0.375rem;
+  background-color: var(--im-surface);
+  color: var(--im-foreground);
+  text-decoration: none;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.im-pricing-add-btn:hover {
+  background-color: var(--im-border);
+  border-color: var(--im-primary);
+}
