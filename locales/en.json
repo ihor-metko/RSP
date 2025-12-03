@@ -98,6 +98,43 @@
       "notificationAccepted": "Training request accepted",
       "notificationDeclined": "Training request declined",
       "notificationCanceled": "Training was canceled"
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1Title": "Find a Club",
+      "step1Desc": "Search for padel clubs near you using our intuitive search and filtering system.",
+      "step2Title": "Book a Court",
+      "step2Desc": "Choose your preferred time slot and book instantly with real-time availability.",
+      "step3Title": "Play & Improve",
+      "step3Desc": "Enjoy your game and track your training progress with professional coaches."
+    },
+    "clubsCoaches": {
+      "title": "Featured Clubs & Coaches",
+      "viewClub": "View Club",
+      "bookCoach": "Book Coach",
+      "club1Name": "Elite Padel Center",
+      "club1Desc": "Premium indoor courts with professional lighting and climate control.",
+      "club2Name": "Sunset Padel Club",
+      "club2Desc": "Beautiful outdoor courts with stunning views and top facilities.",
+      "club3Name": "Urban Padel Arena",
+      "club3Desc": "Modern urban facility with flexible booking and expert coaching.",
+      "coach1Name": "Carlos Rodriguez",
+      "coach1Desc": "Former professional player with 10+ years of coaching experience.",
+      "coach2Name": "Maria Santos",
+      "coach2Desc": "Certified coach specializing in beginners and intermediate players.",
+      "coach3Name": "David Chen",
+      "coach3Desc": "Technical expert focused on advanced strategy and match preparation."
+    },
+    "testimonials": {
+      "title": "What Our Players Say",
+      "testimonial1Name": "John Smith",
+      "testimonial1Text": "Amazing platform! I found my favorite club and improved my game significantly with their coaching program.",
+      "testimonial2Name": "Emma Wilson",
+      "testimonial2Text": "The booking system is so easy to use. I can book courts anytime, anywhere. Highly recommend!",
+      "testimonial3Name": "Michael Brown",
+      "testimonial3Text": "Great variety of clubs and coaches. The quality of service has exceeded my expectations.",
+      "testimonial4Name": "Sarah Johnson",
+      "testimonial4Text": "Finally, a platform that makes finding and booking padel courts hassle-free. Love it!"
     }
   },
   "auth": {

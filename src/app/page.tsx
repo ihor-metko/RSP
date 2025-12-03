@@ -8,12 +8,16 @@ import {
   WhyChooseUsSection,
   QuickLinksSection,
   PersonalizedSectionWrapper,
+  LandingHowItWorks,
+  LandingClubsCoaches,
+  LandingTestimonials,
 } from "@/components/home";
 
 /**
  * Home page - Server Component with client islands for interactivity
  * 
- * Server Components: HomeHero, PopularClubsSection, WhyChooseUsSection
+ * Server Components: HomeHero, PopularClubsSection, WhyChooseUsSection, 
+ *                    LandingHowItWorks, LandingClubsCoaches, LandingTestimonials
  * Client Components: Header, QuickLinksSection, PersonalizedSectionWrapper, PublicFooter
  */
 export default async function Home() {
@@ -43,6 +47,15 @@ export default async function Home() {
 
       {/* Why choose us section - Server Component */}
       <WhyChooseUsSection />
+
+      {/* Section 4: How It Works - Server Component */}
+      <LandingHowItWorks />
+
+      {/* Section 5: Featured Clubs & Coaches - Server Component */}
+      <LandingClubsCoaches />
+
+      {/* Section 6: Testimonials - Server Component */}
+      <LandingTestimonials />
 
       {/* Quick links section - Client Component */}
       <QuickLinksSection />
