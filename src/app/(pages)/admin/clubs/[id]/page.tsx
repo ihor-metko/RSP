@@ -17,7 +17,7 @@ import { GalleryModal } from "@/components/GalleryModal";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
-import { Roles } from "@/constants/roles";
+import { isAdminRole } from "@/constants/roles";
 import type { ClubDetail } from "@/types/club";
 import "./page.css";
 
@@ -75,7 +75,7 @@ export default function AdminClubDetailPage({
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== Roles.SuperAdmin) {
+    if (!session?.user || !isAdminRole(session.user.role)) {
       router.push("/auth/sign-in");
       return;
     }

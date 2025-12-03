@@ -7,7 +7,7 @@ import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
 import { Button, Card, Breadcrumbs } from "@/components/ui";
 import { formatPrice, dollarsToCents } from "@/utils/price";
-import { Roles } from "@/constants/roles";
+import { isAdminRole } from "@/constants/roles";
 import "./page.css";
 
 // Types
@@ -217,7 +217,7 @@ export default function CreateCourtPage({
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== Roles.SuperAdmin) {
+    if (!session?.user || !isAdminRole(session.user.role)) {
       router.push("/auth/sign-in");
     }
   }, [session, status, router]);

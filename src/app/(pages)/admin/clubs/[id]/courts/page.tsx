@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { formatPrice } from "@/utils/price";
-import { Roles } from "@/constants/roles";
+import { isAdminRole } from "@/constants/roles";
 
 interface Court {
   id: string;
@@ -94,7 +94,7 @@ export default function AdminCourtsPage({
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== Roles.SuperAdmin) {
+    if (!session?.user || !isAdminRole(session.user.role)) {
       router.push("/auth/sign-in");
       return;
     }

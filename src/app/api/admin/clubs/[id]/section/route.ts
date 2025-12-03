@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
-import { Roles } from "@/constants/roles";
+import { ADMIN_ROLES } from "@/constants/roles";
 
 type Section = "header" | "contacts" | "hours" | "gallery" | "coaches";
 
@@ -107,7 +107,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await requireRole(request, [Roles.SuperAdmin]);
+  const authResult = await requireRole(request, ADMIN_ROLES);
 
   if (!authResult.authorized) {
     return authResult.response;

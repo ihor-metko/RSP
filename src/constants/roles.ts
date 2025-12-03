@@ -41,6 +41,21 @@ export const VALID_ROLES: UserRole[] = Object.values(Roles);
 export const DEFAULT_ROLE: UserRole = Roles.Player;
 
 /**
+ * Array of admin roles that have access to admin functionality.
+ * Includes root_admin, super_admin, and admin roles.
+ */
+export const ADMIN_ROLES: UserRole[] = [Roles.RootAdmin, Roles.SuperAdmin, Roles.Admin];
+
+/**
+ * Type guard to check if a role is an admin role.
+ * @param role - The role to check
+ * @returns true if the role is an admin role
+ */
+export function isAdminRole(role: unknown): boolean {
+  return typeof role === "string" && ADMIN_ROLES.includes(role as UserRole);
+}
+
+/**
  * Type guard to check if a value is a valid user role.
  * @param role - The value to check
  * @returns true if the value is a valid UserRole

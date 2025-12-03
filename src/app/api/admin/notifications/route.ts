@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
-import { Roles } from "@/constants/roles";
+import { ADMIN_ROLES } from "@/constants/roles";
 
 /**
  * GET /api/admin/notifications
@@ -10,7 +10,7 @@ import { Roles } from "@/constants/roles";
  */
 export async function GET(request: Request) {
   try {
-    const authResult = await requireRole(request, [Roles.SuperAdmin]);
+    const authResult = await requireRole(request, ADMIN_ROLES);
     if (!authResult.authorized) {
       return authResult.response;
     }

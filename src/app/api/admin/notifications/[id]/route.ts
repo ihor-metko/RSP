@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
-import { Roles } from "@/constants/roles";
+import { ADMIN_ROLES } from "@/constants/roles";
 
 /**
  * PATCH /api/admin/notifications/[id]
@@ -13,7 +13,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireRole(request, [Roles.SuperAdmin]);
+    const authResult = await requireRole(request, ADMIN_ROLES);
     if (!authResult.authorized) {
       return authResult.response;
     }

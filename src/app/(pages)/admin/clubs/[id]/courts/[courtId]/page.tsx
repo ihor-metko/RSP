@@ -11,7 +11,7 @@ import {
   CourtMetaBlock,
   CourtPreview,
 } from "@/components/admin/court";
-import { Roles } from "@/constants/roles";
+import { isAdminRole } from "@/constants/roles";
 import type { CourtDetail } from "@/components/admin/court";
 import "./page.css";
 
@@ -68,7 +68,7 @@ export default function CourtDetailPage({
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== Roles.SuperAdmin) {
+    if (!session?.user || !isAdminRole(session.user.role)) {
       router.push("/auth/sign-in");
       return;
     }

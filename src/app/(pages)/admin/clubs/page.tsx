@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, IMLink, PageHeader, Breadcrumbs } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
-import { Roles } from "@/constants/roles";
+import { isAdminRole } from "@/constants/roles";
 import type { ClubWithCounts, ClubFormData } from "@/types/club";
 import "@/components/admin/AdminClubCard.css";
 
@@ -57,7 +57,7 @@ export default function AdminClubsPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== Roles.SuperAdmin) {
+    if (!session?.user || !isAdminRole(session.user.role)) {
       router.push("/auth/sign-in");
       return;
     }

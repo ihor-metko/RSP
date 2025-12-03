@@ -7,7 +7,7 @@ import { validateRole } from "@/constants/roles";
 
 // Re-export types and utilities from constants/roles for backward compatibility
 export type { UserRole } from "@/constants/roles";
-export { Roles, VALID_ROLES, DEFAULT_ROLE, isValidRole, validateRole } from "@/constants/roles";
+export { Roles, VALID_ROLES, DEFAULT_ROLE, ADMIN_ROLES, isValidRole, isAdminRole, validateRole } from "@/constants/roles";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),

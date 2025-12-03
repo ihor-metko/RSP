@@ -91,6 +91,36 @@ describe("Admin Redirect Middleware", () => {
     });
   });
 
+  describe("root_admin users", () => {
+    it("should redirect root_admin users from landing page to admin dashboard", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "root1", email: "root@test.com", role: "root_admin" },
+      });
+
+      const request = createMockRequest("/");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain(ROLE_HOMEPAGES.root_admin);
+    });
+  });
+
+  describe("admin users", () => {
+    it("should redirect admin users from landing page to admin dashboard", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "admin2", email: "admin2@test.com", role: "admin" },
+      });
+
+      const request = createMockRequest("/");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain(ROLE_HOMEPAGES.admin);
+    });
+  });
+
   describe("non-root paths", () => {
     it("should not affect requests to other paths for super_admin users", async () => {
       mockAuth.mockReturnValue({
@@ -143,8 +173,16 @@ describe("Admin Redirect Middleware", () => {
 });
 
 describe("Role Homepage Configuration", () => {
+  it("should have root_admin homepage set to /admin/clubs", () => {
+    expect(ROLE_HOMEPAGES.root_admin).toBe("/admin/clubs");
+  });
+
   it("should have super_admin homepage set to /admin/clubs", () => {
     expect(ROLE_HOMEPAGES.super_admin).toBe("/admin/clubs");
+  });
+
+  it("should have admin homepage set to /admin/clubs", () => {
+    expect(ROLE_HOMEPAGES.admin).toBe("/admin/clubs");
   });
 
   it("should have player homepage set to root", () => {

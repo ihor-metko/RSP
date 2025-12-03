@@ -12,7 +12,7 @@ import {
   LandingTestimonials,
 } from "@/components/home";
 import { auth } from "@/lib/auth";
-import { Roles } from "@/constants/roles";
+import { ADMIN_ROLES } from "@/constants/roles";
 import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
 
 /**
@@ -25,10 +25,11 @@ import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
  * Admin users are redirected to admin dashboard (server-side fallback for middleware)
  */
 export default async function Home() {
-  // Server-side fallback: redirect super_admin users to admin dashboard
+  // Server-side fallback: redirect admin users to admin dashboard
   const session = await auth();
-  if (session?.user?.role === Roles.SuperAdmin) {
-    redirect(ROLE_HOMEPAGES[Roles.SuperAdmin]);
+  const userRole = session?.user?.role;
+  if (userRole && ADMIN_ROLES.includes(userRole)) {
+    redirect(ROLE_HOMEPAGES[userRole]);
   }
   return (
     <main className="flex flex-col min-h-screen overflow-auto">
