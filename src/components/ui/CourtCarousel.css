@@ -1,0 +1,204 @@
+@reference "tailwindcss";
+
+/* ===== Court Carousel Container ===== */
+.im-court-carousel {
+  @apply relative w-full overflow-hidden;
+}
+
+/* ===== Viewport ===== */
+.im-court-carousel-viewport {
+  @apply relative w-full overflow-hidden cursor-grab;
+  padding: 4px 0;
+}
+
+.im-court-carousel-viewport:active {
+  cursor: grabbing;
+}
+
+/* ===== Track ===== */
+.im-court-carousel-track {
+  @apply flex;
+  will-change: transform;
+}
+
+/* ===== Slide ===== */
+.im-court-carousel-slide {
+  @apply flex-shrink-0;
+}
+
+/* Placeholder for lazy loading */
+.im-court-carousel-placeholder {
+  @apply w-full h-80 rounded-xl animate-pulse;
+  background-color: var(--im-border);
+}
+
+/* ===== Navigation Buttons ===== */
+.im-court-carousel-nav {
+  @apply absolute top-1/2 -translate-y-1/2 z-10;
+  @apply flex items-center justify-center;
+  @apply w-10 h-10 rounded-full;
+  @apply transition-all duration-200;
+  background-color: rgba(255, 255, 255, 0.95);
+  color: var(--im-foreground);
+  border: 1px solid var(--im-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dark .im-court-carousel-nav {
+  background-color: rgba(26, 26, 26, 0.95);
+  border-color: var(--im-border);
+}
+
+.im-court-carousel-nav:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.dark .im-court-carousel-nav:hover:not(:disabled) {
+  background-color: rgba(40, 40, 40, 1);
+}
+
+.im-court-carousel-nav:focus-visible {
+  @apply outline-none;
+  box-shadow: 0 0 0 3px var(--im-primary);
+}
+
+.im-court-carousel-nav:disabled {
+  @apply opacity-30 cursor-not-allowed;
+}
+
+.im-court-carousel-nav--prev {
+  left: 0;
+}
+
+.im-court-carousel-nav--next {
+  right: 0;
+}
+
+@media (min-width: 768px) {
+  .im-court-carousel-nav {
+    @apply w-12 h-12;
+  }
+
+  .im-court-carousel-nav--prev {
+    left: -16px;
+  }
+
+  .im-court-carousel-nav--next {
+    right: -16px;
+  }
+}
+
+/* On mobile - smaller buttons positioned outside card area */
+@media (max-width: 640px) {
+  .im-court-carousel-nav {
+    @apply w-8 h-8;
+  }
+
+  .im-court-carousel-nav--prev {
+    left: 4px;
+  }
+
+  .im-court-carousel-nav--next {
+    right: 4px;
+  }
+
+  .im-court-carousel-nav svg {
+    @apply w-5 h-5;
+  }
+}
+
+/* ===== Indicators ===== */
+.im-court-carousel-indicators {
+  @apply flex items-center justify-center gap-2 mt-4;
+}
+
+.im-court-carousel-indicator {
+  @apply w-2.5 h-2.5 rounded-full border-0;
+  @apply transition-all duration-200;
+  background-color: var(--im-border);
+  cursor: pointer;
+}
+
+.dark .im-court-carousel-indicator {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.im-court-carousel-indicator:hover {
+  background-color: var(--im-muted);
+  transform: scale(1.2);
+}
+
+.dark .im-court-carousel-indicator:hover {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.im-court-carousel-indicator--active {
+  @apply w-3 h-3;
+  background-color: var(--im-primary);
+}
+
+.im-court-carousel-indicator--active:hover {
+  background-color: var(--im-primary-hover);
+}
+
+.im-court-carousel-indicator:focus-visible {
+  @apply outline-none;
+  box-shadow: 0 0 0 2px var(--im-primary);
+}
+
+/* ===== Screen Reader Only ===== */
+.im-court-carousel-sr-only {
+  @apply absolute overflow-hidden;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* ===== Court Carousel Section Wrapper ===== */
+.im-court-carousel-section {
+  @apply py-2;
+  /* Add padding to accommodate navigation buttons */
+}
+
+@media (min-width: 768px) {
+  .im-court-carousel-section {
+    @apply px-4;
+  }
+}
+
+/* ===== Availability Summary Badge on Cards ===== */
+.im-court-availability-badge {
+  @apply inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-full;
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.dark .im-court-availability-badge {
+  background-color: rgba(34, 197, 94, 0.25);
+  color: #86efac;
+}
+
+.im-court-availability-badge--limited {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
+}
+
+.dark .im-court-availability-badge--limited {
+  background-color: rgba(234, 179, 8, 0.25);
+  color: #fde047;
+}
+
+.im-court-availability-badge--unavailable {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.dark .im-court-availability-badge--unavailable {
+  background-color: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}

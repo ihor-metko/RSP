@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { BookingModal } from "@/components/booking/BookingModal";
@@ -11,9 +11,10 @@ import { RequestTrainingModal } from "../../../../../../archived_features/compon
 import { CourtCard } from "@/components/CourtCard";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
+import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
-import { Button, IMLink, Breadcrumbs, ImageCarousel } from "@/components/ui";
+import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
@@ -90,7 +91,6 @@ export default function ClubDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { data: session, status: authStatus } = useSession();
-  const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations();
   const [club, setClub] = useState<ClubWithDetails | null>(null);
@@ -113,6 +113,8 @@ export default function ClubDetailPage({
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [scheduleModalCourt, setScheduleModalCourt] = useState<Court | null>(null);
 
   // Get user ID from session, or use a placeholder for unauthenticated users
   const userId = session?.user?.id || "guest";
@@ -189,7 +191,34 @@ export default function ClubDetailPage({
   };
 
   const handleViewSchedule = (courtId: string) => {
-    router.push(`/courts/${courtId}`);
+    // Open schedule modal instead of navigating
+    const court = club?.courts.find(c => c.id === courtId);
+    if (court) {
+      setScheduleModalCourt(court);
+      setIsScheduleModalOpen(true);
+    }
+  };
+
+  const handleScheduleModalClose = () => {
+    setIsScheduleModalOpen(false);
+    setScheduleModalCourt(null);
+  };
+
+  const handleScheduleModalBook = (courtId: string, slot: AvailabilitySlot) => {
+    if (!isAuthenticated) {
+      setIsAuthPromptOpen(true);
+      return;
+    }
+    // Close schedule modal and open booking modal with the selected slot
+    setIsScheduleModalOpen(false);
+    setPreselectedSlot({ startTime: slot.start, endTime: slot.end });
+    setSelectedCourtId(courtId);
+    setIsModalOpen(true);
+  };
+
+  const handleCardClick = (courtId: string) => {
+    // Open schedule modal when card is clicked
+    handleViewSchedule(courtId);
   };
 
   const handleBookingSuccess = () => {
@@ -624,33 +653,47 @@ export default function ClubDetailPage({
           </div>
         )}
 
-        {/* Courts Grid Section */}
+        {/* Courts Carousel Section */}
         <section className="rsp-club-courts-section">
           <div className="rsp-club-courts-header">
             <h2 className="rsp-club-courts-title">{t("clubDetail.availableCourts")}</h2>
           </div>
-          <div className="rsp-club-courts-grid">
-            {club.courts.length === 0 ? (
-              <div className="rsp-club-empty-courts">
-                <p className="rsp-club-empty-courts-text">{t("clubs.noCourts")}</p>
-              </div>
-            ) : (
-              club.courts.map((court) => (
-                <CourtCard
-                  key={court.id}
-                  court={court}
-                  onBook={handleBookClick}
-                  onViewSchedule={handleViewSchedule}
-                  isBookDisabled={!isAuthenticated}
-                  bookDisabledTooltip={t("auth.signInToBookTooltip")}
-                  availabilitySlots={courtAvailability[court.id] || []}
-                  isLoadingAvailability={availabilityLoading}
-                  maxVisibleSlots={6}
-                  showLegend={true}
-                />
-              ))
-            )}
-          </div>
+          {club.courts.length === 0 ? (
+            <div className="rsp-club-empty-courts">
+              <p className="rsp-club-empty-courts-text">{t("clubs.noCourts")}</p>
+            </div>
+          ) : (
+            <div className="im-court-carousel-section">
+              <CourtCarousel
+                items={club.courts}
+                itemKeyExtractor={(court) => court.id}
+                mobileVisible={1}
+                tabletVisible={2}
+                desktopVisible={3}
+                showIndicators={true}
+                showNavigation={true}
+                lazyLoad={true}
+                gap={16}
+                renderItem={(court) => (
+                  <CourtCard
+                    key={court.id}
+                    court={court}
+                    onBook={handleBookClick}
+                    onViewSchedule={handleViewSchedule}
+                    onCardClick={handleCardClick}
+                    isBookDisabled={!isAuthenticated}
+                    bookDisabledTooltip={t("auth.signInToBookTooltip")}
+                    availabilitySlots={courtAvailability[court.id] || []}
+                    isLoadingAvailability={availabilityLoading}
+                    maxVisibleSlots={6}
+                    showLegend={false}
+                    showAvailabilitySummary={true}
+                    showDetailedAvailability={false}
+                  />
+                )}
+              />
+            </div>
+          )}
         </section>
       </div>
 
@@ -702,6 +745,17 @@ export default function ClubDetailPage({
         isOpen={isAuthPromptOpen}
         onClose={() => setIsAuthPromptOpen(false)}
       />
+
+      {/* Court Schedule Modal */}
+      {scheduleModalCourt && (
+        <CourtScheduleModal
+          isOpen={isScheduleModalOpen}
+          onClose={handleScheduleModalClose}
+          courtId={scheduleModalCourt.id}
+          courtName={scheduleModalCourt.name}
+          onBook={handleScheduleModalBook}
+        />
+      )}
 
       {/* Gallery Modal */}
       <GalleryModal

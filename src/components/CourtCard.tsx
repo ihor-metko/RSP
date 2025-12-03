@@ -12,6 +12,7 @@ interface CourtCardProps {
   court: Court;
   onBook?: (courtId: string) => void;
   onViewSchedule?: (courtId: string) => void;
+  onCardClick?: (courtId: string) => void;
   availabilitySlots?: AvailabilitySlot[];
   isLoadingAvailability?: boolean;
   showBookButton?: boolean;
@@ -20,6 +21,10 @@ interface CourtCardProps {
   bookDisabledTooltip?: string;
   maxVisibleSlots?: number;
   showLegend?: boolean;
+  /** Show availability summary badge (e.g., "5/6 available") */
+  showAvailabilitySummary?: boolean;
+  /** Show detailed slots on hover (desktop) or tap (mobile) */
+  showDetailedAvailability?: boolean;
   /** @deprecated Use availabilitySlots instead */
   todaySlots?: React.ReactNode;
 }
@@ -59,10 +64,38 @@ function getStatusLabel(status: AvailabilitySlot["status"], t: ReturnType<typeof
   }
 }
 
+interface AvailabilitySummary {
+  available: number;
+  total: number;
+  status: "available" | "limited" | "unavailable";
+}
+
+function calculateAvailabilitySummary(slots: AvailabilitySlot[]): AvailabilitySummary {
+  if (slots.length === 0) {
+    return { available: 0, total: 0, status: "unavailable" };
+  }
+  
+  const available = slots.filter(slot => slot.status === "available" || slot.status === "partial").length;
+  const total = slots.length;
+  const ratio = available / total;
+  
+  let status: "available" | "limited" | "unavailable";
+  if (ratio >= 0.5) {
+    status = "available";
+  } else if (ratio > 0) {
+    status = "limited";
+  } else {
+    status = "unavailable";
+  }
+  
+  return { available, total, status };
+}
+
 export function CourtCard({
   court,
   onBook,
   onViewSchedule,
+  onCardClick,
   availabilitySlots = [],
   isLoadingAvailability = false,
   showBookButton = true,
@@ -71,19 +104,50 @@ export function CourtCard({
   bookDisabledTooltip,
   maxVisibleSlots = 6,
   showLegend = true,
+  showAvailabilitySummary = true,
+  showDetailedAvailability = true,
   todaySlots,
 }: CourtCardProps) {
   const t = useTranslations();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   // Memoize the court image URL to avoid recalculating on every render
   const imageUrl = useMemo(() => getSupabaseStorageUrl(court.imageUrl), [court.imageUrl]);
   const hasImage = useMemo(() => isValidImageUrl(imageUrl), [imageUrl]);
 
+  // Calculate availability summary
+  const availabilitySummary = useMemo(
+    () => calculateAvailabilitySummary(availabilitySlots),
+    [availabilitySlots]
+  );
+
   // Determine which slots to display
   const displaySlots = isExpanded ? availabilitySlots : availabilitySlots.slice(0, maxVisibleSlots);
   const remainingCount = availabilitySlots.length - maxVisibleSlots;
   const hasMoreSlots = remainingCount > 0 && !isExpanded;
+
+  // Handle card click for showing detailed availability
+  const handleCardClick = () => {
+    if (onCardClick) {
+      onCardClick(court.id);
+    } else if (showDetailedAvailability) {
+      setShowDetails(!showDetails);
+    }
+  };
+
+  // Handle mouse enter/leave for desktop hover
+  const handleMouseEnter = () => {
+    if (showDetailedAvailability && window.innerWidth >= 1024) {
+      setShowDetails(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (showDetailedAvailability && window.innerWidth >= 1024) {
+      setShowDetails(false);
+    }
+  };
 
   // Skeleton loading state for availability
   const renderAvailabilitySkeleton = () => (
@@ -97,6 +161,21 @@ export function CourtCard({
       ))}
     </div>
   );
+
+  // Render availability summary badge
+  const renderAvailabilitySummaryBadge = () => {
+    if (!showAvailabilitySummary || availabilitySlots.length === 0) return null;
+
+    const { available, total, status } = availabilitySummary;
+    const badgeClass = `im-court-card-availability-badge im-court-card-availability-badge--${status}`;
+    
+    return (
+      <span className={badgeClass} aria-label={`${available} ${t("common.available")} of ${total}`}>
+        <span className="im-court-card-availability-badge-count">{available}/{total}</span>
+        <span className="im-court-card-availability-badge-label">{t("common.available")}</span>
+      </span>
+    );
+  };
 
   // Render availability slots
   const renderAvailabilitySlots = () => {
@@ -152,7 +231,13 @@ export function CourtCard({
   };
 
   return (
-    <article className="im-court-card" aria-label={court.name}>
+    <article 
+      className={`im-court-card ${showDetails ? "im-court-card--details-visible" : ""}`} 
+      aria-label={court.name}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleCardClick}
+    >
       {/* Image Section with Overlay */}
       <div className="im-court-card-image-container">
         {hasImage ? (
@@ -198,6 +283,13 @@ export function CourtCard({
           )}
         </div>
 
+        {/* Availability Summary Badge */}
+        {!isLoadingAvailability && (
+          <div className="im-court-card-availability-summary">
+            {renderAvailabilitySummaryBadge()}
+          </div>
+        )}
+
         {/* Name and Price Overlay */}
         <div className="im-court-card-overlay-content">
           <h3 className="im-court-card-name">{court.name}</h3>
@@ -207,8 +299,8 @@ export function CourtCard({
         </div>
       </div>
 
-      {/* Card Body - Availability */}
-      <div className="im-court-card-body">
+      {/* Card Body - Availability (conditionally shown based on showDetails for hover/tap mode) */}
+      <div className={`im-court-card-body ${showDetailedAvailability && !showDetails ? "im-court-card-body--collapsed" : ""}`}>
         <div className="im-court-card-availability">
           <div className="im-court-card-availability-header">
             <span className="im-court-card-availability-title">
@@ -218,7 +310,10 @@ export function CourtCard({
               <button
                 type="button"
                 className="im-court-card-availability-toggle"
-                onClick={() => setIsExpanded(true)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(true);
+                }}
                 aria-expanded={false}
               >
                 {t("booking.viewSchedule")}
@@ -253,7 +348,10 @@ export function CourtCard({
         {showBookButton && onBook && (
           <Button
             className={isBookDisabled ? "opacity-60" : ""}
-            onClick={() => onBook(court.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onBook(court.id);
+            }}
             aria-label={`${t("booking.book")} ${court.name}`}
             aria-disabled={isBookDisabled}
             title={isBookDisabled ? bookDisabledTooltip : undefined}
@@ -264,7 +362,10 @@ export function CourtCard({
         {showViewSchedule && onViewSchedule && (
           <Button
             variant="outline"
-            onClick={() => onViewSchedule(court.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewSchedule(court.id);
+            }}
             aria-label={`${t("booking.viewSchedule")} ${court.name}`}
           >
             {t("booking.viewSchedule")}

@@ -15,3 +15,4 @@ export { Breadcrumbs } from "./Breadcrumbs";
 export type { BreadcrumbItem, BreadcrumbsProps } from "./Breadcrumbs";
 export { ClubCardSkeleton, ClubCardsGridSkeleton, PersonalizedSectionSkeleton } from "./LoadingSkeleton";
 export { ImageCarousel } from "./ImageCarousel";
+export { CourtCarousel } from "./CourtCarousel";

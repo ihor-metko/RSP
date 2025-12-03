@@ -5,6 +5,7 @@
   @apply relative rounded-xl overflow-hidden transition-all duration-200;
   background-color: var(--im-card-bg);
   border: 1px solid var(--im-border);
+  cursor: pointer;
 }
 
 .im-court-card:hover {
@@ -13,6 +14,15 @@
 }
 
 .dark .im-court-card:hover {
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Card with details visible */
+.im-court-card--details-visible {
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark .im-court-card--details-visible {
   box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
 }
 
@@ -74,7 +84,8 @@
 
 /* ===== Badges on Image ===== */
 .im-court-card-badges {
-  @apply absolute top-3 left-3 right-3 flex flex-wrap gap-1.5;
+  @apply absolute top-3 left-3 flex flex-wrap gap-1.5;
+  max-width: calc(100% - 110px);
 }
 
 .im-court-card-badge {
@@ -89,9 +100,51 @@
   color: white;
 }
 
+/* ===== Availability Summary Badge ===== */
+.im-court-card-availability-summary {
+  @apply absolute top-3 right-3;
+}
+
+.im-court-card-availability-badge {
+  @apply inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full;
+  backdrop-filter: blur(4px);
+}
+
+.im-court-card-availability-badge--available {
+  background-color: rgba(34, 197, 94, 0.9);
+  color: white;
+}
+
+.im-court-card-availability-badge--limited {
+  background-color: rgba(234, 179, 8, 0.9);
+  color: white;
+}
+
+.im-court-card-availability-badge--unavailable {
+  background-color: rgba(239, 68, 68, 0.9);
+  color: white;
+}
+
+.im-court-card-availability-badge-count {
+  font-weight: 700;
+}
+
+.im-court-card-availability-badge-label {
+  font-weight: 500;
+}
+
 /* ===== Card Body ===== */
 .im-court-card-body {
-  @apply p-4;
+  @apply p-4 transition-all duration-200;
+}
+
+/* Collapsed body for hover/tap mode */
+.im-court-card-body--collapsed {
+  @apply max-h-0 p-0 overflow-hidden opacity-0;
+}
+
+.im-court-card--details-visible .im-court-card-body--collapsed {
+  @apply max-h-96 p-4 opacity-100;
 }
 
 /* ===== Availability Section ===== */
