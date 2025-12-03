@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 import { Roles } from "@/constants/roles";
+import type { PlatformStatistics } from "@/types/admin";
 
 /**
  * Root Admin Dashboard Statistics API
@@ -13,12 +14,6 @@ import { Roles } from "@/constants/roles";
  * 
  * Access: Root Admin only
  */
-
-export interface PlatformStatistics {
-  totalClubs: number;
-  totalUsers: number;
-  activeBookings: number;
-}
 
 export async function GET(request: Request) {
   const authResult = await requireRole(request, [Roles.RootAdmin]);

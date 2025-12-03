@@ -6,13 +6,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Breadcrumbs } from "@/components/ui";
 import { Roles } from "@/constants/roles";
+import type { PlatformStatistics } from "@/types/admin";
 import "./RootDashboard.css";
-
-interface PlatformStatistics {
-  totalClubs: number;
-  totalUsers: number;
-  activeBookings: number;
-}
 
 /**
  * Icon Components for Statistics Cards

@@ -33,3 +33,12 @@ export interface InlineCourt {
   indoor: boolean;
   defaultPriceCents: number;
 }
+
+/**
+ * Platform-wide statistics for root admin dashboard
+ */
+export interface PlatformStatistics {
+  totalClubs: number;
+  totalUsers: number;
+  activeBookings: number;
+}

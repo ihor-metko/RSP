@@ -36,11 +36,14 @@ export default auth((req) => {
 
     const userRole = session.user.role;
 
-    // Check if user has an admin role
+    // Check if user has an admin role and the role has a defined homepage
     if (userRole && ADMIN_ROLES.includes(userRole)) {
       const adminHomepage = ROLE_HOMEPAGES[userRole];
-      const redirectUrl = new URL(adminHomepage, req.url);
-      return NextResponse.redirect(redirectUrl);
+      // Only redirect if homepage is defined for this role
+      if (adminHomepage) {
+        const redirectUrl = new URL(adminHomepage, req.url);
+        return NextResponse.redirect(redirectUrl);
+      }
     }
 
     // Non-admin authenticated users see the landing page
