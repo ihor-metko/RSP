@@ -707,5 +707,24 @@
       "platformOverviewDescription": "This dashboard provides a high-level view of the entire platform. More detailed analytics and management features will be added in future updates.",
       "failedToLoad": "Failed to load dashboard statistics. Please try again later."
     }
+  },
+  "sidebar": {
+    "title": "Admin Panel",
+    "navigation": "Admin navigation",
+    "mainNavigation": "Main navigation",
+    "openMenu": "Open menu",
+    "dashboard": "Dashboard",
+    "statistics": "Platform Statistics",
+    "clubs": "Clubs",
+    "users": "User Management",
+    "superAdmins": "Super Admins",
+    "admins": "Admins",
+    "coaches": "Coaches",
+    "bookings": "Bookings",
+    "notifications": "Notifications",
+    "settings": "Global Settings",
+    "roleRootAdmin": "Root Admin",
+    "roleSuperAdmin": "Super Admin",
+    "roleAdmin": "Admin"
   }
 }

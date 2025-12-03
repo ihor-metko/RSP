@@ -1,0 +1,263 @@
+@reference "tailwindcss";
+
+/**
+ * AdminSidebar Component Styles
+ *
+ * Uses im-sidebar-* class prefix and global CSS variables only.
+ * All colors reference --im-* variables.
+ *
+ * CSS Variables used:
+ * - --im-surface: Background color for surfaces
+ * - --im-background: Page background color
+ * - --im-foreground: Text color
+ * - --im-primary: Primary/accent color for hover/focus
+ * - --im-border: Border color
+ * - --im-card-bg: Card/dropdown background
+ * - --im-muted: Muted text color
+ * - --im-icon-color: Icon color
+ *
+ * Sidebar dimensions:
+ * - Desktop: 240px width, fixed left
+ * - Mobile: Collapsible hamburger menu
+ */
+
+/* Sidebar container - fixed positioning on desktop */
+.im-sidebar {
+  @apply fixed left-0 top-0 h-screen z-40 flex flex-col;
+  width: 240px;
+  background-color: var(--im-surface);
+  border-right: 1px solid var(--im-border);
+  transition: transform 0.3s ease, background-color 0.2s ease;
+}
+
+/* Offset for header (56px on desktop) */
+.im-sidebar--with-header {
+  top: 56px;
+  height: calc(100vh - 56px);
+}
+
+@media (max-width: 768px) {
+  .im-sidebar--with-header {
+    top: 48px;
+    height: calc(100vh - 48px);
+  }
+}
+
+/* Mobile: hide by default, show when open */
+@media (max-width: 1023px) {
+  .im-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .im-sidebar--open {
+    transform: translateX(0);
+  }
+}
+
+/* Sidebar header / branding */
+.im-sidebar-header {
+  @apply flex items-center gap-3 px-4 py-4 border-b;
+  border-color: var(--im-border);
+}
+
+.im-sidebar-logo {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm;
+  background-color: var(--im-primary);
+}
+
+.im-sidebar-title {
+  @apply text-base font-semibold;
+  color: var(--im-foreground);
+}
+
+/* User role badge in sidebar */
+.im-sidebar-role {
+  @apply text-xs px-2 py-0.5 rounded-full font-medium;
+  background-color: var(--im-card-bg);
+  color: var(--im-muted);
+}
+
+.im-sidebar-role--root {
+  background-color: var(--im-primary);
+  color: white;
+}
+
+.im-sidebar-role--super {
+  background-color: #9333ea;
+  color: white;
+}
+
+.im-sidebar-role--admin {
+  background-color: #0ea5e9;
+  color: white;
+}
+
+/* Navigation section */
+.im-sidebar-nav {
+  @apply flex-1 overflow-y-auto py-4;
+}
+
+.im-sidebar-section {
+  @apply mb-4;
+}
+
+.im-sidebar-section-title {
+  @apply px-4 py-2 text-xs font-semibold uppercase tracking-wider;
+  color: var(--im-muted);
+}
+
+/* Navigation items */
+.im-sidebar-nav-list {
+  @apply flex flex-col gap-0.5;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.im-sidebar-nav-item {
+  @apply mx-2;
+}
+
+.im-sidebar-nav-link {
+  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors no-underline;
+  color: var(--im-foreground);
+}
+
+.im-sidebar-nav-link:hover {
+  background-color: var(--im-card-bg);
+  color: var(--im-primary);
+}
+
+.im-sidebar-nav-link:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: -2px;
+}
+
+.im-sidebar-nav-link--active {
+  background-color: var(--im-primary);
+  color: white;
+}
+
+.im-sidebar-nav-link--active:hover {
+  background-color: var(--im-primary-hover);
+  color: white;
+}
+
+.im-sidebar-nav-link--active .im-sidebar-icon {
+  color: white;
+}
+
+/* Nested navigation for sub-items */
+.im-sidebar-nav-nested {
+  @apply ml-4 mt-1;
+}
+
+.im-sidebar-nav-nested .im-sidebar-nav-link {
+  @apply py-2 text-sm;
+}
+
+/* Icon styling */
+.im-sidebar-icon {
+  @apply flex-shrink-0;
+  width: 18px;
+  height: 18px;
+  color: var(--im-icon-color);
+}
+
+.im-sidebar-nav-link:hover .im-sidebar-icon {
+  color: var(--im-primary);
+}
+
+/* Footer section */
+.im-sidebar-footer {
+  @apply mt-auto border-t px-4 py-4;
+  border-color: var(--im-border);
+}
+
+.im-sidebar-version {
+  @apply text-xs;
+  color: var(--im-muted);
+}
+
+/* Mobile toggle button */
+.im-sidebar-toggle {
+  @apply lg:hidden fixed z-50 p-2 rounded-lg transition-colors;
+  left: 16px;
+  top: 60px;
+  background-color: var(--im-surface);
+  border: 1px solid var(--im-border);
+  cursor: pointer;
+  color: var(--im-foreground);
+}
+
+@media (max-width: 768px) {
+  .im-sidebar-toggle {
+    top: 52px;
+  }
+}
+
+.im-sidebar-toggle:hover {
+  background-color: var(--im-card-bg);
+}
+
+.im-sidebar-toggle:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+.im-sidebar-toggle .im-sidebar-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Overlay for mobile */
+.im-sidebar-overlay {
+  @apply lg:hidden fixed inset-0 z-30;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Chevron for expandable items */
+.im-sidebar-chevron {
+  @apply ml-auto transition-transform;
+  width: 16px;
+  height: 16px;
+  color: var(--im-icon-color);
+}
+
+.im-sidebar-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Expand/collapse button */
+.im-sidebar-expand-btn {
+  @apply w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--im-foreground);
+}
+
+.im-sidebar-expand-btn:hover {
+  background-color: var(--im-card-bg);
+  color: var(--im-primary);
+}
+
+.im-sidebar-expand-btn:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: -2px;
+}
+
+/* Badge for counts/notifications */
+.im-sidebar-badge {
+  @apply ml-auto px-1.5 py-0.5 text-xs font-medium rounded-full;
+  background-color: var(--im-primary);
+  color: white;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Main content offset when sidebar is visible */
+.im-sidebar-content {
+  @apply lg:ml-60 min-h-screen;
+  transition: margin-left 0.3s ease;
+}
