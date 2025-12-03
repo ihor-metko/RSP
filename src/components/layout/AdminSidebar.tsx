@@ -566,7 +566,7 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
 
         {/* Footer */}
         <div className="im-sidebar-footer">
-          <p className="im-sidebar-version">v{process.env.npm_package_version || "0.1.0"}</p>
+          <p className="im-sidebar-version">v0.1.0</p>
         </div>
       </aside>
     </>
