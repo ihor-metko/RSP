@@ -88,10 +88,17 @@
     "personalized": {
       "title": "Персоналізований розділ",
       "greeting": "Вітаємо, {name}!",
+      "readyToPlay": "Готові пограти сьогодні?",
       "upcomingBookings": "Майбутні бронювання",
       "noUpcomingBookings": "Немає майбутніх бронювань.",
       "quickBooking": "Швидке бронювання",
+      "quickBookingDescription": "Забронюйте наступну падел сесію в кілька кліків.",
+      "startBooking": "Почати бронювання",
+      "bookNow": "Забронювати",
       "findCourt": "Знайти доступний корт",
+      "selectClubStep": "Виберіть клуб, щоб почати",
+      "chooseClub": "Виберіть клуб...",
+      "selectClubHint": "Виберіть клуб, де хочете грати",
       "notifications": "Сповіщення",
       "noNotifications": "Немає нових сповіщень.",
       "notificationRequested": "Запит на тренування надіслано",
@@ -650,6 +657,7 @@
     "steps": {
       "dateTime": "Дата та час",
       "selectCourt": "Вибір корту",
+      "selectClub": "Вибір клубу",
       "payment": "Оплата"
     },
     "step1Title": "Виберіть дату, час та тривалість",

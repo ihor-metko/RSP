@@ -1,0 +1,347 @@
+@reference "tailwindcss";
+
+/* Personalized Section Container */
+.rsp-personalized-section {
+  @apply py-8 px-4 md:px-8;
+  background-color: var(--rsp-card-bg);
+  transition: background-color 0.2s ease;
+}
+
+.rsp-personalized-container {
+  @apply max-w-7xl mx-auto;
+}
+
+/* Greeting Block */
+.rsp-personalized-greeting {
+  @apply mb-8 text-center md:text-left;
+}
+
+.rsp-personalized-greeting-title {
+  @apply text-2xl md:text-3xl font-bold mb-2;
+  color: var(--rsp-foreground);
+}
+
+.rsp-personalized-greeting-cta {
+  @apply text-lg md:text-xl;
+  color: var(--rsp-primary);
+  font-weight: 500;
+}
+
+/* Grid Layout */
+.rsp-personalized-grid {
+  @apply grid gap-6;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .rsp-personalized-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Card Styling */
+.rsp-personalized-card {
+  @apply p-0;
+  background-color: var(--rsp-background);
+  border: 1px solid var(--rsp-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rsp-personalized-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+.dark .rsp-personalized-card:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+.rsp-personalized-card .rsp-card-body {
+  @apply p-6;
+}
+
+/* Card Header */
+.rsp-personalized-card-header {
+  @apply flex items-center gap-3 mb-4;
+}
+
+.rsp-personalized-card-icon {
+  @apply w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0;
+  background-color: rgba(26, 188, 156, 0.1);
+  color: var(--rsp-primary);
+}
+
+.dark .rsp-personalized-card-icon {
+  background-color: rgba(108, 99, 255, 0.15);
+}
+
+.rsp-personalized-card-title {
+  @apply text-xl font-semibold;
+  color: var(--rsp-foreground);
+}
+
+.rsp-personalized-card-description {
+  @apply text-sm mb-6;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+/* Quick Booking Button */
+.rsp-personalized-book-btn {
+  @apply w-full flex items-center justify-center gap-2;
+  min-height: 48px;
+  font-weight: 600;
+}
+
+.rsp-personalized-btn-loading {
+  @apply flex items-center gap-2;
+}
+
+.rsp-personalized-spinner {
+  @apply w-4 h-4 rounded-full border-2 animate-spin;
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+}
+
+/* Bookings List */
+.rsp-personalized-bookings-list {
+  @apply space-y-3;
+}
+
+/* Booking Card */
+.rsp-personalized-booking-card {
+  @apply w-full text-left p-4 rounded-xl flex flex-wrap items-center gap-3 transition-all duration-200;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+  cursor: pointer;
+}
+
+.rsp-personalized-booking-card:hover {
+  background-color: var(--rsp-background);
+  border-color: var(--rsp-primary);
+}
+
+.rsp-personalized-booking-card:focus {
+  outline: none;
+  border-color: var(--rsp-primary);
+  box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.2);
+}
+
+.dark .rsp-personalized-booking-card:focus {
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+}
+
+.rsp-personalized-booking-main {
+  @apply flex-shrink-0;
+  min-width: 100px;
+}
+
+.rsp-personalized-booking-date {
+  @apply font-semibold text-sm;
+  color: var(--rsp-foreground);
+}
+
+.rsp-personalized-booking-time {
+  @apply text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.rsp-personalized-booking-details {
+  @apply flex-1 min-w-0;
+}
+
+.rsp-personalized-booking-venue {
+  @apply font-medium text-sm truncate;
+  color: var(--rsp-foreground);
+}
+
+.rsp-personalized-booking-court {
+  @apply text-xs;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.rsp-personalized-booking-arrow {
+  @apply flex-shrink-0 ml-auto;
+  color: var(--rsp-foreground);
+  opacity: 0.4;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.rsp-personalized-booking-card:hover .rsp-personalized-booking-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+  color: var(--rsp-primary);
+}
+
+/* Status Badge */
+.rsp-personalized-status {
+  @apply inline-flex px-2 py-1 rounded-full text-xs font-medium;
+  background-color: var(--rsp-border);
+  color: var(--rsp-foreground);
+}
+
+.rsp-personalized-status--confirmed {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.dark .rsp-personalized-status--confirmed {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.rsp-personalized-status--pending {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
+}
+
+.dark .rsp-personalized-status--pending {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+}
+
+.rsp-personalized-status--cancelled {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+.dark .rsp-personalized-status--cancelled {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* Empty State */
+.rsp-personalized-empty {
+  @apply text-center py-6;
+}
+
+.rsp-personalized-empty-text {
+  @apply text-sm mb-4;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.rsp-personalized-empty-btn {
+  @apply inline-flex;
+}
+
+/* Loading Skeleton */
+.rsp-personalized-skeleton-greeting {
+  @apply h-10 w-64 rounded-lg mb-8 animate-pulse;
+  background-color: var(--rsp-border);
+}
+
+.rsp-personalized-skeleton-card {
+  @apply p-6 rounded-xl;
+  background-color: var(--rsp-background);
+  border: 1px solid var(--rsp-border);
+}
+
+.rsp-personalized-skeleton-title {
+  @apply h-6 w-32 rounded mb-4 animate-pulse;
+  background-color: var(--rsp-border);
+}
+
+.rsp-personalized-skeleton-content {
+  @apply h-16 rounded mb-3 animate-pulse;
+  background-color: var(--rsp-border);
+}
+
+/* Error State */
+.rsp-personalized-error {
+  @apply p-4 rounded-lg text-center;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.dark .rsp-personalized-error {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+/* Booking Details Modal */
+.rsp-personalized-booking-modal {
+  @apply w-full;
+}
+
+.rsp-personalized-booking-modal-content {
+  @apply space-y-1 mb-6;
+}
+
+.rsp-personalized-booking-modal-row {
+  @apply flex justify-between py-3;
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.rsp-personalized-booking-modal-row:last-child {
+  border-bottom: none;
+}
+
+.rsp-personalized-booking-modal-label {
+  @apply text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.rsp-personalized-booking-modal-value {
+  @apply text-sm font-medium text-right;
+  color: var(--rsp-foreground);
+}
+
+.rsp-personalized-booking-modal-price {
+  color: var(--rsp-primary);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.rsp-personalized-booking-modal-actions {
+  @apply flex gap-3 justify-end;
+}
+
+/* Wizard Step Title */
+.rsp-wizard-step-title {
+  @apply text-base font-medium mb-4;
+  color: var(--rsp-foreground);
+  opacity: 0.8;
+}
+
+/* Wizard Select Field */
+.rsp-wizard-select {
+  @apply w-full;
+}
+
+/* Field Hint */
+.rsp-wizard-field-hint {
+  @apply text-xs mt-2;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .rsp-personalized-booking-card {
+    @apply flex-col items-start;
+  }
+
+  .rsp-personalized-booking-main {
+    @apply w-full mb-2;
+  }
+
+  .rsp-personalized-booking-details {
+    @apply w-full;
+  }
+
+  .rsp-personalized-booking-arrow {
+    @apply absolute right-4 top-1/2 -translate-y-1/2;
+  }
+
+  .rsp-personalized-booking-card {
+    @apply relative;
+    padding-right: 2.5rem;
+  }
+}
