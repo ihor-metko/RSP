@@ -387,6 +387,7 @@
         "rootAdmin": "Root Admin",
         "admin": "Admin",
         "super_admin": "Super Admin",
+        "admin": "Admin",
         "coach": "Coach",
         "player": "Player"
       }

@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { Roles } from "@/constants/roles";
 import { notificationEmitter, NotificationPayload } from "@/lib/notificationEmitter";
 
 /**
@@ -17,7 +18,7 @@ export async function GET(): Promise<Response> {
     });
   }
 
-  if (session.user.role !== "super_admin") {
+  if (session.user.role !== Roles.SuperAdmin) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },

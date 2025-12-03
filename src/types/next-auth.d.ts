@@ -1,4 +1,4 @@
-import { UserRole } from "@/lib/auth";
+import { UserRole } from "@/constants/roles";
 
 declare module "next-auth" {
   interface User {

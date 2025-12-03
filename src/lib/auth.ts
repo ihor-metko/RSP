@@ -3,11 +3,11 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { validateRole } from "./roles";
+import { validateRole } from "@/constants/roles";
 
-// Re-export role types and constants from the centralized roles module
-export type { UserRole } from "./roles";
-export { Roles, VALID_ROLES, DEFAULT_ROLE, isValidRole, validateRole } from "./roles";
+// Re-export types and utilities from constants/roles for backward compatibility
+export type { UserRole } from "@/constants/roles";
+export { Roles, VALID_ROLES, DEFAULT_ROLE, isValidRole, validateRole } from "@/constants/roles";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),

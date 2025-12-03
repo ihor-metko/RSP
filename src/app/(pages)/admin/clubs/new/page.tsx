@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ClubCreationStepper } from "@/components/admin/ClubCreationStepper.client";
+import { Roles } from "@/constants/roles";
 
 export default function NewClubPage() {
   const { data: session, status } = useSession();
@@ -12,7 +13,7 @@ export default function NewClubPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== "super_admin") {
+    if (!session?.user || session.user.role !== Roles.SuperAdmin) {
       router.push("/auth/sign-in");
       return;
     }
@@ -26,7 +27,7 @@ export default function NewClubPage() {
     );
   }
 
-  if (!session?.user || session.user.role !== "super_admin") {
+  if (!session?.user || session.user.role !== Roles.SuperAdmin) {
     return null;
   }
 

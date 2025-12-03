@@ -7,6 +7,7 @@ import { IMLink } from "@/components/ui";
 import { AdminNotificationsPanel } from "@/components/admin/AdminNotifications";
 import { NotificationBell } from "@/components/admin/NotificationBell";
 import { DashboardFooter } from "@/components/layout";
+import { Roles } from "@/constants/roles";
 
 export default function AdminNotificationsPage() {
   const { data: session, status } = useSession();
@@ -15,7 +16,7 @@ export default function AdminNotificationsPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== "super_admin") {
+    if (!session?.user || session.user.role !== Roles.SuperAdmin) {
       router.push("/auth/sign-in");
     }
   }, [session, status, router]);
@@ -28,7 +29,7 @@ export default function AdminNotificationsPage() {
     );
   }
 
-  if (!session?.user || session.user.role !== "super_admin") {
+  if (!session?.user || session.user.role !== Roles.SuperAdmin) {
     return null;
   }
 

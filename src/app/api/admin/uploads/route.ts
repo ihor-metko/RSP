@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/requireRole";
+import { Roles } from "@/constants/roles";
 import { randomUUID } from "crypto";
 import {
   uploadToStorage,
@@ -9,7 +10,7 @@ import {
 } from "@/lib/supabase";
 
 export async function POST(request: Request) {
-  const authResult = await requireRole(request, ["super_admin"]);
+  const authResult = await requireRole(request, [Roles.SuperAdmin]);
 
   if (!authResult.authorized) {
     return authResult.response;

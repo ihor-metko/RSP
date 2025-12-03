@@ -3,30 +3,26 @@
 import { useSession, signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { IMLink } from "@/components/ui";
-import type { UserRole } from "@/lib/auth";
+import { Roles, type UserRole, isValidRole } from "@/constants/roles";
 
 const roleColors: Record<UserRole, string> = {
-  root_admin: "bg-purple-600",
-  super_admin: "bg-red-500",
-  coach: "bg-blue-500",
-  player: "bg-green-500",
+  [Roles.RootAdmin]: "bg-purple-600",
+  [Roles.SuperAdmin]: "bg-red-500",
+  [Roles.Admin]: "bg-red-500",
+  [Roles.Coach]: "bg-blue-500",
+  [Roles.Player]: "bg-green-500",
 };
-
-const VALID_ROLES: UserRole[] = ["root_admin", "super_admin", "coach", "player"];
-
-function isValidRole(role: unknown): role is UserRole {
-  return typeof role === "string" && VALID_ROLES.includes(role as UserRole);
-}
 
 export function UserRoleIndicator() {
   const { data: session, status } = useSession();
   const t = useTranslations();
 
   const roleLabels: Record<UserRole, string> = {
-    root_admin: t("admin.coaches.roles.rootAdmin"),
-    super_admin: t("admin.coaches.roles.super_admin"),
-    coach: t("admin.coaches.roles.coach"),
-    player: t("admin.coaches.roles.player"),
+    [Roles.RootAdmin]: t("admin.coaches.roles.rootAdmin"),
+    [Roles.SuperAdmin]: t("admin.coaches.roles.super_admin"),
+    [Roles.Admin]: t("admin.coaches.roles.admin"),
+    [Roles.Coach]: t("admin.coaches.roles.coach"),
+    [Roles.Player]: t("admin.coaches.roles.player"),
   };
 
   if (status === "loading") {

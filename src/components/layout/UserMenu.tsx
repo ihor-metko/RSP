@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import type { UserRole } from "@/lib/auth";
+import { Roles, type UserRole } from "@/constants/roles";
 import "./UserMenu.css";
 
 /**
@@ -246,7 +246,7 @@ export default function UserMenu({ userName, userEmail, userRole }: UserMenuProp
     await signOut({ callbackUrl: "/" });
   };
 
-  const isAdmin = userRole === "super_admin";
+  const isAdmin = userRole === Roles.SuperAdmin;
 
   return (
     <div className="im-user-menu" ref={menuRef}>

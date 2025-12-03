@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { Roles } from "@/constants/roles";
 import { deleteFromStorage, isSupabaseStorageConfigured } from "@/lib/supabase";
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string; imageId: string }> }
 ) {
-  const authResult = await requireRole(request, ["super_admin"]);
+  const authResult = await requireRole(request, [Roles.SuperAdmin]);
 
   if (!authResult.authorized) {
     return authResult.response;

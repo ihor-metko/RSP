@@ -12,6 +12,7 @@ import {
   LandingTestimonials,
 } from "@/components/home";
 import { auth } from "@/lib/auth";
+import { Roles } from "@/constants/roles";
 import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
 
 /**
@@ -26,8 +27,8 @@ import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
 export default async function Home() {
   // Server-side fallback: redirect super_admin users to admin dashboard
   const session = await auth();
-  if (session?.user?.role === "super_admin") {
-    redirect(ROLE_HOMEPAGES.super_admin);
+  if (session?.user?.role === Roles.SuperAdmin) {
+    redirect(ROLE_HOMEPAGES[Roles.SuperAdmin]);
   }
   return (
     <main className="flex flex-col min-h-screen overflow-auto">

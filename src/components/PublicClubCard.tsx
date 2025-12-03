@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Button, IMLink } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
+import { Roles, type UserRole } from "@/constants/roles";
 import "./ClubsList.css";
 
 export interface PublicClubCardProps {
@@ -20,8 +21,8 @@ export interface PublicClubCardProps {
     indoorCount?: number;
     outdoorCount?: number;
   };
-  /** User role for permission-based rendering (player, super_admin, coach) */
-  role?: "player" | "super_admin" | "coach";
+  /** User role for permission-based rendering. Use Roles enum values. */
+  role?: UserRole;
 }
 
 /**
@@ -57,7 +58,7 @@ function parseTags(tags: string | null | undefined): string[] {
   return tags.split(",").map((t) => t.trim()).filter(Boolean);
 }
 
-export function PublicClubCard({ club, role = "player" }: PublicClubCardProps) {
+export function PublicClubCard({ club, role = Roles.Player }: PublicClubCardProps) {
   const t = useTranslations();
   
   // Convert stored paths to full Supabase Storage URLs
@@ -70,12 +71,12 @@ export function PublicClubCard({ club, role = "player" }: PublicClubCardProps) {
   const formattedAddress = formatAddress(club.city, club.location);
   const clubTags = parseTags(club.tags);
 
-  // Determine the club link based on role
+  // Determine the club link based on role (use Roles enum for comparisons)
   const getClubLink = () => {
-    if (role === "super_admin") {
+    if (role === Roles.SuperAdmin || role === Roles.Admin) {
       return `/admin/clubs/${club.id}`;
     }
-    if (role === "coach") {
+    if (role === Roles.Coach) {
       return `/coach/clubs/${club.id}`;
     }
     return `/clubs/${club.id}`;

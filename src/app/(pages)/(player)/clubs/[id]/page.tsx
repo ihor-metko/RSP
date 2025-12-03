@@ -16,6 +16,7 @@ import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
 import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
+import { Roles } from "@/constants/roles";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
 
@@ -441,7 +442,7 @@ export default function ClubDetailPage({
         />
 
         {/* Admin Link */}
-        {session?.user?.role === "super_admin" && (
+        {session?.user?.role === Roles.SuperAdmin && (
           <div className="mb-4 text-right">
             <IMLink href={`/admin/clubs/${club.id}/courts`}>{t("clubs.adminCourts")}</IMLink>
           </div>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { PriceRuleForm, PriceRuleFormData } from "@/components/admin/PriceRuleForm";
 import { formatPrice } from "@/utils/price";
+import { Roles } from "@/constants/roles";
 
 interface PriceRule {
   id: string;
@@ -131,7 +132,7 @@ export default function PriceRulesPage({
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== "super_admin") {
+    if (!session?.user || session.user.role !== Roles.SuperAdmin) {
       router.push("/auth/sign-in");
       return;
     }

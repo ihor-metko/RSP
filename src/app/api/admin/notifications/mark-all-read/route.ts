@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { Roles } from "@/constants/roles";
 
 /**
  * POST /api/admin/notifications/mark-all-read
@@ -9,7 +10,7 @@ import { requireRole } from "@/lib/requireRole";
  */
 export async function POST(request: Request) {
   try {
-    const authResult = await requireRole(request, ["super_admin"]);
+    const authResult = await requireRole(request, [Roles.SuperAdmin]);
     if (!authResult.authorized) {
       return authResult.response;
     }

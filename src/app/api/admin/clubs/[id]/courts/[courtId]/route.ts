@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
+import { Roles } from "@/constants/roles";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string; courtId: string }> }
 ) {
-  const authResult = await requireRole(request, ["super_admin"]);
+  const authResult = await requireRole(request, [Roles.SuperAdmin]);
 
   if (!authResult.authorized) {
     return authResult.response;
@@ -61,7 +62,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string; courtId: string }> }
 ) {
-  const authResult = await requireRole(request, ["super_admin"]);
+  const authResult = await requireRole(request, [Roles.SuperAdmin]);
 
   if (!authResult.authorized) {
     return authResult.response;
@@ -205,7 +206,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string; courtId: string }> }
 ) {
-  const authResult = await requireRole(request, ["super_admin"]);
+  const authResult = await requireRole(request, [Roles.SuperAdmin]);
 
   if (!authResult.authorized) {
     return authResult.response;
