@@ -57,7 +57,6 @@ const DescriptionGalleryBlock = ({
   galleryImages: Array<{ url: string; alt: string }>;
   onGalleryOpen?: (index: number) => void;
 }) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const t = (key: string) => {
     const translations: Record<string, string> = {
       "clubDetail.gallery": "Gallery",

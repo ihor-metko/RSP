@@ -535,10 +535,19 @@
   @apply grid gap-6;
 }
 
-/* On mobile: gallery stacks above contacts, description below */
+/* On mobile: gallery stacks above contacts using flexbox for ordering */
 @media (max-width: 1023px) {
   .im-club-description-gallery-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .im-club-description-gallery-left {
+    order: 1;
+  }
+  
+  .im-club-contacts-column {
+    order: 2;
   }
 }
 
@@ -607,22 +616,6 @@
 /* Right column (contacts and hours) */
 .im-club-contacts-column {
   @apply space-y-6;
-}
-
-/* Reorder on mobile: show gallery first, then contacts */
-@media (max-width: 1023px) {
-  .im-club-description-gallery-grid {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .im-club-description-gallery-left {
-    order: 1;
-  }
-  
-  .im-club-contacts-column {
-    order: 2;
-  }
 }
 
 /* Info card using im-* variables */
