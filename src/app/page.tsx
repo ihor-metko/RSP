@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import Header from "@/components/layout/Header";
 import { PublicFooter } from "@/components/layout";
 import { ClubCardsGridSkeleton, PersonalizedSectionSkeleton } from "@/components/ui";
@@ -10,6 +11,8 @@ import {
   LandingClubsCoaches,
   LandingTestimonials,
 } from "@/components/home";
+import { auth } from "@/lib/auth";
+import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
 
 /**
  * Home page - Server Component with client islands for interactivity
@@ -17,8 +20,15 @@ import {
  * Server Components: HomeHero, PopularClubsSection,
  *                    LandingHowItWorks, LandingClubsCoaches, LandingTestimonials
  * Client Components: Header, PersonalizedSectionWrapper, PublicFooter
+ * 
+ * Admin users are redirected to admin dashboard (server-side fallback for middleware)
  */
 export default async function Home() {
+  // Server-side fallback: redirect admin users to admin dashboard
+  const session = await auth();
+  if (session?.user?.role === "admin") {
+    redirect(ROLE_HOMEPAGES.admin);
+  }
   return (
     <main className="flex flex-col min-h-screen overflow-auto">
       <Header />

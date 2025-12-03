@@ -16,7 +16,7 @@ describe("Role Redirect Utilities", () => {
     });
 
     it("should have correct homepage for player", () => {
-      expect(ROLE_HOMEPAGES.player).toBe("/clubs");
+      expect(ROLE_HOMEPAGES.player).toBe("/");
     });
   });
 
@@ -30,16 +30,16 @@ describe("Role Redirect Utilities", () => {
     });
 
     it("should return player homepage for player role", () => {
-      expect(getRoleHomepage("player")).toBe("/clubs");
+      expect(getRoleHomepage("player")).toBe("/");
     });
 
     it("should return player homepage for undefined role", () => {
-      expect(getRoleHomepage(undefined)).toBe("/clubs");
+      expect(getRoleHomepage(undefined)).toBe("/");
     });
 
     it("should return player homepage for unknown role", () => {
       // Type assertion to test edge case
-      expect(getRoleHomepage("unknown" as UserRole)).toBe("/clubs");
+      expect(getRoleHomepage("unknown" as UserRole)).toBe("/");
     });
 
     it("should prioritize admin over coach in role priority", () => {
@@ -74,7 +74,8 @@ describe("Role Redirect Utilities", () => {
       testCases.forEach((role) => {
         const path = getRoleHomepage(role);
         expect(path).toMatch(/^\//);
-        expect(path.length).toBeGreaterThan(1);
+        // Player homepage "/" has length 1, others are longer
+        expect(path.length).toBeGreaterThanOrEqual(1);
       });
     });
   });
