@@ -6,7 +6,9 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { DarkModeToggle, LanguageSwitcher } from "@/components/ui";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
+import { Roles } from "@/constants/roles";
 import UserMenu from "./UserMenu";
+import RootAdminMenu from "./RootAdminMenu";
 import "./Header.css";
 
 export interface HeaderProps {
@@ -263,11 +265,18 @@ export default function Header({ title, showSearch = false, hideProfile = false 
                   <div className="im-header-skeleton-avatar" />
                 </div>
               ) : isAuthenticated ? (
-                <UserMenu
-                  userName={userName}
-                  userEmail={userEmail}
-                  userRole={userRole}
-                />
+                userRole === Roles.RootAdmin ? (
+                  <RootAdminMenu
+                    userName={userName}
+                    userEmail={userEmail}
+                  />
+                ) : (
+                  <UserMenu
+                    userName={userName}
+                    userEmail={userEmail}
+                    userRole={userRole}
+                  />
+                )
               ) : (
                 <div className="im-header-auth-links">
                   <Link href="/auth/sign-in" className="im-header-auth-link">

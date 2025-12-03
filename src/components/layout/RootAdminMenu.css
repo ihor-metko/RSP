@@ -1,0 +1,194 @@
+@reference "tailwindcss";
+
+/**
+ * RootAdminMenu Component Styles
+ *
+ * Uses im-* class prefix and global CSS variables only.
+ * All colors reference --im-* variables.
+ *
+ * CSS Variables used:
+ * - --im-surface: Background color for surfaces
+ * - --im-foreground: Text color
+ * - --im-primary: Primary/accent color for hover/focus
+ * - --im-border: Border color
+ * - --im-card-bg: Card/dropdown background
+ * - --im-muted: Muted text color
+ * - --im-icon-color: Icon color
+ */
+
+/* Root admin menu container */
+.im-root-admin-menu {
+  @apply relative;
+}
+
+/* Avatar trigger button */
+.im-root-admin-menu-trigger {
+  @apply flex items-center gap-1.5 p-1.5 rounded-lg transition-colors;
+  background-color: transparent;
+  border: 1px solid var(--im-primary);
+  cursor: pointer;
+}
+
+.im-root-admin-menu-trigger:hover {
+  background-color: var(--im-card-bg);
+}
+
+.im-root-admin-menu-trigger:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+/* Avatar circle - distinguished styling for root admin */
+.im-root-admin-menu-avatar {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold;
+  background: linear-gradient(135deg, var(--im-primary), var(--im-primary-hover));
+  color: white;
+  box-shadow: 0 0 0 2px var(--im-surface), 0 0 0 3px var(--im-primary);
+}
+
+/* Crown/shield icon indicator for root admin */
+.im-root-admin-menu-indicator {
+  @apply absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center;
+  background-color: var(--im-primary);
+  color: white;
+}
+
+.im-root-admin-menu-indicator svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* Chevron icon */
+.im-root-admin-menu-chevron {
+  @apply w-4 h-4 transition-transform duration-200;
+  color: var(--im-primary);
+}
+
+.im-root-admin-menu-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Dropdown container */
+.im-root-admin-menu-dropdown {
+  @apply absolute right-0 top-full mt-2 w-72 rounded-lg shadow-xl py-2;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  z-index: 100;
+  animation: im-root-admin-menu-slide-in 0.2s ease-out;
+}
+
+@keyframes im-root-admin-menu-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* User info header */
+.im-root-admin-menu-header {
+  @apply px-4 py-3;
+  border-bottom: 1px solid var(--im-border);
+}
+
+.im-root-admin-menu-name {
+  @apply text-sm font-semibold truncate;
+  color: var(--im-foreground);
+}
+
+.im-root-admin-menu-email {
+  @apply text-xs mt-0.5 truncate;
+  color: var(--im-muted);
+}
+
+/* Root admin role badge */
+.im-root-admin-menu-badge {
+  @apply inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 text-xs font-semibold rounded-md;
+  background: linear-gradient(135deg, var(--im-primary), var(--im-primary-hover));
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.im-root-admin-menu-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Separator */
+.im-root-admin-menu-separator {
+  @apply my-2;
+  height: 1px;
+  background-color: var(--im-border);
+}
+
+/* Menu section label */
+.im-root-admin-menu-section-label {
+  @apply px-4 py-2 text-xs font-medium uppercase tracking-wider;
+  color: var(--im-muted);
+}
+
+/* Menu item */
+.im-root-admin-menu-item {
+  @apply w-full px-4 flex items-center gap-3 transition-all duration-150 no-underline;
+  height: 44px;
+  color: var(--im-foreground);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.im-root-admin-menu-item:hover {
+  background-color: var(--im-surface);
+  color: var(--im-primary);
+  padding-left: 1.25rem;
+}
+
+.im-root-admin-menu-item:hover .im-root-admin-menu-icon {
+  color: var(--im-primary);
+}
+
+.im-root-admin-menu-item:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: -2px;
+  background-color: var(--im-surface);
+}
+
+.im-root-admin-menu-item span {
+  @apply text-sm font-medium;
+}
+
+/* Icon styling */
+.im-root-admin-menu-icon {
+  @apply flex-shrink-0 transition-colors duration-150;
+  width: 18px;
+  height: 18px;
+  color: var(--im-icon-color);
+}
+
+/* Logout item - distinct styling */
+.im-root-admin-menu-item--logout {
+  color: var(--im-primary);
+  font-weight: 500;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--im-border);
+  padding-top: 0.5rem;
+}
+
+.im-root-admin-menu-item--logout .im-root-admin-menu-icon {
+  color: var(--im-primary);
+}
+
+.im-root-admin-menu-item--logout:hover {
+  background-color: var(--im-surface);
+}
+
+/* Badge for counts (optional future use) */
+.im-root-admin-menu-count-badge {
+  @apply ml-auto px-2 py-0.5 text-xs font-medium rounded-full;
+  background-color: var(--im-primary);
+  color: white;
+}

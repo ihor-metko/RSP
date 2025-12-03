@@ -44,6 +44,15 @@ jest.mock("next-intl", () => ({
         "admin.coaches.roles.admin": "Admin",
         "admin.coaches.roles.coach": "Coach",
         "admin.coaches.roles.player": "Player",
+        "rootAdmin.navigation.title": "Root Admin Navigation",
+        "rootAdmin.navigation.menuLabel": "Root Admin Menu",
+        "rootAdmin.navigation.roleLabel": "Root Admin",
+        "rootAdmin.navigation.management": "Management",
+        "rootAdmin.navigation.dashboard": "Dashboard",
+        "rootAdmin.navigation.clubsManagement": "Clubs Management",
+        "rootAdmin.navigation.superAdminsManagement": "Super Admins",
+        "rootAdmin.navigation.usersManagement": "Users Management",
+        "rootAdmin.navigation.platformSettings": "Platform Settings",
       };
       let result = translations[key] || key;
       if (values) {
@@ -248,6 +257,56 @@ describe("Header Component", () => {
       fireEvent.click(profileButton);
       // Admin badge should be visible in dropdown
       expect(screen.getByText("Admin")).toBeInTheDocument();
+    });
+  });
+
+  describe("Root Admin role", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: "root-admin-1",
+            name: "Root Admin",
+            email: "root@admin.com",
+            role: "root_admin",
+          },
+        },
+        status: "authenticated",
+      });
+    });
+
+    it("renders RootAdminMenu instead of UserMenu for root_admin", () => {
+      render(<Header />);
+      // Root admin should see the root admin menu trigger
+      const profileButton = screen.getByRole("button", { name: /root admin menu.*root admin/i });
+      expect(profileButton).toBeInTheDocument();
+    });
+
+    it("displays root admin initials in avatar", () => {
+      render(<Header />);
+      expect(screen.getByText("RA")).toBeInTheDocument();
+    });
+
+    it("shows Root Admin badge in dropdown when opened", () => {
+      render(<Header />);
+      const profileButton = screen.getByRole("button", { name: /root admin menu/i });
+      fireEvent.click(profileButton);
+      // Root Admin badge should be visible in dropdown (within the badge element)
+      const badge = document.querySelector(".im-root-admin-menu-badge");
+      expect(badge).toBeInTheDocument();
+      expect(badge?.textContent).toContain("Root Admin");
+    });
+
+    it("shows admin-specific menu items in dropdown", () => {
+      render(<Header />);
+      const profileButton = screen.getByRole("button", { name: /root admin menu/i });
+      fireEvent.click(profileButton);
+      
+      expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      expect(screen.getByText("Clubs Management")).toBeInTheDocument();
+      expect(screen.getByText("Super Admins")).toBeInTheDocument();
+      expect(screen.getByText("Users Management")).toBeInTheDocument();
+      expect(screen.getByText("Platform Settings")).toBeInTheDocument();
     });
   });
 

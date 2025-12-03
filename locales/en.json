@@ -706,6 +706,17 @@
       "platformOverview": "Platform Overview",
       "platformOverviewDescription": "This dashboard provides a high-level view of the entire platform. More detailed analytics and management features will be added in future updates.",
       "failedToLoad": "Failed to load dashboard statistics. Please try again later."
+    },
+    "navigation": {
+      "title": "Root Admin Navigation",
+      "menuLabel": "Root Admin Menu",
+      "roleLabel": "Root Admin",
+      "management": "Management",
+      "dashboard": "Dashboard",
+      "clubsManagement": "Clubs Management",
+      "superAdminsManagement": "Super Admins",
+      "usersManagement": "Users Management",
+      "platformSettings": "Platform Settings"
     }
   }
 }
