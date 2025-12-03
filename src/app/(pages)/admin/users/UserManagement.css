@@ -1,0 +1,258 @@
+@reference "tailwindcss";
+
+/* ===== User Management Page Layout ===== */
+.im-user-management-page {
+  @apply p-8 max-w-7xl mx-auto;
+  background-color: var(--rsp-background);
+  color: var(--rsp-foreground);
+}
+
+/* ===== Action Bar ===== */
+.im-user-management-actions {
+  @apply flex justify-between items-center mb-6 flex-wrap gap-4;
+}
+
+.im-user-management-actions-left {
+  @apply flex items-center gap-4 flex-wrap;
+}
+
+.im-user-management-actions-right {
+  @apply flex items-center gap-2;
+}
+
+/* ===== Filters Section ===== */
+.im-user-filters {
+  @apply flex items-center gap-3 flex-wrap;
+}
+
+.im-user-search-input {
+  @apply w-64;
+}
+
+.im-user-filter-select {
+  @apply w-40;
+}
+
+/* ===== Users Table ===== */
+.im-users-table-container {
+  @apply overflow-x-auto rounded-xl;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.im-users-table {
+  @apply w-full;
+  border-collapse: collapse;
+}
+
+.im-users-table thead {
+  background-color: var(--rsp-background);
+}
+
+.im-users-table th {
+  @apply px-4 py-3 text-left text-sm font-semibold;
+  color: var(--rsp-foreground);
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.im-users-table td {
+  @apply px-4 py-4 text-sm;
+  color: var(--rsp-foreground);
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.im-users-table tbody tr:hover {
+  background-color: var(--rsp-card-bg);
+}
+
+.im-users-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ===== User Info Cell ===== */
+.im-user-info {
+  @apply flex flex-col;
+}
+
+.im-user-name {
+  @apply font-medium;
+  color: var(--rsp-foreground);
+}
+
+.im-user-email {
+  @apply text-sm mt-0.5;
+  color: var(--im-muted);
+}
+
+/* ===== Role Badge ===== */
+.im-role-badge {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full;
+}
+
+.im-role-badge--super-admin {
+  background-color: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.dark .im-role-badge--super-admin {
+  background-color: rgba(139, 92, 246, 0.25);
+  color: #a78bfa;
+}
+
+.im-role-badge--admin {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.dark .im-role-badge--admin {
+  background-color: rgba(59, 130, 246, 0.25);
+  color: #60a5fa;
+}
+
+/* ===== Club Tags ===== */
+.im-club-tags {
+  @apply flex flex-wrap gap-1;
+}
+
+.im-club-tag {
+  @apply inline-flex items-center px-2 py-0.5 text-xs rounded;
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+}
+
+.dark .im-club-tag {
+  background-color: rgba(34, 197, 94, 0.25);
+  color: #86efac;
+}
+
+.im-club-tag--more {
+  background-color: var(--rsp-border);
+  color: var(--im-muted);
+}
+
+/* ===== Actions Cell ===== */
+.im-user-actions {
+  @apply flex items-center gap-2;
+}
+
+.im-action-button {
+  @apply p-2 rounded-lg transition-colors duration-200;
+  color: var(--im-muted);
+}
+
+.im-action-button:hover {
+  background-color: var(--rsp-border);
+  color: var(--rsp-foreground);
+}
+
+.im-action-button--edit:hover {
+  color: #3b82f6;
+}
+
+.im-action-button--delete {
+  @apply text-red-500;
+}
+
+.im-action-button--delete:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.dark .im-action-button--delete:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+/* ===== Empty State ===== */
+.im-users-empty {
+  @apply text-center py-12;
+}
+
+.im-users-empty-text {
+  @apply text-lg;
+  color: var(--im-muted);
+}
+
+/* ===== Loading State ===== */
+.im-user-management-loading {
+  @apply flex items-center justify-center py-12;
+}
+
+.im-user-management-loading-spinner {
+  @apply w-8 h-8 border-4 rounded-full animate-spin;
+  border-color: var(--rsp-border);
+  border-top-color: var(--rsp-primary);
+}
+
+.im-user-management-loading-text {
+  @apply ml-3;
+  color: var(--im-muted);
+}
+
+/* ===== User Form Modal ===== */
+.im-user-form {
+  @apply space-y-4;
+}
+
+.im-user-form-row {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.im-user-form-actions {
+  @apply flex justify-end gap-2 mt-6 pt-4;
+  border-top: 1px solid var(--rsp-border);
+}
+
+/* ===== Error State ===== */
+.im-user-management-error {
+  @apply p-4 rounded-lg text-center mb-6;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.dark .im-user-management-error {
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 767px) {
+  .im-user-management-page {
+    @apply p-4;
+  }
+
+  .im-user-management-actions {
+    @apply flex-col items-stretch;
+  }
+
+  .im-user-management-actions-left {
+    @apply w-full;
+  }
+
+  .im-user-management-actions-right {
+    @apply w-full justify-end;
+  }
+
+  .im-user-filters {
+    @apply w-full;
+  }
+
+  .im-user-search-input {
+    @apply w-full;
+  }
+
+  .im-user-filter-select {
+    @apply flex-1;
+  }
+
+  .im-user-form-row {
+    @apply grid-cols-1;
+  }
+
+  .im-users-table th,
+  .im-users-table td {
+    @apply px-3 py-2;
+  }
+}

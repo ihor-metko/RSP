@@ -707,5 +707,30 @@
       "platformOverviewDescription": "This dashboard provides a high-level view of the entire platform. More detailed analytics and management features will be added in future updates.",
       "failedToLoad": "Failed to load dashboard statistics. Please try again later."
     }
+  },
+  "userManagement": {
+    "title": "User Management",
+    "subtitle": "Manage Super Admins and Admins",
+    "breadcrumb": "Users",
+    "createUser": "Create User",
+    "editUser": "Edit User",
+    "deleteUser": "Delete User",
+    "noUsers": "No users found. Create your first admin user.",
+    "failedToLoad": "Failed to load users. Please try again later.",
+    "searchPlaceholder": "Search by name or email...",
+    "allClubs": "All Clubs",
+    "role": "Role",
+    "assignedClubs": "Assigned Clubs",
+    "noClubsAssigned": "No clubs",
+    "selectClubs": "Select clubs...",
+    "namePlaceholder": "Enter user name",
+    "emailPlaceholder": "user@example.com",
+    "passwordPlaceholder": "Minimum 8 characters",
+    "deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+    "adminSingleClubNote": "Note: Admin users can only be assigned to a single club.",
+    "roles": {
+      "superAdmin": "Super Admin",
+      "admin": "Admin"
+    }
   }
 }

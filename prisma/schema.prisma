@@ -24,6 +24,20 @@ model User {
   sessions      Session[]
   coaches       Coach[]
   bookings      Booking[]
+  userClubs     UserClub[]
+}
+
+model UserClub {
+  id        String   @id @default(uuid())
+  userId    String
+  clubId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clubId])
+  @@index([userId])
+  @@index([clubId])
 }
 
 model Account {
@@ -91,6 +105,7 @@ model Club {
   gallery          ClubGallery[]
   businessHours    ClubBusinessHours[]
   specialHours     ClubSpecialHours[]
+  userClubs        UserClub[]
 }
 
 model ClubGallery {
