@@ -143,3 +143,9 @@
 .im-user-menu-item--logout:hover {
   background-color: var(--im-surface);
 }
+
+/* Section label for menu groups */
+.im-user-menu-section-label {
+  @apply px-4 py-1.5 text-xs font-semibold uppercase tracking-wider;
+  color: var(--im-muted);
+}

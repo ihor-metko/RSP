@@ -123,6 +123,64 @@ function ShieldIcon() {
   );
 }
 
+function UsersIcon() {
+  return (
+    <svg
+      className="im-user-menu-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function DashboardIcon() {
+  return (
+    <svg
+      className="im-user-menu-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+    </svg>
+  );
+}
+
+function ClubsIcon() {
+  return (
+    <svg
+      className="im-user-menu-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
 export interface UserMenuProps {
   userName: string | null | undefined;
   userEmail: string | null | undefined;
@@ -246,7 +304,8 @@ export default function UserMenu({ userName, userEmail, userRole }: UserMenuProp
     await signOut({ callbackUrl: "/" });
   };
 
-  const isAdmin = userRole === Roles.SuperAdmin;
+  const isRootAdmin = userRole === Roles.RootAdmin;
+  const isAdmin = userRole === Roles.SuperAdmin || userRole === Roles.Admin || isRootAdmin;
 
   return (
     <div className="im-user-menu" ref={menuRef}>
@@ -325,6 +384,51 @@ export default function UserMenu({ userName, userEmail, userRole }: UserMenuProp
             <SettingsIcon />
             <span>{t("common.settings") || "Settings"}</span>
           </Link>
+
+          {/* Admin section - shown only for admin users */}
+          {isAdmin && (
+            <>
+              <div className="im-user-menu-separator" role="separator" />
+              <div className="im-user-menu-section-label">{t("breadcrumbs.admin")}</div>
+              
+              {isRootAdmin && (
+                <Link
+                  href="/admin/dashboard"
+                  className="im-user-menu-item"
+                  role="menuitem"
+                  tabIndex={0}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <DashboardIcon />
+                  <span>{t("breadcrumbs.dashboard")}</span>
+                </Link>
+              )}
+              
+              <Link
+                href="/admin/clubs"
+                className="im-user-menu-item"
+                role="menuitem"
+                tabIndex={0}
+                onClick={() => setIsOpen(false)}
+              >
+                <ClubsIcon />
+                <span>{t("breadcrumbs.clubs")}</span>
+              </Link>
+              
+              {isRootAdmin && (
+                <Link
+                  href="/admin/users"
+                  className="im-user-menu-item"
+                  role="menuitem"
+                  tabIndex={0}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <UsersIcon />
+                  <span>{t("userManagement.breadcrumb")}</span>
+                </Link>
+              )}
+            </>
+          )}
 
           <div className="im-user-menu-separator" role="separator" />
 
