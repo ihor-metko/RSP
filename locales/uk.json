@@ -384,6 +384,7 @@
       "coachRoleRemoved": "Роль тренера успішно знято",
       "selectAtLeastOneClub": "Будь ласка, виберіть хоча б один клуб",
       "roles": {
+        "rootAdmin": "Головний адмін",
         "admin": "Адмін",
         "coach": "Тренер",
         "player": "Гравець"

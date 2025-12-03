@@ -6,12 +6,13 @@ import { IMLink } from "@/components/ui";
 import type { UserRole } from "@/lib/auth";
 
 const roleColors: Record<UserRole, string> = {
+  root_admin: "bg-purple-600",
   admin: "bg-red-500",
   coach: "bg-blue-500",
   player: "bg-green-500",
 };
 
-const VALID_ROLES: UserRole[] = ["admin", "coach", "player"];
+const VALID_ROLES: UserRole[] = ["root_admin", "admin", "coach", "player"];
 
 function isValidRole(role: unknown): role is UserRole {
   return typeof role === "string" && VALID_ROLES.includes(role as UserRole);
@@ -22,6 +23,7 @@ export function UserRoleIndicator() {
   const t = useTranslations();
 
   const roleLabels: Record<UserRole, string> = {
+    root_admin: t("admin.coaches.roles.rootAdmin"),
     admin: t("admin.coaches.roles.admin"),
     coach: t("admin.coaches.roles.coach"),
     player: t("admin.coaches.roles.player"),

@@ -8,6 +8,7 @@ import type { UserRole } from "@/lib/auth";
  * Role-specific homepage paths
  */
 export const ROLE_HOMEPAGES: Record<UserRole, string> = {
+  root_admin: "/admin/clubs",
   admin: "/admin/clubs",
   coach: "/coach/dashboard",
   player: "/",
