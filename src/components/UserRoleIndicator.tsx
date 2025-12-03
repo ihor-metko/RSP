@@ -6,6 +6,7 @@ import { IMLink } from "@/components/ui";
 import { Roles, type UserRole, isValidRole } from "@/constants/roles";
 
 const roleColors: Record<UserRole, string> = {
+  [Roles.RootAdmin]: "bg-purple-600",
   [Roles.SuperAdmin]: "bg-red-500",
   [Roles.Admin]: "bg-red-500",
   [Roles.Coach]: "bg-blue-500",
@@ -17,6 +18,7 @@ export function UserRoleIndicator() {
   const t = useTranslations();
 
   const roleLabels: Record<UserRole, string> = {
+    [Roles.RootAdmin]: t("admin.coaches.roles.rootAdmin"),
     [Roles.SuperAdmin]: t("admin.coaches.roles.super_admin"),
     [Roles.Admin]: t("admin.coaches.roles.admin"),
     [Roles.Coach]: t("admin.coaches.roles.coach"),

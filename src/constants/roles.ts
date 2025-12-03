@@ -16,6 +16,7 @@
  * await requireRole(request, [Roles.SuperAdmin, Roles.Admin]);
  */
 export enum Roles {
+  RootAdmin = "root_admin",
   SuperAdmin = "super_admin",
   Admin = "admin",
   Coach = "coach",

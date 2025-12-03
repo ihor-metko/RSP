@@ -384,6 +384,8 @@
       "coachRoleRemoved": "Coach role removed successfully",
       "selectAtLeastOneClub": "Please select at least one club",
       "roles": {
+        "rootAdmin": "Root Admin",
+        "admin": "Admin",
         "super_admin": "Super Admin",
         "admin": "Admin",
         "coach": "Coach",

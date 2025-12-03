@@ -10,6 +10,7 @@ import { Roles, type UserRole } from "@/constants/roles";
  * Always use Roles enum values as keys.
  */
 export const ROLE_HOMEPAGES: Record<UserRole, string> = {
+  [Roles.RootAdmin]: "/admin/clubs",
   [Roles.SuperAdmin]: "/admin/clubs",
   [Roles.Admin]: "/admin/clubs",
   [Roles.Coach]: "/coach/dashboard",
