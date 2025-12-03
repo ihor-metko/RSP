@@ -46,10 +46,6 @@ jest.mock("@/components/ui", () => ({
   PersonalizedSectionSkeleton: () => <div data-testid="personalized-skeleton" />,
 }));
 
-import { useSession } from "next-auth/react";
-
-const mockUseSession = useSession as jest.Mock;
-
 describe("Loading Skeletons", () => {
   it("ClubCardsGridSkeleton is exported from UI components", () => {
     // The mock already provides ClubCardsGridSkeleton, verify it works

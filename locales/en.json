@@ -88,10 +88,17 @@
     "personalized": {
       "title": "Your Personalized Section",
       "greeting": "Welcome back, {name}!",
+      "readyToPlay": "Ready to play today?",
       "upcomingBookings": "Upcoming Bookings",
       "noUpcomingBookings": "No upcoming bookings.",
       "quickBooking": "Quick Booking",
+      "quickBookingDescription": "Book your next padel session in just a few clicks.",
+      "startBooking": "Start Booking",
+      "bookNow": "Book Now",
       "findCourt": "Find Available Court",
+      "selectClubStep": "Select a club to get started",
+      "chooseClub": "Choose a club...",
+      "selectClubHint": "Select the club where you want to play",
       "notifications": "Notifications",
       "noNotifications": "No new notifications.",
       "notificationRequested": "Training request submitted",
@@ -653,6 +660,7 @@
     "steps": {
       "dateTime": "Date & Time",
       "selectCourt": "Select Court",
+      "selectClub": "Select Club",
       "payment": "Payment"
     },
     "step1Title": "Select date, time and duration",
