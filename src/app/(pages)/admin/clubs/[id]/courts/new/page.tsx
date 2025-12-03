@@ -201,7 +201,8 @@ export default function CreateCourtPage({
         if (data.defaultCurrency) {
           setValue("currency", data.defaultCurrency);
         }
-      } catch {
+      } catch (err) {
+        console.error("Failed to load club:", err);
         setError("Failed to load club");
       } finally {
         setLoading(false);
@@ -513,7 +514,7 @@ export default function CreateCourtPage({
           // Slug conflict
           setStepErrors((prev) => ({ ...prev, basic: true }));
           setCurrentStep("basic");
-          showToast("error", "Slug already exists. Try a different slug like: " + data.slug + "-1");
+          showToast("error", `Slug already exists. Try a different slug like: ${data.slug}-1`);
           return;
         }
         throw new Error(result.error || "Failed to create court");
@@ -814,7 +815,7 @@ export default function CreateCourtPage({
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={mainImage.preview || mainImage.url}
-                      alt={mainImage.alt || "Main court image"}
+                      alt={mainImage.alt || `Main image for ${watchedValues.name || "new court"}`}
                       className="im-create-court-gallery-image"
                     />
                     <div className="im-create-court-gallery-actions">
@@ -877,10 +878,19 @@ export default function CreateCourtPage({
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={image.preview || image.url}
-                        alt={image.alt || `Gallery image ${index + 1}`}
+                        alt={image.alt || `Gallery image ${index + 1} for ${watchedValues.name || "new court"}`}
                         className="im-create-court-gallery-image"
                         onClick={() => handleSetAsMain(index)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSetAsMain(index);
+                          }
+                        }}
                         style={{ cursor: "pointer" }}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`Set gallery image ${index + 1} as main image`}
                       />
                       <div className="im-create-court-gallery-actions">
                         <button
@@ -1163,7 +1173,7 @@ export default function CreateCourtPage({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={previewData.mainImage.preview || previewData.mainImage.url}
-                  alt="Court preview"
+                  alt={`Preview image for ${previewData.name || "new court"}`}
                 />
               ) : (
                 <div className="im-create-court-preview-placeholder">
@@ -1202,7 +1212,7 @@ export default function CreateCourtPage({
               </div>
 
               <div className="im-create-court-preview-price">
-                {formatPrice(dollarsToCents(previewData.defaultPrice))} / hour
+                {formatPrice(dollarsToCents(previewData.defaultPrice))} / {previewData.defaultSlotLengthMinutes} min
               </div>
 
               {previewData.shortDescription && (
