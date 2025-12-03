@@ -8,10 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "create-root-admin": "ts-node --compiler-options {\"module\":\"CommonJS\"} scripts/createRootAdmin.ts"
+    "create-root-admin": "ts-node --project tsconfig.scripts.json scripts/createRootAdmin.ts"
   },
   "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "seed": "ts-node --project tsconfig.scripts.json prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

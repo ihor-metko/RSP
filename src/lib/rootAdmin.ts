@@ -7,8 +7,9 @@
 
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
+import { Roles } from "./roles";
 
-export const ROOT_ADMIN_ROLE = "root_admin";
+export const ROOT_ADMIN_ROLE = Roles.ROOT_ADMIN;
 export const MIN_PASSWORD_LENGTH = 8;
 
 export interface RootAdminInput {
