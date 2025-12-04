@@ -2,11 +2,17 @@
  * @jest-environment node
  */
 
-// Mock Prisma
+// Mock Prisma with membership tables for role-based access control
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     club: {
       findUnique: jest.fn(),
+    },
+    membership: {
+      findMany: jest.fn(),
+    },
+    clubMembership: {
+      findMany: jest.fn(),
     },
   },
 }));
@@ -23,6 +29,9 @@ import { prisma } from "@/lib/prisma";
 describe("Admin Club Detail API - GET", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: non-admin user has no memberships
+    (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
   });
 
   const mockParams = Promise.resolve({ id: "club-123" });
