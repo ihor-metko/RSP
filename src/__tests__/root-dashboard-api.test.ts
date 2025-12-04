@@ -4,6 +4,9 @@
 
 jest.mock("@/lib/prisma", () => ({
   prisma: {
+    organization: {
+      count: jest.fn(),
+    },
     club: {
       count: jest.fn(),
     },
@@ -59,6 +62,7 @@ describe("Root Dashboard API", () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "root-admin-1", isRoot: true },
       });
+      (prisma.organization.count as jest.Mock).mockResolvedValue(3);
       (prisma.club.count as jest.Mock).mockResolvedValue(5);
       (prisma.user.count as jest.Mock).mockResolvedValue(100);
       (prisma.booking.count as jest.Mock).mockResolvedValue(25);
@@ -68,6 +72,7 @@ describe("Root Dashboard API", () => {
 
       expect(response.status).toBe(200);
       expect(data).toEqual({
+        totalOrganizations: 3,
         totalClubs: 5,
         totalUsers: 100,
         activeBookings: 25,
@@ -78,6 +83,7 @@ describe("Root Dashboard API", () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "root-admin-1", isRoot: true },
       });
+      (prisma.organization.count as jest.Mock).mockResolvedValue(0);
       (prisma.club.count as jest.Mock).mockResolvedValue(0);
       (prisma.user.count as jest.Mock).mockResolvedValue(0);
       (prisma.booking.count as jest.Mock).mockResolvedValue(10);
@@ -97,7 +103,7 @@ describe("Root Dashboard API", () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "root-admin-1", isRoot: true },
       });
-      (prisma.club.count as jest.Mock).mockRejectedValue(new Error("Database error"));
+      (prisma.organization.count as jest.Mock).mockRejectedValue(new Error("Database error"));
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -110,6 +116,7 @@ describe("Root Dashboard API", () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "root-admin-1", isRoot: true },
       });
+      (prisma.organization.count as jest.Mock).mockResolvedValue(0);
       (prisma.club.count as jest.Mock).mockResolvedValue(0);
       (prisma.user.count as jest.Mock).mockResolvedValue(0);
       (prisma.booking.count as jest.Mock).mockResolvedValue(0);
@@ -119,6 +126,7 @@ describe("Root Dashboard API", () => {
 
       expect(response.status).toBe(200);
       expect(data).toEqual({
+        totalOrganizations: 0,
         totalClubs: 0,
         totalUsers: 0,
         activeBookings: 0,

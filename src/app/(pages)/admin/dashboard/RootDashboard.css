@@ -21,7 +21,7 @@
 
 @media (min-width: 1024px) {
   .im-stats-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -70,6 +70,17 @@
 }
 
 /* ===== Color Variants ===== */
+
+/* Organizations Card - Orange */
+.im-stat-card--organizations .im-stat-card-icon {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+}
+
+.dark .im-stat-card--organizations .im-stat-card-icon {
+  background-color: rgba(249, 115, 22, 0.25);
+  color: #fb923c;
+}
 
 /* Clubs Card - Primary/Teal */
 .im-stat-card--clubs .im-stat-card-icon {

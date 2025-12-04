@@ -38,6 +38,7 @@ export interface InlineCourt {
  * Platform-wide statistics for root admin dashboard
  */
 export interface PlatformStatistics {
+  totalOrganizations: number;
   totalClubs: number;
   totalUsers: number;
   activeBookings: number;
