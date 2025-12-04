@@ -60,7 +60,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           isRoot: user.isRoot,
           // Keep role for backward compatibility during migration
-          role: user.isRoot ? "root_admin" : validateRole(undefined),
+          // For non-root users, use the default player role since roles are now context-specific
+          role: user.isRoot ? "root_admin" : "player",
         };
       },
     }),
@@ -77,7 +78,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id;
         token.isRoot = user.isRoot;
         // Keep role for backward compatibility during migration
-        token.role = user.isRoot ? "root_admin" : validateRole(user.role);
+        // For non-root users, use the default player role since roles are now context-specific
+        token.role = user.isRoot ? "root_admin" : "player";
       }
       return token;
     },

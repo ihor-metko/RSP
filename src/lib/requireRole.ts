@@ -45,12 +45,13 @@ export async function requireRole(
   const userRole = session.user.role;
   const isRoot = session.user.isRoot ?? false;
 
-  // Root admins always have access
+  // Root admins always have access (they have global permissions)
+  // We return "root_admin" as the role for backward compatibility
   if (isRoot) {
     return {
       authorized: true,
       userId: session.user.id,
-      userRole: userRole ?? "root_admin",
+      userRole: "root_admin" as UserRole,
       isRoot: true,
     };
   }

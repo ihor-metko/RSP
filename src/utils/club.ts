@@ -3,6 +3,20 @@
  */
 
 /**
+ * Generate a URL-safe slug from a name string
+ * @param name - The name to convert to a slug
+ * @returns A URL-safe slug string
+ */
+export function generateSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
  * Parse tags from JSON string or comma-separated string
  * @param tags - The tags string from the database
  * @returns An array of tag strings

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 import { ADMIN_ROLES } from "@/constants/roles";
 import { MembershipRole, ClubMembershipRole } from "@prisma/client";
+import { generateSlug } from "@/utils/club";
 
 interface BusinessHourInput {
   dayOfWeek: number;
@@ -48,15 +49,6 @@ interface CreateClubRequest {
   gallery?: GalleryInput[];
   businessHours?: BusinessHourInput[];
   courts?: CourtInput[];
-}
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 export async function POST(request: Request) {

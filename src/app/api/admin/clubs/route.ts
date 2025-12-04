@@ -3,15 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 import { ADMIN_ROLES } from "@/constants/roles";
 import { MembershipRole, ClubMembershipRole } from "@prisma/client";
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
+import { generateSlug } from "@/utils/club";
 
 export async function GET(request: Request) {
   const authResult = await requireRole(request, ADMIN_ROLES);
