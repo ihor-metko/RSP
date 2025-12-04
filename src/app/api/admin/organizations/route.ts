@@ -2,9 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
 
+interface SuperAdmin {
+  id: string;
+  name: string | null;
+  email: string;
+  isPrimaryOwner: boolean;
+}
+
 /**
  * GET /api/admin/organizations
- * Returns list of organizations with club counts for root admin
+ * Returns list of organizations with club counts and all SuperAdmins for root admin
  */
 export async function GET(request: Request) {
   const authResult = await requireRootAdmin(request);
@@ -40,19 +47,34 @@ export async function GET(request: Request) {
               },
             },
           },
+          orderBy: [
+            { isPrimaryOwner: "desc" },
+            { createdAt: "asc" },
+          ],
         },
       },
     });
 
-    const formattedOrganizations = organizations.map((org) => ({
-      id: org.id,
-      name: org.name,
-      slug: org.slug,
-      createdAt: org.createdAt,
-      clubCount: org._count.clubs,
-      createdBy: org.createdBy,
-      superAdmin: org.memberships[0]?.user || null,
-    }));
+    const formattedOrganizations = organizations.map((org) => {
+      const superAdmins: SuperAdmin[] = org.memberships.map((m) => ({
+        id: m.user.id,
+        name: m.user.name,
+        email: m.user.email,
+        isPrimaryOwner: m.isPrimaryOwner,
+      }));
+
+      return {
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        createdAt: org.createdAt,
+        clubCount: org._count.clubs,
+        createdBy: org.createdBy,
+        superAdmins,
+        // Keep backward compatibility - superAdmin field contains the primary owner or first admin
+        superAdmin: superAdmins.find((a) => a.isPrimaryOwner) || superAdmins[0] || null,
+      };
+    });
 
     return NextResponse.json(formattedOrganizations);
   } catch (error) {

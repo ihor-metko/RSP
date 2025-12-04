@@ -28,3 +28,17 @@
 .rsp-button--outline:hover {
   background-color: var(--rsp-card-bg);
 }
+
+.rsp-button--danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+.rsp-button--danger:hover {
+  background-color: #b91c1c;
+}
+
+.rsp-button--small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}

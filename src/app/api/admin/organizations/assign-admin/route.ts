@@ -5,7 +5,9 @@ import { hash } from "bcryptjs";
 
 /**
  * POST /api/admin/organizations/assign-admin
- * Assigns or creates a SuperAdmin for an organization
+ * Assigns or creates a SuperAdmin for an organization.
+ * Supports multiple SuperAdmins per organization.
+ * The first SuperAdmin becomes the primary owner by default.
  */
 export async function POST(request: Request) {
   const authResult = await requireRootAdmin(request);
@@ -17,6 +19,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { organizationId, userId, createNew, name, email, password } = body;
+    const setAsPrimaryOwner = body.setAsPrimaryOwner === true;
 
     if (!organizationId) {
       return NextResponse.json(
@@ -112,25 +115,7 @@ export async function POST(request: Request) {
       targetUserId = userId;
     }
 
-    // Check if user is already an admin of another organization
-    const existingAdminMembership = await prisma.membership.findFirst({
-      where: {
-        userId: targetUserId,
-        role: "ORGANIZATION_ADMIN",
-        organizationId: { not: organizationId },
-      },
-    });
-
-    if (existingAdminMembership) {
-      return NextResponse.json(
-        {
-          error: "User is already a SuperAdmin of another organization",
-        },
-        { status: 409 }
-      );
-    }
-
-    // Check if already assigned to this organization
+    // Check if already assigned to this organization as ORGANIZATION_ADMIN
     const existingMembership = await prisma.membership.findUnique({
       where: {
         userId_organizationId: {
@@ -140,11 +125,44 @@ export async function POST(request: Request) {
       },
     });
 
+    if (existingMembership && existingMembership.role === "ORGANIZATION_ADMIN") {
+      return NextResponse.json(
+        { error: "User is already a SuperAdmin of this organization" },
+        { status: 409 }
+      );
+    }
+
+    // Check if there are existing SuperAdmins for this organization
+    const existingAdminsCount = await prisma.membership.count({
+      where: {
+        organizationId,
+        role: "ORGANIZATION_ADMIN",
+      },
+    });
+
+    // First SuperAdmin becomes primary owner by default
+    const shouldBePrimaryOwner = existingAdminsCount === 0 || setAsPrimaryOwner === true;
+
+    // If setting as primary owner, remove primary owner status from others
+    if (shouldBePrimaryOwner && existingAdminsCount > 0) {
+      await prisma.membership.updateMany({
+        where: {
+          organizationId,
+          role: "ORGANIZATION_ADMIN",
+          isPrimaryOwner: true,
+        },
+        data: { isPrimaryOwner: false },
+      });
+    }
+
     if (existingMembership) {
       // Update existing membership to ORGANIZATION_ADMIN
       await prisma.membership.update({
         where: { id: existingMembership.id },
-        data: { role: "ORGANIZATION_ADMIN" },
+        data: { 
+          role: "ORGANIZATION_ADMIN",
+          isPrimaryOwner: shouldBePrimaryOwner,
+        },
       });
     } else {
       // Create new membership
@@ -153,6 +171,7 @@ export async function POST(request: Request) {
           userId: targetUserId,
           organizationId,
           role: "ORGANIZATION_ADMIN",
+          isPrimaryOwner: shouldBePrimaryOwner,
         },
       });
     }
@@ -171,7 +190,10 @@ export async function POST(request: Request) {
       {
         success: true,
         message: "SuperAdmin assigned successfully",
-        superAdmin: assignedUser,
+        superAdmin: {
+          ...assignedUser,
+          isPrimaryOwner: shouldBePrimaryOwner,
+        },
       },
       { status: 200 }
     );

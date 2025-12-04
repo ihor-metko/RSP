@@ -13,6 +13,10 @@ interface OrganizationUser {
   email: string;
 }
 
+interface SuperAdmin extends OrganizationUser {
+  isPrimaryOwner: boolean;
+}
+
 interface Organization {
   id: string;
   name: string;
@@ -21,6 +25,7 @@ interface Organization {
   clubCount: number;
   createdBy: OrganizationUser;
   superAdmin: OrganizationUser | null;
+  superAdmins: SuperAdmin[];
 }
 
 interface User {
@@ -60,6 +65,12 @@ export default function AdminOrganizationsPage() {
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [assignError, setAssignError] = useState("");
   const [assigning, setAssigning] = useState(false);
+
+  // State for manage admins modal
+  const [isManageAdminsModalOpen, setIsManageAdminsModalOpen] = useState(false);
+  const [managingOrg, setManagingOrg] = useState<Organization | null>(null);
+  const [manageError, setManageError] = useState("");
+  const [processing, setProcessing] = useState(false);
 
   // Toast notification state
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -222,6 +233,103 @@ export default function AdminOrganizationsPage() {
     }
   };
 
+  const handleOpenManageAdminsModal = (org: Organization) => {
+    setManagingOrg(org);
+    setManageError("");
+    setIsManageAdminsModalOpen(true);
+  };
+
+  const handleCloseManageAdminsModal = () => {
+    setIsManageAdminsModalOpen(false);
+    setManagingOrg(null);
+    setManageError("");
+  };
+
+  const handleSetOwner = async (userId: string) => {
+    if (!managingOrg) return;
+    
+    setProcessing(true);
+    setManageError("");
+
+    try {
+      const response = await fetch("/api/admin/organizations/set-owner", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          organizationId: managingOrg.id,
+          userId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to set owner");
+      }
+
+      showToast(t("organizations.ownerUpdated"), "success");
+      await fetchOrganizations();
+      
+      // Update local state
+      const updatedOrg = organizations.find(o => o.id === managingOrg.id);
+      if (updatedOrg) {
+        setManagingOrg(updatedOrg);
+      }
+    } catch (err) {
+      setManageError(err instanceof Error ? err.message : "Failed to set owner");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleRemoveAdmin = async (userId: string) => {
+    if (!managingOrg) return;
+    
+    setProcessing(true);
+    setManageError("");
+
+    try {
+      const response = await fetch("/api/admin/organizations/remove-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          organizationId: managingOrg.id,
+          userId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to remove admin");
+      }
+
+      showToast(t("organizations.adminRemoved"), "success");
+      await fetchOrganizations();
+      
+      // Update local state
+      const updatedOrg = organizations.find(o => o.id === managingOrg.id);
+      if (updatedOrg) {
+        setManagingOrg(updatedOrg);
+      }
+    } catch (err) {
+      setManageError(err instanceof Error ? err.message : "Failed to remove admin");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // Update managingOrg when organizations change (use managingOrg.id to avoid infinite loop)
+  const managingOrgId = managingOrg?.id;
+  useEffect(() => {
+    if (managingOrgId) {
+      const updatedOrg = organizations.find(o => o.id === managingOrgId);
+      if (updatedOrg) {
+        setManagingOrg(updatedOrg);
+      }
+    }
+  }, [organizations, managingOrgId]);
+
   if (status === "loading" || loading) {
     return (
       <main className="im-admin-organizations-page">
@@ -284,7 +392,7 @@ export default function AdminOrganizationsPage() {
                   <th>{t("organizations.name")}</th>
                   <th>{t("organizations.slug")}</th>
                   <th>{t("organizations.clubs")}</th>
-                  <th>{t("organizations.superAdmin")}</th>
+                  <th>{t("organizations.superAdmins")}</th>
                   <th>{t("organizations.createdAt")}</th>
                   <th>{t("common.actions")}</th>
                 </tr>
@@ -296,10 +404,20 @@ export default function AdminOrganizationsPage() {
                     <td className="im-org-slug">{org.slug}</td>
                     <td className="im-org-clubs">{org.clubCount}</td>
                     <td className="im-org-admin">
-                      {org.superAdmin ? (
-                        <span>
-                          {org.superAdmin.name || org.superAdmin.email}
-                        </span>
+                      {org.superAdmins && org.superAdmins.length > 0 ? (
+                        <div className="im-org-admins-list">
+                          {org.superAdmins.map((admin) => (
+                            <span
+                              key={admin.id}
+                              className={`im-org-admin-badge ${admin.isPrimaryOwner ? "im-org-admin-badge--owner" : ""}`}
+                            >
+                              {admin.name || admin.email}
+                              {admin.isPrimaryOwner && (
+                                <span className="im-org-owner-label">{t("organizations.owner")}</span>
+                              )}
+                            </span>
+                          ))}
+                        </div>
                       ) : (
                         <span className="im-org-no-admin">
                           {t("organizations.notAssigned")}
@@ -310,14 +428,22 @@ export default function AdminOrganizationsPage() {
                       {new Date(org.createdAt).toLocaleDateString()}
                     </td>
                     <td className="im-org-actions">
-                      <Button
-                        variant="outline"
-                        onClick={() => handleOpenAssignModal(org)}
-                      >
-                        {org.superAdmin
-                          ? t("organizations.changeAdmin")
-                          : t("organizations.assignAdmin")}
-                      </Button>
+                      <div className="im-org-actions-buttons">
+                        <Button
+                          variant="outline"
+                          onClick={() => handleOpenAssignModal(org)}
+                        >
+                          {t("organizations.addAdmin")}
+                        </Button>
+                        {org.superAdmins && org.superAdmins.length > 0 && (
+                          <Button
+                            variant="outline"
+                            onClick={() => handleOpenManageAdminsModal(org)}
+                          >
+                            {t("organizations.manageAdmins")}
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -372,7 +498,7 @@ export default function AdminOrganizationsPage() {
       <Modal
         isOpen={isAssignModalOpen}
         onClose={handleCloseAssignModal}
-        title={t("organizations.assignSuperAdmin")}
+        title={t("organizations.addSuperAdmin")}
       >
         <form onSubmit={handleAssignAdmin} className="space-y-4">
           {assignError && (
@@ -414,30 +540,37 @@ export default function AdminOrganizationsPage() {
                 {users.length === 0 ? (
                   <p className="im-user-list-empty">{t("organizations.noUsersFound")}</p>
                 ) : (
-                  users.map((user) => (
-                    <label
-                      key={user.id}
-                      className={`im-user-option ${user.isOrgAdmin ? "im-user-option--disabled" : ""} ${selectedUserId === user.id ? "im-user-option--selected" : ""}`}
-                    >
-                      <input
-                        type="radio"
-                        name="userId"
-                        value={user.id}
-                        checked={selectedUserId === user.id}
-                        onChange={(e) => setSelectedUserId(e.target.value)}
-                        disabled={user.isOrgAdmin}
-                      />
-                      <span className="im-user-info">
-                        <span className="im-user-name">{user.name || user.email}</span>
-                        <span className="im-user-email">{user.email}</span>
-                        {user.isOrgAdmin && (
-                          <span className="im-user-badge">
-                            {t("organizations.alreadyAdmin")}: {user.organizationName}
-                          </span>
-                        )}
-                      </span>
-                    </label>
-                  ))
+                  users.map((user) => {
+                    // Check if user is already an admin of the selected org
+                    const isAlreadyAdminOfThisOrg = selectedOrg?.superAdmins?.some(
+                      (admin) => admin.id === user.id
+                    );
+                    
+                    return (
+                      <label
+                        key={user.id}
+                        className={`im-user-option ${isAlreadyAdminOfThisOrg ? "im-user-option--disabled" : ""} ${selectedUserId === user.id ? "im-user-option--selected" : ""}`}
+                      >
+                        <input
+                          type="radio"
+                          name="userId"
+                          value={user.id}
+                          checked={selectedUserId === user.id}
+                          onChange={(e) => setSelectedUserId(e.target.value)}
+                          disabled={isAlreadyAdminOfThisOrg}
+                        />
+                        <span className="im-user-info">
+                          <span className="im-user-name">{user.name || user.email}</span>
+                          <span className="im-user-email">{user.email}</span>
+                          {isAlreadyAdminOfThisOrg && (
+                            <span className="im-user-badge">
+                              {t("organizations.alreadyAdminOfThisOrg")}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })
                 )}
               </div>
             </>
@@ -482,10 +615,87 @@ export default function AdminOrganizationsPage() {
                 (assignMode === "new" && (!newAdminName || !newAdminEmail || !newAdminPassword))
               }
             >
-              {assigning ? t("common.processing") : t("organizations.assign")}
+              {assigning ? t("common.processing") : t("organizations.addAdmin")}
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Manage SuperAdmins Modal */}
+      <Modal
+        isOpen={isManageAdminsModalOpen}
+        onClose={handleCloseManageAdminsModal}
+        title={t("organizations.manageSuperAdmins")}
+      >
+        <div className="space-y-4">
+          {manageError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+              {manageError}
+            </div>
+          )}
+
+          <p className="im-assign-org-name">
+            {t("organizations.managingAdminsFor")}: <strong>{managingOrg?.name}</strong>
+          </p>
+
+          <div className="im-manage-admins-list">
+            {managingOrg?.superAdmins?.map((admin) => (
+              <div key={admin.id} className="im-manage-admin-item">
+                <div className="im-manage-admin-info">
+                  <span className="im-manage-admin-name">{admin.name || admin.email}</span>
+                  <span className="im-manage-admin-email">{admin.email}</span>
+                  {admin.isPrimaryOwner && (
+                    <span className="im-manage-admin-owner-badge">{t("organizations.owner")}</span>
+                  )}
+                </div>
+                <div className="im-manage-admin-actions">
+                  {!admin.isPrimaryOwner && (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="small"
+                        onClick={() => handleSetOwner(admin.id)}
+                        disabled={processing}
+                      >
+                        {t("organizations.setAsOwner")}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="small"
+                        onClick={() => handleRemoveAdmin(admin.id)}
+                        disabled={processing}
+                      >
+                        {t("organizations.remove")}
+                      </Button>
+                    </>
+                  )}
+                  {admin.isPrimaryOwner && managingOrg?.superAdmins?.length === 1 && (
+                    <Button
+                      variant="danger"
+                      size="small"
+                      onClick={() => handleRemoveAdmin(admin.id)}
+                      disabled={processing}
+                    >
+                      {t("organizations.remove")}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={handleCloseManageAdminsModal}>
+              {t("common.close")}
+            </Button>
+            <Button onClick={() => {
+              handleCloseManageAdminsModal();
+              if (managingOrg) handleOpenAssignModal(managingOrg);
+            }}>
+              {t("organizations.addAdmin")}
+            </Button>
+          </div>
+        </div>
       </Modal>
     </main>
   );
