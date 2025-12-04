@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
 import "./AdminSidebar.css";
 
 /**
@@ -260,15 +261,34 @@ function filterNavByRoot(items: NavItem[], isRoot: boolean): NavItem[] {
 }
 
 /**
- * Get role display info for root admins
+ * Get role display info for admins
  */
-function getRoleInfo(isRoot: boolean, t: ReturnType<typeof useTranslations>) {
-  if (isRoot) {
+function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>) {
+  if (!adminStatus?.isAdmin) {
+    return null;
+  }
+
+  if (adminStatus.adminType === "root_admin") {
     return {
       label: t("sidebar.roleRootAdmin"),
       className: "im-sidebar-role im-sidebar-role--root",
     };
   }
+  
+  if (adminStatus.adminType === "organization_admin") {
+    return {
+      label: t("sidebar.roleSuperAdmin"),
+      className: "im-sidebar-role im-sidebar-role--super",
+    };
+  }
+  
+  if (adminStatus.adminType === "club_admin") {
+    return {
+      label: t("sidebar.roleAdmin"),
+      className: "im-sidebar-role im-sidebar-role--admin",
+    };
+  }
+  
   return null;
 }
 
@@ -285,8 +305,8 @@ export interface AdminSidebarProps {
  *
  * Roles:
  * - Root Admin: Full platform access, manage super admins, global settings
- * - Super Admin: Manage clubs they own, manage regular admins
- * - Admin: Manage assigned club, bookings, club statistics
+ * - Super Admin (Organization Admin): Manage clubs they own, manage regular admins
+ * - Admin (Club Admin): Manage assigned club, bookings, club statistics
  *
  * ACCESSIBILITY:
  * - Keyboard navigation with Tab, Enter, Escape
@@ -295,15 +315,58 @@ export interface AdminSidebarProps {
  * - Focus visible states
  */
 export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
   const t = useTranslations();
   const sidebarRef = useRef<HTMLElement>(null);
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
+  const [isLoadingAdminStatus, setIsLoadingAdminStatus] = useState(true);
 
   const isRoot = session?.user?.isRoot ?? false;
+
+  // Fetch admin status when session is available
+  useEffect(() => {
+    const fetchAdminStatus = async () => {
+      if (status === "loading") return;
+      
+      if (!session?.user) {
+        setAdminStatus(null);
+        setIsLoadingAdminStatus(false);
+        return;
+      }
+
+      // If user is root, we already know they're an admin
+      if (isRoot) {
+        setAdminStatus({
+          isAdmin: true,
+          adminType: "root_admin",
+          isRoot: true,
+          managedIds: [],
+        });
+        setIsLoadingAdminStatus(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/me/admin-status");
+        if (response.ok) {
+          const data: AdminStatusResponse = await response.json();
+          setAdminStatus(data);
+        } else {
+          setAdminStatus(null);
+        }
+      } catch {
+        setAdminStatus(null);
+      } finally {
+        setIsLoadingAdminStatus(false);
+      }
+    };
+
+    fetchAdminStatus();
+  }, [session, status, isRoot]);
 
   // Get filtered navigation items based on isRoot status
   const navItems = useMemo(() => {
@@ -379,10 +442,15 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
     [t]
   );
 
-  const roleInfo = getRoleInfo(isRoot, t);
+  const roleInfo = getRoleInfo(adminStatus, t);
 
-  // Don't render for non-root users
-  if (!isRoot) {
+  // Don't render while loading admin status
+  if (isLoadingAdminStatus) {
+    return null;
+  }
+
+  // Don't render for non-admin users
+  if (!adminStatus?.isAdmin) {
     return null;
   }
 

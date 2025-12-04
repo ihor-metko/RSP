@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import AdminSidebar from "@/components/layout/AdminSidebar";
@@ -58,45 +58,82 @@ jest.mock("next/link", () => {
 const mockUseSession = useSession as jest.Mock;
 const mockUsePathname = usePathname as jest.Mock;
 
+// Helper to mock fetch for admin-status API
+const mockAdminStatusFetch = (adminStatus: {
+  isAdmin: boolean;
+  adminType: "root_admin" | "organization_admin" | "club_admin" | "none";
+  isRoot: boolean;
+  managedIds: string[];
+}) => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    json: async () => adminStatus,
+  });
+};
+
 describe("AdminSidebar Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePathname.mockReturnValue("/admin/dashboard");
+    // Reset fetch mock
+    global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe("Non-admin users", () => {
-    it("does not render for player role", () => {
+    it("does not render for player role", async () => {
       mockUseSession.mockReturnValue({
         data: {
           user: {
             id: "user-1",
             name: "John Player",
             email: "player@test.com",
-            role: "player",
+            isRoot: false,
           },
         },
         status: "authenticated",
       });
+      mockAdminStatusFetch({
+        isAdmin: false,
+        adminType: "none",
+        isRoot: false,
+        managedIds: [],
+      });
 
       const { container } = render(<AdminSidebar />);
-      expect(container.querySelector(".im-sidebar")).not.toBeInTheDocument();
+      
+      await waitFor(() => {
+        expect(container.querySelector(".im-sidebar")).not.toBeInTheDocument();
+      });
     });
 
-    it("does not render for coach role", () => {
+    it("does not render for coach role", async () => {
       mockUseSession.mockReturnValue({
         data: {
           user: {
             id: "user-1",
             name: "Jane Coach",
             email: "coach@test.com",
-            role: "coach",
+            isRoot: false,
           },
         },
         status: "authenticated",
       });
+      mockAdminStatusFetch({
+        isAdmin: false,
+        adminType: "none",
+        isRoot: false,
+        managedIds: [],
+      });
 
       const { container } = render(<AdminSidebar />);
-      expect(container.querySelector(".im-sidebar")).not.toBeInTheDocument();
+      
+      await waitFor(() => {
+        expect(container.querySelector(".im-sidebar")).not.toBeInTheDocument();
+      });
     });
 
     it("does not render for unauthenticated users", () => {
@@ -118,55 +155,50 @@ describe("AdminSidebar Component", () => {
             id: "admin-1",
             name: "Root Admin",
             email: "root@test.com",
-            role: "root_admin",
+            isRoot: true,
           },
         },
         status: "authenticated",
       });
+      // Root admins are detected via isRoot flag, so no API call needed
+      // but the component still checks for faster UX
     });
 
-    it("renders the sidebar for root_admin role", () => {
+    it("renders the sidebar for root_admin role", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
     });
 
-    it("shows Admin Panel title", () => {
+    it("shows Admin Panel title", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByText("Admin Panel")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Admin Panel")).toBeInTheDocument();
+      });
     });
 
-    it("shows Root Admin role badge", () => {
+    it("shows Root Admin role badge", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByText("Root Admin")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Root Admin")).toBeInTheDocument();
+      });
     });
 
-    it("shows all navigation items for root admin", () => {
+    it("shows all navigation items for root admin", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      });
       expect(screen.getByText("Platform Statistics")).toBeInTheDocument();
       expect(screen.getByText("Clubs")).toBeInTheDocument();
-      expect(screen.getByText("User Management")).toBeInTheDocument();
       expect(screen.getByText("Bookings")).toBeInTheDocument();
       expect(screen.getByText("Notifications")).toBeInTheDocument();
       expect(screen.getByText("Global Settings")).toBeInTheDocument();
     });
-
-    it("expands user management section when clicked", () => {
-      render(<AdminSidebar />);
-      const userManagementBtn = screen.getByRole("button", { name: /user management/i });
-      expect(userManagementBtn).toHaveAttribute("aria-expanded", "false");
-
-      fireEvent.click(userManagementBtn);
-      expect(userManagementBtn).toHaveAttribute("aria-expanded", "true");
-
-      // Should show nested items
-      expect(screen.getByText("Super Admins")).toBeInTheDocument();
-      expect(screen.getByText("Admins")).toBeInTheDocument();
-      expect(screen.getByText("Coaches")).toBeInTheDocument();
-    });
   });
 
-  describe("Super Admin", () => {
+  describe("Organization Admin (Super Admin)", () => {
     beforeEach(() => {
       mockUseSession.mockReturnValue({
         data: {
@@ -174,47 +206,51 @@ describe("AdminSidebar Component", () => {
             id: "admin-2",
             name: "Super Admin",
             email: "super@test.com",
-            role: "super_admin",
+            isRoot: false,
           },
         },
         status: "authenticated",
       });
+      mockAdminStatusFetch({
+        isAdmin: true,
+        adminType: "organization_admin",
+        isRoot: false,
+        managedIds: ["org-1"],
+      });
     });
 
-    it("renders the sidebar for super_admin role", () => {
+    it("renders the sidebar for organization_admin role", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
     });
 
-    it("shows Super Admin role badge", () => {
+    it("shows Super Admin role badge", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByText("Super Admin")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Super Admin")).toBeInTheDocument();
+      });
     });
 
-    it("does NOT show Platform Statistics (root admin only)", () => {
+    it("does NOT show Platform Statistics (root admin only)", async () => {
       render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
       expect(screen.queryByText("Platform Statistics")).not.toBeInTheDocument();
     });
 
-    it("does NOT show Global Settings (root admin only)", () => {
+    it("does NOT show Global Settings (root admin only)", async () => {
       render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
       expect(screen.queryByText("Global Settings")).not.toBeInTheDocument();
-    });
-
-    it("shows User Management with limited nested items", () => {
-      render(<AdminSidebar />);
-      const userManagementBtn = screen.getByRole("button", { name: /user management/i });
-      fireEvent.click(userManagementBtn);
-
-      // Should NOT show Super Admins (root admin only)
-      expect(screen.queryByText("Super Admins")).not.toBeInTheDocument();
-      // Should show Admins and Coaches
-      expect(screen.getByText("Admins")).toBeInTheDocument();
-      expect(screen.getByText("Coaches")).toBeInTheDocument();
     });
   });
 
-  describe("Admin", () => {
+  describe("Club Admin", () => {
     beforeEach(() => {
       mockUseSession.mockReturnValue({
         data: {
@@ -222,43 +258,56 @@ describe("AdminSidebar Component", () => {
             id: "admin-3",
             name: "Club Admin",
             email: "admin@test.com",
-            role: "admin",
+            isRoot: false,
           },
         },
         status: "authenticated",
       });
+      mockAdminStatusFetch({
+        isAdmin: true,
+        adminType: "club_admin",
+        isRoot: false,
+        managedIds: ["club-1"],
+      });
     });
 
-    it("renders the sidebar for admin role", () => {
+    it("renders the sidebar for club_admin role", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
     });
 
-    it("shows Admin role badge", () => {
+    it("shows Admin role badge", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByText("Admin")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Admin")).toBeInTheDocument();
+      });
     });
 
-    it("shows limited navigation items for admin", () => {
+    it("shows navigation items for club admin", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      });
       expect(screen.getByText("Clubs")).toBeInTheDocument();
       expect(screen.getByText("Bookings")).toBeInTheDocument();
       expect(screen.getByText("Notifications")).toBeInTheDocument();
     });
 
-    it("does NOT show User Management (root/super admin only)", () => {
+    it("does NOT show Platform Statistics (root admin only)", async () => {
       render(<AdminSidebar />);
-      expect(screen.queryByText("User Management")).not.toBeInTheDocument();
-    });
-
-    it("does NOT show Platform Statistics (root admin only)", () => {
-      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
       expect(screen.queryByText("Platform Statistics")).not.toBeInTheDocument();
     });
 
-    it("does NOT show Global Settings (root admin only)", () => {
+    it("does NOT show Global Settings (root admin only)", async () => {
       render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
       expect(screen.queryByText("Global Settings")).not.toBeInTheDocument();
     });
   });
@@ -271,27 +320,37 @@ describe("AdminSidebar Component", () => {
             id: "admin-1",
             name: "Root Admin",
             email: "root@test.com",
-            role: "root_admin",
+            isRoot: true,
           },
         },
         status: "authenticated",
       });
     });
 
-    it("renders mobile toggle button", () => {
+    it("renders mobile toggle button", async () => {
       render(<AdminSidebar />);
-      const toggleBtn = document.querySelector(".im-sidebar-toggle");
-      expect(toggleBtn).toBeInTheDocument();
+      await waitFor(() => {
+        const toggleBtn = document.querySelector(".im-sidebar-toggle");
+        expect(toggleBtn).toBeInTheDocument();
+      });
     });
 
-    it("mobile toggle button has correct aria-expanded attribute", () => {
+    it("mobile toggle button has correct aria-expanded attribute", async () => {
       render(<AdminSidebar />);
-      const toggleBtn = document.querySelector(".im-sidebar-toggle") as HTMLButtonElement;
-      expect(toggleBtn).toHaveAttribute("aria-expanded", "false");
+      await waitFor(() => {
+        const toggleBtn = document.querySelector(".im-sidebar-toggle") as HTMLButtonElement;
+        expect(toggleBtn).toHaveAttribute("aria-expanded", "false");
+      });
     });
 
-    it("toggles sidebar open state on mobile toggle click", () => {
+    it("toggles sidebar open state on mobile toggle click", async () => {
       render(<AdminSidebar />);
+      
+      await waitFor(() => {
+        const sidebar = document.querySelector(".im-sidebar");
+        expect(sidebar).toBeInTheDocument();
+      });
+      
       const toggleBtn = document.querySelector(".im-sidebar-toggle") as HTMLButtonElement;
       const sidebar = document.querySelector(".im-sidebar");
 
@@ -309,8 +368,14 @@ describe("AdminSidebar Component", () => {
       expect(sidebar).not.toHaveClass("im-sidebar--open");
     });
 
-    it("shows overlay when sidebar is open on mobile", () => {
+    it("shows overlay when sidebar is open on mobile", async () => {
       render(<AdminSidebar />);
+      
+      await waitFor(() => {
+        const toggleBtn = document.querySelector(".im-sidebar-toggle");
+        expect(toggleBtn).toBeInTheDocument();
+      });
+
       const toggleBtn = document.querySelector(".im-sidebar-toggle") as HTMLButtonElement;
 
       // Initially no overlay
@@ -330,36 +395,36 @@ describe("AdminSidebar Component", () => {
             id: "admin-1",
             name: "Root Admin",
             email: "root@test.com",
-            role: "root_admin",
+            isRoot: true,
           },
         },
         status: "authenticated",
       });
     });
 
-    it("has accessible navigation landmark", () => {
+    it("has accessible navigation landmark", async () => {
       render(<AdminSidebar />);
-      expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
     });
 
-    it("navigation items have menuitem role", () => {
+    it("navigation items have menuitem role", async () => {
       render(<AdminSidebar />);
-      const menuItems = screen.getAllByRole("menuitem");
-      expect(menuItems.length).toBeGreaterThan(0);
+      await waitFor(() => {
+        const menuItems = screen.getAllByRole("menuitem");
+        expect(menuItems.length).toBeGreaterThan(0);
+      });
     });
 
-    it("active link has aria-current attribute", () => {
+    it("active link has aria-current attribute", async () => {
       mockUsePathname.mockReturnValue("/admin/dashboard");
       render(<AdminSidebar />);
 
-      const dashboardLink = screen.getByRole("menuitem", { name: /dashboard/i });
-      expect(dashboardLink).toHaveAttribute("aria-current", "page");
-    });
-
-    it("expandable section has aria-controls", () => {
-      render(<AdminSidebar />);
-      const expandBtn = screen.getByRole("button", { name: /user management/i });
-      expect(expandBtn).toHaveAttribute("aria-controls");
+      await waitFor(() => {
+        const dashboardLink = screen.getByRole("menuitem", { name: /dashboard/i });
+        expect(dashboardLink).toHaveAttribute("aria-current", "page");
+      });
     });
   });
 
@@ -371,35 +436,41 @@ describe("AdminSidebar Component", () => {
             id: "admin-1",
             name: "Root Admin",
             email: "root@test.com",
-            role: "root_admin",
+            isRoot: true,
           },
         },
         status: "authenticated",
       });
     });
 
-    it("highlights dashboard link when on dashboard page", () => {
+    it("highlights dashboard link when on dashboard page", async () => {
       mockUsePathname.mockReturnValue("/admin/dashboard");
       render(<AdminSidebar />);
 
-      const dashboardLink = screen.getByRole("menuitem", { name: /dashboard/i });
-      expect(dashboardLink).toHaveClass("im-sidebar-nav-link--active");
+      await waitFor(() => {
+        const dashboardLink = screen.getByRole("menuitem", { name: /dashboard/i });
+        expect(dashboardLink).toHaveClass("im-sidebar-nav-link--active");
+      });
     });
 
-    it("highlights clubs link when on clubs page", () => {
+    it("highlights clubs link when on clubs page", async () => {
       mockUsePathname.mockReturnValue("/admin/clubs");
       render(<AdminSidebar />);
 
-      const clubsLink = screen.getByRole("menuitem", { name: /clubs/i });
-      expect(clubsLink).toHaveClass("im-sidebar-nav-link--active");
+      await waitFor(() => {
+        const clubsLink = screen.getByRole("menuitem", { name: /clubs/i });
+        expect(clubsLink).toHaveClass("im-sidebar-nav-link--active");
+      });
     });
 
-    it("highlights clubs link when on nested clubs page", () => {
+    it("highlights clubs link when on nested clubs page", async () => {
       mockUsePathname.mockReturnValue("/admin/clubs/123");
       render(<AdminSidebar />);
 
-      const clubsLink = screen.getByRole("menuitem", { name: /clubs/i });
-      expect(clubsLink).toHaveClass("im-sidebar-nav-link--active");
+      await waitFor(() => {
+        const clubsLink = screen.getByRole("menuitem", { name: /clubs/i });
+        expect(clubsLink).toHaveClass("im-sidebar-nav-link--active");
+      });
     });
   });
 });

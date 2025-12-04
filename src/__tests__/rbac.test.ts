@@ -10,9 +10,11 @@ jest.mock("@/lib/prisma", () => ({
     },
     membership: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
     clubMembership: {
       findUnique: jest.fn(),
+      findMany: jest.fn(),
     },
   },
 }));
@@ -30,13 +32,16 @@ import {
   requireRootAdmin, 
   requireAuth,
   requireOrganizationAdmin,
-  requireClubAdmin 
+  requireClubAdmin,
+  requireAnyAdmin
 } from "@/lib/requireRole";
 
 // Get typed mock references
 const mockAuth = auth as jest.MockedFunction<typeof auth>;
 const mockMembershipFindUnique = prisma.membership.findUnique as jest.MockedFunction<typeof prisma.membership.findUnique>;
 const mockClubMembershipFindUnique = prisma.clubMembership.findUnique as jest.MockedFunction<typeof prisma.clubMembership.findUnique>;
+const mockMembershipFindMany = prisma.membership.findMany as jest.MockedFunction<typeof prisma.membership.findMany>;
+const mockClubMembershipFindMany = prisma.clubMembership.findMany as jest.MockedFunction<typeof prisma.clubMembership.findMany>;
 
 describe("requireRole universal role-based access control", () => {
   beforeEach(() => {
@@ -480,6 +485,192 @@ describe("requireRole universal role-based access control", () => {
       ]);
 
       expect(result.authorized).toBe(true);
+    });
+  });
+
+  describe("requireAnyAdmin", () => {
+    it("should return 401 when no session exists", async () => {
+      mockAuth.mockResolvedValue(null);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      const result = await requireAnyAdmin(request);
+
+      expect(result.authorized).toBe(false);
+      if (!result.authorized) {
+        expect(result.response.status).toBe(401);
+        const data = await result.response.json();
+        expect(data.error).toBe("Unauthorized");
+      }
+    });
+
+    it("should authorize root admin users", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      const result = await requireAnyAdmin(request);
+
+      expect(result.authorized).toBe(true);
+      if (result.authorized) {
+        expect(result.userId).toBe("admin-123");
+        expect(result.isRoot).toBe(true);
+        expect(result.adminType).toBe("root_admin");
+        expect(result.managedIds).toEqual([]);
+      }
+      // Should not query memberships for root admins
+      expect(mockMembershipFindMany).not.toHaveBeenCalled();
+      expect(mockClubMembershipFindMany).not.toHaveBeenCalled();
+    });
+
+    it("should authorize organization admins", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "org-admin-123", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([
+        { organizationId: "org-1" },
+        { organizationId: "org-2" },
+      ] as never[]);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      const result = await requireAnyAdmin(request);
+
+      expect(result.authorized).toBe(true);
+      if (result.authorized) {
+        expect(result.userId).toBe("org-admin-123");
+        expect(result.isRoot).toBe(false);
+        expect(result.adminType).toBe("organization_admin");
+        expect(result.managedIds).toEqual(["org-1", "org-2"]);
+      }
+    });
+
+    it("should authorize club admins", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "club-admin-123", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      mockClubMembershipFindMany.mockResolvedValue([
+        { clubId: "club-1" },
+      ] as never[]);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      const result = await requireAnyAdmin(request);
+
+      expect(result.authorized).toBe(true);
+      if (result.authorized) {
+        expect(result.userId).toBe("club-admin-123");
+        expect(result.isRoot).toBe(false);
+        expect(result.adminType).toBe("club_admin");
+        expect(result.managedIds).toEqual(["club-1"]);
+      }
+    });
+
+    it("should return 403 for non-admin users", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "regular-user-123", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      mockClubMembershipFindMany.mockResolvedValue([]);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      const result = await requireAnyAdmin(request);
+
+      expect(result.authorized).toBe(false);
+      if (!result.authorized) {
+        expect(result.response.status).toBe(403);
+        const data = await result.response.json();
+        expect(data.error).toBe("Forbidden");
+      }
+    });
+
+    it("should prioritize organization admin over club admin", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "dual-admin-123", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([
+        { organizationId: "org-1" },
+      ] as never[]);
+      // This should not be checked since user is an org admin
+      mockClubMembershipFindMany.mockResolvedValue([
+        { clubId: "club-1" },
+      ] as never[]);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      const result = await requireAnyAdmin(request);
+
+      expect(result.authorized).toBe(true);
+      if (result.authorized) {
+        expect(result.adminType).toBe("organization_admin");
+        expect(result.managedIds).toEqual(["org-1"]);
+      }
+      // Should not query club memberships once org admin is found
+      expect(mockClubMembershipFindMany).not.toHaveBeenCalled();
+    });
+
+    it("should query for ORGANIZATION_ADMIN role", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-123", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      mockClubMembershipFindMany.mockResolvedValue([]);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      await requireAnyAdmin(request);
+
+      expect(mockMembershipFindMany).toHaveBeenCalledWith({
+        where: {
+          userId: "user-123",
+          role: MembershipRole.ORGANIZATION_ADMIN,
+        },
+        select: {
+          organizationId: true,
+        },
+      });
+    });
+
+    it("should query for CLUB_ADMIN role when not an organization admin", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-123", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      mockClubMembershipFindMany.mockResolvedValue([]);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      await requireAnyAdmin(request);
+
+      expect(mockClubMembershipFindMany).toHaveBeenCalledWith({
+        where: {
+          userId: "user-123",
+          role: ClubMembershipRole.CLUB_ADMIN,
+        },
+        select: {
+          clubId: true,
+        },
+      });
     });
   });
 });

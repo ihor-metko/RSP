@@ -1,0 +1,112 @@
+import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { MembershipRole, ClubMembershipRole } from "@/constants/roles";
+
+/**
+ * Admin type enumeration.
+ */
+export type AdminType = "root_admin" | "organization_admin" | "club_admin" | "none";
+
+/**
+ * Admin status response type.
+ */
+export interface AdminStatusResponse {
+  isAdmin: boolean;
+  adminType: AdminType;
+  isRoot: boolean;
+  /**
+   * For organization admins, the organization IDs they manage.
+   * For club admins, the club IDs they manage.
+   * For root admins, this is empty (they have access to all).
+   */
+  managedIds: string[];
+}
+
+/**
+ * GET /api/me/admin-status
+ * 
+ * Returns the admin status of the current user for client-side awareness.
+ * This endpoint is used by the UI to determine what admin elements to show/hide.
+ * 
+ * Note: Client-side should never enforce authorization, only use this
+ * to render appropriate UI elements. All authorization checks must
+ * happen on the server.
+ * 
+ * @returns Admin status including type and managed resource IDs
+ */
+export async function GET(): Promise<NextResponse<AdminStatusResponse | { error: string }>> {
+  const session = await auth();
+
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const userId = session.user.id;
+  const isRoot = session.user.isRoot ?? false;
+
+  // Root admins have full access
+  if (isRoot) {
+    const response: AdminStatusResponse = {
+      isAdmin: true,
+      adminType: "root_admin",
+      isRoot: true,
+      managedIds: [],
+    };
+    return NextResponse.json(response);
+  }
+
+  // Check if user is an organization admin
+  const organizationMemberships = await prisma.membership.findMany({
+    where: {
+      userId,
+      role: MembershipRole.ORGANIZATION_ADMIN,
+    },
+    select: {
+      organizationId: true,
+    },
+  });
+
+  if (organizationMemberships.length > 0) {
+    const response: AdminStatusResponse = {
+      isAdmin: true,
+      adminType: "organization_admin",
+      isRoot: false,
+      managedIds: organizationMemberships.map((m) => m.organizationId),
+    };
+    return NextResponse.json(response);
+  }
+
+  // Check if user is a club admin
+  const clubMemberships = await prisma.clubMembership.findMany({
+    where: {
+      userId,
+      role: ClubMembershipRole.CLUB_ADMIN,
+    },
+    select: {
+      clubId: true,
+    },
+  });
+
+  if (clubMemberships.length > 0) {
+    const response: AdminStatusResponse = {
+      isAdmin: true,
+      adminType: "club_admin",
+      isRoot: false,
+      managedIds: clubMemberships.map((m) => m.clubId),
+    };
+    return NextResponse.json(response);
+  }
+
+  // User is not an admin
+  const response: AdminStatusResponse = {
+    isAdmin: false,
+    adminType: "none",
+    isRoot: false,
+    managedIds: [],
+  };
+  return NextResponse.json(response);
+}

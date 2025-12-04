@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui";
 import type { PlatformStatistics } from "@/types/admin";
+import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
 import "./RootDashboard.css";
 
 /**
@@ -94,50 +95,124 @@ function StatCard({ title, value, icon, colorClass }: StatCardProps) {
 }
 
 /**
- * Root Admin Dashboard Page
+ * Admin Dashboard Page
  *
- * Displays platform-wide statistics for root administrators.
- * Access restricted to users with root_admin role only.
+ * Displays platform-wide statistics for root administrators,
+ * and provides access to admin features for all admin types.
+ * Access restricted to users with any admin role:
+ * - root.admin (isRoot=true)
+ * - super.admin (Organization Admin - ORGANIZATION_ADMIN membership)
+ * - club.admin (Club Admin - CLUB_ADMIN club membership)
  */
-export default function RootDashboardPage() {
+export default function AdminDashboardPage() {
   const t = useTranslations();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [statistics, setStatistics] = useState<PlatformStatistics | null>(null);
+  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const fetchAdminStatus = useCallback(async () => {
+    try {
+      const response = await fetch("/api/me/admin-status");
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/auth/sign-in");
+          return null;
+        }
+        throw new Error("Failed to fetch admin status");
+      }
+      const data: AdminStatusResponse = await response.json();
+      return data;
+    } catch {
+      return null;
+    }
+  }, [router]);
+
   const fetchStatistics = useCallback(async () => {
     try {
-      setLoading(true);
       const response = await fetch("/api/admin/root-dashboard");
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          router.push("/auth/sign-in");
-          return;
+          // For non-root admins, 403 is expected - don't redirect
+          return null;
         }
         throw new Error("Failed to fetch statistics");
       }
       const data = await response.json();
-      setStatistics(data);
-      setError("");
+      return data;
     } catch {
-      setError(t("rootAdmin.dashboard.failedToLoad"));
-    } finally {
-      setLoading(false);
+      return null;
     }
-  }, [router, t]);
+  }, []);
 
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || !session.user.isRoot) {
+    if (!session?.user) {
       router.push("/auth/sign-in");
       return;
     }
 
-    fetchStatistics();
-  }, [session, status, router, fetchStatistics]);
+    const initializeDashboard = async () => {
+      setLoading(true);
+      setError("");
+
+      // First, check admin status
+      const adminData = await fetchAdminStatus();
+      
+      if (!adminData || !adminData.isAdmin) {
+        // User is not an admin, redirect to sign-in
+        router.push("/auth/sign-in");
+        return;
+      }
+
+      setAdminStatus(adminData);
+
+      // Only fetch statistics if user is root admin
+      if (adminData.isRoot) {
+        const statsData = await fetchStatistics();
+        if (statsData) {
+          setStatistics(statsData);
+        } else {
+          setError(t("rootAdmin.dashboard.failedToLoad"));
+        }
+      }
+
+      setLoading(false);
+    };
+
+    initializeDashboard();
+  }, [session, status, router, fetchAdminStatus, fetchStatistics, t]);
+
+  // Helper to get dashboard title based on admin type
+  const getDashboardTitle = () => {
+    if (adminStatus?.adminType === "root_admin") {
+      return t("rootAdmin.dashboard.title");
+    }
+    if (adminStatus?.adminType === "organization_admin") {
+      return t("admin.dashboard.title");
+    }
+    if (adminStatus?.adminType === "club_admin") {
+      return t("admin.dashboard.title");
+    }
+    return t("admin.dashboard.title");
+  };
+
+  // Helper to get dashboard description based on admin type
+  const getDashboardDescription = () => {
+    if (adminStatus?.adminType === "root_admin") {
+      return t("rootAdmin.dashboard.subtitle");
+    }
+    if (adminStatus?.adminType === "organization_admin") {
+      return t("admin.dashboard.organizationSubtitle");
+    }
+    if (adminStatus?.adminType === "club_admin") {
+      return t("admin.dashboard.clubSubtitle");
+    }
+    return t("admin.dashboard.subtitle");
+  };
 
   if (status === "loading" || loading) {
     return (
@@ -150,12 +225,13 @@ export default function RootDashboardPage() {
     );
   }
 
-  if (error) {
+  // Show error only for root admins who should see statistics
+  if (error && adminStatus?.isRoot) {
     return (
       <main className="im-root-dashboard-page">
         <PageHeader
-          title={t("rootAdmin.dashboard.title")}
-          description={t("rootAdmin.dashboard.subtitle")}
+          title={getDashboardTitle()}
+          description={getDashboardDescription()}
         />
         <section className="rsp-content">
           <div className="im-root-dashboard-error">
@@ -169,42 +245,58 @@ export default function RootDashboardPage() {
   return (
     <main className="im-root-dashboard-page">
       <PageHeader
-        title={t("rootAdmin.dashboard.title")}
-        description={t("rootAdmin.dashboard.subtitle")}
+        title={getDashboardTitle()}
+        description={getDashboardDescription()}
       />
 
       <section className="rsp-content">
-        {/* Statistics Grid */}
-        <div className="im-stats-grid">
-          <StatCard
-            title={t("rootAdmin.dashboard.totalClubs")}
-            value={statistics?.totalClubs ?? 0}
-            icon={<ClubsIcon />}
-            colorClass="im-stat-card--clubs"
-          />
-          <StatCard
-            title={t("rootAdmin.dashboard.totalUsers")}
-            value={statistics?.totalUsers ?? 0}
-            icon={<UsersIcon />}
-            colorClass="im-stat-card--users"
-          />
-          <StatCard
-            title={t("rootAdmin.dashboard.activeBookings")}
-            value={statistics?.activeBookings ?? 0}
-            icon={<BookingsIcon />}
-            colorClass="im-stat-card--bookings"
-          />
-        </div>
+        {/* Statistics Grid - Only show for root admins */}
+        {adminStatus?.isRoot && statistics && (
+          <div className="im-stats-grid">
+            <StatCard
+              title={t("rootAdmin.dashboard.totalClubs")}
+              value={statistics.totalClubs}
+              icon={<ClubsIcon />}
+              colorClass="im-stat-card--clubs"
+            />
+            <StatCard
+              title={t("rootAdmin.dashboard.totalUsers")}
+              value={statistics.totalUsers}
+              icon={<UsersIcon />}
+              colorClass="im-stat-card--users"
+            />
+            <StatCard
+              title={t("rootAdmin.dashboard.activeBookings")}
+              value={statistics.activeBookings}
+              icon={<BookingsIcon />}
+              colorClass="im-stat-card--bookings"
+            />
+          </div>
+        )}
 
-        {/* Platform Overview Section */}
-        <div className="im-dashboard-section">
-          <h2 className="im-dashboard-section-title">
-            {t("rootAdmin.dashboard.platformOverview")}
-          </h2>
-          <p className="im-dashboard-section-description">
-            {t("rootAdmin.dashboard.platformOverviewDescription")}
-          </p>
-        </div>
+        {/* Platform Overview Section - Only show for root admins */}
+        {adminStatus?.isRoot && (
+          <div className="im-dashboard-section">
+            <h2 className="im-dashboard-section-title">
+              {t("rootAdmin.dashboard.platformOverview")}
+            </h2>
+            <p className="im-dashboard-section-description">
+              {t("rootAdmin.dashboard.platformOverviewDescription")}
+            </p>
+          </div>
+        )}
+
+        {/* Admin Welcome Section - Show for organization and club admins */}
+        {!adminStatus?.isRoot && (
+          <div className="im-dashboard-section">
+            <h2 className="im-dashboard-section-title">
+              {t("admin.dashboard.welcome")}
+            </h2>
+            <p className="im-dashboard-section-description">
+              {t("admin.dashboard.welcomeDescription")}
+            </p>
+          </div>
+        )}
       </section>
     </main>
   );

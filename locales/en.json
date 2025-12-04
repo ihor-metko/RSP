@@ -215,6 +215,14 @@
     "viewImage": "View image"
   },
   "admin": {
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "subtitle": "Manage your platform",
+      "organizationSubtitle": "Manage your organizations and clubs",
+      "clubSubtitle": "Manage your club",
+      "welcome": "Welcome to Admin Dashboard",
+      "welcomeDescription": "Use the sidebar navigation to access different management features."
+    },
     "clubs": {
       "title": "Admin - Clubs",
       "subtitle": "Manage all padel clubs",

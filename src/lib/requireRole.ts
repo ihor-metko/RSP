@@ -403,3 +403,138 @@ export async function requireRoleLegacy(
     userRole,
   };
 }
+
+/**
+ * Admin type enumeration for the unified admin check.
+ */
+export type AdminType = "root_admin" | "organization_admin" | "club_admin";
+
+/**
+ * Success result type for any admin check.
+ */
+export interface AnyAdminCheckSuccess {
+  authorized: true;
+  userId: string;
+  isRoot: boolean;
+  adminType: AdminType;
+  /**
+   * For organization admins, the organization IDs they manage.
+   * For club admins, the club IDs they manage.
+   * For root admins, this is empty (they have access to all).
+   */
+  managedIds: string[];
+}
+
+/**
+ * Failure result type for any admin check.
+ */
+export interface AnyAdminCheckFailure {
+  authorized: false;
+  response: NextResponse;
+}
+
+/**
+ * Result type for any admin check.
+ */
+export type AnyAdminCheckResult = AnyAdminCheckSuccess | AnyAdminCheckFailure;
+
+/**
+ * Check if the current user has any admin role.
+ * 
+ * This function checks for:
+ * - Root Admin: user.isRoot = true
+ * - Organization Admin: Has ORGANIZATION_ADMIN role in any Membership
+ * - Club Admin: Has CLUB_ADMIN role in any ClubMembership
+ * 
+ * Use this function when you need to allow access to any type of admin
+ * without requiring a specific context (e.g., for the admin dashboard).
+ * 
+ * @returns Promise resolving to authorized status with admin info or error response
+ * 
+ * @example
+ * const authResult = await requireAnyAdmin(request);
+ * if (!authResult.authorized) return authResult.response;
+ * // User is some type of admin
+ */
+export async function requireAnyAdmin(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _request: Request
+): Promise<AnyAdminCheckResult> {
+  const session = await auth();
+
+  // Check if user is authenticated
+  if (!session?.user) {
+    return {
+      authorized: false,
+      response: NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      ),
+    };
+  }
+
+  const userId = session.user.id;
+  const isRoot = session.user.isRoot ?? false;
+
+  // Root admins automatically have access
+  if (isRoot) {
+    return {
+      authorized: true,
+      userId,
+      isRoot: true,
+      adminType: "root_admin",
+      managedIds: [],
+    };
+  }
+
+  // Check if user is an organization admin
+  const organizationMemberships = await prisma.membership.findMany({
+    where: {
+      userId,
+      role: MembershipRole.ORGANIZATION_ADMIN,
+    },
+    select: {
+      organizationId: true,
+    },
+  });
+
+  if (organizationMemberships.length > 0) {
+    return {
+      authorized: true,
+      userId,
+      isRoot: false,
+      adminType: "organization_admin",
+      managedIds: organizationMemberships.map((m) => m.organizationId),
+    };
+  }
+
+  // Check if user is a club admin
+  const clubMemberships = await prisma.clubMembership.findMany({
+    where: {
+      userId,
+      role: ClubMembershipRole.CLUB_ADMIN,
+    },
+    select: {
+      clubId: true,
+    },
+  });
+
+  if (clubMemberships.length > 0) {
+    return {
+      authorized: true,
+      userId,
+      isRoot: false,
+      adminType: "club_admin",
+      managedIds: clubMemberships.map((m) => m.clubId),
+    };
+  }
+
+  // User is not an admin of any type
+  return {
+    authorized: false,
+    response: NextResponse.json(
+      { error: "Forbidden" },
+      { status: 403 }
+    ),
+  };
+}
