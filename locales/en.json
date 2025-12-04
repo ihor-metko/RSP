@@ -785,7 +785,8 @@
     "assign": "Assign",
     "owner": "Owner",
     "setAsOwner": "Set as Owner",
-    "remove": "Remove"
+    "remove": "Remove",
+    "thisOrganization": "this organization"
   },
   "users": {
     "title": "User Management",

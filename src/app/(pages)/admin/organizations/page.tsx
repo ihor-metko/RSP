@@ -875,7 +875,7 @@ export default function AdminOrganizationsPage() {
             </div>
           )}
           <p className="im-delete-confirm-text">
-            {t("organizations.deleteConfirm", { name: deletingOrg?.name ?? "" })}
+            {t("organizations.deleteConfirm", { name: deletingOrg?.name ?? t("organizations.thisOrganization") })}
           </p>
           {deletingOrg && deletingOrg.clubCount > 0 && (
             <div className="rsp-warning bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-sm">
