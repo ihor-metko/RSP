@@ -1,28 +1,28 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import type { UserRole } from "@/constants/roles";
 
 /**
  * Extended Request interface with authenticated user information.
- * Use Roles enum values when checking userRole.
  */
 export interface AuthenticatedRequest extends Request {
   userId?: string;
-  userRole?: UserRole;
+  isRoot?: boolean;
 }
 
 /**
- * Middleware to require specific roles for API routes.
- * Always use Roles enum values in the allowedRoles array.
+ * Middleware to require root admin access for API routes.
+ * 
+ * In the new role structure, global access is controlled by the isRoot field.
+ * For organization/club-specific access, use requireOrganizationAdmin or requireClubAdmin.
  *
  * @example
- * import { Roles } from "@/constants/roles";
- * const authResult = await requireRole(request, [Roles.SuperAdmin, Roles.Admin]);
+ * const authResult = await requireRootAdmin(request);
+ * if (!authResult.authorized) return authResult.response;
  */
-export async function requireRole(
-  request: Request,
-  allowedRoles: UserRole[]
-): Promise<{ authorized: true; userId: string; userRole: UserRole } | { authorized: false; response: NextResponse }> {
+export async function requireRootAdmin(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _request: Request
+): Promise<{ authorized: true; userId: string } | { authorized: false; response: NextResponse }> {
   const session = await auth();
 
   if (!session?.user) {
@@ -35,9 +35,7 @@ export async function requireRole(
     };
   }
 
-  const userRole = session.user.role;
-
-  if (!userRole || !allowedRoles.includes(userRole)) {
+  if (!session.user.isRoot) {
     return {
       authorized: false,
       response: NextResponse.json(
@@ -46,6 +44,73 @@ export async function requireRole(
       ),
     };
   }
+
+  return {
+    authorized: true,
+    userId: session.user.id,
+  };
+}
+
+/**
+ * Middleware to require authenticated user for API routes.
+ * This only checks if the user is authenticated, not their role.
+ *
+ * @example
+ * const authResult = await requireAuth(request);
+ * if (!authResult.authorized) return authResult.response;
+ */
+export async function requireAuth(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _request: Request
+): Promise<{ authorized: true; userId: string; isRoot: boolean } | { authorized: false; response: NextResponse }> {
+  const session = await auth();
+
+  if (!session?.user) {
+    return {
+      authorized: false,
+      response: NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      ),
+    };
+  }
+
+  return {
+    authorized: true,
+    userId: session.user.id,
+    isRoot: session.user.isRoot ?? false,
+  };
+}
+
+/**
+ * @deprecated This function is deprecated. Use requireRootAdmin or requireAuth instead.
+ * Kept for backward compatibility with archived features.
+ * 
+ * In the new role structure:
+ * - Root admins are identified by isRoot=true
+ * - Organization/club roles are context-specific via Membership/ClubMembership
+ */
+export async function requireRole(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _request: Request,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _allowedRoles: string[]
+): Promise<{ authorized: true; userId: string; userRole: string } | { authorized: false; response: NextResponse }> {
+  const session = await auth();
+
+  if (!session?.user) {
+    return {
+      authorized: false,
+      response: NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      ),
+    };
+  }
+
+  // In the new system, root admins have access to everything
+  // For backward compatibility, we treat isRoot as having all roles
+  const userRole = session.user.isRoot ? "root_admin" : "player";
 
   return {
     authorized: true,

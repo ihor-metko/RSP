@@ -4,6 +4,8 @@
  *
  * This script creates a root admin (platform owner) with full privileges across the entire platform.
  * It should only be run once during initial platform setup, unless the --force flag is used.
+ * 
+ * Root admins are identified by the `isRoot` boolean field on the User model.
  *
  * Usage:
  *   npm run create-root-admin
@@ -20,7 +22,6 @@
 import { PrismaClient } from "@prisma/client";
 import * as readline from "readline";
 import {
-  ROOT_ADMIN_ROLE,
   MIN_PASSWORD_LENGTH,
   isValidEmail,
   isValidPassword,
@@ -187,7 +188,7 @@ async function main(): Promise<void> {
 
       console.log("\n✅ Root admin created successfully!");
       console.log(`   Email: ${input.email}`);
-      console.log(`   Role: ${ROOT_ADMIN_ROLE}`);
+      console.log(`   isRoot: true`);
       console.log("\n   ⚠️  This account has full platform privileges.\n");
     } finally {
       rl.close();

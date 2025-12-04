@@ -12,8 +12,7 @@ import {
   LandingTestimonials,
 } from "@/components/home";
 import { auth } from "@/lib/auth";
-import { ADMIN_ROLES } from "@/constants/roles";
-import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
+import { getRoleHomepage } from "@/utils/roleRedirect";
 
 /**
  * Home page - Server Component with client islands for interactivity
@@ -22,14 +21,14 @@ import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
  *                    LandingHowItWorks, LandingClubsCoaches, LandingTestimonials
  * Client Components: Header, PersonalizedSectionWrapper, PublicFooter
  *
- * Admin users are redirected to admin dashboard (server-side fallback for middleware)
+ * Root admin users are redirected to admin dashboard (server-side fallback for middleware)
  */
 export default async function Home() {
-  // Server-side fallback: redirect admin users to admin dashboard
+  // Server-side fallback: redirect root admin users to admin dashboard
   const session = await auth();
-  const userRole = session?.user?.role;
-  if (userRole && ADMIN_ROLES.includes(userRole)) {
-    redirect(ROLE_HOMEPAGES[userRole]);
+  const isRoot = session?.user?.isRoot;
+  if (isRoot) {
+    redirect(getRoleHomepage(isRoot));
   }
   return (
     <main className="flex flex-col min-h-screen overflow-auto">

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
-import { ADMIN_ROLES } from "@/constants/roles";
+import { requireRootAdmin } from "@/lib/requireRole";
 import {
   isValidTimeFormat,
   normalizeTime,
@@ -12,8 +11,8 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ courtId: string; ruleId: string }> }
 ) {
-  // Require admin role
-  const authResult = await requireRole(request, ADMIN_ROLES);
+  // Require root admin role
+  const authResult = await requireRootAdmin(request);
   if (!authResult.authorized) {
     return authResult.response;
   }
@@ -186,8 +185,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ courtId: string; ruleId: string }> }
 ) {
-  // Require admin role
-  const authResult = await requireRole(request, ADMIN_ROLES);
+  // Require root admin role
+  const authResult = await requireRootAdmin(request);
   if (!authResult.authorized) {
     return authResult.response;
   }

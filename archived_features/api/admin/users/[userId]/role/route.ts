@@ -2,12 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 
-const VALID_ROLES = ["player", "coach"] as const;
-type ValidRole = (typeof VALID_ROLES)[number];
-
-function isValidRole(role: unknown): role is ValidRole {
-  return typeof role === "string" && VALID_ROLES.includes(role as ValidRole);
-}
+/**
+ * @deprecated This archived feature uses the old role-based system.
+ * In the new system, roles are context-specific via Membership and ClubMembership.
+ * This file is kept for backward compatibility with existing tests.
+ */
 
 export async function POST(
   request: Request,
@@ -24,14 +23,7 @@ export async function POST(
     const userId = resolvedParams.userId;
 
     const body = await request.json();
-    const { role, clubIds, bio, phone } = body;
-
-    if (!isValidRole(role)) {
-      return NextResponse.json(
-        { error: "Invalid role. Must be 'player' or 'coach'" },
-        { status: 400 }
-      );
-    }
+    const { clubIds, bio, phone } = body;
 
     // Check if user exists
     const existingUser = await prisma.user.findUnique({
@@ -42,23 +34,17 @@ export async function POST(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Prevent modifying admin role
-    if (existingUser.role === "super_admin") {
+    // Prevent modifying root admin
+    if (existingUser.isRoot) {
       return NextResponse.json(
         { error: "Cannot modify admin role" },
         { status: 403 }
       );
     }
 
-    // When assigning coach role, validate that at least one club is selected
-    if (role === "coach") {
-      if (!clubIds || !Array.isArray(clubIds) || clubIds.length === 0) {
-        return NextResponse.json(
-          { error: "At least one club must be selected when assigning coach role" },
-          { status: 400 }
-        );
-      }
-
+    // In the new system, coach assignment is done via ClubMembership
+    // For backward compatibility, we just create/update Coach records
+    if (clubIds && Array.isArray(clubIds) && clubIds.length > 0) {
       // Validate that all provided clubIds exist
       const clubs = await prisma.club.findMany({
         where: { id: { in: clubIds } },
@@ -71,34 +57,9 @@ export async function POST(
           { status: 400 }
         );
       }
-    }
 
-    // Use a transaction to ensure atomicity
-    const result = await prisma.$transaction(async (tx) => {
-      // Update user role
-      const updatedUser = await tx.user.update({
-        where: { id: userId },
-        data: { role },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          createdAt: true,
-        },
-      });
-
-      let coaches: Array<{
-        id: string;
-        userId: string;
-        clubId: string | null;
-        bio: string | null;
-        phone: string | null;
-        createdAt: Date;
-      }> = [];
-
-      // If assigning coach role, create/update Coach records for each club
-      if (role === "coach") {
+      // Use a transaction to ensure atomicity
+      const result = await prisma.$transaction(async (tx) => {
         // Get existing coach records for this user
         const existingCoaches = await tx.coach.findMany({
           where: { userId },
@@ -108,11 +69,9 @@ export async function POST(
           .filter((c) => c.clubId !== null)
           .map((c) => c.clubId as string);
 
-        // Use Sets for O(1) lookup performance
         const existingClubIdSet = new Set(existingClubIds);
         const newClubIdSet = new Set(clubIds as string[]);
 
-        // Determine which clubs to add and which to remove
         const clubIdsToAdd = clubIds.filter(
           (id: string) => !existingClubIdSet.has(id)
         );
@@ -123,13 +82,11 @@ export async function POST(
         // Remove coach records for clubs that are no longer selected
         if (clubIdsToRemove.length > 0) {
           const clubIdsToRemoveSet = new Set(clubIdsToRemove);
-          // First find the coach IDs to remove
           const coachesToRemove = existingCoaches.filter(
             (c) => c.clubId && clubIdsToRemoveSet.has(c.clubId)
           );
           const coachIdsToRemove = coachesToRemove.map((c) => c.id);
 
-          // Delete their availability records
           if (coachIdsToRemove.length > 0) {
             await tx.coachAvailability.deleteMany({
               where: { coachId: { in: coachIdsToRemove } },
@@ -157,7 +114,7 @@ export async function POST(
         }
 
         // Fetch the updated coach records
-        coaches = await tx.coach.findMany({
+        const coaches = await tx.coach.findMany({
           where: { userId },
           select: {
             id: true,
@@ -168,36 +125,33 @@ export async function POST(
             createdAt: true,
           },
         });
-      }
 
-      // If changing from coach to player, delete Coach records
-      if (role === "player" && existingUser.role === "coach") {
-        // Find all coach records for this user to get their IDs
-        const userCoaches = await tx.coach.findMany({
-          where: { userId },
-          select: { id: true },
-        });
-        const coachIds = userCoaches.map((c) => c.id);
+        return {
+          user: {
+            id: existingUser.id,
+            name: existingUser.name,
+            email: existingUser.email,
+            isRoot: existingUser.isRoot,
+            createdAt: existingUser.createdAt,
+          },
+          coaches,
+        };
+      });
 
-        // Delete all coach availability records first (due to foreign key constraint)
-        if (coachIds.length > 0) {
-          await tx.coachAvailability.deleteMany({
-            where: {
-              coachId: { in: coachIds },
-            },
-          });
-        }
+      return NextResponse.json(result);
+    }
 
-        // Delete coach records
-        await tx.coach.deleteMany({
-          where: { userId },
-        });
-      }
-
-      return { user: updatedUser, coaches };
+    // If no clubIds provided, just return user info
+    return NextResponse.json({
+      user: {
+        id: existingUser.id,
+        name: existingUser.name,
+        email: existingUser.email,
+        isRoot: existingUser.isRoot,
+        createdAt: existingUser.createdAt,
+      },
+      coaches: [],
     });
-
-    return NextResponse.json(result);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating user role:", error);

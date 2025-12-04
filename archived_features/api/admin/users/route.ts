@@ -3,9 +3,15 @@ import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
 
+/**
+ * @deprecated This archived feature uses the old role-based system.
+ * In the new system, roles are context-specific via Membership and ClubMembership.
+ * This file is kept for backward compatibility with existing tests.
+ */
+
 interface UserWhereClause {
   OR?: { name?: { contains: string; mode: "insensitive" }; email?: { contains: string; mode: "insensitive" } }[];
-  role?: string;
+  isRoot?: boolean;
 }
 
 export async function GET(request: Request) {
@@ -29,8 +35,11 @@ export async function GET(request: Request) {
       ];
     }
 
-    if (role && ["player", "coach", "super_admin"].includes(role)) {
-      whereClause.role = role;
+    // Map old role filter to new isRoot field
+    if (role === "super_admin" || role === "root_admin") {
+      whereClause.isRoot = true;
+    } else if (role && ["player", "coach"].includes(role)) {
+      whereClause.isRoot = false;
     }
 
     const users = await prisma.user.findMany({
@@ -40,12 +49,21 @@ export async function GET(request: Request) {
         id: true,
         name: true,
         email: true,
-        role: true,
+        isRoot: true,
         createdAt: true,
       },
     });
 
-    return NextResponse.json(users);
+    // Map isRoot to role for backward compatibility
+    const mappedUsers = users.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.isRoot ? "root_admin" : "player",
+      createdAt: user.createdAt,
+    }));
+
+    return NextResponse.json(mappedUsers);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error fetching users:", error);
@@ -90,27 +108,34 @@ export async function POST(request: Request) {
     // Hash the password
     const hashedPassword = await hash(password, 12);
 
-    // Create the user with coach role
+    // Create the user (regular user, not root admin)
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        role: "coach",
+        isRoot: false,
       },
       select: {
         id: true,
         name: true,
         email: true,
-        role: true,
+        isRoot: true,
         createdAt: true,
       },
     });
 
-    return NextResponse.json(user, { status: 201 });
+    // Return with role for backward compatibility
+    return NextResponse.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: "player",
+      createdAt: user.createdAt,
+    }, { status: 201 });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Error creating coach:", error);
+      console.error("Error creating user:", error);
     }
     return NextResponse.json(
       { error: "Internal server error" },

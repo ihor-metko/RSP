@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { Roles, type UserRole } from "@/constants/roles";
 import "./UserMenu.css";
 
 /**
@@ -126,7 +125,7 @@ function ShieldIcon() {
 export interface UserMenuProps {
   userName: string | null | undefined;
   userEmail: string | null | undefined;
-  userRole: UserRole | undefined;
+  isRoot?: boolean;
 }
 
 /**
@@ -155,7 +154,7 @@ function getInitials(name: string | null | undefined): string {
  * For players: No role is displayed in the header or menu
  * For admins: Shows admin badge in dropdown
  */
-export default function UserMenu({ userName, userEmail, userRole }: UserMenuProps) {
+export default function UserMenu({ userName, userEmail, isRoot = false }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuListRef = useRef<HTMLDivElement>(null);
@@ -246,8 +245,6 @@ export default function UserMenu({ userName, userEmail, userRole }: UserMenuProp
     await signOut({ callbackUrl: "/" });
   };
 
-  const isAdmin = userRole === Roles.SuperAdmin;
-
   return (
     <div className="im-user-menu" ref={menuRef}>
       {/* Avatar button - triggers dropdown */}
@@ -281,8 +278,8 @@ export default function UserMenu({ userName, userEmail, userRole }: UserMenuProp
           <div className="im-user-menu-header">
             <p className="im-user-menu-name">{userName || userEmail}</p>
             <p className="im-user-menu-email">{userEmail}</p>
-            {/* Show admin badge only for admin users */}
-            {isAdmin && (
+            {/* Show admin badge only for root admin users */}
+            {isRoot && (
               <span className="im-user-menu-admin-badge">
                 <ShieldIcon />
                 Admin

@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui";
-import { Roles } from "@/constants/roles";
 import type { PlatformStatistics } from "@/types/admin";
 import "./RootDashboard.css";
 
@@ -132,7 +131,7 @@ export default function RootDashboardPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== Roles.RootAdmin) {
+    if (!session?.user || !session.user.isRoot) {
       router.push("/auth/sign-in");
       return;
     }

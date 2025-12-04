@@ -3,13 +3,13 @@
  *
  * This module contains the core logic for creating root admin users.
  * It is separated from the CLI script for testability.
+ * 
+ * Root admins are identified by the `isRoot` boolean field on the User model.
  */
 
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
-import { Roles } from "./roles";
 
-export const ROOT_ADMIN_ROLE = Roles.ROOT_ADMIN;
 export const MIN_PASSWORD_LENGTH = 8;
 
 export interface RootAdminInput {
@@ -41,7 +41,7 @@ export async function checkExistingRootAdmin(
   prisma: PrismaClient
 ): Promise<boolean> {
   const existingRootAdmin = await prisma.user.findFirst({
-    where: { role: ROOT_ADMIN_ROLE },
+    where: { isRoot: true },
   });
   return existingRootAdmin !== null;
 }
@@ -69,7 +69,7 @@ export async function createRootAdmin(
       name: input.name,
       email: normalizedEmail,
       password: hashedPassword,
-      role: ROOT_ADMIN_ROLE,
+      isRoot: true,
     },
   });
 
@@ -84,7 +84,7 @@ export async function deleteExistingRootAdmins(
   prisma: PrismaClient
 ): Promise<number> {
   const result = await prisma.user.deleteMany({
-    where: { role: ROOT_ADMIN_ROLE },
+    where: { isRoot: true },
   });
   return result.count;
 }

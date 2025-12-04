@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
-import { ADMIN_ROLES } from "@/constants/roles";
+import { requireRootAdmin } from "@/lib/requireRole";
 
 /**
  * POST /api/admin/notifications/mark-all-read
  * Mark all unread notifications as read
- * Only accessible by admins
+ * Only accessible by root admins
  */
 export async function POST(request: Request) {
   try {
-    const authResult = await requireRole(request, ADMIN_ROLES);
+    const authResult = await requireRootAdmin(request);
     if (!authResult.authorized) {
       return authResult.response;
     }

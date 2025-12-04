@@ -3,11 +3,16 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { validateRole } from "@/constants/roles";
 
 // Re-export types and utilities from constants/roles for backward compatibility
-export type { UserRole } from "@/constants/roles";
-export { Roles, VALID_ROLES, DEFAULT_ROLE, ADMIN_ROLES, isValidRole, isAdminRole, validateRole } from "@/constants/roles";
+export {
+  MembershipRole,
+  ClubMembershipRole,
+  isValidMembershipRole,
+  isValidClubMembershipRole,
+  isOrganizationAdmin,
+  isClubAdmin,
+} from "@/constants/roles";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -44,7 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
-          role: validateRole(user.role),
+          isRoot: user.isRoot,
         };
       },
     }),
@@ -59,14 +64,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = validateRole(user.role);
+        token.isRoot = user.isRoot;
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
-        session.user.role = validateRole(token.role);
+        session.user.isRoot = token.isRoot as boolean;
       }
       return session;
     },

@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { Roles } from "@/constants/roles";
 
-const DEFAULT_USER_ROLE = Roles.Player;
 const MIN_PASSWORD_LENGTH = 8;
 
 function isValidEmail(email: string): boolean {
@@ -58,7 +56,7 @@ export async function POST(request: Request) {
         email,
         name: name?.trim() || null,
         password: hashedPassword,
-        role: DEFAULT_USER_ROLE,
+        // isRoot defaults to false, new users are regular platform users
       },
     });
 

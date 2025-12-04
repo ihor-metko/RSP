@@ -1,36 +1,20 @@
 /**
  * Centralized Roles definitions
  *
- * This module contains all role-related types and constants.
- * Import from this module to ensure consistent role handling across the codebase.
+ * This module re-exports role-related types and constants from constants/roles.
+ * The platform uses context-specific roles:
+ * - isRoot: Boolean field on User to identify platform root admin
+ * - MembershipRole: Role within an Organization
+ * - ClubMembershipRole: Role within a Club
  */
 
-export type UserRole = "player" | "coach" | "super_admin" | "root_admin";
-
-/**
- * Centralized Roles object containing all valid role constants.
- * Use these constants instead of string literals for type safety.
- */
-export const Roles = {
-  PLAYER: "player" as const,
-  COACH: "coach" as const,
-  SUPER_ADMIN: "super_admin" as const,
-  ROOT_ADMIN: "root_admin" as const,
-} as const;
-
-export const VALID_ROLES: UserRole[] = [
-  Roles.PLAYER,
-  Roles.COACH,
-  Roles.SUPER_ADMIN,
-  Roles.ROOT_ADMIN,
-];
-
-export const DEFAULT_ROLE: UserRole = Roles.PLAYER;
-
-export function isValidRole(role: unknown): role is UserRole {
-  return typeof role === "string" && VALID_ROLES.includes(role as UserRole);
-}
-
-export function validateRole(role: unknown): UserRole {
-  return isValidRole(role) ? role : DEFAULT_ROLE;
-}
+export {
+  MembershipRole,
+  ClubMembershipRole,
+  VALID_MEMBERSHIP_ROLES,
+  VALID_CLUB_MEMBERSHIP_ROLES,
+  isValidMembershipRole,
+  isValidClubMembershipRole,
+  isOrganizationAdmin,
+  isClubAdmin,
+} from "@/constants/roles";
