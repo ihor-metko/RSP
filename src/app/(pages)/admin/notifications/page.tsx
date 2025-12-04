@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import { IMLink } from "@/components/ui";
 import { AdminNotificationsPanel } from "@/components/admin/AdminNotifications";
 import { NotificationBell } from "@/components/admin/NotificationBell";
-import { DashboardFooter } from "@/components/layout";
 
 
 export default function AdminNotificationsPage() {
