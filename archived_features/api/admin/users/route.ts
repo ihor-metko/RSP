@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
+import { requireRoleLegacy as requireRole } from "@/lib/requireRole";
 
 /**
  * @deprecated This archived feature uses the old role-based system.
