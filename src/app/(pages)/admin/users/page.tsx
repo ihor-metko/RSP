@@ -126,6 +126,9 @@ export default function AdminUsersPage() {
   // Toast state
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  // Error key for translated messages
+  const [errorKey, setErrorKey] = useState<string>("");
+
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 5000);
@@ -158,12 +161,13 @@ export default function AdminUsersPage() {
       setUsers(data.users);
       setPagination(data.pagination);
       setError("");
+      setErrorKey("");
     } catch {
-      setError(t("users.failedToLoad"));
+      setErrorKey("users.failedToLoad");
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.pageSize, sortBy, sortOrder, searchQuery, roleFilter, statusFilter, organizationFilter, clubFilter, router, t]);
+  }, [pagination.page, pagination.pageSize, sortBy, sortOrder, searchQuery, roleFilter, statusFilter, organizationFilter, clubFilter, router]);
 
   const fetchOrganizations = useCallback(async () => {
     try {
@@ -485,9 +489,9 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        {error && (
+        {(error || errorKey) && (
           <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-            {error}
+            {error || (errorKey && t(errorKey))}
           </div>
         )}
 
