@@ -363,7 +363,7 @@ export default function AdminOrganizationsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editOrgName,
-          slug: editOrgSlug || undefined,
+          slug: editOrgSlug,
         }),
       });
 

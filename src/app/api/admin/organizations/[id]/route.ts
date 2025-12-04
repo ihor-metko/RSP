@@ -64,9 +64,13 @@ export async function PATCH(
     }
 
     // Determine the final slug
+    // - If slug is undefined, keep the current slug (unless name changes)
+    // - If slug is an empty string, auto-generate from the name
+    // - Otherwise, use the provided slug
     let finalSlug = organization.slug;
     if (slug !== undefined) {
-      finalSlug = slug.trim() || generateSlug(name || organization.name);
+      // Empty string means auto-generate, otherwise use provided value
+      finalSlug = slug.trim() || generateSlug(name?.trim() || organization.name);
     } else if (name !== undefined && name.trim() !== organization.name) {
       // Auto-generate slug from new name if slug wasn't explicitly provided
       finalSlug = generateSlug(name);
