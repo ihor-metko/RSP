@@ -1,0 +1,1 @@
+IMPORTANT: Follow rules in .github/copilot-settings.md
