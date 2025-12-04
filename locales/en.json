@@ -804,5 +804,86 @@
     "noResults": "No organizations match your search",
     "clearSearch": "Clear search",
     "itemsPerPage": "Items per page"
+  },
+  "users": {
+    "title": "User Management",
+    "subtitle": "Manage all platform users",
+    "breadcrumb": "Users",
+    "failedToLoad": "Failed to load users. Please try again later.",
+    "failedToLoadDetails": "Failed to load user details",
+    "noUsers": "No users found",
+    "searchPlaceholder": "Search by name or email...",
+    "filterByRole": "Filter by Role",
+    "filterByStatus": "Filter by Status",
+    "filterByOrganization": "Filter by Organization",
+    "filterByClub": "Filter by Club",
+    "clearFilters": "Clear Filters",
+    "allStatuses": "All Statuses",
+    "allOrganizations": "All Organizations",
+    "allClubs": "All Clubs",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "organization": "Organization",
+      "club": "Club",
+      "status": "Status",
+      "registeredAt": "Registered",
+      "lastActivity": "Last Activity",
+      "lastLogin": "Last Login"
+    },
+    "roles": {
+      "rootAdmin": "Root Admin",
+      "organizationAdmin": "Organization Admin",
+      "clubAdmin": "Club Admin",
+      "user": "User"
+    },
+    "roleDescriptions": {
+      "organizationAdmin": "Can manage organization and its clubs",
+      "clubAdmin": "Can manage a specific club",
+      "user": "Regular user with no admin privileges"
+    },
+    "status": {
+      "active": "Active",
+      "blocked": "Blocked"
+    },
+    "actions": {
+      "view": "View",
+      "editRole": "Edit Role",
+      "block": "Block",
+      "unblock": "Unblock",
+      "delete": "Delete"
+    },
+    "pagination": {
+      "showing": "Showing {start} to {end} of {total} users",
+      "previous": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {total}",
+      "pageSize": "Per page:"
+    },
+    "viewDetails": "User Details",
+    "sections": {
+      "basicInfo": "Basic Information",
+      "organizations": "Organizations",
+      "clubs": "Clubs",
+      "recentBookings": "Recent Bookings"
+    },
+    "noDetailsAvailable": "No details available",
+    "editRole": "Edit User Role",
+    "editRoleFor": "Changing role for",
+    "selectOrganization": "Select Organization",
+    "selectOrganizationPlaceholder": "Choose an organization...",
+    "selectClub": "Select Club",
+    "selectClubPlaceholder": "Choose a club...",
+    "roleUpdated": "User role updated successfully",
+    "failedToUpdateRole": "Failed to update user role",
+    "userBlocked": "User has been blocked",
+    "userUnblocked": "User has been unblocked",
+    "failedToUpdateUser": "Failed to update user",
+    "confirmDelete": "Delete User",
+    "deleteWarning": "This action cannot be undone!",
+    "deleteConfirmMessage": "Are you sure you want to delete {name}? All their data will be permanently removed.",
+    "userDeleted": "User deleted successfully",
+    "failedToDeleteUser": "Failed to delete user"
   }
 }

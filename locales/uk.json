@@ -801,5 +801,86 @@
     "noResults": "Організації за вашим запитом не знайдено",
     "clearSearch": "Очистити пошук",
     "itemsPerPage": "Елементів на сторінці"
+  },
+  "users": {
+    "title": "Управління користувачами",
+    "subtitle": "Керування всіма користувачами платформи",
+    "breadcrumb": "Користувачі",
+    "failedToLoad": "Не вдалося завантажити користувачів. Спробуйте пізніше.",
+    "failedToLoadDetails": "Не вдалося завантажити деталі користувача",
+    "noUsers": "Користувачів не знайдено",
+    "searchPlaceholder": "Пошук за ім'ям або email...",
+    "filterByRole": "Фільтр за роллю",
+    "filterByStatus": "Фільтр за статусом",
+    "filterByOrganization": "Фільтр за організацією",
+    "filterByClub": "Фільтр за клубом",
+    "clearFilters": "Скинути фільтри",
+    "allStatuses": "Всі статуси",
+    "allOrganizations": "Всі організації",
+    "allClubs": "Всі клуби",
+    "columns": {
+      "name": "Ім'я",
+      "email": "Email",
+      "role": "Роль",
+      "organization": "Організація",
+      "club": "Клуб",
+      "status": "Статус",
+      "registeredAt": "Дата реєстрації",
+      "lastActivity": "Остання активність",
+      "lastLogin": "Останній вхід"
+    },
+    "roles": {
+      "rootAdmin": "Головний адмін",
+      "organizationAdmin": "Адмін організації",
+      "clubAdmin": "Адмін клубу",
+      "user": "Користувач"
+    },
+    "roleDescriptions": {
+      "organizationAdmin": "Може керувати організацією та її клубами",
+      "clubAdmin": "Може керувати конкретним клубом",
+      "user": "Звичайний користувач без адмін привілеїв"
+    },
+    "status": {
+      "active": "Активний",
+      "blocked": "Заблокований"
+    },
+    "actions": {
+      "view": "Переглянути",
+      "editRole": "Змінити роль",
+      "block": "Заблокувати",
+      "unblock": "Розблокувати",
+      "delete": "Видалити"
+    },
+    "pagination": {
+      "showing": "Показано {start} до {end} з {total} користувачів",
+      "previous": "Назад",
+      "next": "Далі",
+      "pageOf": "Сторінка {page} з {total}",
+      "pageSize": "На сторінці:"
+    },
+    "viewDetails": "Деталі користувача",
+    "sections": {
+      "basicInfo": "Основна інформація",
+      "organizations": "Організації",
+      "clubs": "Клуби",
+      "recentBookings": "Останні бронювання"
+    },
+    "noDetailsAvailable": "Деталі недоступні",
+    "editRole": "Редагувати роль користувача",
+    "editRoleFor": "Зміна ролі для",
+    "selectOrganization": "Виберіть організацію",
+    "selectOrganizationPlaceholder": "Виберіть організацію...",
+    "selectClub": "Виберіть клуб",
+    "selectClubPlaceholder": "Виберіть клуб...",
+    "roleUpdated": "Роль користувача успішно оновлено",
+    "failedToUpdateRole": "Не вдалося оновити роль користувача",
+    "userBlocked": "Користувача заблоковано",
+    "userUnblocked": "Користувача розблоковано",
+    "failedToUpdateUser": "Не вдалося оновити користувача",
+    "confirmDelete": "Видалити користувача",
+    "deleteWarning": "Цю дію неможливо скасувати!",
+    "deleteConfirmMessage": "Ви впевнені, що хочете видалити {name}? Всі дані будуть видалені назавжди.",
+    "userDeleted": "Користувача успішно видалено",
+    "failedToDeleteUser": "Не вдалося видалити користувача"
   }
 }
