@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
-import { Roles } from "@/constants/roles";
+import { requireAuth } from "@/lib/requireRole";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
 
 interface BookingRequest {
@@ -28,8 +27,8 @@ function formatDateString(date: Date): string {
 
 export async function POST(request: Request) {
   try {
-    // Role check: Only player, super_admin, coach can create bookings
-    const authResult = await requireRole(request, [Roles.Player, Roles.SuperAdmin, Roles.Coach]);
+    // Any authenticated user can create bookings
+    const authResult = await requireAuth(request);
     if (!authResult.authorized) {
       return authResult.response;
     }

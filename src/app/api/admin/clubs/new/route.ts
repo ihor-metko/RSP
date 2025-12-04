@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
-import { ADMIN_ROLES } from "@/constants/roles";
+import { requireRootAdmin } from "@/lib/requireRole";
 
 interface BusinessHourInput {
   dayOfWeek: number;
@@ -58,7 +57,7 @@ function generateSlug(name: string): string {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireRole(request, ADMIN_ROLES);
+  const authResult = await requireRootAdmin(request);
 
   if (!authResult.authorized) {
     return authResult.response;

@@ -53,7 +53,7 @@ describe("PUT /api/coach/availability/[slotId]", () => {
 
     it("should return 403 when user is not a coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = createPutRequest({ startTime: "10:00", endTime: "11:00" });
@@ -68,7 +68,7 @@ describe("PUT /api/coach/availability/[slotId]", () => {
   describe("Slot validation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -108,7 +108,7 @@ describe("PUT /api/coach/availability/[slotId]", () => {
   describe("Successful slot update", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -184,7 +184,7 @@ describe("DELETE /api/coach/availability/[slotId]", () => {
   describe("Successful slot deletion", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({

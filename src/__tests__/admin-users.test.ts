@@ -64,7 +64,7 @@ describe("Admin Users API", () => {
 
     it("should return 403 when user is not admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = new Request("http://localhost:3000/api/admin/users", {
@@ -80,7 +80,7 @@ describe("Admin Users API", () => {
 
     it("should return all users for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const mockUsers = [
@@ -88,14 +88,14 @@ describe("Admin Users API", () => {
           id: "user-1",
           name: "Player One",
           email: "player@test.com",
-          role: "player",
+          isRoot: false,
           createdAt: new Date().toISOString(),
         },
         {
           id: "user-2",
           name: "Coach One",
           email: "coach@test.com",
-          role: "coach",
+          isRoot: false,
           createdAt: new Date().toISOString(),
         },
       ];
@@ -116,7 +116,7 @@ describe("Admin Users API", () => {
 
     it("should filter users by search query", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.user.findMany as jest.Mock).mockResolvedValue([]);
@@ -142,7 +142,7 @@ describe("Admin Users API", () => {
 
     it("should filter users by role", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.user.findMany as jest.Mock).mockResolvedValue([]);
@@ -157,7 +157,7 @@ describe("Admin Users API", () => {
       expect(prisma.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            role: "coach",
+            isRoot: false,
           }),
         })
       );
@@ -165,7 +165,7 @@ describe("Admin Users API", () => {
 
     it("should return 500 for database errors", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.user.findMany as jest.Mock).mockRejectedValue(
@@ -207,7 +207,7 @@ describe("Admin Users API", () => {
 
     it("should return 403 when user is not admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "coach" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = new Request("http://localhost:3000/api/admin/users", {
@@ -229,14 +229,14 @@ describe("Admin Users API", () => {
 
     it("should create a new coach for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const newUser = {
         id: "new-coach-id",
         name: "New Coach",
         email: "newcoach@test.com",
-        role: "coach",
+        isRoot: false,
         createdAt: new Date().toISOString(),
       };
 
@@ -263,7 +263,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 when email already exists", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
@@ -290,7 +290,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 when required fields are missing", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const request = new Request("http://localhost:3000/api/admin/users", {
@@ -315,7 +315,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach" }),
+          body: JSON.stringify({ isRoot: false }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -331,14 +331,14 @@ describe("Admin Users API", () => {
 
     it("should return 403 when user is not admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = new Request(
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach" }),
+          body: JSON.stringify({ isRoot: false }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -354,21 +354,21 @@ describe("Admin Users API", () => {
 
     it("should update user role to coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "player",
+        isRoot: false,
       };
 
       const updatedUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "coach",
+        isRoot: false,
         createdAt: new Date().toISOString(),
       };
 
@@ -410,7 +410,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach", clubIds: ["club-123"] }),
+          body: JSON.stringify({ isRoot: false, clubIds: ["club-123"] }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -428,21 +428,21 @@ describe("Admin Users API", () => {
 
     it("should update user role to coach and create coach with optional fields", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "player",
+        isRoot: false,
       };
 
       const updatedUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "coach",
+        isRoot: false,
         createdAt: new Date().toISOString(),
       };
 
@@ -481,7 +481,7 @@ describe("Admin Users API", () => {
         {
           method: "POST",
           body: JSON.stringify({
-            role: "coach",
+            isRoot: false,
             clubIds: ["club-123"],
             bio: "Professional tennis coach",
             phone: "123-456-7890"
@@ -502,21 +502,21 @@ describe("Admin Users API", () => {
 
     it("should not create duplicate coach record when already exists for same club", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "player",
+        isRoot: false,
       };
 
       const updatedUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "coach",
+        isRoot: false,
         createdAt: new Date().toISOString(),
       };
 
@@ -555,7 +555,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach", clubIds: ["club-123"] }),
+          body: JSON.stringify({ isRoot: false, clubIds: ["club-123"] }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -575,21 +575,21 @@ describe("Admin Users API", () => {
 
     it("should update user role to player (remove coach)", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingUser = {
         id: "user-123",
         name: "Coach",
         email: "coach@test.com",
-        role: "coach",
+        isRoot: false,
       };
 
       const updatedUser = {
         id: "user-123",
         name: "Coach",
         email: "coach@test.com",
-        role: "player",
+        isRoot: false,
         createdAt: new Date().toISOString(),
       };
 
@@ -619,7 +619,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "player" }),
+          body: JSON.stringify({ isRoot: false }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -638,7 +638,7 @@ describe("Admin Users API", () => {
 
     it("should return 404 when user not found", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
@@ -647,7 +647,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/nonexistent/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach" }),
+          body: JSON.stringify({ isRoot: false }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -663,14 +663,14 @@ describe("Admin Users API", () => {
 
     it("should return 403 when trying to modify admin role", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const adminUser = {
         id: "admin-user",
         name: "Admin",
         email: "admin@test.com",
-        role: "super_admin",
+        isRoot: true,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(adminUser);
@@ -679,7 +679,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/admin-user/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "player" }),
+          body: JSON.stringify({ isRoot: false }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -695,7 +695,7 @@ describe("Admin Users API", () => {
 
     it("should return 400 for invalid role", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const request = new Request(
@@ -718,14 +718,14 @@ describe("Admin Users API", () => {
 
     it("should return 400 when assigning coach role without clubIds", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "player",
+        isRoot: false,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
@@ -734,7 +734,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach" }),
+          body: JSON.stringify({ isRoot: false }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -750,14 +750,14 @@ describe("Admin Users API", () => {
 
     it("should return 400 when assigning coach role with empty clubIds array", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "player",
+        isRoot: false,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
@@ -766,7 +766,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach", clubIds: [] }),
+          body: JSON.stringify({ isRoot: false, clubIds: [] }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -782,14 +782,14 @@ describe("Admin Users API", () => {
 
     it("should return 400 when selected clubs do not exist", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingUser = {
         id: "user-123",
         name: "Player",
         email: "player@test.com",
-        role: "player",
+        isRoot: false,
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(existingUser);
@@ -799,7 +799,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach", clubIds: ["nonexistent-club"] }),
+          body: JSON.stringify({ isRoot: false, clubIds: ["nonexistent-club"] }),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -815,7 +815,7 @@ describe("Admin Users API", () => {
 
     it("should return 500 for database errors", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.user.findUnique as jest.Mock).mockRejectedValue(
@@ -826,7 +826,7 @@ describe("Admin Users API", () => {
         "http://localhost:3000/api/admin/users/user-123/role",
         {
           method: "POST",
-          body: JSON.stringify({ role: "coach" }),
+          body: JSON.stringify({ isRoot: false }),
           headers: { "Content-Type": "application/json" },
         }
       );

@@ -104,7 +104,7 @@ describe("Courts API", () => {
 
     it("should return 403 when user is not admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = new Request("http://localhost:3000/api/clubs/club-123/courts", {
@@ -122,7 +122,7 @@ describe("Courts API", () => {
 
     it("should create a new court for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const mockClub = { id: "club-123", name: "Test Club" };
@@ -165,7 +165,7 @@ describe("Courts API", () => {
 
     it("should return 400 when name is missing", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue({ id: "club-123" });
@@ -185,7 +185,7 @@ describe("Courts API", () => {
 
     it("should return 404 when club not found", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(null);
@@ -205,7 +205,7 @@ describe("Courts API", () => {
 
     it("should return 409 when slug already exists", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue({ id: "club-123" });
@@ -249,7 +249,7 @@ describe("Courts API", () => {
 
     it("should return 403 when user is not admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = new Request(
@@ -272,7 +272,7 @@ describe("Courts API", () => {
 
     it("should update court for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingCourt = {
@@ -327,7 +327,7 @@ describe("Courts API", () => {
 
     it("should return 404 when court not found", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.court.findUnique as jest.Mock).mockResolvedValue(null);
@@ -352,7 +352,7 @@ describe("Courts API", () => {
 
     it("should return 404 when court does not belong to club", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingCourt = {
@@ -402,7 +402,7 @@ describe("Courts API", () => {
 
     it("should return 403 when user is not admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = new Request(
@@ -421,7 +421,7 @@ describe("Courts API", () => {
 
     it("should delete court for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingCourt = {
@@ -447,7 +447,7 @@ describe("Courts API", () => {
 
     it("should return 404 when court not found", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.court.findUnique as jest.Mock).mockResolvedValue(null);
@@ -468,7 +468,7 @@ describe("Courts API", () => {
 
     it("should return 404 when court does not belong to club", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingCourt = {

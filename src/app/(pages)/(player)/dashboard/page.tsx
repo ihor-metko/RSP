@@ -11,7 +11,6 @@ import { RequestTrainingModal } from "../../../../../archived_features/component
 import { DarkModeToggle, LanguageSwitcher } from "@/components/ui";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
-import { Roles } from "@/constants/roles";
 import "./player-dashboard.css";
 
 interface Club {
@@ -140,15 +139,9 @@ export default function PlayerDashboardPage() {
       return;
     }
 
-    if (session.user.role !== Roles.Player) {
-      // Redirect non-player roles to appropriate pages
-      if (session.user.role === Roles.Coach) {
-        router.push("/coach/dashboard");
-      } else if (session.user.role === Roles.SuperAdmin) {
-        router.push("/admin/clubs");
-      } else {
-        router.push("/");
-      }
+    // Root admins should go to admin dashboard
+    if (session.user.isRoot) {
+      router.push("/admin/dashboard");
     }
   }, [session, status, router]);
 
@@ -237,7 +230,8 @@ export default function PlayerDashboardPage() {
 
   // Initial data fetch
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.role === Roles.Player) {
+    // Fetch data when user is authenticated and not a root admin
+    if (status === "authenticated" && session?.user && !session.user.isRoot) {
       fetchClubs();
       fetchUpcomingBookings();
       fetchCoaches();
@@ -322,8 +316,8 @@ export default function PlayerDashboardPage() {
     );
   }
 
-  // Guard check
-  if (!session?.user || session.user.role !== Roles.Player) {
+  // Guard check - show null for root admins (they get redirected) and unauthenticated users
+  if (!session?.user || session.user.isRoot) {
     return null;
   }
 

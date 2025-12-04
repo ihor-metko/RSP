@@ -109,7 +109,7 @@ describe("Price Rules API", () => {
 
     it("should return 403 when user is not admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = new Request("http://localhost:3000/api/courts/court-123/price-rules", {
@@ -132,7 +132,7 @@ describe("Price Rules API", () => {
 
     it("should create a weekly price rule for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const mockCourt = { id: "court-123", name: "Test Court" };
@@ -173,7 +173,7 @@ describe("Price Rules API", () => {
 
     it("should create a date-specific price rule for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const mockCourt = { id: "court-123", name: "Test Court" };
@@ -214,7 +214,7 @@ describe("Price Rules API", () => {
 
     it("should return 409 when rule conflicts with existing rule", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const mockCourt = { id: "court-123", name: "Test Court" };
@@ -247,7 +247,7 @@ describe("Price Rules API", () => {
 
     it("should return 400 when startTime >= endTime", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.court.findUnique as jest.Mock).mockResolvedValue({ id: "court-123" });
@@ -272,7 +272,7 @@ describe("Price Rules API", () => {
 
     it("should return 400 when both dayOfWeek and date are provided", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.court.findUnique as jest.Mock).mockResolvedValue({ id: "court-123" });
@@ -300,7 +300,7 @@ describe("Price Rules API", () => {
   describe("PUT /api/courts/:courtId/price-rules/:ruleId", () => {
     it("should update price rule for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingRule = {
@@ -344,7 +344,7 @@ describe("Price Rules API", () => {
 
     it("should return 404 when rule not found", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.courtPriceRule.findUnique as jest.Mock).mockResolvedValue(null);
@@ -371,7 +371,7 @@ describe("Price Rules API", () => {
   describe("DELETE /api/courts/:courtId/price-rules/:ruleId", () => {
     it("should delete price rule for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       const existingRule = {
@@ -401,7 +401,7 @@ describe("Price Rules API", () => {
 
     it("should return 404 when rule not found", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.courtPriceRule.findUnique as jest.Mock).mockResolvedValue(null);

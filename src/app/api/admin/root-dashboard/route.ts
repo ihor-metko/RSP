@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
-import { Roles } from "@/constants/roles";
+import { requireRootAdmin } from "@/lib/requireRole";
 import type { PlatformStatistics } from "@/types/admin";
 
 /**
@@ -16,7 +15,7 @@ import type { PlatformStatistics } from "@/types/admin";
  */
 
 export async function GET(request: Request) {
-  const authResult = await requireRole(request, [Roles.RootAdmin]);
+  const authResult = await requireRootAdmin(request);
 
   if (!authResult.authorized) {
     return authResult.response;

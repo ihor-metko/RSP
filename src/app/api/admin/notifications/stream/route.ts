@@ -1,11 +1,10 @@
 import { auth } from "@/lib/auth";
-import { isAdminRole } from "@/constants/roles";
 import { notificationEmitter, NotificationPayload } from "@/lib/notificationEmitter";
 
 /**
  * GET /api/admin/notifications/stream
  * Server-Sent Events endpoint for real-time admin notifications
- * Only accessible by authenticated admins
+ * Only accessible by authenticated root admins
  */
 export async function GET(): Promise<Response> {
   // Authenticate the request
@@ -18,7 +17,7 @@ export async function GET(): Promise<Response> {
     });
   }
 
-  if (!isAdminRole(session.user.role)) {
+  if (!session.user.isRoot) {
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },

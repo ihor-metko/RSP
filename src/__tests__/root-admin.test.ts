@@ -92,7 +92,7 @@ describe("Root Admin Module", () => {
     it("should return true when root admin exists", async () => {
       (prisma.user.findFirst as jest.Mock).mockResolvedValue({
         id: "root-admin-id",
-        role: "root_admin",
+        isRoot: true,
       });
 
       const result = await checkExistingRootAdmin(prisma as never);

@@ -48,7 +48,7 @@ describe("GET /api/coach/bookings", () => {
 
     it("should return 403 when user is not a coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = createRequest("2024-01-15");
@@ -63,7 +63,7 @@ describe("GET /api/coach/bookings", () => {
   describe("Input validation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
     });
 
@@ -98,7 +98,7 @@ describe("GET /api/coach/bookings", () => {
   describe("Coach profile validation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
     });
 
@@ -117,7 +117,7 @@ describe("GET /api/coach/bookings", () => {
   describe("Successful booking fetch", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -191,7 +191,7 @@ describe("GET /api/coach/bookings", () => {
   describe("Admin access", () => {
     it("should allow admin to fetch coach bookings", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({

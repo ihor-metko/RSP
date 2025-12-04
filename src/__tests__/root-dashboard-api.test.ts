@@ -45,7 +45,7 @@ describe("Root Dashboard API", () => {
 
     it("should return 403 when user is not root_admin", async () => {
       (auth as jest.Mock).mockResolvedValue({
-        user: { id: "user-1", role: "super_admin" },
+        user: { id: "user-1", isRoot: true },
       });
 
       const response = await GET(mockRequest);
@@ -57,7 +57,7 @@ describe("Root Dashboard API", () => {
 
     it("should return 403 when user is a player", async () => {
       (auth as jest.Mock).mockResolvedValue({
-        user: { id: "user-1", role: "player" },
+        user: { id: "user-1", isRoot: false },
       });
 
       const response = await GET(mockRequest);
@@ -69,7 +69,7 @@ describe("Root Dashboard API", () => {
 
     it("should return statistics for root_admin user", async () => {
       (auth as jest.Mock).mockResolvedValue({
-        user: { id: "root-admin-1", role: "root_admin" },
+        user: { id: "root-admin-1", isRoot: true },
       });
       (prisma.club.count as jest.Mock).mockResolvedValue(5);
       (prisma.user.count as jest.Mock).mockResolvedValue(100);
@@ -88,7 +88,7 @@ describe("Root Dashboard API", () => {
 
     it("should only count pending and paid bookings as active", async () => {
       (auth as jest.Mock).mockResolvedValue({
-        user: { id: "root-admin-1", role: "root_admin" },
+        user: { id: "root-admin-1", isRoot: true },
       });
       (prisma.club.count as jest.Mock).mockResolvedValue(0);
       (prisma.user.count as jest.Mock).mockResolvedValue(0);
@@ -107,7 +107,7 @@ describe("Root Dashboard API", () => {
 
     it("should handle database errors gracefully", async () => {
       (auth as jest.Mock).mockResolvedValue({
-        user: { id: "root-admin-1", role: "root_admin" },
+        user: { id: "root-admin-1", isRoot: true },
       });
       (prisma.club.count as jest.Mock).mockRejectedValue(new Error("Database error"));
 
@@ -120,7 +120,7 @@ describe("Root Dashboard API", () => {
 
     it("should return zero values when no data exists", async () => {
       (auth as jest.Mock).mockResolvedValue({
-        user: { id: "root-admin-1", role: "root_admin" },
+        user: { id: "root-admin-1", isRoot: true },
       });
       (prisma.club.count as jest.Mock).mockResolvedValue(0);
       (prisma.user.count as jest.Mock).mockResolvedValue(0);

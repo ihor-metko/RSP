@@ -53,7 +53,7 @@ describe("Admin Redirect Middleware", () => {
   describe("non-admin authenticated users", () => {
     it("should allow player users to see landing page", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "user1", email: "player@test.com", role: "player" },
+        user: { id: "user1", email: "player@test.com", isRoot: false },
       });
 
       const request = createMockRequest("/");
@@ -65,7 +65,7 @@ describe("Admin Redirect Middleware", () => {
 
     it("should allow coach users to see landing page", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "user2", email: "coach@test.com", role: "coach" },
+        user: { id: "user2", email: "coach@test.com", isRoot: false },
       });
 
       const request = createMockRequest("/");
@@ -79,7 +79,7 @@ describe("Admin Redirect Middleware", () => {
   describe("super_admin users", () => {
     it("should redirect super_admin users from landing page to admin dashboard", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", role: "super_admin" },
+        user: { id: "admin1", email: "admin@test.com", isRoot: true },
       });
 
       const request = createMockRequest("/");
@@ -94,7 +94,7 @@ describe("Admin Redirect Middleware", () => {
   describe("root_admin users", () => {
     it("should redirect root_admin users from landing page to admin dashboard", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "root1", email: "root@test.com", role: "root_admin" },
+        user: { id: "root1", email: "root@test.com", isRoot: true },
       });
 
       const request = createMockRequest("/");
@@ -109,7 +109,7 @@ describe("Admin Redirect Middleware", () => {
   describe("admin users", () => {
     it("should redirect admin users from landing page to admin dashboard", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "admin2", email: "admin2@test.com", role: "admin" },
+        user: { id: "admin2", email: "admin2@test.com", isRoot: true },
       });
 
       const request = createMockRequest("/");
@@ -124,7 +124,7 @@ describe("Admin Redirect Middleware", () => {
   describe("non-root paths", () => {
     it("should not affect requests to other paths for super_admin users", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", role: "super_admin" },
+        user: { id: "admin1", email: "admin@test.com", isRoot: true },
       });
 
       const request = createMockRequest("/clubs");
@@ -136,7 +136,7 @@ describe("Admin Redirect Middleware", () => {
 
     it("should allow super_admin access to /admin/* routes", async () => {
       mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", role: "super_admin" },
+        user: { id: "admin1", email: "admin@test.com", isRoot: true },
       });
 
       const request = createMockRequest("/admin/clubs");

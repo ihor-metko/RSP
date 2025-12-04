@@ -1,23 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
-import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
-import type { UserRole } from "@/lib/auth";
+import { getRoleHomepage } from "@/utils/roleRedirect";
+
+interface AuthRequest extends NextRequest {
+  auth: {
+    user?: {
+      id: string;
+      email?: string | null;
+      name?: string | null;
+      isRoot?: boolean;
+    };
+  } | null;
+}
 
 /**
- * Admin roles that should be redirected from the landing page.
- * This array is designed for extensibility if additional admin-level roles
- * (e.g., club_manager) are added in the future.
- */
-const ADMIN_ROLES: UserRole[] = ["root_admin", "super_admin", "admin"];
-
-/**
- * Middleware to redirect admin users from the landing page to admin dashboard
+ * Middleware to redirect root admin users from the landing page to admin dashboard
  *
  * - Unauthenticated users: See public landing page
- * - Players/coaches: See player landing page
- * - Admin users (root_admin, super_admin, admin): Redirected to /admin/clubs
+ * - Regular users: See public landing page
+ * - Root admin users (isRoot=true): Redirected to /admin/dashboard
  */
-export default auth((req) => {
+export default auth((req: AuthRequest) => {
   try {
     const { pathname } = req.nextUrl;
 
@@ -33,18 +36,16 @@ export default auth((req) => {
       return NextResponse.next();
     }
 
-    const userRole = session.user.role;
+    const isRoot = session.user.isRoot;
 
-    // Check if user has admin role
-    if (userRole && ADMIN_ROLES.includes(userRole)) {
-      // All admin roles should have a defined homepage in ROLE_HOMEPAGES
-      // The null coalescing uses super_admin as fallback for safety
-      const adminHomepage = ROLE_HOMEPAGES[userRole] ?? "/admin/clubs";
+    // Check if user is root admin
+    if (isRoot) {
+      const adminHomepage = getRoleHomepage(isRoot);
       const redirectUrl = new URL(adminHomepage, req.url);
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Non-admin authenticated users see the landing page
+    // Non-root authenticated users see the landing page
     return NextResponse.next();
   } catch (error) {
     // On error, default to allowing access (don't block public access)

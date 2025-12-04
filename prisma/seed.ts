@@ -4,41 +4,53 @@ import { hash } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create 1 super_admin user
+  // Create 1 root admin user
   const adminUser = await prisma.user.create({
     data: {
       name: "Admin User",
       email: "admin@test.com",
       password: await hash("password123", 12),
-      role: "super_admin",
+      isRoot: false,
     },
   });
 
-  // Create 1 coach user
+  // Create 1 coach user (regular user who will be assigned as coach)
   const coachUser = await prisma.user.create({
     data: {
       name: "Coach User",
       email: "coach@test.com",
       password: await hash("password123", 12),
-      role: "coach",
+      isRoot: false,
     },
   });
 
-  // Create 1 player user
+  // Create 1 player user (regular platform user)
   const playerUser = await prisma.user.create({
     data: {
       name: "Player User",
       email: "player@test.com",
       password: await hash("password123", 12),
-      role: "player",
+      isRoot: false,
     },
   });
 
-  // Create 1 club
+  // Create an organization first
+  const organization = await prisma.organization.create({
+    data: {
+      name: "Default Organization",
+      slug: "default-org",
+      createdById: adminUser.id,
+    },
+  });
+
+  // Create 1 club linked to organization
   const club = await prisma.club.create({
     data: {
       name: "Padel Club Central",
+      slug: "padel-club-central",
       location: "123 Main St, City Center",
+      organizationId: organization.id,
+      createdById: adminUser.id,
     },
   });
 
@@ -85,8 +97,26 @@ async function main() {
     },
   });
 
+  // Create organization membership for admin
+  await prisma.membership.create({
+    data: {
+      userId: adminUser.id,
+      organizationId: organization.id,
+      role: "ORGANIZATION_ADMIN",
+    },
+  });
+
+  // Create club membership for coach user
+  await prisma.clubMembership.create({
+    data: {
+      userId: coachUser.id,
+      clubId: club.id,
+      role: "MEMBER",
+    },
+  });
+
   console.log("Seed data created successfully!");
-  console.log({ adminUser, coachUser, playerUser, club, court1, court2, court3, coach });
+  console.log({ adminUser, coachUser, playerUser, organization, club, court1, court2, court3, coach });
 }
 
 main()

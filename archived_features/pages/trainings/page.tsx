@@ -21,9 +21,10 @@ export default function TrainingsPage() {
       return;
     }
 
-    // Only players can access this page
-    if (session.user.role !== "player") {
-      router.push("/");
+    // In the new system, players are regular users (non-root)
+    // Root admins should go to admin dashboard
+    if (session.user.isRoot) {
+      router.push("/admin/dashboard");
       return;
     }
   }, [session, status, router]);
@@ -36,7 +37,7 @@ export default function TrainingsPage() {
     );
   }
 
-  if (!session?.user || session.user.role !== "player") {
+  if (!session?.user || session.user.isRoot) {
     return null;
   }
 

@@ -37,7 +37,7 @@ describe("Admin Notifications Stream API", () => {
       (auth as jest.Mock).mockResolvedValue({
         user: {
           id: "user-123",
-          role: "player",
+          isRoot: false,
         },
       });
 
@@ -52,7 +52,7 @@ describe("Admin Notifications Stream API", () => {
       (auth as jest.Mock).mockResolvedValue({
         user: {
           id: "coach-123",
-          role: "coach",
+          isRoot: false,
         },
       });
 
@@ -67,7 +67,7 @@ describe("Admin Notifications Stream API", () => {
       (auth as jest.Mock).mockResolvedValue({
         user: {
           id: "admin-123",
-          role: "super_admin",
+          isRoot: true,
         },
       });
 

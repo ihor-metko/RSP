@@ -49,7 +49,7 @@ describe("GET /api/coach/availability", () => {
 
     it("should return 403 when user is not a coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = createGetRequest("2024-01-15");
@@ -64,7 +64,7 @@ describe("GET /api/coach/availability", () => {
   describe("Input validation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
     });
 
@@ -90,7 +90,7 @@ describe("GET /api/coach/availability", () => {
   describe("Successful availability fetch", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -179,7 +179,7 @@ describe("POST /api/coach/availability", () => {
   describe("Input validation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -242,7 +242,7 @@ describe("POST /api/coach/availability", () => {
   describe("Successful slot creation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({

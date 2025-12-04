@@ -51,7 +51,7 @@ describe("GET /api/coach/timeoff", () => {
 
     it("should return 403 when user is not a coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = createGetRequest();
@@ -66,7 +66,7 @@ describe("GET /api/coach/timeoff", () => {
   describe("Successful time off fetch", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -156,7 +156,7 @@ describe("POST /api/coach/timeoff", () => {
 
     it("should return 403 when user is not a coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = createPostRequest({ date: "2024-01-15" });
@@ -171,7 +171,7 @@ describe("POST /api/coach/timeoff", () => {
   describe("Input validation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -252,7 +252,7 @@ describe("POST /api/coach/timeoff", () => {
   describe("Conflict detection", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -330,7 +330,7 @@ describe("POST /api/coach/timeoff", () => {
   describe("Successful time off creation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({

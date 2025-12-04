@@ -182,7 +182,7 @@ export default function Header({ title, showSearch = false, hideProfile = false 
 
   const isLoading = status === "loading";
   const isAuthenticated = status === "authenticated" && session?.user;
-  const userRole = session?.user?.role;
+  const isRoot = session?.user?.isRoot ?? false;
   const userName = session?.user?.name;
   const userEmail = session?.user?.email;
 
@@ -266,7 +266,7 @@ export default function Header({ title, showSearch = false, hideProfile = false 
                 <UserMenu
                   userName={userName}
                   userEmail={userEmail}
-                  userRole={userRole}
+                  isRoot={isRoot}
                 />
               ) : (
                 <div className="im-header-auth-links">

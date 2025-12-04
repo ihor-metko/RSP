@@ -7,7 +7,6 @@ import { useTranslations } from "next-intl";
 import { Input, IMLink } from "@/components/ui";
 import { getRoleHomepage } from "@/utils/roleRedirect";
 import { validateRedirectUrl } from "@/utils/redirectValidation";
-import type { UserRole } from "@/lib/auth";
 
 export default function SignInPage() {
   const router = useRouter();
@@ -34,14 +33,14 @@ export default function SignInPage() {
   // Redirect already logged-in users to their role-specific homepage or redirectTo
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
-      const targetPath = redirectTo || getRoleHomepage(session.user.role as UserRole | undefined);
+      const targetPath = redirectTo || getRoleHomepage(session.user.isRoot);
       router.push(targetPath);
     }
   }, [status, session, router, redirectTo]);
 
-  const handleRedirect = useCallback((userName: string | null | undefined, userRole: UserRole | undefined) => {
+  const handleRedirect = useCallback((userName: string | null | undefined, isRoot: boolean | undefined) => {
     // Prefer redirectTo from query params, fallback to role-based homepage
-    const redirectPath = redirectTo || getRoleHomepage(userRole);
+    const redirectPath = redirectTo || getRoleHomepage(isRoot);
 
     // Show welcome toast if user has a name
     if (userName) {
@@ -78,10 +77,10 @@ export default function SignInPage() {
         if (updatedSession?.user) {
           handleRedirect(
             updatedSession.user.name,
-            updatedSession.user.role as UserRole | undefined
+            updatedSession.user.isRoot
           );
         } else {
-          // Fallback: redirect to default player page if session update fails
+          // Fallback: redirect to default page if session update fails
           router.push(getRoleHomepage(undefined));
           router.refresh();
         }

@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { Roles, type UserRole } from "@/constants/roles";
 import "./AdminSidebar.css";
 
 /**
@@ -49,26 +48,6 @@ function ClubsIcon() {
     >
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  );
-}
-
-function UsersIcon() {
-  return (
-    <svg
-      className="im-sidebar-icon"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   );
 }
@@ -210,23 +189,22 @@ interface NavItem {
   href?: string;
   labelKey: string;
   icon: React.ReactNode;
-  roles: UserRole[];
+  rootOnly?: boolean; // If true, only visible to root admins
   children?: NavItem[];
 }
 
 /**
- * Get navigation items based on role
- * Dynamically generates navigation structure based on user permissions
+ * Get navigation items for root admins
+ * All items are visible to root admins
  */
 function getNavItems(): NavItem[] {
   return [
-    // Dashboard - visible to all admin roles
+    // Dashboard
     {
       id: "dashboard",
       href: "/admin/dashboard",
       labelKey: "sidebar.dashboard",
       icon: <DashboardIcon />,
-      roles: [Roles.RootAdmin, Roles.SuperAdmin, Roles.Admin],
     },
     // Platform Statistics - Root Admin only
     {
@@ -234,61 +212,28 @@ function getNavItems(): NavItem[] {
       href: "/admin/dashboard",
       labelKey: "sidebar.statistics",
       icon: <StatsIcon />,
-      roles: [Roles.RootAdmin],
+      rootOnly: true,
     },
-    // Clubs Management - All admin roles
+    // Clubs Management
     {
       id: "clubs",
       href: "/admin/clubs",
       labelKey: "sidebar.clubs",
       icon: <ClubsIcon />,
-      roles: [Roles.RootAdmin, Roles.SuperAdmin, Roles.Admin],
     },
-    // User Management - Root and Super Admin
-    {
-      id: "users",
-      labelKey: "sidebar.users",
-      icon: <UsersIcon />,
-      roles: [Roles.RootAdmin, Roles.SuperAdmin],
-      children: [
-        {
-          id: "super-admins",
-          href: "/admin/users?role=super_admin",
-          labelKey: "sidebar.superAdmins",
-          icon: <UsersIcon />,
-          roles: [Roles.RootAdmin],
-        },
-        {
-          id: "admins",
-          href: "/admin/users?role=admin",
-          labelKey: "sidebar.admins",
-          icon: <UsersIcon />,
-          roles: [Roles.RootAdmin, Roles.SuperAdmin],
-        },
-        {
-          id: "coaches",
-          href: "/admin/users?role=coach",
-          labelKey: "sidebar.coaches",
-          icon: <UsersIcon />,
-          roles: [Roles.RootAdmin, Roles.SuperAdmin],
-        },
-      ],
-    },
-    // Bookings - All admin roles
+    // Bookings
     {
       id: "bookings",
       href: "/admin/bookings",
       labelKey: "sidebar.bookings",
       icon: <BookingsIcon />,
-      roles: [Roles.RootAdmin, Roles.SuperAdmin, Roles.Admin],
     },
-    // Notifications - All admin roles
+    // Notifications
     {
       id: "notifications",
       href: "/admin/notifications",
       labelKey: "sidebar.notifications",
       icon: <NotificationsIcon />,
-      roles: [Roles.RootAdmin, Roles.SuperAdmin, Roles.Admin],
     },
     // Global Settings - Root Admin only
     {
@@ -296,49 +241,35 @@ function getNavItems(): NavItem[] {
       href: "/admin/settings",
       labelKey: "sidebar.settings",
       icon: <SettingsIcon />,
-      roles: [Roles.RootAdmin],
+      rootOnly: true,
     },
   ];
 }
 
 /**
- * Filter navigation items based on user role
+ * Filter navigation items based on isRoot status
  */
-function filterNavByRole(items: NavItem[], role: UserRole | undefined): NavItem[] {
-  if (!role) return [];
-
+function filterNavByRoot(items: NavItem[], isRoot: boolean): NavItem[] {
   return items
-    .filter((item) => item.roles.includes(role as Roles))
+    .filter((item) => !item.rootOnly || isRoot)
     .map((item) => ({
       ...item,
-      children: item.children ? filterNavByRole(item.children, role) : undefined,
+      children: item.children ? filterNavByRoot(item.children, isRoot) : undefined,
     }))
     .filter((item) => !item.children || item.children.length > 0);
 }
 
 /**
- * Get role display info
+ * Get role display info for root admins
  */
-function getRoleInfo(role: UserRole | undefined, t: ReturnType<typeof useTranslations>) {
-  switch (role) {
-    case Roles.RootAdmin:
-      return {
-        label: t("sidebar.roleRootAdmin"),
-        className: "im-sidebar-role im-sidebar-role--root",
-      };
-    case Roles.SuperAdmin:
-      return {
-        label: t("sidebar.roleSuperAdmin"),
-        className: "im-sidebar-role im-sidebar-role--super",
-      };
-    case Roles.Admin:
-      return {
-        label: t("sidebar.roleAdmin"),
-        className: "im-sidebar-role im-sidebar-role--admin",
-      };
-    default:
-      return null;
+function getRoleInfo(isRoot: boolean, t: ReturnType<typeof useTranslations>) {
+  if (isRoot) {
+    return {
+      label: t("sidebar.roleRootAdmin"),
+      className: "im-sidebar-role im-sidebar-role--root",
+    };
   }
+  return null;
 }
 
 export interface AdminSidebarProps {
@@ -372,13 +303,13 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
-  const userRole = session?.user?.role as UserRole | undefined;
+  const isRoot = session?.user?.isRoot ?? false;
 
-  // Get filtered navigation items based on role
+  // Get filtered navigation items based on isRoot status
   const navItems = useMemo(() => {
     const allItems = getNavItems();
-    return filterNavByRole(allItems, userRole);
-  }, [userRole]);
+    return filterNavByRoot(allItems, isRoot);
+  }, [isRoot]);
 
   // Close sidebar when clicking outside on mobile
   const handleClickOutside = useCallback(
@@ -448,10 +379,10 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
     [t]
   );
 
-  const roleInfo = getRoleInfo(userRole, t);
+  const roleInfo = getRoleInfo(isRoot, t);
 
-  // Don't render for non-admin users
-  if (!userRole || ![Roles.RootAdmin, Roles.SuperAdmin, Roles.Admin].includes(userRole as Roles)) {
+  // Don't render for non-root users
+  if (!isRoot) {
     return null;
   }
 

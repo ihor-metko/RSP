@@ -11,19 +11,79 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+// Role enums for organization and club memberships
+enum MembershipRole {
+  ORGANIZATION_ADMIN
+  MEMBER
+}
+
+enum ClubMembershipRole {
+  CLUB_ADMIN
+  MEMBER
+}
+
 model User {
-  id            String    @id @default(uuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          String    @default("player")
-  createdAt     DateTime  @default(now())
-  accounts      Account[]
-  sessions      Session[]
-  coaches       Coach[]
-  bookings      Booking[]
+  id              String           @id @default(uuid())
+  name            String?
+  email           String           @unique
+  emailVerified   DateTime?
+  image           String?
+  password        String?
+  isRoot          Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
+  accounts        Account[]
+  sessions        Session[]
+  coaches         Coach[]
+  bookings        Booking[]
+  memberships     Membership[]
+  clubMemberships ClubMembership[]
+  createdOrganizations Organization[] @relation("OrganizationCreator")
+  createdClubs    Club[]           @relation("ClubCreator")
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  createdById String
+  createdBy   User         @relation("OrganizationCreator", fields: [createdById], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
+  memberships Membership[]
+  clubs       Club[]
+}
+
+model Membership {
+  id             String         @id @default(uuid())
+  userId         String
+  organizationId String
+  role           MembershipRole
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([userId, organizationId])
+}
+
+model ClubMembership {
+  id        String             @id @default(uuid())
+  userId    String
+  clubId    String
+  role      ClubMembershipRole
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club      Club               @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @default(now()) @updatedAt
+
+  @@unique([userId, clubId])
+  @@index([userId])
+  @@index([clubId])
+  @@index([userId, clubId])
 }
 
 model Account {
@@ -61,11 +121,15 @@ model VerificationToken {
 }
 
 model Club {
-  id               String        @id @default(uuid())
+  id               String           @id @default(uuid())
   name             String
-  slug             String?       @unique
+  slug             String?          @unique
+  organizationId   String?
+  organization     Organization?    @relation(fields: [organizationId], references: [id])
+  createdById      String?
+  createdBy        User?            @relation("ClubCreator", fields: [createdById], references: [id])
   shortDescription String?
-  longDescription  String?       @db.Text
+  longDescription  String?          @db.Text
   location         String
   city             String?
   country          String?
@@ -74,23 +138,26 @@ model Club {
   phone            String?
   email            String?
   website          String?
-  socialLinks      String?       @db.Text  // JSON string for social links
+  socialLinks      String?          @db.Text  // JSON string for social links
   contactInfo      String?
   openingHours     String?
   logo             String?
   heroImage        String?
-  defaultCurrency  String?       @default("USD")
-  timezone         String?       @default("UTC")
-  isPublic         Boolean       @default(true)
-  tags             String?       // JSON array of tags
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @default(now()) @updatedAt
+  defaultCurrency  String?          @default("USD")
+  timezone         String?          @default("UTC")
+  isPublic         Boolean          @default(true)
+  tags             String?          // JSON array of tags
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @default(now()) @updatedAt
   courts           Court[]
   coaches          Coach[]
   pricingRules     PricingRule[]
   gallery          ClubGallery[]
   businessHours    ClubBusinessHours[]
   specialHours     ClubSpecialHours[]
+  clubMemberships  ClubMembership[]
+
+  @@index([organizationId])
 }
 
 model ClubGallery {

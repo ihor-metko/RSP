@@ -140,7 +140,7 @@ describe("Admin Club Detail API - GET", () => {
 
     it("should return 403 when user is not admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = new Request(
@@ -159,7 +159,7 @@ describe("Admin Club Detail API - GET", () => {
 
     it("should return 404 when club not found", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(null);
@@ -180,7 +180,7 @@ describe("Admin Club Detail API - GET", () => {
 
     it("should return full club data with all relations for admin", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-123", role: "super_admin" },
+        user: { id: "admin-123", isRoot: true },
       });
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClubWithRelations);

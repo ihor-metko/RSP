@@ -1,33 +1,18 @@
 /**
  * Role-based redirect utilities for the application.
- * Uses the centralized Roles enum for type safety and consistency.
+ * Uses the new isRoot field for root admin identification.
  */
 
-import { Roles, type UserRole } from "@/constants/roles";
-
 /**
- * Role-specific homepage paths.
- * Always use Roles enum values as keys.
- */
-export const ROLE_HOMEPAGES: Record<UserRole, string> = {
-  [Roles.RootAdmin]: "/admin/dashboard",
-  [Roles.SuperAdmin]: "/admin/clubs",
-  [Roles.Admin]: "/admin/clubs",
-  [Roles.Coach]: "/coach/dashboard",
-  [Roles.Player]: "/",
-};
-
-/**
- * Get the homepage path for a given user role
- * Priority: super_admin > admin > coach > player (for users with multiple roles, if applicable)
+ * Get the homepage path for a user based on their isRoot status.
+ * Root admins go to the admin dashboard, regular users go to the home page.
  *
- * @param role User's role (should be a Roles enum value)
- * @returns The homepage path for the role
+ * @param isRoot Whether the user is a root admin
+ * @returns The homepage path
  */
-export function getRoleHomepage(role: UserRole | undefined): string {
-  if (!role) {
-    return ROLE_HOMEPAGES[Roles.Player];
+export function getRoleHomepage(isRoot: boolean | undefined): string {
+  if (isRoot) {
+    return "/admin/dashboard";
   }
-
-  return ROLE_HOMEPAGES[role] ?? ROLE_HOMEPAGES[Roles.Player];
+  return "/";
 }

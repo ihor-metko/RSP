@@ -60,7 +60,7 @@ describe("requireRole middleware", () => {
 
   it("should return 403 Forbidden when user role is not in allowed roles", async () => {
     mockAuth.mockResolvedValue({
-      user: { id: "user-123", role: "player" },
+      user: { id: "user-123", isRoot: false },
     });
 
     const request = new Request("http://localhost:3000/api/admin", {
@@ -79,7 +79,7 @@ describe("requireRole middleware", () => {
 
   it("should return 403 Forbidden when coach tries to access super_admin-only route", async () => {
     mockAuth.mockResolvedValue({
-      user: { id: "user-123", role: "coach" },
+      user: { id: "user-123", isRoot: false },
     });
 
     const request = new Request("http://localhost:3000/api/admin/users", {
@@ -98,7 +98,7 @@ describe("requireRole middleware", () => {
 
   it("should authorize super_admin for super_admin-only routes", async () => {
     mockAuth.mockResolvedValue({
-      user: { id: "admin-123", role: "super_admin" },
+      user: { id: "admin-123", isRoot: true },
     });
 
     const request = new Request("http://localhost:3000/api/admin", {
@@ -116,7 +116,7 @@ describe("requireRole middleware", () => {
 
   it("should authorize super_admin for coach routes", async () => {
     mockAuth.mockResolvedValue({
-      user: { id: "admin-123", role: "super_admin" },
+      user: { id: "admin-123", isRoot: true },
     });
 
     const request = new Request("http://localhost:3000/api/coach", {
@@ -134,7 +134,7 @@ describe("requireRole middleware", () => {
 
   it("should authorize coach for coach routes", async () => {
     mockAuth.mockResolvedValue({
-      user: { id: "coach-123", role: "coach" },
+      user: { id: "coach-123", isRoot: false },
     });
 
     const request = new Request("http://localhost:3000/api/coach", {
@@ -152,7 +152,7 @@ describe("requireRole middleware", () => {
 
   it("should authorize player for booking routes", async () => {
     mockAuth.mockResolvedValue({
-      user: { id: "player-123", role: "player" },
+      user: { id: "player-123", isRoot: false },
     });
 
     const request = new Request("http://localhost:3000/api/bookings", {

@@ -1,74 +1,84 @@
 /**
- * Centralized Roles enum for the application.
- * All role checks, assignments, and comparisons should use these enum values
- * to ensure type safety and consistency across the platform.
+ * Centralized Roles and membership enums for the application.
+ * 
+ * The platform uses a context-specific role system:
+ * - isRoot: Boolean on User model to identify platform root admin
+ * - MembershipRole: Role within an Organization (ORGANIZATION_ADMIN, MEMBER)
+ * - ClubMembershipRole: Role within a Club (CLUB_ADMIN, MEMBER)
  *
  * @example
- * import { Roles } from "@/constants/roles";
+ * import { MembershipRole, ClubMembershipRole } from "@/constants/roles";
  *
- * // Role checks
- * if (user.role === Roles.SuperAdmin) { ... }
+ * // Check if user is root admin
+ * if (user.isRoot) { ... }
  *
- * // Role assignments
- * const newUser = { role: Roles.Player };
+ * // Check organization membership role
+ * if (membership.role === MembershipRole.ORGANIZATION_ADMIN) { ... }
  *
- * // API route authorization
- * await requireRole(request, [Roles.SuperAdmin, Roles.Admin]);
+ * // Check club membership role
+ * if (clubMembership.role === ClubMembershipRole.CLUB_ADMIN) { ... }
  */
-export enum Roles {
-  RootAdmin = "root_admin",
-  SuperAdmin = "super_admin",
-  Admin = "admin",
-  Coach = "coach",
-  Player = "player",
+
+/**
+ * Membership roles for Organization memberships.
+ * These define the user's role within an organization context.
+ */
+export enum MembershipRole {
+  ORGANIZATION_ADMIN = "ORGANIZATION_ADMIN",
+  MEMBER = "MEMBER",
 }
 
 /**
- * Type representing valid user roles in the system.
- * Derived from the Roles enum values.
+ * Membership roles for Club memberships.
+ * These define the user's role within a club context.
  */
-export type UserRole = `${Roles}`;
-
-/**
- * Array of all valid user roles.
- * Useful for validation and iteration.
- */
-export const VALID_ROLES: UserRole[] = Object.values(Roles);
-
-/**
- * The default role assigned to new users.
- */
-export const DEFAULT_ROLE: UserRole = Roles.Player;
-
-/**
- * Array of admin roles that have access to admin functionality.
- * Includes root_admin, super_admin, and admin roles.
- */
-export const ADMIN_ROLES: UserRole[] = [Roles.RootAdmin, Roles.SuperAdmin, Roles.Admin];
-
-/**
- * Type guard to check if a role is an admin role.
- * @param role - The role to check
- * @returns true if the role is an admin role
- */
-export function isAdminRole(role: unknown): boolean {
-  return typeof role === "string" && ADMIN_ROLES.includes(role as UserRole);
+export enum ClubMembershipRole {
+  CLUB_ADMIN = "CLUB_ADMIN",
+  MEMBER = "MEMBER",
 }
 
 /**
- * Type guard to check if a value is a valid user role.
+ * Array of all valid membership roles.
+ */
+export const VALID_MEMBERSHIP_ROLES: MembershipRole[] = Object.values(MembershipRole);
+
+/**
+ * Array of all valid club membership roles.
+ */
+export const VALID_CLUB_MEMBERSHIP_ROLES: ClubMembershipRole[] = Object.values(ClubMembershipRole);
+
+/**
+ * Type guard to check if a value is a valid MembershipRole.
  * @param role - The value to check
- * @returns true if the value is a valid UserRole
+ * @returns true if the value is a valid MembershipRole
  */
-export function isValidRole(role: unknown): role is UserRole {
-  return typeof role === "string" && VALID_ROLES.includes(role as UserRole);
+export function isValidMembershipRole(role: unknown): role is MembershipRole {
+  return typeof role === "string" && VALID_MEMBERSHIP_ROLES.includes(role as MembershipRole);
 }
 
 /**
- * Validates and returns a role, defaulting to Player if invalid.
- * @param role - The role to validate
- * @returns A valid UserRole
+ * Type guard to check if a value is a valid ClubMembershipRole.
+ * @param role - The value to check
+ * @returns true if the value is a valid ClubMembershipRole
  */
-export function validateRole(role: unknown): UserRole {
-  return isValidRole(role) ? role : DEFAULT_ROLE;
+export function isValidClubMembershipRole(role: unknown): role is ClubMembershipRole {
+  return typeof role === "string" && VALID_CLUB_MEMBERSHIP_ROLES.includes(role as ClubMembershipRole);
+}
+
+/**
+ * Check if a user is an organization admin based on their membership.
+ * @param role - The membership role to check
+ * @returns true if the role is ORGANIZATION_ADMIN
+ */
+export function isOrganizationAdmin(role: MembershipRole): boolean {
+  return role === MembershipRole.ORGANIZATION_ADMIN;
+}
+
+/**
+ * Check if a user is a club admin based on their club membership.
+ * @param role - The club membership role to check
+ * @returns true if the role is CLUB_ADMIN
+ */
+export function isClubAdmin(role: ClubMembershipRole): boolean {
+  return role === ClubMembershipRole.CLUB_ADMIN;
 }

@@ -57,7 +57,7 @@ describe("PUT /api/coach/timeoff/[id]", () => {
 
     it("should return 403 when user is not a coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = createPutRequest({ reason: "Updated reason" });
@@ -70,7 +70,7 @@ describe("PUT /api/coach/timeoff/[id]", () => {
 
     it("should return 403 when coach tries to update another coach's time off", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -99,7 +99,7 @@ describe("PUT /api/coach/timeoff/[id]", () => {
   describe("Input validation", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -153,7 +153,7 @@ describe("PUT /api/coach/timeoff/[id]", () => {
   describe("Successful time off update", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -205,7 +205,7 @@ describe("PUT /api/coach/timeoff/[id]", () => {
 
     it("should allow admin to update any coach's time off", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-user", role: "super_admin" },
+        user: { id: "admin-user", isRoot: true },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -276,7 +276,7 @@ describe("DELETE /api/coach/timeoff/[id]", () => {
 
     it("should return 403 when user is not a coach", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "user-123", role: "player" },
+        user: { id: "user-123", isRoot: false },
       });
 
       const request = createDeleteRequest();
@@ -289,7 +289,7 @@ describe("DELETE /api/coach/timeoff/[id]", () => {
 
     it("should return 403 when coach tries to delete another coach's time off", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -318,7 +318,7 @@ describe("DELETE /api/coach/timeoff/[id]", () => {
   describe("Error handling", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -342,7 +342,7 @@ describe("DELETE /api/coach/timeoff/[id]", () => {
   describe("Successful time off deletion", () => {
     beforeEach(() => {
       mockAuth.mockResolvedValue({
-        user: { id: "coach-user-123", role: "coach" },
+        user: { id: "coach-user-123", isRoot: false },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
@@ -373,7 +373,7 @@ describe("DELETE /api/coach/timeoff/[id]", () => {
 
     it("should allow admin to delete any coach's time off", async () => {
       mockAuth.mockResolvedValue({
-        user: { id: "admin-user", role: "super_admin" },
+        user: { id: "admin-user", isRoot: true },
       });
 
       (prisma.coach.findFirst as jest.Mock).mockResolvedValue({
