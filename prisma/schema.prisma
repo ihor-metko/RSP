@@ -23,23 +23,25 @@ enum ClubMembershipRole {
 }
 
 model User {
-  id                   String           @id @default(uuid())
-  name                 String?
-  email                String           @unique
-  emailVerified        DateTime?
-  image                String?
-  password             String?
-  isRoot               Boolean          @default(false)
-  createdAt            DateTime         @default(now())
-  updatedAt            DateTime         @default(now()) @updatedAt
-  accounts             Account[]
-  sessions             Session[]
-  coaches              Coach[]
-  bookings             Booking[]
-  memberships          Membership[]
-  clubMemberships      ClubMembership[]
-  createdOrganizations Organization[]   @relation("OrganizationCreatedBy")
-  createdClubs         Club[]           @relation("ClubCreatedBy")
+  id              String           @id @default(uuid())
+  name            String?
+  email           String           @unique
+  emailVerified   DateTime?
+  image           String?
+  password        String?
+  isRoot          Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
+  accounts        Account[]
+  sessions        Session[]
+  coaches         Coach[]
+  bookings        Booking[]
+  memberships     Membership[]
+  clubMemberships ClubMembership[]
+  organizations   Organization[]
+  clubs           Club[]
+  organizations   Organization[]
+  clubs           Club[]
 }
 
 model Account {
@@ -86,6 +88,8 @@ model Organization {
   updatedAt   DateTime     @default(now()) @updatedAt
   memberships Membership[]
   clubs       Club[]
+  user        User?        @relation(fields: [userId], references: [id])
+  userId      String?
 }
 
 model Membership {
@@ -102,6 +106,7 @@ model Membership {
   @@index([userId, organizationId])
   @@index([userId])
   @@index([organizationId])
+  @@index([organizationId, role])
 }
 
 model Club {
@@ -140,6 +145,8 @@ model Club {
   businessHours    ClubBusinessHours[]
   specialHours     ClubSpecialHours[]
   clubMemberships  ClubMembership[]
+  user             User?               @relation(fields: [userId], references: [id])
+  userId           String?
 
   @@index([organizationId])
 }
@@ -202,6 +209,7 @@ model ClubMembership {
   @@index([userId, clubId])
   @@index([userId])
   @@index([clubId])
+  @@index([clubId, role])
 }
 
 model Court {
