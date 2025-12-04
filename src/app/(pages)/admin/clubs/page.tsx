@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, IMLink, PageHeader, Breadcrumbs } from "@/components/ui";
+import { Button, Input, Modal, IMLink, PageHeader } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import type { ClubWithCounts, ClubFormData } from "@/types/club";
 import "@/components/admin/AdminClubCard.css";
@@ -179,23 +179,7 @@ export default function AdminClubsPage() {
       />
 
       <section className="rsp-content">
-        {/* Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: t("breadcrumbs.home"), href: "/" },
-            { label: t("breadcrumbs.admin"), href: "/admin/clubs" },
-            { label: t("breadcrumbs.clubs") },
-          ]}
-          className="mb-6"
-          ariaLabel={t("breadcrumbs.navigation")}
-        />
-
         <div className="im-admin-clubs-actions">
-          <div className="im-admin-clubs-actions-left">
-            <IMLink href="/">
-              {t("common.backToHome")}
-            </IMLink>
-          </div>
           <div className="im-admin-clubs-actions-right">
             <Button onClick={handleOpenCreateModal} variant="outline">
               {t("admin.clubs.quickCreate")}
