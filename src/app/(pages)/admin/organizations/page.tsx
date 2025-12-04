@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, PageHeader, Breadcrumbs, Select } from "@/components/ui";
+import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
 import "./page.css";
 
 interface OrganizationUser {
@@ -295,16 +295,16 @@ export default function AdminOrganizationsPage() {
       const payload =
         assignMode === "new"
           ? {
-              organizationId: selectedOrg?.id,
-              createNew: true,
-              name: newAdminName,
-              email: newAdminEmail,
-              password: newAdminPassword,
-            }
+            organizationId: selectedOrg?.id,
+            createNew: true,
+            name: newAdminName,
+            email: newAdminEmail,
+            password: newAdminPassword,
+          }
           : {
-              organizationId: selectedOrg?.id,
-              userId: selectedUserId,
-            };
+            organizationId: selectedOrg?.id,
+            userId: selectedUserId,
+          };
 
       const response = await fetch("/api/admin/organizations/assign-admin", {
         method: "POST",
@@ -342,7 +342,7 @@ export default function AdminOrganizationsPage() {
 
   const handleSetOwner = async (userId: string) => {
     if (!managingOrg) return;
-    
+
     setProcessing(true);
     setManageError("");
 
@@ -364,7 +364,7 @@ export default function AdminOrganizationsPage() {
 
       showToast(t("organizations.ownerUpdated"), "success");
       await fetchOrganizations();
-      
+
       // Update local state
       const updatedOrg = organizations.find(o => o.id === managingOrg.id);
       if (updatedOrg) {
@@ -379,7 +379,7 @@ export default function AdminOrganizationsPage() {
 
   const handleRemoveAdmin = async (userId: string) => {
     if (!managingOrg) return;
-    
+
     setProcessing(true);
     setManageError("");
 
@@ -401,7 +401,7 @@ export default function AdminOrganizationsPage() {
 
       showToast(t("organizations.adminRemoved"), "success");
       await fetchOrganizations();
-      
+
       // Update local state
       const updatedOrg = organizations.find(o => o.id === managingOrg.id);
       if (updatedOrg) {
@@ -544,16 +544,6 @@ export default function AdminOrganizationsPage() {
       )}
 
       <section className="rsp-content">
-        <Breadcrumbs
-          items={[
-            { label: t("breadcrumbs.home"), href: "/" },
-            { label: t("breadcrumbs.admin"), href: "/admin/dashboard" },
-            { label: t("organizations.breadcrumb") },
-          ]}
-          className="mb-6"
-          ariaLabel={t("breadcrumbs.navigation")}
-        />
-
         <div className="im-admin-organizations-toolbar">
           <div className="im-admin-organizations-search">
             <Input
@@ -856,7 +846,7 @@ export default function AdminOrganizationsPage() {
                     const isAlreadyAdminOfThisOrg = selectedOrg?.superAdmins?.some(
                       (admin) => admin.id === user.id
                     );
-                    
+
                     return (
                       <label
                         key={user.id}
@@ -1078,9 +1068,9 @@ export default function AdminOrganizationsPage() {
             >
               {t("common.cancel")}
             </Button>
-            <Button 
-              variant="danger" 
-              onClick={handleDeleteOrganization} 
+            <Button
+              variant="danger"
+              onClick={handleDeleteOrganization}
               disabled={deleting || (deletingOrg?.clubCount ?? 0) > 0}
             >
               {deleting ? t("common.processing") : t("common.delete")}
