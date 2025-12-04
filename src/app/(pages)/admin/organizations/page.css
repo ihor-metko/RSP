@@ -35,11 +35,64 @@
   color: var(--im-text-secondary, #6b7280);
 }
 
+/* Toolbar with search, sort, and actions */
+.im-admin-organizations-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: var(--im-bg-secondary, #f9fafb);
+  border: 1px solid var(--im-border-color, #e5e7eb);
+  border-radius: 8px;
+}
+
+.im-admin-organizations-search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.im-admin-organizations-search .im-search-input {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+
+.im-search-clear {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--im-text-secondary, #6b7280);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.im-search-clear:hover {
+  color: var(--im-text-primary, #111827);
+}
+
+.im-admin-organizations-sort {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.im-admin-organizations-sort .im-select-wrapper {
+  min-width: 140px;
+}
+
 /* Actions bar */
 .im-admin-organizations-actions {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+  margin-left: auto;
 }
 
 /* Empty state */
@@ -53,6 +106,7 @@
   background-color: var(--im-bg-secondary, #f9fafb);
   border-radius: 8px;
   border: 1px dashed var(--im-border-color, #e5e7eb);
+  gap: 1rem;
 }
 
 .im-admin-organizations-empty-text {
@@ -112,6 +166,28 @@
 
 .im-org-clubs {
   text-align: center;
+}
+
+/* Count badge for clubs */
+.im-org-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: var(--im-bg-secondary, #f3f4f6);
+  color: var(--im-text-secondary, #6b7280);
+  border-radius: 9999px;
+  border: 1px solid var(--im-border-color, #e5e7eb);
+}
+
+.im-org-count-badge--active {
+  background-color: var(--im-success-bg, #d1fae5);
+  color: var(--im-success-text, #065f46);
+  border-color: var(--im-success-border, #34d399);
 }
 
 .im-org-no-admin {
@@ -385,8 +461,89 @@
   }
 }
 
+/* Pagination */
+.im-admin-organizations-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: var(--im-bg-secondary, #f9fafb);
+  border: 1px solid var(--im-border-color, #e5e7eb);
+  border-radius: 8px;
+}
+
+.im-pagination-info {
+  color: var(--im-text-secondary, #6b7280);
+  font-size: 0.875rem;
+}
+
+.im-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.im-pagination-pages {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.im-pagination-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--im-border-color, #e5e7eb);
+  border-radius: 4px;
+  background-color: var(--im-bg-secondary, #f9fafb);
+  color: var(--im-text-primary, #111827);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.im-pagination-page:hover:not(.im-pagination-page--active) {
+  background-color: var(--im-bg-hover, #f3f4f6);
+}
+
+.im-pagination-page--active {
+  background-color: var(--im-accent, #6366f1);
+  color: white;
+  border-color: var(--im-accent, #6366f1);
+}
+
+.im-pagination-per-page {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--im-text-secondary, #6b7280);
+  font-size: 0.875rem;
+}
+
+.im-pagination-per-page .im-select-wrapper {
+  min-width: 70px;
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
+  .im-admin-organizations-toolbar {
+    background-color: var(--im-bg-secondary-dark, #1f2937);
+    border-color: var(--im-border-color-dark, #374151);
+  }
+
+  .im-search-clear {
+    color: var(--im-text-secondary-dark, #9ca3af);
+  }
+
+  .im-search-clear:hover {
+    color: var(--im-text-primary-dark, #f9fafb);
+  }
+
   .im-admin-organizations-empty {
     background-color: var(--im-bg-secondary-dark, #1f2937);
     border-color: var(--im-border-color-dark, #374151);
@@ -412,6 +569,18 @@
 
   .im-admin-organizations-table tbody tr:hover {
     background-color: var(--im-bg-hover-dark, #374151);
+  }
+
+  .im-org-count-badge {
+    background-color: var(--im-bg-secondary-dark, #1f2937);
+    border-color: var(--im-border-color-dark, #374151);
+    color: var(--im-text-secondary-dark, #9ca3af);
+  }
+
+  .im-org-count-badge--active {
+    background-color: var(--im-success-bg-dark, #065f46);
+    color: var(--im-success-text-dark, #d1fae5);
+    border-color: var(--im-success-border-dark, #16a34a);
   }
 
   .im-org-admin-badge {
@@ -458,12 +627,45 @@
   .im-manage-admin-name {
     color: var(--im-text-primary-dark, #f9fafb);
   }
+
+  .im-admin-organizations-pagination {
+    background-color: var(--im-bg-secondary-dark, #1f2937);
+    border-color: var(--im-border-color-dark, #374151);
+  }
+
+  .im-pagination-page {
+    background-color: var(--im-bg-secondary-dark, #1f2937);
+    border-color: var(--im-border-color-dark, #374151);
+    color: var(--im-text-primary-dark, #f9fafb);
+  }
+
+  .im-pagination-page:hover:not(.im-pagination-page--active) {
+    background-color: var(--im-bg-hover-dark, #374151);
+  }
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .im-admin-organizations-page {
     padding: 1rem;
+  }
+
+  .im-admin-organizations-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .im-admin-organizations-search {
+    max-width: none;
+  }
+
+  .im-admin-organizations-sort {
+    flex-wrap: wrap;
+  }
+
+  .im-admin-organizations-actions {
+    margin-left: 0;
+    justify-content: flex-end;
   }
 
   .im-admin-organizations-table th,
@@ -484,5 +686,20 @@
   .im-manage-admin-actions {
     width: 100%;
     justify-content: flex-end;
+  }
+
+  .im-admin-organizations-pagination {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .im-pagination-controls {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .im-pagination-per-page {
+    width: 100%;
+    justify-content: center;
   }
 }
