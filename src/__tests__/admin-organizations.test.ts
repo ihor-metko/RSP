@@ -9,6 +9,8 @@ jest.mock("@/lib/prisma", () => ({
       findMany: jest.fn(),
       findUnique: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
     },
     membership: {
       findFirst: jest.fn(),
@@ -38,6 +40,7 @@ jest.mock("@/lib/auth", () => ({
 }));
 
 import { GET, POST } from "@/app/api/admin/organizations/route";
+import { PATCH as UpdateOrganization, DELETE as DeleteOrganization } from "@/app/api/admin/organizations/[id]/route";
 import { POST as AssignAdmin } from "@/app/api/admin/organizations/assign-admin/route";
 import { PATCH as SetOwner } from "@/app/api/admin/organizations/set-owner/route";
 import { POST as RemoveAdmin } from "@/app/api/admin/organizations/remove-admin/route";
@@ -735,6 +738,255 @@ describe("Admin Organizations API", () => {
 
       expect(response.status).toBe(404);
       expect(data.error).toBe("Organization not found");
+    });
+  });
+
+  describe("PATCH /api/admin/organizations/[id]", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValue(null);
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "PATCH",
+        body: JSON.stringify({ name: "Updated Name" }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await UpdateOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
+    });
+
+    it("should return 403 when user is not root admin", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-123", isRoot: false },
+      });
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "PATCH",
+        body: JSON.stringify({ name: "Updated Name" }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await UpdateOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.error).toBe("Forbidden");
+    });
+
+    it("should return 404 when organization not found", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue(null);
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/non-existent", {
+        method: "PATCH",
+        body: JSON.stringify({ name: "Updated Name" }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await UpdateOrganization(request, { params: Promise.resolve({ id: "non-existent" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("Organization not found");
+    });
+
+    it("should return 400 when name is empty", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue({
+        id: "org-1",
+        name: "Old Name",
+        slug: "old-name",
+      });
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "PATCH",
+        body: JSON.stringify({ name: "   " }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await UpdateOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data.error).toBe("Organization name cannot be empty");
+    });
+
+    it("should return 409 when slug already exists for different org", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      (prisma.organization.findUnique as jest.Mock)
+        .mockResolvedValueOnce({
+          id: "org-1",
+          name: "Old Name",
+          slug: "old-name",
+        })
+        .mockResolvedValueOnce({
+          id: "org-2",
+          slug: "existing-slug",
+        });
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "PATCH",
+        body: JSON.stringify({ name: "New Name", slug: "existing-slug" }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await UpdateOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(409);
+      expect(data.error).toBe("An organization with this slug already exists");
+    });
+
+    it("should update organization successfully", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      (prisma.organization.findUnique as jest.Mock)
+        .mockResolvedValueOnce({
+          id: "org-1",
+          name: "Old Name",
+          slug: "old-name",
+        })
+        .mockResolvedValueOnce(null);
+
+      const updatedOrg = {
+        id: "org-1",
+        name: "Updated Name",
+        slug: "updated-name",
+        createdAt: new Date().toISOString(),
+        _count: { clubs: 3 },
+        createdBy: { id: "creator-1", name: "Creator", email: "creator@test.com" },
+        memberships: [],
+      };
+
+      (prisma.organization.update as jest.Mock).mockResolvedValue(updatedOrg);
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "PATCH",
+        body: JSON.stringify({ name: "Updated Name" }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await UpdateOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.name).toBe("Updated Name");
+      expect(data.clubCount).toBe(3);
+    });
+  });
+
+  describe("DELETE /api/admin/organizations/[id]", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValue(null);
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "DELETE",
+      });
+
+      const response = await DeleteOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
+    });
+
+    it("should return 403 when user is not root admin", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-123", isRoot: false },
+      });
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "DELETE",
+      });
+
+      const response = await DeleteOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.error).toBe("Forbidden");
+    });
+
+    it("should return 404 when organization not found", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue(null);
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/non-existent", {
+        method: "DELETE",
+      });
+
+      const response = await DeleteOrganization(request, { params: Promise.resolve({ id: "non-existent" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("Organization not found");
+    });
+
+    it("should return 409 when organization has active clubs", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue({
+        id: "org-1",
+        name: "Test Org",
+        _count: { clubs: 3 },
+      });
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "DELETE",
+      });
+
+      const response = await DeleteOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(409);
+      expect(data.error).toBe("Cannot delete organization with active clubs");
+      expect(data.clubCount).toBe(3);
+    });
+
+    it("should delete organization successfully", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue({
+        id: "org-1",
+        name: "Test Org",
+        _count: { clubs: 0 },
+      });
+
+      (prisma.organization.delete as jest.Mock).mockResolvedValue({
+        id: "org-1",
+        name: "Test Org",
+      });
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1", {
+        method: "DELETE",
+      });
+
+      const response = await DeleteOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.message).toBe("Organization deleted successfully");
     });
   });
 });

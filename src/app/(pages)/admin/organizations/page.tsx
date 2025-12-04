@@ -72,6 +72,20 @@ export default function AdminOrganizationsPage() {
   const [manageError, setManageError] = useState("");
   const [processing, setProcessing] = useState(false);
 
+  // State for edit organization modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
+  const [editOrgName, setEditOrgName] = useState("");
+  const [editOrgSlug, setEditOrgSlug] = useState("");
+  const [editError, setEditError] = useState("");
+  const [editing, setEditing] = useState(false);
+
+  // State for delete organization modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingOrg, setDeletingOrg] = useState<Organization | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
   // Toast notification state
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -319,6 +333,99 @@ export default function AdminOrganizationsPage() {
     }
   };
 
+  // Edit organization handlers
+  const handleOpenEditModal = (org: Organization) => {
+    setEditingOrg(org);
+    setEditOrgName(org.name);
+    setEditOrgSlug(org.slug);
+    setEditError("");
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingOrg(null);
+    setEditOrgName("");
+    setEditOrgSlug("");
+    setEditError("");
+  };
+
+  const handleEditOrganization = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOrg) return;
+
+    setEditError("");
+    setEditing(true);
+
+    try {
+      const response = await fetch(`/api/admin/organizations/${editingOrg.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editOrgName,
+          slug: editOrgSlug || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update organization");
+      }
+
+      showToast(t("organizations.updateSuccess"), "success");
+      handleCloseEditModal();
+      fetchOrganizations();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : "Failed to update organization");
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  // Delete organization handlers
+  const handleOpenDeleteModal = (org: Organization) => {
+    setDeletingOrg(org);
+    setDeleteError("");
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setDeletingOrg(null);
+    setDeleteError("");
+  };
+
+  const handleDeleteOrganization = async () => {
+    if (!deletingOrg) return;
+
+    setDeleteError("");
+    setDeleting(true);
+
+    try {
+      const response = await fetch(`/api/admin/organizations/${deletingOrg.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.clubCount) {
+          throw new Error(t("organizations.deleteWithClubs", { count: data.clubCount }));
+        }
+        throw new Error(data.error || "Failed to delete organization");
+      }
+
+      showToast(t("organizations.deleteSuccess"), "success");
+      handleCloseDeleteModal();
+      fetchOrganizations();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete organization");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Update managingOrg when organizations change (use managingOrg.id to avoid infinite loop)
   const managingOrgId = managingOrg?.id;
   useEffect(() => {
@@ -431,6 +538,21 @@ export default function AdminOrganizationsPage() {
                       <div className="im-org-actions-buttons">
                         <Button
                           variant="outline"
+                          size="small"
+                          onClick={() => handleOpenEditModal(org)}
+                        >
+                          {t("common.edit")}
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="small"
+                          onClick={() => handleOpenDeleteModal(org)}
+                        >
+                          {t("common.delete")}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="small"
                           onClick={() => handleOpenAssignModal(org)}
                         >
                           {t("organizations.addAdmin")}
@@ -438,6 +560,7 @@ export default function AdminOrganizationsPage() {
                         {org.superAdmins && org.superAdmins.length > 0 && (
                           <Button
                             variant="outline"
+                            size="small"
                             onClick={() => handleOpenManageAdminsModal(org)}
                           >
                             {t("organizations.manageAdmins")}
@@ -693,6 +816,86 @@ export default function AdminOrganizationsPage() {
               if (managingOrg) handleOpenAssignModal(managingOrg);
             }}>
               {t("organizations.addAdmin")}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Organization Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        title={t("organizations.editOrganization")}
+      >
+        <form onSubmit={handleEditOrganization} className="space-y-4">
+          {editError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+              {editError}
+            </div>
+          )}
+          <Input
+            label={t("organizations.orgName")}
+            value={editOrgName}
+            onChange={(e) => setEditOrgName(e.target.value)}
+            placeholder={t("organizations.orgNamePlaceholder")}
+            required
+          />
+          <Input
+            label={t("organizations.orgSlug")}
+            value={editOrgSlug}
+            onChange={(e) => setEditOrgSlug(e.target.value)}
+            placeholder={t("organizations.orgSlugPlaceholder")}
+          />
+          <p className="im-form-hint">{t("organizations.slugHint")}</p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCloseEditModal}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" disabled={editing}>
+              {editing ? t("common.processing") : t("common.save")}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Organization Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        title={t("organizations.deleteOrganization")}
+      >
+        <div className="space-y-4">
+          {deleteError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+              {deleteError}
+            </div>
+          )}
+          <p className="im-delete-confirm-text">
+            {t("organizations.deleteConfirm", { name: deletingOrg?.name })}
+          </p>
+          {deletingOrg && deletingOrg.clubCount > 0 && (
+            <div className="rsp-warning bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-sm">
+              {t("organizations.deleteWithClubs", { count: deletingOrg.clubCount })}
+            </div>
+          )}
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCloseDeleteModal}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button 
+              variant="danger" 
+              onClick={handleDeleteOrganization} 
+              disabled={deleting || (deletingOrg?.clubCount ?? 0) > 0}
+            >
+              {deleting ? t("common.processing") : t("common.delete")}
             </Button>
           </div>
         </div>

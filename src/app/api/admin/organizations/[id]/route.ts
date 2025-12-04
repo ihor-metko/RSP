@@ -1,0 +1,220 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireRootAdmin } from "@/lib/requireRole";
+
+/**
+ * Generate a URL-friendly slug from a name
+ * Falls back to a random string if the name contains only special characters
+ */
+function generateSlug(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  
+  // If slug is empty, generate a fallback using timestamp
+  if (!slug) {
+    return `org-${Date.now()}`;
+  }
+  
+  return slug;
+}
+
+/**
+ * PATCH /api/admin/organizations/[id]
+ * Updates an organization's name and/or slug (root admin only)
+ */
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authResult = await requireRootAdmin(request);
+
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const { name, slug } = body;
+
+    // Verify organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id },
+    });
+
+    if (!organization) {
+      return NextResponse.json(
+        { error: "Organization not found" },
+        { status: 404 }
+      );
+    }
+
+    // Validate name if provided
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim().length === 0) {
+        return NextResponse.json(
+          { error: "Organization name cannot be empty" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Determine the final slug
+    let finalSlug = organization.slug;
+    if (slug !== undefined) {
+      finalSlug = slug.trim() || generateSlug(name || organization.name);
+    } else if (name !== undefined && name.trim() !== organization.name) {
+      // Auto-generate slug from new name if slug wasn't explicitly provided
+      finalSlug = generateSlug(name);
+    }
+
+    // Check if slug already exists for a different organization
+    if (finalSlug !== organization.slug) {
+      const existingOrg = await prisma.organization.findUnique({
+        where: { slug: finalSlug },
+      });
+
+      if (existingOrg && existingOrg.id !== id) {
+        return NextResponse.json(
+          { error: "An organization with this slug already exists" },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Update the organization
+    const updatedOrganization = await prisma.organization.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name: name.trim() }),
+        slug: finalSlug,
+      },
+      include: {
+        _count: {
+          select: { clubs: true },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        memberships: {
+          where: {
+            role: "ORGANIZATION_ADMIN",
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: [
+            { isPrimaryOwner: "desc" },
+            { createdAt: "asc" },
+          ],
+        },
+      },
+    });
+
+    const superAdmins = updatedOrganization.memberships.map((m) => ({
+      id: m.user.id,
+      name: m.user.name,
+      email: m.user.email,
+      isPrimaryOwner: m.isPrimaryOwner,
+    }));
+
+    return NextResponse.json({
+      id: updatedOrganization.id,
+      name: updatedOrganization.name,
+      slug: updatedOrganization.slug,
+      createdAt: updatedOrganization.createdAt,
+      clubCount: updatedOrganization._count.clubs,
+      createdBy: updatedOrganization.createdBy,
+      superAdmins,
+      superAdmin: superAdmins.find((a) => a.isPrimaryOwner) || superAdmins[0] || null,
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error updating organization:", error);
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/admin/organizations/[id]
+ * Deletes an organization (root admin only)
+ * Will fail if the organization has active clubs
+ */
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authResult = await requireRootAdmin(request);
+
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
+  try {
+    const { id } = await params;
+
+    // Verify organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { clubs: true },
+        },
+      },
+    });
+
+    if (!organization) {
+      return NextResponse.json(
+        { error: "Organization not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check for active clubs
+    if (organization._count.clubs > 0) {
+      return NextResponse.json(
+        { 
+          error: "Cannot delete organization with active clubs",
+          clubCount: organization._count.clubs,
+        },
+        { status: 409 }
+      );
+    }
+
+    // Delete the organization and related memberships (cascading via schema)
+    await prisma.organization.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: "Organization deleted successfully",
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error deleting organization:", error);
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
