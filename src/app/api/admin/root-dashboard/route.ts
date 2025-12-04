@@ -7,6 +7,7 @@ import type { PlatformStatistics } from "@/types/admin";
  * Root Admin Dashboard Statistics API
  * 
  * Returns platform-wide statistics including:
+ * - Total number of organizations
  * - Total number of clubs
  * - Total number of registered users
  * - Total number of active bookings (pending or paid)
@@ -23,7 +24,8 @@ export async function GET(request: Request) {
 
   try {
     // Fetch all statistics in parallel for better performance
-    const [totalClubs, totalUsers, activeBookings] = await Promise.all([
+    const [totalOrganizations, totalClubs, totalUsers, activeBookings] = await Promise.all([
+      prisma.organization.count(),
       prisma.club.count(),
       prisma.user.count(),
       prisma.booking.count({
@@ -36,6 +38,7 @@ export async function GET(request: Request) {
     ]);
 
     const statistics: PlatformStatistics = {
+      totalOrganizations,
       totalClubs,
       totalUsers,
       activeBookings,
