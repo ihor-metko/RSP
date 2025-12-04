@@ -98,7 +98,7 @@ export default function AdminCoachesPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || session.user.role !== "super_admin") {
+    if (!session?.user || !session.user.isRoot) {
       router.push("/auth/sign-in");
       return;
     }

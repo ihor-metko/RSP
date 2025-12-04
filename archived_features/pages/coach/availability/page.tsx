@@ -30,11 +30,8 @@ export default function CoachAvailabilityPage() {
       return;
     }
 
-    if (session.user.role !== "coach" && session.user.role !== "super_admin") {
-      setError("Access denied. Only coaches can access this page.");
-      setLoading(false);
-      return;
-    }
+    // In the new system, coach access is determined by Coach record, not role
+    // This archived feature checks via API endpoint
 
     // Fetch coach profile to get the coach ID
     const fetchCoachProfile = async () => {

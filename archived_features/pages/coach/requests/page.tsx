@@ -20,10 +20,7 @@ export default function TrainerRequestsPage() {
       return;
     }
 
-    if (session.user.role !== "coach" && session.user.role !== "super_admin") {
-      router.push("/");
-      return;
-    }
+    // In the new system, coach access is determined by Coach record
   }, [session, status, router]);
 
   if (status === "loading") {
@@ -34,7 +31,7 @@ export default function TrainerRequestsPage() {
     );
   }
 
-  if (!session?.user || (session.user.role !== "coach" && session.user.role !== "super_admin")) {
+  if (!session?.user) {
     return null;
   }
 

@@ -30,11 +30,8 @@ export default function CoachTimeOffPage() {
       return;
     }
 
-    if (session.user.role !== "coach" && session.user.role !== "super_admin") {
-      setError("Access denied. Only coaches can access this page.");
-      setLoading(false);
-      return;
-    }
+    // In the new system, coach access is determined by Coach record, not role
+    // Access check happens via API endpoints
 
     // Fetch coach profile to get the coach ID
     const fetchCoachProfile = async () => {
