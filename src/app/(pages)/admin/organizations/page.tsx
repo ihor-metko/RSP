@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, PageHeader, Breadcrumbs } from "@/components/ui";
+import { Button, Input, Modal, PageHeader, Breadcrumbs, Select } from "@/components/ui";
 import "./page.css";
 
 interface OrganizationUser {
@@ -36,6 +36,11 @@ interface User {
   organizationName: string | null;
 }
 
+type SortField = "name" | "createdAt" | "clubCount" | "adminCount";
+type SortDirection = "asc" | "desc";
+
+const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
+
 export default function AdminOrganizationsPage() {
   const t = useTranslations();
   const { data: session, status } = useSession();
@@ -45,6 +50,13 @@ export default function AdminOrganizationsPage() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // State for search, sort, and pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<SortField>("createdAt");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // State for create organization modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -93,6 +105,75 @@ export default function AdminOrganizationsPage() {
     setToast({ message, type });
     setTimeout(() => setToast(null), 5000);
   };
+
+  // Filter, sort, and paginate organizations
+  const filteredAndSortedOrganizations = useMemo(() => {
+    let result = [...organizations];
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (org) =>
+          org.name.toLowerCase().includes(query) ||
+          org.slug.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "createdAt":
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case "clubCount":
+          comparison = a.clubCount - b.clubCount;
+          break;
+        case "adminCount":
+          comparison = (a.superAdmins?.length || 0) - (b.superAdmins?.length || 0);
+          break;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [organizations, searchQuery, sortField, sortDirection]);
+
+  // Paginated organizations
+  const paginatedOrganizations = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedOrganizations.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAndSortedOrganizations, currentPage, itemsPerPage]);
+
+  // Total pages
+  const totalPages = Math.ceil(filteredAndSortedOrganizations.length / itemsPerPage);
+
+  // Reset to first page when search or items per page changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage]);
+
+  // Sort options for the select component
+  const sortOptions = [
+    { value: "name", label: t("organizations.sortName") },
+    { value: "createdAt", label: t("organizations.sortDate") },
+    { value: "clubCount", label: t("organizations.sortClubs") },
+    { value: "adminCount", label: t("organizations.sortAdmins") },
+  ];
+
+  const directionOptions = [
+    { value: "asc", label: t("organizations.ascending") },
+    { value: "desc", label: t("organizations.descending") },
+  ];
+
+  const itemsPerPageOptions = ITEMS_PER_PAGE_OPTIONS.map((n) => ({
+    value: String(n),
+    label: String(n),
+  }));
 
   const fetchOrganizations = useCallback(async () => {
     try {
@@ -473,10 +554,43 @@ export default function AdminOrganizationsPage() {
           ariaLabel={t("breadcrumbs.navigation")}
         />
 
-        <div className="im-admin-organizations-actions">
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            {t("organizations.createOrganization")}
-          </Button>
+        <div className="im-admin-organizations-toolbar">
+          <div className="im-admin-organizations-search">
+            <Input
+              placeholder={t("organizations.searchOrganizations")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="im-search-input"
+            />
+            {searchQuery && (
+              <button
+                className="im-search-clear"
+                onClick={() => setSearchQuery("")}
+                aria-label={t("organizations.clearSearch")}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <div className="im-admin-organizations-sort">
+            <Select
+              options={sortOptions}
+              value={sortField}
+              onChange={(value) => setSortField(value as SortField)}
+              aria-label={t("organizations.sortBy")}
+            />
+            <Select
+              options={directionOptions}
+              value={sortDirection}
+              onChange={(value) => setSortDirection(value as SortDirection)}
+              aria-label={t("organizations.sortBy")}
+            />
+          </div>
+          <div className="im-admin-organizations-actions">
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              {t("organizations.createOrganization")}
+            </Button>
+          </div>
         </div>
 
         {error && (
@@ -491,88 +605,162 @@ export default function AdminOrganizationsPage() {
               {t("organizations.noOrganizations")}
             </p>
           </div>
+        ) : filteredAndSortedOrganizations.length === 0 ? (
+          <div className="im-admin-organizations-empty">
+            <p className="im-admin-organizations-empty-text">
+              {t("organizations.noResults")}
+            </p>
+            <Button variant="outline" onClick={() => setSearchQuery("")}>
+              {t("organizations.clearSearch")}
+            </Button>
+          </div>
         ) : (
-          <div className="im-admin-organizations-table-wrapper">
-            <table className="im-admin-organizations-table">
-              <thead>
-                <tr>
-                  <th>{t("organizations.name")}</th>
-                  <th>{t("organizations.slug")}</th>
-                  <th>{t("organizations.clubs")}</th>
-                  <th>{t("organizations.superAdmins")}</th>
-                  <th>{t("organizations.createdAt")}</th>
-                  <th>{t("common.actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {organizations.map((org) => (
-                  <tr key={org.id}>
-                    <td className="im-org-name">{org.name}</td>
-                    <td className="im-org-slug">{org.slug}</td>
-                    <td className="im-org-clubs">{org.clubCount}</td>
-                    <td className="im-org-admin">
-                      {org.superAdmins && org.superAdmins.length > 0 ? (
-                        <div className="im-org-admins-list">
-                          {org.superAdmins.map((admin) => (
-                            <span
-                              key={admin.id}
-                              className={`im-org-admin-badge ${admin.isPrimaryOwner ? "im-org-admin-badge--owner" : ""}`}
-                            >
-                              {admin.name || admin.email}
-                              {admin.isPrimaryOwner && (
-                                <span className="im-org-owner-label">{t("organizations.owner")}</span>
-                              )}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="im-org-no-admin">
-                          {t("organizations.notAssigned")}
+          <>
+            <div className="im-admin-organizations-table-wrapper">
+              <table className="im-admin-organizations-table">
+                <thead>
+                  <tr>
+                    <th>{t("organizations.name")}</th>
+                    <th>{t("organizations.slug")}</th>
+                    <th>{t("organizations.clubs")}</th>
+                    <th>{t("organizations.superAdmins")}</th>
+                    <th>{t("organizations.createdAt")}</th>
+                    <th>{t("common.actions")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedOrganizations.map((org) => (
+                    <tr key={org.id}>
+                      <td className="im-org-name">{org.name}</td>
+                      <td className="im-org-slug">{org.slug}</td>
+                      <td className="im-org-clubs">
+                        <span className={`im-org-count-badge ${org.clubCount > 0 ? "im-org-count-badge--active" : ""}`}>
+                          {org.clubCount}
                         </span>
-                      )}
-                    </td>
-                    <td className="im-org-date">
-                      {new Date(org.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="im-org-actions">
-                      <div className="im-org-actions-buttons">
-                        <Button
-                          variant="outline"
-                          size="small"
-                          onClick={() => handleOpenEditModal(org)}
-                        >
-                          {t("common.edit")}
-                        </Button>
-                        <Button
-                          variant="danger"
-                          size="small"
-                          onClick={() => handleOpenDeleteModal(org)}
-                        >
-                          {t("common.delete")}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="small"
-                          onClick={() => handleOpenAssignModal(org)}
-                        >
-                          {t("organizations.addAdmin")}
-                        </Button>
-                        {org.superAdmins && org.superAdmins.length > 0 && (
+                      </td>
+                      <td className="im-org-admin">
+                        {org.superAdmins && org.superAdmins.length > 0 ? (
+                          <div className="im-org-admins-list">
+                            {org.superAdmins.map((admin) => (
+                              <span
+                                key={admin.id}
+                                className={`im-org-admin-badge ${admin.isPrimaryOwner ? "im-org-admin-badge--owner" : ""}`}
+                              >
+                                {admin.name || admin.email}
+                                {admin.isPrimaryOwner && (
+                                  <span className="im-org-owner-label">{t("organizations.owner")}</span>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="im-org-no-admin">
+                            {t("organizations.notAssigned")}
+                          </span>
+                        )}
+                      </td>
+                      <td className="im-org-date">
+                        {new Date(org.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="im-org-actions">
+                        <div className="im-org-actions-buttons">
                           <Button
                             variant="outline"
                             size="small"
-                            onClick={() => handleOpenManageAdminsModal(org)}
+                            onClick={() => handleOpenEditModal(org)}
                           >
-                            {t("organizations.manageAdmins")}
+                            {t("common.edit")}
                           </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                          <Button
+                            variant="danger"
+                            size="small"
+                            onClick={() => handleOpenDeleteModal(org)}
+                          >
+                            {t("common.delete")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="small"
+                            onClick={() => handleOpenAssignModal(org)}
+                          >
+                            {t("organizations.addAdmin")}
+                          </Button>
+                          {org.superAdmins && org.superAdmins.length > 0 && (
+                            <Button
+                              variant="outline"
+                              size="small"
+                              onClick={() => handleOpenManageAdminsModal(org)}
+                            >
+                              {t("organizations.manageAdmins")}
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="im-admin-organizations-pagination">
+                <div className="im-pagination-info">
+                  <span>{t("organizations.page")} {currentPage} {t("organizations.of")} {totalPages}</span>
+                </div>
+                <div className="im-pagination-controls">
+                  <Button
+                    variant="outline"
+                    size="small"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    {t("organizations.previous")}
+                  </Button>
+                  <div className="im-pagination-pages">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          className={`im-pagination-page ${currentPage === pageNum ? "im-pagination-page--active" : ""}`}
+                          onClick={() => setCurrentPage(pageNum)}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="small"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    {t("organizations.next")}
+                  </Button>
+                </div>
+                <div className="im-pagination-per-page">
+                  <span>{t("organizations.itemsPerPage")}:</span>
+                  <Select
+                    options={itemsPerPageOptions}
+                    value={String(itemsPerPage)}
+                    onChange={(value) => setItemsPerPage(Number(value))}
+                    aria-label={t("organizations.itemsPerPage")}
+                  />
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -875,7 +1063,7 @@ export default function AdminOrganizationsPage() {
             </div>
           )}
           <p className="im-delete-confirm-text">
-            {t("organizations.deleteConfirm", { name: deletingOrg?.name })}
+            {t("organizations.deleteConfirm", { name: deletingOrg?.name ?? "" })}
           </p>
           {deletingOrg && deletingOrg.clubCount > 0 && (
             <div className="rsp-warning bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-sm">

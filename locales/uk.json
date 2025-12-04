@@ -782,6 +782,24 @@
     "assign": "Призначити",
     "owner": "Власник",
     "setAsOwner": "Призначити власником",
-    "remove": "Видалити"
+    "remove": "Видалити",
+    "searchOrganizations": "Пошук організацій...",
+    "sortBy": "Сортувати за",
+    "sortName": "Назвою",
+    "sortDate": "Датою створення",
+    "sortClubs": "Кількістю клубів",
+    "sortAdmins": "Кількістю адмінів",
+    "ascending": "За зростанням",
+    "descending": "За спаданням",
+    "viewDetails": "Детальніше",
+    "page": "Сторінка",
+    "of": "з",
+    "previous": "Попередня",
+    "next": "Наступна",
+    "multipleClubs": "{count} клубів",
+    "multipleAdmins": "{count} адмінів",
+    "noResults": "Організації за вашим запитом не знайдено",
+    "clearSearch": "Очистити пошук",
+    "itemsPerPage": "Елементів на сторінці"
   }
 }
