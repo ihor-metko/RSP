@@ -29,10 +29,10 @@ jest.mock("@/lib/prisma", () => ({
 
 // Mock requireRole
 jest.mock("@/lib/requireRole", () => ({
-  requireRole: jest.fn(),
+  requireRootAdmin: jest.fn(),
 }));
 
-import { requireRole } from "@/lib/requireRole";
+import { requireRootAdmin } from "@/lib/requireRole";
 
 describe("Admin Notifications API", () => {
   beforeEach(() => {
@@ -45,7 +45,7 @@ describe("Admin Notifications API", () => {
 
   describe("GET /api/admin/notifications", () => {
     it("should return 401 if not authenticated", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: false,
         response: new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
@@ -62,7 +62,7 @@ describe("Admin Notifications API", () => {
     });
 
     it("should return 403 if not admin", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: false,
         response: new Response(JSON.stringify({ error: "Forbidden" }), {
           status: 403,
@@ -79,7 +79,7 @@ describe("Admin Notifications API", () => {
     });
 
     it("should return notifications for authenticated admin", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
         userRole: "super_admin",
@@ -128,7 +128,7 @@ describe("Admin Notifications API", () => {
     });
 
     it("should filter by unreadOnly when provided", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
         userRole: "super_admin",
@@ -152,7 +152,7 @@ describe("Admin Notifications API", () => {
 
   describe("PATCH /api/admin/notifications/[id]", () => {
     it("should return 401 if not authenticated", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: false,
         response: new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
@@ -173,7 +173,7 @@ describe("Admin Notifications API", () => {
     });
 
     it("should return 400 if read field is missing", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
         userRole: "super_admin",
@@ -192,7 +192,7 @@ describe("Admin Notifications API", () => {
     });
 
     it("should return 404 if notification not found", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
         userRole: "super_admin",
@@ -213,7 +213,7 @@ describe("Admin Notifications API", () => {
     });
 
     it("should mark notification as read successfully", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
         userRole: "super_admin",
@@ -245,7 +245,7 @@ describe("Admin Notifications API", () => {
 
   describe("POST /api/admin/notifications/mark-all-read", () => {
     it("should return 401 if not authenticated", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: false,
         response: new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
@@ -264,7 +264,7 @@ describe("Admin Notifications API", () => {
     });
 
     it("should mark all notifications as read", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: true,
         userId: "admin-123",
         userRole: "super_admin",

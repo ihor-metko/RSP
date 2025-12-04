@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
+import { requireRoleLegacy as requireRole } from "@/lib/requireRole";
 import { isValidDateFormat, isValidTimeFormat, doTimesOverlap } from "@/utils/dateTime";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
 import { getCourtAvailabilitySuggestions, findAvailableCourts } from "@/lib/courtAvailability";

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
+import { requireRoleLegacy as requireRole } from "@/lib/requireRole";
 import { getCourtAvailabilitySuggestions } from "@/lib/courtAvailability";
 import { createAdminNotification } from "@/lib/adminNotifications";
 

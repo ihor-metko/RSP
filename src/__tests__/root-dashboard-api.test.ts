@@ -43,18 +43,6 @@ describe("Root Dashboard API", () => {
       expect(data.error).toBe("Unauthorized");
     });
 
-    it("should return 403 when user is not root_admin", async () => {
-      (auth as jest.Mock).mockResolvedValue({
-        user: { id: "user-1", isRoot: true },
-      });
-
-      const response = await GET(mockRequest);
-      const data = await response.json();
-
-      expect(response.status).toBe(403);
-      expect(data.error).toBe("Forbidden");
-    });
-
     it("should return 403 when user is a player", async () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "user-1", isRoot: false },

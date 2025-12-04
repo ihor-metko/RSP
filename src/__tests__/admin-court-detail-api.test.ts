@@ -3,7 +3,7 @@
  */
 import { GET, PATCH, DELETE } from "@/app/api/admin/clubs/[id]/courts/[courtId]/route";
 import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/requireRole";
+import { requireRootAdmin } from "@/lib/requireRole";
 
 // Mock Prisma
 jest.mock("@/lib/prisma", () => ({
@@ -19,7 +19,7 @@ jest.mock("@/lib/prisma", () => ({
 
 // Mock requireRole
 jest.mock("@/lib/requireRole", () => ({
-  requireRole: jest.fn(),
+  requireRootAdmin: jest.fn(),
 }));
 
 describe("Admin Court Detail API", () => {
@@ -56,10 +56,9 @@ describe("Admin Court Detail API", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (requireRole as jest.Mock).mockResolvedValue({
+    (requireRootAdmin as jest.Mock).mockResolvedValue({
       authorized: true,
       userId: "admin-user",
-      userRole: "super_admin",
     });
   });
 
@@ -109,7 +108,7 @@ describe("Admin Court Detail API", () => {
     });
 
     it("should return 401 when not authenticated", async () => {
-      (requireRole as jest.Mock).mockResolvedValue({
+      (requireRootAdmin as jest.Mock).mockResolvedValue({
         authorized: false,
         response: new Response(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,

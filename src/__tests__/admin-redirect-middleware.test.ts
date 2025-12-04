@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { ROLE_HOMEPAGES } from "@/utils/roleRedirect";
+import { getRoleHomepage } from "@/utils/roleRedirect";
 
 // Mock next-auth
 const mockAuth = jest.fn();
@@ -76,8 +76,8 @@ describe("Admin Redirect Middleware", () => {
     });
   });
 
-  describe("super_admin users", () => {
-    it("should redirect super_admin users from landing page to admin dashboard", async () => {
+  describe("root admin users (isRoot=true)", () => {
+    it("should redirect root admin users from landing page to admin dashboard", async () => {
       mockAuth.mockReturnValue({
         user: { id: "admin1", email: "admin@test.com", isRoot: true },
       });
@@ -87,37 +87,7 @@ describe("Admin Redirect Middleware", () => {
 
       expect(response.status).toBe(307);
       const locationHeader = response.headers.get("location");
-      expect(locationHeader).toContain(ROLE_HOMEPAGES.super_admin);
-    });
-  });
-
-  describe("root_admin users", () => {
-    it("should redirect root_admin users from landing page to admin dashboard", async () => {
-      mockAuth.mockReturnValue({
-        user: { id: "root1", email: "root@test.com", isRoot: true },
-      });
-
-      const request = createMockRequest("/");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
-
-      expect(response.status).toBe(307);
-      const locationHeader = response.headers.get("location");
-      expect(locationHeader).toContain(ROLE_HOMEPAGES.root_admin);
-    });
-  });
-
-  describe("admin users", () => {
-    it("should redirect admin users from landing page to admin dashboard", async () => {
-      mockAuth.mockReturnValue({
-        user: { id: "admin2", email: "admin2@test.com", isRoot: true },
-      });
-
-      const request = createMockRequest("/");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
-
-      expect(response.status).toBe(307);
-      const locationHeader = response.headers.get("location");
-      expect(locationHeader).toContain(ROLE_HOMEPAGES.admin);
+      expect(locationHeader).toContain(getRoleHomepage(true));
     });
   });
 
@@ -173,23 +143,15 @@ describe("Admin Redirect Middleware", () => {
 });
 
 describe("Role Homepage Configuration", () => {
-  it("should have root_admin homepage set to /admin/clubs", () => {
-    expect(ROLE_HOMEPAGES.root_admin).toBe("/admin/clubs");
+  it("should return /admin/dashboard for root admin (isRoot=true)", () => {
+    expect(getRoleHomepage(true)).toBe("/admin/dashboard");
   });
 
-  it("should have super_admin homepage set to /admin/clubs", () => {
-    expect(ROLE_HOMEPAGES.super_admin).toBe("/admin/clubs");
+  it("should return / for non-root users (isRoot=false)", () => {
+    expect(getRoleHomepage(false)).toBe("/");
   });
 
-  it("should have admin homepage set to /admin/clubs", () => {
-    expect(ROLE_HOMEPAGES.admin).toBe("/admin/clubs");
-  });
-
-  it("should have player homepage set to root", () => {
-    expect(ROLE_HOMEPAGES.player).toBe("/");
-  });
-
-  it("should have coach homepage set to coach dashboard", () => {
-    expect(ROLE_HOMEPAGES.coach).toBe("/coach/dashboard");
+  it("should return / for undefined isRoot", () => {
+    expect(getRoleHomepage(undefined)).toBe("/");
   });
 });
