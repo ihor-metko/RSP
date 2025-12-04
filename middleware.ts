@@ -1,58 +1,48 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
-import { getRoleHomepage } from "@/utils/roleRedirect";
-
-interface AuthRequest extends NextRequest {
-  auth: {
-    user?: {
-      id: string;
-      email?: string | null;
-      name?: string | null;
-      isRoot?: boolean;
-    };
-  } | null;
-}
+import { getToken } from "next-auth/jwt";
 
 /**
- * Middleware to redirect root admin users from the landing page to admin dashboard
+ * Middleware to redirect all admin users from the landing page to admin dashboard.
+ * Uses getToken() from next-auth/jwt for Edge Runtime compatibility.
  *
  * - Unauthenticated users: See public landing page
- * - Regular users: See public landing page
- * - Root admin users (isRoot=true): Redirected to /admin/dashboard
+ * - Regular users (non-admin): See public landing page
+ * - Admin users (Root Admin, Organization Admin, Club Admin): Redirected to /admin/dashboard
+ *
+ * The isAdmin flag in the JWT token indicates if the user has any admin role.
+ * This flag is set during login in the JWT callback in src/lib/auth.ts.
  */
-export default auth((req: AuthRequest) => {
+export default async function middleware(request: NextRequest) {
   try {
-    const { pathname } = req.nextUrl;
+    const { pathname } = request.nextUrl;
 
     // Only apply to root path
     if (pathname !== "/") {
       return NextResponse.next();
     }
 
-    const session = req.auth;
+    // Get the JWT token using getToken (Edge Runtime compatible)
+    const token = await getToken({ req: request });
 
-    // If no session, allow public access
-    if (!session?.user) {
+    // If no token, allow public access
+    if (!token) {
       return NextResponse.next();
     }
 
-    const isRoot = session.user.isRoot;
-
-    // Check if user is root admin
-    if (isRoot) {
-      const adminHomepage = getRoleHomepage(isRoot);
-      const redirectUrl = new URL(adminHomepage, req.url);
+    // Check if user is any type of admin using the isAdmin flag from JWT
+    if (token.isAdmin) {
+      const redirectUrl = new URL("/admin/dashboard", request.url);
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Non-root authenticated users see the landing page
+    // Non-admin authenticated users see the landing page
     return NextResponse.next();
   } catch (error) {
     // On error, default to allowing access (don't block public access)
     console.warn("Middleware error:", error);
     return NextResponse.next();
   }
-});
+}
 
 /**
  * Matcher configuration - only run middleware on root path

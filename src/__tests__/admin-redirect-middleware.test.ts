@@ -2,20 +2,14 @@
  * @jest-environment node
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getRoleHomepage } from "@/utils/roleRedirect";
 
-// Mock next-auth
-const mockAuth = jest.fn();
+// Mock getToken from next-auth/jwt
+const mockGetToken = jest.fn();
 
-jest.mock("@/lib/auth", () => ({
-  auth: (handler: (req: NextRequest & { auth: unknown }) => NextResponse) => {
-    return async (req: NextRequest) => {
-      const authReq = req as NextRequest & { auth: unknown };
-      authReq.auth = mockAuth();
-      return handler(authReq);
-    };
-  },
+jest.mock("next-auth/jwt", () => ({
+  getToken: (...args: unknown[]) => mockGetToken(...args),
 }));
 
 // Import middleware after mocking
@@ -40,10 +34,10 @@ describe("Admin Redirect Middleware", () => {
 
   describe("unauthenticated users", () => {
     it("should allow access to landing page for unauthenticated users", async () => {
-      mockAuth.mockReturnValue(null);
+      mockGetToken.mockResolvedValue(null);
 
       const request = createMockRequest("/");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+      const response = await middleware(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("location")).toBeNull();
@@ -52,65 +46,112 @@ describe("Admin Redirect Middleware", () => {
 
   describe("non-admin authenticated users", () => {
     it("should allow player users to see landing page", async () => {
-      mockAuth.mockReturnValue({
-        user: { id: "user1", email: "player@test.com", isRoot: false },
+      mockGetToken.mockResolvedValue({
+        id: "user1",
+        email: "player@test.com",
+        isRoot: false,
+        isAdmin: false,
       });
 
       const request = createMockRequest("/");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+      const response = await middleware(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("location")).toBeNull();
     });
 
-    it("should allow coach users to see landing page", async () => {
-      mockAuth.mockReturnValue({
-        user: { id: "user2", email: "coach@test.com", isRoot: false },
+    it("should allow coach users (non-admin) to see landing page", async () => {
+      mockGetToken.mockResolvedValue({
+        id: "user2",
+        email: "coach@test.com",
+        isRoot: false,
+        isAdmin: false,
       });
 
       const request = createMockRequest("/");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+      const response = await middleware(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("location")).toBeNull();
     });
   });
 
-  describe("root admin users (isRoot=true)", () => {
+  describe("admin users", () => {
     it("should redirect root admin users from landing page to admin dashboard", async () => {
-      mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", isRoot: true },
+      mockGetToken.mockResolvedValue({
+        id: "admin1",
+        email: "admin@test.com",
+        isRoot: true,
+        isAdmin: true,
       });
 
       const request = createMockRequest("/");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+      const response = await middleware(request);
 
       expect(response.status).toBe(307);
       const locationHeader = response.headers.get("location");
-      expect(locationHeader).toContain(getRoleHomepage(true));
+      expect(locationHeader).toContain("/admin/dashboard");
+    });
+
+    it("should redirect organization admin users from landing page to admin dashboard", async () => {
+      mockGetToken.mockResolvedValue({
+        id: "orgadmin1",
+        email: "orgadmin@test.com",
+        isRoot: false,
+        isAdmin: true,
+      });
+
+      const request = createMockRequest("/");
+      const response = await middleware(request);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain("/admin/dashboard");
+    });
+
+    it("should redirect club admin users from landing page to admin dashboard", async () => {
+      mockGetToken.mockResolvedValue({
+        id: "clubadmin1",
+        email: "clubadmin@test.com",
+        isRoot: false,
+        isAdmin: true,
+      });
+
+      const request = createMockRequest("/");
+      const response = await middleware(request);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain("/admin/dashboard");
     });
   });
 
   describe("non-root paths", () => {
-    it("should not affect requests to other paths for super_admin users", async () => {
-      mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", isRoot: true },
+    it("should not affect requests to other paths for admin users", async () => {
+      mockGetToken.mockResolvedValue({
+        id: "admin1",
+        email: "admin@test.com",
+        isRoot: true,
+        isAdmin: true,
       });
 
       const request = createMockRequest("/clubs");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+      const response = await middleware(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("location")).toBeNull();
     });
 
-    it("should allow super_admin access to /admin/* routes", async () => {
-      mockAuth.mockReturnValue({
-        user: { id: "admin1", email: "admin@test.com", isRoot: true },
+    it("should allow admin access to /admin/* routes", async () => {
+      mockGetToken.mockResolvedValue({
+        id: "admin1",
+        email: "admin@test.com",
+        isRoot: true,
+        isAdmin: true,
       });
 
       const request = createMockRequest("/admin/clubs");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+      const response = await middleware(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("location")).toBeNull();
@@ -118,23 +159,28 @@ describe("Admin Redirect Middleware", () => {
   });
 
   describe("edge cases", () => {
-    it("should handle missing role gracefully", async () => {
-      mockAuth.mockReturnValue({
-        user: { id: "user1", email: "user@test.com" },
+    it("should handle token with missing isAdmin flag gracefully", async () => {
+      mockGetToken.mockResolvedValue({
+        id: "user1",
+        email: "user@test.com",
       });
 
       const request = createMockRequest("/");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+      const response = await middleware(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("location")).toBeNull();
     });
 
-    it("should handle session with null user gracefully", async () => {
-      mockAuth.mockReturnValue({ user: null });
+    it("should handle token with isAdmin=undefined gracefully", async () => {
+      mockGetToken.mockResolvedValue({
+        id: "user1",
+        email: "user@test.com",
+        isAdmin: undefined,
+      });
 
       const request = createMockRequest("/");
-      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+      const response = await middleware(request);
 
       expect(response.status).toBe(200);
       expect(response.headers.get("location")).toBeNull();

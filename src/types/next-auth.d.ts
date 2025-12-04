@@ -14,6 +14,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       isRoot?: boolean;
+      isAdmin?: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -22,5 +23,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     isRoot?: boolean;
+    isAdmin?: boolean;
   }
 }
