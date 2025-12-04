@@ -18,6 +18,7 @@ export {
 /**
  * Check if a user has any admin role (Root Admin, Organization Admin, or Club Admin).
  * Used to set the isAdmin flag in the JWT token for Edge Runtime middleware.
+ * This runs on login only, so the database queries are acceptable.
  */
 async function checkIsAdmin(userId: string, isRoot: boolean | undefined): Promise<boolean> {
   // Root admins are always admins
@@ -25,27 +26,23 @@ async function checkIsAdmin(userId: string, isRoot: boolean | undefined): Promis
     return true;
   }
 
-  // Check for Organization Admin role
-  const orgAdminCount = await prisma.membership.count({
-    where: {
-      userId,
-      role: MembershipRole.ORGANIZATION_ADMIN,
-    },
-  });
+  // Run both queries in parallel for better performance
+  const [orgAdminCount, clubAdminCount] = await Promise.all([
+    prisma.membership.count({
+      where: {
+        userId,
+        role: MembershipRole.ORGANIZATION_ADMIN,
+      },
+    }),
+    prisma.clubMembership.count({
+      where: {
+        userId,
+        role: ClubMembershipRole.CLUB_ADMIN,
+      },
+    }),
+  ]);
 
-  if (orgAdminCount > 0) {
-    return true;
-  }
-
-  // Check for Club Admin role
-  const clubAdminCount = await prisma.clubMembership.count({
-    where: {
-      userId,
-      role: ClubMembershipRole.CLUB_ADMIN,
-    },
-  });
-
-  return clubAdminCount > 0;
+  return orgAdminCount > 0 || clubAdminCount > 0;
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
