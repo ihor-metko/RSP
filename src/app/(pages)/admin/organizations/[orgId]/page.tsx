@@ -568,7 +568,6 @@ export default function OrganizationDetailPage() {
                     {admin.isPrimaryOwner && (
                       <span 
                         className="im-admin-owner-badge im-tooltip-wrapper"
-                        title={t("organizations.ownerTooltip")}
                         role="note"
                         aria-label={t("organizations.ownerTooltip")}
                       >

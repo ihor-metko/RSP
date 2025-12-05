@@ -263,47 +263,6 @@
   color: var(--color-accent);
 }
 
-/* Tooltip wrapper with accessible tooltip styles */
-.im-tooltip-wrapper {
-  position: relative;
-  cursor: help;
-}
-
-.im-tooltip-wrapper:hover::after,
-.im-tooltip-wrapper:focus::after {
-  content: attr(title);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.5rem 0.75rem;
-  background-color: var(--im-tooltip-bg, #1f2937);
-  color: var(--im-tooltip-text, #f9fafb);
-  font-size: 0.75rem;
-  font-weight: 400;
-  text-transform: none;
-  white-space: nowrap;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  margin-bottom: 0.375rem;
-  opacity: 1;
-  pointer-events: none;
-}
-
-.im-tooltip-wrapper:hover::before,
-.im-tooltip-wrapper:focus::before {
-  content: "";
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--im-tooltip-bg, #1f2937);
-  margin-bottom: -0.375rem;
-  z-index: 1001;
-}
-
 .im-admin-club-badge {
   font-size: 0.75rem;
   padding: 0.25em 0.5em;

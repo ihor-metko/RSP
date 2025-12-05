@@ -930,7 +930,6 @@ export default function AdminOrganizationsPage() {
                                 {admin.isPrimaryOwner && (
                                   <span 
                                     className="im-org-owner-label im-tooltip-wrapper"
-                                    title={t("organizations.ownerTooltip")}
                                     role="note"
                                     aria-label={t("organizations.ownerTooltip")}
                                   >
@@ -1261,7 +1260,6 @@ export default function AdminOrganizationsPage() {
                   {admin.isPrimaryOwner && (
                     <span 
                       className="im-manage-admin-owner-badge im-tooltip-wrapper"
-                      title={t("organizations.ownerTooltip")}
                       role="note"
                       aria-label={t("organizations.ownerTooltip")}
                     >
