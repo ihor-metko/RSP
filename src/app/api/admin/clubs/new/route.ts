@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
-import { MembershipRole } from "@/constants/roles";
 
 interface BusinessHourInput {
   dayOfWeek: number;
@@ -119,17 +118,9 @@ export async function POST(request: Request) {
     }
 
     // For organization admins, verify they have access to this organization
+    // using the managed IDs from the auth result (avoids redundant DB query)
     if (authResult.adminType === "organization_admin") {
-      const membership = await prisma.membership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId: authResult.userId,
-            organizationId: body.organizationId,
-          },
-        },
-      });
-
-      if (!membership || membership.role !== MembershipRole.ORGANIZATION_ADMIN) {
+      if (!authResult.managedIds.includes(body.organizationId)) {
         return NextResponse.json(
           { error: "You do not have permission to create clubs in this organization" },
           { status: 403 }

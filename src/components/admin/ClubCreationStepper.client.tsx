@@ -113,14 +113,23 @@ export function ClubCreationStepper() {
           // If organization admin, fetch and set the prefilled org
           if (data.adminType === "organization_admin" && data.managedIds.length > 0) {
             const orgId = data.managedIds[0];
-            const orgResponse = await fetch(`/api/admin/organizations/search`);
-            if (orgResponse.ok) {
-              const orgs: OrganizationOption[] = await orgResponse.json();
-              const userOrg = orgs.find(org => org.id === orgId);
-              if (userOrg) {
-                setPrefilledOrg(userOrg);
-                setFormData(prev => ({ ...prev, organizationId: userOrg.id }));
+            try {
+              const orgResponse = await fetch(`/api/admin/organizations/search`);
+              if (orgResponse.ok) {
+                const orgs: OrganizationOption[] = await orgResponse.json();
+                const userOrg = orgs.find(org => org.id === orgId);
+                if (userOrg) {
+                  setPrefilledOrg(userOrg);
+                  setFormData(prev => ({ ...prev, organizationId: userOrg.id }));
+                }
+              } else {
+                // If org search fails, set a minimal org object with ID only
+                // This still allows form submission even if org details aren't loaded
+                setFormData(prev => ({ ...prev, organizationId: orgId }));
               }
+            } catch {
+              // If org search fails, set a minimal org object with ID only
+              setFormData(prev => ({ ...prev, organizationId: orgId }));
             }
           }
         }

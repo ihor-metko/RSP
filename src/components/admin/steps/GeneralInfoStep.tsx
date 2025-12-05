@@ -66,6 +66,7 @@ export function GeneralInfoStep({
   }, []);
 
   // Debounced search for organizations
+  // We only want to re-run when searchQuery changes, not the full organizationContext
   useEffect(() => {
     if (!organizationContext?.isEditable || !organizationContext?.onSearch) return;
     
@@ -74,7 +75,8 @@ export function GeneralInfoStep({
     }, 300);
     
     return () => clearTimeout(timer);
-  }, [searchQuery, organizationContext]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, organizationContext?.isEditable, organizationContext?.onSearch]);
 
   const handleInputChange = useCallback(
     (
@@ -100,7 +102,7 @@ export function GeneralInfoStep({
     setIsDropdownOpen(true);
     // Clear selection if search query is modified
     if (data.organizationId) {
-      onChange({ organizationId: undefined });
+      onChange({ organizationId: "" });
     }
   }, [data.organizationId, onChange]);
 
