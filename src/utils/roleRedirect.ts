@@ -26,7 +26,13 @@ export interface AdminStatusResult {
  *
  * @param isRoot Whether the user is a root admin
  * @returns The homepage path
- * @deprecated Use getAdminHomepage for more comprehensive admin type handling
+ * @deprecated Use getAdminHomepage(adminType) with checkUserAdminStatus() for comprehensive
+ *             admin type handling. This function only handles root admin, not organization
+ *             or club admins. Migrate by replacing:
+ *             - getRoleHomepage(isRoot) 
+ *             with:
+ *             - const { adminType } = await checkUserAdminStatus(userId, isRoot);
+ *             - getAdminHomepage(adminType);
  */
 export function getRoleHomepage(isRoot: boolean | undefined): string {
   if (isRoot) {
@@ -65,7 +71,7 @@ export async function checkUserAdminStatus(
   userId: string,
   isRoot: boolean
 ): Promise<AdminStatusResult> {
-  // Root admins have full access
+  // Root admins have full access - no database query needed
   if (isRoot) {
     return {
       isAdmin: true,
@@ -74,17 +80,29 @@ export async function checkUserAdminStatus(
     };
   }
 
-  // Check if user is an organization admin
-  const organizationMemberships = await prisma.membership.findMany({
-    where: {
-      userId,
-      role: MembershipRole.ORGANIZATION_ADMIN,
-    },
-    select: {
-      organizationId: true,
-    },
-  });
+  // Run both membership queries concurrently for better performance
+  const [organizationMemberships, clubMemberships] = await Promise.all([
+    prisma.membership.findMany({
+      where: {
+        userId,
+        role: MembershipRole.ORGANIZATION_ADMIN,
+      },
+      select: {
+        organizationId: true,
+      },
+    }),
+    prisma.clubMembership.findMany({
+      where: {
+        userId,
+        role: ClubMembershipRole.CLUB_ADMIN,
+      },
+      select: {
+        clubId: true,
+      },
+    }),
+  ]);
 
+  // Check organization admin first (higher priority)
   if (organizationMemberships.length > 0) {
     return {
       isAdmin: true,
@@ -93,17 +111,7 @@ export async function checkUserAdminStatus(
     };
   }
 
-  // Check if user is a club admin
-  const clubMemberships = await prisma.clubMembership.findMany({
-    where: {
-      userId,
-      role: ClubMembershipRole.CLUB_ADMIN,
-    },
-    select: {
-      clubId: true,
-    },
-  });
-
+  // Check club admin
   if (clubMemberships.length > 0) {
     return {
       isAdmin: true,
