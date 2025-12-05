@@ -37,6 +37,8 @@ jest.mock("next-intl", () => ({
         "sidebar.notifications": "Notifications",
         "sidebar.settings": "Global Settings",
         "sidebar.roleRootAdmin": "Root Admin",
+        "sidebar.roleOwner": "Owner",
+        "sidebar.roleOwnerTooltip": "Organization Owner — full control over this organization",
         "sidebar.roleSuperAdmin": "Super Admin",
         "sidebar.roleAdmin": "Admin",
       };
@@ -248,6 +250,75 @@ describe("AdminSidebar Component", () => {
         expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
       });
       expect(screen.queryByText("Global Settings")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Organization Owner", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: "owner-1",
+            name: "Organization Owner",
+            email: "owner@test.com",
+            isRoot: false,
+          },
+        },
+        status: "authenticated",
+      });
+      mockAdminStatusFetch({
+        isAdmin: true,
+        adminType: "organization_admin",
+        isRoot: false,
+        managedIds: ["org-1"],
+        isPrimaryOwner: true,
+      });
+    });
+
+    it("renders the sidebar for organization owner", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+    });
+
+    it("shows Owner role badge instead of Super Admin", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Owner")).toBeInTheDocument();
+      });
+      // Should NOT show Super Admin
+      expect(screen.queryByText("Super Admin")).not.toBeInTheDocument();
+    });
+
+    it("has Owner badge with tooltip", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Owner")).toBeInTheDocument();
+      });
+      // Check for the tooltip element
+      expect(screen.getByRole("tooltip", { hidden: true })).toHaveTextContent(
+        "Organization Owner — full control over this organization"
+      );
+    });
+
+    it("has accessible Owner badge with aria-label", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        const roleContainer = screen.getByRole("group");
+        expect(roleContainer).toHaveAttribute(
+          "aria-label",
+          "Owner: Organization Owner — full control over this organization"
+        );
+      });
+    });
+
+    it("Owner badge is keyboard focusable", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        const roleContainer = screen.getByRole("group");
+        expect(roleContainer).toHaveAttribute("tabIndex", "0");
+      });
     });
   });
 

@@ -34,6 +34,11 @@ export interface AdminStatusResponse {
    * Uses the first club if multiple are assigned (for future use).
    */
   assignedClub?: AssignedClub;
+  /**
+   * For organization admins, indicates if they are the primary owner of the organization.
+   * True if the user has isPrimaryOwner=true on any of their organization memberships.
+   */
+  isPrimaryOwner?: boolean;
 }
 
 /**
@@ -80,15 +85,19 @@ export async function GET(): Promise<NextResponse<AdminStatusResponse | { error:
     },
     select: {
       organizationId: true,
+      isPrimaryOwner: true,
     },
   });
 
   if (organizationMemberships.length > 0) {
+    // Check if any membership has isPrimaryOwner set to true
+    const isPrimaryOwner = organizationMemberships.some((m) => m.isPrimaryOwner);
     const response: AdminStatusResponse = {
       isAdmin: true,
       adminType: "organization_admin",
       isRoot: false,
       managedIds: organizationMemberships.map((m) => m.organizationId),
+      isPrimaryOwner,
     };
     return NextResponse.json(response);
   }

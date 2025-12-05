@@ -82,6 +82,11 @@
   color: white;
 }
 
+.im-sidebar-role--owner {
+  background-color: #059669;
+  color: white;
+}
+
 .im-sidebar-role--super {
   background-color: #9333ea;
   color: white;
@@ -90,6 +95,30 @@
 .im-sidebar-role--admin {
   background-color: #0ea5e9;
   color: white;
+}
+
+/* Role container with tooltip */
+.im-sidebar-role-container {
+  @apply relative inline-block;
+}
+
+.im-sidebar-role-tooltip {
+  @apply absolute z-50 px-3 py-2 text-xs rounded-lg shadow-lg whitespace-nowrap pointer-events-none;
+  background-color: var(--im-surface);
+  color: var(--im-foreground);
+  border: 1px solid var(--im-border);
+  left: 0;
+  top: 100%;
+  margin-top: 4px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.im-sidebar-role-container:hover .im-sidebar-role-tooltip,
+.im-sidebar-role-container:focus-within .im-sidebar-role-tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Navigation section */

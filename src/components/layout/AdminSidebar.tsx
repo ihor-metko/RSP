@@ -328,9 +328,18 @@ function filterNavByRoot(items: NavItem[], isRoot: boolean, isClubAdmin: boolean
 }
 
 /**
+ * Role info interface
+ */
+interface RoleInfo {
+  label: string;
+  className: string;
+  tooltip?: string;
+}
+
+/**
  * Get role display info for admins
  */
-function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>) {
+function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>): RoleInfo | null {
   if (!adminStatus?.isAdmin) {
     return null;
   }
@@ -343,6 +352,14 @@ function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<type
   }
 
   if (adminStatus.adminType === "organization_admin") {
+    // Check if user is the primary owner
+    if (adminStatus.isPrimaryOwner) {
+      return {
+        label: t("sidebar.roleOwner"),
+        className: "im-sidebar-role im-sidebar-role--owner",
+        tooltip: t("sidebar.roleOwnerTooltip"),
+      };
+    }
     return {
       label: t("sidebar.roleSuperAdmin"),
       className: "im-sidebar-role im-sidebar-role--super",
@@ -593,7 +610,21 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
           <div>
             <div className="im-sidebar-title">{t("sidebar.title")}</div>
             {roleInfo && (
-              <span className={roleInfo.className}>{roleInfo.label}</span>
+              roleInfo.tooltip ? (
+                <span 
+                  className="im-sidebar-role-container"
+                  tabIndex={0}
+                  role="group"
+                  aria-label={`${roleInfo.label}: ${roleInfo.tooltip}`}
+                >
+                  <span className={roleInfo.className}>{roleInfo.label}</span>
+                  <span className="im-sidebar-role-tooltip" role="tooltip" aria-hidden="true">
+                    {roleInfo.tooltip}
+                  </span>
+                </span>
+              ) : (
+                <span className={roleInfo.className}>{roleInfo.label}</span>
+              )
             )}
           </div>
         </div>
