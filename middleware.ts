@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
-import { getRoleHomepage } from "@/utils/roleRedirect";
+import { checkUserAdminStatus, getAdminHomepage } from "@/utils/roleRedirect";
 
 interface AuthRequest extends NextRequest {
   auth: {
@@ -14,13 +14,15 @@ interface AuthRequest extends NextRequest {
 }
 
 /**
- * Middleware to redirect root admin users from the landing page to admin dashboard
+ * Middleware to redirect ALL admin users from the landing page to admin dashboard
  *
  * - Unauthenticated users: See public landing page
- * - Regular users: See public landing page
+ * - Regular users (non-admin): See public landing page
  * - Root admin users (isRoot=true): Redirected to /admin/dashboard
+ * - Organization admins: Redirected to /admin/dashboard
+ * - Club admins: Redirected to /admin/dashboard
  */
-export default auth((req: AuthRequest) => {
+export default auth(async (req: AuthRequest) => {
   try {
     const { pathname } = req.nextUrl;
 
@@ -36,16 +38,20 @@ export default auth((req: AuthRequest) => {
       return NextResponse.next();
     }
 
-    const isRoot = session.user.isRoot;
+    const userId = session.user.id;
+    const isRoot = session.user.isRoot ?? false;
 
-    // Check if user is root admin
-    if (isRoot) {
-      const adminHomepage = getRoleHomepage(isRoot);
+    // Check if user has any admin role (root, organization, or club)
+    const adminStatus = await checkUserAdminStatus(userId, isRoot);
+
+    // If user is any type of admin, redirect to admin dashboard
+    if (adminStatus.isAdmin) {
+      const adminHomepage = getAdminHomepage(adminStatus.adminType);
       const redirectUrl = new URL(adminHomepage, req.url);
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Non-root authenticated users see the landing page
+    // Non-admin authenticated users see the landing page
     return NextResponse.next();
   } catch (error) {
     // On error, default to allowing access (don't block public access)

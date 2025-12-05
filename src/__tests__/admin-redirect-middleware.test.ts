@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getRoleHomepage } from "@/utils/roleRedirect";
+import { getAdminHomepage, AdminType } from "@/utils/roleRedirect";
 
 // Mock next-auth
 const mockAuth = jest.fn();
@@ -18,12 +18,29 @@ jest.mock("@/lib/auth", () => ({
   },
 }));
 
+// Mock checkUserAdminStatus from roleRedirect
+const mockCheckUserAdminStatus = jest.fn();
+
+jest.mock("@/utils/roleRedirect", () => {
+  const actual = jest.requireActual("@/utils/roleRedirect");
+  return {
+    ...actual,
+    checkUserAdminStatus: (...args: unknown[]) => mockCheckUserAdminStatus(...args),
+  };
+});
+
 // Import middleware after mocking
 import middleware, { config } from "../../middleware";
 
 describe("Admin Redirect Middleware", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default to non-admin for tests
+    mockCheckUserAdminStatus.mockResolvedValue({
+      isAdmin: false,
+      adminType: "none",
+      managedIds: [],
+    });
   });
 
   function createMockRequest(pathname: string) {
@@ -55,6 +72,11 @@ describe("Admin Redirect Middleware", () => {
       mockAuth.mockReturnValue({
         user: { id: "user1", email: "player@test.com", isRoot: false },
       });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: false,
+        adminType: "none",
+        managedIds: [],
+      });
 
       const request = createMockRequest("/");
       const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
@@ -63,9 +85,14 @@ describe("Admin Redirect Middleware", () => {
       expect(response.headers.get("location")).toBeNull();
     });
 
-    it("should allow coach users to see landing page", async () => {
+    it("should allow coach users (non-admin) to see landing page", async () => {
       mockAuth.mockReturnValue({
         user: { id: "user2", email: "coach@test.com", isRoot: false },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: false,
+        adminType: "none",
+        managedIds: [],
       });
 
       const request = createMockRequest("/");
@@ -81,18 +108,63 @@ describe("Admin Redirect Middleware", () => {
       mockAuth.mockReturnValue({
         user: { id: "admin1", email: "admin@test.com", isRoot: true },
       });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: true,
+        adminType: "root_admin",
+        managedIds: [],
+      });
 
       const request = createMockRequest("/");
       const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
 
       expect(response.status).toBe(307);
       const locationHeader = response.headers.get("location");
-      expect(locationHeader).toContain(getRoleHomepage(true));
+      expect(locationHeader).toContain(getAdminHomepage("root_admin"));
+    });
+  });
+
+  describe("organization admin users", () => {
+    it("should redirect organization admin users from landing page to admin dashboard", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "org-admin1", email: "org-admin@test.com", isRoot: false },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: true,
+        adminType: "organization_admin",
+        managedIds: ["org-1"],
+      });
+
+      const request = createMockRequest("/");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain(getAdminHomepage("organization_admin"));
+    });
+  });
+
+  describe("club admin users", () => {
+    it("should redirect club admin users from landing page to admin dashboard", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "club-admin1", email: "club-admin@test.com", isRoot: false },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: true,
+        adminType: "club_admin",
+        managedIds: ["club-1"],
+      });
+
+      const request = createMockRequest("/");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain(getAdminHomepage("club_admin"));
     });
   });
 
   describe("non-root paths", () => {
-    it("should not affect requests to other paths for super_admin users", async () => {
+    it("should not affect requests to other paths for admin users", async () => {
       mockAuth.mockReturnValue({
         user: { id: "admin1", email: "admin@test.com", isRoot: true },
       });
@@ -104,7 +176,7 @@ describe("Admin Redirect Middleware", () => {
       expect(response.headers.get("location")).toBeNull();
     });
 
-    it("should allow super_admin access to /admin/* routes", async () => {
+    it("should allow admin access to /admin/* routes", async () => {
       mockAuth.mockReturnValue({
         user: { id: "admin1", email: "admin@test.com", isRoot: true },
       });
@@ -121,6 +193,11 @@ describe("Admin Redirect Middleware", () => {
     it("should handle missing role gracefully", async () => {
       mockAuth.mockReturnValue({
         user: { id: "user1", email: "user@test.com" },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: false,
+        adminType: "none",
+        managedIds: [],
       });
 
       const request = createMockRequest("/");
@@ -143,15 +220,29 @@ describe("Admin Redirect Middleware", () => {
 });
 
 describe("Role Homepage Configuration", () => {
-  it("should return /admin/dashboard for root admin (isRoot=true)", () => {
-    expect(getRoleHomepage(true)).toBe("/admin/dashboard");
+  it("should return /admin/dashboard for root admin", () => {
+    expect(getAdminHomepage("root_admin")).toBe("/admin/dashboard");
   });
 
-  it("should return / for non-root users (isRoot=false)", () => {
-    expect(getRoleHomepage(false)).toBe("/");
+  it("should return /admin/dashboard for organization admin", () => {
+    expect(getAdminHomepage("organization_admin")).toBe("/admin/dashboard");
   });
 
-  it("should return / for undefined isRoot", () => {
-    expect(getRoleHomepage(undefined)).toBe("/");
+  it("should return /admin/dashboard for club admin", () => {
+    expect(getAdminHomepage("club_admin")).toBe("/admin/dashboard");
+  });
+
+  it("should return / for non-admin users", () => {
+    expect(getAdminHomepage("none")).toBe("/");
+  });
+
+  it("should cover all admin types", () => {
+    const adminTypes: AdminType[] = ["root_admin", "organization_admin", "club_admin", "none"];
+    
+    adminTypes.forEach((adminType) => {
+      const homepage = getAdminHomepage(adminType);
+      expect(homepage).toBeDefined();
+      expect(homepage.startsWith("/")).toBe(true);
+    });
   });
 });

@@ -12,7 +12,7 @@ import {
   LandingTestimonials,
 } from "@/components/home";
 import { auth } from "@/lib/auth";
-import { getRoleHomepage } from "@/utils/roleRedirect";
+import { checkUserAdminStatus, getAdminHomepage } from "@/utils/roleRedirect";
 
 /**
  * Home page - Server Component with client islands for interactivity
@@ -21,15 +21,25 @@ import { getRoleHomepage } from "@/utils/roleRedirect";
  *                    LandingHowItWorks, LandingClubsCoaches, LandingTestimonials
  * Client Components: Header, PersonalizedSectionWrapper, PublicFooter
  *
- * Root admin users are redirected to admin dashboard (server-side fallback for middleware)
+ * All admin users (Root, Organization, Club) are redirected to admin dashboard
+ * (server-side fallback for middleware)
  */
 export default async function Home() {
-  // Server-side fallback: redirect root admin users to admin dashboard
+  // Server-side fallback: redirect ALL admin users to admin dashboard
   const session = await auth();
-  const isRoot = session?.user?.isRoot;
-  if (isRoot) {
-    redirect(getRoleHomepage(isRoot));
+  
+  if (session?.user) {
+    const userId = session.user.id;
+    const isRoot = session.user.isRoot ?? false;
+    
+    // Check if user has any admin role
+    const adminStatus = await checkUserAdminStatus(userId, isRoot);
+    
+    if (adminStatus.isAdmin) {
+      redirect(getAdminHomepage(adminStatus.adminType));
+    }
   }
+  
   return (
     <main className="flex flex-col min-h-screen overflow-auto">
       <Header />
