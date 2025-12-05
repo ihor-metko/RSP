@@ -901,6 +901,30 @@
     "userDeleted": "User deleted successfully",
     "failedToDeleteUser": "Failed to delete user"
   },
+  "orgDashboard": {
+    "title": "Organization Dashboard",
+    "subtitle": "Overview of your organization",
+    "keyMetrics": "Key Metrics",
+    "metrics": {
+      "clubs": "Clubs",
+      "courts": "Courts",
+      "bookingsToday": "Bookings Today",
+      "clubAdmins": "Club Admins"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "createClub": "Create Club",
+      "inviteAdmin": "Invite Club Admin"
+    },
+    "navigation": {
+      "manageClubs": "Manage Clubs",
+      "viewBookings": "View Bookings",
+      "manageAdmins": "Manage Admins"
+    },
+    "loading": "Loading dashboard...",
+    "error": "Failed to load dashboard. Please try again later.",
+    "notFound": "Organization not found."
+  },
   "clubAdmins": {
     "title": "Club Admins",
     "subtitle": "Manage club administrators for this organization",
