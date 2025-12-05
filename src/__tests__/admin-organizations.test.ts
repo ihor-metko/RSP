@@ -25,6 +25,12 @@ jest.mock("@/lib/prisma", () => ({
       findMany: jest.fn(),
       create: jest.fn(),
     },
+    booking: {
+      count: jest.fn(),
+    },
+    auditLog: {
+      create: jest.fn(),
+    },
   },
 }));
 
@@ -969,8 +975,11 @@ describe("Admin Organizations API", () => {
       (prisma.organization.findUnique as jest.Mock).mockResolvedValue({
         id: "org-1",
         name: "Test Org",
+        slug: "test-org",
         _count: { clubs: 0 },
       });
+
+      (prisma.booking.count as jest.Mock).mockResolvedValue(0);
 
       (prisma.organization.delete as jest.Mock).mockResolvedValue({
         id: "org-1",

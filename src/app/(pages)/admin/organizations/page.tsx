@@ -947,6 +947,13 @@ export default function AdminOrganizationsPage() {
                           <Button
                             variant="outline"
                             size="small"
+                            onClick={() => router.push(`/admin/organizations/${org.id}`)}
+                          >
+                            {t("organizations.viewDetails")}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="small"
                             onClick={() => handleOpenEditModal(org)}
                           >
                             {t("common.edit")}

@@ -48,8 +48,14 @@ model Organization {
   id          String       @id @default(uuid())
   name        String
   slug        String       @unique
+  contactEmail String?
+  contactPhone String?
+  website     String?
+  address     String?
+  metadata    String?      @db.Text // JSON string for additional metadata
   createdById String
   createdBy   User         @relation("OrganizationCreator", fields: [createdById], references: [id])
+  archivedAt  DateTime?    // Soft-delete timestamp
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now()) @updatedAt
   memberships Membership[]
@@ -369,5 +375,20 @@ model AdminNotification {
   createdAt         DateTime @default(now())
 
   @@index([read])
+  @@index([createdAt])
+}
+
+// Audit Log for tracking admin actions
+model AuditLog {
+  id          String   @id @default(uuid())
+  actorId     String
+  action      String   // e.g., "org.update", "org.archive", "org.delete", "org.reassign_owner"
+  targetType  String   // e.g., "organization", "club", "user"
+  targetId    String   // ID of the affected entity
+  detail      String?  @db.Text // JSON string with additional context
+  createdAt   DateTime @default(now())
+
+  @@index([actorId])
+  @@index([targetType, targetId])
   @@index([createdAt])
 }

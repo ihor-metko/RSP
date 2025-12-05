@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
 
 /**
  * Generate a URL-friendly slug from a name
@@ -160,7 +161,8 @@ export async function PATCH(
 /**
  * DELETE /api/admin/organizations/[id]
  * Deletes an organization (root admin only)
- * Will fail if the organization has active clubs
+ * Will fail if the organization has active clubs without confirmation.
+ * Requires confirmOrgSlug in body to match the organization slug for confirmation.
  */
 export async function DELETE(
   request: Request,
@@ -174,6 +176,15 @@ export async function DELETE(
 
   try {
     const { id } = await params;
+    
+    // Parse body for confirmation token
+    let confirmOrgSlug: string | undefined;
+    try {
+      const body = await request.json();
+      confirmOrgSlug = body.confirmOrgSlug;
+    } catch {
+      // Body is optional if there are no clubs
+    }
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({
@@ -192,21 +203,66 @@ export async function DELETE(
       );
     }
 
-    // Check for active clubs
+    // Check for active clubs - require confirmation if any exist
     if (organization._count.clubs > 0) {
-      return NextResponse.json(
-        { 
-          error: "Cannot delete organization with active clubs",
-          clubCount: organization._count.clubs,
+      // If no confirmation provided or it doesn't match, return 409
+      if (!confirmOrgSlug || confirmOrgSlug !== organization.slug) {
+        return NextResponse.json(
+          { 
+            error: "Cannot delete organization with active clubs",
+            clubCount: organization._count.clubs,
+            requiresConfirmation: true,
+            hint: "Provide confirmOrgSlug matching the organization slug to confirm deletion",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Check for active bookings in the org's clubs
+    const activeBookingsCount = await prisma.booking.count({
+      where: {
+        court: {
+          club: {
+            organizationId: id,
+          },
         },
-        { status: 409 }
-      );
+        status: { in: ["pending", "paid"] },
+        start: { gte: new Date() },
+      },
+    });
+
+    if (activeBookingsCount > 0) {
+      if (!confirmOrgSlug || confirmOrgSlug !== organization.slug) {
+        return NextResponse.json(
+          { 
+            error: "Cannot delete organization with active bookings",
+            activeBookingsCount,
+            requiresConfirmation: true,
+            hint: "Provide confirmOrgSlug matching the organization slug to confirm deletion",
+          },
+          { status: 409 }
+        );
+      }
     }
 
     // Delete the organization and related memberships (cascading via schema)
     await prisma.organization.delete({
       where: { id },
     });
+
+    // Create audit log
+    await auditLog(
+      authResult.userId,
+      AuditAction.ORG_DELETE,
+      TargetType.ORGANIZATION,
+      id,
+      {
+        organizationName: organization.name,
+        organizationSlug: organization.slug,
+        clubCount: organization._count.clubs,
+      }
+    );
 
     return NextResponse.json({
       success: true,
