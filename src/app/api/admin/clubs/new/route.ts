@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRootAdmin } from "@/lib/requireRole";
+import { requireAnyAdmin } from "@/lib/requireRole";
 
 interface BusinessHourInput {
   dayOfWeek: number;
@@ -23,6 +23,7 @@ interface GalleryInput {
 }
 
 interface CreateClubRequest {
+  organizationId: string;
   name: string;
   slug?: string;
   shortDescription: string;
@@ -57,16 +58,32 @@ function generateSlug(name: string): string {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireRootAdmin(request);
+  // Allow root admin or organization admin to create clubs
+  const authResult = await requireAnyAdmin(request);
 
   if (!authResult.authorized) {
     return authResult.response;
+  }
+
+  // Only root admin and organization admin can create clubs
+  if (authResult.adminType === "club_admin") {
+    return NextResponse.json(
+      { error: "Forbidden" },
+      { status: 403 }
+    );
   }
 
   try {
     const body: CreateClubRequest = await request.json();
 
     // Validate required fields
+    if (!body.organizationId?.trim()) {
+      return NextResponse.json(
+        { error: "Organization is required" },
+        { status: 400 }
+      );
+    }
+
     if (!body.name?.trim()) {
       return NextResponse.json(
         { error: "Club name is required" },
@@ -86,6 +103,29 @@ export async function POST(request: Request) {
         { error: "Address is required" },
         { status: 400 }
       );
+    }
+
+    // Validate organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id: body.organizationId, archivedAt: null },
+    });
+
+    if (!organization) {
+      return NextResponse.json(
+        { error: "Organization not found" },
+        { status: 404 }
+      );
+    }
+
+    // For organization admins, verify they have access to this organization
+    // using the managed IDs from the auth result (avoids redundant DB query)
+    if (authResult.adminType === "organization_admin") {
+      if (!authResult.managedIds.includes(body.organizationId)) {
+        return NextResponse.json(
+          { error: "You do not have permission to create clubs in this organization" },
+          { status: 403 }
+        );
+      }
     }
 
     // Generate or validate slug
@@ -110,6 +150,8 @@ export async function POST(request: Request) {
         data: {
           name: body.name.trim(),
           slug,
+          organizationId: body.organizationId,
+          createdById: authResult.userId,
           shortDescription: body.shortDescription.trim(),
           longDescription: body.longDescription?.trim() || null,
           location: body.location.trim(),

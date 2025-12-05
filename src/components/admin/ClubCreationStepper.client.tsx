@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import {
@@ -14,14 +14,17 @@ import {
   type HoursData,
   type CourtsData,
   type GalleryData,
+  type OrganizationOption,
 } from "./steps";
 import type { UploadedFile, BusinessHour, InlineCourt } from "@/types/admin";
+import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
 import "./ClubCreationStepper.css";
 import "./InlineCourtsField.css";
 import "./steps/steps.css";
 
 interface StepperFormData {
   // Step 1: General Information
+  organizationId: string;
   name: string;
   slug: string;
   clubType: string;
@@ -53,6 +56,7 @@ const initialBusinessHours: BusinessHour[] = [
 ];
 
 const initialFormData: StepperFormData = {
+  organizationId: "",
   name: "Padel Pulse Arena",
   slug: "",
   clubType: "",
@@ -86,10 +90,83 @@ export function ClubCreationStepper() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  // Organization context state
+  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
+  const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
+  const [prefilledOrg, setPrefilledOrg] = useState<OrganizationOption | null>(null);
+  const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
+
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 5000);
   }, []);
+
+  // Fetch admin status on mount
+  useEffect(() => {
+    const fetchAdminStatus = async () => {
+      try {
+        const response = await fetch("/api/me/admin-status");
+        if (response.ok) {
+          const data: AdminStatusResponse = await response.json();
+          setAdminStatus(data);
+
+          // If organization admin, fetch and set the prefilled org
+          if (data.adminType === "organization_admin" && data.managedIds.length > 0) {
+            const orgId = data.managedIds[0];
+            try {
+              const orgResponse = await fetch(`/api/admin/organizations/search`);
+              if (orgResponse.ok) {
+                const orgs: OrganizationOption[] = await orgResponse.json();
+                const userOrg = orgs.find(org => org.id === orgId);
+                if (userOrg) {
+                  setPrefilledOrg(userOrg);
+                  setFormData(prev => ({ ...prev, organizationId: userOrg.id }));
+                }
+              } else {
+                // If org search fails, set a minimal org object with ID only
+                // This still allows form submission even if org details aren't loaded
+                setFormData(prev => ({ ...prev, organizationId: orgId }));
+              }
+            } catch {
+              // If org search fails, set a minimal org object with ID only
+              setFormData(prev => ({ ...prev, organizationId: orgId }));
+            }
+          }
+        }
+      } catch {
+        // Silent fail for admin status
+      }
+    };
+
+    fetchAdminStatus();
+  }, []);
+
+  // Search organizations for root admin
+  const handleOrgSearch = useCallback(async (query: string) => {
+    if (adminStatus?.adminType !== "root_admin") return;
+    
+    setIsLoadingOrgs(true);
+    try {
+      const response = await fetch(
+        `/api/admin/organizations/search?search=${encodeURIComponent(query)}&limit=20`
+      );
+      if (response.ok) {
+        const data: OrganizationOption[] = await response.json();
+        setOrganizations(data);
+      }
+    } catch {
+      // Silent fail for org search
+    } finally {
+      setIsLoadingOrgs(false);
+    }
+  }, [adminStatus?.adminType]);
+
+  // Load initial organizations for root admin
+  useEffect(() => {
+    if (adminStatus?.adminType === "root_admin") {
+      handleOrgSearch("");
+    }
+  }, [adminStatus?.adminType, handleOrgSearch]);
 
   // Generic update handlers for step components
   const handleGeneralInfoChange = useCallback((data: Partial<GeneralInfoData>) => {
@@ -156,6 +233,10 @@ export function ClubCreationStepper() {
     const errors: Record<string, string> = {};
 
     if (step === 1) {
+      // Validate organization selection
+      if (!formData.organizationId) {
+        errors.organizationId = "Organization is required";
+      }
       if (!formData.name.trim()) {
         errors.name = "Club name is required";
       }
@@ -214,6 +295,11 @@ export function ClubCreationStepper() {
     }
 
     // Final validation
+    if (!formData.organizationId) {
+      setError("Organization is required");
+      setCurrentStep(1);
+      return;
+    }
     if (!formData.name.trim()) {
       setError("Club name is required");
       setCurrentStep(1);
@@ -245,6 +331,7 @@ export function ClubCreationStepper() {
 
       // Prepare data for submission
       const submitData = {
+        organizationId: formData.organizationId,
         name: formData.name.trim(),
         slug: formData.slug.trim() || generateSlug(formData.name),
         shortDescription: formData.shortDescription.trim() || `${formData.name} - ${formData.clubType || "Sports"} Club`,
@@ -305,6 +392,15 @@ export function ClubCreationStepper() {
 
   // Render step content
   const renderStepContent = () => {
+    // Build organization context for GeneralInfoStep
+    const orgContext = adminStatus ? {
+      isEditable: adminStatus.adminType === "root_admin",
+      prefilledOrg: prefilledOrg,
+      isLoading: isLoadingOrgs,
+      organizations: organizations,
+      onSearch: handleOrgSearch,
+    } : undefined;
+
     switch (currentStep) {
       case 1:
         return (
@@ -315,6 +411,7 @@ export function ClubCreationStepper() {
             </p>
             <GeneralInfoStep
               data={{
+                organizationId: formData.organizationId,
                 name: formData.name,
                 slug: formData.slug,
                 clubType: formData.clubType,
@@ -323,6 +420,7 @@ export function ClubCreationStepper() {
               onChange={handleGeneralInfoChange}
               errors={fieldErrors}
               disabled={isSubmitting}
+              organizationContext={orgContext}
             />
           </Card>
         );
