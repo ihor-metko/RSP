@@ -91,6 +91,16 @@ interface SearchedUser {
   isOrgAdmin: boolean;
 }
 
+/**
+ * Helper to get user initials for avatar display
+ */
+function getInitials(name: string | null, email: string): string {
+  if (name) {
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  }
+  return email.slice(0, 2).toUpperCase();
+}
+
 export default function OrganizationDetailPage() {
   const t = useTranslations();
   const { data: session, status } = useSession();
@@ -403,14 +413,6 @@ export default function OrganizationDetailPage() {
       </main>
     );
   }
-
-  // Helper to get user initials for avatar
-  const getInitials = (name: string | null, email: string) => {
-    if (name) {
-      return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-    }
-    return email.slice(0, 2).toUpperCase();
-  };
 
   return (
     <main className="im-org-detail-page">
