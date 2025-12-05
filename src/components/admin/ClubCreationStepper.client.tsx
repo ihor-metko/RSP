@@ -407,17 +407,6 @@ export function ClubCreationStepper() {
 
   return (
     <div className="im-stepper">
-      {/* Header */}
-      <div className="im-stepper-header">
-        <div className="im-stepper-breadcrumb">
-          <Link href="/admin/clubs" className="im-stepper-breadcrumb-link">
-            Clubs
-          </Link>
-          <span className="im-stepper-breadcrumb-separator">/</span>
-          <span className="im-stepper-breadcrumb-current">New Club</span>
-        </div>
-      </div>
-
       {/* Step Indicator */}
       <div className="im-stepper-indicator">
         {STEPS.map((step, index) => (

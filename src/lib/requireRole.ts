@@ -538,3 +538,89 @@ export async function requireAnyAdmin(
     ),
   };
 }
+
+/**
+ * Success result type for club admin management permission check.
+ */
+export interface ClubAdminManagementSuccess {
+  authorized: true;
+  userId: string;
+  isRoot: boolean;
+}
+
+/**
+ * Failure result type for club admin management permission check.
+ */
+export interface ClubAdminManagementFailure {
+  authorized: false;
+  response: NextResponse;
+}
+
+/**
+ * Result type for club admin management permission check.
+ */
+export type ClubAdminManagementResult = ClubAdminManagementSuccess | ClubAdminManagementFailure;
+
+/**
+ * Check if the current user has permission to manage club admins for an organization.
+ * 
+ * This function allows:
+ * - Root Admin: Can manage club admins for any organization
+ * - Organization Admin: Can manage club admins only within their organization
+ * 
+ * @param organizationId - The organization ID to check access for
+ * @returns Promise resolving to authorized status with user info or error response
+ * 
+ * @example
+ * const authResult = await requireClubAdminManagement(organizationId);
+ * if (!authResult.authorized) return authResult.response;
+ */
+export async function requireClubAdminManagement(
+  organizationId: string
+): Promise<ClubAdminManagementResult> {
+  const session = await auth();
+
+  if (!session?.user) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  const userId = session.user.id;
+  const isRoot = session.user.isRoot ?? false;
+
+  // Root admins can manage club admins for any organization
+  if (isRoot) {
+    return { authorized: true, userId, isRoot: true };
+  }
+
+  // Check if user is an Organization Admin for this organization
+  const membership = await prisma.membership.findUnique({
+    where: {
+      userId_organizationId: {
+        userId,
+        organizationId,
+      },
+    },
+  });
+
+  if (!membership || membership.role !== MembershipRole.ORGANIZATION_ADMIN) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+    };
+  }
+
+  return { authorized: true, userId, isRoot: false };
+}
+
+/**
+ * Validate email format.
+ * @param email - The email to validate
+ * @returns true if the email format is valid
+ */
+export function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}

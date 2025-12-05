@@ -420,6 +420,17 @@
   margin-top: 0.25rem;
 }
 
+.im-manage-admin-club-badge {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  padding: 0.125rem 0.5rem;
+  background-color: var(--im-success-bg, #d1fae5);
+  color: var(--im-success-text, #065f46);
+  border-radius: 9999px;
+  margin-top: 0.25rem;
+}
+
 .im-manage-admin-actions {
   display: flex;
   gap: 0.5rem;

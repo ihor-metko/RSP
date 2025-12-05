@@ -36,6 +36,27 @@ interface User {
   organizationName: string | null;
 }
 
+interface Club {
+  id: string;
+  name: string;
+}
+
+interface ClubApiResponse {
+  id: string;
+  name: string;
+  organization?: { id: string };
+}
+
+interface ClubAdmin {
+  id: string;
+  userId: string;
+  userName: string | null;
+  userEmail: string;
+  clubId: string;
+  clubName: string;
+  createdAt: string;
+}
+
 type SortField = "name" | "createdAt" | "clubCount" | "adminCount";
 type SortDirection = "asc" | "desc";
 
@@ -97,6 +118,39 @@ export default function AdminOrganizationsPage() {
   const [deletingOrg, setDeletingOrg] = useState<Organization | null>(null);
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  // State for club admins management modal
+  const [isClubAdminsModalOpen, setIsClubAdminsModalOpen] = useState(false);
+  const [clubAdminsOrg, setClubAdminsOrg] = useState<Organization | null>(null);
+  const [clubAdmins, setClubAdmins] = useState<ClubAdmin[]>([]);
+  const [orgClubs, setOrgClubs] = useState<Club[]>([]);
+  const [clubAdminsLoading, setClubAdminsLoading] = useState(false);
+  const [clubAdminsError, setClubAdminsError] = useState("");
+  
+  // State for add club admin modal
+  const [isAddClubAdminModalOpen, setIsAddClubAdminModalOpen] = useState(false);
+  const [clubAdminUserSearch, setClubAdminUserSearch] = useState("");
+  const [clubAdminUsers, setClubAdminUsers] = useState<User[]>([]);
+  const [selectedClubAdminUserId, setSelectedClubAdminUserId] = useState("");
+  const [selectedClubId, setSelectedClubId] = useState("");
+  const [clubAdminAssignMode, setClubAdminAssignMode] = useState<"existing" | "new">("existing");
+  const [newClubAdminName, setNewClubAdminName] = useState("");
+  const [newClubAdminEmail, setNewClubAdminEmail] = useState("");
+  const [addClubAdminError, setAddClubAdminError] = useState("");
+  const [addingClubAdmin, setAddingClubAdmin] = useState(false);
+
+  // State for edit club admin modal
+  const [isEditClubAdminModalOpen, setIsEditClubAdminModalOpen] = useState(false);
+  const [editingClubAdmin, setEditingClubAdmin] = useState<ClubAdmin | null>(null);
+  const [editClubAdminClubId, setEditClubAdminClubId] = useState("");
+  const [editClubAdminError, setEditClubAdminError] = useState("");
+  const [editingClubAdminSubmitting, setEditingClubAdminSubmitting] = useState(false);
+
+  // State for remove club admin confirmation
+  const [isRemoveClubAdminModalOpen, setIsRemoveClubAdminModalOpen] = useState(false);
+  const [removingClubAdmin, setRemovingClubAdmin] = useState<ClubAdmin | null>(null);
+  const [removeClubAdminError, setRemoveClubAdminError] = useState("");
+  const [removingClubAdminSubmitting, setRemovingClubAdminSubmitting] = useState(false);
 
   // Toast notification state
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -507,6 +561,242 @@ export default function AdminOrganizationsPage() {
     }
   };
 
+  // ============ Club Admins Management Functions ============
+
+  // Fetch club admins for an organization
+  const fetchClubAdmins = useCallback(async (orgId: string) => {
+    try {
+      setClubAdminsLoading(true);
+      setClubAdminsError("");
+      
+      const response = await fetch(`/api/orgs/${orgId}/club-admins`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch club admins");
+      }
+      const data = await response.json();
+      setClubAdmins(data);
+    } catch {
+      setClubAdminsError(t("clubAdmins.failedToLoad"));
+    } finally {
+      setClubAdminsLoading(false);
+    }
+  }, [t]);
+
+  // Fetch clubs for an organization
+  const fetchOrgClubs = useCallback(async (orgId: string) => {
+    try {
+      const response = await fetch(`/api/admin/clubs`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch clubs");
+      }
+      const data: ClubApiResponse[] = await response.json();
+      // Filter to only clubs in this organization
+      const orgClubsList = data.filter((club) => club.organization?.id === orgId);
+      setOrgClubs(orgClubsList.map((club) => ({
+        id: club.id,
+        name: club.name,
+      })));
+    } catch {
+      setClubAdminsError(t("clubAdmins.failedToLoadClubs"));
+    }
+  }, [t]);
+
+  // Open club admins modal
+  const handleOpenClubAdminsModal = (org: Organization) => {
+    setClubAdminsOrg(org);
+    setClubAdminsError("");
+    setIsClubAdminsModalOpen(true);
+    fetchClubAdmins(org.id);
+    fetchOrgClubs(org.id);
+  };
+
+  // Close club admins modal
+  const handleCloseClubAdminsModal = () => {
+    setIsClubAdminsModalOpen(false);
+    setClubAdminsOrg(null);
+    setClubAdmins([]);
+    setOrgClubs([]);
+    setClubAdminsError("");
+  };
+
+  // Open add club admin modal
+  const handleOpenAddClubAdminModal = () => {
+    setClubAdminAssignMode("existing");
+    setClubAdminUserSearch("");
+    setClubAdminUsers([]);
+    setSelectedClubAdminUserId("");
+    setSelectedClubId("");
+    setNewClubAdminName("");
+    setNewClubAdminEmail("");
+    setAddClubAdminError("");
+    setIsAddClubAdminModalOpen(true);
+  };
+
+  // Close add club admin modal
+  const handleCloseAddClubAdminModal = () => {
+    setIsAddClubAdminModalOpen(false);
+    setAddClubAdminError("");
+  };
+
+  // Fetch users for club admin assignment
+  const fetchClubAdminUsers = useCallback(async (query: string = "") => {
+    try {
+      const response = await fetch(`/api/admin/users?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setClubAdminUsers(data);
+      }
+    } catch {
+      // Silent fail for user search
+    }
+  }, []);
+
+  // Debounced user search for club admin
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isAddClubAdminModalOpen && clubAdminAssignMode === "existing") {
+        fetchClubAdminUsers(clubAdminUserSearch);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [clubAdminUserSearch, isAddClubAdminModalOpen, clubAdminAssignMode, fetchClubAdminUsers]);
+
+  // Handle add club admin form submission
+  const handleAddClubAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clubAdminsOrg) return;
+
+    setAddClubAdminError("");
+    setAddingClubAdmin(true);
+
+    try {
+      const payload = clubAdminAssignMode === "new"
+        ? {
+            email: newClubAdminEmail,
+            name: newClubAdminName,
+            clubId: selectedClubId,
+          }
+        : {
+            userId: selectedClubAdminUserId,
+            clubId: selectedClubId,
+          };
+
+      const response = await fetch(`/api/orgs/${clubAdminsOrg.id}/club-admins`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to assign club admin");
+      }
+
+      showToast(t("clubAdmins.assignSuccess"), "success");
+      handleCloseAddClubAdminModal();
+      fetchClubAdmins(clubAdminsOrg.id);
+    } catch (err) {
+      setAddClubAdminError(err instanceof Error ? err.message : "Failed to assign club admin");
+    } finally {
+      setAddingClubAdmin(false);
+    }
+  };
+
+  // Open edit club admin modal
+  const handleOpenEditClubAdminModal = (clubAdmin: ClubAdmin) => {
+    setEditingClubAdmin(clubAdmin);
+    setEditClubAdminClubId(clubAdmin.clubId);
+    setEditClubAdminError("");
+    setIsEditClubAdminModalOpen(true);
+  };
+
+  // Close edit club admin modal
+  const handleCloseEditClubAdminModal = () => {
+    setIsEditClubAdminModalOpen(false);
+    setEditingClubAdmin(null);
+    setEditClubAdminError("");
+  };
+
+  // Handle edit club admin form submission
+  const handleEditClubAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clubAdminsOrg || !editingClubAdmin) return;
+
+    setEditClubAdminError("");
+    setEditingClubAdminSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `/api/orgs/${clubAdminsOrg.id}/club-admins/${editingClubAdmin.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clubId: editClubAdminClubId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update club admin");
+      }
+
+      showToast(t("clubAdmins.updateSuccess"), "success");
+      handleCloseEditClubAdminModal();
+      fetchClubAdmins(clubAdminsOrg.id);
+    } catch (err) {
+      setEditClubAdminError(err instanceof Error ? err.message : "Failed to update club admin");
+    } finally {
+      setEditingClubAdminSubmitting(false);
+    }
+  };
+
+  // Open remove club admin confirmation modal
+  const handleOpenRemoveClubAdminModal = (clubAdmin: ClubAdmin) => {
+    setRemovingClubAdmin(clubAdmin);
+    setRemoveClubAdminError("");
+    setIsRemoveClubAdminModalOpen(true);
+  };
+
+  // Close remove club admin confirmation modal
+  const handleCloseRemoveClubAdminModal = () => {
+    setIsRemoveClubAdminModalOpen(false);
+    setRemovingClubAdmin(null);
+    setRemoveClubAdminError("");
+  };
+
+  // Handle remove club admin
+  const handleRemoveClubAdmin = async () => {
+    if (!clubAdminsOrg || !removingClubAdmin) return;
+
+    setRemoveClubAdminError("");
+    setRemovingClubAdminSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `/api/orgs/${clubAdminsOrg.id}/club-admins/${removingClubAdmin.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to remove club admin");
+      }
+
+      showToast(t("clubAdmins.removeSuccess"), "success");
+      handleCloseRemoveClubAdminModal();
+      fetchClubAdmins(clubAdminsOrg.id);
+    } catch (err) {
+      setRemoveClubAdminError(err instanceof Error ? err.message : "Failed to remove club admin");
+    } finally {
+      setRemovingClubAdminSubmitting(false);
+    }
+  };
+
   // Update managingOrg when organizations change (use managingOrg.id to avoid infinite loop)
   const managingOrgId = managingOrg?.id;
   useEffect(() => {
@@ -682,6 +972,15 @@ export default function AdminOrganizationsPage() {
                               onClick={() => handleOpenManageAdminsModal(org)}
                             >
                               {t("organizations.manageAdmins")}
+                            </Button>
+                          )}
+                          {org.clubCount > 0 && (
+                            <Button
+                              variant="outline"
+                              size="small"
+                              onClick={() => handleOpenClubAdminsModal(org)}
+                            >
+                              {t("clubAdmins.title")}
                             </Button>
                           )}
                         </div>
@@ -1074,6 +1373,293 @@ export default function AdminOrganizationsPage() {
               disabled={deleting || (deletingOrg?.clubCount ?? 0) > 0}
             >
               {deleting ? t("common.processing") : t("common.delete")}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Club Admins Management Modal */}
+      <Modal
+        isOpen={isClubAdminsModalOpen}
+        onClose={handleCloseClubAdminsModal}
+        title={t("clubAdmins.title")}
+      >
+        <div className="space-y-4">
+          {clubAdminsError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+              {clubAdminsError}
+            </div>
+          )}
+
+          <p className="im-assign-org-name">
+            {t("clubAdmins.subtitle")}: <strong>{clubAdminsOrg?.name}</strong>
+          </p>
+
+          {clubAdminsLoading ? (
+            <div className="im-admin-organizations-loading">
+              <div className="im-admin-organizations-loading-spinner" />
+              <span className="im-admin-organizations-loading-text">{t("common.loading")}</span>
+            </div>
+          ) : orgClubs.length === 0 ? (
+            <div className="im-admin-organizations-empty">
+              <p className="im-admin-organizations-empty-text">
+                {t("clubAdmins.noClubs")}
+              </p>
+            </div>
+          ) : clubAdmins.length === 0 ? (
+            <div className="im-admin-organizations-empty">
+              <p className="im-admin-organizations-empty-text">
+                {t("clubAdmins.noClubAdmins")}
+              </p>
+            </div>
+          ) : (
+            <div className="im-manage-admins-list">
+              {clubAdmins.map((clubAdmin) => (
+                <div key={clubAdmin.id} className="im-manage-admin-item">
+                  <div className="im-manage-admin-info">
+                    <span className="im-manage-admin-name">{clubAdmin.userName || clubAdmin.userEmail}</span>
+                    <span className="im-manage-admin-email">{clubAdmin.userEmail}</span>
+                    <span className="im-manage-admin-club-badge">{clubAdmin.clubName}</span>
+                  </div>
+                  <div className="im-manage-admin-actions">
+                    <Button
+                      variant="outline"
+                      size="small"
+                      onClick={() => handleOpenEditClubAdminModal(clubAdmin)}
+                    >
+                      {t("common.edit")}
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="small"
+                      onClick={() => handleOpenRemoveClubAdminModal(clubAdmin)}
+                    >
+                      {t("organizations.remove")}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={handleCloseClubAdminsModal}>
+              {t("common.close")}
+            </Button>
+            {orgClubs.length > 0 && (
+              <Button onClick={handleOpenAddClubAdminModal}>
+                {t("clubAdmins.addClubAdmin")}
+              </Button>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add Club Admin Modal */}
+      <Modal
+        isOpen={isAddClubAdminModalOpen}
+        onClose={handleCloseAddClubAdminModal}
+        title={t("clubAdmins.addClubAdmin")}
+      >
+        <form onSubmit={handleAddClubAdmin} className="space-y-4">
+          {addClubAdminError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+              {addClubAdminError}
+            </div>
+          )}
+
+          <p className="im-assign-org-name">
+            {t("clubAdmins.assigningTo")}: <strong>{clubAdminsOrg?.name}</strong>
+          </p>
+
+          {/* Club Selection */}
+          <Select
+            options={[
+              { value: "", label: t("clubAdmins.selectClubPlaceholder") },
+              ...orgClubs.map((club) => ({ value: club.id, label: club.name })),
+            ]}
+            value={selectedClubId}
+            onChange={(value) => setSelectedClubId(value)}
+            aria-label={t("clubAdmins.selectClub")}
+          />
+
+          {/* User Selection Mode Tabs */}
+          <div className="im-assign-mode-tabs">
+            <button
+              type="button"
+              className={`im-assign-mode-tab ${clubAdminAssignMode === "existing" ? "im-assign-mode-tab--active" : ""}`}
+              onClick={() => setClubAdminAssignMode("existing")}
+            >
+              {t("clubAdmins.existingUser")}
+            </button>
+            <button
+              type="button"
+              className={`im-assign-mode-tab ${clubAdminAssignMode === "new" ? "im-assign-mode-tab--active" : ""}`}
+              onClick={() => setClubAdminAssignMode("new")}
+            >
+              {t("clubAdmins.newUser")}
+            </button>
+          </div>
+
+          {clubAdminAssignMode === "existing" ? (
+            <>
+              <Input
+                label={t("clubAdmins.searchUsers")}
+                value={clubAdminUserSearch}
+                onChange={(e) => setClubAdminUserSearch(e.target.value)}
+                placeholder={t("clubAdmins.searchUsersPlaceholder")}
+              />
+              <div className="im-user-list">
+                {clubAdminUsers.length === 0 ? (
+                  <p className="im-user-list-empty">{t("clubAdmins.noUsersFound")}</p>
+                ) : (
+                  clubAdminUsers.map((user) => {
+                    const isAlreadyClubAdmin = clubAdmins.some(
+                      (ca) => ca.userId === user.id && ca.clubId === selectedClubId
+                    );
+
+                    return (
+                      <label
+                        key={user.id}
+                        className={`im-user-option ${isAlreadyClubAdmin ? "im-user-option--disabled" : ""} ${selectedClubAdminUserId === user.id ? "im-user-option--selected" : ""}`}
+                      >
+                        <input
+                          type="radio"
+                          name="clubAdminUserId"
+                          value={user.id}
+                          checked={selectedClubAdminUserId === user.id}
+                          onChange={(e) => setSelectedClubAdminUserId(e.target.value)}
+                          disabled={isAlreadyClubAdmin}
+                        />
+                        <span className="im-user-info">
+                          <span className="im-user-name">{user.name || user.email}</span>
+                          <span className="im-user-email">{user.email}</span>
+                          {isAlreadyClubAdmin && (
+                            <span className="im-user-badge">
+                              {t("clubAdmins.alreadyClubAdmin")}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <Input
+                label={t("common.name")}
+                value={newClubAdminName}
+                onChange={(e) => setNewClubAdminName(e.target.value)}
+                placeholder={t("auth.enterName")}
+                required
+              />
+              <Input
+                label={t("common.email")}
+                type="email"
+                value={newClubAdminEmail}
+                onChange={(e) => setNewClubAdminEmail(e.target.value)}
+                placeholder={t("auth.enterEmail")}
+                required
+              />
+            </>
+          )}
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button type="button" variant="outline" onClick={handleCloseAddClubAdminModal}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={
+                addingClubAdmin ||
+                !selectedClubId ||
+                (clubAdminAssignMode === "existing" && !selectedClubAdminUserId) ||
+                (clubAdminAssignMode === "new" && (!newClubAdminName || !newClubAdminEmail))
+              }
+            >
+              {addingClubAdmin ? t("common.processing") : t("clubAdmins.assign")}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Club Admin Modal */}
+      <Modal
+        isOpen={isEditClubAdminModalOpen}
+        onClose={handleCloseEditClubAdminModal}
+        title={t("clubAdmins.editClubAdmin")}
+      >
+        <form onSubmit={handleEditClubAdmin} className="space-y-4">
+          {editClubAdminError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+              {editClubAdminError}
+            </div>
+          )}
+
+          <p className="im-assign-org-name">
+            {t("clubAdmins.reassigningTo")}: <strong>{editingClubAdmin?.userName || editingClubAdmin?.userEmail}</strong>
+          </p>
+
+          <Select
+            options={orgClubs.map((club) => ({ value: club.id, label: club.name }))}
+            value={editClubAdminClubId}
+            onChange={(value) => setEditClubAdminClubId(value)}
+            aria-label={t("clubAdmins.selectClub")}
+          />
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button type="button" variant="outline" onClick={handleCloseEditClubAdminModal}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              disabled={editingClubAdminSubmitting || !editClubAdminClubId}
+            >
+              {editingClubAdminSubmitting ? t("common.processing") : t("common.save")}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Remove Club Admin Confirmation Modal */}
+      <Modal
+        isOpen={isRemoveClubAdminModalOpen}
+        onClose={handleCloseRemoveClubAdminModal}
+        title={t("clubAdmins.removeClubAdmin")}
+      >
+        <div className="space-y-4">
+          {removeClubAdminError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+              {removeClubAdminError}
+            </div>
+          )}
+
+          <p className="im-delete-confirm-text">
+            {t("clubAdmins.removeConfirm", { 
+              name: removingClubAdmin?.userName || removingClubAdmin?.userEmail || "",
+              club: removingClubAdmin?.clubName || ""
+            })}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t("clubAdmins.cannotUndoRemoval")}
+          </p>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCloseRemoveClubAdminModal}
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleRemoveClubAdmin}
+              disabled={removingClubAdminSubmitting}
+            >
+              {removingClubAdminSubmitting ? t("common.processing") : t("organizations.remove")}
             </Button>
           </div>
         </div>
