@@ -120,7 +120,11 @@ export default function OrgDashboardPage() {
 
       const data: OrgDashboardResponse = await response.json();
       setDashboardData(data);
-    } catch {
+    } catch (err) {
+      // Log error in development for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.error("Dashboard fetch error:", err);
+      }
       setError(t("orgDashboard.error"));
     } finally {
       setLoading(false);
