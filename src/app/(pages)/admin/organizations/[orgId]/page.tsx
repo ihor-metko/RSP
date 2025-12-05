@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, PageHeader, Card } from "@/components/ui";
+import { Button, Input, Modal, PageHeader } from "@/components/ui";
 import "./page.css";
 
 interface User {
@@ -89,6 +89,16 @@ interface SearchedUser {
   name: string | null;
   email: string;
   isOrgAdmin: boolean;
+}
+
+/**
+ * Helper to get user initials for avatar display
+ */
+function getInitials(name: string | null, email: string): string {
+  if (name) {
+    return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  }
+  return email.slice(0, 2).toUpperCase();
 }
 
 export default function OrganizationDetailPage() {
@@ -438,9 +448,19 @@ export default function OrganizationDetailPage() {
         <div className={`im-toast im-toast--${toast.type}`}>{toast.message}</div>
       )}
 
-      <section className="rsp-content">
+      <section className="im-org-detail-content">
         {/* Organization Info Card */}
-        <Card title={t("orgDetail.info")} className="im-org-info-card">
+        <div className="im-section-card im-org-detail-content--full">
+          <div className="im-section-header">
+            <div className="im-section-icon im-section-icon--info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            </div>
+            <h2 className="im-section-title">{t("orgDetail.info")}</h2>
+          </div>
           <div className="im-org-info-grid">
             <div className="im-org-info-item">
               <span className="im-org-info-label">{t("orgDetail.slug")}</span>
@@ -493,30 +513,50 @@ export default function OrganizationDetailPage() {
               </div>
             )}
           </div>
-        </Card>
+        </div>
 
-        {/* Metrics Grid */}
-        <div className="im-metrics-grid">
-          <Card className="im-metric-card">
-            <div className="im-metric-value">{org.metrics.totalClubs}</div>
-            <div className="im-metric-label">{t("orgDetail.totalClubs")}</div>
-          </Card>
-          <Card className="im-metric-card">
-            <div className="im-metric-value">{org.metrics.totalCourts}</div>
-            <div className="im-metric-label">{t("orgDetail.totalCourts")}</div>
-          </Card>
-          <Card className="im-metric-card">
-            <div className="im-metric-value">{org.metrics.activeBookings}</div>
-            <div className="im-metric-label">{t("orgDetail.activeBookings")}</div>
-          </Card>
-          <Card className="im-metric-card">
-            <div className="im-metric-value">{org.metrics.activeUsers}</div>
-            <div className="im-metric-label">{t("orgDetail.activeUsers")}</div>
-          </Card>
+        {/* Key Metrics */}
+        <div className="im-section-card im-org-detail-content--full">
+          <div className="im-section-header">
+            <div className="im-section-icon im-section-icon--metrics">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                <path d="M22 12A10 10 0 0 0 12 2v10z" />
+              </svg>
+            </div>
+            <h2 className="im-section-title">{t("orgDetail.keyMetrics")}</h2>
+          </div>
+          <div className="im-metrics-grid">
+            <div className="im-metric-card im-metric-card--clubs">
+              <div className="im-metric-value">{org.metrics.totalClubs}</div>
+              <div className="im-metric-label">{t("orgDetail.totalClubs")}</div>
+            </div>
+            <div className="im-metric-card im-metric-card--courts">
+              <div className="im-metric-value">{org.metrics.totalCourts}</div>
+              <div className="im-metric-label">{t("orgDetail.totalCourts")}</div>
+            </div>
+            <div className="im-metric-card im-metric-card--bookings">
+              <div className="im-metric-value">{org.metrics.activeBookings}</div>
+              <div className="im-metric-label">{t("orgDetail.activeBookings")}</div>
+            </div>
+            <div className="im-metric-card im-metric-card--users">
+              <div className="im-metric-value">{org.metrics.activeUsers}</div>
+              <div className="im-metric-label">{t("orgDetail.activeUsers")}</div>
+            </div>
+          </div>
         </div>
 
         {/* Clubs Preview */}
-        <Card title={t("orgDetail.clubs")} className="im-preview-card">
+        <div className="im-section-card">
+          <div className="im-section-header">
+            <div className="im-section-icon im-section-icon--clubs">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            </div>
+            <h2 className="im-section-title">{t("orgDetail.clubs")}</h2>
+          </div>
           {org.clubsPreview.length === 0 ? (
             <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
           ) : (
@@ -552,10 +592,21 @@ export default function OrganizationDetailPage() {
               )}
             </>
           )}
-        </Card>
+        </div>
 
         {/* Admins Preview */}
-        <Card title={t("orgDetail.admins")} className="im-preview-card">
+        <div className="im-section-card">
+          <div className="im-section-header">
+            <div className="im-section-icon im-section-icon--admins">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <h2 className="im-section-title">{t("orgDetail.admins")}</h2>
+          </div>
           <div className="im-admins-section">
             <h4 className="im-admins-section-title">{t("organizations.superAdmins")}</h4>
             {org.superAdmins.length === 0 ? (
@@ -564,7 +615,13 @@ export default function OrganizationDetailPage() {
               <div className="im-admins-list">
                 {org.superAdmins.map((admin) => (
                   <div key={admin.id} className="im-admin-item">
-                    <span className="im-admin-name">{admin.name || admin.email}</span>
+                    <div className="im-admin-avatar">
+                      {getInitials(admin.name, admin.email)}
+                    </div>
+                    <div className="im-admin-details">
+                      <span className="im-admin-name">{admin.name || admin.email}</span>
+                      <span className="im-admin-email">{admin.email}</span>
+                    </div>
                     {admin.isPrimaryOwner && (
                       <span 
                         className="im-admin-owner-badge im-tooltip-wrapper"
@@ -574,7 +631,6 @@ export default function OrganizationDetailPage() {
                         {t("organizations.owner")}
                       </span>
                     )}
-                    <span className="im-admin-email">{admin.email}</span>
                   </div>
                 ))}
               </div>
@@ -587,22 +643,42 @@ export default function OrganizationDetailPage() {
               <div className="im-admins-list">
                 {org.clubAdmins.map((ca) => (
                   <div key={ca.id} className="im-admin-item">
-                    <span className="im-admin-name">{ca.userName || ca.userEmail}</span>
+                    <div className="im-admin-avatar">
+                      {getInitials(ca.userName, ca.userEmail)}
+                    </div>
+                    <div className="im-admin-details">
+                      <span className="im-admin-name">{ca.userName || ca.userEmail}</span>
+                      <span className="im-admin-email">{ca.userEmail}</span>
+                    </div>
                     <span className="im-admin-club-badge">{ca.clubName}</span>
-                    <span className="im-admin-email">{ca.userEmail}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Users Preview */}
         {usersPreview && (
-          <Card title={t("orgDetail.users")} className="im-preview-card">
+          <div className="im-section-card">
+            <div className="im-section-header">
+              <div className="im-section-icon im-section-icon--users">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+              </div>
+              <h2 className="im-section-title">{t("orgDetail.users")}</h2>
+            </div>
             <div className="im-users-summary">
-              <span>{t("orgDetail.totalUsers")}: {usersPreview.summary.totalUsers}</span>
-              <span>{t("orgDetail.activeToday")}: {usersPreview.summary.activeToday}</span>
+              <div className="im-users-summary-item">
+                <span className="im-users-summary-value">{usersPreview.summary.totalUsers}</span>
+                <span className="im-users-summary-label">{t("orgDetail.totalUsers")}</span>
+              </div>
+              <div className="im-users-summary-item">
+                <span className="im-users-summary-value">{usersPreview.summary.activeToday}</span>
+                <span className="im-users-summary-label">{t("orgDetail.activeToday")}</span>
+              </div>
             </div>
             {usersPreview.items.length === 0 ? (
               <p className="im-preview-empty">{t("orgDetail.noUsers")}</p>
@@ -610,8 +686,13 @@ export default function OrganizationDetailPage() {
               <div className="im-users-preview-list">
                 {usersPreview.items.map((user) => (
                   <div key={user.id} className="im-user-preview-item">
-                    <span className="im-user-name">{user.name || user.email}</span>
-                    <span className="im-user-email">{user.email}</span>
+                    <div className="im-user-avatar">
+                      {getInitials(user.name, user.email)}
+                    </div>
+                    <div className="im-user-details">
+                      <span className="im-user-name">{user.name || user.email}</span>
+                      <span className="im-user-email">{user.email}</span>
+                    </div>
                     <span className="im-user-last-booking">
                       {new Date(user.lastBookingAt).toLocaleDateString()}
                     </span>
@@ -619,21 +700,32 @@ export default function OrganizationDetailPage() {
                 ))}
               </div>
             )}
-          </Card>
+          </div>
         )}
 
         {/* Activity Feed */}
-        <Card title={t("orgDetail.activity")} className="im-preview-card">
+        <div className="im-section-card im-org-detail-content--full">
+          <div className="im-section-header">
+            <div className="im-section-icon im-section-icon--activity">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+            </div>
+            <h2 className="im-section-title">{t("orgDetail.activity")}</h2>
+          </div>
           {org.recentActivity.length === 0 ? (
             <p className="im-preview-empty">{t("orgDetail.noActivity")}</p>
           ) : (
             <div className="im-activity-list">
               {org.recentActivity.map((item) => (
                 <div key={item.id} className="im-activity-item">
-                  <span className="im-activity-action">{formatAction(item.action)}</span>
-                  <span className="im-activity-actor">
-                    {item.actor.name || item.actor.email || t("orgDetail.unknownActor")}
-                  </span>
+                  <div className="im-activity-dot" />
+                  <div className="im-activity-content">
+                    <span className="im-activity-action">{formatAction(item.action)}</span>
+                    <span className="im-activity-actor">
+                      {item.actor.name || item.actor.email || t("orgDetail.unknownActor")}
+                    </span>
+                  </div>
                   <span className="im-activity-time">
                     {new Date(item.createdAt).toLocaleString()}
                   </span>
@@ -641,11 +733,21 @@ export default function OrganizationDetailPage() {
               ))}
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Danger Zone */}
         {isRoot && (
-          <Card title={t("orgDetail.dangerZone")} className="im-danger-zone-card">
+          <div className="im-section-card im-danger-zone-card im-org-detail-content--full">
+            <div className="im-section-header">
+              <div className="im-section-icon im-section-icon--danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+              </div>
+              <h2 className="im-section-title">{t("orgDetail.dangerZone")}</h2>
+            </div>
             <div className="im-danger-zone-content">
               <div className="im-danger-action">
                 <div>
@@ -670,7 +772,7 @@ export default function OrganizationDetailPage() {
                 </Button>
               </div>
             </div>
-          </Card>
+          </div>
         )}
       </section>
 
