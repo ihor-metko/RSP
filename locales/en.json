@@ -828,15 +828,22 @@
     "failedToLoad": "Failed to load users. Please try again later.",
     "failedToLoadDetails": "Failed to load user details",
     "noUsers": "No users found",
+    "noUsersDescription": "There are no users matching your current filters.",
     "searchPlaceholder": "Search by name or email...",
     "filterByRole": "Filter by Role",
     "filterByStatus": "Filter by Status",
     "filterByOrganization": "Filter by Organization",
     "filterByClub": "Filter by Club",
+    "filters": "Filters",
     "clearFilters": "Clear Filters",
     "allStatuses": "All Statuses",
     "allOrganizations": "All Organizations",
     "allClubs": "All Clubs",
+    "usersList": "Users List",
+    "stats": {
+      "totalUsers": "Total Users"
+    },
+    "neverLoggedIn": "Never logged in",
     "columns": {
       "name": "Name",
       "email": "Email",
@@ -865,6 +872,7 @@
     },
     "actions": {
       "view": "View",
+      "viewDetails": "View user details",
       "editRole": "Edit Role",
       "block": "Block",
       "unblock": "Unblock",

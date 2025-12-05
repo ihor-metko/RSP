@@ -1,0 +1,139 @@
+@reference "tailwindcss";
+
+/* Badge base styles */
+.im-badge {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.im-badge-icon {
+  @apply flex items-center justify-center w-3 h-3;
+}
+
+.im-badge-icon svg {
+  @apply w-full h-full;
+}
+
+/* Default variant */
+.im-badge--default {
+  background-color: var(--im-badge-default-bg, #e5e7eb);
+  color: var(--im-badge-default-text, #374151);
+}
+
+.dark .im-badge--default {
+  background-color: var(--im-badge-default-bg-dark, #374151);
+  color: var(--im-badge-default-text-dark, #d1d5db);
+}
+
+/* Primary variant */
+.im-badge--primary {
+  background-color: var(--rsp-primary);
+  color: white;
+}
+
+/* Success variant */
+.im-badge--success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.dark .im-badge--success {
+  background-color: rgba(22, 163, 74, 0.2);
+  color: #86efac;
+}
+
+/* Warning variant */
+.im-badge--warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.dark .im-badge--warning {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+}
+
+/* Danger variant */
+.im-badge--danger {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.dark .im-badge--danger {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+}
+
+/* Info variant */
+.im-badge--info {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.dark .im-badge--info {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+
+/* Role-specific badges */
+.im-badge--root_admin {
+  background-color: #fee2e2;
+  color: #991b1b;
+  @apply font-semibold;
+}
+
+.dark .im-badge--root_admin {
+  background-color: rgba(220, 38, 38, 0.25);
+  color: #fca5a5;
+}
+
+.im-badge--organization_admin {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.dark .im-badge--organization_admin {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+
+.im-badge--club_admin {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.dark .im-badge--club_admin {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+}
+
+.im-badge--user {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.dark .im-badge--user {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+/* Status badges */
+.im-badge--active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.dark .im-badge--active {
+  background-color: rgba(22, 163, 74, 0.2);
+  color: #86efac;
+}
+
+.im-badge--blocked {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.dark .im-badge--blocked {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+}

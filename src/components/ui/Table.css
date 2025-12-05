@@ -1,0 +1,127 @@
+@reference "tailwindcss";
+
+/* Table wrapper */
+.im-table-wrapper {
+  @apply overflow-x-auto;
+  border: 1px solid var(--rsp-border);
+  border-radius: 0.5rem;
+  background-color: var(--rsp-background);
+}
+
+/* Table base */
+.im-table {
+  @apply w-full border-collapse;
+  min-width: 600px;
+}
+
+/* Table head */
+.im-table-head {
+  background-color: var(--rsp-card-bg);
+}
+
+/* Table header cell */
+.im-table-header {
+  @apply px-4 py-3 text-left text-sm font-semibold whitespace-nowrap;
+  color: var(--rsp-foreground);
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.im-table-header--sortable {
+  @apply cursor-pointer select-none;
+  transition: background-color 0.15s ease;
+}
+
+.im-table-header--sortable:hover {
+  background-color: var(--im-table-hover, rgba(0, 0, 0, 0.05));
+}
+
+.dark .im-table-header--sortable:hover {
+  background-color: var(--im-table-hover-dark, rgba(255, 255, 255, 0.05));
+}
+
+.im-table-header--sortable:focus {
+  @apply outline-none ring-2 ring-inset;
+  ring-color: var(--rsp-primary);
+}
+
+.im-table-header--sorted {
+  color: var(--rsp-primary);
+}
+
+.im-table-header-content {
+  @apply flex items-center gap-1.5;
+}
+
+.im-table-sort-icon {
+  @apply text-xs opacity-50;
+}
+
+.im-table-header--sorted .im-table-sort-icon {
+  @apply opacity-100;
+}
+
+/* Table body */
+.im-table-body {
+  background-color: var(--rsp-background);
+}
+
+/* Table row */
+.im-table-row {
+  border-bottom: 1px solid var(--rsp-border);
+  transition: background-color 0.15s ease;
+}
+
+.im-table-row:last-child {
+  border-bottom: none;
+}
+
+.im-table-row:hover {
+  background-color: var(--im-table-hover, rgba(0, 0, 0, 0.02));
+}
+
+.dark .im-table-row:hover {
+  background-color: var(--im-table-hover-dark, rgba(255, 255, 255, 0.03));
+}
+
+/* Table cell */
+.im-table-cell {
+  @apply px-4 py-3 text-sm;
+  color: var(--rsp-foreground);
+}
+
+/* Loading state */
+.im-table-loading-row,
+.im-table-empty-row {
+  background-color: transparent !important;
+}
+
+.im-table-loading-cell,
+.im-table-empty-cell {
+  @apply py-12 text-center;
+  color: var(--im-muted);
+}
+
+.im-table-loading {
+  @apply flex flex-col items-center gap-3;
+}
+
+.im-table-spinner {
+  @apply w-8 h-8 rounded-full;
+  border: 3px solid var(--rsp-border);
+  border-top-color: var(--rsp-primary);
+  animation: im-table-spin 0.8s linear infinite;
+}
+
+@keyframes im-table-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .im-table-header,
+  .im-table-cell {
+    @apply px-3 py-2.5 text-xs;
+  }
+}

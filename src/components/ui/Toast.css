@@ -1,0 +1,180 @@
+@reference "tailwindcss";
+
+/* Toast base */
+.im-toast {
+  @apply flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg;
+  @apply text-sm font-medium;
+  animation: im-toast-enter 0.3s ease-out;
+  max-width: 400px;
+}
+
+.im-toast--leaving {
+  animation: im-toast-leave 0.3s ease-in forwards;
+}
+
+@keyframes im-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes im-toast-leave {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Toast icon */
+.im-toast-icon {
+  @apply w-5 h-5 flex-shrink-0;
+}
+
+/* Toast message */
+.im-toast-message {
+  @apply flex-1;
+}
+
+/* Toast close button */
+.im-toast-close {
+  @apply p-1 rounded-md flex-shrink-0 transition-colors;
+  @apply hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.dark .im-toast-close:hover {
+  @apply bg-white/10;
+}
+
+.im-toast-close svg {
+  @apply w-4 h-4;
+}
+
+/* Success variant */
+.im-toast--success {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.dark .im-toast--success {
+  background-color: rgba(22, 163, 74, 0.2);
+  color: #86efac;
+  border-color: rgba(22, 163, 74, 0.4);
+}
+
+.im-toast--success .im-toast-close:focus {
+  ring-color: #22c55e;
+}
+
+/* Error variant */
+.im-toast--error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.dark .im-toast--error {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
+.im-toast--error .im-toast-close:focus {
+  ring-color: #ef4444;
+}
+
+/* Warning variant */
+.im-toast--warning {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde047;
+}
+
+.dark .im-toast--warning {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #fde047;
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+.im-toast--warning .im-toast-close:focus {
+  ring-color: #eab308;
+}
+
+/* Info variant */
+.im-toast--info {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.dark .im-toast--info {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.im-toast--info .im-toast-close:focus {
+  ring-color: #3b82f6;
+}
+
+/* Toast container for stacking */
+.im-toast-container {
+  @apply fixed z-50 flex flex-col gap-3;
+  pointer-events: none;
+}
+
+.im-toast-container > * {
+  pointer-events: auto;
+}
+
+.im-toast-container--top-right {
+  @apply top-4 right-4;
+}
+
+.im-toast-container--top-left {
+  @apply top-4 left-4;
+}
+
+.im-toast-container--bottom-right {
+  @apply bottom-4 right-4;
+}
+
+.im-toast-container--bottom-left {
+  @apply bottom-4 left-4;
+}
+
+.im-toast-container--top-center {
+  @apply top-4 left-1/2 -translate-x-1/2;
+}
+
+.im-toast-container--bottom-center {
+  @apply bottom-4 left-1/2 -translate-x-1/2;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .im-toast {
+    @apply max-w-[calc(100vw-2rem)];
+  }
+  
+  .im-toast-container--top-right,
+  .im-toast-container--top-left {
+    @apply left-4 right-4 top-4;
+    transform: none;
+  }
+  
+  .im-toast-container--bottom-right,
+  .im-toast-container--bottom-left {
+    @apply left-4 right-4 bottom-4;
+    transform: none;
+  }
+}

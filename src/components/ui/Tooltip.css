@@ -1,0 +1,93 @@
+@reference "tailwindcss";
+
+/* Tooltip container */
+.im-tooltip-container {
+  @apply relative inline-flex;
+  cursor: help;
+}
+
+/* Tooltip content (hidden by default) */
+.im-tooltip-content {
+  @apply absolute z-50 px-3 py-2 text-xs font-medium rounded-md whitespace-nowrap;
+  @apply opacity-0 invisible pointer-events-none;
+  @apply transition-all duration-200 ease-in-out;
+  background-color: var(--im-tooltip-bg, #1f2937);
+  color: var(--im-tooltip-text, #f9fafb);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Show tooltip on hover/focus */
+.im-tooltip-container:hover .im-tooltip-content,
+.im-tooltip-container:focus .im-tooltip-content,
+.im-tooltip-container:focus-within .im-tooltip-content {
+  @apply opacity-100 visible;
+}
+
+/* Top position (default) */
+.im-tooltip--top .im-tooltip-content {
+  @apply bottom-full left-1/2 -translate-x-1/2 mb-2;
+}
+
+.im-tooltip--top .im-tooltip-content::after {
+  content: "";
+  @apply absolute top-full left-1/2 -translate-x-1/2;
+  border: 6px solid transparent;
+  border-top-color: var(--im-tooltip-bg, #1f2937);
+}
+
+/* Bottom position */
+.im-tooltip--bottom .im-tooltip-content {
+  @apply top-full left-1/2 -translate-x-1/2 mt-2;
+}
+
+.im-tooltip--bottom .im-tooltip-content::after {
+  content: "";
+  @apply absolute bottom-full left-1/2 -translate-x-1/2;
+  border: 6px solid transparent;
+  border-bottom-color: var(--im-tooltip-bg, #1f2937);
+}
+
+/* Left position */
+.im-tooltip--left .im-tooltip-content {
+  @apply right-full top-1/2 -translate-y-1/2 mr-2;
+}
+
+.im-tooltip--left .im-tooltip-content::after {
+  content: "";
+  @apply absolute left-full top-1/2 -translate-y-1/2;
+  border: 6px solid transparent;
+  border-left-color: var(--im-tooltip-bg, #1f2937);
+}
+
+/* Right position */
+.im-tooltip--right .im-tooltip-content {
+  @apply left-full top-1/2 -translate-y-1/2 ml-2;
+}
+
+.im-tooltip--right .im-tooltip-content::after {
+  content: "";
+  @apply absolute right-full top-1/2 -translate-y-1/2;
+  border: 6px solid transparent;
+  border-right-color: var(--im-tooltip-bg, #1f2937);
+}
+
+/* Dark theme support */
+.dark .im-tooltip-content {
+  background-color: var(--im-tooltip-bg-dark, #374151);
+}
+
+.dark .im-tooltip--top .im-tooltip-content::after {
+  border-top-color: var(--im-tooltip-bg-dark, #374151);
+}
+
+.dark .im-tooltip--bottom .im-tooltip-content::after {
+  border-bottom-color: var(--im-tooltip-bg-dark, #374151);
+}
+
+.dark .im-tooltip--left .im-tooltip-content::after {
+  border-left-color: var(--im-tooltip-bg-dark, #374151);
+}
+
+.dark .im-tooltip--right .im-tooltip-content::after {
+  border-right-color: var(--im-tooltip-bg-dark, #374151);
+}

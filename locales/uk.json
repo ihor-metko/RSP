@@ -825,15 +825,22 @@
     "failedToLoad": "Не вдалося завантажити користувачів. Спробуйте пізніше.",
     "failedToLoadDetails": "Не вдалося завантажити деталі користувача",
     "noUsers": "Користувачів не знайдено",
+    "noUsersDescription": "Немає користувачів, що відповідають вашим фільтрам.",
     "searchPlaceholder": "Пошук за ім'ям або email...",
     "filterByRole": "Фільтр за роллю",
     "filterByStatus": "Фільтр за статусом",
     "filterByOrganization": "Фільтр за організацією",
     "filterByClub": "Фільтр за клубом",
+    "filters": "Фільтри",
     "clearFilters": "Скинути фільтри",
     "allStatuses": "Всі статуси",
     "allOrganizations": "Всі організації",
     "allClubs": "Всі клуби",
+    "usersList": "Список користувачів",
+    "stats": {
+      "totalUsers": "Всього користувачів"
+    },
+    "neverLoggedIn": "Ніколи не входив",
     "columns": {
       "name": "Ім'я",
       "email": "Email",
@@ -862,6 +869,7 @@
     },
     "actions": {
       "view": "Переглянути",
+      "viewDetails": "Переглянути деталі користувача",
       "editRole": "Змінити роль",
       "block": "Заблокувати",
       "unblock": "Розблокувати",
