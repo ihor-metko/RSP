@@ -37,12 +37,12 @@ export default function AdminClubsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
-  
+
   // Filtering state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
-  
+
   // Sorting state
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
@@ -110,7 +110,7 @@ export default function AdminClubsPage() {
   const { organizations, cities } = useMemo(() => {
     const orgs = new Map<string, string>();
     const citySet = new Set<string>();
-    
+
     clubs.forEach((club) => {
       if (club.organization) {
         orgs.set(club.organization.id, club.organization.name);
@@ -119,7 +119,7 @@ export default function AdminClubsPage() {
         citySet.add(club.city);
       }
     });
-    
+
     return {
       organizations: Array.from(orgs.entries()).map(([id, name]) => ({ id, name })),
       cities: Array.from(citySet).sort(),
@@ -129,7 +129,7 @@ export default function AdminClubsPage() {
   // Filter and sort clubs
   const filteredAndSortedClubs = useMemo(() => {
     let result = [...clubs];
-    
+
     // Apply filters
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -140,21 +140,21 @@ export default function AdminClubsPage() {
           club.city?.toLowerCase().includes(query)
       );
     }
-    
+
     if (selectedOrganization) {
       result = result.filter(
         (club) => club.organization?.id === selectedOrganization
       );
     }
-    
+
     if (selectedCity) {
       result = result.filter((club) => club.city === selectedCity);
     }
-    
+
     // Apply sorting
     result.sort((a, b) => {
       let comparison = 0;
-      
+
       switch (sortField) {
         case "name":
           comparison = a.name.localeCompare(b.name);
@@ -170,16 +170,16 @@ export default function AdminClubsPage() {
           comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
           break;
       }
-      
+
       return sortDirection === "asc" ? comparison : -comparison;
     });
-    
+
     return result;
   }, [clubs, searchQuery, selectedOrganization, selectedCity, sortField, sortDirection]);
 
   // Determine permissions based on admin type
-  const canCreate = adminStatus?.adminType === "root_admin";
-  const canEdit = (adminType: AdminType | undefined) => 
+  const canCreate = adminStatus?.adminType === "root_admin" || adminStatus?.adminType === "organization_admin";
+  const canEdit = (adminType: AdminType | undefined) =>
     adminType === "root_admin" || adminType === "organization_admin";
   const canDelete = adminStatus?.adminType === "root_admin";
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
@@ -317,7 +317,7 @@ export default function AdminClubsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="im-admin-clubs-search"
             />
-            
+
             {showOrganizationFilter && organizations.length > 0 && (
               <select
                 value={selectedOrganization}
@@ -333,7 +333,7 @@ export default function AdminClubsPage() {
                 ))}
               </select>
             )}
-            
+
             {cities.length > 0 && (
               <select
                 value={selectedCity}
@@ -349,7 +349,7 @@ export default function AdminClubsPage() {
                 ))}
               </select>
             )}
-            
+
             <select
               value={`${sortField}-${sortDirection}`}
               onChange={(e) => {
@@ -367,14 +367,14 @@ export default function AdminClubsPage() {
               <option value="city-asc">{t("admin.clubs.sortCityAsc")}</option>
               <option value="bookingCount-desc">{t("admin.clubs.sortBookings")}</option>
             </select>
-            
+
             {(searchQuery || selectedOrganization || selectedCity) && (
               <Button variant="outline" onClick={handleClearFilters}>
                 {t("common.clearFilters")}
               </Button>
             )}
           </div>
-          
+
           {/* Right side - Create Actions */}
           {canCreate && (
             <div className="im-admin-clubs-actions-right">
