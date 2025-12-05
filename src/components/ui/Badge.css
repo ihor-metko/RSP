@@ -1,0 +1,170 @@
+@reference "tailwindcss";
+
+/* Badge Component Styles */
+
+.im-badge {
+  @apply inline-flex items-center gap-1.5 font-medium rounded-full;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+
+.im-badge--small {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  gap: 0.25rem;
+}
+
+/* Default variant */
+.im-badge--default {
+  background-color: var(--im-bg-secondary, #f3f4f6);
+  color: var(--im-text-primary, #374151);
+  border: 1px solid var(--im-border, #e5e7eb);
+}
+
+/* Primary variant */
+.im-badge--primary {
+  background-color: var(--im-primary-light, #eef2ff);
+  color: var(--im-primary, #6366f1);
+  border: 1px solid var(--im-primary-border, #c7d2fe);
+}
+
+/* Secondary variant */
+.im-badge--secondary {
+  background-color: #f3e8ff;
+  color: #7c3aed;
+  border: 1px solid #ddd6fe;
+}
+
+/* Success variant */
+.im-badge--success {
+  background-color: var(--im-success-bg, #d1fae5);
+  color: var(--im-success-text, #065f46);
+  border: 1px solid var(--im-success-border, #a7f3d0);
+}
+
+/* Warning variant */
+.im-badge--warning {
+  background-color: var(--im-warning-bg, #fef3c7);
+  color: var(--im-warning-text, #92400e);
+  border: 1px solid var(--im-warning-border, #fcd34d);
+}
+
+/* Danger variant */
+.im-badge--danger {
+  background-color: var(--im-error-bg, #fee2e2);
+  color: var(--im-error-text, #991b1b);
+  border: 1px solid var(--im-error-border, #fecaca);
+}
+
+/* Info variant */
+.im-badge--info {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+/* Outline variant */
+.im-badge--outline {
+  background-color: transparent;
+  color: var(--im-text-primary, #374151);
+  border: 1px solid var(--im-border, #e5e7eb);
+}
+
+/* Status dot */
+.im-badge-dot {
+  @apply w-2 h-2 rounded-full flex-shrink-0;
+}
+
+.im-badge--small .im-badge-dot {
+  @apply w-1.5 h-1.5;
+}
+
+.im-badge-dot--success {
+  background-color: #10b981;
+}
+
+.im-badge-dot--warning {
+  background-color: #f59e0b;
+}
+
+.im-badge-dot--danger {
+  background-color: #ef4444;
+}
+
+.im-badge-dot--info {
+  background-color: #3b82f6;
+}
+
+.im-badge-dot--neutral {
+  background-color: #6b7280;
+}
+
+/* Icon */
+.im-badge-icon {
+  @apply flex items-center justify-center flex-shrink-0;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.im-badge--small .im-badge-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.im-badge-icon svg {
+  @apply w-full h-full;
+}
+
+/* Text */
+.im-badge-text {
+  @apply truncate;
+}
+
+/* Dark mode support */
+.dark .im-badge--default {
+  background-color: var(--im-bg-secondary-dark, #1f2937);
+  color: var(--im-text-primary-dark, #f9fafb);
+  border-color: var(--im-border-dark, #374151);
+}
+
+.dark .im-badge--primary {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.dark .im-badge--secondary {
+  background-color: rgba(124, 58, 237, 0.2);
+  color: #c4b5fd;
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+.dark .im-badge--success {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.dark .im-badge--warning {
+  background-color: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.dark .im-badge--danger {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.dark .im-badge--info {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.dark .im-badge--outline {
+  color: var(--im-text-primary-dark, #f9fafb);
+  border-color: var(--im-border-dark, #374151);
+}

@@ -1,0 +1,214 @@
+@reference "tailwindcss";
+
+/* Table Component Styles */
+
+.im-table-wrapper {
+  @apply overflow-x-auto;
+  border: 1px solid var(--im-border, #e5e7eb);
+  border-radius: 0.5rem;
+  background-color: var(--im-surface, #ffffff);
+}
+
+.im-table {
+  @apply w-full border-collapse;
+  min-width: 600px;
+}
+
+/* Table header */
+.im-table-head {
+  background-color: var(--im-bg-secondary, #f9fafb);
+}
+
+.im-table-header {
+  @apply px-4 py-3 text-left font-semibold;
+  font-size: 0.8125rem;
+  color: var(--im-text-primary, #111827);
+  border-bottom: 1px solid var(--im-border, #e5e7eb);
+  white-space: nowrap;
+}
+
+.im-table-header-content {
+  @apply inline-flex items-center gap-1;
+}
+
+.im-table-header--sortable {
+  @apply cursor-pointer select-none;
+  transition: background-color 0.15s ease;
+}
+
+.im-table-header--sortable:hover {
+  background-color: var(--im-bg-hover, #f3f4f6);
+}
+
+.im-table-header--sortable:focus-visible {
+  @apply outline-none ring-2 ring-inset;
+  ring-color: var(--im-primary, #6366f1);
+}
+
+.im-table-header--sorted {
+  color: var(--im-primary, #6366f1);
+}
+
+/* Sort icons */
+.im-table-sort-icon {
+  @apply text-xs;
+  line-height: 1;
+}
+
+.im-table-sort-icon--neutral {
+  @apply opacity-40;
+}
+
+.im-table-sort-icon--active {
+  @apply opacity-100;
+}
+
+/* Table body */
+.im-table-body {
+  background-color: var(--im-surface, #ffffff);
+}
+
+.im-table-row {
+  transition: background-color 0.15s ease;
+}
+
+.im-table-row:not(:last-child) .im-table-cell {
+  border-bottom: 1px solid var(--im-border, #e5e7eb);
+}
+
+.im-table--hoverable .im-table-row:hover {
+  background-color: var(--im-bg-hover, #f9fafb);
+}
+
+.im-table-row--clickable {
+  @apply cursor-pointer;
+}
+
+.im-table-row--clickable:focus-visible {
+  @apply outline-none;
+  background-color: var(--im-bg-hover, #f3f4f6);
+}
+
+/* Striped rows */
+.im-table--striped .im-table-row:nth-child(even) {
+  background-color: var(--im-bg-secondary, #f9fafb);
+}
+
+/* Table cells */
+.im-table-cell {
+  @apply px-4 py-3;
+  font-size: 0.875rem;
+  color: var(--im-text-primary, #111827);
+  vertical-align: middle;
+}
+
+/* Cell alignment */
+.im-table-cell--left {
+  @apply text-left;
+}
+
+.im-table-cell--center {
+  @apply text-center;
+}
+
+.im-table-cell--right {
+  @apply text-right;
+}
+
+/* Loading state */
+.im-table-loading {
+  @apply py-12;
+  text-align: center;
+}
+
+.im-table-loading-content {
+  @apply flex flex-col items-center justify-center gap-2;
+  color: var(--im-text-secondary, #6b7280);
+}
+
+.im-table-loading-spinner {
+  @apply w-6 h-6;
+  border: 2px solid var(--im-border, #e5e7eb);
+  border-top-color: var(--im-primary, #6366f1);
+  border-radius: 50%;
+  animation: table-spin 0.8s linear infinite;
+}
+
+@keyframes table-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty state */
+.im-table-empty {
+  @apply py-12 text-center;
+  color: var(--im-text-secondary, #6b7280);
+  font-size: 0.875rem;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+  clip: rect(0, 0, 0, 0);
+}
+
+/* Dark mode support */
+.dark .im-table-wrapper {
+  border-color: var(--im-border-dark, #374151);
+  background-color: var(--im-surface-dark, #0a0a0a);
+}
+
+.dark .im-table-head {
+  background-color: var(--im-bg-secondary-dark, #1f2937);
+}
+
+.dark .im-table-header {
+  color: var(--im-text-primary-dark, #f9fafb);
+  border-color: var(--im-border-dark, #374151);
+}
+
+.dark .im-table-header--sortable:hover {
+  background-color: var(--im-bg-hover-dark, #374151);
+}
+
+.dark .im-table-header--sorted {
+  color: var(--im-primary-light, #a5b4fc);
+}
+
+.dark .im-table-body {
+  background-color: var(--im-surface-dark, #0a0a0a);
+}
+
+.dark .im-table-row:not(:last-child) .im-table-cell {
+  border-color: var(--im-border-dark, #374151);
+}
+
+.dark .im-table--hoverable .im-table-row:hover {
+  background-color: var(--im-bg-hover-dark, #1f2937);
+}
+
+.dark .im-table-row--clickable:focus-visible {
+  background-color: var(--im-bg-hover-dark, #374151);
+}
+
+.dark .im-table--striped .im-table-row:nth-child(even) {
+  background-color: var(--im-bg-secondary-dark, #1f2937);
+}
+
+.dark .im-table-cell {
+  color: var(--im-text-primary-dark, #f9fafb);
+}
+
+.dark .im-table-loading-content {
+  color: var(--im-text-secondary-dark, #9ca3af);
+}
+
+.dark .im-table-loading-spinner {
+  border-color: var(--im-border-dark, #374151);
+  border-top-color: var(--im-primary-light, #a5b4fc);
+}
+
+.dark .im-table-empty {
+  color: var(--im-text-secondary-dark, #9ca3af);
+}

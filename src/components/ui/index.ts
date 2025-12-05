@@ -16,3 +16,7 @@ export type { BreadcrumbItem, BreadcrumbsProps } from "./Breadcrumbs";
 export { ClubCardSkeleton, ClubCardsGridSkeleton, PersonalizedSectionSkeleton } from "./LoadingSkeleton";
 export { ImageCarousel } from "./ImageCarousel";
 export { CourtCarousel } from "./CourtCarousel";
+export { Badge } from "./Badge";
+export { Table } from "./Table";
+export type { TableColumn, TableProps } from "./Table";
+export { Tooltip } from "./Tooltip";
