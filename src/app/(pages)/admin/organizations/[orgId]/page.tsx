@@ -183,10 +183,19 @@ export default function OrganizationDetailPage() {
       const response = await fetch(`/api/admin/users?q=${encodeURIComponent(query)}`);
       if (response.ok) {
         const data = await response.json();
-        setSearchedUsers(data);
+        // Validate that response is an array
+        if (Array.isArray(data)) {
+          setSearchedUsers(data);
+        } else {
+          setSearchedUsers([]);
+        }
+      } else {
+        // Clear search results on error
+        setSearchedUsers([]);
       }
     } catch {
-      // Silent fail
+      // Clear search results on error
+      setSearchedUsers([]);
     }
   }, []);
 
@@ -328,7 +337,7 @@ export default function OrganizationDetailPage() {
 
   // Delete handlers
   const handleDelete = async () => {
-    if (!org || deleteConfirmSlug !== org.slug) {
+    if (!org || deleteConfirmSlug.toLowerCase() !== org.slug.toLowerCase()) {
       setDeleteError(t("orgDetail.slugMismatch"));
       return;
     }
@@ -340,7 +349,7 @@ export default function OrganizationDetailPage() {
       const response = await fetch(`/api/admin/organizations/${orgId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirmOrgSlug: deleteConfirmSlug }),
+        body: JSON.stringify({ confirmOrgSlug: org.slug }),
       });
 
       const data = await response.json();
@@ -871,7 +880,7 @@ export default function OrganizationDetailPage() {
             <Button
               variant="danger"
               onClick={handleDelete}
-              disabled={deleting || deleteConfirmSlug !== org.slug}
+              disabled={deleting || deleteConfirmSlug.toLowerCase() !== org.slug.toLowerCase()}
             >
               {deleting ? t("common.processing") : t("common.delete")}
             </Button>

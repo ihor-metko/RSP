@@ -276,10 +276,11 @@ export async function PUT(
 
     // Determine the final slug
     let finalSlug = organization.slug;
+    const trimmedName = name?.trim();
     if (slug !== undefined) {
-      finalSlug = slug.trim() || generateSlug(name?.trim() || organization.name);
-    } else if (name !== undefined && name.trim() !== organization.name) {
-      finalSlug = generateSlug(name);
+      finalSlug = slug.trim() || generateSlug(trimmedName || organization.name);
+    } else if (trimmedName && trimmedName !== organization.name) {
+      finalSlug = generateSlug(trimmedName);
     }
 
     // Check if slug already exists for a different organization
