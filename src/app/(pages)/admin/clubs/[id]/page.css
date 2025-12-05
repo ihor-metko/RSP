@@ -2,7 +2,8 @@
 
 /* ===== Admin Club Detail Page Layout ===== */
 .im-admin-club-detail-page {
-  @apply w-7xl mx-auto;
+  width: inherit;
+  @apply max-w-7xl mx-auto;
   background-color: var(--rsp-background);
   color: var(--rsp-foreground);
 }
