@@ -347,9 +347,18 @@ function filterNavByRoot(items: NavItem[], isRoot: boolean, isClubAdmin: boolean
 }
 
 /**
+ * Role display info interface
+ */
+interface RoleInfo {
+  label: string;
+  className: string;
+  tooltip?: string;
+}
+
+/**
  * Get role display info for admins
  */
-function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>) {
+function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>): RoleInfo | null {
   if (!adminStatus?.isAdmin) {
     return null;
   }
@@ -362,6 +371,14 @@ function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<type
   }
 
   if (adminStatus.adminType === "organization_admin") {
+    // Show "Owner" for primary owners, "Super Admin" for regular org admins
+    if (adminStatus.isPrimaryOwner) {
+      return {
+        label: t("sidebar.roleOwner"),
+        className: "im-sidebar-role im-sidebar-role--owner",
+        tooltip: t("sidebar.roleOwnerTooltip"),
+      };
+    }
     return {
       label: t("sidebar.roleSuperAdmin"),
       className: "im-sidebar-role im-sidebar-role--super",
@@ -641,7 +658,13 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
             <div className="im-sidebar-header-text">
               <div className="im-sidebar-title">{t("sidebar.title")}</div>
               {roleInfo && (
-                <span className={roleInfo.className}>{roleInfo.label}</span>
+                <span 
+                  className={roleInfo.className}
+                  title={'tooltip' in roleInfo ? roleInfo.tooltip : undefined}
+                  aria-label={'tooltip' in roleInfo ? roleInfo.tooltip : roleInfo.label}
+                >
+                  {roleInfo.label}
+                </span>
               )}
             </div>
           )}

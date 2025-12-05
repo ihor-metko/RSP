@@ -68,8 +68,8 @@ describe("Admin Status API", () => {
         user: { id: "org-admin-1", isRoot: false },
       });
       mockMembershipFindMany.mockResolvedValue([
-        { organizationId: "org-1" },
-        { organizationId: "org-2" },
+        { organizationId: "org-1", isPrimaryOwner: false },
+        { organizationId: "org-2", isPrimaryOwner: false },
       ] as never[]);
       mockClubMembershipFindMany.mockResolvedValue([]);
 
@@ -82,6 +82,30 @@ describe("Admin Status API", () => {
         adminType: "organization_admin",
         isRoot: false,
         managedIds: ["org-1", "org-2"],
+        isPrimaryOwner: false,
+      });
+    });
+
+    it("should return isPrimaryOwner true when user is a primary owner", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "org-owner-1", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([
+        { organizationId: "org-1", isPrimaryOwner: true },
+        { organizationId: "org-2", isPrimaryOwner: false },
+      ] as never[]);
+      mockClubMembershipFindMany.mockResolvedValue([]);
+
+      const response = await GET();
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data).toEqual({
+        isAdmin: true,
+        adminType: "organization_admin",
+        isRoot: false,
+        managedIds: ["org-1", "org-2"],
+        isPrimaryOwner: true,
       });
     });
 
@@ -164,6 +188,7 @@ describe("Admin Status API", () => {
         },
         select: {
           organizationId: true,
+          isPrimaryOwner: true,
         },
       });
     });
