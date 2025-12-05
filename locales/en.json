@@ -799,6 +799,7 @@
     "alreadyAdminOfThisOrg": "Already an admin of this organization",
     "assign": "Assign",
     "owner": "Owner",
+    "ownerTooltip": "Organization Owner — has full control over this organization",
     "setAsOwner": "Set as Owner",
     "remove": "Remove",
     "searchOrganizations": "Search organizations...",

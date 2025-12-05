@@ -928,7 +928,13 @@ export default function AdminOrganizationsPage() {
                               >
                                 {admin.name || admin.email}
                                 {admin.isPrimaryOwner && (
-                                  <span className="im-org-owner-label">{t("organizations.owner")}</span>
+                                  <span 
+                                    className="im-org-owner-label im-tooltip-wrapper"
+                                    role="note"
+                                    aria-label={t("organizations.ownerTooltip")}
+                                  >
+                                    {t("organizations.owner")}
+                                  </span>
                                 )}
                               </span>
                             ))}
@@ -1252,7 +1258,13 @@ export default function AdminOrganizationsPage() {
                   <span className="im-manage-admin-name">{admin.name || admin.email}</span>
                   <span className="im-manage-admin-email">{admin.email}</span>
                   {admin.isPrimaryOwner && (
-                    <span className="im-manage-admin-owner-badge">{t("organizations.owner")}</span>
+                    <span 
+                      className="im-manage-admin-owner-badge im-tooltip-wrapper"
+                      role="note"
+                      aria-label={t("organizations.ownerTooltip")}
+                    >
+                      {t("organizations.owner")}
+                    </span>
                   )}
                 </div>
                 <div className="im-manage-admin-actions">
