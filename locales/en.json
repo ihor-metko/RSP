@@ -750,7 +750,12 @@
     "roleRootAdmin": "Root Admin",
     "roleSuperAdmin": "Super Admin",
     "roleAdmin": "Admin",
-    "noClubAssigned": "You are not assigned to any club. Contact your SuperAdmin or RootAdmin."
+    "roleOwner": "Owner",
+    "roleOwnerTooltip": "Organization Owner — full control over this organization",
+    "noClubAssigned": "You are not assigned to any club. Contact your SuperAdmin or RootAdmin.",
+    "collapse": "Collapse",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar"
   },
   "organizations": {
     "title": "Organizations",

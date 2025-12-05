@@ -39,6 +39,11 @@ jest.mock("next-intl", () => ({
         "sidebar.roleRootAdmin": "Root Admin",
         "sidebar.roleSuperAdmin": "Super Admin",
         "sidebar.roleAdmin": "Admin",
+        "sidebar.roleOwner": "Owner",
+        "sidebar.roleOwnerTooltip": "Organization Owner — full control over this organization",
+        "sidebar.collapse": "Collapse",
+        "sidebar.collapseSidebar": "Collapse sidebar",
+        "sidebar.expandSidebar": "Expand sidebar",
       };
       return translations[key] || key;
     };
@@ -65,6 +70,7 @@ const mockAdminStatusFetch = (adminStatus: {
   isRoot: boolean;
   managedIds: string[];
   assignedClub?: { id: string; name: string };
+  isPrimaryOwner?: boolean;
 }) => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
@@ -251,6 +257,60 @@ describe("AdminSidebar Component", () => {
     });
   });
 
+  describe("Organization Owner (Primary Owner)", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: "admin-2",
+            name: "Org Owner",
+            email: "owner@test.com",
+            isRoot: false,
+          },
+        },
+        status: "authenticated",
+      });
+      mockAdminStatusFetch({
+        isAdmin: true,
+        adminType: "organization_admin",
+        isRoot: false,
+        managedIds: ["org-1"],
+        isPrimaryOwner: true,
+      });
+    });
+
+    it("renders the sidebar for organization owner", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+    });
+
+    it("shows Owner role badge for primary owner", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Owner")).toBeInTheDocument();
+      });
+    });
+
+    it("shows Owner badge with tooltip for accessibility", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        const ownerBadge = screen.getByText("Owner");
+        expect(ownerBadge).toHaveAttribute("title", "Organization Owner — full control over this organization");
+        expect(ownerBadge).toHaveAttribute("aria-label", "Organization Owner — full control over this organization");
+      });
+    });
+
+    it("Owner badge has correct styling class", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        const ownerBadge = screen.getByText("Owner");
+        expect(ownerBadge).toHaveClass("im-sidebar-role--owner");
+      });
+    });
+  });
+
   describe("Club Admin", () => {
     beforeEach(() => {
       mockUseSession.mockReturnValue({
@@ -429,6 +489,130 @@ describe("AdminSidebar Component", () => {
       // Open sidebar
       fireEvent.click(toggleBtn);
       expect(document.querySelector(".im-sidebar-overlay")).toBeInTheDocument();
+    });
+  });
+
+  describe("Collapsible behavior", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: "admin-1",
+            name: "Root Admin",
+            email: "root@test.com",
+            isRoot: true,
+          },
+        },
+        status: "authenticated",
+      });
+      // Clear localStorage before each test
+      localStorage.clear();
+    });
+
+    it("renders collapse toggle button", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        const collapseBtn = document.querySelector(".im-sidebar-collapse-btn");
+        expect(collapseBtn).toBeInTheDocument();
+      });
+    });
+
+    it("collapse button has correct aria-expanded attribute when expanded", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+        expect(collapseBtn).toHaveAttribute("aria-expanded", "true");
+      });
+    });
+
+    it("toggles collapsed state on collapse button click", async () => {
+      render(<AdminSidebar />);
+      
+      await waitFor(() => {
+        const sidebar = document.querySelector(".im-sidebar");
+        expect(sidebar).toBeInTheDocument();
+      });
+      
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      const sidebar = document.querySelector(".im-sidebar");
+
+      // Initially expanded (no --collapsed class)
+      expect(sidebar).not.toHaveClass("im-sidebar--collapsed");
+
+      // Click to collapse
+      fireEvent.click(collapseBtn);
+      expect(sidebar).toHaveClass("im-sidebar--collapsed");
+      expect(collapseBtn).toHaveAttribute("aria-expanded", "false");
+
+      // Click to expand
+      fireEvent.click(collapseBtn);
+      expect(sidebar).not.toHaveClass("im-sidebar--collapsed");
+      expect(collapseBtn).toHaveAttribute("aria-expanded", "true");
+    });
+
+    it("hides navigation labels when collapsed", async () => {
+      render(<AdminSidebar />);
+      
+      await waitFor(() => {
+        expect(screen.getByText("Dashboard")).toBeInTheDocument();
+      });
+      
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      
+      // Click to collapse
+      fireEvent.click(collapseBtn);
+      
+      // Check that sidebar has collapsed class
+      const sidebar = document.querySelector(".im-sidebar");
+      expect(sidebar).toHaveClass("im-sidebar--collapsed");
+    });
+
+    it("calls onCollapsedChange callback when collapsed state changes", async () => {
+      const onCollapsedChange = jest.fn();
+      render(<AdminSidebar onCollapsedChange={onCollapsedChange} />);
+      
+      await waitFor(() => {
+        const collapseBtn = document.querySelector(".im-sidebar-collapse-btn");
+        expect(collapseBtn).toBeInTheDocument();
+      });
+      
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      
+      // Click to collapse
+      fireEvent.click(collapseBtn);
+      expect(onCollapsedChange).toHaveBeenCalledWith(true);
+
+      // Click to expand
+      fireEvent.click(collapseBtn);
+      expect(onCollapsedChange).toHaveBeenCalledWith(false);
+    });
+
+    it("persists collapsed state to localStorage", async () => {
+      render(<AdminSidebar />);
+      
+      await waitFor(() => {
+        const collapseBtn = document.querySelector(".im-sidebar-collapse-btn");
+        expect(collapseBtn).toBeInTheDocument();
+      });
+      
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      
+      // Click to collapse
+      fireEvent.click(collapseBtn);
+      expect(localStorage.getItem("admin-sidebar-collapsed")).toBe("true");
+
+      // Click to expand
+      fireEvent.click(collapseBtn);
+      expect(localStorage.getItem("admin-sidebar-collapsed")).toBe("false");
+    });
+
+    it("collapse button has accessible aria-label", async () => {
+      render(<AdminSidebar />);
+      
+      await waitFor(() => {
+        const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+        expect(collapseBtn).toHaveAttribute("aria-label", "Collapse sidebar");
+      });
     });
   });
 

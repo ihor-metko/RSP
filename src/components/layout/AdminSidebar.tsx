@@ -8,6 +8,8 @@ import Link from "next/link";
 import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
 import "./AdminSidebar.css";
 
+const SIDEBAR_COLLAPSED_KEY = "admin-sidebar-collapsed";
+
 /**
  * Icon components for sidebar navigation
  * Uses consistent 18px sizing with color: var(--im-icon-color)
@@ -182,6 +184,23 @@ function ChevronDownIcon({ isOpen }: { isOpen: boolean }) {
   );
 }
 
+function CollapseIcon({ isCollapsed }: { isCollapsed: boolean }) {
+  return (
+    <svg
+      className={`im-sidebar-collapse-icon ${isCollapsed ? "im-sidebar-collapse-icon--collapsed" : ""}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  );
+}
+
 /**
  * Navigation item interface
  */
@@ -328,9 +347,18 @@ function filterNavByRoot(items: NavItem[], isRoot: boolean, isClubAdmin: boolean
 }
 
 /**
+ * Role display info interface
+ */
+interface RoleInfo {
+  label: string;
+  className: string;
+  tooltip?: string;
+}
+
+/**
  * Get role display info for admins
  */
-function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>) {
+function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>): RoleInfo | null {
   if (!adminStatus?.isAdmin) {
     return null;
   }
@@ -343,6 +371,14 @@ function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<type
   }
 
   if (adminStatus.adminType === "organization_admin") {
+    // Show "Owner" for primary owners, "Super Admin" for regular org admins
+    if (adminStatus.isPrimaryOwner) {
+      return {
+        label: t("sidebar.roleOwner"),
+        className: "im-sidebar-role im-sidebar-role--owner",
+        tooltip: t("sidebar.roleOwnerTooltip"),
+      };
+    }
     return {
       label: t("sidebar.roleSuperAdmin"),
       className: "im-sidebar-role im-sidebar-role--super",
@@ -362,6 +398,8 @@ function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<type
 export interface AdminSidebarProps {
   /** Whether sidebar has a header offset */
   hasHeader?: boolean;
+  /** Callback when collapsed state changes */
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 /**
@@ -369,6 +407,7 @@ export interface AdminSidebarProps {
  *
  * Role-based sidebar navigation for admin dashboards.
  * Renders navigation items dynamically based on user role.
+ * Supports collapsible mode for better space utilization.
  *
  * Roles:
  * - Root Admin: Full platform access, manage super admins, global settings
@@ -380,19 +419,45 @@ export interface AdminSidebarProps {
  * - aria-expanded for expandable sections
  * - role="navigation" for the sidebar
  * - Focus visible states
+ * - aria-label on collapse toggle button
  */
-export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
+export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: AdminSidebarProps) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const t = useTranslations();
   const sidebarRef = useRef<HTMLElement>(null);
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [isLoadingAdminStatus, setIsLoadingAdminStatus] = useState(true);
 
   const isRoot = session?.user?.isRoot ?? false;
+
+  // Load collapsed state from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedState = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+      if (savedState !== null) {
+        const collapsed = savedState === "true";
+        setIsCollapsed(collapsed);
+        onCollapsedChange?.(collapsed);
+      }
+    }
+  }, [onCollapsedChange]);
+
+  // Toggle collapsed state
+  const toggleCollapsed = useCallback(() => {
+    setIsCollapsed((prev) => {
+      const newState = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(newState));
+      }
+      onCollapsedChange?.(newState);
+      return newState;
+    });
+  }, [onCollapsedChange]);
 
   // Fetch admin status when session is available
   useEffect(() => {
@@ -579,8 +644,7 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
       <aside
         ref={sidebarRef}
         id="admin-sidebar"
-        className={`im-sidebar ${hasHeader ? "im-sidebar--with-header" : ""} ${isMobileOpen ? "im-sidebar--open" : ""
-          }`}
+        className={`im-sidebar ${hasHeader ? "im-sidebar--with-header" : ""} ${isMobileOpen ? "im-sidebar--open" : ""} ${isCollapsed ? "im-sidebar--collapsed" : ""}`}
         role="navigation"
         aria-label={t("sidebar.navigation")}
         onKeyDown={handleKeyDown}
@@ -590,12 +654,20 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
           <div className="im-sidebar-logo" aria-hidden="true">
             A
           </div>
-          <div>
-            <div className="im-sidebar-title">{t("sidebar.title")}</div>
-            {roleInfo && (
-              <span className={roleInfo.className}>{roleInfo.label}</span>
-            )}
-          </div>
+          {!isCollapsed && (
+            <div className="im-sidebar-header-text">
+              <div className="im-sidebar-title">{t("sidebar.title")}</div>
+              {roleInfo && (
+                <span 
+                  className={roleInfo.className}
+                  title={'tooltip' in roleInfo ? roleInfo.tooltip : undefined}
+                  aria-label={'tooltip' in roleInfo ? roleInfo.tooltip : roleInfo.label}
+                >
+                  {roleInfo.label}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
@@ -603,8 +675,8 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
           <ul className="im-sidebar-nav-list" role="menubar">
             {navItems.map((item) => (
               <li key={item.id} className="im-sidebar-nav-item" role="none">
-                {item.children && item.children.length > 0 ? (
-                  // Expandable section
+                {item.children && item.children.length > 0 && !isCollapsed ? (
+                  // Expandable section (only when not collapsed)
                   <>
                     <button
                       className="im-sidebar-expand-btn"
@@ -641,17 +713,17 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
                     )}
                   </>
                 ) : (
-                  // Regular link
+                  // Regular link (or collapsed mode for expandable items)
                   <Link
                     href={item.href || "#"}
-                    className={`im-sidebar-nav-link ${isActive(item.href) ? "im-sidebar-nav-link--active" : ""
-                      }`}
+                    className={`im-sidebar-nav-link ${isActive(item.href) ? "im-sidebar-nav-link--active" : ""}`}
                     role="menuitem"
                     aria-current={isActive(item.href) ? "page" : undefined}
                     onClick={() => setIsMobileOpen(false)}
+                    title={isCollapsed ? getLabel(item.labelKey, item.dynamicLabel) : undefined}
                   >
                     {item.icon}
-                    <span>{getLabel(item.labelKey, item.dynamicLabel)}</span>
+                    {!isCollapsed && <span>{getLabel(item.labelKey, item.dynamicLabel)}</span>}
                   </Link>
                 )}
               </li>
@@ -659,16 +731,27 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
           </ul>
           
           {/* Message for ClubAdmin without assigned club */}
-          {isClubAdmin && !adminStatus?.assignedClub && (
+          {isClubAdmin && !adminStatus?.assignedClub && !isCollapsed && (
             <div className="im-sidebar-no-club-message" role="alert">
               <p>{t("sidebar.noClubAssigned")}</p>
             </div>
           )}
         </nav>
 
-        {/* Footer */}
+        {/* Footer with collapse toggle */}
         <div className="im-sidebar-footer">
-          <p className="im-sidebar-version">v0.1.0</p>
+          <button
+            className="im-sidebar-collapse-btn"
+            onClick={toggleCollapsed}
+            aria-expanded={!isCollapsed}
+            aria-controls="admin-sidebar"
+            aria-label={isCollapsed ? t("sidebar.expandSidebar") : t("sidebar.collapseSidebar")}
+            title={isCollapsed ? t("sidebar.expandSidebar") : t("sidebar.collapseSidebar")}
+          >
+            <CollapseIcon isCollapsed={isCollapsed} />
+            {!isCollapsed && <span>{t("sidebar.collapse")}</span>}
+          </button>
+          {!isCollapsed && <p className="im-sidebar-version">v0.1.0</p>}
         </div>
       </aside>
     </>
