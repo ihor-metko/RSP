@@ -39,6 +39,8 @@ jest.mock("next-intl", () => ({
         "sidebar.roleRootAdmin": "Root Admin",
         "sidebar.roleSuperAdmin": "Super Admin",
         "sidebar.roleAdmin": "Admin",
+        "sidebar.roleOwner": "Owner",
+        "sidebar.roleOwnerTooltip": "Organization Owner — full control over this organization",
         "sidebar.collapse": "Collapse",
         "sidebar.collapseSidebar": "Collapse sidebar",
         "sidebar.expandSidebar": "Expand sidebar",
@@ -68,6 +70,7 @@ const mockAdminStatusFetch = (adminStatus: {
   isRoot: boolean;
   managedIds: string[];
   assignedClub?: { id: string; name: string };
+  isPrimaryOwner?: boolean;
 }) => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
@@ -251,6 +254,60 @@ describe("AdminSidebar Component", () => {
         expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
       });
       expect(screen.queryByText("Global Settings")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Organization Owner (Primary Owner)", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: "admin-2",
+            name: "Org Owner",
+            email: "owner@test.com",
+            isRoot: false,
+          },
+        },
+        status: "authenticated",
+      });
+      mockAdminStatusFetch({
+        isAdmin: true,
+        adminType: "organization_admin",
+        isRoot: false,
+        managedIds: ["org-1"],
+        isPrimaryOwner: true,
+      });
+    });
+
+    it("renders the sidebar for organization owner", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+    });
+
+    it("shows Owner role badge for primary owner", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Owner")).toBeInTheDocument();
+      });
+    });
+
+    it("shows Owner badge with tooltip for accessibility", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        const ownerBadge = screen.getByText("Owner");
+        expect(ownerBadge).toHaveAttribute("title", "Organization Owner — full control over this organization");
+        expect(ownerBadge).toHaveAttribute("aria-label", "Organization Owner — full control over this organization");
+      });
+    });
+
+    it("Owner badge has correct styling class", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        const ownerBadge = screen.getByText("Owner");
+        expect(ownerBadge).toHaveClass("im-sidebar-role--owner");
+      });
     });
   });
 

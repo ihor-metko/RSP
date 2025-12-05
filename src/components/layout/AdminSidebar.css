@@ -92,6 +92,12 @@
   color: white;
 }
 
+.im-sidebar-role--owner {
+  background-color: #f59e0b;
+  color: white;
+  cursor: help;
+}
+
 /* Navigation section */
 .im-sidebar-nav {
   @apply flex-1 overflow-y-auto py-4;
