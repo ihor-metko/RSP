@@ -1,0 +1,117 @@
+@reference "tailwindcss";
+
+/* ===== Organization Header ===== */
+.im-org-header {
+  @apply w-full py-4 px-6 mb-6;
+  background-color: var(--im-card-bg);
+  border-bottom: 1px solid var(--im-border);
+}
+
+.im-org-header-content {
+  @apply flex items-center justify-between max-w-7xl mx-auto;
+}
+
+/* Organization Info */
+.im-org-header-info {
+  @apply flex items-center gap-4;
+}
+
+.im-org-header-logo-container {
+  @apply flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-xl;
+  background-color: rgba(108, 99, 255, 0.15);
+  color: var(--im-primary);
+}
+
+.dark .im-org-header-logo-container {
+  background-color: rgba(108, 99, 255, 0.25);
+}
+
+.im-org-header-logo {
+  @apply w-6 h-6;
+}
+
+.im-org-header-details {
+  @apply flex flex-col;
+}
+
+.im-org-header-name {
+  @apply text-xl font-semibold;
+  color: var(--im-foreground);
+}
+
+.im-org-header-slug {
+  @apply text-sm;
+  color: var(--im-muted);
+}
+
+/* User Info */
+.im-org-header-actions {
+  @apply flex items-center gap-4;
+}
+
+.im-org-header-user {
+  @apply flex flex-col items-end text-right;
+}
+
+.im-org-header-user-name {
+  @apply text-sm font-medium;
+  color: var(--im-foreground);
+}
+
+.im-org-header-user-role {
+  @apply text-xs px-2 py-0.5 rounded-full;
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+}
+
+.dark .im-org-header-user-role {
+  background-color: rgba(249, 115, 22, 0.25);
+  color: #fb923c;
+}
+
+/* Settings Button */
+.im-org-header-settings-btn {
+  @apply flex items-center justify-center w-10 h-10 rounded-lg;
+  background-color: transparent;
+  border: 1px solid var(--im-border);
+  color: var(--im-icon-color);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.im-org-header-settings-btn:hover,
+.im-org-header-settings-btn:focus {
+  background-color: var(--im-card-bg);
+  border-color: var(--im-primary);
+}
+
+.dark .im-org-header-settings-btn:hover,
+.dark .im-org-header-settings-btn:focus {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.im-org-header-icon {
+  @apply w-5 h-5;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .im-org-header {
+    @apply px-4 py-3;
+  }
+
+  .im-org-header-logo-container {
+    @apply w-10 h-10;
+  }
+
+  .im-org-header-logo {
+    @apply w-5 h-5;
+  }
+
+  .im-org-header-name {
+    @apply text-lg;
+  }
+
+  .im-org-header-user {
+    @apply hidden;
+  }
+}
