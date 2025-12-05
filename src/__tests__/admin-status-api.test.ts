@@ -91,8 +91,8 @@ describe("Admin Status API", () => {
       });
       mockMembershipFindMany.mockResolvedValue([]);
       mockClubMembershipFindMany.mockResolvedValue([
-        { clubId: "club-1" },
-        { clubId: "club-2" },
+        { clubId: "club-1", club: { id: "club-1", name: "First Club" } },
+        { clubId: "club-2", club: { id: "club-2", name: "Second Club" } },
       ] as never[]);
 
       const response = await GET();
@@ -104,6 +104,7 @@ describe("Admin Status API", () => {
         adminType: "club_admin",
         isRoot: false,
         managedIds: ["club-1", "club-2"],
+        assignedClub: { id: "club-1", name: "First Club" },
       });
     });
 
@@ -183,8 +184,29 @@ describe("Admin Status API", () => {
         },
         select: {
           clubId: true,
+          club: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       });
+    });
+
+    it("should return assignedClub in response for club admins", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-1", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      mockClubMembershipFindMany.mockResolvedValue([
+        { clubId: "club-1", club: { id: "club-1", name: "Test Club" } },
+      ]);
+
+      const response = await GET();
+      const data = await response.json();
+
+      expect(data.assignedClub).toEqual({ id: "club-1", name: "Test Club" });
     });
   });
 });

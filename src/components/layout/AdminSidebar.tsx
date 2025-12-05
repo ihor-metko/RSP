@@ -189,8 +189,12 @@ interface NavItem {
   id: string;
   href?: string;
   labelKey: string;
+  /** Dynamic label that overrides labelKey translation */
+  dynamicLabel?: string;
   icon: React.ReactNode;
   rootOnly?: boolean; // If true, only visible to root admins
+  /** If true, hidden for club admins (they get a direct link to their club instead) */
+  hideForClubAdmin?: boolean;
   children?: NavItem[];
 }
 
@@ -271,12 +275,13 @@ function getNavItems(): NavItem[] {
       icon: <UsersIcon />,
       rootOnly: true,
     },
-    // Clubs Management
+    // Clubs Management - Hidden for ClubAdmin (they get direct link to their club)
     {
       id: "clubs",
       href: "/admin/clubs",
       labelKey: "sidebar.clubs",
       icon: <ClubsIcon />,
+      hideForClubAdmin: true,
     },
     // Bookings
     {
@@ -304,14 +309,20 @@ function getNavItems(): NavItem[] {
 }
 
 /**
- * Filter navigation items based on isRoot status
+ * Filter navigation items based on isRoot status and admin type
  */
-function filterNavByRoot(items: NavItem[], isRoot: boolean): NavItem[] {
+function filterNavByRoot(items: NavItem[], isRoot: boolean, isClubAdmin: boolean = false): NavItem[] {
   return items
-    .filter((item) => !item.rootOnly || isRoot)
+    .filter((item) => {
+      // Filter out root-only items for non-root users
+      if (item.rootOnly && !isRoot) return false;
+      // Filter out items hidden for club admins
+      if (item.hideForClubAdmin && isClubAdmin) return false;
+      return true;
+    })
     .map((item) => ({
       ...item,
-      children: item.children ? filterNavByRoot(item.children, isRoot) : undefined,
+      children: item.children ? filterNavByRoot(item.children, isRoot, isClubAdmin) : undefined,
     }))
     .filter((item) => !item.children || item.children.length > 0);
 }
@@ -424,11 +435,39 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
     fetchAdminStatus();
   }, [session, status, isRoot]);
 
-  // Get filtered navigation items based on isRoot status
+  // Check if user is a club admin
+  const isClubAdmin = adminStatus?.adminType === "club_admin";
+
+  // Get filtered navigation items based on isRoot status and admin type
   const navItems = useMemo(() => {
     const allItems = getNavItems();
-    return filterNavByRoot(allItems, isRoot);
-  }, [isRoot]);
+    let filteredItems = filterNavByRoot(allItems, isRoot, isClubAdmin);
+    
+    // For ClubAdmin, insert a direct link to their assigned club after Dashboard
+    if (isClubAdmin && adminStatus?.assignedClub) {
+      const clubLink: NavItem = {
+        id: "assigned-club",
+        href: `/admin/clubs/${adminStatus.assignedClub.id}`,
+        labelKey: "sidebar.clubs", // fallback
+        dynamicLabel: adminStatus.assignedClub.name,
+        icon: <ClubsIcon />,
+      };
+      
+      // Insert after dashboard (index 0)
+      const dashboardIndex = filteredItems.findIndex(item => item.id === "dashboard");
+      if (dashboardIndex >= 0) {
+        filteredItems = [
+          ...filteredItems.slice(0, dashboardIndex + 1),
+          clubLink,
+          ...filteredItems.slice(dashboardIndex + 1),
+        ];
+      } else {
+        filteredItems = [clubLink, ...filteredItems];
+      }
+    }
+    
+    return filteredItems;
+  }, [isRoot, isClubAdmin, adminStatus?.assignedClub]);
 
   // Close sidebar when clicking outside on mobile
   const handleClickOutside = useCallback(
@@ -485,9 +524,13 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
     [pathname]
   );
 
-  // Get translated label
+  // Get translated label or use dynamic label
   const getLabel = useCallback(
-    (labelKey: string): string => {
+    (labelKey: string, dynamicLabel?: string): string => {
+      // Use dynamic label if provided
+      if (dynamicLabel) {
+        return dynamicLabel;
+      }
       const label = t(labelKey);
       // If translation returns the key itself, extract last segment as fallback
       if (label === labelKey) {
@@ -570,7 +613,7 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
                       aria-controls={`nav-section-${item.id}`}
                     >
                       {item.icon}
-                      <span>{getLabel(item.labelKey)}</span>
+                      <span>{getLabel(item.labelKey, item.dynamicLabel)}</span>
                       <ChevronDownIcon isOpen={expandedSections[item.id] || false} />
                     </button>
                     {expandedSections[item.id] && (
@@ -590,7 +633,7 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
                               onClick={() => setIsMobileOpen(false)}
                             >
                               {child.icon}
-                              <span>{getLabel(child.labelKey)}</span>
+                              <span>{getLabel(child.labelKey, child.dynamicLabel)}</span>
                             </Link>
                           </li>
                         ))}
@@ -608,12 +651,19 @@ export default function AdminSidebar({ hasHeader = true }: AdminSidebarProps) {
                     onClick={() => setIsMobileOpen(false)}
                   >
                     {item.icon}
-                    <span>{getLabel(item.labelKey)}</span>
+                    <span>{getLabel(item.labelKey, item.dynamicLabel)}</span>
                   </Link>
                 )}
               </li>
             ))}
           </ul>
+          
+          {/* Message for ClubAdmin without assigned club */}
+          {isClubAdmin && !adminStatus?.assignedClub && (
+            <div className="im-sidebar-no-club-message" role="alert">
+              <p>{t("sidebar.noClubAssigned")}</p>
+            </div>
+          )}
         </nav>
 
         {/* Footer */}

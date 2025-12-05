@@ -9,6 +9,14 @@ import { MembershipRole, ClubMembershipRole } from "@/constants/roles";
 export type AdminType = "root_admin" | "organization_admin" | "club_admin" | "none";
 
 /**
+ * Assigned club info for ClubAdmin sidebar navigation.
+ */
+export interface AssignedClub {
+  id: string;
+  name: string;
+}
+
+/**
  * Admin status response type.
  */
 export interface AdminStatusResponse {
@@ -21,6 +29,11 @@ export interface AdminStatusResponse {
    * For root admins, this is empty (they have access to all).
    */
   managedIds: string[];
+  /**
+   * For club admins, includes the assigned club info for direct navigation.
+   * Uses the first club if multiple are assigned (for future use).
+   */
+  assignedClub?: AssignedClub;
 }
 
 /**
@@ -88,15 +101,27 @@ export async function GET(): Promise<NextResponse<AdminStatusResponse | { error:
     },
     select: {
       clubId: true,
+      club: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 
   if (clubMemberships.length > 0) {
+    // Use the first club as the assigned club for navigation
+    const firstClub = clubMemberships[0].club;
     const response: AdminStatusResponse = {
       isAdmin: true,
       adminType: "club_admin",
       isRoot: false,
       managedIds: clubMemberships.map((m) => m.clubId),
+      assignedClub: firstClub ? {
+        id: firstClub.id,
+        name: firstClub.name,
+      } : undefined,
     };
     return NextResponse.json(response);
   }

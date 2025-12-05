@@ -261,3 +261,15 @@
   @apply lg:ml-60 min-h-screen;
   transition: margin-left 0.3s ease;
 }
+
+/* Message for ClubAdmin without assigned club */
+.im-sidebar-no-club-message {
+  @apply mx-4 mt-4 p-3 rounded-lg text-sm;
+  background-color: var(--im-card-bg);
+  color: var(--im-muted);
+  border: 1px solid var(--im-border);
+}
+
+.im-sidebar-no-club-message p {
+  @apply m-0 leading-relaxed;
+}

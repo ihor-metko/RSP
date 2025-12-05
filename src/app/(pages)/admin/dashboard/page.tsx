@@ -215,72 +215,20 @@ interface OrgCardProps {
 
 function OrgCard({ org }: OrgCardProps) {
   const t = useTranslations();
-  
+
   return (
     <div className="im-dashboard-section">
       <div className="im-org-card-header">
         <h3 className="im-org-card-title">{org.name}</h3>
         <span className="im-org-card-slug">/{org.slug}</span>
       </div>
-      
+
       <KeyMetrics
         clubsCount={org.clubsCount}
         courtsCount={org.courtsCount}
         bookingsToday={org.bookingsToday}
         clubAdminsCount={org.clubAdminsCount}
       />
-      
-      <div className="im-quick-actions-section">
-        <h4 className="im-section-title">{t("orgDashboard.quickActions.title")}</h4>
-        <div className="im-quick-actions-grid">
-          <Link
-            href={`/admin/orgs/${org.id}/clubs/new`}
-            className="im-quick-action-btn im-quick-action-btn--primary"
-          >
-            <PlusIcon />
-            <span>{t("orgDashboard.quickActions.createClub")}</span>
-          </Link>
-          <Link
-            href={`/admin/orgs/${org.id}/admins/invite`}
-            className="im-quick-action-btn im-quick-action-btn--secondary"
-          >
-            <UserPlusIcon />
-            <span>{t("orgDashboard.quickActions.inviteAdmin")}</span>
-          </Link>
-        </div>
-      </div>
-      
-      <div className="im-nav-links-section">
-        <nav className="im-nav-links-grid" aria-label={t("unifiedDashboard.managementLinks")}>
-          <Link
-            href={`/admin/orgs/${org.id}/clubs`}
-            className="im-nav-link-card"
-          >
-            <span className="im-nav-link-text">
-              {t("orgDashboard.navigation.manageClubs")}
-            </span>
-            <ArrowRightIcon />
-          </Link>
-          <Link
-            href={`/admin/orgs/${org.id}/bookings`}
-            className="im-nav-link-card"
-          >
-            <span className="im-nav-link-text">
-              {t("orgDashboard.navigation.viewBookings")}
-            </span>
-            <ArrowRightIcon />
-          </Link>
-          <Link
-            href={`/admin/orgs/${org.id}/admins`}
-            className="im-nav-link-card"
-          >
-            <span className="im-nav-link-text">
-              {t("orgDashboard.navigation.manageAdmins")}
-            </span>
-            <ArrowRightIcon />
-          </Link>
-        </nav>
-      </div>
     </div>
   );
 }
@@ -295,7 +243,7 @@ interface ClubCardProps {
 
 function ClubCard({ club }: ClubCardProps) {
   const t = useTranslations();
-  
+
   return (
     <div className="im-dashboard-section">
       <div className="im-org-card-header">
@@ -304,7 +252,7 @@ function ClubCard({ club }: ClubCardProps) {
           <span className="im-org-card-slug">{club.organizationName}</span>
         )}
       </div>
-      
+
       <div className="im-stats-grid im-stats-grid--club">
         <StatCard
           title={t("unifiedDashboard.courts")}
@@ -319,7 +267,7 @@ function ClubCard({ club }: ClubCardProps) {
           colorClass="im-stat-card--bookings"
         />
       </div>
-      
+
       <div className="im-nav-links-section">
         <nav className="im-nav-links-grid im-nav-links-grid--club" aria-label={t("unifiedDashboard.managementLinks")}>
           <Link
@@ -407,7 +355,7 @@ export default function AdminDashboardPage() {
       setError("");
 
       const data = await fetchDashboard();
-      
+
       if (!data) {
         setError(t("unifiedDashboard.failedToLoad"));
         setLoading(false);
@@ -517,7 +465,7 @@ export default function AdminDashboardPage() {
                 colorClass="im-stat-card--bookings"
               />
             </div>
-            
+
             <div className="im-dashboard-section">
               <h2 className="im-dashboard-section-title">
                 {t("rootAdmin.dashboard.platformOverview")}

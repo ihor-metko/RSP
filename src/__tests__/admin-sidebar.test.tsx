@@ -64,6 +64,7 @@ const mockAdminStatusFetch = (adminStatus: {
   adminType: "root_admin" | "organization_admin" | "club_admin" | "none";
   isRoot: boolean;
   managedIds: string[];
+  assignedClub?: { id: string; name: string };
 }) => {
   global.fetch = jest.fn().mockResolvedValue({
     ok: true,
@@ -268,6 +269,7 @@ describe("AdminSidebar Component", () => {
         adminType: "club_admin",
         isRoot: false,
         managedIds: ["club-1"],
+        assignedClub: { id: "club-1", name: "My Test Club" },
       });
     });
 
@@ -285,14 +287,25 @@ describe("AdminSidebar Component", () => {
       });
     });
 
-    it("shows navigation items for club admin", async () => {
+    it("shows direct link to assigned club for club admin", async () => {
       render(<AdminSidebar />);
       await waitFor(() => {
         expect(screen.getByText("Dashboard")).toBeInTheDocument();
       });
-      expect(screen.getByText("Clubs")).toBeInTheDocument();
+      // ClubAdmin should see their assigned club name, not the generic "Clubs" link
+      expect(screen.getByText("My Test Club")).toBeInTheDocument();
+      expect(screen.queryByText("Clubs")).not.toBeInTheDocument();
       expect(screen.getByText("Bookings")).toBeInTheDocument();
       expect(screen.getByText("Notifications")).toBeInTheDocument();
+    });
+
+    it("shows club link pointing to correct club dashboard", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("My Test Club")).toBeInTheDocument();
+      });
+      const clubLink = screen.getByRole("menuitem", { name: /My Test Club/i });
+      expect(clubLink).toHaveAttribute("href", "/admin/clubs/club-1");
     });
 
     it("does NOT show Platform Statistics (root admin only)", async () => {
@@ -309,6 +322,38 @@ describe("AdminSidebar Component", () => {
         expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
       });
       expect(screen.queryByText("Global Settings")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Club Admin without assigned club", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: "admin-4",
+            name: "Unassigned Admin",
+            email: "unassigned@test.com",
+            isRoot: false,
+          },
+        },
+        status: "authenticated",
+      });
+      mockAdminStatusFetch({
+        isAdmin: true,
+        adminType: "club_admin",
+        isRoot: false,
+        managedIds: [],
+        // No assignedClub
+      });
+    });
+
+    it("shows message when no club is assigned", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      // Should show the "not assigned" message
+      expect(screen.getByRole("alert")).toBeInTheDocument();
     });
   });
 

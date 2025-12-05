@@ -623,7 +623,13 @@ export default function OrganizationDetailPage() {
                       <span className="im-admin-email">{admin.email}</span>
                     </div>
                     {admin.isPrimaryOwner && (
-                      <span className="im-admin-owner-badge">{t("organizations.owner")}</span>
+                      <span 
+                        className="im-admin-owner-badge im-tooltip-wrapper"
+                        role="note"
+                        aria-label={t("organizations.ownerTooltip")}
+                      >
+                        {t("organizations.owner")}
+                      </span>
                     )}
                   </div>
                 ))}

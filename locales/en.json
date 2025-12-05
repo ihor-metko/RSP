@@ -410,7 +410,6 @@
         "rootAdmin": "Root Admin",
         "admin": "Admin",
         "super_admin": "Super Admin",
-        "admin": "Admin",
         "coach": "Coach",
         "player": "Player"
       }
@@ -750,7 +749,8 @@
     "settings": "Global Settings",
     "roleRootAdmin": "Root Admin",
     "roleSuperAdmin": "Super Admin",
-    "roleAdmin": "Admin"
+    "roleAdmin": "Admin",
+    "noClubAssigned": "You are not assigned to any club. Contact your SuperAdmin or RootAdmin."
   },
   "organizations": {
     "title": "Organizations",
@@ -799,6 +799,7 @@
     "alreadyAdminOfThisOrg": "Already an admin of this organization",
     "assign": "Assign",
     "owner": "Owner",
+    "ownerTooltip": "Organization Owner — has full control over this organization",
     "setAsOwner": "Set as Owner",
     "remove": "Remove",
     "searchOrganizations": "Search organizations...",
