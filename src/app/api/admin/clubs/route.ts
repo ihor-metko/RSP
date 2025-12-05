@@ -1,16 +1,39 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRootAdmin } from "@/lib/requireRole";
+import { requireAnyAdmin, requireRootAdmin } from "@/lib/requireRole";
+import { ClubMembershipRole } from "@/constants/roles";
+import type { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
-  const authResult = await requireRootAdmin(request);
+  const authResult = await requireAnyAdmin(request);
 
   if (!authResult.authorized) {
     return authResult.response;
   }
 
   try {
+    // Build the where clause based on admin type
+    let whereClause: Prisma.ClubWhereInput = {};
+
+    if (authResult.adminType === "organization_admin") {
+      // Organization admin sees clubs in their managed organizations
+      whereClause = {
+        organizationId: {
+          in: authResult.managedIds,
+        },
+      };
+    } else if (authResult.adminType === "club_admin") {
+      // Club admin sees only their managed clubs
+      whereClause = {
+        id: {
+          in: authResult.managedIds,
+        },
+      };
+    }
+    // Root admin sees all clubs (no where clause)
+
     const clubs = await prisma.club.findMany({
+      where: whereClause,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -25,27 +48,54 @@ export async function GET(request: Request) {
         tags: true,
         isPublic: true,
         createdAt: true,
+        organizationId: true,
+        organization: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         courts: {
           select: {
             id: true,
             indoor: true,
+            bookings: {
+              select: {
+                id: true,
+              },
+            },
+          },
+        },
+        clubMemberships: {
+          where: {
+            role: ClubMembershipRole.CLUB_ADMIN,
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
           },
         },
       },
     });
 
-    // Process clubs to add indoor/outdoor counts (single pass)
+    // Process clubs to add counts and transform data
     const clubsWithCounts = clubs.map((club) => {
-      const { indoorCount, outdoorCount } = club.courts.reduce(
+      const { indoorCount, outdoorCount, bookingCount } = club.courts.reduce(
         (acc, court) => {
           if (court.indoor) {
             acc.indoorCount++;
           } else {
             acc.outdoorCount++;
           }
+          acc.bookingCount += court.bookings.length;
           return acc;
         },
-        { indoorCount: 0, outdoorCount: 0 }
+        { indoorCount: 0, outdoorCount: 0, bookingCount: 0 }
       );
 
       return {
@@ -64,6 +114,13 @@ export async function GET(request: Request) {
         indoorCount,
         outdoorCount,
         courtCount: club.courts.length,
+        bookingCount,
+        organization: club.organization,
+        admins: club.clubMemberships.map((m) => ({
+          id: m.user.id,
+          name: m.user.name,
+          email: m.user.email,
+        })),
       };
     });
 

@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-// Mock Prisma
+// Mock Prisma with membership tables for role-based access control
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     club: {
@@ -11,6 +11,12 @@ jest.mock("@/lib/prisma", () => ({
       findUnique: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+    },
+    membership: {
+      findMany: jest.fn(),
+    },
+    clubMembership: {
+      findMany: jest.fn(),
     },
   },
 }));
@@ -28,6 +34,9 @@ import { prisma } from "@/lib/prisma";
 describe("Admin Clubs API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default: non-admin user has no memberships
+    (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
+    (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
   });
 
   describe("GET /api/admin/clubs", () => {
@@ -80,10 +89,13 @@ describe("Admin Clubs API", () => {
           tags: null,
           isPublic: true,
           createdAt: new Date().toISOString(),
+          organizationId: null,
+          organization: null,
           courts: [
-            { id: "court-1", indoor: true },
-            { id: "court-2", indoor: false },
+            { id: "court-1", indoor: true, bookings: [{ id: "booking-1" }] },
+            { id: "court-2", indoor: false, bookings: [] },
           ],
+          clubMemberships: [],
         },
         {
           id: "club-2",
@@ -98,7 +110,12 @@ describe("Admin Clubs API", () => {
           tags: null,
           isPublic: false,
           createdAt: new Date().toISOString(),
+          organizationId: "org-1",
+          organization: { id: "org-1", name: "Test Org" },
           courts: [],
+          clubMemberships: [
+            { user: { id: "admin-1", name: "Admin User", email: "admin@test.com" } },
+          ],
         },
       ];
 
@@ -117,9 +134,115 @@ describe("Admin Clubs API", () => {
       expect(data[0].indoorCount).toBe(1);
       expect(data[0].outdoorCount).toBe(1);
       expect(data[0].courtCount).toBe(2);
+      expect(data[0].bookingCount).toBe(1);
       expect(data[1].indoorCount).toBe(0);
       expect(data[1].outdoorCount).toBe(0);
       expect(data[1].courtCount).toBe(0);
+      expect(data[1].organization?.name).toBe("Test Org");
+      expect(data[1].admins).toHaveLength(1);
+    });
+
+    it("should return clubs only from managed organizations for organization admin", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "org-admin-123", isRoot: false },
+      });
+
+      // Organization admin has access to org-1
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([
+        { organizationId: "org-1" },
+      ]);
+
+      const mockClubs = [
+        {
+          id: "club-in-org",
+          name: "Club in Org",
+          shortDescription: null,
+          location: "Location",
+          city: null,
+          contactInfo: null,
+          openingHours: null,
+          logo: null,
+          heroImage: null,
+          tags: null,
+          isPublic: true,
+          createdAt: new Date().toISOString(),
+          organizationId: "org-1",
+          organization: { id: "org-1", name: "My Org" },
+          courts: [],
+          clubMemberships: [],
+        },
+      ];
+
+      (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
+
+      const request = new Request("http://localhost:3000/api/admin/clubs", {
+        method: "GET",
+      });
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data).toHaveLength(1);
+      expect(data[0].name).toBe("Club in Org");
+      // Verify the where clause filtered by organizationId
+      expect(prisma.club.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { organizationId: { in: ["org-1"] } },
+        })
+      );
+    });
+
+    it("should return only managed clubs for club admin", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "club-admin-123", isRoot: false },
+      });
+
+      // Club admin has no org membership, but has club admin role
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([
+        { clubId: "club-1" },
+      ]);
+
+      const mockClubs = [
+        {
+          id: "club-1",
+          name: "My Club",
+          shortDescription: null,
+          location: "Location",
+          city: null,
+          contactInfo: null,
+          openingHours: null,
+          logo: null,
+          heroImage: null,
+          tags: null,
+          isPublic: true,
+          createdAt: new Date().toISOString(),
+          organizationId: null,
+          organization: null,
+          courts: [],
+          clubMemberships: [],
+        },
+      ];
+
+      (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
+
+      const request = new Request("http://localhost:3000/api/admin/clubs", {
+        method: "GET",
+      });
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data).toHaveLength(1);
+      expect(data[0].name).toBe("My Club");
+      // Verify the where clause filtered by club id
+      expect(prisma.club.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: { in: ["club-1"] } },
+        })
+      );
     });
 
     it("should return 500 for database errors", async () => {

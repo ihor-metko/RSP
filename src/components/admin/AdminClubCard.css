@@ -108,6 +108,32 @@
   max-width: 100%;
 }
 
+/* Stats Section (Organization, Bookings, Admins) */
+.im-admin-club-stats {
+  @apply flex flex-col gap-1.5 mb-3 text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.8;
+}
+
+.im-admin-club-org,
+.im-admin-club-bookings,
+.im-admin-club-admins {
+  @apply flex items-center gap-1.5;
+}
+
+.im-admin-club-org-icon,
+.im-admin-club-bookings-icon,
+.im-admin-club-admins-icon {
+  @apply flex-shrink-0;
+  opacity: 0.7;
+}
+
+.im-admin-club-org-text,
+.im-admin-club-bookings-text,
+.im-admin-club-admins-text {
+  @apply truncate;
+}
+
 /* Badges Section */
 .im-admin-club-badges-section {
   @apply flex flex-col gap-2 mt-auto;
@@ -271,13 +297,68 @@
 
 /* ===== Action Bar ===== */
 .im-admin-clubs-actions {
-  @apply flex justify-between items-center mb-6 flex-wrap gap-4;
+  @apply flex justify-between items-start mb-6 flex-wrap gap-4;
 }
 
 .im-admin-clubs-actions-left {
-  @apply flex items-center gap-2;
+  @apply flex items-center gap-2 flex-wrap;
 }
 
 .im-admin-clubs-actions-right {
   @apply flex items-center gap-2 ml-auto;
+}
+
+/* Filter Controls */
+.im-admin-clubs-search {
+  @apply w-48;
+}
+
+.im-admin-clubs-filter {
+  @apply w-40;
+}
+
+.im-native-select {
+  @apply px-3 py-2 text-sm rounded-md border;
+  background-color: var(--rsp-card-bg);
+  border-color: var(--rsp-border);
+  color: var(--rsp-foreground);
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.im-native-select:hover {
+  border-color: var(--rsp-primary);
+}
+
+.im-native-select:focus {
+  outline: none;
+  border-color: var(--rsp-primary);
+  box-shadow: 0 0 0 2px rgba(var(--rsp-primary-rgb), 0.2);
+}
+
+.im-native-select option {
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+}
+
+@media (max-width: 768px) {
+  .im-admin-clubs-actions {
+    @apply flex-col items-stretch;
+  }
+  
+  .im-admin-clubs-actions-left {
+    @apply w-full;
+  }
+  
+  .im-admin-clubs-actions-right {
+    @apply w-full justify-end;
+  }
+  
+  .im-admin-clubs-search {
+    @apply w-full;
+  }
+  
+  .im-admin-clubs-filter {
+    @apply flex-1;
+  }
 }

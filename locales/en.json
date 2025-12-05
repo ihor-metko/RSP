@@ -56,7 +56,8 @@
     "nextImage": "Next image",
     "carouselSlides": "Carousel slides",
     "slide": "Slide",
-    "slideOf": "Slide {current} of {total}"
+    "slideOf": "Slide {current} of {total}",
+    "clearFilters": "Clear filters"
   },
   "home": {
     "title": "Padel Club",
@@ -244,6 +245,20 @@
       "saving": "Saving...",
       "courts": "Courts",
       "noCourts": "No courts",
+      "bookings": "bookings",
+      "clubAdmins": "admins",
+      "noClubsMatch": "No clubs match your filters.",
+      "allOrganizations": "All Organizations",
+      "allCities": "All Cities",
+      "filterByOrganization": "Filter by organization",
+      "filterByCity": "Filter by city",
+      "sortBy": "Sort by",
+      "sortNewest": "Newest first",
+      "sortOldest": "Oldest first",
+      "sortNameAsc": "Name (A-Z)",
+      "sortNameDesc": "Name (Z-A)",
+      "sortCityAsc": "City (A-Z)",
+      "sortBookings": "Most bookings",
       "form": {
         "basicInfo": "Basic Information",
         "locationContact": "Location & Contact",

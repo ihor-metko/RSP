@@ -56,7 +56,8 @@
     "nextImage": "Наступне зображення",
     "carouselSlides": "Слайди каруселі",
     "slide": "Слайд",
-    "slideOf": "Слайд {current} з {total}"
+    "slideOf": "Слайд {current} з {total}",
+    "clearFilters": "Очистити фільтри"
   },
   "home": {
     "title": "Падел Клуб MVP",
@@ -244,6 +245,20 @@
       "saving": "Збереження...",
       "courts": "Корти",
       "noCourts": "Немає кортів",
+      "bookings": "бронювань",
+      "clubAdmins": "адмінів",
+      "noClubsMatch": "Немає клубів, що відповідають фільтрам.",
+      "allOrganizations": "Усі організації",
+      "allCities": "Усі міста",
+      "filterByOrganization": "Фільтр за організацією",
+      "filterByCity": "Фільтр за містом",
+      "sortBy": "Сортувати за",
+      "sortNewest": "Спочатку нові",
+      "sortOldest": "Спочатку старі",
+      "sortNameAsc": "Назва (А-Я)",
+      "sortNameDesc": "Назва (Я-А)",
+      "sortCityAsc": "Місто (А-Я)",
+      "sortBookings": "Найбільше бронювань",
       "form": {
         "basicInfo": "Основна інформація",
         "locationContact": "Локація та контакти",

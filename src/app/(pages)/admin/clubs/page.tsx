@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, IMLink, PageHeader } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import type { ClubWithCounts, ClubFormData } from "@/types/club";
+import type { AdminStatusResponse, AdminType } from "@/app/api/me/admin-status/route";
 import "@/components/admin/AdminClubCard.css";
 
 const initialFormData: ClubFormData = {
@@ -16,6 +17,9 @@ const initialFormData: ClubFormData = {
   openingHours: "",
   logo: "",
 };
+
+type SortField = "name" | "city" | "createdAt" | "bookingCount";
+type SortDirection = "asc" | "desc";
 
 export default function AdminClubsPage() {
   const t = useTranslations();
@@ -31,6 +35,36 @@ export default function AdminClubsPage() {
   const [formData, setFormData] = useState<ClubFormData>(initialFormData);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
+  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+
+  // Filtering state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedOrganization, setSelectedOrganization] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>("createdAt");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  const fetchAdminStatus = useCallback(async () => {
+    try {
+      const response = await fetch("/api/me/admin-status");
+      if (response.ok) {
+        const data: AdminStatusResponse = await response.json();
+        setAdminStatus(data);
+        return data;
+      } else {
+        setAdminStatus(null);
+        return null;
+      }
+    } catch {
+      setAdminStatus(null);
+      return null;
+    } finally {
+      setLoadingAdminStatus(false);
+    }
+  }, []);
 
   const fetchClubs = useCallback(async () => {
     try {
@@ -56,13 +90,99 @@ export default function AdminClubsPage() {
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || !session.user.isRoot) {
+    if (!session?.user) {
       router.push("/auth/sign-in");
       return;
     }
 
-    fetchClubs();
-  }, [session, status, router, fetchClubs]);
+    // First fetch admin status, then clubs
+    fetchAdminStatus().then((adminData) => {
+      if (adminData?.isAdmin) {
+        fetchClubs();
+      } else {
+        // User is not an admin, redirect
+        router.push("/auth/sign-in");
+      }
+    });
+  }, [session, status, router, fetchAdminStatus, fetchClubs]);
+
+  // Extract unique organizations and cities for filters
+  const { organizations, cities } = useMemo(() => {
+    const orgs = new Map<string, string>();
+    const citySet = new Set<string>();
+
+    clubs.forEach((club) => {
+      if (club.organization) {
+        orgs.set(club.organization.id, club.organization.name);
+      }
+      if (club.city) {
+        citySet.add(club.city);
+      }
+    });
+
+    return {
+      organizations: Array.from(orgs.entries()).map(([id, name]) => ({ id, name })),
+      cities: Array.from(citySet).sort(),
+    };
+  }, [clubs]);
+
+  // Filter and sort clubs
+  const filteredAndSortedClubs = useMemo(() => {
+    let result = [...clubs];
+
+    // Apply filters
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (club) =>
+          club.name.toLowerCase().includes(query) ||
+          club.location.toLowerCase().includes(query) ||
+          club.city?.toLowerCase().includes(query)
+      );
+    }
+
+    if (selectedOrganization) {
+      result = result.filter(
+        (club) => club.organization?.id === selectedOrganization
+      );
+    }
+
+    if (selectedCity) {
+      result = result.filter((club) => club.city === selectedCity);
+    }
+
+    // Apply sorting
+    result.sort((a, b) => {
+      let comparison = 0;
+
+      switch (sortField) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "city":
+          comparison = (a.city || "").localeCompare(b.city || "");
+          break;
+        case "bookingCount":
+          comparison = (a.bookingCount || 0) - (b.bookingCount || 0);
+          break;
+        case "createdAt":
+        default:
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+      }
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [clubs, searchQuery, selectedOrganization, selectedCity, sortField, sortDirection]);
+
+  // Determine permissions based on admin type
+  const canCreate = adminStatus?.adminType === "root_admin" || adminStatus?.adminType === "organization_admin";
+  const canEdit = (adminType: AdminType | undefined) =>
+    adminType === "root_admin" || adminType === "organization_admin";
+  const canDelete = adminStatus?.adminType === "root_admin";
+  const showOrganizationFilter = adminStatus?.adminType === "root_admin";
 
   const handleOpenCreateModal = () => {
     setEditingClub(null);
@@ -160,7 +280,15 @@ export default function AdminClubsPage() {
     }
   };
 
-  if (status === "loading" || loading) {
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedOrganization("");
+    setSelectedCity("");
+    setSortField("createdAt");
+    setSortDirection("desc");
+  };
+
+  if (status === "loading" || loading || loadingAdminStatus) {
     return (
       <main className="im-admin-clubs-page">
         <div className="im-admin-clubs-loading">
@@ -179,15 +307,85 @@ export default function AdminClubsPage() {
       />
 
       <section className="rsp-content">
+        {/* Actions Bar */}
         <div className="im-admin-clubs-actions">
-          <div className="im-admin-clubs-actions-right">
-            <Button onClick={handleOpenCreateModal} variant="outline">
-              {t("admin.clubs.quickCreate")}
-            </Button>
-            <IMLink href="/admin/clubs/new" className="rsp-button">
-              {t("admin.clubs.createClub")}
-            </IMLink>
+          {/* Left side - Filters */}
+          <div className="im-admin-clubs-actions-left">
+            <Input
+              placeholder={t("common.search")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="im-admin-clubs-search"
+            />
+
+            {showOrganizationFilter && organizations.length > 0 && (
+              <select
+                value={selectedOrganization}
+                onChange={(e) => setSelectedOrganization(e.target.value)}
+                className="im-admin-clubs-filter im-native-select"
+                aria-label={t("admin.clubs.filterByOrganization")}
+              >
+                <option value="">{t("admin.clubs.allOrganizations")}</option>
+                {organizations.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {cities.length > 0 && (
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="im-admin-clubs-filter im-native-select"
+                aria-label={t("admin.clubs.filterByCity")}
+              >
+                <option value="">{t("admin.clubs.allCities")}</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <select
+              value={`${sortField}-${sortDirection}`}
+              onChange={(e) => {
+                const [field, direction] = e.target.value.split("-") as [SortField, SortDirection];
+                setSortField(field);
+                setSortDirection(direction);
+              }}
+              className="im-admin-clubs-filter im-native-select"
+              aria-label={t("admin.clubs.sortBy")}
+            >
+              <option value="createdAt-desc">{t("admin.clubs.sortNewest")}</option>
+              <option value="createdAt-asc">{t("admin.clubs.sortOldest")}</option>
+              <option value="name-asc">{t("admin.clubs.sortNameAsc")}</option>
+              <option value="name-desc">{t("admin.clubs.sortNameDesc")}</option>
+              <option value="city-asc">{t("admin.clubs.sortCityAsc")}</option>
+              <option value="bookingCount-desc">{t("admin.clubs.sortBookings")}</option>
+            </select>
+
+            {(searchQuery || selectedOrganization || selectedCity) && (
+              <Button variant="outline" onClick={handleClearFilters}>
+                {t("common.clearFilters")}
+              </Button>
+            )}
           </div>
+
+          {/* Right side - Create Actions */}
+          {canCreate && (
+            <div className="im-admin-clubs-actions-right">
+              <Button onClick={handleOpenCreateModal} variant="outline">
+                {t("admin.clubs.quickCreate")}
+              </Button>
+              <IMLink href="/admin/clubs/new" className="rsp-button">
+                {t("admin.clubs.createClub")}
+              </IMLink>
+            </div>
+          )}
         </div>
 
         {error && (
@@ -196,20 +394,23 @@ export default function AdminClubsPage() {
           </div>
         )}
 
-        {clubs.length === 0 ? (
+        {filteredAndSortedClubs.length === 0 ? (
           <div className="im-admin-clubs-empty">
             <p className="im-admin-clubs-empty-text">
-              {t("admin.clubs.noClubs")}
+              {clubs.length === 0
+                ? t("admin.clubs.noClubs")
+                : t("admin.clubs.noClubsMatch")}
             </p>
           </div>
         ) : (
           <section className="im-admin-clubs-grid">
-            {clubs.map((club) => (
+            {filteredAndSortedClubs.map((club) => (
               <AdminClubCard
                 key={club.id}
                 club={club}
-                onEdit={handleOpenEditModal}
-                onDelete={handleOpenDeleteModal}
+                onEdit={canEdit(adminStatus?.adminType) ? handleOpenEditModal : undefined}
+                onDelete={canDelete ? handleOpenDeleteModal : undefined}
+                showOrganization={showOrganizationFilter}
               />
             ))}
           </section>

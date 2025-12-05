@@ -8,6 +8,19 @@ export interface Club {
   createdAt: string;
 }
 
+/** Organization reference info for clubs */
+export interface ClubOrganizationInfo {
+  id: string;
+  name: string;
+}
+
+/** Club admin reference info */
+export interface ClubAdminInfo {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
 /** Extended club info with court counts for card display */
 export interface ClubWithCounts extends Club {
   shortDescription?: string | null;
@@ -18,6 +31,9 @@ export interface ClubWithCounts extends Club {
   indoorCount?: number;
   outdoorCount?: number;
   courtCount?: number;
+  bookingCount?: number;
+  organization?: ClubOrganizationInfo | null;
+  admins?: ClubAdminInfo[];
 }
 
 export interface ClubFormData {
