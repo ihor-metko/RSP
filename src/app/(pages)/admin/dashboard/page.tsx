@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { PageHeader } from "@/components/ui";
-import type { PlatformStatistics } from "@/types/admin";
-import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
+import KeyMetrics from "@/components/admin/KeyMetrics";
+import type { UnifiedDashboardResponse, UnifiedDashboardOrg, UnifiedDashboardClub } from "@/app/api/admin/unified-dashboard/route";
 import "./RootDashboard.css";
 
 /**
@@ -98,6 +99,93 @@ function BookingsIcon() {
   );
 }
 
+/**
+ * Plus icon for quick action buttons
+ */
+function PlusIcon() {
+  return (
+    <svg
+      className="im-quick-action-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
+/**
+ * User plus icon for invite admin button
+ */
+function UserPlusIcon() {
+  return (
+    <svg
+      className="im-quick-action-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <line x1="19" y1="8" x2="19" y2="14" />
+      <line x1="22" y1="11" x2="16" y2="11" />
+    </svg>
+  );
+}
+
+/**
+ * Arrow right icon for navigation links
+ */
+function ArrowRightIcon() {
+  return (
+    <svg
+      className="im-nav-link-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
+
+/**
+ * Courts icon for club dashboard
+ */
+function CourtsIcon() {
+  return (
+    <svg
+      className="im-stat-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <line x1="12" y1="3" x2="12" y2="21" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+    </svg>
+  );
+}
+
 interface StatCardProps {
   title: string;
   value: number;
@@ -118,57 +206,193 @@ function StatCard({ title, value, icon, colorClass }: StatCardProps) {
 }
 
 /**
- * Admin Dashboard Page
+ * Organization Card Component
+ * Displays organization metrics and navigation links
+ */
+interface OrgCardProps {
+  org: UnifiedDashboardOrg;
+}
+
+function OrgCard({ org }: OrgCardProps) {
+  const t = useTranslations();
+  
+  return (
+    <div className="im-dashboard-section">
+      <div className="im-org-card-header">
+        <h3 className="im-org-card-title">{org.name}</h3>
+        <span className="im-org-card-slug">/{org.slug}</span>
+      </div>
+      
+      <KeyMetrics
+        clubsCount={org.clubsCount}
+        courtsCount={org.courtsCount}
+        bookingsToday={org.bookingsToday}
+        clubAdminsCount={org.clubAdminsCount}
+      />
+      
+      <div className="im-quick-actions-section">
+        <h4 className="im-section-title">{t("orgDashboard.quickActions.title")}</h4>
+        <div className="im-quick-actions-grid">
+          <Link
+            href={`/admin/orgs/${org.id}/clubs/new`}
+            className="im-quick-action-btn im-quick-action-btn--primary"
+          >
+            <PlusIcon />
+            <span>{t("orgDashboard.quickActions.createClub")}</span>
+          </Link>
+          <Link
+            href={`/admin/orgs/${org.id}/admins/invite`}
+            className="im-quick-action-btn im-quick-action-btn--secondary"
+          >
+            <UserPlusIcon />
+            <span>{t("orgDashboard.quickActions.inviteAdmin")}</span>
+          </Link>
+        </div>
+      </div>
+      
+      <div className="im-nav-links-section">
+        <nav className="im-nav-links-grid" aria-label={t("unifiedDashboard.managementLinks")}>
+          <Link
+            href={`/admin/orgs/${org.id}/clubs`}
+            className="im-nav-link-card"
+          >
+            <span className="im-nav-link-text">
+              {t("orgDashboard.navigation.manageClubs")}
+            </span>
+            <ArrowRightIcon />
+          </Link>
+          <Link
+            href={`/admin/orgs/${org.id}/bookings`}
+            className="im-nav-link-card"
+          >
+            <span className="im-nav-link-text">
+              {t("orgDashboard.navigation.viewBookings")}
+            </span>
+            <ArrowRightIcon />
+          </Link>
+          <Link
+            href={`/admin/orgs/${org.id}/admins`}
+            className="im-nav-link-card"
+          >
+            <span className="im-nav-link-text">
+              {t("orgDashboard.navigation.manageAdmins")}
+            </span>
+            <ArrowRightIcon />
+          </Link>
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Club Card Component
+ * Displays club metrics and navigation links for club admins
+ */
+interface ClubCardProps {
+  club: UnifiedDashboardClub;
+}
+
+function ClubCard({ club }: ClubCardProps) {
+  const t = useTranslations();
+  
+  return (
+    <div className="im-dashboard-section">
+      <div className="im-org-card-header">
+        <h3 className="im-org-card-title">{club.name}</h3>
+        {club.organizationName && (
+          <span className="im-org-card-slug">{club.organizationName}</span>
+        )}
+      </div>
+      
+      <div className="im-stats-grid im-stats-grid--club">
+        <StatCard
+          title={t("unifiedDashboard.courts")}
+          value={club.courtsCount}
+          icon={<CourtsIcon />}
+          colorClass="im-stat-card--clubs"
+        />
+        <StatCard
+          title={t("unifiedDashboard.bookingsToday")}
+          value={club.bookingsToday}
+          icon={<BookingsIcon />}
+          colorClass="im-stat-card--bookings"
+        />
+      </div>
+      
+      <div className="im-nav-links-section">
+        <nav className="im-nav-links-grid im-nav-links-grid--club" aria-label={t("unifiedDashboard.managementLinks")}>
+          <Link
+            href={`/admin/clubs/${club.id}`}
+            className="im-nav-link-card"
+          >
+            <span className="im-nav-link-text">
+              {t("unifiedDashboard.manageClub")}
+            </span>
+            <ArrowRightIcon />
+          </Link>
+          <Link
+            href={`/admin/clubs/${club.id}/courts`}
+            className="im-nav-link-card"
+          >
+            <span className="im-nav-link-text">
+              {t("unifiedDashboard.manageCourts")}
+            </span>
+            <ArrowRightIcon />
+          </Link>
+          <Link
+            href={`/admin/clubs/${club.id}/bookings`}
+            className="im-nav-link-card"
+          >
+            <span className="im-nav-link-text">
+              {t("unifiedDashboard.viewBookings")}
+            </span>
+            <ArrowRightIcon />
+          </Link>
+        </nav>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Unified Admin Dashboard Page
  *
- * Displays platform-wide statistics for root administrators,
- * and provides access to admin features for all admin types.
- * Access restricted to users with any admin role:
- * - root.admin (isRoot=true)
- * - super.admin (Organization Admin - ORGANIZATION_ADMIN membership)
- * - club.admin (Club Admin - CLUB_ADMIN club membership)
+ * Displays role-appropriate content for all admin types:
+ * - Root Admin: Platform-wide statistics and overview
+ * - Organization Admin: Metrics for their organizations with quick actions
+ * - Club Admin: Metrics for their clubs with navigation links
+ *
+ * Access restricted to users with any admin role.
  */
 export default function AdminDashboardPage() {
   const t = useTranslations();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [statistics, setStatistics] = useState<PlatformStatistics | null>(null);
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
+  const [dashboardData, setDashboardData] = useState<UnifiedDashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchAdminStatus = useCallback(async () => {
+  const fetchDashboard = useCallback(async () => {
     try {
-      const response = await fetch("/api/me/admin-status");
+      const response = await fetch("/api/admin/unified-dashboard");
       if (!response.ok) {
         if (response.status === 401) {
           router.push("/auth/sign-in");
           return null;
         }
-        throw new Error("Failed to fetch admin status");
+        if (response.status === 403) {
+          router.push("/auth/sign-in");
+          return null;
+        }
+        throw new Error("Failed to fetch dashboard");
       }
-      const data: AdminStatusResponse = await response.json();
+      const data: UnifiedDashboardResponse = await response.json();
       return data;
     } catch {
       return null;
     }
   }, [router]);
-
-  const fetchStatistics = useCallback(async () => {
-    try {
-      const response = await fetch("/api/admin/root-dashboard");
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          // For non-root admins, 403 is expected - don't redirect
-          return null;
-        }
-        throw new Error("Failed to fetch statistics");
-      }
-      const data = await response.json();
-      return data;
-    } catch {
-      return null;
-    }
-  }, []);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -182,56 +406,44 @@ export default function AdminDashboardPage() {
       setLoading(true);
       setError("");
 
-      // First, check admin status
-      const adminData = await fetchAdminStatus();
+      const data = await fetchDashboard();
       
-      if (!adminData || !adminData.isAdmin) {
-        // User is not an admin, redirect to sign-in
-        router.push("/auth/sign-in");
+      if (!data) {
+        setError(t("unifiedDashboard.failedToLoad"));
+        setLoading(false);
         return;
       }
 
-      setAdminStatus(adminData);
-
-      // Only fetch statistics if user is root admin
-      if (adminData.isRoot) {
-        const statsData = await fetchStatistics();
-        if (statsData) {
-          setStatistics(statsData);
-        } else {
-          setError(t("rootAdmin.dashboard.failedToLoad"));
-        }
-      }
-
+      setDashboardData(data);
       setLoading(false);
     };
 
     initializeDashboard();
-  }, [session, status, router, fetchAdminStatus, fetchStatistics, t]);
+  }, [session, status, router, fetchDashboard, t]);
 
   // Helper to get dashboard title based on admin type
   const getDashboardTitle = () => {
-    if (adminStatus?.adminType === "root_admin") {
+    if (dashboardData?.adminType === "root_admin") {
       return t("rootAdmin.dashboard.title");
     }
-    if (adminStatus?.adminType === "organization_admin") {
-      return t("admin.dashboard.title");
+    if (dashboardData?.adminType === "organization_admin") {
+      return t("unifiedDashboard.organizationTitle");
     }
-    if (adminStatus?.adminType === "club_admin") {
-      return t("admin.dashboard.title");
+    if (dashboardData?.adminType === "club_admin") {
+      return t("unifiedDashboard.clubTitle");
     }
     return t("admin.dashboard.title");
   };
 
   // Helper to get dashboard description based on admin type
   const getDashboardDescription = () => {
-    if (adminStatus?.adminType === "root_admin") {
+    if (dashboardData?.adminType === "root_admin") {
       return t("rootAdmin.dashboard.subtitle");
     }
-    if (adminStatus?.adminType === "organization_admin") {
+    if (dashboardData?.adminType === "organization_admin") {
       return t("admin.dashboard.organizationSubtitle");
     }
-    if (adminStatus?.adminType === "club_admin") {
+    if (dashboardData?.adminType === "club_admin") {
       return t("admin.dashboard.clubSubtitle");
     }
     return t("admin.dashboard.subtitle");
@@ -248,13 +460,12 @@ export default function AdminDashboardPage() {
     );
   }
 
-  // Show error only for root admins who should see statistics
-  if (error && adminStatus?.isRoot) {
+  if (error) {
     return (
       <main className="im-root-dashboard-page">
         <PageHeader
-          title={getDashboardTitle()}
-          description={getDashboardDescription()}
+          title={t("admin.dashboard.title")}
+          description={t("admin.dashboard.subtitle")}
         />
         <section className="rsp-content">
           <div className="im-root-dashboard-error">
@@ -265,6 +476,10 @@ export default function AdminDashboardPage() {
     );
   }
 
+  if (!dashboardData) {
+    return null;
+  }
+
   return (
     <main className="im-root-dashboard-page">
       <PageHeader
@@ -273,57 +488,62 @@ export default function AdminDashboardPage() {
       />
 
       <section className="rsp-content">
-        {/* Statistics Grid - Only show for root admins */}
-        {adminStatus?.isRoot && statistics && (
-          <div className="im-stats-grid">
-            <StatCard
-              title={t("rootAdmin.dashboard.totalOrganizations")}
-              value={statistics.totalOrganizations}
-              icon={<OrganizationsIcon />}
-              colorClass="im-stat-card--organizations"
-            />
-            <StatCard
-              title={t("rootAdmin.dashboard.totalClubs")}
-              value={statistics.totalClubs}
-              icon={<ClubsIcon />}
-              colorClass="im-stat-card--clubs"
-            />
-            <StatCard
-              title={t("rootAdmin.dashboard.totalUsers")}
-              value={statistics.totalUsers}
-              icon={<UsersIcon />}
-              colorClass="im-stat-card--users"
-            />
-            <StatCard
-              title={t("rootAdmin.dashboard.activeBookings")}
-              value={statistics.activeBookings}
-              icon={<BookingsIcon />}
-              colorClass="im-stat-card--bookings"
-            />
+        {/* Root Admin: Platform Statistics */}
+        {dashboardData.adminType === "root_admin" && dashboardData.platformStats && (
+          <>
+            <div className="im-stats-grid">
+              <StatCard
+                title={t("rootAdmin.dashboard.totalOrganizations")}
+                value={dashboardData.platformStats.totalOrganizations}
+                icon={<OrganizationsIcon />}
+                colorClass="im-stat-card--organizations"
+              />
+              <StatCard
+                title={t("rootAdmin.dashboard.totalClubs")}
+                value={dashboardData.platformStats.totalClubs}
+                icon={<ClubsIcon />}
+                colorClass="im-stat-card--clubs"
+              />
+              <StatCard
+                title={t("rootAdmin.dashboard.totalUsers")}
+                value={dashboardData.platformStats.totalUsers}
+                icon={<UsersIcon />}
+                colorClass="im-stat-card--users"
+              />
+              <StatCard
+                title={t("rootAdmin.dashboard.activeBookings")}
+                value={dashboardData.platformStats.activeBookings}
+                icon={<BookingsIcon />}
+                colorClass="im-stat-card--bookings"
+              />
+            </div>
+            
+            <div className="im-dashboard-section">
+              <h2 className="im-dashboard-section-title">
+                {t("rootAdmin.dashboard.platformOverview")}
+              </h2>
+              <p className="im-dashboard-section-description">
+                {t("rootAdmin.dashboard.platformOverviewDescription")}
+              </p>
+            </div>
+          </>
+        )}
+
+        {/* Organization Admin: Organization-specific dashboards */}
+        {dashboardData.adminType === "organization_admin" && dashboardData.organizations && (
+          <div className="im-org-cards-container">
+            {dashboardData.organizations.map((org) => (
+              <OrgCard key={org.id} org={org} />
+            ))}
           </div>
         )}
 
-        {/* Platform Overview Section - Only show for root admins */}
-        {adminStatus?.isRoot && (
-          <div className="im-dashboard-section">
-            <h2 className="im-dashboard-section-title">
-              {t("rootAdmin.dashboard.platformOverview")}
-            </h2>
-            <p className="im-dashboard-section-description">
-              {t("rootAdmin.dashboard.platformOverviewDescription")}
-            </p>
-          </div>
-        )}
-
-        {/* Admin Welcome Section - Show for organization and club admins */}
-        {!adminStatus?.isRoot && (
-          <div className="im-dashboard-section">
-            <h2 className="im-dashboard-section-title">
-              {t("admin.dashboard.welcome")}
-            </h2>
-            <p className="im-dashboard-section-description">
-              {t("admin.dashboard.welcomeDescription")}
-            </p>
+        {/* Club Admin: Club-specific dashboards */}
+        {dashboardData.adminType === "club_admin" && dashboardData.clubs && (
+          <div className="im-org-cards-container">
+            {dashboardData.clubs.map((club) => (
+              <ClubCard key={club.id} club={club} />
+            ))}
           </div>
         )}
       </section>

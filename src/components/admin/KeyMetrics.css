@@ -1,0 +1,171 @@
+@reference "tailwindcss";
+
+/* ===== Key Metrics Grid ===== */
+.im-metrics-grid {
+  @apply grid gap-6 mb-8;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+  .im-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .im-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ===== Metric Card ===== */
+.im-metric-card {
+  @apply flex items-center gap-4 p-6 rounded-xl;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: default;
+}
+
+.im-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.dark .im-metric-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.im-metric-card:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+/* Card Icon Container */
+.im-metric-card-icon {
+  @apply flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-xl;
+  transition: background-color 0.2s ease;
+}
+
+.im-metric-icon {
+  @apply w-7 h-7;
+  color: currentColor;
+}
+
+/* Card Content */
+.im-metric-card-content {
+  @apply flex flex-col;
+}
+
+.im-metric-card-value {
+  @apply text-3xl font-bold leading-tight;
+  color: var(--im-foreground);
+}
+
+.im-metric-card-title {
+  @apply text-sm mt-1;
+  color: var(--im-muted);
+}
+
+/* ===== Color Variants ===== */
+
+/* Clubs Card - Teal/Primary */
+.im-metric-card--clubs .im-metric-card-icon {
+  background-color: rgba(26, 188, 156, 0.15);
+  color: #1abc9c;
+}
+
+.dark .im-metric-card--clubs .im-metric-card-icon {
+  background-color: rgba(26, 188, 156, 0.25);
+  color: #2ecc71;
+}
+
+/* Courts Card - Blue */
+.im-metric-card--courts .im-metric-card-icon {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.dark .im-metric-card--courts .im-metric-card-icon {
+  background-color: rgba(59, 130, 246, 0.25);
+  color: #60a5fa;
+}
+
+/* Bookings Card - Purple */
+.im-metric-card--bookings .im-metric-card-icon {
+  background-color: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.dark .im-metric-card--bookings .im-metric-card-icon {
+  background-color: rgba(139, 92, 246, 0.25);
+  color: #a78bfa;
+}
+
+/* Admins Card - Orange */
+.im-metric-card--admins .im-metric-card-icon {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+}
+
+.dark .im-metric-card--admins .im-metric-card-icon {
+  background-color: rgba(249, 115, 22, 0.25);
+  color: #fb923c;
+}
+
+/* ===== Loading State ===== */
+.im-metric-card--loading {
+  cursor: wait;
+}
+
+.im-metric-skeleton {
+  @apply rounded;
+  background: linear-gradient(90deg, var(--im-border) 25%, var(--im-card-bg) 50%, var(--im-border) 75%);
+  background-size: 200% 100%;
+  animation: im-shimmer 1.5s infinite;
+}
+
+.im-metric-skeleton--icon {
+  @apply w-14 h-14 rounded-xl flex-shrink-0;
+}
+
+.im-metric-skeleton-content {
+  @apply flex flex-col gap-2 flex-1;
+}
+
+.im-metric-skeleton--value {
+  @apply h-8 w-20;
+}
+
+.im-metric-skeleton--title {
+  @apply h-4 w-24;
+}
+
+@keyframes im-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 767px) {
+  .im-metric-card {
+    @apply p-4;
+  }
+
+  .im-metric-card-icon {
+    @apply w-12 h-12;
+  }
+
+  .im-metric-icon {
+    @apply w-6 h-6;
+  }
+
+  .im-metric-card-value {
+    @apply text-2xl;
+  }
+}

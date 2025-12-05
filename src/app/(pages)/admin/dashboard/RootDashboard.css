@@ -25,6 +25,23 @@
   }
 }
 
+/* Club admin stats grid - only 2 columns max */
+.im-stats-grid--club {
+  @apply mb-6;
+}
+
+@media (min-width: 640px) {
+  .im-stats-grid--club {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .im-stats-grid--club {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* ===== Statistics Card ===== */
 .im-stat-card {
   @apply flex items-center gap-4 p-6 rounded-xl;
@@ -132,6 +149,136 @@
   color: var(--im-muted);
 }
 
+/* ===== Organization Card Header ===== */
+.im-org-card-header {
+  @apply flex items-baseline gap-3 mb-6;
+}
+
+.im-org-card-title {
+  @apply text-xl font-semibold;
+  color: var(--rsp-foreground);
+}
+
+.im-org-card-slug {
+  @apply text-sm;
+  color: var(--im-muted);
+}
+
+/* ===== Organization Cards Container ===== */
+.im-org-cards-container {
+  @apply flex flex-col gap-8;
+}
+
+/* ===== Quick Actions Section ===== */
+.im-quick-actions-section {
+  @apply mt-6 mb-6;
+}
+
+.im-section-title {
+  @apply text-lg font-semibold mb-4;
+  color: var(--rsp-foreground);
+}
+
+.im-quick-actions-grid {
+  @apply flex flex-wrap gap-4;
+}
+
+.im-quick-action-btn {
+  @apply inline-flex items-center gap-2 px-5 py-3 rounded-lg font-medium text-sm;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.im-quick-action-btn--primary {
+  background-color: var(--rsp-primary);
+  color: white;
+}
+
+.im-quick-action-btn--primary:hover,
+.im-quick-action-btn--primary:focus {
+  background-color: var(--rsp-primary-hover);
+}
+
+.im-quick-action-btn--secondary {
+  background-color: transparent;
+  border: 1px solid var(--rsp-border);
+  color: var(--rsp-foreground);
+}
+
+.im-quick-action-btn--secondary:hover,
+.im-quick-action-btn--secondary:focus {
+  background-color: var(--rsp-card-bg);
+  border-color: var(--rsp-primary);
+}
+
+.im-quick-action-icon {
+  @apply w-5 h-5;
+}
+
+/* ===== Navigation Links ===== */
+.im-nav-links-section {
+  @apply mt-6;
+}
+
+.im-nav-links-grid {
+  @apply grid gap-4;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 768px) {
+  .im-nav-links-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Club admin nav links - adjust for 3 columns max */
+.im-nav-links-grid--club {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 768px) {
+  .im-nav-links-grid--club {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.im-nav-link-card {
+  @apply flex items-center justify-between p-5 rounded-xl;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.im-nav-link-card:hover,
+.im-nav-link-card:focus {
+  border-color: var(--rsp-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.dark .im-nav-link-card:hover,
+.dark .im-nav-link-card:focus {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.im-nav-link-text {
+  @apply font-medium;
+  color: var(--rsp-foreground);
+}
+
+.im-nav-link-icon {
+  @apply w-5 h-5;
+  color: var(--im-muted);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.im-nav-link-card:hover .im-nav-link-icon,
+.im-nav-link-card:focus .im-nav-link-icon {
+  color: var(--rsp-primary);
+  transform: translateX(4px);
+}
+
 /* ===== Loading State ===== */
 .im-root-dashboard-loading {
   @apply flex items-center justify-center py-12;
@@ -185,5 +332,13 @@
 
   .im-stat-card-value {
     @apply text-2xl;
+  }
+
+  .im-quick-actions-grid {
+    @apply flex-col;
+  }
+
+  .im-quick-action-btn {
+    @apply w-full justify-center;
   }
 }
