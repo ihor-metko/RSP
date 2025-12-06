@@ -413,6 +413,32 @@
         "coach": "Coach",
         "player": "Player"
       }
+    },
+    "courts": {
+      "title": "Courts",
+      "subtitle": "Manage courts across clubs",
+      "noResults": "No courts found.",
+      "noResultsMatch": "No courts match your filters.",
+      "allOrganizations": "All Organizations",
+      "allClubs": "All Clubs",
+      "allStatuses": "All Statuses",
+      "filterByOrganization": "Filter by organization",
+      "filterByClub": "Filter by club",
+      "filterByStatus": "Filter by status",
+      "addCourt": "Add Court",
+      "editCourt": "Edit Court",
+      "deleteCourt": "Delete Court",
+      "deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
+      "clubLabel": "Club",
+      "surface": "Surface",
+      "type": "Type",
+      "price": "Price",
+      "pricing": "Pricing",
+      "status": "Status",
+      "indoor": "Indoor",
+      "outdoor": "Outdoor",
+      "active": "Active",
+      "inactive": "Inactive"
     }
   },
   "coach": {
@@ -740,6 +766,7 @@
     "statistics": "Platform Statistics",
     "organizations": "Organizations",
     "clubs": "Clubs",
+    "courts": "Courts",
     "users": "User Management",
     "superAdmins": "Super Admins",
     "admins": "Admins",

@@ -257,6 +257,27 @@ function UsersIcon() {
   );
 }
 
+function CourtsIcon() {
+  return (
+    <svg
+      className="im-sidebar-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* Padel/tennis court representation */}
+      <rect x="2" y="4" width="20" height="16" rx="1" />
+      <line x1="12" y1="4" x2="12" y2="20" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  );
+}
+
 /**
  * Get navigation items for root admins
  * All items are visible to root admins
@@ -301,6 +322,13 @@ function getNavItems(): NavItem[] {
       labelKey: "sidebar.clubs",
       icon: <ClubsIcon />,
       hideForClubAdmin: true,
+    },
+    // Courts Management - Visible for all admin types
+    {
+      id: "courts",
+      href: "/admin/courts",
+      labelKey: "sidebar.courts",
+      icon: <CourtsIcon />,
     },
     // Bookings
     {
