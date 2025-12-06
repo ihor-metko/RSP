@@ -94,14 +94,16 @@ export async function GET(request: Request): Promise<NextResponse<DashboardGraph
     });
 
     // Build where clause based on admin type
-    let bookingsWhere: any = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bookingsWhere: any = {
       createdAt: {
         gte: startDate,
         lte: endDate,
       },
     };
 
-    let usersWhere: any = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const usersWhere: any = {
       lastLoginAt: {
         gte: startDate,
         lte: endDate,

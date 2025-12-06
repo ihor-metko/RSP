@@ -38,8 +38,6 @@ interface CustomTooltipProps {
 }
 
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
-  const t = useTranslations();
-
   if (!active || !payload || !payload.length) {
     return null;
   }
