@@ -148,3 +148,60 @@ export function doTimesOverlap(
 export function isValidDayOfWeek(day: unknown): day is number {
   return typeof day === "number" && Number.isInteger(day) && day >= 0 && day <= 6;
 }
+
+// Platform timezone (Europe/Kyiv)
+export const PLATFORM_TIMEZONE = "Europe/Kyiv";
+
+/**
+ * Get today's date in the platform timezone (Europe/Kyiv)
+ * This ensures consistent date calculations across the platform
+ * @returns Date object representing today at midnight in the platform timezone
+ */
+export function getTodayInTimezone(): Date {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: PLATFORM_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const todayStr = formatter.format(new Date());
+  return new Date(todayStr);
+}
+
+/**
+ * Get today's date string in YYYY-MM-DD format using platform timezone
+ * @returns Date string in YYYY-MM-DD format
+ */
+export function getTodayStr(): string {
+  return getTodayInTimezone().toISOString().split("T")[0];
+}
+
+/**
+ * Get dates starting from a given date for a specified number of days
+ * @param startDate The starting date
+ * @param numDays Number of days to generate
+ * @returns Array of date strings in YYYY-MM-DD format
+ */
+export function getDatesFromStart(startDate: Date, numDays: number): string[] {
+  const dates: string[] = [];
+  for (let i = 0; i < numDays; i++) {
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+    dates.push(date.toISOString().split("T")[0]);
+  }
+  return dates;
+}
+
+/**
+ * Get the Monday of the week containing the given date
+ * @param date The reference date
+ * @returns Date object representing Monday of that week at midnight
+ */
+export function getWeekMonday(date: Date): Date {
+  const dayOfWeek = date.getDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(date);
+  monday.setDate(date.getDate() + mondayOffset);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}

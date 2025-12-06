@@ -4,6 +4,11 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui";
 import { isSlotBlocked } from "@/utils/slotBlocking";
+import {
+  getTodayInTimezone,
+  getTodayStr,
+  getWeekMonday,
+} from "@/utils/dateTime";
 import type {
   WeeklyAvailabilityResponse,
   HourSlotAvailability,
@@ -33,9 +38,6 @@ import "./WeeklyAvailabilityTimeline.css";
  * NOTE: These rules are UI-only. Server-side booking endpoints MUST enforce the same
  * blocking logic independently. Do not rely on client-side blocking alone.
  */
-
-// Platform timezone for consistent date logic
-const PLATFORM_TIMEZONE = "Europe/Kyiv";
 
 // Auto-update interval in milliseconds (60 seconds)
 const AUTO_UPDATE_INTERVAL = 60 * 1000;
@@ -69,27 +71,6 @@ function generateHours(): number[] {
 const HOURS = generateHours();
 
 /**
- * Get today's date in the platform timezone (Europe/Kyiv)
- */
-function getTodayInTimezone(): Date {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: PLATFORM_TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const todayStr = formatter.format(new Date());
-  return new Date(todayStr);
-}
-
-/**
- * Get today's date string in YYYY-MM-DD format using platform timezone
- */
-function getTodayStr(): string {
-  return getTodayInTimezone().toISOString().split("T")[0];
-}
-
-/**
  * Get the start date for the view based on mode
  * - Rolling: today
  * - Calendar: this week's Monday
@@ -98,12 +79,7 @@ function getStartDate(mode: AvailabilityMode): Date {
   const today = getTodayInTimezone();
   
   if (mode === "calendar") {
-    const dayOfWeek = today.getDay();
-    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() + mondayOffset);
-    monday.setHours(0, 0, 0, 0);
-    return monday;
+    return getWeekMonday(today);
   }
   
   // Rolling mode: start from today

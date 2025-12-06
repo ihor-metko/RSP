@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import {
+  getTodayInTimezone,
+  getDatesFromStart,
+  getWeekMonday,
+} from "@/utils/dateTime";
 
 // Business hours configuration
 const BUSINESS_START_HOUR = 8;
 const BUSINESS_END_HOUR = 22;
-
-// Platform timezone (Europe/Kyiv)
-const PLATFORM_TIMEZONE = "Europe/Kyiv";
 
 // Types for the availability response
 interface CourtAvailabilityStatus {
@@ -56,33 +58,6 @@ function getDayName(date: Date): string {
   return date.toLocaleDateString("en-US", { weekday: "long" });
 }
 
-/**
- * Get today's date in the platform timezone (Europe/Kyiv)
- */
-function getTodayInTimezone(): Date {
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: PLATFORM_TIMEZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-  const todayStr = formatter.format(new Date());
-  return new Date(todayStr);
-}
-
-/**
- * Get dates starting from a given date for a specified number of days
- */
-function getDates(startDate: Date, numDays: number): string[] {
-  const dates: string[] = [];
-  for (let i = 0; i < numDays; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    dates.push(date.toISOString().split("T")[0]);
-  }
-  return dates;
-}
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -123,10 +98,7 @@ export async function GET(
       // - rolling (default): start from today
       // - calendar: start from this week's Monday
       if (modeParam === "calendar") {
-        const dayOfWeek = today.getDay();
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        startDate = new Date(today);
-        startDate.setDate(today.getDate() + mondayOffset);
+        startDate = getWeekMonday(today);
       } else {
         // Default to rolling mode: start from today
         startDate = today;
@@ -160,7 +132,7 @@ export async function GET(
     }
 
     // Get dates for the requested period
-    const datesToShow = getDates(startDate, numDays);
+    const datesToShow = getDatesFromStart(startDate, numDays);
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + numDays - 1);
 
