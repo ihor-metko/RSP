@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin, requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetClubByIdDetailed, mockUpdateClub, mockDeleteClub } from "@/services/mockApiHandlers";
 
 /**
  * Check if an admin has access to a specific club
@@ -43,6 +46,19 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const clubId = resolvedParams.id;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const club = await mockGetClubByIdDetailed(
+        clubId,
+        authResult.adminType,
+        authResult.managedIds
+      );
+      if (!club) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      return NextResponse.json(club);
+    }
 
     // Check access permission
     const hasAccess = await canAccessClub(
@@ -120,6 +136,40 @@ export async function PUT(
     const resolvedParams = await params;
     const clubId = resolvedParams.id;
 
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const body = await request.json();
+      const { name, location, contactInfo, openingHours, logo } = body;
+      
+      if (!name || !location) {
+        return NextResponse.json(
+          { error: "Name and location are required" },
+          { status: 400 }
+        );
+      }
+      
+      const updatedClub = await mockUpdateClub(clubId, {
+        name,
+        location,
+        contactInfo: contactInfo || null,
+        openingHours: openingHours || null,
+      });
+      if (!updatedClub) {
+        return NextResponse.json({ error: "Club not found" }, { status: 404 });
+      }
+      return NextResponse.json(updatedClub);
+    }
+
+    const body = await request.json();
+    const { name, location, contactInfo, openingHours, logo } = body;
+
+    if (!name || !location) {
+      return NextResponse.json(
+        { error: "Name and location are required" },
+        { status: 400 }
+      );
+    }
+
     // Check access permission for organization admins
     if (authResult.adminType === "organization_admin") {
       const hasAccess = await canAccessClub(
@@ -138,16 +188,6 @@ export async function PUT(
 
     if (!existingClub) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
-    }
-
-    const body = await request.json();
-    const { name, location, contactInfo, openingHours, logo } = body;
-
-    if (!name || !location) {
-      return NextResponse.json(
-        { error: "Name and location are required" },
-        { status: 400 }
-      );
     }
 
     const updatedClub = await prisma.club.update({
@@ -186,6 +226,15 @@ export async function DELETE(
   try {
     const resolvedParams = await params;
     const clubId = resolvedParams.id;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const deleted = await mockDeleteClub(clubId);
+      if (!deleted) {
+        return NextResponse.json({ error: "Club not found" }, { status: 404 });
+      }
+      return NextResponse.json({ message: "Club deleted successfully" });
+    }
 
     const existingClub = await prisma.club.findUnique({
       where: { id: clubId },

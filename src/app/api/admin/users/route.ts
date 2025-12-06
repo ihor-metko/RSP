@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetUsersForAdmin } from "@/services/mockApiHandlers";
 
 /**
  * GET /api/admin/users
@@ -17,6 +20,12 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q") || "";
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const users = await mockGetUsersForAdmin(query);
+      return NextResponse.json(users);
+    }
 
     const users = await prisma.user.findMany({
       where: {

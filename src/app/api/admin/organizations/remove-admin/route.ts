@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { MembershipRole } from "@/constants/roles";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockRemoveOrgAdmin } from "@/services/mockApiHandlers";
 
 /**
  * POST /api/admin/organizations/remove-admin
@@ -35,6 +38,15 @@ export async function POST(request: Request) {
         { error: "User ID is required" },
         { status: 400 }
       );
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const result = await mockRemoveOrgAdmin(organizationId, userId);
+      return NextResponse.json({
+        success: true,
+        message: "SuperAdmin removed successfully",
+      });
     }
 
     // Verify organization exists

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { canBlockUser } from "@/lib/userPermissions";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockBlockUser } from "@/services/mockApiHandlers";
 
 interface RouteParams {
   params: Promise<{ userId: string }>;
@@ -19,6 +22,18 @@ interface RouteParams {
 export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { userId } = await params;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const result = await mockBlockUser(userId);
+      if (!result) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      return NextResponse.json({
+        success: true,
+        message: "User blocked successfully",
+      });
+    }
 
     // Check permission to block this user
     const blockPermission = await canBlockUser(userId);

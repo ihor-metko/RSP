@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { MembershipRole } from "@/constants/roles";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockSetOrgOwner } from "@/services/mockApiHandlers";
 
 /**
  * PATCH /api/admin/organizations/set-owner
@@ -34,6 +37,15 @@ export async function PATCH(request: Request) {
         { error: "User ID is required" },
         { status: 400 }
       );
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const result = await mockSetOrgOwner(organizationId, userId);
+      return NextResponse.json({
+        success: true,
+        message: "Primary owner updated successfully",
+      });
     }
 
     // Verify organization exists

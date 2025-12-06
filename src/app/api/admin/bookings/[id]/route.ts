@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetBookingById, mockUpdateBooking } from "@/services/mockApiHandlers";
 
 /**
  * Booking detail response type
@@ -198,6 +201,18 @@ export async function GET(
   const { id } = await params;
 
   try {
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const booking = await mockGetBookingById(id, adminType, managedIds);
+      if (!booking) {
+        return NextResponse.json(
+          { error: "Booking not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(booking);
+    }
+
     const { hasAccess, booking } = await checkBookingAccess(id, adminType, managedIds);
 
     if (!hasAccess || !booking) {
@@ -272,6 +287,30 @@ export async function PATCH(
   const { id } = await params;
 
   try {
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const body = await request.json();
+      const { status } = body;
+
+      // Validate status if provided
+      const validStatuses = ["pending", "paid", "cancelled", "reserved"];
+      if (status && !validStatuses.includes(status)) {
+        return NextResponse.json(
+          { error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      const updatedBooking = await mockUpdateBooking(id, { status }, adminType, managedIds);
+      if (!updatedBooking) {
+        return NextResponse.json(
+          { error: "Booking not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(updatedBooking);
+    }
+
     // First check if admin has access to this booking
     const { hasAccess, booking: existingBooking } = await checkBookingAccess(id, adminType, managedIds);
 

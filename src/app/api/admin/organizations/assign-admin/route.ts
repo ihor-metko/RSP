@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
 import { hash } from "bcryptjs";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockAssignOrgAdmin } from "@/services/mockApiHandlers";
 
 /**
  * POST /api/admin/organizations/assign-admin
@@ -26,6 +29,33 @@ export async function POST(request: Request) {
         { error: "Organization ID is required" },
         { status: 400 }
       );
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      if (createNew) {
+        return NextResponse.json(
+          { error: "Creating new users not supported in mock mode" },
+          { status: 501 }
+        );
+      }
+      if (!userId) {
+        return NextResponse.json(
+          { error: "User ID is required" },
+          { status: 400 }
+        );
+      }
+      const result = await mockAssignOrgAdmin(organizationId, userId);
+      if (!result) {
+        return NextResponse.json(
+          { error: "Organization or user not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        message: "SuperAdmin assigned successfully",
+      });
     }
 
     // Verify organization exists

@@ -414,3 +414,472 @@ export async function mockGetUserByEmail(email: string) {
   const users = getMockUsers();
   return users.find((u) => u.email === email);
 }
+
+// ============================================================================
+// Mock Courts API (Extended)
+// ============================================================================
+
+export async function mockGetCourtsForAdmin(params: {
+  adminType: "root_admin" | "organization_admin" | "club_admin";
+  managedIds: string[];
+}) {
+  const { adminType, managedIds } = params;
+  let courts = getMockCourts();
+  const clubs = getMockClubs();
+  const organizations = getMockOrganizations();
+  const bookings = getMockBookings();
+
+  // Filter by role
+  if (adminType === "organization_admin") {
+    courts = courts.filter((court) => {
+      const club = clubs.find((c) => c.id === court.clubId);
+      return club && club.organizationId && managedIds.includes(club.organizationId);
+    });
+  } else if (adminType === "club_admin") {
+    courts = courts.filter((court) => managedIds.includes(court.clubId));
+  }
+
+  // Transform to response format
+  return courts.map((court) => {
+    const club = clubs.find((c) => c.id === court.clubId);
+    const organization = club?.organizationId
+      ? organizations.find((o) => o.id === club.organizationId)
+      : undefined;
+    const courtBookings = bookings.filter((b) => b.courtId === court.id);
+
+    return {
+      id: court.id,
+      name: court.name,
+      slug: court.slug,
+      type: court.type,
+      surface: court.surface,
+      indoor: court.indoor,
+      defaultPriceCents: court.defaultPriceCents,
+      createdAt: court.createdAt,
+      updatedAt: court.updatedAt,
+      club: club ? { id: club.id, name: club.name } : null,
+      organization: organization ? { id: organization.id, name: organization.name } : null,
+      bookingCount: courtBookings.length,
+    };
+  });
+}
+
+export async function mockUpdateCourt(id: string, data: Partial<{
+  name: string;
+  surface: string;
+  indoor: boolean;
+  defaultPriceCents: number;
+}>) {
+  const court = findCourtById(id);
+  if (!court) return null;
+
+  // Update the court (in memory)
+  Object.assign(court, data, { updatedAt: new Date() });
+  return court;
+}
+
+export async function mockDeleteCourt(id: string): Promise<boolean> {
+  const courts = getMockCourts();
+  const index = courts.findIndex((c) => c.id === id);
+  if (index === -1) return false;
+  
+  // Note: Direct array mutation is intentional for mock mode - data is ephemeral and resets on server restart
+  courts.splice(index, 1);
+  return true;
+}
+
+// ============================================================================
+// Mock Booking Details API
+// ============================================================================
+
+export async function mockGetBookingById(
+  id: string,
+  adminType: string,
+  managedIds: string[]
+) {
+  const booking = findBookingById(id);
+  if (!booking) return null;
+
+  const user = findUserById(booking.userId);
+  const court = findCourtById(booking.courtId);
+  if (!court || !user) return null;
+
+  const club = findClubById(court.clubId);
+  if (!club) return null;
+
+  const organization = club.organizationId ? findOrganizationById(club.organizationId) : null;
+
+  // Check permissions
+  if (adminType === "organization_admin") {
+    if (!club.organizationId || !managedIds.includes(club.organizationId)) {
+      return null;
+    }
+  } else if (adminType === "club_admin") {
+    if (!managedIds.includes(club.id)) {
+      return null;
+    }
+  }
+
+  return {
+    id: booking.id,
+    userId: booking.userId,
+    userName: user.name,
+    userEmail: user.email,
+    courtId: booking.courtId,
+    courtName: court.name,
+    courtType: court.type,
+    courtSurface: court.surface,
+    clubId: club.id,
+    clubName: club.name,
+    organizationId: club.organizationId,
+    organizationName: organization?.name ?? null,
+    start: booking.start.toISOString(),
+    end: booking.end.toISOString(),
+    status: booking.status,
+    price: booking.price,
+    coachId: booking.coachId,
+    coachName: null,
+    paymentId: null,
+    createdAt: booking.createdAt.toISOString(),
+    payments: [],
+  };
+}
+
+export async function mockUpdateBooking(
+  id: string,
+  data: { status?: string },
+  adminType: string,
+  managedIds: string[]
+) {
+  const booking = findBookingById(id);
+  if (!booking) return null;
+
+  const court = findCourtById(booking.courtId);
+  if (!court) return null;
+
+  const club = findClubById(court.clubId);
+  if (!club) return null;
+
+  // Check permissions
+  if (adminType === "organization_admin") {
+    if (!club.organizationId || !managedIds.includes(club.organizationId)) {
+      return null;
+    }
+  } else if (adminType === "club_admin") {
+    if (!managedIds.includes(club.id)) {
+      return null;
+    }
+  }
+
+  // Update status
+  if (data.status) {
+    booking.status = data.status;
+  }
+
+  // Return full booking details
+  return mockGetBookingById(id, adminType, managedIds);
+}
+
+// ============================================================================
+// Mock Club Details API
+// ============================================================================
+
+export async function mockGetClubByIdDetailed(
+  id: string,
+  adminType: string,
+  managedIds: string[]
+) {
+  const club = findClubById(id);
+  if (!club) return null;
+
+  // Check permissions
+  if (adminType === "organization_admin") {
+    if (!club.organizationId || !managedIds.includes(club.organizationId)) {
+      return null;
+    }
+  } else if (adminType === "club_admin") {
+    if (!managedIds.includes(id)) {
+      return null;
+    }
+  }
+
+  const organization = club.organizationId ? findOrganizationById(club.organizationId) : null;
+  const courts = getMockCourts().filter((c) => c.clubId === id);
+  const clubMemberships = getMockClubMemberships().filter((m) => m.clubId === id);
+  const users = getMockUsers();
+
+  const admins = clubMemberships
+    .filter((m) => m.role === "CLUB_ADMIN")
+    .map((m) => {
+      const user = users.find((u) => u.id === m.userId);
+      return user ? { id: user.id, name: user.name, email: user.email } : null;
+    })
+    .filter(Boolean);
+
+  return {
+    ...club,
+    organization: organization ? { id: organization.id, name: organization.name } : null,
+    courts: courts.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      type: c.type,
+      surface: c.surface,
+      indoor: c.indoor,
+      defaultPriceCents: c.defaultPriceCents,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+    })),
+    coaches: [],
+    gallery: [],
+    businessHours: [],
+    admins,
+  };
+}
+
+export async function mockUpdateClub(
+  id: string,
+  data: Partial<{
+    name: string;
+    location: string;
+    shortDescription: string;
+    longDescription: string;
+    contactInfo: string;
+    openingHours: string;
+    isPublic: boolean;
+  }>
+) {
+  const club = findClubById(id);
+  if (!club) return null;
+
+  Object.assign(club, data, { updatedAt: new Date() });
+  return mockGetClubByIdDetailed(id, "root_admin", []);
+}
+
+export async function mockDeleteClub(id: string): Promise<boolean> {
+  const clubs = getMockClubs();
+  const index = clubs.findIndex((c) => c.id === id);
+  if (index === -1) return false;
+  
+  // Note: Direct array mutation is intentional for mock mode - data is ephemeral and resets on server restart
+  clubs.splice(index, 1);
+  return true;
+}
+
+// ============================================================================
+// Mock Organization Details API
+// ============================================================================
+
+export async function mockGetOrganizationByIdDetailed(id: string) {
+  const org = findOrganizationById(id);
+  if (!org) return null;
+
+  const clubs = getMockClubs().filter((c) => c.organizationId === id);
+  const memberships = getMockMemberships().filter((m) => m.organizationId === id);
+  const users = getMockUsers();
+
+  const superAdmins = memberships
+    .filter((m) => m.role === "ORGANIZATION_ADMIN")
+    .map((m) => {
+      const user = users.find((u) => u.id === m.userId);
+      return user
+        ? {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            isPrimaryOwner: m.isPrimaryOwner,
+          }
+        : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (a!.isPrimaryOwner && !b!.isPrimaryOwner) return -1;
+      if (!a!.isPrimaryOwner && b!.isPrimaryOwner) return 1;
+      return 0;
+    });
+
+  const createdBy = users.find((u) => u.id === org.createdById);
+
+  return {
+    id: org.id,
+    name: org.name,
+    slug: org.slug,
+    contactEmail: org.contactEmail,
+    contactPhone: org.contactPhone,
+    website: org.website,
+    address: org.address,
+    createdAt: org.createdAt,
+    clubCount: clubs.length,
+    createdBy: createdBy ? { id: createdBy.id, name: createdBy.name, email: createdBy.email } : null,
+    superAdmins,
+    superAdmin: superAdmins[0] || null,
+  };
+}
+
+export async function mockUpdateOrganization(
+  id: string,
+  data: Partial<{ name: string; slug: string }>
+) {
+  const org = findOrganizationById(id);
+  if (!org) return null;
+
+  Object.assign(org, data, { updatedAt: new Date() });
+  return mockGetOrganizationByIdDetailed(id);
+}
+
+export async function mockDeleteOrganization(id: string): Promise<boolean> {
+  const orgs = getMockOrganizations();
+  const index = orgs.findIndex((o) => o.id === id);
+  if (index === -1) return false;
+  
+  // Note: Direct array mutation is intentional for mock mode - data is ephemeral and resets on server restart
+  orgs.splice(index, 1);
+  return true;
+}
+
+// ============================================================================
+// Mock Users API (Extended)
+// ============================================================================
+
+export async function mockGetUsersForAdmin(query?: string) {
+  let users = getMockUsers().filter((u) => !u.isRoot);
+  
+  if (query) {
+    const lowerQuery = query.toLowerCase();
+    users = users.filter(
+      (u) =>
+        u.name?.toLowerCase().includes(lowerQuery) ||
+        u.email.toLowerCase().includes(lowerQuery)
+    );
+  }
+
+  const memberships = getMockMemberships();
+  const organizations = getMockOrganizations();
+
+  return users.map((user) => {
+    const userMemberships = memberships.filter(
+      (m) => m.userId === user.id && m.role === "ORGANIZATION_ADMIN"
+    );
+    const org = userMemberships.length > 0
+      ? organizations.find((o) => o.id === userMemberships[0].organizationId)
+      : undefined;
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      isOrgAdmin: userMemberships.length > 0,
+      organizationName: org?.name || null,
+    };
+  });
+}
+
+export async function mockGetUserByIdDetailed(id: string) {
+  const user = findUserById(id);
+  if (!user) return null;
+
+  const bookings = getMockBookings().filter((b) => b.userId === id);
+
+  return {
+    ...user,
+    bookings: bookings.map((b) => ({
+      id: b.id,
+      start: b.start,
+      end: b.end,
+      status: b.status,
+      price: b.price,
+    })),
+  };
+}
+
+export async function mockUpdateUser(
+  id: string,
+  data: Partial<{ name: string; email: string; blocked: boolean }>
+) {
+  const user = findUserById(id);
+  if (!user) return null;
+
+  Object.assign(user, data, { updatedAt: new Date() });
+  return user;
+}
+
+export async function mockBlockUser(id: string) {
+  const user = findUserById(id);
+  if (!user) return null;
+  
+  user.blocked = true;
+  return { success: true };
+}
+
+export async function mockUnblockUser(id: string) {
+  const user = findUserById(id);
+  if (!user) return null;
+  
+  user.blocked = false;
+  return { success: true };
+}
+
+// ============================================================================
+// Mock Organization Admin Management
+// ============================================================================
+
+export async function mockAssignOrgAdmin(organizationId: string, userId: string) {
+  const org = findOrganizationById(organizationId);
+  const user = findUserById(userId);
+  if (!org || !user) return null;
+
+  const memberships = getMockMemberships();
+  const existing = memberships.find(
+    (m) => m.organizationId === organizationId && m.userId === userId
+  );
+
+  if (!existing) {
+    memberships.push({
+      id: `membership-${Date.now()}`,
+      organizationId,
+      userId,
+      role: "ORGANIZATION_ADMIN",
+      isPrimaryOwner: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  return { success: true };
+}
+
+export async function mockRemoveOrgAdmin(organizationId: string, userId: string) {
+  const memberships = getMockMemberships();
+  const index = memberships.findIndex(
+    (m) => m.organizationId === organizationId && m.userId === userId
+  );
+  
+  // Note: Direct array mutation is intentional for mock mode - data is ephemeral and resets on server restart
+  if (index !== -1) {
+    memberships.splice(index, 1);
+  }
+
+  return { success: true };
+}
+
+export async function mockSetOrgOwner(organizationId: string, userId: string) {
+  const memberships = getMockMemberships();
+  
+  // Remove primary owner flag from all members of this org
+  memberships
+    .filter((m) => m.organizationId === organizationId)
+    .forEach((m) => {
+      m.isPrimaryOwner = false;
+    });
+
+  // Set new primary owner
+  const targetMembership = memberships.find(
+    (m) => m.organizationId === organizationId && m.userId === userId
+  );
+  
+  if (targetMembership) {
+    targetMembership.isPrimaryOwner = true;
+  }
+
+  return { success: true };
+}

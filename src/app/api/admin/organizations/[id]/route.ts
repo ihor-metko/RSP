@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetOrganizationByIdDetailed, mockUpdateOrganization, mockDeleteOrganization } from "@/services/mockApiHandlers";
 
 /**
  * Generate a URL-friendly slug from a name
@@ -41,6 +44,24 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     const { name, slug } = body;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      if (name !== undefined && typeof name === "string" && name.trim().length === 0) {
+        return NextResponse.json(
+          { error: "Organization name cannot be empty" },
+          { status: 400 }
+        );
+      }
+      const updatedOrg = await mockUpdateOrganization(id, { name, slug });
+      if (!updatedOrg) {
+        return NextResponse.json(
+          { error: "Organization not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(updatedOrg);
+    }
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({
@@ -184,6 +205,21 @@ export async function DELETE(
       confirmOrgSlug = body.confirmOrgSlug;
     } catch {
       // Body is optional if there are no clubs
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const deleted = await mockDeleteOrganization(id);
+      if (!deleted) {
+        return NextResponse.json(
+          { error: "Organization not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        message: "Organization deleted successfully",
+      });
     }
 
     // Verify organization exists
