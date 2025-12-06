@@ -29,6 +29,7 @@ jest.mock("next-intl", () => ({
         "sidebar.dashboard": "Dashboard",
         "sidebar.statistics": "Platform Statistics",
         "sidebar.clubs": "Clubs",
+        "sidebar.courts": "Courts",
         "sidebar.users": "User Management",
         "sidebar.superAdmins": "Super Admins",
         "sidebar.admins": "Admins",
@@ -199,9 +200,19 @@ describe("AdminSidebar Component", () => {
       });
       expect(screen.getByText("Platform Statistics")).toBeInTheDocument();
       expect(screen.getByText("Clubs")).toBeInTheDocument();
+      expect(screen.getByText("Courts")).toBeInTheDocument();
       expect(screen.getByText("Bookings")).toBeInTheDocument();
       expect(screen.getByText("Notifications")).toBeInTheDocument();
       expect(screen.getByText("Global Settings")).toBeInTheDocument();
+    });
+
+    it("shows Courts navigation link with correct href", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Courts")).toBeInTheDocument();
+      });
+      const courtsLink = screen.getByRole("menuitem", { name: /Courts/i });
+      expect(courtsLink).toHaveAttribute("href", "/admin/courts");
     });
   });
 
@@ -238,6 +249,14 @@ describe("AdminSidebar Component", () => {
       await waitFor(() => {
         expect(screen.getByText("Super Admin")).toBeInTheDocument();
       });
+    });
+
+    it("shows Courts navigation link for organization admin", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      expect(screen.getByText("Courts")).toBeInTheDocument();
     });
 
     it("does NOT show Platform Statistics (root admin only)", async () => {
@@ -355,6 +374,7 @@ describe("AdminSidebar Component", () => {
       // ClubAdmin should see their assigned club name, not the generic "Clubs" link
       expect(screen.getByText("My Test Club")).toBeInTheDocument();
       expect(screen.queryByText("Clubs")).not.toBeInTheDocument();
+      expect(screen.getByText("Courts")).toBeInTheDocument();
       expect(screen.getByText("Bookings")).toBeInTheDocument();
       expect(screen.getByText("Notifications")).toBeInTheDocument();
     });

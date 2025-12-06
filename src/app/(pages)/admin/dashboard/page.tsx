@@ -102,6 +102,7 @@ function BookingsIcon() {
 /**
  * Plus icon for quick action buttons
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function PlusIcon() {
   return (
     <svg
@@ -123,6 +124,7 @@ function PlusIcon() {
 /**
  * User plus icon for invite admin button
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function UserPlusIcon() {
   return (
     <svg
@@ -214,6 +216,7 @@ interface OrgCardProps {
 }
 
 function OrgCard({ org }: OrgCardProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const t = useTranslations();
 
   return (
