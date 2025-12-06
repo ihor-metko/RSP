@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MembershipRole, ClubMembershipRole } from "@/constants/roles";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetAdminStatus } from "@/services/mockApiHandlers";
 
 /**
  * Admin type enumeration.
@@ -65,6 +68,18 @@ export async function GET(): Promise<NextResponse<AdminStatusResponse | { error:
 
   const userId = session.user.id;
   const isRoot = session.user.isRoot ?? false;
+
+  // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+  if (isMockMode()) {
+    const mockStatus = await mockGetAdminStatus(userId);
+    if (!mockStatus) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json(mockStatus);
+  }
 
   // Root admins have full access
   if (isRoot) {

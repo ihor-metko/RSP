@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin, requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode, findClubById } from "@/services/mockDb";
+import { mockGetClubByIdWithDetails } from "@/services/mockApiHandlers";
 
 /**
  * Check if an admin has access to a specific club
@@ -19,6 +22,11 @@ async function canAccessClub(
   }
 
   if (adminType === "organization_admin") {
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const club = findClubById(clubId);
+      return club?.organizationId ? managedIds.includes(club.organizationId) : false;
+    }
     // Check if club belongs to one of the managed organizations
     const club = await prisma.club.findUnique({
       where: { id: clubId },
@@ -53,6 +61,15 @@ export async function GET(
 
     if (!hasAccess) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const mockClub = await mockGetClubByIdWithDetails(clubId);
+      if (!mockClub) {
+        return NextResponse.json({ error: "Club not found" }, { status: 404 });
+      }
+      return NextResponse.json(mockClub);
     }
 
     const club = await prisma.club.findUnique({

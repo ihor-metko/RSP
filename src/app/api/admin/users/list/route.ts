@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
 import { Prisma } from "@prisma/client";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetUsersList } from "@/services/mockApiHandlers";
 
 /**
  * Supported user roles for filtering.
@@ -52,6 +55,22 @@ export async function GET(request: Request) {
     // Sorting
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = (searchParams.get("sortOrder") || "desc") as "asc" | "desc";
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const mockResult = await mockGetUsersList({
+        page,
+        pageSize,
+        search,
+        roleFilter,
+        organizationId,
+        clubId,
+        statusFilter,
+        sortBy,
+        sortOrder,
+      });
+      return NextResponse.json(mockResult);
+    }
     
     // Build where clause
     const whereConditions: Prisma.UserWhereInput[] = [];

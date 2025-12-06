@@ -7,6 +7,9 @@ import {
   UserViewPermission,
 } from "@/lib/userPermissions";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetUserById } from "@/services/mockApiHandlers";
 
 interface RouteParams {
   params: Promise<{ userId: string }>;
@@ -25,6 +28,15 @@ interface RouteParams {
 export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { userId } = await params;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const mockUser = await mockGetUserById(userId);
+      if (!mockUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+      return NextResponse.json(mockUser);
+    }
 
     // Check permission with role-scoped access
     const permissionResult = await requireUserViewPermission(userId);

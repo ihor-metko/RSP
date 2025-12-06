@@ -311,6 +311,34 @@ export async function mockGetClubById(id: string) {
   };
 }
 
+export async function mockGetClubByIdWithDetails(id: string) {
+  const club = findClubById(id);
+  if (!club) return null;
+
+  const courts = getMockCourts().filter((c) => c.clubId === id);
+
+  // Return full club details with empty arrays for coaches, gallery, businessHours, and specialHours
+  return {
+    ...club,
+    courts: courts.map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      type: c.type,
+      surface: c.surface,
+      indoor: c.indoor,
+      defaultPriceCents: c.defaultPriceCents,
+      createdAt: c.createdAt,
+      updatedAt: c.updatedAt,
+      clubId: c.clubId,
+    })),
+    coaches: [],
+    gallery: [],
+    businessHours: [],
+    specialHours: [],
+  };
+}
+
 // ============================================================================
 // Mock Organizations API
 // ============================================================================
@@ -398,6 +426,59 @@ export async function mockGetCourtById(id: string) {
   };
 }
 
+export async function mockGetCourtsForAdmin(params: {
+  adminType: "root_admin" | "organization_admin" | "club_admin";
+  managedIds: string[];
+}) {
+  const { adminType, managedIds } = params;
+  let courts = getMockCourts();
+  const clubs = getMockClubs();
+  const organizations = getMockOrganizations();
+  const bookings = getMockBookings();
+
+  // Filter by role
+  if (adminType === "organization_admin") {
+    courts = courts.filter((court) => {
+      const club = clubs.find((c) => c.id === court.clubId);
+      return club && club.organizationId && managedIds.includes(club.organizationId);
+    });
+  } else if (adminType === "club_admin") {
+    courts = courts.filter((court) => managedIds.includes(court.clubId));
+  }
+
+  // Transform to response format with related data
+  return courts.map((court) => {
+    const club = clubs.find((c) => c.id === court.clubId);
+    const organization = club?.organizationId
+      ? organizations.find((o) => o.id === club.organizationId)
+      : undefined;
+    const courtBookings = bookings.filter((b) => b.courtId === court.id);
+
+    return {
+      id: court.id,
+      name: court.name,
+      slug: court.slug,
+      type: court.type,
+      surface: court.surface,
+      indoor: court.indoor,
+      defaultPriceCents: court.defaultPriceCents,
+      createdAt: court.createdAt,
+      updatedAt: court.updatedAt,
+      club: {
+        id: club!.id,
+        name: club!.name,
+      },
+      organization: organization
+        ? {
+            id: organization.id,
+            name: organization.name,
+          }
+        : null,
+      bookingCount: courtBookings.length,
+    };
+  });
+}
+
 // ============================================================================
 // Mock Users API
 // ============================================================================
@@ -407,10 +488,423 @@ export async function mockGetUsers() {
 }
 
 export async function mockGetUserById(id: string) {
-  return findUserById(id);
+  const user = findUserById(id);
+  if (!user) return null;
+
+  const memberships = getMockMemberships().filter((m) => m.userId === id);
+  const clubMemberships = getMockClubMemberships().filter((m) => m.userId === id);
+  const bookings = getMockBookings().filter((b) => b.userId === id);
+  const organizations = getMockOrganizations();
+  const clubs = getMockClubs();
+
+  return {
+    ...user,
+    memberships: memberships.map((m) => {
+      const org = organizations.find((o) => o.id === m.organizationId);
+      return {
+        role: m.role,
+        organization: org ? { id: org.id, name: org.name } : null,
+      };
+    }),
+    clubMemberships: clubMemberships.map((m) => {
+      const club = clubs.find((c) => c.id === m.clubId);
+      return {
+        role: m.role,
+        club: club ? { id: club.id, name: club.name } : null,
+      };
+    }),
+    bookings: bookings.slice(0, 1).map((b) => ({
+      createdAt: b.createdAt,
+    })),
+  };
 }
 
 export async function mockGetUserByEmail(email: string) {
   const users = getMockUsers();
   return users.find((u) => u.email === email);
+}
+
+// ============================================================================
+// Mock Admin Status API
+// ============================================================================
+
+export async function mockGetAdminStatus(userId: string) {
+  const user = findUserById(userId);
+  if (!user) return null;
+
+  const memberships = getMockMemberships().filter((m) => m.userId === userId);
+  const clubMemberships = getMockClubMemberships().filter((m) => m.userId === userId);
+  const clubs = getMockClubs();
+
+  // Root admin
+  if (user.isRoot) {
+    return {
+      isAdmin: true,
+      adminType: "root_admin" as const,
+      isRoot: true,
+      managedIds: [],
+    };
+  }
+
+  // Organization admin
+  if (memberships.length > 0) {
+    const isPrimaryOwner = memberships.some((m) => m.isPrimaryOwner);
+    return {
+      isAdmin: true,
+      adminType: "organization_admin" as const,
+      isRoot: false,
+      managedIds: memberships.map((m) => m.organizationId),
+      isPrimaryOwner,
+    };
+  }
+
+  // Club admin
+  if (clubMemberships.length > 0) {
+    const firstClub = clubs.find((c) => c.id === clubMemberships[0].clubId);
+    return {
+      isAdmin: true,
+      adminType: "club_admin" as const,
+      isRoot: false,
+      managedIds: clubMemberships.map((m) => m.clubId),
+      assignedClub: firstClub
+        ? {
+            id: firstClub.id,
+            name: firstClub.name,
+          }
+        : undefined,
+    };
+  }
+
+  // Regular user
+  return {
+    isAdmin: false,
+    adminType: "none" as const,
+    isRoot: false,
+    managedIds: [],
+  };
+}
+
+// ============================================================================
+// Mock Dashboard API
+// ============================================================================
+
+export async function mockGetUnifiedDashboard(params: {
+  adminType: "root_admin" | "organization_admin" | "club_admin";
+  managedIds: string[];
+}) {
+  const { adminType, managedIds } = params;
+  const bookings = getMockBookings();
+  const courts = getMockCourts();
+  const clubs = getMockClubs();
+  const organizations = getMockOrganizations();
+  const users = getMockUsers();
+  const clubMemberships = getMockClubMemberships();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (adminType === "root_admin") {
+    // Platform-wide statistics
+    const activeBookings = bookings.filter(
+      (b) =>
+        b.start >= today &&
+        ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+    );
+    const pastBookings = bookings.filter(
+      (b) =>
+        b.start < today &&
+        ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+    );
+
+    return {
+      adminType,
+      isRoot: true,
+      platformStats: {
+        totalOrganizations: organizations.length,
+        totalClubs: clubs.length,
+        totalUsers: users.length,
+        activeBookings: bookings.filter((b) =>
+          ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+        ).length,
+        activeBookingsCount: activeBookings.length,
+        pastBookingsCount: pastBookings.length,
+      },
+    };
+  }
+
+  if (adminType === "organization_admin") {
+    // Metrics for each managed organization
+    const organizationStats = managedIds
+      .map((orgId) => {
+        const org = organizations.find((o) => o.id === orgId);
+        if (!org) return null;
+
+        const orgClubs = clubs.filter((c) => c.organizationId === orgId);
+        const orgClubIds = orgClubs.map((c) => c.id);
+        const orgCourts = courts.filter((c) => orgClubIds.includes(c.clubId));
+        const orgCourtIds = orgCourts.map((c) => c.id);
+        const orgBookings = bookings.filter((b) => orgCourtIds.includes(b.courtId));
+
+        const bookingsToday = orgBookings.filter(
+          (b) => b.start >= today && b.start < tomorrow
+        ).length;
+        const activeBookings = orgBookings.filter(
+          (b) =>
+            b.start >= today &&
+            ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+        ).length;
+        const pastBookings = orgBookings.filter(
+          (b) =>
+            b.start < today &&
+            ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+        ).length;
+        const clubAdminsCount = clubMemberships.filter(
+          (m) => m.role === "CLUB_ADMIN" && orgClubIds.includes(m.clubId)
+        ).length;
+
+        return {
+          id: org.id,
+          name: org.name,
+          slug: org.slug,
+          clubsCount: orgClubs.length,
+          courtsCount: orgCourts.length,
+          bookingsToday,
+          clubAdminsCount,
+          activeBookings,
+          pastBookings,
+        };
+      })
+      .filter(Boolean);
+
+    return {
+      adminType,
+      isRoot: false,
+      organizations: organizationStats,
+    };
+  }
+
+  if (adminType === "club_admin") {
+    // Metrics for each managed club
+    const clubStats = managedIds
+      .map((clubId) => {
+        const club = clubs.find((c) => c.id === clubId);
+        if (!club) return null;
+
+        const org = club.organizationId
+          ? organizations.find((o) => o.id === club.organizationId)
+          : null;
+        const clubCourts = courts.filter((c) => c.clubId === clubId);
+        const clubCourtIds = clubCourts.map((c) => c.id);
+        const clubBookings = bookings.filter((b) => clubCourtIds.includes(b.courtId));
+
+        const bookingsToday = clubBookings.filter(
+          (b) => b.start >= today && b.start < tomorrow
+        ).length;
+        const activeBookings = clubBookings.filter(
+          (b) =>
+            b.start >= today &&
+            ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+        ).length;
+        const pastBookings = clubBookings.filter(
+          (b) =>
+            b.start < today &&
+            ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+        ).length;
+
+        return {
+          id: club.id,
+          name: club.name,
+          slug: club.slug,
+          organizationId: club.organizationId,
+          organizationName: org?.name || null,
+          courtsCount: clubCourts.length,
+          bookingsToday,
+          activeBookings,
+          pastBookings,
+        };
+      })
+      .filter(Boolean);
+
+    return {
+      adminType,
+      isRoot: false,
+      clubs: clubStats,
+    };
+  }
+
+  return null;
+}
+
+export async function mockGetUsersList(params: {
+  page: number;
+  pageSize: number;
+  search?: string;
+  roleFilter?: string | null;
+  organizationId?: string | null;
+  clubId?: string | null;
+  statusFilter?: string | null;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+}) {
+  const {
+    page,
+    pageSize,
+    search,
+    roleFilter,
+    organizationId,
+    clubId,
+    statusFilter,
+    sortBy,
+    sortOrder,
+  } = params;
+
+  let users = getMockUsers();
+  const memberships = getMockMemberships();
+  const clubMemberships = getMockClubMemberships();
+  const bookings = getMockBookings();
+  const organizations = getMockOrganizations();
+  const clubs = getMockClubs();
+
+  // Apply search filter
+  if (search) {
+    const searchLower = search.toLowerCase();
+    users = users.filter(
+      (u) =>
+        u.name?.toLowerCase().includes(searchLower) ||
+        u.email.toLowerCase().includes(searchLower)
+    );
+  }
+
+  // Apply status filter
+  if (statusFilter === "blocked") {
+    users = users.filter((u) => u.blocked);
+  } else if (statusFilter === "active") {
+    users = users.filter((u) => !u.blocked);
+  }
+
+  // Apply role filter
+  if (roleFilter === "root_admin") {
+    users = users.filter((u) => u.isRoot);
+  } else if (roleFilter === "organization_admin") {
+    users = users.filter((u) =>
+      memberships.some((m) => m.userId === u.id && m.role === "ORGANIZATION_ADMIN")
+    );
+  } else if (roleFilter === "club_admin") {
+    users = users.filter((u) =>
+      clubMemberships.some((m) => m.userId === u.id && m.role === "CLUB_ADMIN")
+    );
+  } else if (roleFilter === "user") {
+    users = users.filter(
+      (u) =>
+        !u.isRoot &&
+        !memberships.some((m) => m.userId === u.id && m.role === "ORGANIZATION_ADMIN") &&
+        !clubMemberships.some((m) => m.userId === u.id && m.role === "CLUB_ADMIN")
+    );
+  }
+
+  // Apply organization filter
+  if (organizationId) {
+    users = users.filter((u) =>
+      memberships.some((m) => m.userId === u.id && m.organizationId === organizationId)
+    );
+  }
+
+  // Apply club filter
+  if (clubId) {
+    users = users.filter((u) =>
+      clubMemberships.some((m) => m.userId === u.id && m.clubId === clubId)
+    );
+  }
+
+  // Sorting
+  users.sort((a, b) => {
+    let aVal: string | Date | null = null;
+    let bVal: string | Date | null = null;
+
+    if (sortBy === "name") {
+      aVal = a.name || "";
+      bVal = b.name || "";
+    } else if (sortBy === "email") {
+      aVal = a.email;
+      bVal = b.email;
+    } else if (sortBy === "createdAt") {
+      aVal = a.createdAt;
+      bVal = b.createdAt;
+    } else if (sortBy === "lastLoginAt") {
+      aVal = a.lastLoginAt;
+      bVal = b.lastLoginAt;
+    }
+
+    if (aVal === null || bVal === null) return 0;
+
+    if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  // Pagination
+  const totalCount = users.length;
+  const start = (page - 1) * pageSize;
+  const paginatedUsers = users.slice(start, start + pageSize);
+
+  // Format users for response
+  const formattedUsers = paginatedUsers.map((user) => {
+    // Determine primary role
+    let role: "root_admin" | "organization_admin" | "club_admin" | "user" = "user";
+    if (user.isRoot) {
+      role = "root_admin";
+    } else if (memberships.some((m) => m.userId === user.id && m.role === "ORGANIZATION_ADMIN")) {
+      role = "organization_admin";
+    } else if (clubMemberships.some((m) => m.userId === user.id && m.role === "CLUB_ADMIN")) {
+      role = "club_admin";
+    }
+
+    // Get organization info
+    const orgMembership = memberships.find(
+      (m) => m.userId === user.id && m.role === "ORGANIZATION_ADMIN"
+    );
+    const organization = orgMembership
+      ? organizations.find((o) => o.id === orgMembership.organizationId)
+      : undefined;
+
+    // Get club info
+    const clubMembership = clubMemberships.find(
+      (m) => m.userId === user.id && m.role === "CLUB_ADMIN"
+    );
+    const club = clubMembership ? clubs.find((c) => c.id === clubMembership.clubId) : undefined;
+
+    // Last activity
+    const userBookings = bookings.filter((b) => b.userId === user.id);
+    const lastBooking = userBookings.length > 0 ? userBookings[0].createdAt : null;
+    let lastActivity: Date | null = null;
+    if (user.lastLoginAt && lastBooking) {
+      lastActivity = user.lastLoginAt > lastBooking ? user.lastLoginAt : lastBooking;
+    } else {
+      lastActivity = user.lastLoginAt || lastBooking;
+    }
+
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role,
+      organization: organization ? { id: organization.id, name: organization.name } : null,
+      club: club ? { id: club.id, name: club.name } : null,
+      blocked: user.blocked,
+      createdAt: user.createdAt,
+      lastActivity,
+    };
+  });
+
+  return {
+    users: formattedUsers,
+    pagination: {
+      page,
+      pageSize,
+      totalCount,
+      totalPages: Math.ceil(totalCount / pageSize),
+    },
+  };
 }
