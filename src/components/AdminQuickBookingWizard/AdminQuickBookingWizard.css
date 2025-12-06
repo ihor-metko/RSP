@@ -1,0 +1,535 @@
+/* AdminQuickBookingWizard Styles */
+
+.rsp-admin-wizard-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Step Indicators */
+.rsp-admin-wizard-steps {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-2);
+  padding: var(--spacing-4) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rsp-admin-wizard-step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex: 1;
+  position: relative;
+}
+
+.rsp-admin-wizard-step-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.rsp-admin-wizard-step-indicator--active .rsp-admin-wizard-step-circle {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.rsp-admin-wizard-step-indicator--completed .rsp-admin-wizard-step-circle {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+  color: white;
+}
+
+.rsp-admin-wizard-step-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+  transition: color 0.2s ease;
+}
+
+.rsp-admin-wizard-step-indicator--active .rsp-admin-wizard-step-label {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.rsp-admin-wizard-step-indicator--completed .rsp-admin-wizard-step-label {
+  color: var(--color-text);
+}
+
+/* Step Content */
+.rsp-admin-wizard-content {
+  min-height: 400px;
+  padding: var(--spacing-4) 0;
+}
+
+.rsp-admin-wizard-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.rsp-admin-wizard-step-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.rsp-admin-wizard-step-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.rsp-admin-wizard-step-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.rsp-admin-wizard-step-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* Error and Loading States */
+.rsp-admin-wizard-error {
+  padding: var(--spacing-3);
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--border-radius);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+}
+
+.rsp-admin-wizard-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6);
+  color: var(--color-text-secondary);
+}
+
+.rsp-admin-wizard-loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rsp-admin-wizard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.rsp-admin-wizard-empty-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* User Creation Form */
+.rsp-admin-wizard-divider {
+  position: relative;
+  text-align: center;
+  margin: var(--spacing-4) 0;
+}
+
+.rsp-admin-wizard-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+.rsp-admin-wizard-divider span {
+  position: relative;
+  padding: 0 var(--spacing-2);
+  background-color: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.rsp-admin-wizard-create-user-btn {
+  width: 100%;
+}
+
+.rsp-admin-wizard-create-user-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+}
+
+.rsp-admin-wizard-form-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.rsp-admin-wizard-form-actions {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+}
+
+/* Date & Time Grid */
+.rsp-admin-wizard-date-time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.rsp-booking-select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.rsp-booking-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.rsp-booking-select {
+  width: 100%;
+  padding: var(--spacing-2) var(--spacing-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  transition: border-color 0.2s ease;
+}
+
+.rsp-booking-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.rsp-booking-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Courts Grid */
+.rsp-wizard-courts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.rsp-wizard-courts-count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.rsp-wizard-court-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.rsp-wizard-court-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--border-radius);
+  background-color: var(--color-surface);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.rsp-wizard-court-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.rsp-wizard-court-card--selected {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-bg);
+}
+
+.rsp-wizard-court-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.rsp-wizard-court-name {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.rsp-wizard-court-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.rsp-badge {
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.rsp-badge-type {
+  background-color: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.rsp-badge-surface {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.rsp-badge-indoor {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.rsp-wizard-court-price {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.rsp-wizard-select-btn {
+  width: 100%;
+}
+
+.rsp-wizard-select-btn--selected {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+/* Confirmation Summary */
+.rsp-admin-wizard-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+}
+
+.rsp-admin-wizard-summary-item {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rsp-admin-wizard-summary-item:last-child {
+  border-bottom: none;
+}
+
+.rsp-admin-wizard-summary-item--total {
+  margin-top: var(--spacing-2);
+  padding-top: var(--spacing-3);
+  border-top: 2px solid var(--color-border);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.rsp-admin-wizard-summary-label {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.rsp-admin-wizard-summary-value {
+  color: var(--color-text);
+  font-weight: 500;
+  text-align: right;
+}
+
+.rsp-admin-wizard-summary-value--price {
+  color: var(--color-primary);
+  font-size: var(--font-size-xl);
+}
+
+/* Notes Section */
+.rsp-admin-wizard-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.rsp-admin-wizard-notes-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+/* Payment Notice */
+.rsp-admin-wizard-payment-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3);
+  background-color: var(--color-info-bg);
+  border-radius: var(--border-radius);
+  color: var(--color-info);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* Success State */
+.rsp-admin-wizard-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-8);
+  text-align: center;
+}
+
+.rsp-admin-wizard-success-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.rsp-admin-wizard-success-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.rsp-admin-wizard-success-message {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+}
+
+.rsp-admin-wizard-booking-id {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  font-family: monospace;
+}
+
+/* Navigation */
+.rsp-admin-wizard-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.rsp-admin-wizard-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rsp-admin-wizard-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rsp-admin-wizard-nav-btn--back {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.rsp-admin-wizard-nav-btn--back:hover:not(:disabled) {
+  background-color: var(--color-surface-elevated);
+  border-color: var(--color-text-secondary);
+}
+
+.rsp-admin-wizard-nav-btn--next {
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.rsp-admin-wizard-nav-btn--next:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.rsp-admin-wizard-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rsp-admin-wizard-steps {
+    flex-wrap: wrap;
+  }
+
+  .rsp-admin-wizard-step-label {
+    display: none;
+  }
+
+  .rsp-admin-wizard-date-time-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rsp-wizard-court-list {
+    grid-template-columns: 1fr;
+  }
+
+  .rsp-admin-wizard-nav {
+    flex-direction: column-reverse;
+  }
+
+  .rsp-admin-wizard-nav-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
