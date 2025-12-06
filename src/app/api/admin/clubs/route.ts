@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin, requireRootAdmin } from "@/lib/requireRole";
 import { ClubMembershipRole } from "@/constants/roles";
 import type { Prisma } from "@prisma/client";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetClubs, mockCreateClub } from "@/services/mockApiHandlers";
 
 export async function GET(request: Request) {
   const authResult = await requireAnyAdmin(request);
@@ -12,6 +15,15 @@ export async function GET(request: Request) {
   }
 
   try {
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const clubs = await mockGetClubs({
+        adminType: authResult.adminType,
+        managedIds: authResult.managedIds,
+      });
+      return NextResponse.json(clubs);
+    }
+
     // Build the where clause based on admin type
     let whereClause: Prisma.ClubWhereInput = {};
 
@@ -152,6 +164,19 @@ export async function POST(request: Request) {
         { error: "Name and location are required" },
         { status: 400 }
       );
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const club = await mockCreateClub({
+        name,
+        location,
+        contactInfo: contactInfo || null,
+        openingHours: openingHours || null,
+        logo: logo || null,
+        createdById: authResult.userId,
+      });
+      return NextResponse.json(club, { status: 201 });
     }
 
     const club = await prisma.club.create({

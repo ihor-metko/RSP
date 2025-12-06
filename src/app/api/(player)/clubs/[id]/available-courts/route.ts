@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode, findClubById, getMockCourts, getMockBookings } from "@/services/mockDb";
 
 // Business hours configuration (same as availability endpoint)
 const BUSINESS_START_HOUR = 9;
@@ -93,6 +95,43 @@ export async function GET(
         { error: "Invalid duration. Must be a positive integer" },
         { status: 400 }
       );
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const club = findClubById(clubId);
+      if (!club) {
+        return NextResponse.json({ error: "Club not found" }, { status: 404 });
+      }
+
+      const courts = getMockCourts().filter((c) => c.clubId === clubId);
+      const slotStart = new Date(`${dateParam}T${timeStart}:00.000Z`);
+      const slotEnd = new Date(slotStart.getTime() + duration * 60 * 1000);
+
+      const [startHour] = timeStart.split(":").map(Number);
+      const endHour = slotEnd.getUTCHours() + slotEnd.getUTCMinutes() / 60;
+      if (startHour < BUSINESS_START_HOUR || endHour > BUSINESS_END_HOUR) {
+        return NextResponse.json({ availableCourts: [] });
+      }
+
+      const dayStart = new Date(`${dateParam}T00:00:00.000Z`);
+      const dayEnd = new Date(`${dateParam}T23:59:59.999Z`);
+      const bookings = getMockBookings().filter(
+        (b) =>
+          courts.some((c) => c.id === b.courtId) &&
+          b.start >= dayStart &&
+          b.start < dayEnd &&
+          ["reserved", "paid", "pending"].includes(b.status)
+      );
+
+      const availableCourts: AvailableCourt[] = courts.filter((court) => {
+        const courtBookings = bookings.filter((b) => b.courtId === court.id);
+        return !courtBookings.some(
+          (booking) => booking.start < slotEnd && booking.end > slotStart
+        );
+      });
+
+      return NextResponse.json({ availableCourts });
     }
 
     // Check if club exists and get its courts

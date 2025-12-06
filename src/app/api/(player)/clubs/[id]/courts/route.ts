@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode, findClubById, getMockCourts } from "@/services/mockDb";
 
 export async function GET(
   request: Request,
@@ -9,6 +11,20 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const clubId = resolvedParams.id;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const club = findClubById(clubId);
+      if (!club) {
+        return NextResponse.json({ error: "Club not found" }, { status: 404 });
+      }
+
+      const courts = getMockCourts()
+        .filter((c) => c.clubId === clubId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+      return NextResponse.json({ courts });
+    }
 
     // Check if club exists
     const club = await prisma.club.findUnique({

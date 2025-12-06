@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetOrganizations } from "@/services/mockApiHandlers";
 
 interface SuperAdmin {
   id: string;
@@ -21,6 +24,37 @@ export async function GET(request: Request) {
   }
 
   try {
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const organizations = await mockGetOrganizations({
+        adminType: "root_admin",
+        managedIds: [],
+        includeArchived: false,
+      });
+
+      const formattedOrganizations = organizations.map((org) => {
+        const superAdmins: SuperAdmin[] = org.admins.map((a) => ({
+          id: a.id,
+          name: a.name,
+          email: a.email,
+          isPrimaryOwner: false,
+        }));
+
+        return {
+          id: org.id,
+          name: org.name,
+          slug: org.slug,
+          createdAt: org.createdAt,
+          clubCount: org.clubCount,
+          createdBy: { id: org.createdById, name: null, email: "" },
+          superAdmins,
+          superAdmin: superAdmins[0] || null,
+        };
+      });
+
+      return NextResponse.json(formattedOrganizations);
+    }
+
     const organizations = await prisma.organization.findMany({
       orderBy: { createdAt: "desc" },
       include: {
