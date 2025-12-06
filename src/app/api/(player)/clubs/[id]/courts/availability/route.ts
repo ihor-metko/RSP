@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { ClubMembershipRole } from "@/constants/roles";
 import {
   getTodayInTimezone,
   getDatesFromStart,
@@ -51,6 +53,8 @@ interface WeeklyAvailabilityResponse {
     indoor: boolean;
   }>;
   mode?: "rolling" | "calendar";
+  canEdit?: boolean;
+  allowedClubs?: string[];
 }
 
 // Helper to get day name using native Date API
@@ -283,6 +287,56 @@ export async function GET(
       });
     }
 
+    // Check user permissions for editing
+    const session = await auth();
+    let canEdit = false;
+    const allowedClubs: string[] = [];
+
+    if (session?.user) {
+      const userId = session.user.id;
+      const isRoot = session.user.isRoot ?? false;
+
+      if (isRoot) {
+        // Root admin can edit any club
+        canEdit = true;
+      } else if (club.organizationId) {
+        // Check if user is organization admin
+        const orgMembership = await prisma.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId,
+              organizationId: club.organizationId,
+            },
+          },
+        });
+        if (orgMembership?.role === "ORGANIZATION_ADMIN") {
+          canEdit = true;
+          // Get all clubs in the organization
+          const orgClubs = await prisma.club.findMany({
+            where: { organizationId: club.organizationId },
+            select: { id: true },
+          });
+          allowedClubs.push(...orgClubs.map((c) => c.id));
+        }
+      }
+
+      if (!canEdit) {
+        // Check if user is club admin
+        const clubMembership = await prisma.clubMembership.findUnique({
+          where: {
+            userId_clubId: {
+              userId,
+              clubId,
+            },
+          },
+        });
+        if (clubMembership?.role === ClubMembershipRole.CLUB_ADMIN) {
+          canEdit = true;
+          allowedClubs.push(clubId);
+        }
+      }
+    }
+
     const response: WeeklyAvailabilityResponse = {
       weekStart: datesToShow[0],
       weekEnd: datesToShow[datesToShow.length - 1],
@@ -294,6 +348,8 @@ export async function GET(
         indoor: c.indoor,
       })),
       mode: modeParam || "rolling",
+      canEdit,
+      allowedClubs: allowedClubs.length > 0 ? allowedClubs : undefined,
     };
 
     return NextResponse.json(response);

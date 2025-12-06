@@ -311,3 +311,50 @@
 .tm-weekly-error-retry:hover {
   background-color: var(--rsp-primary-hover);
 }
+
+/* Edit mode UI */
+.tm-edit-mode-btn {
+  @apply font-medium;
+}
+
+.tm-toast {
+  @apply fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg text-sm font-medium z-50;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.tm-toast--success {
+  background-color: #10b981;
+  color: white;
+}
+
+.tm-toast--error {
+  background-color: #ef4444;
+  color: white;
+}
+
+.tm-edit-action-bar {
+  @apply flex justify-between items-center p-3 mb-4 rounded-lg;
+  background-color: var(--rsp-border);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-edit-action-info {
+  @apply text-sm font-medium;
+  color: var(--rsp-foreground);
+}
+
+.tm-edit-action-buttons {
+  @apply flex items-center gap-2;
+}
+
+/* Animation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
