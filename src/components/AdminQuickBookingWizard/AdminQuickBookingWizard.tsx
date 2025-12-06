@@ -33,11 +33,24 @@ export function AdminQuickBookingWizard({
   onBookingComplete,
   predefinedData,
   adminType,
+  managedIds,
 }: AdminQuickBookingWizardProps) {
   const t = useTranslations();
 
+  // Initialize selected club for club_admin with single managed club
+  const initialClubId = useMemo(() => {
+    if (predefinedData?.clubId) {
+      return predefinedData.clubId;
+    }
+    // Auto-select club if club_admin has only one managed club
+    if (adminType === "club_admin" && managedIds.length === 1) {
+      return managedIds[0];
+    }
+    return null;
+  }, [predefinedData?.clubId, adminType, managedIds]);
+
   const [state, setState] = useState<WizardState>(() => {
-    const firstStepId = getFirstVisibleStepId(adminType, predefinedData);
+    const firstStepId = getFirstVisibleStepId(adminType, predefinedData, managedIds);
     return {
       currentStep: firstStepId,
       adminType,
@@ -46,7 +59,7 @@ export function AdminQuickBookingWizard({
         selectedOrganization: null,
       },
       stepClub: {
-        selectedClubId: predefinedData?.clubId || null,
+        selectedClubId: initialClubId,
         selectedClub: null,
       },
       stepUser: {
@@ -90,7 +103,7 @@ export function AdminQuickBookingWizard({
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      const firstStepId = getFirstVisibleStepId(adminType, predefinedData);
+      const firstStepId = getFirstVisibleStepId(adminType, predefinedData, managedIds);
       setState({
         currentStep: firstStepId,
         adminType,
@@ -99,7 +112,7 @@ export function AdminQuickBookingWizard({
           selectedOrganization: null,
         },
         stepClub: {
-          selectedClubId: predefinedData?.clubId || null,
+          selectedClubId: initialClubId,
           selectedClub: null,
         },
         stepUser: {
@@ -139,7 +152,7 @@ export function AdminQuickBookingWizard({
         bookingId: null,
       });
     }
-  }, [isOpen, adminType, predefinedData]);
+  }, [isOpen, adminType, predefinedData, managedIds, initialClubId]);
 
   // Fetch organizations (Step 1)
   useEffect(() => {
@@ -199,9 +212,6 @@ export function AdminQuickBookingWizard({
         return; // Skip if club is predefined
       }
 
-      // For org admin and club admin, clubs are already filtered by managedIds
-      // For root admin, filter by selected org if any
-
       setState((prev) => ({
         ...prev,
         isLoadingClubs: true,
@@ -229,15 +239,17 @@ export function AdminQuickBookingWizard({
           })
         );
 
-        // Filter by selected organization for root admin
-        if (
-          adminType === "root_admin" &&
-          state.stepOrganization.selectedOrganizationId
-        ) {
+        // Filter clubs based on admin type
+        if (adminType === "root_admin" && state.stepOrganization.selectedOrganizationId) {
+          // Filter by selected organization for root admin
           clubs = clubs.filter(
             (c) => c.organizationId === state.stepOrganization.selectedOrganizationId
           );
+        } else if (adminType === "club_admin" && managedIds.length > 0) {
+          // Filter by managed clubs for club_admin (when they have multiple clubs)
+          clubs = clubs.filter((c) => managedIds.includes(c.id));
         }
+        // For org_admin, API already filters by managedIds on the server
 
         setState((prev) => ({
           ...prev,
@@ -260,6 +272,7 @@ export function AdminQuickBookingWizard({
     state.stepOrganization.selectedOrganizationId,
     adminType,
     predefinedData,
+    managedIds,
     t,
   ]);
 
@@ -616,7 +629,8 @@ export function AdminQuickBookingWizard({
     const nextStepId = getNextStepId(
       state.currentStep,
       adminType,
-      predefinedData
+      predefinedData,
+      managedIds
     );
 
     if (nextStepId === null) {
@@ -632,13 +646,14 @@ export function AdminQuickBookingWizard({
     } else {
       setState((prev) => ({ ...prev, currentStep: nextStepId }));
     }
-  }, [state.currentStep, adminType, predefinedData, handleSubmit, fetchAvailableCourts]);
+  }, [state.currentStep, adminType, predefinedData, managedIds, handleSubmit, fetchAvailableCourts]);
 
   const handleBack = useCallback(() => {
     const prevStepId = getPreviousStepId(
       state.currentStep,
       adminType,
-      predefinedData
+      predefinedData,
+      managedIds
     );
 
     if (prevStepId !== null) {
@@ -648,7 +663,7 @@ export function AdminQuickBookingWizard({
         submitError: null,
       }));
     }
-  }, [state.currentStep, adminType, predefinedData]);
+  }, [state.currentStep, adminType, predefinedData, managedIds]);
 
   // Computed values
   const canProceed = useMemo(() => {
@@ -693,7 +708,7 @@ export function AdminQuickBookingWizard({
     }
   };
 
-  const visibleSteps = getVisibleSteps(adminType, predefinedData);
+  const visibleSteps = getVisibleSteps(adminType, predefinedData, managedIds);
 
   return (
     <Modal
@@ -826,7 +841,7 @@ export function AdminQuickBookingWizard({
               type="button"
               className="rsp-admin-wizard-nav-btn rsp-admin-wizard-nav-btn--back"
               onClick={
-                getPreviousStepId(state.currentStep, adminType, predefinedData) ===
+                getPreviousStepId(state.currentStep, adminType, predefinedData, managedIds) ===
                 null
                   ? onClose
                   : handleBack
@@ -836,7 +851,8 @@ export function AdminQuickBookingWizard({
               {getPreviousStepId(
                 state.currentStep,
                 adminType,
-                predefinedData
+                predefinedData,
+                managedIds
               ) === null ? (
                 t("common.cancel")
               ) : (

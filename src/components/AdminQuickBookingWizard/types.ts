@@ -137,7 +137,7 @@ export interface WizardStepConfig {
   id: number;
   label: string;
   // Determines if this step should be shown for the admin type
-  shouldShow: (adminType: AdminType, predefinedData?: PredefinedData) => boolean;
+  shouldShow: (adminType: AdminType, predefinedData?: PredefinedData, managedIds?: string[]) => boolean;
 }
 
 export const ADMIN_WIZARD_STEPS: WizardStepConfig[] = [
@@ -150,9 +150,21 @@ export const ADMIN_WIZARD_STEPS: WizardStepConfig[] = [
   {
     id: 2,
     label: "club",
-    shouldShow: (adminType, predefinedData) => 
-      (adminType === "root_admin" || adminType === "organization_admin") && 
-      !predefinedData?.clubId,
+    shouldShow: (adminType, predefinedData, managedIds) => {
+      // Skip if club is predefined
+      if (predefinedData?.clubId) {
+        return false;
+      }
+      // Show for root_admin and organization_admin
+      if (adminType === "root_admin" || adminType === "organization_admin") {
+        return true;
+      }
+      // Show for club_admin only if they manage multiple clubs
+      if (adminType === "club_admin" && managedIds && managedIds.length > 1) {
+        return true;
+      }
+      return false;
+    },
   },
   {
     id: 3,
@@ -228,9 +240,10 @@ export function formatTimeDisplay(startTime: string, endTime: string): string {
  */
 export function getVisibleSteps(
   adminType: AdminType,
-  predefinedData?: PredefinedData
+  predefinedData?: PredefinedData,
+  managedIds?: string[]
 ): WizardStepConfig[] {
-  return ADMIN_WIZARD_STEPS.filter((step) => step.shouldShow(adminType, predefinedData));
+  return ADMIN_WIZARD_STEPS.filter((step) => step.shouldShow(adminType, predefinedData, managedIds));
 }
 
 /**
@@ -239,9 +252,10 @@ export function getVisibleSteps(
 export function getVisibleStepNumber(
   stepId: number,
   adminType: AdminType,
-  predefinedData?: PredefinedData
+  predefinedData?: PredefinedData,
+  managedIds?: string[]
 ): number {
-  const visibleSteps = getVisibleSteps(adminType, predefinedData);
+  const visibleSteps = getVisibleSteps(adminType, predefinedData, managedIds);
   const index = visibleSteps.findIndex((s) => s.id === stepId);
   return index + 1; // 1-based indexing
 }
@@ -252,9 +266,10 @@ export function getVisibleStepNumber(
 export function getNextStepId(
   currentStepId: number,
   adminType: AdminType,
-  predefinedData?: PredefinedData
+  predefinedData?: PredefinedData,
+  managedIds?: string[]
 ): number | null {
-  const visibleSteps = getVisibleSteps(adminType, predefinedData);
+  const visibleSteps = getVisibleSteps(adminType, predefinedData, managedIds);
   const currentIndex = visibleSteps.findIndex((s) => s.id === currentStepId);
   
   if (currentIndex === -1 || currentIndex === visibleSteps.length - 1) {
@@ -270,9 +285,10 @@ export function getNextStepId(
 export function getPreviousStepId(
   currentStepId: number,
   adminType: AdminType,
-  predefinedData?: PredefinedData
+  predefinedData?: PredefinedData,
+  managedIds?: string[]
 ): number | null {
-  const visibleSteps = getVisibleSteps(adminType, predefinedData);
+  const visibleSteps = getVisibleSteps(adminType, predefinedData, managedIds);
   const currentIndex = visibleSteps.findIndex((s) => s.id === currentStepId);
   
   if (currentIndex <= 0) {
@@ -287,8 +303,9 @@ export function getPreviousStepId(
  */
 export function getFirstVisibleStepId(
   adminType: AdminType,
-  predefinedData?: PredefinedData
+  predefinedData?: PredefinedData,
+  managedIds?: string[]
 ): number {
-  const visibleSteps = getVisibleSteps(adminType, predefinedData);
+  const visibleSteps = getVisibleSteps(adminType, predefinedData, managedIds);
   return visibleSteps[0].id;
 }
