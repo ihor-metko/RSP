@@ -33,9 +33,6 @@ export function AdminQuickBookingWizard({
   onBookingComplete,
   predefinedData,
   adminType,
-  // managedIds is used in the initial state but not directly in the component
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  managedIds,
 }: AdminQuickBookingWizardProps) {
   const t = useTranslations();
 

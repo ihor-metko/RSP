@@ -22,7 +22,6 @@ export async function POST(request: Request) {
       startTime,
       endTime,
       clubId, // Optional: for validation
-      // Notes field removed - not in Booking schema
     } = body;
 
     // Validate required fields
@@ -168,8 +167,10 @@ export async function POST(request: Request) {
     let priceCents = Math.round((court.defaultPriceCents / 60) * durationMinutes);
 
     try {
+      // Use base URL from environment, fallback to relative URL for server-side calls
+      const baseUrl = process.env.NEXTAUTH_URL || "";
       const priceResponse = await fetch(
-        `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/courts/${courtId}/price-timeline?date=${dateStr}`
+        `${baseUrl}/api/courts/${courtId}/price-timeline?date=${dateStr}`
       );
       if (priceResponse.ok) {
         const priceData = await priceResponse.json();
