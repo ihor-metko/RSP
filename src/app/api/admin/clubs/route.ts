@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAnyAdmin, requireRootAdmin } from "@/lib/requireRole";
+import { requireAnyAdmin } from "@/lib/requireRole";
 import { ClubMembershipRole } from "@/constants/roles";
 import type { Prisma } from "@prisma/client";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
-import { mockGetClubs, mockCreateClub } from "@/services/mockApiHandlers";
+import { mockGetClubs } from "@/services/mockApiHandlers";
 
 export async function GET(request: Request) {
   const authResult = await requireAnyAdmin(request);
@@ -215,7 +215,8 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: Request) {
   // This endpoint is deprecated - use /api/admin/clubs/new instead
   // which enforces proper organization selection
   return NextResponse.json(

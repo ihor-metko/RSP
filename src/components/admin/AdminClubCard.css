@@ -361,4 +361,39 @@
   .im-admin-clubs-filter {
     @apply flex-1;
   }
+}}
+
+/* ===== Pagination ===== */
+.im-pagination {
+  @apply flex flex-col gap-4 mt-8 p-4 rounded-lg;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.im-pagination-info {
+  @apply text-sm text-center;
+  color: var(--rsp-text-secondary);
+}
+
+.im-pagination-controls {
+  @apply flex items-center justify-center gap-4 flex-wrap;
+}
+
+.im-pagination-page {
+  @apply text-sm font-medium;
+  color: var(--rsp-text);
+}
+
+.im-pagination-size {
+  @apply ml-4;
+}
+
+@media (max-width: 640px) {
+  .im-pagination-controls {
+    @apply flex-col;
+  }
+  
+  .im-pagination-size {
+    @apply ml-0 w-full;
+  }
 }
