@@ -189,9 +189,12 @@ describe("AdminQuickBookingWizard - Root Admin", () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve([
-          { id: "club-1", name: "Club 1", organizationId: "org-1" },
-        ]),
+        json: () => Promise.resolve({
+          items: [
+            { id: "club-1", name: "Club 1", organizationId: "org-1" },
+          ],
+          pagination: { total: 1, limit: 100, hasMore: false },
+        }),
       });
 
     await act(async () => {
@@ -213,6 +216,101 @@ describe("AdminQuickBookingWizard - Root Admin", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Select Club")).toBeInTheDocument();
+    });
+  });
+});
+
+describe("AdminQuickBookingWizard - Org-scoped Clubs", () => {
+  const rootAdminProps = {
+    isOpen: true,
+    onClose: jest.fn(),
+    onBookingComplete: jest.fn(),
+    adminType: "root_admin" as const,
+    managedIds: [],
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFetch.mockReset();
+  });
+
+  it("fetches clubs using org-scoped endpoint after org selection", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve([
+          { id: "org-1", name: "Organization 1", slug: "org-1" },
+        ]),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          items: [
+            { id: "club-1", name: "Club 1", organizationId: "org-1" },
+            { id: "club-2", name: "Club 2", organizationId: "org-1" },
+          ],
+          pagination: { total: 2, limit: 100, hasMore: false },
+        }),
+      });
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...rootAdminProps} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Organization")).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      const select = screen.getByLabelText("Organization");
+      fireEvent.change(select, { target: { value: "org-1" } });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("Continue"));
+    });
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith("/api/orgs/org-1/clubs?limit=100");
+      expect(screen.getByText("Select Club")).toBeInTheDocument();
+    });
+  });
+
+  it("shows empty state when organization has no clubs", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve([
+          { id: "org-1", name: "Organization 1", slug: "org-1" },
+        ]),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({
+          items: [],
+          pagination: { total: 0, limit: 100, hasMore: false },
+        }),
+      });
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...rootAdminProps} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("Organization")).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      const select = screen.getByLabelText("Organization");
+      fireEvent.change(select, { target: { value: "org-1" } });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText("Continue"));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("No clubs available")).toBeInTheDocument();
     });
   });
 });
