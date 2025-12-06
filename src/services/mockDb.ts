@@ -622,5 +622,9 @@ export function createMockOrganization(data: {
 // ============================================================================
 
 export function isMockMode(): boolean {
-  return process.env.USE_MOCK_DATA === "true";
+  const mockMode = process.env.USE_MOCK_DATA === "true";
+  if (mockMode && process.env.NODE_ENV === "development") {
+    console.log("🔧 MOCK DATA MODE ACTIVE");
+  }
+  return mockMode;
 }

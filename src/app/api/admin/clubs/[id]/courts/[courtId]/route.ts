@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetCourtById, mockUpdateCourt, mockDeleteCourt } from "@/services/mockApiHandlers";
 
 export async function GET(
   request: Request,
@@ -15,6 +18,22 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const { id: clubId, courtId } = resolvedParams;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const court = await mockGetCourtById(courtId);
+      if (!court || court.club?.id !== clubId) {
+        return NextResponse.json({ error: "Court not found" }, { status: 404 });
+      }
+      return NextResponse.json({
+        ...court,
+        courtPriceRules: [],
+        club: {
+          ...court.club,
+          businessHours: [],
+        },
+      });
+    }
 
     const court = await prisma.court.findUnique({
       where: { id: courtId },
@@ -71,6 +90,34 @@ export async function PATCH(
     const resolvedParams = await params;
     const { id: clubId, courtId } = resolvedParams;
 
+    const body = await request.json();
+    const { name, slug, type, surface, indoor, defaultPriceCents } = body;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      // Basic validation
+      if (name !== undefined && (typeof name !== "string" || name.trim() === "")) {
+        return NextResponse.json(
+          { error: "Validation failed", errors: { name: "Name is required" } },
+          { status: 400 }
+        );
+      }
+      const updatedCourt = await mockUpdateCourt(courtId, {
+        name,
+        surface,
+        indoor,
+        defaultPriceCents,
+      });
+      if (!updatedCourt) {
+        return NextResponse.json({ error: "Court not found" }, { status: 404 });
+      }
+      return NextResponse.json({
+        ...updatedCourt,
+        courtPriceRules: [],
+        club: { id: updatedCourt.clubId, name: "Mock Club", businessHours: [] },
+      });
+    }
+
     // Check if court exists and belongs to the club
     const existingCourt = await prisma.court.findUnique({
       where: { id: courtId },
@@ -86,9 +133,6 @@ export async function PATCH(
         { status: 404 }
       );
     }
-
-    const body = await request.json();
-    const { name, slug, type, surface, indoor, defaultPriceCents } = body;
 
     // Validation
     const errors: Record<string, string> = {};
@@ -214,6 +258,15 @@ export async function DELETE(
   try {
     const resolvedParams = await params;
     const { id: clubId, courtId } = resolvedParams;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const deleted = await mockDeleteCourt(courtId);
+      if (!deleted) {
+        return NextResponse.json({ error: "Court not found" }, { status: 404 });
+      }
+      return new NextResponse(null, { status: 204 });
+    }
 
     // Check if court exists and belongs to the club
     const existingCourt = await prisma.court.findUnique({
