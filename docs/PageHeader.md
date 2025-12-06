@@ -58,7 +58,7 @@ function PlayerClubsPage() {
         title="Clubs"
         description="Find and book padel courts at the best clubs near you"
         actions={
-          <IMLink href="/clubs/search" className="rsp-button">
+          <IMLink href="/clubs/search" asButton variant="primary">
             Search Clubs
           </IMLink>
         }
@@ -85,7 +85,7 @@ function AdminClubsPage() {
             <Button variant="outline" onClick={handleQuickCreate}>
               Quick Create
             </Button>
-            <IMLink href="/admin/clubs/new" className="rsp-button">
+            <IMLink href="/admin/clubs/new" asButton variant="primary">
               Create Club
             </IMLink>
           </>

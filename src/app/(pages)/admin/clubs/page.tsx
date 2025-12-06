@@ -381,7 +381,7 @@ export default function AdminClubsPage() {
               <Button onClick={handleOpenCreateModal} variant="outline">
                 {t("admin.clubs.quickCreate")}
               </Button>
-              <IMLink href="/admin/clubs/new" className="rsp-button">
+              <IMLink href="/admin/clubs/new" asButton variant="primary">
                 {t("admin.clubs.createClub")}
               </IMLink>
             </div>
