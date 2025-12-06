@@ -253,6 +253,7 @@ export function WeeklyAvailabilityTimeline({
   const [pendingChanges, setPendingChanges] = useState<AvailabilityBlockEdit[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addModalDate, setAddModalDate] = useState<string>("");
+  const [addModalHour, setAddModalHour] = useState<number>(8);
   const [isSaving, setIsSaving] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   
@@ -422,10 +423,8 @@ export function WeeklyAvailabilityTimeline({
     // In edit mode, open the block management modal
     if (isEditMode && data?.canEdit) {
       setAddModalDate(date);
+      setAddModalHour(hour);
       setIsAddModalOpen(true);
-      // Store the hour for the modal - safe to use window here for temporary state
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).__selectedHour = hour;
       return;
     }
     
@@ -505,7 +504,7 @@ export function WeeklyAvailabilityTimeline({
           <h3 className="tm-weekly-timeline-title">{t("title")}</h3>
           <div className="tm-weekly-timeline-controls">
             {/* Edit mode toggle - only show if user has edit permission */}
-            {data.canEdit && (
+            {data?.canEdit && (
               <Button
                 variant={isEditMode ? "primary" : "outline"}
                 size="small"
@@ -758,10 +757,7 @@ export function WeeklyAvailabilityTimeline({
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
             date={addModalDate}
-            hour={
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (window as any).__selectedHour || 8
-            }
+            hour={addModalHour}
             courts={data.courts}
             existingBlocks={pendingChanges}
             onSave={handleBlockModalSave}

@@ -144,8 +144,7 @@ export async function POST(request: Request) {
           block.courtId,
           block.date,
           block.startTime,
-          block.endTime,
-          block.id // Exclude current block from conflict check
+          block.endTime
         );
         if (blockConflicts.length > 0) {
           conflicts.push({
@@ -239,17 +238,15 @@ export async function POST(request: Request) {
 /**
  * Check if a time block conflicts with existing bookings
  * 
- * @param excludeBlockId - Optional block ID to exclude from conflict check (for updates)
- * Note: Currently not used but reserved for future enhancement to exclude
- * the block being updated when checking for conflicts
+ * TODO: Implement excludeBlockId parameter to allow updating existing blocks
+ * without triggering a conflict with their own booking overlap. This would
+ * enable admins to modify block times without removing the block first.
  */
 async function checkBlockConflicts(
   courtId: string,
   date: string,
   startTime: string,
-  endTime: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _excludeBlockId?: string
+  endTime: string
 ): Promise<string[]> {
   // Parse date and times
   const blockDate = new Date(date);
