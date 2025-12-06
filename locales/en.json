@@ -628,7 +628,10 @@
     "tryAgain": "Try again",
     "ariaGridLabel": "Weekly court availability",
     "ariaSlotLabel": "{dayName} {time}: {available} available, {partial} partially booked, {booked} booked, {pending} pending",
-    "ariaSlotBlockedLabel": "{dayName} {time}: {reason}"
+    "ariaSlotBlockedLabel": "{dayName} {time}: {reason}",
+    "modeLabel": "View mode",
+    "modeRolling": "Next 7 days",
+    "modeCalendar": "Mon–Sun"
   },
   "modal": {
     "closeModal": "Close modal",

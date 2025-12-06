@@ -63,7 +63,10 @@ export interface DayAvailability {
   dayOfWeek: number;
   dayName: string;
   hours: HourSlotAvailability[];
+  isToday?: boolean;
 }
+
+export type AvailabilityMode = "rolling" | "calendar";
 
 export interface WeeklyAvailabilityResponse {
   weekStart: string;
@@ -75,4 +78,5 @@ export interface WeeklyAvailabilityResponse {
     type: string | null;
     indoor: boolean;
   }>;
+  mode?: AvailabilityMode;
 }

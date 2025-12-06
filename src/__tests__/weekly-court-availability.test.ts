@@ -106,7 +106,7 @@ describe("GET /api/clubs/[id]/courts/availability", () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe("Invalid weekStart format. Use YYYY-MM-DD");
+    expect(data.error).toBe("Invalid start format. Use YYYY-MM-DD");
   });
 
   it("should mark slots as booked when there are bookings", async () => {
@@ -364,5 +364,81 @@ describe("GET /api/clubs/[id]/courts/availability", () => {
     expect(slot14pm.summary.pending).toBe(1);
     expect(slot14pm.summary.available).toBe(1);
     expect(slot14pm.overallStatus).toBe("partial");
+  });
+
+  describe("New API parameters (start, days, mode)", () => {
+    const createRequestWithParams = (id: string, params: Record<string, string>) => {
+      const searchParams = new URLSearchParams(params);
+      const url = `http://localhost:3000/api/clubs/${id}/courts/availability?${searchParams}`;
+      return new Request(url, { method: "GET" });
+    };
+
+    it("should accept 'start' parameter instead of 'weekStart'", async () => {
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+      (prisma.booking.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const request = createRequestWithParams("club-123", { start: "2024-03-01" });
+      const response = await GET(request, {
+        params: Promise.resolve({ id: "club-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.weekStart).toBe("2024-03-01");
+      expect(data.days).toHaveLength(7);
+    });
+
+    it("should include isToday flag for today's date", async () => {
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+      (prisma.booking.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      // Request starting from today
+      const request = createRequestWithParams("club-123", {});
+      const response = await GET(request, {
+        params: Promise.resolve({ id: "club-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      // First day should be today in rolling mode
+      const todayDay = data.days.find((d: { isToday?: boolean }) => d.isToday === true);
+      expect(todayDay).toBeDefined();
+    });
+
+    it("should include mode in response", async () => {
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+      (prisma.booking.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const request = createRequestWithParams("club-123", { mode: "calendar" });
+      const response = await GET(request, {
+        params: Promise.resolve({ id: "club-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.mode).toBe("calendar");
+    });
+
+    it("should default to rolling mode when no mode specified", async () => {
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+      (prisma.booking.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const request = createRequestWithParams("club-123", {});
+      const response = await GET(request, {
+        params: Promise.resolve({ id: "club-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.mode).toBe("rolling");
+    });
   });
 });

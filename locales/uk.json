@@ -599,7 +599,10 @@
     "tryAgain": "Спробувати ще",
     "ariaGridLabel": "Тижнева доступність кортів",
     "ariaSlotLabel": "{dayName} {time}: {available} доступних, {partial} частково заброньованих, {booked} заброньованих, {pending} очікують",
-    "ariaSlotBlockedLabel": "{dayName} {time}: {reason}"
+    "ariaSlotBlockedLabel": "{dayName} {time}: {reason}",
+    "modeLabel": "Режим перегляду",
+    "modeRolling": "Наступні 7 днів",
+    "modeCalendar": "Пн–Нд"
   },
   "modal": {
     "closeModal": "Закрити модальне вікно",

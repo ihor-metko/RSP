@@ -8,11 +8,16 @@ import type {
   WeeklyAvailabilityResponse,
   HourSlotAvailability,
   CourtAvailabilityStatus,
+  AvailabilityMode,
 } from "@/types/court";
 import "./WeeklyAvailabilityTimeline.css";
 
 /**
  * WeeklyAvailabilityTimeline - Weekly court availability matrix/timetable
+ * 
+ * MODES:
+ * - Rolling (default): Shows today + next 6 days. First day is always "Today".
+ * - Calendar: Shows Monday→Sunday of the current week. Past days are visually disabled.
  * 
  * BLOCKING RULES (client-side):
  * - Past days: Any day before the current local date is blocked
@@ -20,11 +25,20 @@ import "./WeeklyAvailabilityTimeline.css";
  * - Ongoing slots: If slotStartHour === currentLocalHour, the slot is ALLOWED (not blocked)
  *   This allows users to book slots that are currently in progress (e.g., 20:00 slot at 20:05)
  * 
+ * AUTO-UPDATE:
+ * - On visibility change (when user returns to tab)
+ * - Every 60 seconds via interval check
+ * - Ensures "Today" is always current
+ * 
  * NOTE: These rules are UI-only. Server-side booking endpoints MUST enforce the same
  * blocking logic independently. Do not rely on client-side blocking alone.
- * 
- * TODO: Backend developers - ensure booking API validates same blocking rules server-side
  */
+
+// Platform timezone for consistent date logic
+const PLATFORM_TIMEZONE = "Europe/Kyiv";
+
+// Auto-update interval in milliseconds (60 seconds)
+const AUTO_UPDATE_INTERVAL = 60 * 1000;
 
 interface WeeklyAvailabilityTimelineProps {
   clubId: string;
@@ -33,6 +47,7 @@ interface WeeklyAvailabilityTimelineProps {
     hour: number,
     courts: CourtAvailabilityStatus[]
   ) => void;
+  defaultMode?: AvailabilityMode;
 }
 
 // Business hours configuration
@@ -53,15 +68,47 @@ function generateHours(): number[] {
 
 const HOURS = generateHours();
 
-// Get current week's Monday date
-function getCurrentWeekMonday(): Date {
-  const today = new Date();
-  const dayOfWeek = today.getDay();
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + mondayOffset);
-  monday.setHours(0, 0, 0, 0);
-  return monday;
+/**
+ * Get today's date in the platform timezone (Europe/Kyiv)
+ */
+function getTodayInTimezone(): Date {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: PLATFORM_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const todayStr = formatter.format(new Date());
+  return new Date(todayStr);
+}
+
+/**
+ * Get today's date string in YYYY-MM-DD format using platform timezone
+ */
+function getTodayStr(): string {
+  return getTodayInTimezone().toISOString().split("T")[0];
+}
+
+/**
+ * Get the start date for the view based on mode
+ * - Rolling: today
+ * - Calendar: this week's Monday
+ */
+function getStartDate(mode: AvailabilityMode): Date {
+  const today = getTodayInTimezone();
+  
+  if (mode === "calendar") {
+    const dayOfWeek = today.getDay();
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+    return monday;
+  }
+  
+  // Rolling mode: start from today
+  today.setHours(0, 0, 0, 0);
+  return today;
 }
 
 // Format date for display using locale
@@ -203,9 +250,11 @@ function ErrorState({ message, onRetry, errorTitle, retryLabel }: ErrorStateProp
 export function WeeklyAvailabilityTimeline({
   clubId,
   onSlotClick,
+  defaultMode = "rolling",
 }: WeeklyAvailabilityTimelineProps) {
   const t = useTranslations("weeklyAvailability");
-  const [weekStart, setWeekStart] = useState<Date>(getCurrentWeekMonday);
+  const [mode, setMode] = useState<AvailabilityMode>(defaultMode);
+  const [startDate, setStartDate] = useState<Date>(() => getStartDate(defaultMode));
   const [data, setData] = useState<WeeklyAvailabilityResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -216,6 +265,7 @@ export function WeeklyAvailabilityTimeline({
     isBlocked?: boolean;
     blockReason?: string;
   } | null>(null);
+  const [currentTodayStr, setCurrentTodayStr] = useState<string>(getTodayStr);
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Get locale from next-intl context for consistent i18n
@@ -229,9 +279,9 @@ export function WeeklyAvailabilityTimeline({
     setError(null);
 
     try {
-      const weekStartStr = weekStart.toISOString().split("T")[0];
+      const startStr = startDate.toISOString().split("T")[0];
       const response = await fetch(
-        `/api/clubs/${clubId}/courts/availability?weekStart=${weekStartStr}`
+        `/api/clubs/${clubId}/courts/availability?start=${startStr}&mode=${mode}`
       );
 
       if (!response.ok) {
@@ -246,22 +296,61 @@ export function WeeklyAvailabilityTimeline({
     } finally {
       setIsLoading(false);
     }
-  }, [clubId, weekStart]);
+  }, [clubId, startDate, mode]);
 
   useEffect(() => {
     fetchAvailability();
   }, [fetchAvailability]);
 
+  // Auto-update: check if date has changed
+  const checkAndUpdateDate = useCallback(() => {
+    const newTodayStr = getTodayStr();
+    if (newTodayStr !== currentTodayStr) {
+      setCurrentTodayStr(newTodayStr);
+      // Reset start date to current today/week when date changes
+      setStartDate(getStartDate(mode));
+    }
+  }, [currentTodayStr, mode]);
+
+  // Auto-update on visibility change (when user returns to tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkAndUpdateDate();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [checkAndUpdateDate]);
+
+  // Auto-update via interval (every 60 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkAndUpdateDate();
+    }, AUTO_UPDATE_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [checkAndUpdateDate]);
+
+  // Handle mode change
+  const handleModeChange = (newMode: AvailabilityMode) => {
+    setMode(newMode);
+    setStartDate(getStartDate(newMode));
+  };
+
   const handlePrevWeek = () => {
-    const prev = new Date(weekStart);
+    const prev = new Date(startDate);
     prev.setDate(prev.getDate() - 7);
-    setWeekStart(prev);
+    setStartDate(prev);
   };
 
   const handleNextWeek = () => {
-    const next = new Date(weekStart);
+    const next = new Date(startDate);
     next.setDate(next.getDate() + 7);
-    setWeekStart(next);
+    setStartDate(next);
   };
 
   const handleBlockClick = (
@@ -342,26 +431,50 @@ export function WeeklyAvailabilityTimeline({
       <div className="tm-weekly-timeline-container">
         <div className="tm-weekly-timeline-header">
           <h3 className="tm-weekly-timeline-title">{t("title")}</h3>
-          <div className="tm-weekly-timeline-week-nav">
-            <Button
-              variant="outline"
-              className="tm-weekly-timeline-nav-btn"
-              onClick={handlePrevWeek}
-              aria-label={t("previousWeek")}
-            >
-              ←
-            </Button>
-            <span className="tm-weekly-timeline-week-label">
-              {formatWeekRange(data.weekStart, data.weekEnd, locale)}
-            </span>
-            <Button
-              variant="outline"
-              className="tm-weekly-timeline-nav-btn"
-              onClick={handleNextWeek}
-              aria-label={t("nextWeek")}
-            >
-              →
-            </Button>
+          <div className="tm-weekly-timeline-controls">
+            {/* Mode toggle */}
+            <div className="tm-weekly-mode-toggle" role="radiogroup" aria-label={t("modeLabel")}>
+              <button
+                type="button"
+                className={`tm-weekly-mode-btn ${mode === "rolling" ? "tm-weekly-mode-btn--active" : ""}`}
+                onClick={() => handleModeChange("rolling")}
+                aria-pressed={mode === "rolling"}
+                aria-label={t("modeRolling")}
+              >
+                {t("modeRolling")}
+              </button>
+              <button
+                type="button"
+                className={`tm-weekly-mode-btn ${mode === "calendar" ? "tm-weekly-mode-btn--active" : ""}`}
+                onClick={() => handleModeChange("calendar")}
+                aria-pressed={mode === "calendar"}
+                aria-label={t("modeCalendar")}
+              >
+                {t("modeCalendar")}
+              </button>
+            </div>
+            {/* Navigation */}
+            <div className="tm-weekly-timeline-week-nav">
+              <Button
+                variant="outline"
+                className="tm-weekly-timeline-nav-btn"
+                onClick={handlePrevWeek}
+                aria-label={t("previousWeek")}
+              >
+                ←
+              </Button>
+              <span className="tm-weekly-timeline-week-label">
+                {formatWeekRange(data.weekStart, data.weekEnd, locale)}
+              </span>
+              <Button
+                variant="outline"
+                className="tm-weekly-timeline-nav-btn"
+                onClick={handleNextWeek}
+                aria-label={t("nextWeek")}
+              >
+                →
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -386,14 +499,26 @@ export function WeeklyAvailabilityTimeline({
           {data.days.map((day) => {
             const localizedDayName = getLocalizedDayName(day.date, locale, "short");
             const { day: dayOfMonth } = parseDateComponents(day.date);
+            const isToday = day.isToday || day.date === currentTodayStr;
             
             return (
-              <div key={day.date} className="tm-weekly-grid-row" role="row">
-                <div className="tm-weekly-grid-day-label" role="rowheader">
-                  <span>{localizedDayName}</span>
-                  <span className="ml-1 opacity-60 text-[10px]">
-                    {dayOfMonth}
-                  </span>
+              <div key={day.date} className={`tm-weekly-grid-row ${isToday ? "tm-weekly-grid-row--today" : ""}`} role="row">
+                <div className={`tm-weekly-grid-day-label ${isToday ? "tm-weekly-grid-day-label--today" : ""}`} role="rowheader">
+                  {isToday ? (
+                    <>
+                      <span className="tm-today-label">{t("todayLabel")}</span>
+                      <span className="ml-1 opacity-60 text-[10px]">
+                        {dayOfMonth}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{localizedDayName}</span>
+                      <span className="ml-1 opacity-60 text-[10px]">
+                        {dayOfMonth}
+                      </span>
+                    </>
+                  )}
                 </div>
                 {day.hours.map((slot) => {
                   const blockStatus = isSlotBlocked(day.date, slot.hour, now);

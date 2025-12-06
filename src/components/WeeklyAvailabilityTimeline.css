@@ -12,11 +12,40 @@
 }
 
 .tm-weekly-timeline-header {
-  @apply flex justify-between items-center mb-4;
+  @apply flex justify-between items-center mb-4 flex-wrap gap-2;
 }
 
 .tm-weekly-timeline-title {
   @apply text-lg font-semibold;
+}
+
+.tm-weekly-timeline-controls {
+  @apply flex items-center gap-4 flex-wrap;
+}
+
+.tm-weekly-mode-toggle {
+  @apply flex rounded-md overflow-hidden;
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-weekly-mode-btn {
+  @apply px-3 py-1 text-xs font-medium transition-colors cursor-pointer;
+  background-color: transparent;
+  color: var(--rsp-foreground);
+  border: none;
+}
+
+.tm-weekly-mode-btn:hover {
+  background-color: var(--rsp-border);
+}
+
+.tm-weekly-mode-btn--active {
+  background-color: var(--rsp-primary);
+  color: white;
+}
+
+.tm-weekly-mode-btn--active:hover {
+  background-color: var(--rsp-primary-hover);
 }
 
 .tm-weekly-timeline-week-nav {
@@ -73,6 +102,16 @@
   @apply p-2 text-xs font-medium flex items-center;
   background-color: var(--rsp-card-bg);
   color: var(--rsp-foreground);
+}
+
+/* Today highlighting */
+.tm-weekly-grid-day-label--today {
+  background-color: var(--rsp-primary);
+  color: white;
+}
+
+.tm-today-label {
+  @apply font-bold;
 }
 
 /* Availability blocks */
