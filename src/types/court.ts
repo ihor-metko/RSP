@@ -79,4 +79,36 @@ export interface WeeklyAvailabilityResponse {
     indoor: boolean;
   }>;
   mode?: AvailabilityMode;
+  canEdit?: boolean;
+  allowedClubs?: string[];
+}
+
+// Court availability block types for admin management
+export interface CourtAvailabilityBlock {
+  id: string;
+  courtId: string;
+  date: string; // YYYY-MM-DD format
+  startTime: string; // HH:mm format
+  endTime: string; // HH:mm format
+  reason?: string | null;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AvailabilityBlockInput {
+  courtId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  reason?: string;
+}
+
+export interface BulkAvailabilityUpdate {
+  clubId: string;
+  changes: {
+    created: AvailabilityBlockInput[];
+    updated: Array<{ id: string } & Partial<AvailabilityBlockInput>>;
+    deleted: string[]; // Array of block IDs to delete
+  };
 }

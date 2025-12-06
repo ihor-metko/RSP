@@ -225,10 +225,11 @@ model Court {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
-  club            Club             @relation(fields: [clubId], references: [id])
-  bookings        Booking[]
-  pricingRules    PricingRule[]
-  courtPriceRules CourtPriceRule[]
+  club                 Club                      @relation(fields: [clubId], references: [id])
+  bookings             Booking[]
+  pricingRules         PricingRule[]
+  courtPriceRules      CourtPriceRule[]
+  availabilityBlocks   CourtAvailabilityBlock[]
 }
 
 model CourtPriceRule {
@@ -245,6 +246,23 @@ model CourtPriceRule {
   court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
 
   @@index([courtId])
+}
+
+model CourtAvailabilityBlock {
+  id         String    @id @default(uuid())
+  courtId    String
+  date       DateTime  @db.Date
+  startTime  String    // "HH:mm" format
+  endTime    String    // "HH:mm" format
+  reason     String?   // Optional reason for blocking (e.g., "Maintenance", "Event")
+  createdBy  String    // User ID who created the block
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@index([courtId])
+  @@index([courtId, date])
 }
 
 model Coach {
