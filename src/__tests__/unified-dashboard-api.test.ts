@@ -80,7 +80,10 @@ describe("Unified Dashboard API", () => {
       (prisma.organization.count as jest.Mock).mockResolvedValue(3);
       (prisma.club.count as jest.Mock).mockResolvedValue(5);
       (prisma.user.count as jest.Mock).mockResolvedValue(100);
-      (prisma.booking.count as jest.Mock).mockResolvedValue(25);
+      (prisma.booking.count as jest.Mock)
+        .mockResolvedValueOnce(25) // activeBookings
+        .mockResolvedValueOnce(20) // activeBookingsCount
+        .mockResolvedValueOnce(50); // pastBookingsCount
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -93,6 +96,8 @@ describe("Unified Dashboard API", () => {
         totalClubs: 5,
         totalUsers: 100,
         activeBookings: 25,
+        activeBookingsCount: 20,
+        pastBookingsCount: 50,
       });
     });
 
@@ -130,6 +135,8 @@ describe("Unified Dashboard API", () => {
         courtsCount: 4,
         bookingsToday: 3,
         clubAdminsCount: 1,
+        activeBookings: 3,
+        pastBookings: 3,
       });
     });
 
@@ -170,6 +177,8 @@ describe("Unified Dashboard API", () => {
         organizationName: "Org 1",
         courtsCount: 3,
         bookingsToday: 5,
+        activeBookings: 5,
+        pastBookings: 5,
       });
     });
 
@@ -242,6 +251,8 @@ describe("Unified Dashboard API", () => {
       expect(response.status).toBe(200);
       expect(data.clubs).toHaveLength(1);
       expect(data.clubs[0].id).toBe("club-1");
+      expect(data.clubs[0].activeBookings).toBe(5);
+      expect(data.clubs[0].pastBookings).toBe(5);
     });
   });
 });

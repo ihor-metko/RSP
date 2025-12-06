@@ -1123,7 +1123,9 @@
     "bookingsToday": "Bookings Today",
     "manageClub": "Manage Club",
     "manageCourts": "Manage Courts",
-    "viewBookings": "View Bookings"
+    "viewBookings": "View Bookings",
+    "byClubs": "Across clubs",
+    "byCourts": "Across courts"
   },
   "adminBookings": {
     "title": "Bookings Management",
@@ -1157,5 +1159,12 @@
     "cancelling": "Cancelling...",
     "statusPaid": "Paid",
     "statusReserved": "Reserved"
+  },
+  "bookingsOverview": {
+    "title": "Bookings Overview",
+    "description": "Summary of active and past bookings",
+    "activeBookings": "Active / Upcoming Bookings",
+    "pastBookings": "Past Bookings",
+    "noBookings": "No bookings available"
   }
 }

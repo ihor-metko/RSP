@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 import KeyMetrics from "@/components/admin/KeyMetrics";
+import BookingsOverview from "@/components/admin/BookingsOverview";
 import { RegisteredUsersCard } from "@/components/admin/RegisteredUsersCard";
 import type { UnifiedDashboardResponse, UnifiedDashboardOrg, UnifiedDashboardClub } from "@/app/api/admin/unified-dashboard/route";
 import "./RootDashboard.css";
@@ -217,8 +218,12 @@ interface OrgCardProps {
 }
 
 function OrgCard({ org }: OrgCardProps) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const t = useTranslations();
+
+  // Prepare breakdown by clubs for organization admin
+  const clubBreakdown = org.clubsCount > 0
+    ? [{ label: t("unifiedDashboard.byClubs"), count: org.clubsCount }]
+    : undefined;
 
   return (
     <div className="im-dashboard-section">
@@ -232,6 +237,12 @@ function OrgCard({ org }: OrgCardProps) {
         courtsCount={org.courtsCount}
         bookingsToday={org.bookingsToday}
         clubAdminsCount={org.clubAdminsCount}
+      />
+
+      <BookingsOverview
+        activeBookings={org.activeBookings}
+        pastBookings={org.pastBookings}
+        activeBreakdown={clubBreakdown}
       />
     </div>
   );
@@ -247,6 +258,11 @@ interface ClubCardProps {
 
 function ClubCard({ club }: ClubCardProps) {
   const t = useTranslations();
+
+  // Prepare breakdown by courts for club admin
+  const courtBreakdown = club.courtsCount > 0
+    ? [{ label: t("unifiedDashboard.byCourts"), count: club.courtsCount }]
+    : undefined;
 
   return (
     <div className="im-dashboard-section">
@@ -271,6 +287,12 @@ function ClubCard({ club }: ClubCardProps) {
           colorClass="im-stat-card--bookings"
         />
       </div>
+
+      <BookingsOverview
+        activeBookings={club.activeBookings}
+        pastBookings={club.pastBookings}
+        activeBreakdown={courtBreakdown}
+      />
 
       <div className="im-nav-links-section">
         <nav className="im-nav-links-grid im-nav-links-grid--club" aria-label={t("unifiedDashboard.managementLinks")}>
@@ -474,6 +496,12 @@ export default function AdminDashboardPage() {
             <div className="im-stats-grid" style={{ gridTemplateColumns: "1fr" }}>
               <RegisteredUsersCard />
             </div>
+
+            {/* Bookings Overview Section */}
+            <BookingsOverview
+              activeBookings={dashboardData.platformStats.activeBookingsCount}
+              pastBookings={dashboardData.platformStats.pastBookingsCount}
+            />
 
             <div className="im-dashboard-section">
               <h2 className="im-dashboard-section-title">

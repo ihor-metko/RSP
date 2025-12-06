@@ -14,6 +14,8 @@ export interface UnifiedDashboardOrg {
   courtsCount: number;
   bookingsToday: number;
   clubAdminsCount: number;
+  activeBookings: number;
+  pastBookings: number;
 }
 
 /**
@@ -27,6 +29,8 @@ export interface UnifiedDashboardClub {
   organizationName: string | null;
   courtsCount: number;
   bookingsToday: number;
+  activeBookings: number;
+  pastBookings: number;
 }
 
 /**
@@ -36,7 +40,10 @@ export interface UnifiedDashboardResponse {
   adminType: AdminType;
   isRoot: boolean;
   // Root admin data
-  platformStats?: PlatformStatistics;
+  platformStats?: PlatformStatistics & {
+    activeBookingsCount: number;
+    pastBookingsCount: number;
+  };
   // Organization admin data
   organizations?: UnifiedDashboardOrg[];
   // Club admin data
@@ -67,12 +74,44 @@ export async function GET(
   try {
     if (adminType === "root_admin") {
       // Fetch platform-wide statistics for root admin
-      const [totalOrganizations, totalClubs, totalUsers, activeBookings] = await Promise.all([
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const [
+        totalOrganizations,
+        totalClubs,
+        totalUsers,
+        activeBookings,
+        activeBookingsCount,
+        pastBookingsCount,
+      ] = await Promise.all([
         prisma.organization.count(),
         prisma.club.count(),
         prisma.user.count(),
         prisma.booking.count({
           where: {
+            status: {
+              in: ["pending", "paid"],
+            },
+          },
+        }),
+        // Active/Upcoming bookings: today and future
+        prisma.booking.count({
+          where: {
+            start: {
+              gte: today,
+            },
+            status: {
+              in: ["pending", "paid"],
+            },
+          },
+        }),
+        // Past bookings: before today (completed bookings only)
+        prisma.booking.count({
+          where: {
+            start: {
+              lt: today,
+            },
             status: {
               in: ["pending", "paid"],
             },
@@ -88,6 +127,8 @@ export async function GET(
           totalClubs,
           totalUsers,
           activeBookings,
+          activeBookingsCount,
+          pastBookingsCount,
         },
       };
 
@@ -103,7 +144,15 @@ export async function GET(
 
       const organizations = await Promise.all(
         managedIds.map(async (orgId) => {
-          const [org, clubsCount, courtsCount, bookingsToday, clubAdminsCount] = await Promise.all([
+          const [
+            org,
+            clubsCount,
+            courtsCount,
+            bookingsToday,
+            clubAdminsCount,
+            activeBookings,
+            pastBookings,
+          ] = await Promise.all([
             prisma.organization.findUnique({
               where: { id: orgId },
               select: { id: true, name: true, slug: true },
@@ -122,6 +171,22 @@ export async function GET(
                 club: { organizationId: orgId },
               },
             }),
+            // Active/Upcoming bookings: today and future
+            prisma.booking.count({
+              where: {
+                court: { club: { organizationId: orgId } },
+                start: { gte: today },
+                status: { in: ["pending", "paid"] },
+              },
+            }),
+            // Past bookings: before today (completed bookings only)
+            prisma.booking.count({
+              where: {
+                court: { club: { organizationId: orgId } },
+                start: { lt: today },
+                status: { in: ["pending", "paid"] },
+              },
+            }),
           ]);
 
           if (!org) return null;
@@ -134,6 +199,8 @@ export async function GET(
             courtsCount,
             bookingsToday,
             clubAdminsCount,
+            activeBookings,
+            pastBookings,
           };
         })
       );
@@ -156,27 +223,44 @@ export async function GET(
 
       const clubs = await Promise.all(
         managedIds.map(async (clubId) => {
-          const [club, courtsCount, bookingsToday] = await Promise.all([
-            prisma.club.findUnique({
-              where: { id: clubId },
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-                organizationId: true,
-                organization: {
-                  select: { name: true },
+          const [club, courtsCount, bookingsToday, activeBookings, pastBookings] =
+            await Promise.all([
+              prisma.club.findUnique({
+                where: { id: clubId },
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  organizationId: true,
+                  organization: {
+                    select: { name: true },
+                  },
                 },
-              },
-            }),
-            prisma.court.count({ where: { clubId } }),
-            prisma.booking.count({
-              where: {
-                court: { clubId },
-                start: { gte: today, lt: tomorrow },
-              },
-            }),
-          ]);
+              }),
+              prisma.court.count({ where: { clubId } }),
+              prisma.booking.count({
+                where: {
+                  court: { clubId },
+                  start: { gte: today, lt: tomorrow },
+                },
+              }),
+              // Active/Upcoming bookings: today and future
+              prisma.booking.count({
+                where: {
+                  court: { clubId },
+                  start: { gte: today },
+                  status: { in: ["pending", "paid"] },
+                },
+              }),
+              // Past bookings: before today (completed bookings only)
+              prisma.booking.count({
+                where: {
+                  court: { clubId },
+                  start: { lt: today },
+                  status: { in: ["pending", "paid"] },
+                },
+              }),
+            ]);
 
           if (!club) return null;
 
@@ -188,6 +272,8 @@ export async function GET(
             organizationName: club.organization?.name ?? null,
             courtsCount,
             bookingsToday,
+            activeBookings,
+            pastBookings,
           };
         })
       );
