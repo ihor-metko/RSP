@@ -61,20 +61,18 @@ export async function GET(request: Request, { params }: RouteParams) {
       };
     } = { userId };
 
-    // Determine effective scope
-    let effectiveScope: string | null | undefined = scopeParam;
-    if (!effectiveScope) {
-      effectiveScope = scope;
-    }
-
-    // Validate scope access
-    if (effectiveScope === "all" && scope !== "root") {
-      // Non-root admins cannot request "all" scope
-      effectiveScope = scope;
-    }
-
-    if (effectiveScope === "org" && scope === "club") {
-      // Club admins cannot request org scope
+    // Determine effective scope - normalize query param to internal scope type
+    let effectiveScope: "root" | "organization" | "club" | undefined = scope;
+    
+    // Map query params to internal scope types
+    if (scopeParam === "all" && scope === "root") {
+      effectiveScope = "root";
+    } else if (scopeParam === "org" || scopeParam === "organization") {
+      // Only allow org scope if caller has at least organization-level access
+      if (scope === "root" || scope === "organization") {
+        effectiveScope = "organization";
+      }
+    } else if (scopeParam === "club") {
       effectiveScope = "club";
     }
 

@@ -87,9 +87,7 @@ export async function canViewUser(
       ? orgIds.filter((id) => id === context.organizationId)
       : orgIds;
 
-    if (orgsToCheck.length === 0) {
-      // Caller is not admin of the specified organization
-    } else {
+    if (orgsToCheck.length > 0) {
       // Check if target user has membership in any of the caller's organizations
       const targetMembership = await prisma.membership.findFirst({
         where: {
