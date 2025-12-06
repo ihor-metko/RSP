@@ -52,9 +52,19 @@ When mock mode is active:
 
 2. **API Routes**: The following API routes support mock mode:
    - `GET /api/admin/bookings` - List bookings with filters
+   - `GET /api/admin/bookings/[id]` - Get booking details
    - `POST /api/admin/bookings/create` - Create new booking
    - `GET /api/admin/clubs` - List clubs
+   - `GET /api/admin/clubs/[id]` - Get club details
    - `POST /api/admin/clubs` - Create new club
+   - `GET /api/admin/organizations` - List organizations
+   - `GET /api/admin/courts` - List courts
+   - `GET /api/admin/users/list` - List users with pagination and filters
+   - `GET /api/admin/users/[userId]` - Get user details
+   - `GET /api/admin/unified-dashboard` - Dashboard statistics
+   - `GET /api/me/admin-status` - Current user admin status
+   - `GET /api/(player)/clubs/[id]/available-courts` - Available courts for booking
+   - `GET /api/(player)/clubs/[id]/courts` - Club courts list
 
 3. **Visual Indicator**: A warning banner appears at the top of the page (dev mode only) showing that mock mode is active.
 

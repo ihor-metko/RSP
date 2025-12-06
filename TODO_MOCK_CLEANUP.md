@@ -24,18 +24,41 @@ Search for `TEMPORARY MOCK MODE` comments and remove the blocks:
   - Remove `isMockMode`, `mockGetBookings` imports
   - Remove mock mode check and handler in GET function
   
-- [ ] `/src/app/api/admin/clubs/route.ts`
-  - Remove `isMockMode`, `mockGetClubs`, `mockCreateClub` imports
-  - Remove mock mode checks in GET and POST functions
+- [ ] `/src/app/api/admin/bookings/[id]/route.ts`
+  - Remove mock imports and mode check in GET function
   
 - [ ] `/src/app/api/admin/bookings/create/route.ts`
   - Remove mock imports
   - Remove entire mock mode block (large section)
+  
+- [ ] `/src/app/api/admin/clubs/route.ts`
+  - Remove `isMockMode`, `mockGetClubs`, `mockCreateClub` imports
+  - Remove mock mode checks in GET and POST functions
+  
+- [ ] `/src/app/api/admin/clubs/[id]/route.ts`
+  - Remove mock imports and mode checks
 
-- [ ] Check other API routes that may have been updated:
-  - `/src/app/api/admin/organizations/route.ts`
-  - `/src/app/api/admin/courts/route.ts`
-  - Any other routes with mock integration
+- [ ] `/src/app/api/admin/organizations/route.ts`
+  - Remove mock imports and mode checks
+
+- [ ] `/src/app/api/admin/courts/route.ts`
+  - Remove mock imports and mode checks
+
+- [ ] `/src/app/api/admin/users/list/route.ts`
+  - Remove mock imports and mode checks
+
+- [ ] `/src/app/api/admin/users/[userId]/route.ts`
+  - Remove mock imports and mode checks
+
+- [ ] `/src/app/api/admin/unified-dashboard/route.ts`
+  - Remove mock imports and mode checks
+
+- [ ] `/src/app/api/me/admin-status/route.ts`
+  - Remove mock imports and mode checks
+
+- [ ] Check player API routes:
+  - `/src/app/api/(player)/clubs/[id]/available-courts/route.ts`
+  - `/src/app/api/(player)/clubs/[id]/courts/route.ts`
 
 ### 3. Remove Environment Variable Configuration
 
