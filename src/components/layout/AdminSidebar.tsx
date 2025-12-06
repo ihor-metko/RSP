@@ -295,15 +295,27 @@ function getNavItems(): NavItem[] {
       labelKey: "sidebar.dashboard",
       icon: <DashboardIcon />,
     },
-    // Platform Statistics - Root Admin only
+    // Bookings
     {
-      id: "statistics",
-      href: "/admin/statistics",
-      labelKey: "sidebar.statistics",
-      icon: <StatsIcon />,
-      rootOnly: true,
-      disabled: true,
-      badge: "sidebar.comingSoon",
+      id: "bookings",
+      href: "/admin/bookings",
+      labelKey: "sidebar.bookings",
+      icon: <BookingsIcon />,
+    },
+    // Courts Management - Visible for all admin types
+    {
+      id: "courts",
+      href: "/admin/courts",
+      labelKey: "sidebar.courts",
+      icon: <CourtsIcon />,
+    },
+    // Clubs Management - Hidden for ClubAdmin (they get direct link to their club)
+    {
+      id: "clubs",
+      href: "/admin/clubs",
+      labelKey: "sidebar.clubs",
+      icon: <ClubsIcon />,
+      hideForClubAdmin: true,
     },
     // Organizations - Root Admin only
     {
@@ -321,34 +333,21 @@ function getNavItems(): NavItem[] {
       icon: <UsersIcon />,
       rootOnly: true,
     },
-    // Clubs Management - Hidden for ClubAdmin (they get direct link to their club)
-    {
-      id: "clubs",
-      href: "/admin/clubs",
-      labelKey: "sidebar.clubs",
-      icon: <ClubsIcon />,
-      hideForClubAdmin: true,
-    },
-    // Courts Management - Visible for all admin types
-    {
-      id: "courts",
-      href: "/admin/courts",
-      labelKey: "sidebar.courts",
-      icon: <CourtsIcon />,
-    },
-    // Bookings
-    {
-      id: "bookings",
-      href: "/admin/bookings",
-      labelKey: "sidebar.bookings",
-      icon: <BookingsIcon />,
-    },
     // Notifications
     {
       id: "notifications",
       href: "/admin/notifications",
       labelKey: "sidebar.notifications",
       icon: <NotificationsIcon />,
+    },
+    // Analytics
+    {
+      id: "analytics",
+      href: "/admin/analytics",
+      labelKey: "sidebar.analytics",
+      icon: <StatsIcon />,
+      disabled: true,
+      badge: "sidebar.comingSoon",
     },
     // Global Settings - Root Admin only
     {
@@ -541,7 +540,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
   const navItems = useMemo(() => {
     const allItems = getNavItems();
     let filteredItems = filterNavByRoot(allItems, isRoot, isClubAdmin);
-    
+
     // For ClubAdmin, insert a direct link to their assigned club after Dashboard
     if (isClubAdmin && adminStatus?.assignedClub) {
       const clubLink: NavItem = {
@@ -551,7 +550,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
         dynamicLabel: adminStatus.assignedClub.name,
         icon: <ClubsIcon />,
       };
-      
+
       // Insert after dashboard (index 0)
       const dashboardIndex = filteredItems.findIndex(item => item.id === "dashboard");
       if (dashboardIndex >= 0) {
@@ -564,7 +563,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
         filteredItems = [clubLink, ...filteredItems];
       }
     }
-    
+
     return filteredItems;
   }, [isRoot, isClubAdmin, adminStatus?.assignedClub]);
 
@@ -692,7 +691,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
             <div className="im-sidebar-header-text">
               <div className="im-sidebar-title">{t("sidebar.title")}</div>
               {roleInfo && (
-                <span 
+                <span
                   className={roleInfo.className}
                   title={'tooltip' in roleInfo ? roleInfo.tooltip : undefined}
                   aria-label={'tooltip' in roleInfo ? roleInfo.tooltip : roleInfo.label}
@@ -783,7 +782,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
               </li>
             ))}
           </ul>
-          
+
           {/* Message for ClubAdmin without assigned club */}
           {isClubAdmin && !adminStatus?.assignedClub && !isCollapsed && (
             <div className="im-sidebar-no-club-message" role="alert">
