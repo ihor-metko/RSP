@@ -1,0 +1,112 @@
+@reference "tailwindcss";
+
+/* ===== Tooltip Container ===== */
+.im-tooltip-container {
+  @apply relative inline-flex;
+}
+
+/* ===== Tooltip ===== */
+.im-tooltip {
+  @apply absolute z-50 pointer-events-none;
+  animation: im-tooltip-fade-in 0.15s ease-out;
+}
+
+@keyframes im-tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.im-tooltip-content {
+  @apply px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap;
+  background-color: var(--im-tooltip-bg, #1f2937);
+  color: var(--im-tooltip-text, #f9fafb);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark .im-tooltip-content {
+  background-color: var(--im-tooltip-bg-dark, #374151);
+  color: var(--im-tooltip-text-dark, #f9fafb);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== Tooltip Arrow ===== */
+.im-tooltip-arrow {
+  @apply absolute w-0 h-0;
+  border: 6px solid transparent;
+}
+
+/* ===== Position Variants ===== */
+
+/* Top (default) */
+.im-tooltip--top {
+  @apply bottom-full left-1/2 mb-2;
+  transform: translateX(-50%);
+}
+
+.im-tooltip--top .im-tooltip-arrow {
+  @apply top-full left-1/2;
+  transform: translateX(-50%);
+  border-top-color: var(--im-tooltip-bg, #1f2937);
+  border-bottom-width: 0;
+}
+
+.dark .im-tooltip--top .im-tooltip-arrow {
+  border-top-color: var(--im-tooltip-bg-dark, #374151);
+}
+
+/* Bottom */
+.im-tooltip--bottom {
+  @apply top-full left-1/2 mt-2;
+  transform: translateX(-50%);
+}
+
+.im-tooltip--bottom .im-tooltip-arrow {
+  @apply bottom-full left-1/2;
+  transform: translateX(-50%);
+  border-bottom-color: var(--im-tooltip-bg, #1f2937);
+  border-top-width: 0;
+}
+
+.dark .im-tooltip--bottom .im-tooltip-arrow {
+  border-bottom-color: var(--im-tooltip-bg-dark, #374151);
+}
+
+/* Left */
+.im-tooltip--left {
+  @apply right-full top-1/2 mr-2;
+  transform: translateY(-50%);
+}
+
+.im-tooltip--left .im-tooltip-arrow {
+  @apply left-full top-1/2;
+  transform: translateY(-50%);
+  border-left-color: var(--im-tooltip-bg, #1f2937);
+  border-right-width: 0;
+}
+
+.dark .im-tooltip--left .im-tooltip-arrow {
+  border-left-color: var(--im-tooltip-bg-dark, #374151);
+}
+
+/* Right */
+.im-tooltip--right {
+  @apply left-full top-1/2 ml-2;
+  transform: translateY(-50%);
+}
+
+.im-tooltip--right .im-tooltip-arrow {
+  @apply right-full top-1/2;
+  transform: translateY(-50%);
+  border-right-color: var(--im-tooltip-bg, #1f2937);
+  border-left-width: 0;
+}
+
+.dark .im-tooltip--right .im-tooltip-arrow {
+  border-right-color: var(--im-tooltip-bg-dark, #374151);
+}
