@@ -37,6 +37,8 @@
   --rsp-primary-hover: #16A085;
   --rsp-secondary: #9B59B6;
   --rsp-secondary-hover: #8E44AD;
+  --rsp-danger: #dc2626;
+  --rsp-danger-hover: #b91c1c;
   --rsp-border: #e5e7eb;
   --rsp-card-bg: #f9fafb;
   --rsp-accent: #0A0A0A;
@@ -118,6 +120,8 @@
   --rsp-primary-hover: #837DFF;
   --rsp-secondary: #FF3CAC;
   --rsp-secondary-hover: #FF5DB0;
+  --rsp-danger: #ef4444;
+  --rsp-danger-hover: #dc2626;
   --rsp-border: #1A1A1A;
   --rsp-card-bg: #121212;
   --rsp-accent: #ffffff;

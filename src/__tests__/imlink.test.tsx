@@ -7,9 +7,11 @@ import { IMLink } from "@/components/ui/IMLink";
 
 // Mock next/link
 jest.mock("next/link", () => {
-  return ({ children, href, className }: { children: React.ReactNode; href: string; className?: string }) => {
+  const MockLink = ({ children, href, className }: { children: React.ReactNode; href: string; className?: string }) => {
     return <a href={href} className={className}>{children}</a>;
   };
+  MockLink.displayName = "Link";
+  return MockLink;
 });
 
 describe("IMLink Component", () => {

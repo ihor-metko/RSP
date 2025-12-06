@@ -53,12 +53,12 @@
 }
 
 .im-link--button-danger {
-  background-color: #dc2626;
+  background-color: var(--rsp-danger);
   color: white;
 }
 
 .im-link--button-danger:hover {
-  background-color: #b91c1c;
+  background-color: var(--rsp-danger-hover);
   color: white;
 }
 

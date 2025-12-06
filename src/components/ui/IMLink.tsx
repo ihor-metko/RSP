@@ -20,11 +20,16 @@ export function IMLink({
 }: IMLinkProps) {
   // If asButton is true, use button styles from rsp-button
   const buttonClass = asButton ? "im-link--button" : "im-link";
-  const variantClass = asButton && variant === "outline" 
-    ? "im-link--button-outline" 
-    : asButton && variant === "danger" 
-    ? "im-link--button-danger" 
-    : "";
+  
+  let variantClass = "";
+  if (asButton) {
+    if (variant === "outline") {
+      variantClass = "im-link--button-outline";
+    } else if (variant === "danger") {
+      variantClass = "im-link--button-danger";
+    }
+  }
+  
   const sizeClass = asButton && size === "small" ? "im-link--button-small" : "";
   
   const linkClassName = `${buttonClass} ${variantClass} ${sizeClass} ${className}`.trim();
