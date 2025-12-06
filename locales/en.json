@@ -757,9 +757,13 @@
       "totalClubs": "Total Clubs",
       "totalUsers": "Registered Users",
       "activeBookings": "Active Bookings",
+      "registeredUsers": "Registered Users",
+      "registeredUsersDescription": "Real, active platform users (excluding admins)",
+      "trendLabel": "Last 30 days activity",
       "platformOverview": "Platform Overview",
       "platformOverviewDescription": "This dashboard provides a high-level view of the entire platform. More detailed analytics and management features will be added in future updates.",
-      "failedToLoad": "Failed to load dashboard statistics. Please try again later."
+      "failedToLoad": "Failed to load dashboard statistics. Please try again later.",
+      "failedToLoadRegisteredUsers": "Failed to load registered users data. Please try again later."
     }
   },
   "sidebar": {

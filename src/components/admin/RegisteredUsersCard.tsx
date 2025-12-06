@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import type { RegisteredUsersResponse } from "@/app/api/admin/dashboard/registered-users/route";
 import "./RegisteredUsersCard.css";
 
@@ -17,6 +18,7 @@ interface RegisteredUsersCardProps {
  * Access: Root Admin only (enforced server-side)
  */
 export function RegisteredUsersCard({ className = "" }: RegisteredUsersCardProps) {
+  const t = useTranslations("rootAdmin.dashboard");
   const [data, setData] = useState<RegisteredUsersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export function RegisteredUsersCard({ className = "" }: RegisteredUsersCardProps
       <div className={`im-registered-users-card ${className}`.trim()}>
         <div className="im-registered-users-loading">
           <div className="im-registered-users-spinner" />
-          <span className="im-registered-users-loading-text">Loading...</span>
+          <span className="im-registered-users-loading-text">{t("loading", { ns: "common" })}</span>
         </div>
       </div>
     );
@@ -60,7 +62,7 @@ export function RegisteredUsersCard({ className = "" }: RegisteredUsersCardProps
     return (
       <div className={`im-registered-users-card ${className}`.trim()}>
         <div className="im-registered-users-error">
-          <p>{error}</p>
+          <p>{t("failedToLoadRegisteredUsers")}</p>
         </div>
       </div>
     );
@@ -95,7 +97,7 @@ export function RegisteredUsersCard({ className = "" }: RegisteredUsersCardProps
         </div>
         <div className="im-registered-users-content">
           <h3 className="im-registered-users-value">{data.totalUsers.toLocaleString()}</h3>
-          <p className="im-registered-users-title">Registered Users</p>
+          <p className="im-registered-users-title">{t("registeredUsers")}</p>
         </div>
       </div>
 
@@ -138,7 +140,7 @@ export function RegisteredUsersCard({ className = "" }: RegisteredUsersCardProps
             />
           </svg>
         </div>
-        <p className="im-registered-users-trend-label">Last 30 days activity</p>
+        <p className="im-registered-users-trend-label">{t("trendLabel")}</p>
       </div>
     </div>
   );
