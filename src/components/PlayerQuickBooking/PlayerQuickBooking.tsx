@@ -41,7 +41,7 @@ export function PlayerQuickBooking({
   );
 
   // Initialize state with preselected data
-  const getInitialState = useCallback((): PlayerQuickBookingState => {
+  const [state, setState] = useState<PlayerQuickBookingState>(() => {
     const initialDateTime = preselectedDateTime || {
       date: getTodayDateString(),
       startTime: "10:00",
@@ -76,16 +76,47 @@ export function PlayerQuickBooking({
       isSubmitting: false,
       submitError: null,
     };
-  }, [preselectedClubId, preselectedCourtId, preselectedDateTime, visibleSteps]);
+  });
 
-  const [state, setState] = useState<PlayerQuickBookingState>(getInitialState());
-
-  // Reset state when modal closes or preselected data changes
+  // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      setState(getInitialState());
+      const initialDateTime = preselectedDateTime || {
+        date: getTodayDateString(),
+        startTime: "10:00",
+        duration: MINUTES_PER_HOUR,
+      };
+
+      setState({
+        currentStep: visibleSteps[0]?.id || 0,
+        step0: {
+          selectedClubId: preselectedClubId || null,
+          selectedClub: null,
+        },
+        step1: initialDateTime,
+        step2: {
+          selectedCourtId: preselectedCourtId || null,
+          selectedCourt: null,
+        },
+        step3: {
+          paymentMethod: null,
+        },
+        step4: {
+          bookingId: null,
+          confirmed: false,
+        },
+        availableClubs: [],
+        availableCourts: [],
+        isLoadingClubs: false,
+        isLoadingCourts: false,
+        clubsError: null,
+        courtsError: null,
+        estimatedPrice: null,
+        isSubmitting: false,
+        submitError: null,
+      });
     }
-  }, [isOpen, getInitialState]);
+  }, [isOpen]); // Only depend on isOpen, not on preselected data to avoid reset loops
 
   // Fetch club data if preselected
   useEffect(() => {
