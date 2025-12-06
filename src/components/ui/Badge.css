@@ -1,0 +1,97 @@
+@reference "tailwindcss";
+
+/* ===== Badge Component ===== */
+.im-badge {
+  @apply inline-flex items-center gap-1 font-medium rounded-full;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Size variants */
+.im-badge--small {
+  @apply px-2 py-0.5 text-xs;
+}
+
+.im-badge--medium {
+  @apply px-2.5 py-1 text-xs;
+}
+
+/* Badge icon */
+.im-badge-icon {
+  @apply flex-shrink-0;
+}
+
+.im-badge-icon svg {
+  @apply w-3 h-3;
+}
+
+.im-badge--medium .im-badge-icon svg {
+  @apply w-3.5 h-3.5;
+}
+
+/* ===== Color Variants ===== */
+
+/* Default - Gray/Neutral */
+.im-badge--default {
+  background-color: var(--im-badge-default-bg, #e5e7eb);
+  color: var(--im-badge-default-text, #374151);
+}
+
+.dark .im-badge--default {
+  background-color: var(--im-badge-default-bg-dark, #374151);
+  color: var(--im-badge-default-text-dark, #d1d5db);
+}
+
+/* Success - Green */
+.im-badge--success {
+  background-color: var(--im-badge-success-bg, #d1fae5);
+  color: var(--im-badge-success-text, #065f46);
+}
+
+.dark .im-badge--success {
+  background-color: var(--im-badge-success-bg-dark, rgba(16, 185, 129, 0.2));
+  color: var(--im-badge-success-text-dark, #34d399);
+}
+
+/* Warning - Yellow/Amber */
+.im-badge--warning {
+  background-color: var(--im-badge-warning-bg, #fef3c7);
+  color: var(--im-badge-warning-text, #92400e);
+}
+
+.dark .im-badge--warning {
+  background-color: var(--im-badge-warning-bg-dark, rgba(245, 158, 11, 0.2));
+  color: var(--im-badge-warning-text-dark, #fbbf24);
+}
+
+/* Error - Red */
+.im-badge--error {
+  background-color: var(--im-badge-error-bg, #fee2e2);
+  color: var(--im-badge-error-text, #991b1b);
+}
+
+.dark .im-badge--error {
+  background-color: var(--im-badge-error-bg-dark, rgba(239, 68, 68, 0.2));
+  color: var(--im-badge-error-text-dark, #f87171);
+}
+
+/* Info - Blue */
+.im-badge--info {
+  background-color: var(--im-badge-info-bg, #dbeafe);
+  color: var(--im-badge-info-text, #1e40af);
+}
+
+.dark .im-badge--info {
+  background-color: var(--im-badge-info-bg-dark, rgba(59, 130, 246, 0.2));
+  color: var(--im-badge-info-text-dark, #60a5fa);
+}
+
+/* Primary - Teal/Brand */
+.im-badge--primary {
+  background-color: var(--im-badge-primary-bg, rgba(26, 188, 156, 0.15));
+  color: var(--im-badge-primary-text, #0d7377);
+}
+
+.dark .im-badge--primary {
+  background-color: var(--im-badge-primary-bg-dark, rgba(26, 188, 156, 0.25));
+  color: var(--im-badge-primary-text-dark, #2ecc71);
+}

@@ -870,6 +870,7 @@
     },
     "actions": {
       "view": "View",
+      "viewDetails": "View user details",
       "editRole": "Edit Role",
       "block": "Block",
       "unblock": "Unblock",
@@ -890,6 +891,11 @@
       "recentBookings": "Recent Bookings"
     },
     "noDetailsAvailable": "No details available",
+    "noUsersDescription": "Try adjusting your filters or search criteria",
+    "neverLoggedIn": "Never logged in",
+    "unnamed": "Unnamed User",
+    "tableLabel": "Users table",
+    "filters": "Filters",
     "editRole": "Edit User Role",
     "editRoleFor": "Changing role for",
     "selectOrganization": "Select Organization",

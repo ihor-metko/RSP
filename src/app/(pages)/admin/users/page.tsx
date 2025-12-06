@@ -5,8 +5,157 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { Button, Input, Modal, PageHeader, Breadcrumbs, Select } from "@/components/ui";
+import { Button, Input, Modal, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
 import "./page.css";
+
+/* Icon Components */
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </svg>
+  );
+}
+
+function UserIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+    </svg>
+  );
+}
+
+function BuildingIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
+      <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
+      <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
+      <path d="M10 6h4" />
+      <path d="M10 10h4" />
+      <path d="M10 14h4" />
+      <path d="M10 18h4" />
+    </svg>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EditIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+      <path d="m15 5 4 4" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function UnlockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+      <line x1="16" x2="16" y1="2" y2="6" />
+      <line x1="8" x2="8" y1="2" y2="6" />
+      <line x1="3" x2="21" y1="10" y2="10" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect width="20" height="16" x="2" y="4" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
 
 interface Organization {
   id: string;
@@ -368,6 +517,29 @@ export default function AdminUsersPage() {
     return labels[role] || role;
   };
 
+  const getRoleBadgeVariant = (role: string): "error" | "info" | "warning" | "default" => {
+    const variants: Record<string, "error" | "info" | "warning" | "default"> = {
+      root_admin: "error",
+      organization_admin: "info",
+      club_admin: "warning",
+      user: "default",
+    };
+    return variants[role] || "default";
+  };
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "root_admin":
+        return <ShieldIcon />;
+      case "organization_admin":
+        return <BuildingIcon />;
+      case "club_admin":
+        return <HomeIcon />;
+      default:
+        return <UserIcon />;
+    }
+  };
+
   const roleOptions = [
     { value: "", label: t("common.allRoles") },
     { value: "root_admin", label: t("users.roles.rootAdmin") },
@@ -412,8 +584,18 @@ export default function AdminUsersPage() {
 
       {/* Toast Notification */}
       {toast && (
-        <div className={`im-toast im-toast--${toast.type}`}>
-          {toast.message}
+        <div className={`im-toast im-toast--${toast.type}`} role="alert">
+          <span className="im-toast-icon">
+            {toast.type === "success" ? "✓" : "✕"}
+          </span>
+          <span className="im-toast-message">{toast.message}</span>
+          <button
+            className="im-toast-close"
+            onClick={() => setToast(null)}
+            aria-label={t("common.close")}
+          >
+            <XIcon />
+          </button>
         </div>
       )}
 
@@ -428,100 +610,129 @@ export default function AdminUsersPage() {
           ariaLabel={t("breadcrumbs.navigation")}
         />
 
-        {/* Filters */}
-        <div className="im-admin-users-filters">
-          <div className="im-filter-field im-filter-field--search">
-            <Input
-              label={t("common.search")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("users.searchPlaceholder")}
-            />
+        {/* Filters Card */}
+        <Card className="im-filters-card">
+          <div className="im-filters-header">
+            <div className="im-filters-title">
+              <FilterIcon />
+              <span>{t("users.filters")}</span>
+            </div>
+            {(searchQuery || roleFilter || statusFilter || organizationFilter || clubFilter) && (
+              <Button variant="outline" size="small" onClick={handleClearFilters}>
+                <XIcon />
+                {t("users.clearFilters")}
+              </Button>
+            )}
           </div>
-          <div className="im-filter-field">
-            <Select
-              label={t("users.filterByRole")}
-              options={roleOptions}
-              value={roleFilter}
-              onChange={(value) => {
-                setRoleFilter(value);
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
-            />
+          <div className="im-filters-grid">
+            <div className="im-filter-field im-filter-field--search">
+              <div className="im-search-input-wrapper">
+                <span className="im-search-icon"><SearchIcon /></span>
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t("users.searchPlaceholder")}
+                  aria-label={t("common.search")}
+                />
+              </div>
+            </div>
+            <div className="im-filter-field">
+              <Select
+                label={t("users.filterByRole")}
+                options={roleOptions}
+                value={roleFilter}
+                onChange={(value) => {
+                  setRoleFilter(value);
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+              />
+            </div>
+            <div className="im-filter-field">
+              <Select
+                label={t("users.filterByStatus")}
+                options={statusOptions}
+                value={statusFilter}
+                onChange={(value) => {
+                  setStatusFilter(value);
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+              />
+            </div>
+            <div className="im-filter-field">
+              <Select
+                label={t("users.filterByOrganization")}
+                options={organizationOptions}
+                value={organizationFilter}
+                onChange={(value) => {
+                  setOrganizationFilter(value);
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+              />
+            </div>
+            <div className="im-filter-field">
+              <Select
+                label={t("users.filterByClub")}
+                options={clubOptions}
+                value={clubFilter}
+                onChange={(value) => {
+                  setClubFilter(value);
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+              />
+            </div>
           </div>
-          <div className="im-filter-field">
-            <Select
-              label={t("users.filterByStatus")}
-              options={statusOptions}
-              value={statusFilter}
-              onChange={(value) => {
-                setStatusFilter(value);
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
-            />
-          </div>
-          <div className="im-filter-field">
-            <Select
-              label={t("users.filterByOrganization")}
-              options={organizationOptions}
-              value={organizationFilter}
-              onChange={(value) => {
-                setOrganizationFilter(value);
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
-            />
-          </div>
-          <div className="im-filter-field">
-            <Select
-              label={t("users.filterByClub")}
-              options={clubOptions}
-              value={clubFilter}
-              onChange={(value) => {
-                setClubFilter(value);
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
-            />
-          </div>
-          <div className="im-filter-actions">
-            <Button variant="outline" onClick={handleClearFilters}>
-              {t("users.clearFilters")}
-            </Button>
-          </div>
-        </div>
+        </Card>
 
         {(error || errorKey) && (
-          <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-            {error || (errorKey && t(errorKey))}
+          <div className="im-error-alert" role="alert">
+            <span className="im-error-icon">!</span>
+            <span>{error || (errorKey && t(errorKey))}</span>
           </div>
         )}
 
         {users.length === 0 && !loading ? (
-          <div className="im-admin-users-empty">
-            <p className="im-admin-users-empty-text">{t("users.noUsers")}</p>
-          </div>
+          <Card className="im-empty-state">
+            <div className="im-empty-state-icon">
+              <UserIcon />
+            </div>
+            <h3 className="im-empty-state-title">{t("users.noUsers")}</h3>
+            <p className="im-empty-state-description">{t("users.noUsersDescription")}</p>
+          </Card>
         ) : (
           <>
             {/* Users Table */}
-            <div className="im-admin-users-table-wrapper">
-              <table className="im-admin-users-table">
-                <thead>
+            <div className="im-users-table-container">
+              <table className="im-users-table" aria-label={t("users.tableLabel")}>
+                <thead className="im-users-table-head">
                   <tr>
                     <th
-                      className={`im-sortable ${sortBy === "name" ? "im-sorted" : ""}`}
+                      className={`im-th-sortable ${sortBy === "name" ? "im-th-sorted" : ""}`}
                       onClick={() => handleSort("name")}
+                      onKeyDown={(e) => e.key === "Enter" && handleSort("name")}
+                      tabIndex={0}
+                      role="button"
+                      aria-sort={sortBy === "name" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
                     >
-                      {t("users.columns.name")}
-                      <span className="im-sort-icon">
-                        {sortBy === "name" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                      <span className="im-th-content">
+                        {t("users.columns.name")}
+                        <span className="im-sort-indicator" aria-hidden="true">
+                          {sortBy === "name" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                        </span>
                       </span>
                     </th>
                     <th
-                      className={`im-sortable ${sortBy === "email" ? "im-sorted" : ""}`}
+                      className={`im-th-sortable ${sortBy === "email" ? "im-th-sorted" : ""}`}
                       onClick={() => handleSort("email")}
+                      onKeyDown={(e) => e.key === "Enter" && handleSort("email")}
+                      tabIndex={0}
+                      role="button"
+                      aria-sort={sortBy === "email" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
                     >
-                      {t("users.columns.email")}
-                      <span className="im-sort-icon">
-                        {sortBy === "email" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                      <span className="im-th-content">
+                        {t("users.columns.email")}
+                        <span className="im-sort-indicator" aria-hidden="true">
+                          {sortBy === "email" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                        </span>
                       </span>
                     </th>
                     <th>{t("users.columns.role")}</th>
@@ -529,98 +740,147 @@ export default function AdminUsersPage() {
                     <th>{t("users.columns.club")}</th>
                     <th>{t("users.columns.status")}</th>
                     <th
-                      className={`im-sortable ${sortBy === "createdAt" ? "im-sorted" : ""}`}
+                      className={`im-th-sortable ${sortBy === "createdAt" ? "im-th-sorted" : ""}`}
                       onClick={() => handleSort("createdAt")}
+                      onKeyDown={(e) => e.key === "Enter" && handleSort("createdAt")}
+                      tabIndex={0}
+                      role="button"
+                      aria-sort={sortBy === "createdAt" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
                     >
-                      {t("users.columns.registeredAt")}
-                      <span className="im-sort-icon">
-                        {sortBy === "createdAt" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                      <span className="im-th-content">
+                        {t("users.columns.registeredAt")}
+                        <span className="im-sort-indicator" aria-hidden="true">
+                          {sortBy === "createdAt" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                        </span>
                       </span>
                     </th>
                     <th
-                      className={`im-sortable ${sortBy === "lastLoginAt" ? "im-sorted" : ""}`}
+                      className={`im-th-sortable ${sortBy === "lastLoginAt" ? "im-th-sorted" : ""}`}
                       onClick={() => handleSort("lastLoginAt")}
+                      onKeyDown={(e) => e.key === "Enter" && handleSort("lastLoginAt")}
+                      tabIndex={0}
+                      role="button"
+                      aria-sort={sortBy === "lastLoginAt" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
                     >
-                      {t("users.columns.lastActivity")}
-                      <span className="im-sort-icon">
-                        {sortBy === "lastLoginAt" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                      <span className="im-th-content">
+                        {t("users.columns.lastActivity")}
+                        <span className="im-sort-indicator" aria-hidden="true">
+                          {sortBy === "lastLoginAt" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                        </span>
                       </span>
                     </th>
-                    <th>{t("common.actions")}</th>
+                    <th className="im-th-actions">{t("common.actions")}</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="im-users-table-body">
                   {users.map((user) => (
-                    <tr key={user.id}>
-                      <td className="im-user-name-cell">{user.name || "-"}</td>
-                      <td className="im-user-email-cell">{user.email}</td>
-                      <td>
-                        <span className={`im-role-badge im-role-badge--${user.role}`}>
+                    <tr key={user.id} className="im-user-row">
+                      <td className="im-td-user">
+                        <div className="im-user-info">
+                          <div className="im-user-avatar">
+                            {user.name ? user.name.charAt(0).toUpperCase() : "?"}
+                          </div>
+                          <span className="im-user-name">{user.name || "-"}</span>
+                        </div>
+                      </td>
+                      <td className="im-td-email">
+                        <div className="im-email-wrapper">
+                          <MailIcon />
+                          <span>{user.email}</span>
+                        </div>
+                      </td>
+                      <td className="im-td-role">
+                        <Badge 
+                          variant={getRoleBadgeVariant(user.role)} 
+                          icon={getRoleIcon(user.role)}
+                        >
                           {getRoleLabel(user.role)}
-                        </span>
+                        </Badge>
                       </td>
-                      <td>
+                      <td className="im-td-organization">
                         {user.organization ? (
-                          <Link
-                            href={`/admin/organizations`}
-                            className="im-entity-link"
-                          >
-                            {user.organization.name}
+                          <Link href="/admin/organizations" className="im-link">
+                            <BuildingIcon />
+                            <span>{user.organization.name}</span>
                           </Link>
                         ) : (
-                          <span className="im-no-entity">-</span>
+                          <span className="im-empty-cell">—</span>
                         )}
                       </td>
-                      <td>
+                      <td className="im-td-club">
                         {user.club ? (
-                          <Link
-                            href={`/admin/clubs/${user.club.id}`}
-                            className="im-entity-link"
-                          >
-                            {user.club.name}
+                          <Link href={`/admin/clubs/${user.club.id}`} className="im-link">
+                            <HomeIcon />
+                            <span>{user.club.name}</span>
                           </Link>
                         ) : (
-                          <span className="im-no-entity">-</span>
+                          <span className="im-empty-cell">—</span>
                         )}
                       </td>
-                      <td>
-                        <span className={`im-status-badge im-status-badge--${user.blocked ? "blocked" : "active"}`}>
-                          <span className={`im-status-icon im-status-icon--${user.blocked ? "blocked" : "active"}`} />
+                      <td className="im-td-status">
+                        <Badge variant={user.blocked ? "error" : "success"}>
+                          <span className={`im-status-dot ${user.blocked ? "im-status-dot--blocked" : "im-status-dot--active"}`} />
                           {user.blocked ? t("users.status.blocked") : t("users.status.active")}
-                        </span>
+                        </Badge>
                       </td>
-                      <td className="im-date-cell">{formatDate(user.createdAt)}</td>
-                      <td className="im-date-cell">{formatDate(user.lastActivity)}</td>
-                      <td>
-                        <div className="im-user-actions">
-                          <button
-                            className="im-action-btn im-action-btn--view"
-                            onClick={() => handleViewUser(user)}
-                          >
-                            {t("users.actions.view")}
-                          </button>
+                      <td className="im-td-date">
+                        <Tooltip content={formatDateTime(user.createdAt)}>
+                          <div className="im-date-display">
+                            <CalendarIcon />
+                            <span>{formatDate(user.createdAt)}</span>
+                          </div>
+                        </Tooltip>
+                      </td>
+                      <td className="im-td-date">
+                        <Tooltip content={user.lastActivity ? formatDateTime(user.lastActivity) : t("users.neverLoggedIn")}>
+                          <div className="im-date-display">
+                            <CalendarIcon />
+                            <span>{formatDate(user.lastActivity)}</span>
+                          </div>
+                        </Tooltip>
+                      </td>
+                      <td className="im-td-actions">
+                        <div className="im-actions-group">
+                          <Tooltip content={t("users.actions.viewDetails")}>
+                            <button
+                              className="im-icon-btn im-icon-btn--view"
+                              onClick={() => handleViewUser(user)}
+                              aria-label={t("users.actions.view")}
+                            >
+                              <EyeIcon />
+                            </button>
+                          </Tooltip>
                           {user.role !== "root_admin" && (
                             <>
-                              <button
-                                className="im-action-btn im-action-btn--edit"
-                                onClick={() => handleEditRole(user)}
-                              >
-                                {t("users.actions.editRole")}
-                              </button>
-                              <button
-                                className={`im-action-btn ${user.blocked ? "im-action-btn--unblock" : "im-action-btn--block"}`}
-                                onClick={() => handleToggleBlock(user)}
-                                disabled={processing}
-                              >
-                                {user.blocked ? t("users.actions.unblock") : t("users.actions.block")}
-                              </button>
-                              <button
-                                className="im-action-btn im-action-btn--delete"
-                                onClick={() => handleDeleteUser(user)}
-                                disabled={processing}
-                              >
-                                {t("users.actions.delete")}
-                              </button>
+                              <Tooltip content={t("users.actions.editRole")}>
+                                <button
+                                  className="im-icon-btn im-icon-btn--edit"
+                                  onClick={() => handleEditRole(user)}
+                                  aria-label={t("users.actions.editRole")}
+                                >
+                                  <EditIcon />
+                                </button>
+                              </Tooltip>
+                              <Tooltip content={user.blocked ? t("users.actions.unblock") : t("users.actions.block")}>
+                                <button
+                                  className={`im-icon-btn ${user.blocked ? "im-icon-btn--unblock" : "im-icon-btn--block"}`}
+                                  onClick={() => handleToggleBlock(user)}
+                                  disabled={processing}
+                                  aria-label={user.blocked ? t("users.actions.unblock") : t("users.actions.block")}
+                                >
+                                  {user.blocked ? <UnlockIcon /> : <LockIcon />}
+                                </button>
+                              </Tooltip>
+                              <Tooltip content={t("users.actions.delete")}>
+                                <button
+                                  className="im-icon-btn im-icon-btn--delete"
+                                  onClick={() => handleDeleteUser(user)}
+                                  disabled={processing}
+                                  aria-label={t("users.actions.delete")}
+                                >
+                                  <TrashIcon />
+                                </button>
+                              </Tooltip>
                             </>
                           )}
                         </div>
@@ -632,55 +892,78 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Pagination */}
-            <div className="im-pagination">
+            <Card className="im-pagination-card">
               <div className="im-pagination-info">
-                {t("users.pagination.showing", {
-                  start: (pagination.page - 1) * pagination.pageSize + 1,
-                  end: Math.min(pagination.page * pagination.pageSize, pagination.totalCount),
-                  total: pagination.totalCount,
-                })}
+                <span className="im-pagination-text">
+                  {t("users.pagination.showing", {
+                    start: (pagination.page - 1) * pagination.pageSize + 1,
+                    end: Math.min(pagination.page * pagination.pageSize, pagination.totalCount),
+                    total: pagination.totalCount,
+                  })}
+                </span>
               </div>
               <div className="im-pagination-controls">
                 <button
                   className="im-pagination-btn"
                   onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
                   disabled={pagination.page <= 1}
+                  aria-label={t("users.pagination.previous")}
                 >
-                  {t("users.pagination.previous")}
+                  <ChevronLeftIcon />
+                  <span className="im-pagination-btn-text">{t("users.pagination.previous")}</span>
                 </button>
-                <span>
-                  {t("users.pagination.pageOf", {
-                    page: pagination.page,
-                    total: pagination.totalPages,
+                <div className="im-pagination-pages">
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    const pageNum = pagination.page <= 3 
+                      ? i + 1 
+                      : pagination.page + i - 2;
+                    if (pageNum < 1 || pageNum > pagination.totalPages) return null;
+                    return (
+                      <button
+                        key={pageNum}
+                        className={`im-pagination-page ${pagination.page === pageNum ? "im-pagination-page--active" : ""}`}
+                        onClick={() => setPagination((prev) => ({ ...prev, page: pageNum }))}
+                        aria-label={`Page ${pageNum}`}
+                        aria-current={pagination.page === pageNum ? "page" : undefined}
+                      >
+                        {pageNum}
+                      </button>
+                    );
                   })}
-                </span>
+                </div>
                 <button
                   className="im-pagination-btn"
                   onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
                   disabled={pagination.page >= pagination.totalPages}
+                  aria-label={t("users.pagination.next")}
                 >
-                  {t("users.pagination.next")}
+                  <span className="im-pagination-btn-text">{t("users.pagination.next")}</span>
+                  <ChevronRightIcon />
                 </button>
-                <div className="im-pagination-page-size">
-                  <label>{t("users.pagination.pageSize")}</label>
-                  <select
-                    value={pagination.pageSize}
-                    onChange={(e) =>
-                      setPagination((prev) => ({
-                        ...prev,
-                        pageSize: parseInt(e.target.value),
-                        page: 1,
-                      }))
-                    }
-                  >
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                  </select>
-                </div>
               </div>
-            </div>
+              <div className="im-pagination-size">
+                <label htmlFor="page-size" className="im-pagination-size-label">
+                  {t("users.pagination.pageSize")}
+                </label>
+                <select
+                  id="page-size"
+                  className="im-pagination-size-select"
+                  value={pagination.pageSize}
+                  onChange={(e) =>
+                    setPagination((prev) => ({
+                      ...prev,
+                      pageSize: parseInt(e.target.value),
+                      page: 1,
+                    }))
+                  }
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            </Card>
           </>
         )}
       </section>
@@ -694,89 +977,114 @@ export default function AdminUsersPage() {
         }}
         title={t("users.viewDetails")}
       >
-        <div className="im-user-detail-modal">
+        <div className="im-modal-content">
           {loadingDetail ? (
-            <div className="im-admin-users-loading">
-              <div className="im-admin-users-loading-spinner" />
+            <div className="im-modal-loading">
+              <div className="im-loading-spinner" />
             </div>
           ) : userDetail ? (
-            <>
-              <div className="im-user-detail-section">
-                <h3>{t("users.sections.basicInfo")}</h3>
-                <div className="im-user-detail-row">
-                  <span className="im-user-detail-label">{t("common.name")}</span>
-                  <span className="im-user-detail-value">{userDetail.name || "-"}</span>
+            <div className="im-user-details">
+              {/* User Header */}
+              <div className="im-user-details-header">
+                <div className="im-user-details-avatar">
+                  {userDetail.name ? userDetail.name.charAt(0).toUpperCase() : "?"}
                 </div>
-                <div className="im-user-detail-row">
-                  <span className="im-user-detail-label">{t("common.email")}</span>
-                  <span className="im-user-detail-value">{userDetail.email}</span>
+                <div className="im-user-details-info">
+                  <h3 className="im-user-details-name">{userDetail.name || t("users.unnamed")}</h3>
+                  <p className="im-user-details-email">{userDetail.email}</p>
                 </div>
-                <div className="im-user-detail-row">
-                  <span className="im-user-detail-label">{t("users.columns.role")}</span>
-                  <span className={`im-role-badge im-role-badge--${userDetail.role}`}>
-                    {getRoleLabel(userDetail.role)}
-                  </span>
-                </div>
-                <div className="im-user-detail-row">
-                  <span className="im-user-detail-label">{t("users.columns.status")}</span>
-                  <span className={`im-status-badge im-status-badge--${userDetail.blocked ? "blocked" : "active"}`}>
-                    {userDetail.blocked ? t("users.status.blocked") : t("users.status.active")}
-                  </span>
-                </div>
-                <div className="im-user-detail-row">
-                  <span className="im-user-detail-label">{t("users.columns.registeredAt")}</span>
-                  <span className="im-user-detail-value">{formatDateTime(userDetail.createdAt)}</span>
-                </div>
-                <div className="im-user-detail-row">
-                  <span className="im-user-detail-label">{t("users.columns.lastLogin")}</span>
-                  <span className="im-user-detail-value">{formatDateTime(userDetail.lastLoginAt)}</span>
+                <Badge variant={userDetail.blocked ? "error" : "success"}>
+                  <span className={`im-status-dot ${userDetail.blocked ? "im-status-dot--blocked" : "im-status-dot--active"}`} />
+                  {userDetail.blocked ? t("users.status.blocked") : t("users.status.active")}
+                </Badge>
+              </div>
+
+              {/* Basic Info Section */}
+              <div className="im-details-section">
+                <h4 className="im-details-section-title">{t("users.sections.basicInfo")}</h4>
+                <div className="im-details-grid">
+                  <div className="im-details-item">
+                    <span className="im-details-label">{t("users.columns.role")}</span>
+                    <Badge variant={getRoleBadgeVariant(userDetail.role)} icon={getRoleIcon(userDetail.role)}>
+                      {getRoleLabel(userDetail.role)}
+                    </Badge>
+                  </div>
+                  <div className="im-details-item">
+                    <span className="im-details-label">{t("users.columns.registeredAt")}</span>
+                    <span className="im-details-value">{formatDateTime(userDetail.createdAt)}</span>
+                  </div>
+                  <div className="im-details-item">
+                    <span className="im-details-label">{t("users.columns.lastLogin")}</span>
+                    <span className="im-details-value">{formatDateTime(userDetail.lastLoginAt)}</span>
+                  </div>
                 </div>
               </div>
 
+              {/* Organizations Section */}
               {userDetail.memberships.length > 0 && (
-                <div className="im-user-detail-section">
-                  <h3>{t("users.sections.organizations")}</h3>
-                  {userDetail.memberships.map((m) => (
-                    <div key={m.id} className="im-user-detail-row">
-                      <span className="im-user-detail-label">{m.organization.name}</span>
-                      <span className="im-user-detail-value">
-                        {m.role} {m.isPrimaryOwner && `(${t("organizations.owner")})`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {userDetail.clubMemberships.length > 0 && (
-                <div className="im-user-detail-section">
-                  <h3>{t("users.sections.clubs")}</h3>
-                  {userDetail.clubMemberships.map((m) => (
-                    <div key={m.id} className="im-user-detail-row">
-                      <span className="im-user-detail-label">{m.club.name}</span>
-                      <span className="im-user-detail-value">{m.role}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {userDetail.bookings.length > 0 && (
-                <div className="im-user-detail-section">
-                  <h3>{t("users.sections.recentBookings")}</h3>
-                  <div className="im-user-bookings-list">
-                    {userDetail.bookings.map((b) => (
-                      <div key={b.id} className="im-user-booking-item">
-                        <strong>{b.court.club.name} - {b.court.name}</strong>
-                        <div>{formatDateTime(b.start)} - {b.status}</div>
+                <div className="im-details-section">
+                  <h4 className="im-details-section-title">
+                    <BuildingIcon />
+                    {t("users.sections.organizations")}
+                  </h4>
+                  <div className="im-details-list">
+                    {userDetail.memberships.map((m) => (
+                      <div key={m.id} className="im-details-list-item">
+                        <span className="im-details-list-name">{m.organization.name}</span>
+                        <Badge variant="info" size="small">
+                          {m.role} {m.isPrimaryOwner && `(${t("organizations.owner")})`}
+                        </Badge>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </>
+
+              {/* Clubs Section */}
+              {userDetail.clubMemberships.length > 0 && (
+                <div className="im-details-section">
+                  <h4 className="im-details-section-title">
+                    <HomeIcon />
+                    {t("users.sections.clubs")}
+                  </h4>
+                  <div className="im-details-list">
+                    {userDetail.clubMemberships.map((m) => (
+                      <div key={m.id} className="im-details-list-item">
+                        <span className="im-details-list-name">{m.club.name}</span>
+                        <Badge variant="warning" size="small">{m.role}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent Bookings Section */}
+              {userDetail.bookings.length > 0 && (
+                <div className="im-details-section">
+                  <h4 className="im-details-section-title">
+                    <CalendarIcon />
+                    {t("users.sections.recentBookings")}
+                  </h4>
+                  <div className="im-bookings-list">
+                    {userDetail.bookings.map((b) => (
+                      <div key={b.id} className="im-booking-item">
+                        <div className="im-booking-info">
+                          <span className="im-booking-venue">{b.court.club.name} - {b.court.name}</span>
+                          <span className="im-booking-date">{formatDateTime(b.start)}</span>
+                        </div>
+                        <Badge variant={b.status === "confirmed" ? "success" : "default"} size="small">
+                          {b.status}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
-            <p>{t("users.noDetailsAvailable")}</p>
+            <p className="im-modal-empty">{t("users.noDetailsAvailable")}</p>
           )}
-          <div className="flex justify-end mt-4">
+          <div className="im-modal-footer">
             <Button variant="outline" onClick={() => setViewModalOpen(false)}>
               {t("common.close")}
             </Button>
@@ -790,14 +1098,22 @@ export default function AdminUsersPage() {
         onClose={() => setEditRoleModalOpen(false)}
         title={t("users.editRole")}
       >
-        <div>
-          <p className="mb-4">
-            {t("users.editRoleFor")}: <strong>{selectedUser?.name || selectedUser?.email}</strong>
-          </p>
+        <div className="im-modal-content">
+          <div className="im-edit-role-header">
+            <p className="im-edit-role-subtitle">
+              {t("users.editRoleFor")}:
+            </p>
+            <div className="im-edit-role-user">
+              <div className="im-user-avatar im-user-avatar--small">
+                {selectedUser?.name ? selectedUser.name.charAt(0).toUpperCase() : "?"}
+              </div>
+              <span className="im-edit-role-user-name">{selectedUser?.name || selectedUser?.email}</span>
+            </div>
+          </div>
 
-          <div className="im-role-select-group">
+          <div className="im-role-options">
             <label
-              className={`im-role-option ${newRole === "organization_admin" ? "im-selected" : ""}`}
+              className={`im-role-card ${newRole === "organization_admin" ? "im-role-card--selected" : ""}`}
             >
               <input
                 type="radio"
@@ -805,15 +1121,19 @@ export default function AdminUsersPage() {
                 value="organization_admin"
                 checked={newRole === "organization_admin"}
                 onChange={(e) => setNewRole(e.target.value)}
+                className="im-role-radio"
               />
-              <span className="im-role-option-label">
-                <strong>{t("users.roles.organizationAdmin")}</strong>
-                <span>{t("users.roleDescriptions.organizationAdmin")}</span>
-              </span>
+              <div className="im-role-card-icon im-role-card-icon--org">
+                <BuildingIcon />
+              </div>
+              <div className="im-role-card-content">
+                <span className="im-role-card-title">{t("users.roles.organizationAdmin")}</span>
+                <span className="im-role-card-description">{t("users.roleDescriptions.organizationAdmin")}</span>
+              </div>
             </label>
 
             <label
-              className={`im-role-option ${newRole === "club_admin" ? "im-selected" : ""}`}
+              className={`im-role-card ${newRole === "club_admin" ? "im-role-card--selected" : ""}`}
             >
               <input
                 type="radio"
@@ -821,15 +1141,19 @@ export default function AdminUsersPage() {
                 value="club_admin"
                 checked={newRole === "club_admin"}
                 onChange={(e) => setNewRole(e.target.value)}
+                className="im-role-radio"
               />
-              <span className="im-role-option-label">
-                <strong>{t("users.roles.clubAdmin")}</strong>
-                <span>{t("users.roleDescriptions.clubAdmin")}</span>
-              </span>
+              <div className="im-role-card-icon im-role-card-icon--club">
+                <HomeIcon />
+              </div>
+              <div className="im-role-card-content">
+                <span className="im-role-card-title">{t("users.roles.clubAdmin")}</span>
+                <span className="im-role-card-description">{t("users.roleDescriptions.clubAdmin")}</span>
+              </div>
             </label>
 
             <label
-              className={`im-role-option ${newRole === "user" ? "im-selected" : ""}`}
+              className={`im-role-card ${newRole === "user" ? "im-role-card--selected" : ""}`}
             >
               <input
                 type="radio"
@@ -837,16 +1161,20 @@ export default function AdminUsersPage() {
                 value="user"
                 checked={newRole === "user"}
                 onChange={(e) => setNewRole(e.target.value)}
+                className="im-role-radio"
               />
-              <span className="im-role-option-label">
-                <strong>{t("users.roles.user")}</strong>
-                <span>{t("users.roleDescriptions.user")}</span>
-              </span>
+              <div className="im-role-card-icon im-role-card-icon--user">
+                <UserIcon />
+              </div>
+              <div className="im-role-card-content">
+                <span className="im-role-card-title">{t("users.roles.user")}</span>
+                <span className="im-role-card-description">{t("users.roleDescriptions.user")}</span>
+              </div>
             </label>
           </div>
 
           {newRole === "organization_admin" && (
-            <div className="im-entity-select">
+            <div className="im-role-entity-select">
               <Select
                 label={t("users.selectOrganization")}
                 options={organizations.map((org) => ({ value: org.id, label: org.name }))}
@@ -858,7 +1186,7 @@ export default function AdminUsersPage() {
           )}
 
           {newRole === "club_admin" && (
-            <div className="im-entity-select">
+            <div className="im-role-entity-select">
               <Select
                 label={t("users.selectClub")}
                 options={clubs.map((club) => ({ value: club.id, label: club.name }))}
@@ -869,7 +1197,7 @@ export default function AdminUsersPage() {
             </div>
           )}
 
-          <div className="flex justify-end gap-2 mt-6">
+          <div className="im-modal-footer">
             <Button variant="outline" onClick={() => setEditRoleModalOpen(false)}>
               {t("common.cancel")}
             </Button>
@@ -893,14 +1221,17 @@ export default function AdminUsersPage() {
         onClose={() => setDeleteModalOpen(false)}
         title={t("users.confirmDelete")}
       >
-        <div>
+        <div className="im-modal-content im-delete-modal">
+          <div className="im-delete-icon">
+            <TrashIcon />
+          </div>
           <p className="im-delete-warning">{t("users.deleteWarning")}</p>
-          <p>
+          <p className="im-delete-message">
             {t("users.deleteConfirmMessage", {
               name: selectedUser?.name ?? selectedUser?.email ?? "",
             })}
           </p>
-          <div className="flex justify-end gap-2 mt-6">
+          <div className="im-modal-footer">
             <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
               {t("common.cancel")}
             </Button>

@@ -1,0 +1,116 @@
+@reference "tailwindcss";
+
+/* ===== Table Component ===== */
+.im-table-wrapper {
+  @apply overflow-x-auto rounded-xl;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.im-table {
+  @apply w-full;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+/* ===== Table Header ===== */
+.im-table-head {
+  background-color: var(--im-table-header-bg, rgba(0, 0, 0, 0.02));
+}
+
+.dark .im-table-head {
+  background-color: var(--im-table-header-bg-dark, rgba(255, 255, 255, 0.02));
+}
+
+.im-table-th {
+  @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider;
+  color: var(--im-muted);
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.im-table-th-content {
+  @apply inline-flex items-center gap-1;
+}
+
+.im-table-th--sortable {
+  @apply cursor-pointer select-none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.im-table-th--sortable:hover,
+.im-table-th--sortable:focus {
+  color: var(--rsp-foreground);
+  background-color: var(--im-table-header-hover-bg, rgba(0, 0, 0, 0.04));
+}
+
+.dark .im-table-th--sortable:hover,
+.dark .im-table-th--sortable:focus {
+  background-color: var(--im-table-header-hover-bg-dark, rgba(255, 255, 255, 0.04));
+}
+
+.im-table-th--sortable:focus {
+  @apply outline-none ring-2 ring-inset;
+  ring-color: var(--rsp-primary);
+}
+
+.im-table-th--sorted {
+  color: var(--rsp-foreground);
+}
+
+.im-table-sort-icon {
+  @apply text-xs opacity-50;
+  transition: opacity 0.15s ease;
+}
+
+.im-table-th--sortable:hover .im-table-sort-icon,
+.im-table-th--sorted .im-table-sort-icon {
+  @apply opacity-100;
+}
+
+/* ===== Table Body ===== */
+.im-table-body {
+  @apply divide-y;
+  divide-color: var(--rsp-border);
+}
+
+.im-table-row {
+  transition: background-color 0.15s ease;
+}
+
+.im-table-row:hover {
+  background-color: var(--im-table-row-hover-bg, rgba(0, 0, 0, 0.02));
+}
+
+.dark .im-table-row:hover {
+  background-color: var(--im-table-row-hover-bg-dark, rgba(255, 255, 255, 0.02));
+}
+
+.im-table-td {
+  @apply px-4 py-3.5 text-sm;
+  color: var(--rsp-foreground);
+}
+
+/* ===== Loading State ===== */
+.im-table-loading {
+  @apply py-12 text-center;
+}
+
+.im-table-loading-spinner {
+  @apply w-8 h-8 mx-auto border-4 rounded-full animate-spin;
+  border-color: var(--rsp-border);
+  border-top-color: var(--rsp-primary);
+}
+
+/* ===== Empty State ===== */
+.im-table-empty {
+  @apply py-12 text-center;
+  color: var(--im-muted);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .im-table-th,
+  .im-table-td {
+    @apply px-3 py-2.5;
+  }
+}
