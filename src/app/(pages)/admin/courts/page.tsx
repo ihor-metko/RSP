@@ -433,6 +433,8 @@ export default function AdminCourtsPage() {
                   }}
                   showBookButton={false}
                   showViewSchedule={false}
+                  showViewDetails={true}
+                  onViewDetails={(courtId) => router.push(`/admin/clubs/${court.club.id}/courts/${courtId}`)}
                   showLegend={false}
                   showAvailabilitySummary={false}
                   showDetailedAvailability={false}
@@ -467,14 +469,6 @@ export default function AdminCourtsPage() {
 
                   {/* Actions */}
                   <div className="flex flex-wrap gap-2">
-                    <IMLink
-                      href={`/admin/clubs/${court.club.id}/courts/${court.id}`}
-                      className="flex-1"
-                    >
-                      <Button variant="outline" className="w-full">
-                        {t("common.viewDetails")}
-                      </Button>
-                    </IMLink>
                     <IMLink
                       href={`/admin/clubs/${court.club.id}/courts/${court.id}/price-rules`}
                       className="flex-1"
