@@ -249,7 +249,7 @@ export async function GET(
         coachName: null,
         paymentId: mockBooking.paymentId,
         createdAt: mockBooking.createdAt.toISOString(),
-        payments: mockBooking.payments || [],
+        payments: mockBooking.payments,
       };
 
       return NextResponse.json(response);

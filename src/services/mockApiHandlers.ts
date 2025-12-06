@@ -27,7 +27,8 @@ import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 // Constants
 // ============================================================================
 
-const ACTIVE_BOOKING_STATUSES = ["pending", "paid", "reserved", "confirmed"];
+// Active booking statuses (excluding "cancelled")
+const ACTIVE_BOOKING_STATUSES = ["pending", "paid", "reserved"];
 const MAX_RECENT_BOOKINGS = 1;
 
 // ============================================================================
