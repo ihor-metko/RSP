@@ -140,6 +140,7 @@ const mockCourts = [
     type: "Padel",
     surface: "Artificial",
     indoor: true,
+    isActive: true,
     defaultPriceCents: 5000,
     createdAt: "2024-01-01T00:00:00Z",
     updatedAt: "2024-01-01T00:00:00Z",
@@ -160,6 +161,7 @@ const mockCourts = [
     type: "Tennis",
     surface: "Clay",
     indoor: false,
+    isActive: true,
     defaultPriceCents: 4000,
     createdAt: "2024-01-01T00:00:00Z",
     updatedAt: "2024-01-01T00:00:00Z",
@@ -171,6 +173,17 @@ const mockCourts = [
     bookingCount: 5,
   },
 ];
+
+const mockCourtsResponse = {
+  courts: mockCourts,
+  pagination: {
+    page: 1,
+    limit: 20,
+    total: 2,
+    totalPages: 1,
+    hasMore: false,
+  },
+};
 
 describe("AdminCourtsPage", () => {
   beforeEach(() => {
@@ -204,7 +217,7 @@ describe("AdminCourtsPage", () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => mockCourts,
+        json: async () => mockCourtsResponse,
       });
 
     render(<AdminCourtsPage />);
@@ -236,7 +249,7 @@ describe("AdminCourtsPage", () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => mockCourts,
+        json: async () => mockCourtsResponse,
       });
 
     render(<AdminCourtsPage />);
@@ -274,7 +287,7 @@ describe("AdminCourtsPage", () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => mockCourts,
+        json: async () => mockCourtsResponse,
       });
 
     render(<AdminCourtsPage />);
@@ -304,7 +317,7 @@ describe("AdminCourtsPage", () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => mockCourts,
+        json: async () => mockCourtsResponse,
       });
 
     const { container } = render(<AdminCourtsPage />);
@@ -335,7 +348,16 @@ describe("AdminCourtsPage", () => {
       })
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => [],
+        json: async () => ({
+          courts: [],
+          pagination: {
+            page: 1,
+            limit: 20,
+            total: 0,
+            totalPages: 0,
+            hasMore: false,
+          },
+        }),
       });
 
     render(<AdminCourtsPage />);

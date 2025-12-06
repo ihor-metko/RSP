@@ -429,7 +429,13 @@
       "filterByOrganization": "Filter by organization",
       "filterByClub": "Filter by club",
       "filterByStatus": "Filter by status",
+      "sortBy": "Sort by",
+      "sortNameAsc": "Name (A-Z)",
+      "sortNameDesc": "Name (Z-A)",
+      "sortBookingsDesc": "Most bookings",
+      "sortBookingsAsc": "Least bookings",
       "addCourt": "Add Court",
+      "createCourt": "Create Court",
       "editCourt": "Edit Court",
       "deleteCourt": "Delete Court",
       "deleteConfirm": "Are you sure you want to delete \"{name}\"? This action cannot be undone.",
@@ -442,7 +448,9 @@
       "indoor": "Indoor",
       "outdoor": "Outdoor",
       "active": "Active",
-      "inactive": "Inactive"
+      "inactive": "Inactive",
+      "loadMore": "Load More",
+      "loading": "Loading..."
     }
   },
   "coach": {

@@ -6,6 +6,7 @@
 jest.mock("@/lib/prisma", () => ({
   prisma: {
     court: {
+      count: jest.fn(),
       findMany: jest.fn(),
     },
     membership: {
@@ -119,6 +120,7 @@ describe("Admin Courts API", () => {
         },
       ];
 
+      (prisma.court.count as jest.Mock).mockResolvedValue(2);
       (prisma.court.findMany as jest.Mock).mockResolvedValue(mockCourts);
 
       const request = new Request("http://localhost:3000/api/admin/courts");
@@ -126,11 +128,18 @@ describe("Admin Courts API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveLength(2);
-      expect(data[0].name).toBe("Court 1");
-      expect(data[0].club.name).toBe("Club 1");
-      expect(data[0].organization.name).toBe("Org 1");
-      expect(data[0].bookingCount).toBe(10);
+      expect(data.courts).toHaveLength(2);
+      expect(data.courts[0].name).toBe("Court 1");
+      expect(data.courts[0].club.name).toBe("Club 1");
+      expect(data.courts[0].organization.name).toBe("Org 1");
+      expect(data.courts[0].bookingCount).toBe(10);
+      expect(data.pagination).toEqual({
+        page: 1,
+        limit: 20,
+        total: 2,
+        totalPages: 1,
+        hasMore: false,
+      });
       // Root admin should see all courts (no where clause)
       expect(prisma.court.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -178,6 +187,7 @@ describe("Admin Courts API", () => {
         },
       ];
 
+      (prisma.court.count as jest.Mock).mockResolvedValue(1);
       (prisma.court.findMany as jest.Mock).mockResolvedValue(mockCourts);
 
       const request = new Request("http://localhost:3000/api/admin/courts");
@@ -185,8 +195,8 @@ describe("Admin Courts API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveLength(1);
-      expect(data[0].name).toBe("Org Court");
+      expect(data.courts).toHaveLength(1);
+      expect(data.courts[0].name).toBe("Org Court");
       // Org admin should only see courts in their organization's clubs
       expect(prisma.court.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -239,6 +249,7 @@ describe("Admin Courts API", () => {
         },
       ];
 
+      (prisma.court.count as jest.Mock).mockResolvedValue(1);
       (prisma.court.findMany as jest.Mock).mockResolvedValue(mockCourts);
 
       const request = new Request("http://localhost:3000/api/admin/courts");
@@ -246,9 +257,9 @@ describe("Admin Courts API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveLength(1);
-      expect(data[0].name).toBe("My Club Court");
-      expect(data[0].organization).toBeNull();
+      expect(data.courts).toHaveLength(1);
+      expect(data.courts[0].name).toBe("My Club Court");
+      expect(data.courts[0].organization).toBeNull();
       // Club admin should only see courts in their managed clubs
       expect(prisma.court.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -269,6 +280,7 @@ describe("Admin Courts API", () => {
         },
       });
 
+      (prisma.court.count as jest.Mock).mockResolvedValue(0);
       (prisma.court.findMany as jest.Mock).mockResolvedValue([]);
 
       const request = new Request("http://localhost:3000/api/admin/courts");
@@ -276,7 +288,14 @@ describe("Admin Courts API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveLength(0);
+      expect(data.courts).toHaveLength(0);
+      expect(data.pagination).toEqual({
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 0,
+        hasMore: false,
+      });
     });
 
     it("should return 500 on database error", async () => {
