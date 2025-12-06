@@ -546,6 +546,9 @@
       "tryAnotherTime": "Try another time or check court schedules.",
       "availableCourts": "Available courts ({count})",
       "select": "Select"
+    },
+    "playerQuickBooking": {
+      "title": "Quick Booking"
     }
   },
   "training": {
@@ -719,20 +722,27 @@
       "dateTime": "Date & Time",
       "selectCourt": "Select Court",
       "selectClub": "Select Club",
-      "payment": "Payment"
+      "payment": "Payment",
+      "confirmation": "Confirmation"
     },
+    "step0Title": "Select a club",
     "step1Title": "Select date, time and duration",
     "step2Title": "Choose an available court",
     "step3Title": "Review and confirm payment",
     "estimatedPrice": "Estimated Price",
     "priceVariesByTime": "Final price may vary based on court selection",
     "peakHoursHint": "Peak hours - courts may fill up quickly",
+    "loadingClubs": "Loading clubs...",
     "loadingCourts": "Finding available courts...",
+    "selectClubDescription": "Choose a club where you'd like to play",
+    "noClubsAvailable": "No clubs available at the moment",
     "selectCourt": "Select a court",
     "availableCount": "{count} available",
     "courtUnavailable": "Not available at this time",
+    "club": "Club",
     "court": "Court",
     "total": "Total",
+    "totalPaid": "Total Paid",
     "selectPaymentMethod": "Select payment method",
     "payWithCard": "Card",
     "applePay": "Apple Pay",
@@ -740,7 +750,10 @@
     "confirmBooking": "Confirm Booking",
     "continue": "Continue",
     "bookingConfirmed": "Booking Confirmed!",
-    "bookingConfirmedMessage": "Your court has been reserved successfully."
+    "bookingConfirmedMessage": "Your court has been reserved successfully.",
+    "bookingReference": "Booking Reference",
+    "bookingDetails": "Booking Details",
+    "closeAndViewBookings": "Close"
   },
   "adminWizard": {
     "title": "Create Booking",

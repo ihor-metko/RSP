@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { BookingModal } from "@/components/booking/BookingModal";
-import { QuickBookingWizard } from "@/components/QuickBookingWizard";
+import { PlayerQuickBooking } from "@/components/PlayerQuickBooking";
 import { RequestTrainingModal } from "../../../../../../archived_features/components/training/RequestTrainingModal";
 import { CourtCard } from "@/components/CourtCard";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
@@ -711,8 +711,8 @@ export default function ClubDetailPage({
       )}
 
       {isAuthenticated && (
-        <QuickBookingWizard
-          clubId={club.id}
+        <PlayerQuickBooking
+          preselectedClubId={club.id}
           isOpen={isQuickBookingOpen}
           onClose={handleQuickBookingClose}
           onBookingComplete={handleQuickBookingComplete}
