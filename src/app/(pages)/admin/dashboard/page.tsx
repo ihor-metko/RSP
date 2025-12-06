@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 import KeyMetrics from "@/components/admin/KeyMetrics";
+import { RegisteredUsersCard } from "@/components/admin/RegisteredUsersCard";
 import type { UnifiedDashboardResponse, UnifiedDashboardOrg, UnifiedDashboardClub } from "@/app/api/admin/unified-dashboard/route";
 import "./RootDashboard.css";
 
@@ -467,6 +468,11 @@ export default function AdminDashboardPage() {
                 icon={<BookingsIcon />}
                 colorClass="im-stat-card--bookings"
               />
+            </div>
+
+            {/* Registered Users Card - Shows filtered, real players only */}
+            <div className="im-stats-grid" style={{ gridTemplateColumns: "1fr" }}>
+              <RegisteredUsersCard />
             </div>
 
             <div className="im-dashboard-section">
