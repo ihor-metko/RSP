@@ -791,7 +791,8 @@
     "noClubAssigned": "You are not assigned to any club. Contact your SuperAdmin or RootAdmin.",
     "collapse": "Collapse",
     "collapseSidebar": "Collapse sidebar",
-    "expandSidebar": "Expand sidebar"
+    "expandSidebar": "Expand sidebar",
+    "comingSoon": "Coming Soon"
   },
   "organizations": {
     "title": "Organizations",

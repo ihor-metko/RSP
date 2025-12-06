@@ -215,6 +215,10 @@ interface NavItem {
   /** If true, hidden for club admins (they get a direct link to their club instead) */
   hideForClubAdmin?: boolean;
   children?: NavItem[];
+  /** If true, the nav item is disabled (not clickable) */
+  disabled?: boolean;
+  /** Optional badge to display next to the nav item */
+  badge?: string;
 }
 
 function OrganizationsIcon() {
@@ -298,6 +302,8 @@ function getNavItems(): NavItem[] {
       labelKey: "sidebar.statistics",
       icon: <StatsIcon />,
       rootOnly: true,
+      disabled: true,
+      badge: "sidebar.comingSoon",
     },
     // Organizations - Root Admin only
     {
@@ -740,6 +746,26 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
                       </ul>
                     )}
                   </>
+                ) : item.disabled ? (
+                  // Disabled link (not clickable)
+                  <div
+                    className={`im-sidebar-nav-link im-sidebar-nav-link--disabled`}
+                    role="menuitem"
+                    aria-disabled="true"
+                    title={isCollapsed ? getLabel(item.labelKey, item.dynamicLabel) : undefined}
+                  >
+                    {item.icon}
+                    {!isCollapsed && (
+                      <>
+                        <span>{getLabel(item.labelKey, item.dynamicLabel)}</span>
+                        {item.badge && (
+                          <span className="im-sidebar-badge im-sidebar-badge--coming-soon">
+                            {getLabel(item.badge)}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
                 ) : (
                   // Regular link (or collapsed mode for expandable items)
                   <Link

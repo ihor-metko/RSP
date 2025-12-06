@@ -45,6 +45,7 @@ jest.mock("next-intl", () => ({
         "sidebar.collapse": "Collapse",
         "sidebar.collapseSidebar": "Collapse sidebar",
         "sidebar.expandSidebar": "Expand sidebar",
+        "sidebar.comingSoon": "Coming Soon",
       };
       return translations[key] || key;
     };
@@ -213,6 +214,38 @@ describe("AdminSidebar Component", () => {
       });
       const courtsLink = screen.getByRole("menuitem", { name: /Courts/i });
       expect(courtsLink).toHaveAttribute("href", "/admin/courts");
+    });
+
+    it("shows Platform Statistics as disabled with Coming Soon badge", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Platform Statistics")).toBeInTheDocument();
+      });
+      
+      // Find the Platform Statistics menu item
+      const statsItem = screen.getByText("Platform Statistics").closest(".im-sidebar-nav-link");
+      
+      // Verify it's disabled
+      expect(statsItem).toHaveClass("im-sidebar-nav-link--disabled");
+      expect(statsItem).toHaveAttribute("aria-disabled", "true");
+      
+      // Verify the Coming Soon badge is present
+      expect(screen.getByText("Coming Soon")).toBeInTheDocument();
+      const badge = screen.getByText("Coming Soon");
+      expect(badge).toHaveClass("im-sidebar-badge--coming-soon");
+    });
+
+    it("Platform Statistics is not clickable when disabled", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Platform Statistics")).toBeInTheDocument();
+      });
+      
+      // Find the Platform Statistics menu item
+      const statsItem = screen.getByText("Platform Statistics").closest(".im-sidebar-nav-link");
+      
+      // Verify it's a div, not a link
+      expect(statsItem?.tagName).toBe("DIV");
     });
   });
 
