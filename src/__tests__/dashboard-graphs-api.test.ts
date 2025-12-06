@@ -205,26 +205,34 @@ describe("Dashboard Graphs API", () => {
       expect(todayData?.bookings).toBe(3);
     });
 
-    it("should exclude root admins and blocked users from active users", async () => {
+    it("should count unique active users from bookings", async () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "root1", isRoot: true },
       });
 
-      (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.user.findMany as jest.Mock).mockResolvedValue([]);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
+
+      // Mock bookings with multiple bookings from same user and different users
+      (prisma.booking.findMany as jest.Mock).mockResolvedValue([
+        { userId: "user1", createdAt: today },
+        { userId: "user1", createdAt: today }, // Same user, multiple bookings
+        { userId: "user2", createdAt: today },
+        { userId: "user3", createdAt: today },
+      ]);
 
       const request = new NextRequest("http://localhost:3000/api/admin/dashboard/graphs");
-      await GET(request);
-
-      // Verify user query excludes root admins and blocked users
-      expect(prisma.user.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            isRoot: false,
-            blocked: false,
-          }),
-        })
-      );
+      const response = await GET(request);
+      
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      
+      // Find today's data point
+      const todayData = data.activeUsers.find((point: { date: string; users: number }) => point.date === todayStr);
+      expect(todayData).toBeDefined();
+      // Should count 3 unique users, not 4 bookings
+      expect(todayData?.users).toBe(3);
     });
 
     it("should default to week range if timeRange parameter is invalid", async () => {

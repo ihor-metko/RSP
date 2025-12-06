@@ -88,7 +88,7 @@ export async function GET(
     } else if (filter === "active") {
       // Users with active/future bookings
       bookingFilter = {
-        status: { in: ["pending", "paid"] },
+        status: { in: ["pending", "paid", "reserved", "confirmed"] },
         start: { gte: new Date() },
       };
     }

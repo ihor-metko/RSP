@@ -227,7 +227,7 @@ export async function DELETE(
             organizationId: id,
           },
         },
-        status: { in: ["pending", "paid"] },
+        status: { in: ["pending", "paid", "reserved", "confirmed"] },
         start: { gte: new Date() },
       },
     });

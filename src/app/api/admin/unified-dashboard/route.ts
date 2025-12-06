@@ -91,7 +91,7 @@ export async function GET(
         prisma.booking.count({
           where: {
             status: {
-              in: ["pending", "paid"],
+              in: ["pending", "paid", "reserved", "confirmed"],
             },
           },
         }),
@@ -102,7 +102,7 @@ export async function GET(
               gte: today,
             },
             status: {
-              in: ["pending", "paid"],
+              in: ["pending", "paid", "reserved", "confirmed"],
             },
           },
         }),
@@ -113,7 +113,7 @@ export async function GET(
               lt: today,
             },
             status: {
-              in: ["pending", "paid"],
+              in: ["pending", "paid", "reserved", "confirmed"],
             },
           },
         }),
@@ -176,7 +176,7 @@ export async function GET(
               where: {
                 court: { club: { organizationId: orgId } },
                 start: { gte: today },
-                status: { in: ["pending", "paid"] },
+                status: { in: ["pending", "paid", "reserved", "confirmed"] },
               },
             }),
             // Past bookings: before today (completed bookings only)
@@ -184,7 +184,7 @@ export async function GET(
               where: {
                 court: { club: { organizationId: orgId } },
                 start: { lt: today },
-                status: { in: ["pending", "paid"] },
+                status: { in: ["pending", "paid", "reserved", "confirmed"] },
               },
             }),
           ]);
@@ -249,7 +249,7 @@ export async function GET(
                 where: {
                   court: { clubId },
                   start: { gte: today },
-                  status: { in: ["pending", "paid"] },
+                  status: { in: ["pending", "paid", "reserved", "confirmed"] },
                 },
               }),
               // Past bookings: before today (completed bookings only)
@@ -257,7 +257,7 @@ export async function GET(
                 where: {
                   court: { clubId },
                   start: { lt: today },
-                  status: { in: ["pending", "paid"] },
+                  status: { in: ["pending", "paid", "reserved", "confirmed"] },
                 },
               }),
             ]);

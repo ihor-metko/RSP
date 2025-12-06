@@ -97,12 +97,12 @@ export async function GET(request: Request): Promise<NextResponse<DashboardGraph
 
     // Initialize data structures
     const bookingCountsByDate = new Map<string, number>();
-    const activeUserCountsByDate = new Map<string, number>();
+    const activeUsersByDate = new Map<string, Set<string>>(); // date -> Set of user IDs
 
-    // Initialize all dates with 0
+    // Initialize all dates with 0/empty sets
     dateLabels.forEach(date => {
       bookingCountsByDate.set(date, 0);
-      activeUserCountsByDate.set(date, 0);
+      activeUsersByDate.set(date, new Set<string>());
     });
 
     // Build where clause based on admin type
@@ -111,15 +111,9 @@ export async function GET(request: Request): Promise<NextResponse<DashboardGraph
         gte: startDate,
         lte: endDate,
       },
-    };
-
-    const usersWhere: Prisma.UserWhereInput = {
-      lastLoginAt: {
-        gte: startDate,
-        lte: endDate,
+      status: {
+        in: ["pending", "paid", "reserved", "confirmed"],
       },
-      isRoot: false, // Exclude root admins from active users count
-      blocked: false, // Exclude blocked users
     };
 
     if (adminType === "organization_admin") {
@@ -132,32 +126,7 @@ export async function GET(request: Request): Promise<NextResponse<DashboardGraph
         },
       };
 
-      // For users, we need to check if they have bookings in the organization's clubs
-      // or if they are members of the organization
-      usersWhere.OR = [
-        {
-          bookings: {
-            some: {
-              court: {
-                club: {
-                  organizationId: {
-                    in: managedIds,
-                  },
-                },
-              },
-            },
-          },
-        },
-        {
-          memberships: {
-            some: {
-              organizationId: {
-                in: managedIds,
-              },
-            },
-          },
-        },
-      ];
+
     } else if (adminType === "club_admin") {
       // Filter by club
       bookingsWhere.court = {
@@ -166,60 +135,31 @@ export async function GET(request: Request): Promise<NextResponse<DashboardGraph
         },
       };
 
-      // For users, check if they have bookings in the clubs
-      usersWhere.OR = [
-        {
-          bookings: {
-            some: {
-              court: {
-                clubId: {
-                  in: managedIds,
-                },
-              },
-            },
-          },
-        },
-        {
-          clubMemberships: {
-            some: {
-              clubId: {
-                in: managedIds,
-              },
-            },
-          },
-        },
-      ];
+
     }
 
-    // Fetch bookings for the date range
+    // Fetch bookings for the date range with user information
     const bookings = await prisma.booking.findMany({
       where: bookingsWhere,
       select: {
         createdAt: true,
+        userId: true,
       },
     });
 
-    // Count bookings by date
+    // Count bookings by date and track unique users per day
     bookings.forEach(booking => {
       const dateStr = booking.createdAt.toISOString().split('T')[0];
+      
+      // Count bookings
       const currentCount = bookingCountsByDate.get(dateStr) || 0;
       bookingCountsByDate.set(dateStr, currentCount + 1);
-    });
-
-    // Fetch active users (users who logged in during the period)
-    const activeUsers = await prisma.user.findMany({
-      where: usersWhere,
-      select: {
-        lastLoginAt: true,
-      },
-    });
-
-    // Count active users by date
-    activeUsers.forEach(user => {
-      // lastLoginAt is guaranteed to be non-null due to query filter
-      const dateStr = user.lastLoginAt!.toISOString().split('T')[0];
-      const currentCount = activeUserCountsByDate.get(dateStr) || 0;
-      activeUserCountsByDate.set(dateStr, currentCount + 1);
+      
+      // Track unique users who made bookings
+      const usersOnDate = activeUsersByDate.get(dateStr);
+      if (usersOnDate) {
+        usersOnDate.add(booking.userId);
+      }
     });
 
     // Build response data
@@ -231,7 +171,7 @@ export async function GET(request: Request): Promise<NextResponse<DashboardGraph
 
     const activeUsersData: ActiveUsersDataPoint[] = dateLabels.map(date => ({
       date,
-      users: activeUserCountsByDate.get(date) || 0,
+      users: activeUsersByDate.get(date)?.size || 0,
       label: formatDateLabel(date, timeRange),
     }));
 
