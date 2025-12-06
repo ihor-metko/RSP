@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/ui";
 import KeyMetrics from "@/components/admin/KeyMetrics";
 import BookingsOverview from "@/components/admin/BookingsOverview";
 import { RegisteredUsersCard } from "@/components/admin/RegisteredUsersCard";
+import DashboardGraphs from "@/components/admin/DashboardGraphs";
 import type { UnifiedDashboardResponse, UnifiedDashboardOrg, UnifiedDashboardClub } from "@/app/api/admin/unified-dashboard/route";
 import "./RootDashboard.css";
 
@@ -503,6 +504,9 @@ export default function AdminDashboardPage() {
               pastBookings={dashboardData.platformStats.pastBookingsCount}
             />
 
+            {/* Dashboard Graphs Section */}
+            <DashboardGraphs />
+
             <div className="im-dashboard-section">
               <h2 className="im-dashboard-section-title">
                 {t("rootAdmin.dashboard.platformOverview")}
@@ -516,20 +520,28 @@ export default function AdminDashboardPage() {
 
         {/* Organization Admin: Organization-specific dashboards */}
         {dashboardData.adminType === "organization_admin" && dashboardData.organizations && (
-          <div className="im-org-cards-container">
-            {dashboardData.organizations.map((org) => (
-              <OrgCard key={org.id} org={org} />
-            ))}
-          </div>
+          <>
+            <div className="im-org-cards-container">
+              {dashboardData.organizations.map((org) => (
+                <OrgCard key={org.id} org={org} />
+              ))}
+            </div>
+            {/* Dashboard Graphs Section */}
+            <DashboardGraphs />
+          </>
         )}
 
         {/* Club Admin: Club-specific dashboards */}
         {dashboardData.adminType === "club_admin" && dashboardData.clubs && (
-          <div className="im-org-cards-container">
-            {dashboardData.clubs.map((club) => (
-              <ClubCard key={club.id} club={club} />
-            ))}
-          </div>
+          <>
+            <div className="im-org-cards-container">
+              {dashboardData.clubs.map((club) => (
+                <ClubCard key={club.id} club={club} />
+              ))}
+            </div>
+            {/* Dashboard Graphs Section */}
+            <DashboardGraphs />
+          </>
         )}
       </section>
     </main>

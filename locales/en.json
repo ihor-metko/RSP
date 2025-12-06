@@ -1166,5 +1166,17 @@
     "activeBookings": "Active / Upcoming Bookings",
     "pastBookings": "Past Bookings",
     "noBookings": "No bookings available"
+  },
+  "dashboardGraphs": {
+    "title": "Analytics",
+    "week": "Week",
+    "month": "Month",
+    "bookingTrends": "Booking Trends",
+    "bookingTrendsDesc": "Number of bookings created over time",
+    "activeUsers": "Active Users",
+    "activeUsersDesc": "Number of users who logged in",
+    "bookings": "Bookings",
+    "users": "Users",
+    "errorLoading": "Failed to load graph data"
   }
 }
