@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import type { Prisma } from "@prisma/client";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetBookings } from "@/services/mockApiHandlers";
 
 /**
  * Booking status type
@@ -83,6 +86,25 @@ export async function GET(
   const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("perPage") || "20", 10)));
 
   try {
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const mockResult = await mockGetBookings({
+        adminType,
+        managedIds,
+        filters: {
+          orgId,
+          clubId,
+          dateFrom,
+          dateTo,
+          status,
+          userId,
+          page,
+          perPage,
+        },
+      });
+      return NextResponse.json(mockResult);
+    }
+
     // Build the where clause based on admin type and filters
     const whereClause: Prisma.BookingWhereInput = {};
     const courtWhere: Prisma.CourtWhereInput = {};

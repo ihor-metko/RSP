@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode, findCourtById, findClubById, findUserById, getMockBookings } from "@/services/mockDb";
+import { mockCreateBooking } from "@/services/mockApiHandlers";
 
 /**
  * POST /api/admin/bookings/create
@@ -47,6 +50,101 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "End time must be after start time" },
         { status: 400 }
+      );
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const court = findCourtById(courtId);
+      if (!court) {
+        return NextResponse.json({ error: "Court not found" }, { status: 404 });
+      }
+
+      const club = findClubById(court.clubId);
+      if (!club) {
+        return NextResponse.json({ error: "Club not found" }, { status: 404 });
+      }
+
+      if (clubId && club.id !== clubId) {
+        return NextResponse.json(
+          { error: "Court does not belong to the specified club" },
+          { status: 400 }
+        );
+      }
+
+      // Check admin permissions
+      if (authResult.adminType === "club_admin") {
+        if (!authResult.managedIds.includes(club.id)) {
+          return NextResponse.json(
+            { error: "You don't have permission to create bookings for this club" },
+            { status: 403 }
+          );
+        }
+      } else if (authResult.adminType === "organization_admin") {
+        if (!club.organizationId || !authResult.managedIds.includes(club.organizationId)) {
+          return NextResponse.json(
+            { error: "You don't have permission to create bookings for this organization" },
+            { status: 403 }
+          );
+        }
+      }
+
+      const user = findUserById(userId);
+      if (!user) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      if (user.blocked) {
+        return NextResponse.json(
+          { error: "User is blocked and cannot make bookings" },
+          { status: 403 }
+        );
+      }
+
+      // Check for conflicting bookings
+      const allBookings = getMockBookings();
+      const conflictingBooking = allBookings.find(
+        (b) =>
+          b.courtId === courtId &&
+          ["pending", "paid", "reserved"].includes(b.status) &&
+          ((b.start <= start && b.end > start) ||
+            (b.start < end && b.end >= end) ||
+            (b.start >= start && b.end <= end))
+      );
+
+      if (conflictingBooking) {
+        return NextResponse.json(
+          { error: "This time slot is already booked" },
+          { status: 409 }
+        );
+      }
+
+      const durationMinutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+      const priceCents = Math.round((court.defaultPriceCents / 60) * durationMinutes);
+
+      const booking = await mockCreateBooking({
+        userId,
+        courtId,
+        start,
+        end,
+        price: priceCents,
+        status: "reserved",
+      });
+
+      return NextResponse.json(
+        {
+          bookingId: booking.id,
+          courtId: booking.courtId,
+          courtName: court.name,
+          clubName: club.name,
+          userName: user.name,
+          userEmail: user.email,
+          startTime: booking.start.toISOString(),
+          endTime: booking.end.toISOString(),
+          price: booking.price,
+          status: booking.status,
+        },
+        { status: 201 }
       );
     }
 
