@@ -198,7 +198,7 @@ export default function AdminCourtsPage() {
 
   // Determine permissions based on admin type
   const canCreate = (adminType: AdminType | undefined): boolean =>
-    adminType === "root_admin" || adminType === "organization_admin";
+    adminType === "root_admin" || adminType === "club_admin";
 
   const canEdit = (adminType: AdminType | undefined): boolean =>
     adminType === "root_admin" || adminType === "organization_admin" || adminType === "club_admin";
@@ -402,7 +402,6 @@ export default function AdminCourtsPage() {
             </IMLink>
           </div>
         )}
-
 
         {error && (
           <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
