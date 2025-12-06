@@ -560,7 +560,7 @@ export function AdminQuickBookingWizard({
 
   // Submit booking
   const handleSubmit = useCallback(async () => {
-    const { stepUser, stepCourt, stepDateTime } = state;
+    const { stepUser, stepCourt, stepDateTime, stepClub } = state;
 
     if (!stepUser.selectedUser || !stepCourt.selectedCourt) {
       return;
@@ -583,7 +583,7 @@ export function AdminQuickBookingWizard({
           courtId: stepCourt.selectedCourt.id,
           startTime: startDateTime,
           endTime: endDateTime,
-          clubId: state.stepClub.selectedClubId,
+          clubId: stepClub.selectedClubId,
         }),
       });
 

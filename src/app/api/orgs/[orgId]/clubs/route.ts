@@ -88,6 +88,7 @@ export async function GET(
       id: club.id,
       name: club.name,
       slug: club.slug,
+      organizationId: club.organizationId,
       shortDescription: club.shortDescription,
       location: club.location,
       city: club.city,
