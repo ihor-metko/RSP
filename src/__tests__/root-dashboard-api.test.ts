@@ -79,7 +79,7 @@ describe("Root Dashboard API", () => {
       });
     });
 
-    it("should only count pending and paid bookings as active", async () => {
+    it("should count pending, paid, reserved, and confirmed bookings as active", async () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "root-admin-1", isRoot: true },
       });
@@ -93,7 +93,7 @@ describe("Root Dashboard API", () => {
       expect(prisma.booking.count).toHaveBeenCalledWith({
         where: {
           status: {
-            in: ["pending", "paid"],
+            in: ["pending", "paid", "reserved", "confirmed"],
           },
         },
       });
