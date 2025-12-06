@@ -87,6 +87,15 @@ export function AdminQuickBookingWizard({
     };
   });
 
+  // Extract predefined values to avoid object comparison in useEffect deps
+  const predefinedOrgId = predefinedData?.organizationId;
+  const predefinedClubId = predefinedData?.clubId;
+  const predefinedUserId = predefinedData?.userId;
+  const predefinedDate = predefinedData?.date;
+  const predefinedStartTime = predefinedData?.startTime;
+  const predefinedDuration = predefinedData?.duration;
+  const predefinedCourtId = predefinedData?.courtId;
+
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
@@ -95,27 +104,27 @@ export function AdminQuickBookingWizard({
         currentStep: firstStepId,
         adminType,
         stepOrganization: {
-          selectedOrganizationId: predefinedData?.organizationId || null,
+          selectedOrganizationId: predefinedOrgId || null,
           selectedOrganization: null,
         },
         stepClub: {
-          selectedClubId: predefinedData?.clubId || null,
+          selectedClubId: predefinedClubId || null,
           selectedClub: null,
         },
         stepUser: {
-          selectedUserId: predefinedData?.userId || null,
+          selectedUserId: predefinedUserId || null,
           selectedUser: null,
           isCreatingNewUser: false,
           newUserName: "",
           newUserEmail: "",
         },
         stepDateTime: {
-          date: predefinedData?.date || getTodayDateString(),
-          startTime: predefinedData?.startTime || "10:00",
-          duration: predefinedData?.duration || MINUTES_PER_HOUR,
+          date: predefinedDate || getTodayDateString(),
+          startTime: predefinedStartTime || "10:00",
+          duration: predefinedDuration || MINUTES_PER_HOUR,
         },
         stepCourt: {
-          selectedCourtId: predefinedData?.courtId || null,
+          selectedCourtId: predefinedCourtId || null,
           selectedCourt: null,
         },
         stepConfirmation: {
@@ -139,7 +148,10 @@ export function AdminQuickBookingWizard({
         bookingId: null,
       });
     }
-  }, [isOpen, adminType, predefinedData]);
+    // Only reset when modal closes/opens. adminType and predefinedData are extracted
+    // into individual primitive values above and used in the reset logic.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   // Fetch organizations (Step 1)
   useEffect(() => {
@@ -148,7 +160,7 @@ export function AdminQuickBookingWizard({
         return;
       }
 
-      if (predefinedData?.organizationId) {
+      if (predefinedOrgId) {
         return; // Skip if org is predefined
       }
 
@@ -186,7 +198,7 @@ export function AdminQuickBookingWizard({
     };
 
     fetchOrganizations();
-  }, [isOpen, state.currentStep, adminType, predefinedData, t]);
+  }, [isOpen, state.currentStep, adminType, predefinedOrgId, t]);
 
   // Fetch clubs (Step 2)
   useEffect(() => {
@@ -195,12 +207,24 @@ export function AdminQuickBookingWizard({
         return;
       }
 
-      if (predefinedData?.clubId) {
+      if (predefinedClubId) {
         return; // Skip if club is predefined
       }
 
-      // For org admin and club admin, clubs are already filtered by managedIds
-      // For root admin, filter by selected org if any
+      // For root admin with selected org, use org-scoped endpoint
+      // For org admin and club admin, use admin clubs endpoint (already filtered by managedIds)
+      const selectedOrgId = state.stepOrganization.selectedOrganizationId;
+
+      // Root admin must select an organization first
+      if (adminType === "root_admin" && !selectedOrgId) {
+        setState((prev) => ({
+          ...prev,
+          availableClubs: [],
+          isLoadingClubs: false,
+          clubsError: null,
+        }));
+        return;
+      }
 
       setState((prev) => ({
         ...prev,
@@ -209,13 +233,24 @@ export function AdminQuickBookingWizard({
       }));
 
       try {
-        const response = await fetch("/api/admin/clubs");
+        // Use org-scoped endpoint for root admin with selected organization
+        const apiUrl =
+          adminType === "root_admin" && selectedOrgId
+            ? `/api/orgs/${selectedOrgId}/clubs?limit=100`
+            : "/api/admin/clubs";
+
+        const response = await fetch(apiUrl);
         if (!response.ok) {
           throw new Error("Failed to fetch clubs");
         }
         const data = await response.json();
 
-        let clubs: WizardClub[] = data.map(
+        // Handle different response formats
+        // Org-scoped endpoint returns { items: [], pagination: {} }
+        // Admin clubs endpoint returns flat array
+        const clubsArray = Array.isArray(data) ? data : data.items || [];
+
+        const clubs: WizardClub[] = clubsArray.map(
           (club: {
             id: string;
             name: string;
@@ -224,20 +259,10 @@ export function AdminQuickBookingWizard({
           }) => ({
             id: club.id,
             name: club.name,
-            organizationId: club.organizationId || "",
+            organizationId: club.organizationId,
             organizationName: club.organization?.name,
           })
         );
-
-        // Filter by selected organization for root admin
-        if (
-          adminType === "root_admin" &&
-          state.stepOrganization.selectedOrganizationId
-        ) {
-          clubs = clubs.filter(
-            (c) => c.organizationId === state.stepOrganization.selectedOrganizationId
-          );
-        }
 
         setState((prev) => ({
           ...prev,
@@ -259,7 +284,7 @@ export function AdminQuickBookingWizard({
     state.currentStep,
     state.stepOrganization.selectedOrganizationId,
     adminType,
-    predefinedData,
+    predefinedClubId,
     t,
   ]);
 
@@ -270,7 +295,7 @@ export function AdminQuickBookingWizard({
         return;
       }
 
-      if (predefinedData?.userId) {
+      if (predefinedUserId) {
         return; // Skip if user is predefined
       }
 
@@ -308,7 +333,7 @@ export function AdminQuickBookingWizard({
     };
 
     fetchUsers();
-  }, [isOpen, state.currentStep, predefinedData, t]);
+  }, [isOpen, state.currentStep, predefinedUserId, t]);
 
   // Fetch courts (Step 5)
   const fetchAvailableCourts = useCallback(async () => {
@@ -537,7 +562,7 @@ export function AdminQuickBookingWizard({
 
   // Submit booking
   const handleSubmit = useCallback(async () => {
-    const { stepUser, stepCourt, stepDateTime } = state;
+    const { stepUser, stepCourt, stepDateTime, stepClub } = state;
 
     if (!stepUser.selectedUser || !stepCourt.selectedCourt) {
       return;
@@ -560,7 +585,7 @@ export function AdminQuickBookingWizard({
           courtId: stepCourt.selectedCourt.id,
           startTime: startDateTime,
           endTime: endDateTime,
-          clubId: state.stepClub.selectedClubId,
+          clubId: stepClub.selectedClubId,
         }),
       });
 
