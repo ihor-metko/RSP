@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .im-link {
   color: var(--rsp-primary);
   text-decoration: none;
@@ -18,4 +20,49 @@
 
 .im-link:active {
   color: var(--rsp-accent);
+}
+
+/* Button-styled link - reuses rsp-button styles */
+.im-link--button {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2 font-medium transition-colors;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  background-color: var(--rsp-primary);
+  color: var(--rsp-accent);
+  text-decoration: none;
+}
+
+.im-link--button:hover {
+  background-color: var(--rsp-primary-hover);
+  text-decoration: none;
+  color: var(--rsp-accent);
+}
+
+.im-link--button:focus {
+  box-shadow: none;
+}
+
+.im-link--button-outline {
+  @apply bg-transparent;
+  color: var(--rsp-foreground);
+  border: 1px solid var(--rsp-border);
+}
+
+.im-link--button-outline:hover {
+  background-color: var(--rsp-card-bg);
+  color: var(--rsp-foreground);
+}
+
+.im-link--button-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+.im-link--button-danger:hover {
+  background-color: #b91c1c;
+  color: white;
+}
+
+.im-link--button-small {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
 }
