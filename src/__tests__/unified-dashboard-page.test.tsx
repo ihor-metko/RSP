@@ -54,6 +54,12 @@ jest.mock("next-intl", () => ({
         "orgDashboard.metrics.bookingsToday": "Bookings Today",
         "orgDashboard.metrics.clubAdmins": "Club Admins",
         "orgDashboard.keyMetrics": "Key Metrics",
+        "bookingsOverview.title": "Bookings Overview",
+        "bookingsOverview.description": "Summary of active and past bookings",
+        "bookingsOverview.activeBookings": "Active / Upcoming Bookings",
+        "bookingsOverview.pastBookings": "Past Bookings",
+        "unifiedDashboard.byClubs": "Across clubs",
+        "unifiedDashboard.byCourts": "Across courts",
       };
       return translations[key] || key;
     };
@@ -110,6 +116,36 @@ jest.mock("@/components/admin/KeyMetrics", () => {
   MockKeyMetrics.displayName = "MockKeyMetrics";
   return MockKeyMetrics;
 });
+
+// Mock BookingsOverview component
+jest.mock("@/components/admin/BookingsOverview", () => {
+  const MockBookingsOverview = ({ 
+    activeBookings, 
+    pastBookings,
+    loading 
+  }: { 
+    activeBookings: number; 
+    pastBookings: number;
+    loading?: boolean;
+  }) => {
+    if (loading) {
+      return <div data-testid="bookings-overview-loading">Loading bookings...</div>;
+    }
+    return (
+      <div data-testid="bookings-overview">
+        <div data-testid="active-bookings">{activeBookings}</div>
+        <div data-testid="past-bookings">{pastBookings}</div>
+      </div>
+    );
+  };
+  MockBookingsOverview.displayName = "MockBookingsOverview";
+  return MockBookingsOverview;
+});
+
+// Mock RegisteredUsersCard component
+jest.mock("@/components/admin/RegisteredUsersCard", () => ({
+  RegisteredUsersCard: () => <div data-testid="registered-users-card">Registered Users</div>,
+}));
 
 const mockUseSession = useSession as jest.Mock;
 const mockUseRouter = useRouter as jest.Mock;
@@ -203,6 +239,8 @@ describe("AdminDashboardPage (Unified)", () => {
         totalClubs: 5,
         totalUsers: 100,
         activeBookings: 25,
+        activeBookingsCount: 20,
+        pastBookingsCount: 50,
       },
     };
 
@@ -238,6 +276,8 @@ describe("AdminDashboardPage (Unified)", () => {
           courtsCount: 6,
           bookingsToday: 10,
           clubAdminsCount: 3,
+          activeBookings: 15,
+          pastBookings: 25,
         },
       ],
     };
@@ -274,6 +314,8 @@ describe("AdminDashboardPage (Unified)", () => {
           organizationName: "Parent Org",
           courtsCount: 4,
           bookingsToday: 8,
+          activeBookings: 12,
+          pastBookings: 30,
         },
       ],
     };
@@ -310,6 +352,8 @@ describe("AdminDashboardPage (Unified)", () => {
           courtsCount: 4,
           bookingsToday: 5,
           clubAdminsCount: 1,
+          activeBookings: 8,
+          pastBookings: 20,
         },
         {
           id: "org-2",
@@ -319,6 +363,8 @@ describe("AdminDashboardPage (Unified)", () => {
           courtsCount: 8,
           bookingsToday: 12,
           clubAdminsCount: 2,
+          activeBookings: 18,
+          pastBookings: 35,
         },
       ],
     };
