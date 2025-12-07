@@ -223,6 +223,8 @@
     "viewImage": "View image"
   },
   "admin": {
+    "club": "Club",
+    "clubs": "Clubs",
     "dashboard": {
       "title": "Admin Dashboard",
       "subtitle": "Manage your platform",
@@ -884,6 +886,8 @@
     "failedToLoad": "Failed to load organizations. Please try again later.",
     "noOrganizations": "No organizations found. Create your first organization.",
     "createOrganization": "Create Organization",
+    "active": "Active",
+    "inactive": "Inactive",
     "createSuccess": "Organization created successfully!",
     "updateSuccess": "Organization updated successfully!",
     "deleteSuccess": "Organization deleted successfully!",
