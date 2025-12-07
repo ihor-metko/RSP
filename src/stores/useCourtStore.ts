@@ -7,6 +7,29 @@ import type {
 } from "@/types/court";
 
 /**
+ * Zustand store for managing courts for clubs
+ * 
+ * This store provides a centralized, reusable state management solution for courts
+ * that can be used across admin dashboards, booking pages, and club management pages.
+ * 
+ * Features:
+ * - Fetch courts by club ID
+ * - Fetch individual court details
+ * - Create, update, and delete courts with optimistic updates
+ * - Helper methods for court selection and lookup
+ * - Error and loading state management
+ * 
+ * @example
+ * ```tsx
+ * const { courts, loading, fetchCourtsByClubId } = useCourtStore();
+ * 
+ * useEffect(() => {
+ *   fetchCourtsByClubId("club-123");
+ * }, []);
+ * ```
+ */
+
+/**
  * Court store state
  */
 interface CourtState {
