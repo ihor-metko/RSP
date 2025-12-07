@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button, IMLink } from "@/components/ui";
+import { IMLink } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { ClubWithCounts } from "@/types/club";
 import "./AdminClubCard.css";
