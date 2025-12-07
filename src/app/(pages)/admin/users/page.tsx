@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button, Input, Modal, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
+import { useListController } from "@/hooks";
 import "./page.css";
 
 /* Icon Components */
@@ -209,13 +210,6 @@ interface UserDetail extends User {
   }>;
 }
 
-interface Pagination {
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
-}
-
 interface OrganizationOption {
   id: string;
   name: string;
@@ -226,30 +220,54 @@ interface ClubOption {
   name: string;
 }
 
+// Define filters interface
+interface UserFilters {
+  searchQuery: string;
+  roleFilter: string;
+  statusFilter: string;
+  organizationFilter: string;
+  clubFilter: string;
+}
+
 export default function AdminUsersPage() {
   const t = useTranslations();
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  // Use list controller hook for persistent filters
+  const {
+    filters,
+    setFilter,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    clearFilters,
+  } = useListController<UserFilters>({
+    entityKey: "users",
+    defaultFilters: {
+      searchQuery: "",
+      roleFilter: "",
+      statusFilter: "",
+      organizationFilter: "",
+      clubFilter: "",
+    },
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc",
+    defaultPage: 1,
+    defaultPageSize: 10,
+  });
+
   // Users list state
   const [users, setUsers] = useState<User[]>([]);
-  const [pagination, setPagination] = useState<Pagination>({
-    page: 1,
-    pageSize: 10,
-    totalCount: 0,
-    totalPages: 0,
-  });
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // Filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [organizationFilter, setOrganizationFilter] = useState("");
-  const [clubFilter, setClubFilter] = useState("");
-  const [sortBy, setSortBy] = useState("createdAt");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Options for filters
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
@@ -287,16 +305,16 @@ export default function AdminUsersPage() {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      params.set("page", pagination.page.toString());
-      params.set("pageSize", pagination.pageSize.toString());
+      params.set("page", page.toString());
+      params.set("pageSize", pageSize.toString());
       params.set("sortBy", sortBy);
       params.set("sortOrder", sortOrder);
 
-      if (searchQuery) params.set("search", searchQuery);
-      if (roleFilter) params.set("role", roleFilter);
-      if (statusFilter) params.set("status", statusFilter);
-      if (organizationFilter) params.set("organizationId", organizationFilter);
-      if (clubFilter) params.set("clubId", clubFilter);
+      if (filters.searchQuery) params.set("search", filters.searchQuery);
+      if (filters.roleFilter) params.set("role", filters.roleFilter);
+      if (filters.statusFilter) params.set("status", filters.statusFilter);
+      if (filters.organizationFilter) params.set("organizationId", filters.organizationFilter);
+      if (filters.clubFilter) params.set("clubId", filters.clubFilter);
 
       const response = await fetch(`/api/admin/users/list?${params.toString()}`);
       if (!response.ok) {
@@ -308,7 +326,8 @@ export default function AdminUsersPage() {
       }
       const data = await response.json();
       setUsers(data.users);
-      setPagination(data.pagination);
+      setTotalCount(data.pagination.totalCount);
+      setTotalPages(data.pagination.totalPages);
       setError("");
       setErrorKey("");
     } catch {
@@ -316,7 +335,7 @@ export default function AdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.page, pagination.pageSize, sortBy, sortOrder, searchQuery, roleFilter, statusFilter, organizationFilter, clubFilter, router]);
+  }, [page, pageSize, sortBy, sortOrder, filters, router]);
 
   const fetchOrganizations = useCallback(async () => {
     try {
@@ -355,18 +374,11 @@ export default function AdminUsersPage() {
     fetchClubs();
   }, [session, status, router, fetchUsers, fetchOrganizations, fetchClubs]);
 
-  // Debounced search
+  // Fetch users when dependencies change (filters already handle debouncing via useListController)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (pagination.page !== 1) {
-        setPagination((prev) => ({ ...prev, page: 1 }));
-      } else {
-        fetchUsers();
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+    if (status === "loading" || !session?.user || !session.user.isRoot) return;
+    fetchUsers();
+  }, [status, session, fetchUsers]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -489,12 +501,7 @@ export default function AdminUsersPage() {
   };
 
   const handleClearFilters = () => {
-    setSearchQuery("");
-    setRoleFilter("");
-    setStatusFilter("");
-    setOrganizationFilter("");
-    setClubFilter("");
-    setPagination((prev) => ({ ...prev, page: 1 }));
+    clearFilters();
   };
 
   const formatDate = (dateString: string | null) => {
@@ -617,7 +624,7 @@ export default function AdminUsersPage() {
               <FilterIcon />
               <span>{t("users.filters")}</span>
             </div>
-            {(searchQuery || roleFilter || statusFilter || organizationFilter || clubFilter) && (
+            {(filters.searchQuery || filters.roleFilter || filters.statusFilter || filters.organizationFilter || filters.clubFilter) && (
               <Button variant="outline" size="small" onClick={handleClearFilters}>
                 <XIcon />
                 {t("users.clearFilters")}
@@ -629,8 +636,8 @@ export default function AdminUsersPage() {
               <div className="im-search-input-wrapper">
                 <span className="im-search-icon"><SearchIcon /></span>
                 <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={filters.searchQuery}
+                  onChange={(e) => setFilter("searchQuery", e.target.value)}
                   placeholder={t("users.searchPlaceholder")}
                   aria-label={t("common.search")}
                 />
@@ -640,44 +647,32 @@ export default function AdminUsersPage() {
               <Select
                 label={t("users.filterByRole")}
                 options={roleOptions}
-                value={roleFilter}
-                onChange={(value) => {
-                  setRoleFilter(value);
-                  setPagination((prev) => ({ ...prev, page: 1 }));
-                }}
+                value={filters.roleFilter}
+                onChange={(value) => setFilter("roleFilter", value)}
               />
             </div>
             <div className="im-filter-field">
               <Select
                 label={t("users.filterByStatus")}
                 options={statusOptions}
-                value={statusFilter}
-                onChange={(value) => {
-                  setStatusFilter(value);
-                  setPagination((prev) => ({ ...prev, page: 1 }));
-                }}
+                value={filters.statusFilter}
+                onChange={(value) => setFilter("statusFilter", value)}
               />
             </div>
             <div className="im-filter-field">
               <Select
                 label={t("users.filterByOrganization")}
                 options={organizationOptions}
-                value={organizationFilter}
-                onChange={(value) => {
-                  setOrganizationFilter(value);
-                  setPagination((prev) => ({ ...prev, page: 1 }));
-                }}
+                value={filters.organizationFilter}
+                onChange={(value) => setFilter("organizationFilter", value)}
               />
             </div>
             <div className="im-filter-field">
               <Select
                 label={t("users.filterByClub")}
                 options={clubOptions}
-                value={clubFilter}
-                onChange={(value) => {
-                  setClubFilter(value);
-                  setPagination((prev) => ({ ...prev, page: 1 }));
-                }}
+                value={filters.clubFilter}
+                onChange={(value) => setFilter("clubFilter", value)}
               />
             </div>
           </div>
@@ -896,35 +891,35 @@ export default function AdminUsersPage() {
               <div className="im-pagination-info">
                 <span className="im-pagination-text">
                   {t("users.pagination.showing", {
-                    start: (pagination.page - 1) * pagination.pageSize + 1,
-                    end: Math.min(pagination.page * pagination.pageSize, pagination.totalCount),
-                    total: pagination.totalCount,
+                    start: (page - 1) * pageSize + 1,
+                    end: Math.min(page * pageSize, totalCount),
+                    total: totalCount,
                   })}
                 </span>
               </div>
               <div className="im-pagination-controls">
                 <button
                   className="im-pagination-btn"
-                  onClick={() => setPagination((prev) => ({ ...prev, page: prev.page - 1 }))}
-                  disabled={pagination.page <= 1}
+                  onClick={() => setPage(page - 1)}
+                  disabled={page <= 1}
                   aria-label={t("users.pagination.previous")}
                 >
                   <ChevronLeftIcon />
                   <span className="im-pagination-btn-text">{t("users.pagination.previous")}</span>
                 </button>
                 <div className="im-pagination-pages">
-                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                    const pageNum = pagination.page <= 3 
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    const pageNum = page <= 3 
                       ? i + 1 
-                      : pagination.page + i - 2;
-                    if (pageNum < 1 || pageNum > pagination.totalPages) return null;
+                      : page + i - 2;
+                    if (pageNum < 1 || pageNum > totalPages) return null;
                     return (
                       <button
                         key={pageNum}
-                        className={`im-pagination-page ${pagination.page === pageNum ? "im-pagination-page--active" : ""}`}
-                        onClick={() => setPagination((prev) => ({ ...prev, page: pageNum }))}
+                        className={`im-pagination-page ${page === pageNum ? "im-pagination-page--active" : ""}`}
+                        onClick={() => setPage(pageNum)}
                         aria-label={`Page ${pageNum}`}
-                        aria-current={pagination.page === pageNum ? "page" : undefined}
+                        aria-current={page === pageNum ? "page" : undefined}
                       >
                         {pageNum}
                       </button>
@@ -933,8 +928,8 @@ export default function AdminUsersPage() {
                 </div>
                 <button
                   className="im-pagination-btn"
-                  onClick={() => setPagination((prev) => ({ ...prev, page: prev.page + 1 }))}
-                  disabled={pagination.page >= pagination.totalPages}
+                  onClick={() => setPage(page + 1)}
+                  disabled={page >= totalPages}
                   aria-label={t("users.pagination.next")}
                 >
                   <span className="im-pagination-btn-text">{t("users.pagination.next")}</span>
@@ -948,14 +943,8 @@ export default function AdminUsersPage() {
                 <select
                   id="page-size"
                   className="im-pagination-size-select"
-                  value={pagination.pageSize}
-                  onChange={(e) =>
-                    setPagination((prev) => ({
-                      ...prev,
-                      pageSize: parseInt(e.target.value),
-                      page: 1,
-                    }))
-                  }
+                  value={pageSize}
+                  onChange={(e) => setPageSize(parseInt(e.target.value))}
                 >
                   <option value="10">10</option>
                   <option value="25">25</option>
