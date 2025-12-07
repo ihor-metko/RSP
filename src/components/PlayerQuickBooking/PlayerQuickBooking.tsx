@@ -116,7 +116,7 @@ export function PlayerQuickBooking({
         submitError: null,
       });
     }
-  }, [isOpen]); // Only depend on isOpen, not on preselected data to avoid reset loops
+  }, [isOpen, preselectedClubId, preselectedCourtId, preselectedDateTime, visibleSteps]);
 
   // Fetch club data if preselected
   useEffect(() => {

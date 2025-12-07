@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui";
 import { isSlotBlocked } from "@/utils/slotBlocking";
@@ -190,12 +190,12 @@ function LoadingSkeleton({ ariaLabel }: LoadingSkeletonProps) {
         ))}
         {/* Day rows */}
         {DAYS_OF_WEEK.map((day) => (
-          <>
-            <div key={`day-${day}`} className="tm-weekly-skeleton-cell" />
+          <React.Fragment key={`row-${day}`}>
+            <div className="tm-weekly-skeleton-cell" />
             {HOURS.map((h) => (
               <div key={`${day}-${h}`} className="tm-weekly-skeleton-cell" />
             ))}
-          </>
+          </React.Fragment>
         ))}
       </div>
     </div>

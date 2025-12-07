@@ -38,6 +38,7 @@ jest.mock("@/components/ui/ImageCarousel", () => ({
   }) => (
     <div data-testid="image-carousel" onClick={() => onImageClick?.(0)}>
       {images.map((img, i) => (
+        /* eslint-disable-next-line @next/next/no-img-element */
         <img key={i} src={img.url} alt={img.alt} loading="lazy" />
       ))}
     </div>

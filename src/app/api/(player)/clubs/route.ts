@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode, getMockClubs, getMockCourts } from "@/services/mockDb";
 
 // Public endpoint - no authentication required
 export async function GET(request: Request) {
@@ -13,6 +15,64 @@ export async function GET(request: Request) {
     const indoor = url.searchParams.get("indoor");
     const popular = url.searchParams.get("popular");
     const limit = url.searchParams.get("limit");
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const mockClubs = getMockClubs();
+      const mockCourts = getMockCourts();
+      
+      let filteredClubs = mockClubs.filter((club) => club.isPublic);
+      
+      // Apply search filter
+      if (q) {
+        filteredClubs = filteredClubs.filter((club) =>
+          club.name.toLowerCase().includes(q.toLowerCase()) ||
+          club.location.toLowerCase().includes(q.toLowerCase())
+        );
+      }
+      
+      // Apply city filter
+      if (city) {
+        filteredClubs = filteredClubs.filter((club) =>
+          club.location.toLowerCase().includes(city.toLowerCase())
+        );
+      }
+      
+      // Apply limit
+      if (limit) {
+        filteredClubs = filteredClubs.slice(0, parseInt(limit, 10));
+      }
+      
+      // Map to expected format with court counts
+      const clubsWithCounts = filteredClubs.map((club) => {
+        const clubCourts = mockCourts.filter((c) => c.clubId === club.id);
+        const indoorCount = clubCourts.filter((c) => c.indoor).length;
+        const outdoorCount = clubCourts.filter((c) => !c.indoor).length;
+        
+        // Filter by indoor param if provided
+        if (indoor === "true" && indoorCount === 0) {
+          return null;
+        }
+        
+        return {
+          id: club.id,
+          name: club.name,
+          shortDescription: club.shortDescription,
+          location: club.location,
+          city: club.city,
+          contactInfo: club.contactInfo,
+          openingHours: club.openingHours,
+          logo: club.logo,
+          heroImage: club.heroImage,
+          tags: club.tags,
+          createdAt: club.createdAt,
+          indoorCount,
+          outdoorCount,
+        };
+      }).filter((club): club is NonNullable<typeof club> => club !== null);
+      
+      return NextResponse.json(clubsWithCounts);
+    }
 
     // Build where clause for filtering
     const whereClause: Prisma.ClubWhereInput = {};

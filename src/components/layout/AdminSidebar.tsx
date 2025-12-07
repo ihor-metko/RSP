@@ -461,7 +461,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
   const sidebarRef = useRef<HTMLElement>(null);
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [isLoadingAdminStatus, setIsLoadingAdminStatus] = useState(true);

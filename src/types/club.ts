@@ -5,6 +5,7 @@ export interface Club {
   contactInfo: string | null;
   openingHours: string | null;
   logo: string | null;
+  status: string;
   createdAt: string;
 }
 
@@ -28,6 +29,7 @@ export interface ClubWithCounts extends Club {
   heroImage?: string | null;
   tags?: string | null;
   isPublic?: boolean;
+  status: string;
   indoorCount?: number;
   outdoorCount?: number;
   courtCount?: number;
@@ -129,6 +131,7 @@ export interface ClubDetail {
   defaultCurrency: string | null;
   timezone: string | null;
   isPublic: boolean;
+  status: string;
   tags: string | null;
   createdAt: string;
   updatedAt: string;

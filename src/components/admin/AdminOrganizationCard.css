@@ -1,0 +1,234 @@
+@reference "tailwindcss";
+
+/* ===== Admin Organization Card (Modern Design) ===== */
+.im-admin-org-card {
+  @apply flex flex-col rounded-xl overflow-hidden transition-all duration-300;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  min-height: 280px;
+}
+
+.im-admin-org-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+  border-color: var(--rsp-primary);
+}
+
+.dark .im-admin-org-card:hover {
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Card Header Section */
+.im-admin-org-card-header {
+  @apply relative p-4 pb-3 border-b;
+  background: linear-gradient(135deg, var(--rsp-primary) 0%, var(--rsp-primary-hover) 100%);
+  border-bottom-color: var(--rsp-border);
+}
+
+.im-admin-org-card-header-content {
+  @apply pr-20;
+}
+
+.im-admin-org-name {
+  @apply text-xl font-bold leading-tight mb-1;
+  color: #ffffff;
+}
+
+.im-admin-org-slug {
+  @apply text-sm font-mono;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Status Badge */
+.im-admin-org-status {
+  @apply absolute top-3 right-3;
+}
+
+.im-admin-org-status-badge {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full;
+}
+
+.im-admin-org-status-badge--active {
+  background-color: rgba(34, 197, 94, 0.9);
+  color: #ffffff;
+}
+
+.im-admin-org-status-badge--inactive {
+  background-color: rgba(107, 114, 128, 0.9);
+  color: #ffffff;
+}
+
+/* Card Content Section */
+.im-admin-org-card-content {
+  @apply flex flex-col flex-grow p-4 gap-3;
+}
+
+/* Owner Section */
+.im-admin-org-owner {
+  @apply flex flex-col gap-1.5;
+}
+
+.im-admin-org-owner-label {
+  @apply flex items-center gap-1.5 text-xs font-medium uppercase;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.im-admin-org-icon {
+  @apply flex-shrink-0;
+  opacity: 0.7;
+}
+
+.im-admin-org-label-text {
+  @apply truncate;
+}
+
+.im-admin-org-owner-info {
+  @apply flex flex-col gap-0.5;
+}
+
+.im-admin-org-owner-name {
+  @apply text-sm font-semibold truncate;
+  color: var(--rsp-foreground);
+}
+
+.im-admin-org-owner-email {
+  @apply text-xs truncate;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.im-admin-org-no-owner {
+  @apply text-sm italic;
+  color: var(--rsp-foreground);
+  opacity: 0.5;
+}
+
+/* Metadata Row */
+.im-admin-org-meta {
+  @apply flex flex-col gap-2 pt-2 border-t;
+  border-top-color: var(--rsp-border);
+}
+
+.im-admin-org-meta-item {
+  @apply flex items-center gap-2 text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.8;
+}
+
+.im-admin-org-meta-icon {
+  @apply flex-shrink-0;
+  opacity: 0.7;
+}
+
+.im-admin-org-meta-value {
+  @apply truncate;
+}
+
+/* Card Actions Section */
+.im-admin-org-card-actions {
+  @apply flex flex-wrap gap-2 p-4 pt-0 mt-auto;
+}
+
+.im-admin-org-action-btn {
+  @apply flex-1;
+  min-width: calc(50% - 0.25rem);
+}
+
+/* ===== Organizations Grid ===== */
+.im-admin-orgs-grid {
+  @apply grid gap-6;
+}
+
+/* Responsive grid columns */
+@media (min-width: 640px) {
+  .im-admin-orgs-grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .im-admin-orgs-grid {
+    @apply grid-cols-3;
+  }
+}
+
+@media (min-width: 1280px) {
+  .im-admin-orgs-grid {
+    @apply grid-cols-3;
+  }
+}
+
+@media (min-width: 1536px) {
+  .im-admin-orgs-grid {
+    @apply grid-cols-4;
+  }
+}
+
+/* ===== Loading Skeleton for Organization Cards ===== */
+.im-admin-org-card-skeleton {
+  @apply flex flex-col rounded-xl overflow-hidden animate-pulse;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+  min-height: 280px;
+}
+
+.im-admin-org-card-skeleton-header {
+  @apply p-4 pb-3;
+  background-color: var(--rsp-border);
+  height: 80px;
+}
+
+.im-admin-org-card-skeleton-content {
+  @apply flex flex-col flex-grow p-4 gap-3;
+}
+
+.im-admin-org-card-skeleton-line {
+  @apply h-4 rounded;
+  background-color: var(--rsp-border);
+}
+
+.im-admin-org-card-skeleton-line--short {
+  @apply w-3/4;
+}
+
+.im-admin-org-card-skeleton-actions {
+  @apply flex gap-2 p-4 pt-0;
+}
+
+.im-admin-org-card-skeleton-btn {
+  @apply flex-1 h-8 rounded;
+  background-color: var(--rsp-border);
+}
+
+/* Dark mode adjustments */
+.dark .im-admin-org-card-skeleton-header,
+.dark .im-admin-org-card-skeleton-line,
+.dark .im-admin-org-card-skeleton-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments for cards */
+@media (max-width: 640px) {
+  .im-admin-org-card-header {
+    @apply p-3 pb-2;
+  }
+
+  .im-admin-org-name {
+    @apply text-lg;
+  }
+
+  .im-admin-org-card-content {
+    @apply p-3;
+  }
+
+  .im-admin-org-card-actions {
+    @apply p-3 pt-0 flex-col;
+  }
+
+  .im-admin-org-action-btn {
+    @apply w-full;
+    min-width: 100%;
+  }
+}

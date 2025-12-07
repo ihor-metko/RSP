@@ -5,6 +5,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
+import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard";
+import "@/components/admin/AdminOrganizationCard.css";
 import "./page.css";
 
 interface OrganizationUser {
@@ -602,6 +604,9 @@ export default function AdminOrganizationsPage() {
   }, [t]);
 
   // Open club admins modal
+  // Note: This is kept for the Club Admins modal functionality but not directly exposed in the card view
+  // Access to club admins management is available through the organization detail page
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleOpenClubAdminsModal = (org: Organization) => {
     setClubAdminsOrg(org);
     setClubAdminsError("");
@@ -811,10 +816,28 @@ export default function AdminOrganizationsPage() {
   if (status === "loading" || loading) {
     return (
       <main className="im-admin-organizations-page">
-        <div className="im-admin-organizations-loading">
-          <div className="im-admin-organizations-loading-spinner" />
-          <span className="im-admin-organizations-loading-text">{t("common.loading")}</span>
-        </div>
+        <PageHeader
+          title={t("organizations.title")}
+          description={t("organizations.subtitle")}
+        />
+        <section className="rsp-content">
+          <div className="im-admin-orgs-grid">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={`org-skeleton-${i}`} className="im-admin-org-card-skeleton">
+                <div className="im-admin-org-card-skeleton-header" />
+                <div className="im-admin-org-card-skeleton-content">
+                  <div className="im-admin-org-card-skeleton-line" />
+                  <div className="im-admin-org-card-skeleton-line im-admin-org-card-skeleton-line--short" />
+                  <div className="im-admin-org-card-skeleton-line" />
+                </div>
+                <div className="im-admin-org-card-skeleton-actions">
+                  <div className="im-admin-org-card-skeleton-btn" />
+                  <div className="im-admin-org-card-skeleton-btn" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
     );
   }
@@ -896,112 +919,22 @@ export default function AdminOrganizationsPage() {
           </div>
         ) : (
           <>
-            <div className="im-admin-organizations-table-wrapper">
-              <table className="im-admin-organizations-table">
-                <thead>
-                  <tr>
-                    <th>{t("organizations.name")}</th>
-                    <th>{t("organizations.slug")}</th>
-                    <th>{t("organizations.clubs")}</th>
-                    <th>{t("organizations.superAdmins")}</th>
-                    <th>{t("organizations.createdAt")}</th>
-                    <th>{t("common.actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedOrganizations.map((org) => (
-                    <tr key={org.id}>
-                      <td className="im-org-name">{org.name}</td>
-                      <td className="im-org-slug">{org.slug}</td>
-                      <td className="im-org-clubs">
-                        <span className={`im-org-count-badge ${org.clubCount > 0 ? "im-org-count-badge--active" : ""}`}>
-                          {org.clubCount}
-                        </span>
-                      </td>
-                      <td className="im-org-admin">
-                        {org.superAdmins && org.superAdmins.length > 0 ? (
-                          <div className="im-org-admins-list">
-                            {org.superAdmins.map((admin) => (
-                              <span
-                                key={admin.id}
-                                className={`im-org-admin-badge ${admin.isPrimaryOwner ? "im-org-admin-badge--owner" : ""}`}
-                              >
-                                {admin.name || admin.email}
-                                {admin.isPrimaryOwner && (
-                                  <span 
-                                    className="im-org-owner-label im-tooltip-wrapper"
-                                    role="note"
-                                    aria-label={t("organizations.ownerTooltip")}
-                                  >
-                                    {t("organizations.owner")}
-                                  </span>
-                                )}
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <span className="im-org-no-admin">
-                            {t("organizations.notAssigned")}
-                          </span>
-                        )}
-                      </td>
-                      <td className="im-org-date">
-                        {new Date(org.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="im-org-actions">
-                        <div className="im-org-actions-buttons">
-                          <Button
-                            variant="outline"
-                            size="small"
-                            onClick={() => router.push(`/admin/organizations/${org.id}`)}
-                          >
-                            {t("organizations.viewDetails")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="small"
-                            onClick={() => handleOpenEditModal(org)}
-                          >
-                            {t("common.edit")}
-                          </Button>
-                          <Button
-                            variant="danger"
-                            size="small"
-                            onClick={() => handleOpenDeleteModal(org)}
-                          >
-                            {t("common.delete")}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="small"
-                            onClick={() => handleOpenAssignModal(org)}
-                          >
-                            {t("organizations.addAdmin")}
-                          </Button>
-                          {org.superAdmins && org.superAdmins.length > 0 && (
-                            <Button
-                              variant="outline"
-                              size="small"
-                              onClick={() => handleOpenManageAdminsModal(org)}
-                            >
-                              {t("organizations.manageAdmins")}
-                            </Button>
-                          )}
-                          {org.clubCount > 0 && (
-                            <Button
-                              variant="outline"
-                              size="small"
-                              onClick={() => handleOpenClubAdminsModal(org)}
-                            >
-                              {t("clubAdmins.title")}
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Card Grid Layout */}
+            <div className="im-admin-orgs-grid">
+              {paginatedOrganizations.map((org) => (
+                <AdminOrganizationCard
+                  key={org.id}
+                  organization={org}
+                  canEdit={true}
+                  canDelete={true}
+                  canManageAdmins={true}
+                  onView={(orgId) => router.push(`/admin/organizations/${orgId}`)}
+                  onEdit={() => handleOpenEditModal(org)}
+                  onDelete={() => handleOpenDeleteModal(org)}
+                  onManageAdmins={() => handleOpenManageAdminsModal(org)}
+                  onAddAdmin={() => handleOpenAssignModal(org)}
+                />
+              ))}
             </div>
 
             {/* Pagination */}
