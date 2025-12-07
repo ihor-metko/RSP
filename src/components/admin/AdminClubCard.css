@@ -115,22 +115,16 @@
   opacity: 0.8;
 }
 
-.im-admin-club-org,
-.im-admin-club-bookings,
-.im-admin-club-admins {
+.im-admin-club-org {
   @apply flex items-center gap-1.5;
 }
 
-.im-admin-club-org-icon,
-.im-admin-club-bookings-icon,
-.im-admin-club-admins-icon {
+.im-admin-club-org-icon {
   @apply flex-shrink-0;
   opacity: 0.7;
 }
 
-.im-admin-club-org-text,
-.im-admin-club-bookings-text,
-.im-admin-club-admins-text {
+.im-admin-club-org-text {
   @apply truncate;
 }
 
@@ -345,20 +339,55 @@
   .im-admin-clubs-actions {
     @apply flex-col items-stretch;
   }
-  
+
   .im-admin-clubs-actions-left {
     @apply w-full;
   }
-  
+
   .im-admin-clubs-actions-right {
     @apply w-full justify-end;
   }
-  
+
   .im-admin-clubs-search {
     @apply w-full;
   }
-  
+
   .im-admin-clubs-filter {
     @apply flex-1;
+  }
+}
+
+/* ===== Pagination ===== */
+.im-pagination {
+  @apply flex flex-col gap-4 mt-8 p-4 rounded-lg;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.im-pagination-info {
+  @apply text-sm text-center;
+  color: var(--rsp-text-secondary);
+}
+
+.im-pagination-controls {
+  @apply flex items-center justify-center gap-4 flex-wrap;
+}
+
+.im-pagination-page {
+  @apply text-sm font-medium;
+  color: var(--rsp-text);
+}
+
+.im-pagination-size {
+  @apply ml-4;
+}
+
+@media (max-width: 640px) {
+  .im-pagination-controls {
+    @apply flex-col;
+  }
+
+  .im-pagination-size {
+    @apply ml-0 w-full;
   }
 }

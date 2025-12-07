@@ -4,19 +4,11 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, IMLink, PageHeader } from "@/components/ui";
+import { Button, Input, IMLink, PageHeader } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
-import type { ClubWithCounts, ClubFormData } from "@/types/club";
-import type { AdminStatusResponse, AdminType } from "@/app/api/me/admin-status/route";
+import type { ClubWithCounts } from "@/types/club";
+import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
 import "@/components/admin/AdminClubCard.css";
-
-const initialFormData: ClubFormData = {
-  name: "",
-  location: "",
-  contactInfo: "",
-  openingHours: "",
-  logo: "",
-};
 
 type SortField = "name" | "city" | "createdAt" | "bookingCount";
 type SortDirection = "asc" | "desc";
@@ -28,13 +20,6 @@ export default function AdminClubsPage() {
   const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editingClub, setEditingClub] = useState<ClubWithCounts | null>(null);
-  const [deletingClub, setDeletingClub] = useState<ClubWithCounts | null>(null);
-  const [formData, setFormData] = useState<ClubFormData>(initialFormData);
-  const [formError, setFormError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
 
@@ -42,10 +27,17 @@ export default function AdminClubsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedCity, setSelectedCity] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   // Sorting state
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const fetchAdminStatus = useCallback(async () => {
     try {
@@ -69,7 +61,18 @@ export default function AdminClubsPage() {
   const fetchClubs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/clubs");
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (searchQuery) params.append("search", searchQuery);
+      if (selectedCity) params.append("city", selectedCity);
+      if (selectedStatus) params.append("status", selectedStatus);
+      if (selectedOrganization) params.append("organizationId", selectedOrganization);
+      params.append("sortBy", sortField);
+      params.append("sortOrder", sortDirection);
+      params.append("page", page.toString());
+      params.append("pageSize", pageSize.toString());
+
+      const response = await fetch(`/api/admin/clubs?${params.toString()}`);
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           router.push("/auth/sign-in");
@@ -78,14 +81,18 @@ export default function AdminClubsPage() {
         throw new Error("Failed to fetch clubs");
       }
       const data = await response.json();
-      setClubs(data);
+      setClubs(data.clubs || data); // Support both old and new response format
+      if (data.pagination) {
+        setTotalCount(data.pagination.totalCount);
+        setTotalPages(data.pagination.totalPages);
+      }
       setError("");
     } catch {
       setError(t("clubs.failedToLoad"));
     } finally {
       setLoading(false);
     }
-  }, [router, t]);
+  }, [router, t, searchQuery, selectedCity, selectedStatus, selectedOrganization, sortField, sortDirection, page, pageSize]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -106,7 +113,7 @@ export default function AdminClubsPage() {
     });
   }, [session, status, router, fetchAdminStatus, fetchClubs]);
 
-  // Extract unique organizations and cities for filters
+  // Extract unique organizations and cities for filters (client-side for now)
   const { organizations, cities } = useMemo(() => {
     const orgs = new Map<string, string>();
     const citySet = new Set<string>();
@@ -126,166 +133,18 @@ export default function AdminClubsPage() {
     };
   }, [clubs]);
 
-  // Filter and sort clubs
-  const filteredAndSortedClubs = useMemo(() => {
-    let result = [...clubs];
-
-    // Apply filters
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (club) =>
-          club.name.toLowerCase().includes(query) ||
-          club.location.toLowerCase().includes(query) ||
-          club.city?.toLowerCase().includes(query)
-      );
-    }
-
-    if (selectedOrganization) {
-      result = result.filter(
-        (club) => club.organization?.id === selectedOrganization
-      );
-    }
-
-    if (selectedCity) {
-      result = result.filter((club) => club.city === selectedCity);
-    }
-
-    // Apply sorting
-    result.sort((a, b) => {
-      let comparison = 0;
-
-      switch (sortField) {
-        case "name":
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case "city":
-          comparison = (a.city || "").localeCompare(b.city || "");
-          break;
-        case "bookingCount":
-          comparison = (a.bookingCount || 0) - (b.bookingCount || 0);
-          break;
-        case "createdAt":
-        default:
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          break;
-      }
-
-      return sortDirection === "asc" ? comparison : -comparison;
-    });
-
-    return result;
-  }, [clubs, searchQuery, selectedOrganization, selectedCity, sortField, sortDirection]);
-
   // Determine permissions based on admin type
   const canCreate = adminStatus?.adminType === "root_admin" || adminStatus?.adminType === "organization_admin";
-  const canEdit = (adminType: AdminType | undefined) =>
-    adminType === "root_admin" || adminType === "organization_admin";
-  const canDelete = adminStatus?.adminType === "root_admin";
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
-
-  const handleOpenCreateModal = () => {
-    setEditingClub(null);
-    setFormData(initialFormData);
-    setFormError("");
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEditModal = (club: ClubWithCounts) => {
-    setEditingClub(club);
-    setFormData({
-      name: club.name,
-      location: club.location,
-      contactInfo: club.contactInfo || "",
-      openingHours: club.openingHours || "",
-      logo: club.logo || "",
-    });
-    setFormError("");
-    setIsModalOpen(true);
-  };
-
-  const handleOpenDeleteModal = (club: ClubWithCounts) => {
-    setDeletingClub(club);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingClub(null);
-    setFormData(initialFormData);
-    setFormError("");
-  };
-
-  const handleCloseDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setDeletingClub(null);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError("");
-    setSubmitting(true);
-
-    try {
-      const url = editingClub
-        ? `/api/admin/clubs/${editingClub.id}`
-        : "/api/admin/clubs";
-      const method = editingClub ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to save club");
-      }
-
-      handleCloseModal();
-      fetchClubs();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : "Failed to save club");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deletingClub) return;
-
-    setSubmitting(true);
-    try {
-      const response = await fetch(`/api/admin/clubs/${deletingClub.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete club");
-      }
-
-      handleCloseDeleteModal();
-      fetchClubs();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete club");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleClearFilters = () => {
     setSearchQuery("");
     setSelectedOrganization("");
     setSelectedCity("");
+    setSelectedStatus("");
     setSortField("createdAt");
     setSortDirection("desc");
+    setPage(1);
   };
 
   if (status === "loading" || loading || loadingAdminStatus) {
@@ -351,6 +210,18 @@ export default function AdminClubsPage() {
             )}
 
             <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="im-admin-clubs-filter im-native-select"
+              aria-label={t("admin.clubs.filterByStatus")}
+            >
+              <option value="">{t("admin.clubs.allStatuses")}</option>
+              <option value="active">{t("admin.clubs.statusActive")}</option>
+              <option value="draft">{t("admin.clubs.statusDraft")}</option>
+              <option value="suspended">{t("admin.clubs.statusSuspended")}</option>
+            </select>
+
+            <select
               value={`${sortField}-${sortDirection}`}
               onChange={(e) => {
                 const [field, direction] = e.target.value.split("-") as [SortField, SortDirection];
@@ -368,7 +239,7 @@ export default function AdminClubsPage() {
               <option value="bookingCount-desc">{t("admin.clubs.sortBookings")}</option>
             </select>
 
-            {(searchQuery || selectedOrganization || selectedCity) && (
+            {(searchQuery || selectedOrganization || selectedCity || selectedStatus) && (
               <Button variant="outline" onClick={handleClearFilters}>
                 {t("common.clearFilters")}
               </Button>
@@ -378,9 +249,6 @@ export default function AdminClubsPage() {
           {/* Right side - Create Actions */}
           {canCreate && (
             <div className="im-admin-clubs-actions-right">
-              <Button onClick={handleOpenCreateModal} variant="outline">
-                {t("admin.clubs.quickCreate")}
-              </Button>
               <IMLink href="/admin/clubs/new" asButton variant="primary">
                 {t("admin.clubs.createClub")}
               </IMLink>
@@ -394,111 +262,69 @@ export default function AdminClubsPage() {
           </div>
         )}
 
-        {filteredAndSortedClubs.length === 0 ? (
+        {clubs.length === 0 ? (
           <div className="im-admin-clubs-empty">
             <p className="im-admin-clubs-empty-text">
-              {clubs.length === 0
+              {totalCount === 0
                 ? t("admin.clubs.noClubs")
                 : t("admin.clubs.noClubsMatch")}
             </p>
           </div>
         ) : (
-          <section className="im-admin-clubs-grid">
-            {filteredAndSortedClubs.map((club) => (
-              <AdminClubCard
-                key={club.id}
-                club={club}
-                onEdit={canEdit(adminStatus?.adminType) ? handleOpenEditModal : undefined}
-                onDelete={canDelete ? handleOpenDeleteModal : undefined}
-                showOrganization={showOrganizationFilter}
-              />
-            ))}
-          </section>
+          <>
+            <section className="im-admin-clubs-grid">
+              {clubs.map((club) => (
+                <AdminClubCard
+                  key={club.id}
+                  club={club}
+                  showOrganization={showOrganizationFilter}
+                />
+              ))}
+            </section>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="im-pagination">
+                <div className="im-pagination-info">
+                  {t("admin.clubs.showing")} {((page - 1) * pageSize) + 1} {t("admin.clubs.to")} {Math.min(page * pageSize, totalCount)} {t("admin.clubs.of")} {totalCount} {t("admin.clubs.results")}
+                </div>
+                <div className="im-pagination-controls">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                  >
+                    {t("common.previous")}
+                  </Button>
+                  <span className="im-pagination-page">
+                    {t("admin.clubs.page")} {page} {t("admin.clubs.of")} {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                    disabled={page === totalPages}
+                  >
+                    {t("common.next")}
+                  </Button>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(parseInt(e.target.value, 10));
+                      setPage(1);
+                    }}
+                    className="im-native-select im-pagination-size"
+                  >
+                    <option value="10">10 {t("admin.clubs.itemsPerPage")}</option>
+                    <option value="20">20 {t("admin.clubs.itemsPerPage")}</option>
+                    <option value="50">50 {t("admin.clubs.itemsPerPage")}</option>
+                    <option value="100">100 {t("admin.clubs.itemsPerPage")}</option>
+                  </select>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </section>
-
-      {/* Create/Edit Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title={editingClub ? t("admin.clubs.editClub") : t("admin.clubs.createClub")}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {formError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {formError}
-            </div>
-          )}
-          <Input
-            label={t("common.name")}
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder={t("admin.clubs.clubName")}
-            required
-          />
-          <Input
-            label={t("common.address")}
-            name="location"
-            value={formData.location}
-            onChange={handleInputChange}
-            placeholder={t("admin.clubs.clubAddress")}
-            required
-          />
-          <Input
-            label={t("admin.clubs.contactInfo")}
-            name="contactInfo"
-            value={formData.contactInfo}
-            onChange={handleInputChange}
-            placeholder={t("admin.clubs.phoneOrEmail")}
-          />
-          <Input
-            label={t("admin.clubs.openingHours")}
-            name="openingHours"
-            value={formData.openingHours}
-            onChange={handleInputChange}
-            placeholder={t("admin.clubs.openingHoursExample")}
-          />
-          <Input
-            label={t("admin.clubs.logoUrl")}
-            name="logo"
-            value={formData.logo}
-            onChange={handleInputChange}
-            placeholder={t("admin.clubs.logoUrlPlaceholder")}
-          />
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="outline" onClick={handleCloseModal}>
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? t("admin.clubs.saving") : editingClub ? t("common.update") : t("common.create")}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        title={t("admin.clubs.deleteClub")}
-      >
-        <p className="mb-4">
-          {t("admin.clubs.deleteConfirm", { name: deletingClub?.name || "" })}
-        </p>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={handleCloseDeleteModal}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            onClick={handleDelete}
-            disabled={submitting}
-            className="bg-red-500 hover:bg-red-600"
-          >
-            {submitting ? t("admin.clubs.deleting") : t("common.delete")}
-          </Button>
-        </div>
-      </Modal>
     </main>
   );
 }

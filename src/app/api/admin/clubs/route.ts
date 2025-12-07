@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAnyAdmin, requireRootAdmin } from "@/lib/requireRole";
+import { requireAnyAdmin } from "@/lib/requireRole";
 import { ClubMembershipRole } from "@/constants/roles";
 import type { Prisma } from "@prisma/client";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
-import { mockGetClubs, mockCreateClub } from "@/services/mockApiHandlers";
+import { mockGetClubs } from "@/services/mockApiHandlers";
 
 export async function GET(request: Request) {
   const authResult = await requireAnyAdmin(request);
@@ -15,6 +15,17 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search") || "";
+    const city = searchParams.get("city") || "";
+    const status = searchParams.get("status") || "";
+    const organizationId = searchParams.get("organizationId") || "";
+    const sortBy = searchParams.get("sortBy") || "createdAt";
+    const sortOrder = searchParams.get("sortOrder") || "desc";
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const pageSize = parseInt(searchParams.get("pageSize") || "20", 10);
+
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
       const clubs = await mockGetClubs({
@@ -42,11 +53,57 @@ export async function GET(request: Request) {
         },
       };
     }
-    // Root admin sees all clubs (no where clause)
+    // Root admin sees all clubs (no where clause by default)
+
+    // Apply search filter
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { location: { contains: search, mode: "insensitive" } },
+          { city: { contains: search, mode: "insensitive" } },
+        ],
+      };
+    }
+
+    // Apply city filter
+    if (city) {
+      whereClause = { ...whereClause, city };
+    }
+
+    // Apply status filter
+    if (status) {
+      whereClause = { ...whereClause, status };
+    }
+
+    // Apply organization filter (only for root admin)
+    if (organizationId && authResult.adminType === "root_admin") {
+      whereClause = { ...whereClause, organizationId };
+    }
+
+    // Determine sort order
+    const orderBy: Prisma.ClubOrderByWithRelationInput = {};
+    if (sortBy === "name") {
+      orderBy.name = sortOrder as "asc" | "desc";
+    } else if (sortBy === "city") {
+      orderBy.city = sortOrder as "asc" | "desc";
+    } else {
+      orderBy.createdAt = sortOrder as "asc" | "desc";
+    }
+
+    // Calculate pagination
+    const skip = (page - 1) * pageSize;
+    const take = pageSize;
+
+    // Get total count for pagination
+    const totalCount = await prisma.club.count({ where: whereClause });
 
     const clubs = await prisma.club.findMany({
       where: whereClause,
-      orderBy: { createdAt: "desc" },
+      orderBy,
+      skip,
+      take,
       select: {
         id: true,
         name: true,
@@ -59,6 +116,7 @@ export async function GET(request: Request) {
         heroImage: true,
         tags: true,
         isPublic: true,
+        status: true,
         createdAt: true,
         organizationId: true,
         organization: {
@@ -122,6 +180,7 @@ export async function GET(request: Request) {
         heroImage: club.heroImage,
         tags: club.tags,
         isPublic: club.isPublic,
+        status: club.status,
         createdAt: club.createdAt,
         indoorCount,
         outdoorCount,
@@ -136,7 +195,15 @@ export async function GET(request: Request) {
       };
     });
 
-    return NextResponse.json(clubsWithCounts);
+    return NextResponse.json({
+      clubs: clubsWithCounts,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+      },
+    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error fetching clubs:", error);
@@ -148,55 +215,12 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
-  const authResult = await requireRootAdmin(request);
-
-  if (!authResult.authorized) {
-    return authResult.response;
-  }
-
-  try {
-    const body = await request.json();
-    const { name, location, contactInfo, openingHours, logo } = body;
-
-    if (!name || !location) {
-      return NextResponse.json(
-        { error: "Name and location are required" },
-        { status: 400 }
-      );
-    }
-
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const club = await mockCreateClub({
-        name,
-        location,
-        contactInfo: contactInfo || null,
-        openingHours: openingHours || null,
-        logo: logo || null,
-        createdById: authResult.userId,
-      });
-      return NextResponse.json(club, { status: 201 });
-    }
-
-    const club = await prisma.club.create({
-      data: {
-        name,
-        location,
-        contactInfo: contactInfo || null,
-        openingHours: openingHours || null,
-        logo: logo || null,
-      },
-    });
-
-    return NextResponse.json(club, { status: 201 });
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error creating club:", error);
-    }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: Request) {
+  // This endpoint is deprecated - use /api/admin/clubs/new instead
+  // which enforces proper organization selection
+  return NextResponse.json(
+    { error: "This endpoint is deprecated. Use /api/admin/clubs/new to create clubs with proper organization selection." },
+    { status: 410 }
+  );
 }
