@@ -15,6 +15,7 @@ export {
 } from "@/constants/roles";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || (process.env.NODE_ENV === "development" ? "dev-secret-change-in-production" : undefined),
   adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
