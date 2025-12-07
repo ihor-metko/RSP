@@ -182,18 +182,19 @@ export default function OrganizationDetailPage() {
       setError("");
       
       // Update the store's currentOrg with the fetched data (avoid redundant API call)
-      // The API returns full org details, we extract basic info for the store
+      // Extract Organization-compatible fields from the full org detail response
+      const { id, name, slug, createdAt, updatedAt, archivedAt, contactEmail, contactPhone, website, address } = data;
       setCurrentOrg({
-        id: data.id,
-        name: data.name,
-        slug: data.slug,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-        archivedAt: data.archivedAt,
-        contactEmail: data.contactEmail,
-        contactPhone: data.contactPhone,
-        website: data.website,
-        address: data.address,
+        id,
+        name,
+        slug,
+        createdAt,
+        updatedAt,
+        archivedAt,
+        contactEmail,
+        contactPhone,
+        website,
+        address,
       });
     } catch {
       setError(t("orgDetail.failedToLoad"));

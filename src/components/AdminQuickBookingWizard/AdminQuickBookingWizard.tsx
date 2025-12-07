@@ -169,6 +169,7 @@ export function AdminQuickBookingWizard({
       try {
         await fetchOrganizations();
         // Don't access organizations here - let separate useEffect handle it
+        // This prevents stale closure issues and ensures UI updates when store state changes
         setState((prev) => ({
           ...prev,
           isLoadingOrganizations: false,

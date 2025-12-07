@@ -123,6 +123,7 @@ export function ClubCreationStepper() {
             try {
               await fetchOrganizationById(orgId);
               // Don't access currentOrg here - let separate useEffect handle it
+              // This avoids race conditions and follows React's data flow patterns
             } catch {
               // If org fetch fails, set organization ID only
               setFormData(prev => ({ ...prev, organizationId: orgId }));
