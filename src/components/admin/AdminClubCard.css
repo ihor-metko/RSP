@@ -115,22 +115,16 @@
   opacity: 0.8;
 }
 
-.im-admin-club-org,
-.im-admin-club-bookings,
-.im-admin-club-admins {
+.im-admin-club-org {
   @apply flex items-center gap-1.5;
 }
 
-.im-admin-club-org-icon,
-.im-admin-club-bookings-icon,
-.im-admin-club-admins-icon {
+.im-admin-club-org-icon {
   @apply flex-shrink-0;
   opacity: 0.7;
 }
 
-.im-admin-club-org-text,
-.im-admin-club-bookings-text,
-.im-admin-club-admins-text {
+.im-admin-club-org-text {
   @apply truncate;
 }
 
@@ -345,23 +339,23 @@
   .im-admin-clubs-actions {
     @apply flex-col items-stretch;
   }
-  
+
   .im-admin-clubs-actions-left {
     @apply w-full;
   }
-  
+
   .im-admin-clubs-actions-right {
     @apply w-full justify-end;
   }
-  
+
   .im-admin-clubs-search {
     @apply w-full;
   }
-  
+
   .im-admin-clubs-filter {
     @apply flex-1;
   }
-}}
+}
 
 /* ===== Pagination ===== */
 .im-pagination {
@@ -392,7 +386,7 @@
   .im-pagination-controls {
     @apply flex-col;
   }
-  
+
   .im-pagination-size {
     @apply ml-0 w-full;
   }

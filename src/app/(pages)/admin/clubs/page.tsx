@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, IMLink, PageHeader } from "@/components/ui";
+import { Button, Input, IMLink, PageHeader } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import type { ClubWithCounts } from "@/types/club";
 import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
@@ -20,9 +20,6 @@ export default function AdminClubsPage() {
   const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deletingClub, setDeletingClub] = useState<ClubWithCounts | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
 
@@ -138,41 +135,7 @@ export default function AdminClubsPage() {
 
   // Determine permissions based on admin type
   const canCreate = adminStatus?.adminType === "root_admin" || adminStatus?.adminType === "organization_admin";
-  const canDelete = adminStatus?.adminType === "root_admin";
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
-
-  const handleOpenDeleteModal = (club: ClubWithCounts) => {
-    setDeletingClub(club);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleCloseDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setDeletingClub(null);
-  };
-
-  const handleDelete = async () => {
-    if (!deletingClub) return;
-
-    setSubmitting(true);
-    try {
-      const response = await fetch(`/api/admin/clubs/${deletingClub.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete club");
-      }
-
-      handleCloseDeleteModal();
-      fetchClubs();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete club");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -314,7 +277,6 @@ export default function AdminClubsPage() {
                 <AdminClubCard
                   key={club.id}
                   club={club}
-                  onDelete={canDelete ? handleOpenDeleteModal : undefined}
                   showOrganization={showOrganizationFilter}
                 />
               ))}
@@ -363,29 +325,6 @@ export default function AdminClubsPage() {
           </>
         )}
       </section>
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        title={t("admin.clubs.deleteClub")}
-      >
-        <p className="mb-4">
-          {t("admin.clubs.deleteConfirm", { name: deletingClub?.name || "" })}
-        </p>
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={handleCloseDeleteModal}>
-            {t("common.cancel")}
-          </Button>
-          <Button
-            onClick={handleDelete}
-            disabled={submitting}
-            className="bg-red-500 hover:bg-red-600"
-          >
-            {submitting ? t("admin.clubs.deleting") : t("common.delete")}
-          </Button>
-        </div>
-      </Modal>
     </main>
   );
 }
