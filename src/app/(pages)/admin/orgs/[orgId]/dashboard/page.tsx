@@ -8,6 +8,7 @@ import Link from "next/link";
 import OrgHeader from "@/components/admin/OrgHeader";
 import KeyMetrics from "@/components/admin/KeyMetrics";
 import { Button } from "@/components/ui";
+import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import type { OrgDashboardResponse } from "@/app/api/orgs/[orgId]/dashboard/route";
 import "./OrgDashboard.css";
 
@@ -94,6 +95,10 @@ export default function OrgDashboardPage() {
   const params = useParams();
   const orgId = params.orgId as string;
 
+  // Use Zustand store for organization state
+  const fetchOrganizationById = useOrganizationStore((state) => state.fetchOrganizationById);
+  const setCurrentOrg = useOrganizationStore((state) => state.setCurrentOrg);
+
   const [dashboardData, setDashboardData] = useState<OrgDashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -120,6 +125,9 @@ export default function OrgDashboardPage() {
 
       const data: OrgDashboardResponse = await response.json();
       setDashboardData(data);
+      
+      // Update store's currentOrg when dashboard loads successfully
+      setCurrentOrg(data.org);
     } catch (err) {
       // Log error in development for debugging
       if (process.env.NODE_ENV === "development") {
@@ -129,7 +137,7 @@ export default function OrgDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [orgId, router, t]);
+  }, [orgId, router, t, setCurrentOrg]);
 
   useEffect(() => {
     if (status === "loading") return;

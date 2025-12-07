@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button, Input, Modal, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
+import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import "./page.css";
 
 /* Icon Components */
@@ -252,6 +253,8 @@ export default function AdminUsersPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Options for filters
+  const storeOrganizations = useOrganizationStore((state) => state.organizations);
+  const fetchOrganizationsFromStore = useOrganizationStore((state) => state.fetchOrganizations);
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
   const [clubs, setClubs] = useState<ClubOption[]>([]);
 
@@ -320,15 +323,19 @@ export default function AdminUsersPage() {
 
   const fetchOrganizations = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/organizations");
-      if (response.ok) {
-        const data = await response.json();
-        setOrganizations(data.map((org: { id: string; name: string }) => ({ id: org.id, name: org.name })));
-      }
+      await fetchOrganizationsFromStore();
+      // Don't map here - let useEffect handle it when store updates
     } catch {
       // Silent fail
     }
-  }, []);
+  }, [fetchOrganizationsFromStore]);
+
+  // Update local organizations when store organizations change
+  useEffect(() => {
+    if (storeOrganizations.length > 0) {
+      setOrganizations(storeOrganizations.map((org) => ({ id: org.id, name: org.name })));
+    }
+  }, [storeOrganizations]);
 
   const fetchClubs = useCallback(async () => {
     try {

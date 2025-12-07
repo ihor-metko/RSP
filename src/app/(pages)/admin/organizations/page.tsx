@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
 import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard";
+import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import type { Organization } from "@/types/organization";
 import "@/components/admin/AdminOrganizationCard.css";
 import "./page.css";
 
@@ -13,21 +15,6 @@ interface OrganizationUser {
   id: string;
   name: string | null;
   email: string;
-}
-
-interface SuperAdmin extends OrganizationUser {
-  isPrimaryOwner: boolean;
-}
-
-interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  createdAt: string;
-  clubCount: number;
-  createdBy: OrganizationUser;
-  superAdmin: OrganizationUser | null;
-  superAdmins: SuperAdmin[];
 }
 
 interface User {
@@ -69,9 +56,16 @@ export default function AdminOrganizationsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // State for organizations list
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use Zustand store for organizations
+  const organizations = useOrganizationStore((state) => state.organizations);
+  const loading = useOrganizationStore((state) => state.loading);
+  const storeError = useOrganizationStore((state) => state.error);
+  const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
+  const createOrganization = useOrganizationStore((state) => state.createOrganization);
+  const updateOrganization = useOrganizationStore((state) => state.updateOrganization);
+  const deleteOrganization = useOrganizationStore((state) => state.deleteOrganization);
+
+  // Local error state for specific operations
   const [error, setError] = useState("");
 
   // State for search, sort, and pagination
@@ -231,26 +225,20 @@ export default function AdminOrganizationsPage() {
     label: String(n),
   }));
 
-  const fetchOrganizations = useCallback(async () => {
+  const loadOrganizations = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await fetch("/api/admin/organizations");
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          router.push("/auth/sign-in");
-          return;
-        }
-        throw new Error("Failed to fetch organizations");
-      }
-      const data = await response.json();
-      setOrganizations(data);
+      await fetchOrganizations();
       setError("");
-    } catch {
-      setError(t("organizations.failedToLoad"));
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      // Error is already set in the store, but we handle routing here
+      const errorMessage = err instanceof Error ? err.message : "";
+      if (errorMessage.includes("401") || errorMessage.includes("403")) {
+        router.push("/auth/sign-in");
+      } else {
+        setError(t("organizations.failedToLoad"));
+      }
     }
-  }, [router, t]);
+  }, [fetchOrganizations, router, t]);
 
   const fetchUsers = useCallback(async (query: string = "") => {
     try {
@@ -272,8 +260,8 @@ export default function AdminOrganizationsPage() {
       return;
     }
 
-    fetchOrganizations();
-  }, [session, status, router, fetchOrganizations]);
+    loadOrganizations();
+  }, [session, status, router, loadOrganizations]);
 
   // Debounced user search
   useEffect(() => {
@@ -291,20 +279,10 @@ export default function AdminOrganizationsPage() {
     setCreating(true);
 
     try {
-      const response = await fetch("/api/admin/organizations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: newOrgName,
-          slug: newOrgSlug || undefined,
-        }),
+      const data = await createOrganization({
+        name: newOrgName,
+        slug: newOrgSlug || undefined,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create organization");
-      }
 
       showToast(t("organizations.createSuccess"), "success");
       setIsCreateModalOpen(false);
@@ -315,7 +293,6 @@ export default function AdminOrganizationsPage() {
       setSelectedOrg(data);
       setIsAssignModalOpen(true);
       fetchUsers();
-      fetchOrganizations();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "Failed to create organization");
     } finally {
@@ -376,7 +353,7 @@ export default function AdminOrganizationsPage() {
 
       showToast(t("organizations.assignSuccess"), "success");
       handleCloseAssignModal();
-      fetchOrganizations();
+      loadOrganizations();
     } catch (err) {
       setAssignError(err instanceof Error ? err.message : "Failed to assign SuperAdmin");
     } finally {
@@ -419,7 +396,7 @@ export default function AdminOrganizationsPage() {
       }
 
       showToast(t("organizations.ownerUpdated"), "success");
-      await fetchOrganizations();
+      await loadOrganizations();
 
       // Update local state
       const updatedOrg = organizations.find(o => o.id === managingOrg.id);
@@ -456,7 +433,7 @@ export default function AdminOrganizationsPage() {
       }
 
       showToast(t("organizations.adminRemoved"), "success");
-      await fetchOrganizations();
+      await loadOrganizations();
 
       // Update local state
       const updatedOrg = organizations.find(o => o.id === managingOrg.id);
@@ -495,24 +472,13 @@ export default function AdminOrganizationsPage() {
     setEditing(true);
 
     try {
-      const response = await fetch(`/api/admin/organizations/${editingOrg.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editOrgName,
-          slug: editOrgSlug,
-        }),
+      await updateOrganization(editingOrg.id, {
+        name: editOrgName,
+        slug: editOrgSlug,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update organization");
-      }
 
       showToast(t("organizations.updateSuccess"), "success");
       handleCloseEditModal();
-      fetchOrganizations();
     } catch (err) {
       setEditError(err instanceof Error ? err.message : "Failed to update organization");
     } finally {
@@ -536,28 +502,23 @@ export default function AdminOrganizationsPage() {
   const handleDeleteOrganization = async () => {
     if (!deletingOrg) return;
 
+    // Validate before attempting delete
+    if ((deletingOrg.clubCount || 0) > 0) {
+      setDeleteError(t("organizations.deleteWithClubs", { count: deletingOrg.clubCount || 0 }));
+      return;
+    }
+
     setDeleteError("");
     setDeleting(true);
 
     try {
-      const response = await fetch(`/api/admin/organizations/${deletingOrg.id}`, {
-        method: "DELETE",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (data.clubCount) {
-          throw new Error(t("organizations.deleteWithClubs", { count: data.clubCount }));
-        }
-        throw new Error(data.error || "Failed to delete organization");
-      }
+      await deleteOrganization(deletingOrg.id, deletingOrg.slug);
 
       showToast(t("organizations.deleteSuccess"), "success");
       handleCloseDeleteModal();
-      fetchOrganizations();
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Failed to delete organization");
+      const errorMsg = err instanceof Error ? err.message : "Failed to delete organization";
+      setDeleteError(errorMsg);
     } finally {
       setDeleting(false);
     }
@@ -896,9 +857,9 @@ export default function AdminOrganizationsPage() {
           </div>
         </div>
 
-        {error && (
+        {(error || storeError) && (
           <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-            {error}
+            {error || storeError}
           </div>
         )}
 

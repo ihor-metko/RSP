@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
+import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { toOrganizationOption } from "@/utils/organization";
 import { Step1Organization } from "./Step1Organization";
 import { Step2Club } from "./Step2Club";
 import { Step3User } from "./Step3User";
@@ -35,6 +37,12 @@ export function AdminQuickBookingWizard({
   adminType,
 }: AdminQuickBookingWizardProps) {
   const t = useTranslations();
+  
+  // Use Zustand store for organizations
+  const organizations = useOrganizationStore((state) => state.organizations);
+  const isLoadingOrgs = useOrganizationStore((state) => state.loading);
+  const orgError = useOrganizationStore((state) => state.error);
+  const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
 
   const [state, setState] = useState<WizardState>(() => {
     const firstStepId = getFirstVisibleStepId(adminType, predefinedData);
@@ -141,9 +149,9 @@ export function AdminQuickBookingWizard({
     }
   }, [isOpen, adminType, predefinedData]);
 
-  // Fetch organizations (Step 1)
+  // Fetch organizations (Step 1) - use Zustand store
   useEffect(() => {
-    const fetchOrganizations = async () => {
+    const loadOrganizations = async () => {
       if (!isOpen || state.currentStep !== 1 || adminType !== "root_admin") {
         return;
       }
@@ -159,34 +167,35 @@ export function AdminQuickBookingWizard({
       }));
 
       try {
-        const response = await fetch("/api/admin/organizations");
-        if (!response.ok) {
-          throw new Error("Failed to fetch organizations");
-        }
-        const data = await response.json();
-        const orgs: WizardOrganization[] = data.map(
-          (org: { id: string; name: string; slug: string }) => ({
-            id: org.id,
-            name: org.name,
-            slug: org.slug,
-          })
-        );
+        await fetchOrganizations();
+        // Don't access organizations here - let separate useEffect handle it
+        // This prevents stale closure issues and ensures UI updates when store state changes
         setState((prev) => ({
           ...prev,
-          availableOrganizations: orgs,
           isLoadingOrganizations: false,
         }));
       } catch {
         setState((prev) => ({
           ...prev,
           isLoadingOrganizations: false,
-          organizationsError: t("auth.errorOccurred"),
+          organizationsError: orgError || t("auth.errorOccurred"),
         }));
       }
     };
 
-    fetchOrganizations();
-  }, [isOpen, state.currentStep, adminType, predefinedData, t]);
+    loadOrganizations();
+  }, [isOpen, state.currentStep, adminType, predefinedData, fetchOrganizations, orgError, t]);
+
+  // Update availableOrganizations when store organizations change
+  useEffect(() => {
+    if (organizations.length > 0 && isOpen && state.currentStep === 1) {
+      const orgs: WizardOrganization[] = organizations.map(toOrganizationOption);
+      setState((prev) => ({
+        ...prev,
+        availableOrganizations: orgs,
+      }));
+    }
+  }, [organizations, isOpen, state.currentStep]);
 
   // Fetch clubs (Step 2)
   useEffect(() => {

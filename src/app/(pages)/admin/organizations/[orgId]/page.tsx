@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader } from "@/components/ui";
+import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import "./page.css";
 
 interface User {
@@ -108,6 +109,15 @@ export default function OrganizationDetailPage() {
   const params = useParams();
   const orgId = params?.orgId as string;
 
+  // Use Zustand store
+  const currentOrg = useOrganizationStore((state) => state.currentOrg);
+  const storeLoading = useOrganizationStore((state) => state.loading);
+  const storeError = useOrganizationStore((state) => state.error);
+  const fetchOrganizationById = useOrganizationStore((state) => state.fetchOrganizationById);
+  const updateOrganization = useOrganizationStore((state) => state.updateOrganization);
+  const deleteOrganization = useOrganizationStore((state) => state.deleteOrganization);
+  const setCurrentOrg = useOrganizationStore((state) => state.setCurrentOrg);
+
   const [org, setOrg] = useState<OrgDetail | null>(null);
   const [usersPreview, setUsersPreview] = useState<UsersPreviewData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -158,6 +168,7 @@ export default function OrganizationDetailPage() {
   const fetchOrgDetail = useCallback(async () => {
     try {
       setLoading(true);
+      // Fetch full org details from API (includes metrics, activity, etc.)
       const response = await fetch(`/api/orgs/${orgId}`);
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
@@ -169,6 +180,22 @@ export default function OrganizationDetailPage() {
       const data = await response.json();
       setOrg(data);
       setError("");
+      
+      // Update the store's currentOrg with the fetched data (avoid redundant API call)
+      // Extract Organization-compatible fields from the full org detail response
+      const { id, name, slug, createdAt, updatedAt, archivedAt, contactEmail, contactPhone, website, address } = data;
+      setCurrentOrg({
+        id,
+        name,
+        slug,
+        createdAt,
+        updatedAt,
+        archivedAt,
+        contactEmail,
+        contactPhone,
+        website,
+        address,
+      });
     } catch {
       setError(t("orgDetail.failedToLoad"));
     } finally {
@@ -248,23 +275,14 @@ export default function OrganizationDetailPage() {
     setEditing(true);
 
     try {
-      const response = await fetch(`/api/orgs/${orgId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName,
-          slug: editSlug,
-          contactEmail: editContactEmail,
-          contactPhone: editContactPhone,
-          website: editWebsite,
-          address: editAddress,
-        }),
+      await updateOrganization(orgId, {
+        name: editName,
+        slug: editSlug,
+        contactEmail: editContactEmail,
+        contactPhone: editContactPhone,
+        website: editWebsite,
+        address: editAddress,
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update organization");
-      }
 
       showToast(t("orgDetail.updateSuccess"), "success");
       setIsEditModalOpen(false);
@@ -356,16 +374,7 @@ export default function OrganizationDetailPage() {
     setDeleting(true);
 
     try {
-      const response = await fetch(`/api/admin/organizations/${orgId}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirmOrgSlug: org.slug }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to delete organization");
-      }
+      await deleteOrganization(orgId, org.slug);
 
       showToast(t("orgDetail.deleteSuccess"), "success");
       router.push("/admin/organizations");
