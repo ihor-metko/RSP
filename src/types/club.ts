@@ -141,3 +141,57 @@ export interface ClubDetail {
   businessHours: ClubBusinessHours[];
   specialHours: ClubSpecialHours[];
 }
+
+/**
+ * Payload for creating a new club
+ */
+export interface CreateClubPayload {
+  organizationId: string;
+  name: string;
+  slug?: string;
+  shortDescription: string;
+  longDescription?: string;
+  location: string;
+  city?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  socialLinks?: string | null;
+  defaultCurrency?: string;
+  timezone?: string;
+  isPublic?: boolean;
+  tags?: string | null;
+  heroImage?: string;
+  logo?: string;
+  gallery?: Array<{
+    url: string;
+    key: string;
+  }>;
+  businessHours?: Array<{
+    dayOfWeek: number;
+    openTime: string | null;
+    closeTime: string | null;
+    isClosed: boolean;
+  }>;
+  courts?: Array<{
+    name: string;
+    type: string | null;
+    surface: string | null;
+    indoor: boolean;
+    defaultPriceCents: number;
+  }>;
+}
+
+/**
+ * Payload for updating a club
+ */
+export interface UpdateClubPayload {
+  name?: string;
+  location?: string;
+  contactInfo?: string | null;
+  openingHours?: string | null;
+  logo?: string | null;
+}
