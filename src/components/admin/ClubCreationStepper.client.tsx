@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { toOrganizationOptions } from "@/utils/organization";
 import {
   GeneralInfoStep,
   ContactsStep,
@@ -396,11 +397,7 @@ export function ClubCreationStepper() {
       isEditable: adminStatus.adminType === "root_admin",
       prefilledOrg: prefilledOrg,
       isLoading: isLoadingOrgs,
-      organizations: organizations.map(org => ({ 
-        id: org.id, 
-        name: org.name, 
-        slug: org.slug 
-      })),
+      organizations: toOrganizationOptions(organizations),
       onSearch: handleOrgSearch,
     } : undefined;
 

@@ -149,10 +149,7 @@ export default function AdminBookingsPage() {
         // Fetch organizations from store (for root admin)
         if (adminStatus.adminType === "root_admin") {
           await fetchOrganizations();
-          setOrganizations(storeOrganizations.map((org) => ({
-            value: org.id,
-            label: org.name,
-          })));
+          // Don't map here - let separate useEffect handle it when store updates
         }
 
         // Fetch clubs
@@ -170,7 +167,17 @@ export default function AdminBookingsPage() {
     };
 
     fetchFilterOptions();
-  }, [adminStatus, fetchOrganizations, storeOrganizations]);
+  }, [adminStatus, fetchOrganizations]);
+
+  // Update local organizations when store organizations change
+  useEffect(() => {
+    if (storeOrganizations.length > 0 && adminStatus?.adminType === "root_admin") {
+      setOrganizations(storeOrganizations.map((org) => ({
+        value: org.id,
+        label: org.name,
+      })));
+    }
+  }, [storeOrganizations, adminStatus]);
 
   // Fetch bookings
   const fetchBookings = useCallback(async () => {

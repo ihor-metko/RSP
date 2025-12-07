@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { toOrganizationOption } from "@/utils/organization";
 import { Step1Organization } from "./Step1Organization";
 import { Step2Club } from "./Step2Club";
 import { Step3User } from "./Step3User";
@@ -167,13 +168,7 @@ export function AdminQuickBookingWizard({
 
       try {
         await fetchOrganizations();
-        const orgs: WizardOrganization[] = organizations.map(
-          (org) => ({
-            id: org.id,
-            name: org.name,
-            slug: org.slug,
-          })
-        );
+        const orgs: WizardOrganization[] = organizations.map(toOrganizationOption);
         setState((prev) => ({
           ...prev,
           availableOrganizations: orgs,

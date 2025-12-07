@@ -324,11 +324,18 @@ export default function AdminUsersPage() {
   const fetchOrganizations = useCallback(async () => {
     try {
       await fetchOrganizationsFromStore();
-      setOrganizations(storeOrganizations.map((org) => ({ id: org.id, name: org.name })));
+      // Don't map here - let useEffect handle it when store updates
     } catch {
       // Silent fail
     }
-  }, [fetchOrganizationsFromStore, storeOrganizations]);
+  }, [fetchOrganizationsFromStore]);
+
+  // Update local organizations when store organizations change
+  useEffect(() => {
+    if (storeOrganizations.length > 0) {
+      setOrganizations(storeOrganizations.map((org) => ({ id: org.id, name: org.name })));
+    }
+  }, [storeOrganizations]);
 
   const fetchClubs = useCallback(async () => {
     try {

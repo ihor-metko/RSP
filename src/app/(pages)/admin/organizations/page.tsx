@@ -513,8 +513,8 @@ export default function AdminOrganizationsPage() {
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to delete organization";
       // Check if error mentions club count
-      if (deletingOrg.clubCount > 0) {
-        setDeleteError(t("organizations.deleteWithClubs", { count: deletingOrg.clubCount }));
+      if ((deletingOrg.clubCount || 0) > 0) {
+        setDeleteError(t("organizations.deleteWithClubs", { count: deletingOrg.clubCount || 0 }));
       } else {
         setDeleteError(errorMsg);
       }
