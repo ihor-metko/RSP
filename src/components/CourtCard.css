@@ -59,11 +59,9 @@
 /* ===== Image Overlay ===== */
 .im-court-card-overlay {
   @apply absolute inset-0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.6) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.6) 100%);
 }
 
 .im-court-card-overlay-content {
@@ -316,20 +314,14 @@
   .im-court-card-name {
     @apply text-base;
   }
-  
+
   .im-court-card-legend {
     @apply gap-2;
   }
-  
+
   .im-court-card-legend-item {
     @apply text-xs;
   }
-}
-
-/* ===== Focus States for Accessibility ===== */
-.im-court-card:focus-within {
-  @apply ring-2 ring-offset-2;
-  ring-color: var(--im-primary);
 }
 
 /* ===== Slot Compact View ===== */

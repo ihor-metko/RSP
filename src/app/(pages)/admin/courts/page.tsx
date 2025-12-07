@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Card, Modal, IMLink, PageHeader } from "@/components/ui";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
-import { formatPrice } from "@/utils/price";
+import { CourtCard } from "@/components/CourtCard";
 import type { AdminStatusResponse, AdminType } from "@/app/api/me/admin-status/route";
 
 interface Court {
@@ -16,6 +16,7 @@ interface Court {
   type: string | null;
   surface: string | null;
   indoor: boolean;
+  isActive: boolean;
   defaultPriceCents: number;
   createdAt: string;
   updatedAt: string;
@@ -30,12 +31,21 @@ interface Court {
   bookingCount: number;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 export default function AdminCourtsPage() {
   const t = useTranslations();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -44,11 +54,21 @@ export default function AdminCourtsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+    hasMore: false,
+  });
 
-  // Filtering state
+  // Filtering and sorting state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedClub, setSelectedClub] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("all");
+  const [sortBy, setSortBy] = useState<"name" | "bookings">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const fetchAdminStatus = useCallback(async () => {
     try {
@@ -69,10 +89,27 @@ export default function AdminCourtsPage() {
     }
   }, []);
 
-  const fetchCourts = useCallback(async () => {
+  const fetchCourts = useCallback(async (page: number = 1, append: boolean = false) => {
     try {
-      setLoading(true);
-      const response = await fetch("/api/admin/courts");
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
+      // Build query parameters
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: "20",
+      });
+
+      if (searchQuery) params.append("search", searchQuery);
+      if (selectedClub) params.append("clubId", selectedClub);
+      if (selectedStatus !== "all") params.append("status", selectedStatus);
+      params.append("sortBy", sortBy);
+      params.append("sortOrder", sortOrder);
+
+      const response = await fetch(`/api/admin/courts?${params.toString()}`);
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
           router.push("/auth/sign-in");
@@ -80,15 +117,24 @@ export default function AdminCourtsPage() {
         }
         throw new Error("Failed to fetch courts");
       }
+      
       const data = await response.json();
-      setCourts(data);
+      
+      if (append) {
+        setCourts((prev) => [...prev, ...data.courts]);
+      } else {
+        setCourts(data.courts);
+      }
+      
+      setPagination(data.pagination);
       setError("");
     } catch {
       setError(t("admin.courts.noResults"));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [router, t]);
+  }, [router, t, searchQuery, selectedClub, selectedStatus, sortBy, sortOrder]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -101,13 +147,22 @@ export default function AdminCourtsPage() {
     // First fetch admin status, then courts
     fetchAdminStatus().then((adminData) => {
       if (adminData?.isAdmin) {
-        fetchCourts();
+        fetchCourts(1, false);
       } else {
         // User is not an admin, redirect
         router.push("/auth/sign-in");
       }
     });
-  }, [session, status, router, fetchAdminStatus, fetchCourts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, status, router, fetchAdminStatus]);
+
+  // Refetch when filters or sorting change
+  useEffect(() => {
+    if (adminStatus?.isAdmin) {
+      fetchCourts(1, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, selectedClub, selectedStatus, sortBy, sortOrder]);
 
   // Extract unique organizations and clubs for filters
   const { organizations, clubs } = useMemo(() => {
@@ -141,40 +196,9 @@ export default function AdminCourtsPage() {
     };
   }, [courts, selectedOrganization]);
 
-  // Filter courts
-  const filteredCourts = useMemo(() => {
-    let result = [...courts];
-
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (court) =>
-          court.name.toLowerCase().includes(query) ||
-          court.club.name.toLowerCase().includes(query) ||
-          court.type?.toLowerCase().includes(query) ||
-          court.surface?.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply organization filter
-    if (selectedOrganization) {
-      result = result.filter(
-        (court) => court.organization?.id === selectedOrganization
-      );
-    }
-
-    // Apply club filter
-    if (selectedClub) {
-      result = result.filter((court) => court.club.id === selectedClub);
-    }
-
-    return result;
-  }, [courts, searchQuery, selectedOrganization, selectedClub]);
-
   // Determine permissions based on admin type
   const canCreate = (adminType: AdminType | undefined): boolean =>
-    adminType === "root_admin" || adminType === "organization_admin";
+    adminType === "root_admin" || adminType === "club_admin";
 
   const canEdit = (adminType: AdminType | undefined): boolean =>
     adminType === "root_admin" || adminType === "organization_admin" || adminType === "club_admin";
@@ -227,7 +251,7 @@ export default function AdminCourtsPage() {
       }
 
       handleCloseModal();
-      fetchCourts();
+      fetchCourts(1, false);
     } catch (err) {
       throw err;
     } finally {
@@ -251,7 +275,7 @@ export default function AdminCourtsPage() {
       }
 
       handleCloseDeleteModal();
-      fetchCourts();
+      fetchCourts(1, false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete court");
     } finally {
@@ -263,6 +287,19 @@ export default function AdminCourtsPage() {
     setSearchQuery("");
     setSelectedOrganization("");
     setSelectedClub("");
+    setSelectedStatus("all");
+  };
+
+  const handleLoadMore = () => {
+    if (pagination.hasMore && !loadingMore) {
+      fetchCourts(pagination.page + 1, true);
+    }
+  };
+
+  const handleSortChange = (value: string) => {
+    const [newSortBy, newSortOrder] = value.split("-") as ["name" | "bookings", "asc" | "desc"];
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
   };
 
   if (status === "loading" || loading || loadingAdminStatus) {
@@ -281,7 +318,7 @@ export default function AdminCourtsPage() {
       />
 
       <section className="rsp-content">
-        {/* Filters */}
+        {/* Filters and Sorting */}
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <Input
             placeholder={t("common.search")}
@@ -325,12 +362,46 @@ export default function AdminCourtsPage() {
             </select>
           )}
 
-          {(searchQuery || selectedOrganization || selectedClub) && (
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value as "all" | "active" | "inactive")}
+            className="im-native-select"
+            aria-label={t("admin.courts.filterByStatus")}
+          >
+            <option value="all">{t("admin.courts.allStatuses")}</option>
+            <option value="active">{t("admin.courts.active")}</option>
+            <option value="inactive">{t("admin.courts.inactive")}</option>
+          </select>
+
+          <select
+            value={`${sortBy}-${sortOrder}`}
+            onChange={(e) => handleSortChange(e.target.value)}
+            className="im-native-select"
+            aria-label={t("admin.courts.sortBy")}
+          >
+            <option value="name-asc">{t("admin.courts.sortNameAsc")}</option>
+            <option value="name-desc">{t("admin.courts.sortNameDesc")}</option>
+            <option value="bookings-desc">{t("admin.courts.sortBookingsDesc")}</option>
+            <option value="bookings-asc">{t("admin.courts.sortBookingsAsc")}</option>
+          </select>
+
+          {(searchQuery || selectedOrganization || selectedClub || selectedStatus !== "all") && (
             <Button variant="outline" onClick={handleClearFilters}>
               {t("common.clearFilters")}
             </Button>
           )}
         </div>
+
+        {/* Quick Actions */}
+        {canCreate(adminStatus?.adminType) && (
+          <div className="mb-6">
+            <IMLink href="/admin/clubs">
+              <Button variant="primary">
+                {t("admin.courts.createCourt")}
+              </Button>
+            </IMLink>
+          </div>
+        )}
 
         {error && (
           <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
@@ -338,131 +409,115 @@ export default function AdminCourtsPage() {
           </div>
         )}
 
-        <Card>
-          <div className="rsp-courts-table overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr
-                  className="border-b"
-                  style={{ borderColor: "var(--rsp-border)" }}
-                >
-                  <th className="py-3 px-4 font-semibold">{t("common.name")}</th>
-                  <th className="py-3 px-4 font-semibold hidden md:table-cell">
-                    {t("admin.courts.clubLabel")}
-                  </th>
-                  {showOrganizationFilter && (
-                    <th className="py-3 px-4 font-semibold hidden lg:table-cell">
-                      {t("sidebar.organizations")}
-                    </th>
+        {courts.length === 0 && !loading ? (
+          <Card>
+            <div className="py-8 text-center text-gray-500">
+              {t("admin.courts.noResults")}
+            </div>
+          </Card>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courts.map((court) => (
+              <div key={court.id} className="flex flex-col">
+                <CourtCard
+                  court={{
+                    id: court.id,
+                    name: court.name,
+                    slug: court.slug,
+                    type: court.type,
+                    surface: court.surface,
+                    indoor: court.indoor,
+                    defaultPriceCents: court.defaultPriceCents,
+                    imageUrl: null,
+                  }}
+                  showBookButton={false}
+                  showViewSchedule={false}
+                  showViewDetails={true}
+                  onViewDetails={(courtId) => router.push(`/admin/clubs/${court.club.id}/courts/${courtId}`)}
+                  showLegend={false}
+                  showAvailabilitySummary={false}
+                  showDetailedAvailability={false}
+                />
+                
+                {/* Organization and Club Info */}
+                <Card className="mt-3 p-4">
+                  {showOrganizationFilter && court.organization && (
+                    <div className="mb-2 text-sm">
+                      <span className="font-medium" style={{ color: "var(--im-muted)" }}>
+                        {t("sidebar.organizations")}:{" "}
+                      </span>
+                      <span>{court.organization.name}</span>
+                    </div>
                   )}
-                  <th className="py-3 px-4 font-semibold hidden md:table-cell">
-                    {t("admin.courts.type")}
-                  </th>
-                  <th className="py-3 px-4 font-semibold hidden md:table-cell">
-                    {t("admin.courts.surface")}
-                  </th>
-                  <th className="py-3 px-4 font-semibold hidden sm:table-cell">
-                    {t("admin.courts.indoor")}
-                  </th>
-                  <th className="py-3 px-4 font-semibold hidden sm:table-cell">
-                    {t("common.price")}
-                  </th>
-                  <th className="py-3 px-4 font-semibold text-right">
-                    {t("common.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCourts.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={showOrganizationFilter ? 8 : 7}
-                      className="py-8 text-center text-gray-500"
-                    >
-                      {courts.length === 0
-                        ? t("admin.courts.noResults")
-                        : t("admin.courts.noResultsMatch")}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredCourts.map((court) => (
-                    <tr
-                      key={court.id}
-                      className="border-b hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                      style={{ borderColor: "var(--rsp-border)" }}
-                    >
-                      <td className="py-3 px-4">
-                        <span className="font-medium">{court.name}</span>
-                      </td>
-                      <td className="py-3 px-4 hidden md:table-cell">
-                        <IMLink href={`/admin/clubs/${court.club.id}`}>
-                          {court.club.name}
-                        </IMLink>
-                      </td>
-                      {showOrganizationFilter && (
-                        <td className="py-3 px-4 hidden lg:table-cell">
-                          {court.organization?.name || "-"}
-                        </td>
-                      )}
-                      <td className="py-3 px-4 hidden md:table-cell">
-                        {court.type || "-"}
-                      </td>
-                      <td className="py-3 px-4 hidden md:table-cell">
-                        {court.surface || "-"}
-                      </td>
-                      <td className="py-3 px-4 hidden sm:table-cell">
-                        {court.indoor
-                          ? t("admin.courts.indoor")
-                          : t("admin.courts.outdoor")}
-                      </td>
-                      <td className="py-3 px-4 hidden sm:table-cell">
-                        {formatPrice(court.defaultPriceCents)}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <IMLink
-                            href={`/admin/clubs/${court.club.id}/courts/${court.id}/price-rules`}
-                            className="inline-flex items-center justify-center px-4 py-2 border rounded-md text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
-                          >
-                            {t("admin.courts.pricing")}
-                          </IMLink>
-                          {canEdit(adminStatus?.adminType) && (
-                            <Button
-                              variant="outline"
-                              onClick={() => handleOpenEditModal(court)}
-                            >
-                              {t("common.edit")}
-                            </Button>
-                          )}
-                          {canDelete(adminStatus?.adminType) && (
-                            <Button
-                              variant="outline"
-                              onClick={() => handleOpenDeleteModal(court)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              {t("common.delete")}
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                  <div className="mb-2 text-sm">
+                    <span className="font-medium" style={{ color: "var(--im-muted)" }}>
+                      {t("admin.courts.clubLabel")}:{" "}
+                    </span>
+                    <IMLink href={`/admin/clubs/${court.club.id}`}>
+                      {court.club.name}
+                    </IMLink>
+                  </div>
+                  <div className="mb-3 text-sm">
+                    <span className="font-medium" style={{ color: "var(--im-muted)" }}>
+                      {t("admin.courts.status")}:{" "}
+                    </span>
+                    <span className={court.isActive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
+                      {court.isActive ? t("admin.courts.active") : t("admin.courts.inactive")}
+                    </span>
+                  </div>
 
-        {/* Navigation link to create courts via club */}
-        {canCreate(adminStatus?.adminType) && (
-          <div className="mt-6">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t("admin.courts.addCourt")}:{" "}
-              <IMLink href="/admin/clubs" className="underline">
-                {t("sidebar.clubs")}
-              </IMLink>
-            </p>
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-2">
+                    <IMLink
+                      href={`/admin/clubs/${court.club.id}/courts/${court.id}/price-rules`}
+                      className="flex-1"
+                    >
+                      <Button variant="outline" className="w-full">
+                        {t("admin.courts.pricing")}
+                      </Button>
+                    </IMLink>
+                  </div>
+                  {(canEdit(adminStatus?.adminType) || canDelete(adminStatus?.adminType)) && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {canEdit(adminStatus?.adminType) && (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleOpenEditModal(court)}
+                          className="flex-1"
+                        >
+                          {t("common.edit")}
+                        </Button>
+                      )}
+                      {canDelete(adminStatus?.adminType) && (
+                        <Button
+                          variant="outline"
+                          onClick={() => handleOpenDeleteModal(court)}
+                          className="text-red-500 hover:text-red-700 flex-1"
+                        >
+                          {t("common.delete")}
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </Card>
+              </div>
+            ))}
           </div>
+
+          {/* Load More Button */}
+          {pagination.hasMore && (
+            <div className="mt-6 text-center">
+              <Button
+                variant="outline"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? t("admin.courts.loading") : t("admin.courts.loadMore")}
+              </Button>
+            </div>
+          )}
+          </>
         )}
       </section>
 

@@ -332,24 +332,17 @@ export default function AdminClubDetailPage({
 
       {/* Main Content */}
       <div className="im-admin-club-content">
-        {/* Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: t("breadcrumbs.home"), href: "/" },
-            { label: t("breadcrumbs.admin"), href: "/admin/clubs" },
-            { label: t("breadcrumbs.clubs"), href: "/admin/clubs" },
-            { label: club.name },
-          ]}
-          className="mb-6"
-          ariaLabel={t("breadcrumbs.navigation")}
-        />
-
         {/* Actions Bar */}
         <div className="im-admin-club-actions-bar">
           <div className="im-admin-club-breadcrumb">
-            <IMLink href="/admin/clubs" className="im-admin-club-breadcrumb-link">
-              ← Back to Clubs
-            </IMLink>
+            {/* Breadcrumbs */}
+            <Breadcrumbs
+              items={[
+                { label: t("breadcrumbs.clubs"), href: "/admin/clubs" },
+                { label: club.name },
+              ]}
+              ariaLabel={t("breadcrumbs.navigation")}
+            />
           </div>
           <div className="im-admin-club-actions">
             <Button

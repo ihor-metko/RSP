@@ -53,3 +53,19 @@ All UI elements **must** use the existing components from our `components/ui/*` 
 
 ## 2.3. Enforcement
 Copilot should **always follow these rules** when generating code, UI, or pages, unless explicitly instructed otherwise.
+
+
+# 3. Copilot Documentation Settings
+
+## Output Folder
+All generated documentation should be saved under the `/docs` folder at the project root.
+
+## Structure
+- Organize documentation logically by feature or module.
+- Use subfolders for major sections (e.g., `/docs/admin`, `/docs/users`, `/docs/clubs`).
+- File names should be descriptive and lowercase with hyphens, e.g., `organization-detail.md`.
+
+## Formatting
+- Use Markdown (`.md`) for all docs.
+- Include clear titles, short descriptions, and relevant lists or tables where appropriate.
+- Keep content concise and structured for easy navigation.

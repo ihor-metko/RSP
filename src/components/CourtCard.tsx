@@ -12,11 +12,13 @@ interface CourtCardProps {
   court: Court;
   onBook?: (courtId: string) => void;
   onViewSchedule?: (courtId: string) => void;
+  onViewDetails?: (courtId: string) => void;
   onCardClick?: (courtId: string) => void;
   availabilitySlots?: AvailabilitySlot[];
   isLoadingAvailability?: boolean;
   showBookButton?: boolean;
   showViewSchedule?: boolean;
+  showViewDetails?: boolean;
   isBookDisabled?: boolean;
   bookDisabledTooltip?: string;
   maxVisibleSlots?: number;
@@ -95,11 +97,13 @@ export function CourtCard({
   court,
   onBook,
   onViewSchedule,
+  onViewDetails,
   onCardClick,
   availabilitySlots = [],
   isLoadingAvailability = false,
   showBookButton = true,
   showViewSchedule = true,
+  showViewDetails = false,
   isBookDisabled = false,
   bookDisabledTooltip,
   maxVisibleSlots = 6,
@@ -345,6 +349,18 @@ export function CourtCard({
 
       {/* Actions */}
       <div className="im-court-card-actions">
+        {showViewDetails && onViewDetails && (
+          <Button
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(court.id);
+            }}
+            aria-label={`${t("common.viewDetails")} ${court.name}`}
+          >
+            {t("common.viewDetails")}
+          </Button>
+        )}
         {showBookButton && onBook && (
           <Button
             className={isBookDisabled ? "opacity-60" : ""}

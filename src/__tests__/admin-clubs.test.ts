@@ -11,6 +11,7 @@ jest.mock("@/lib/prisma", () => ({
       findUnique: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
     },
     membership: {
       findMany: jest.fn(),
@@ -119,6 +120,7 @@ describe("Admin Clubs API", () => {
         },
       ];
 
+      (prisma.club.count as jest.Mock).mockResolvedValue(2);
       (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
 
       const request = new Request("http://localhost:3000/api/admin/clubs", {
@@ -129,17 +131,18 @@ describe("Admin Clubs API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveLength(2);
-      expect(data[0].name).toBe("Club A");
-      expect(data[0].indoorCount).toBe(1);
-      expect(data[0].outdoorCount).toBe(1);
-      expect(data[0].courtCount).toBe(2);
-      expect(data[0].bookingCount).toBe(1);
-      expect(data[1].indoorCount).toBe(0);
-      expect(data[1].outdoorCount).toBe(0);
-      expect(data[1].courtCount).toBe(0);
-      expect(data[1].organization?.name).toBe("Test Org");
-      expect(data[1].admins).toHaveLength(1);
+      expect(data.clubs).toHaveLength(2);
+      expect(data.pagination.totalCount).toBe(2);
+      expect(data.clubs[0].name).toBe("Club A");
+      expect(data.clubs[0].indoorCount).toBe(1);
+      expect(data.clubs[0].outdoorCount).toBe(1);
+      expect(data.clubs[0].courtCount).toBe(2);
+      expect(data.clubs[0].bookingCount).toBe(1);
+      expect(data.clubs[1].indoorCount).toBe(0);
+      expect(data.clubs[1].outdoorCount).toBe(0);
+      expect(data.clubs[1].courtCount).toBe(0);
+      expect(data.clubs[1].organization?.name).toBe("Test Org");
+      expect(data.clubs[1].admins).toHaveLength(1);
     });
 
     it("should return clubs only from managed organizations for organization admin", async () => {
@@ -173,6 +176,7 @@ describe("Admin Clubs API", () => {
         },
       ];
 
+      (prisma.club.count as jest.Mock).mockResolvedValue(1);
       (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
 
       const request = new Request("http://localhost:3000/api/admin/clubs", {
@@ -183,8 +187,8 @@ describe("Admin Clubs API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveLength(1);
-      expect(data[0].name).toBe("Club in Org");
+      expect(data.clubs).toHaveLength(1);
+      expect(data.clubs[0].name).toBe("Club in Org");
       // Verify the where clause filtered by organizationId
       expect(prisma.club.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -225,6 +229,7 @@ describe("Admin Clubs API", () => {
         },
       ];
 
+      (prisma.club.count as jest.Mock).mockResolvedValue(1);
       (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
 
       const request = new Request("http://localhost:3000/api/admin/clubs", {
@@ -235,8 +240,8 @@ describe("Admin Clubs API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toHaveLength(1);
-      expect(data[0].name).toBe("My Club");
+      expect(data.clubs).toHaveLength(1);
+      expect(data.clubs[0].name).toBe("My Club");
       // Verify the where clause filtered by club id
       expect(prisma.club.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -266,8 +271,26 @@ describe("Admin Clubs API", () => {
     });
   });
 
-  describe("POST /api/admin/clubs", () => {
-    it("should return 401 when not authenticated", async () => {
+  describe("POST /api/admin/clubs (deprecated)", () => {
+    it("should return 410 Gone - endpoint is deprecated", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      const request = new Request("http://localhost:3000/api/admin/clubs", {
+        method: "POST",
+        body: JSON.stringify({ name: "Test Club", location: "Test Location" }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(410);
+      expect(data.error).toContain("deprecated");
+    });
+
+    it("should return 410 Gone for unauthenticated requests too", async () => {
       mockAuth.mockResolvedValue(null);
 
       const request = new Request("http://localhost:3000/api/admin/clubs", {
@@ -279,29 +302,13 @@ describe("Admin Clubs API", () => {
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(401);
-      expect(data.error).toBe("Unauthorized");
+      expect(response.status).toBe(410);
+      expect(data.error).toContain("deprecated");
     });
 
-    it("should return 403 when user is not admin", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "user-123", isRoot: false },
-      });
-
-      const request = new Request("http://localhost:3000/api/admin/clubs", {
-        method: "POST",
-        body: JSON.stringify({ name: "Test Club", location: "Test Location" }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await POST(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(403);
-      expect(data.error).toBe("Forbidden");
-    });
-
-    it("should create a new club for admin", async () => {
+    // Removed tests for creating clubs through the old endpoint
+    // Use /api/admin/clubs/new instead which requires organizationId
+    /*it("should create a new club for admin", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: true },
       });
@@ -335,9 +342,9 @@ describe("Admin Clubs API", () => {
 
       expect(response.status).toBe(201);
       expect(data.name).toBe("New Club");
-    });
+    });*/
 
-    it("should return 400 when name is missing", async () => {
+    /*it("should return 400 when name is missing", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: true },
       });
@@ -353,9 +360,9 @@ describe("Admin Clubs API", () => {
 
       expect(response.status).toBe(400);
       expect(data.error).toBe("Name and location are required");
-    });
+    });*/
 
-    it("should return 400 when location is missing", async () => {
+    /*it("should return 400 when location is missing", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: true },
       });
@@ -370,8 +377,8 @@ describe("Admin Clubs API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Name and location are required");
-    });
+      expect(data.error).toBe("Name and location are required");*/
+    //});
   });
 
   describe("PUT /api/admin/clubs/:id", () => {

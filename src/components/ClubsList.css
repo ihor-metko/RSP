@@ -102,11 +102,6 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
 }
 
-.rsp-club-card:focus-within {
-  outline: 2px solid var(--rsp-primary);
-  outline-offset: 2px;
-}
-
 .rsp-club-card-header {
   @apply flex items-center gap-4 mb-4;
 }
@@ -315,11 +310,6 @@
 
 .dark .tm-club-card:hover {
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-}
-
-.tm-club-card:focus-within {
-  outline: 2px solid var(--rsp-primary);
-  outline-offset: 2px;
 }
 
 .tm-club-card-header {
