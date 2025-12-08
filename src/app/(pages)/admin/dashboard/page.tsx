@@ -479,12 +479,6 @@ export default function AdminDashboardPage() {
                 icon={<ClubsIcon />}
                 colorClass="im-stat-card--clubs"
               />
-              <StatCard
-                title={t("rootAdmin.dashboard.totalUsers")}
-                value={dashboardData.platformStats.totalUsers}
-                icon={<UsersIcon />}
-                colorClass="im-stat-card--users"
-              />
             </div>
 
             {/* Registered Users Card - Shows filtered, real players only */}

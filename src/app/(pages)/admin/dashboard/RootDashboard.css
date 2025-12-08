@@ -20,12 +20,6 @@
   }
 }
 
-@media (min-width: 1024px) {
-  .im-stats-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
 /* Club admin stats grid - only 2 columns max */
 .im-stats-grid--club {
   @apply mb-6;
