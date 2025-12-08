@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui";
+import { Input, Select } from "@/components/ui";
 
 const CLUB_TYPES = [{ value: "padel", label: "Padel" }];
 
@@ -150,19 +150,25 @@ export function GeneralInfoStep({
       return (
         <div className="im-stepper-row">
           <div className="im-stepper-field im-stepper-field--full" ref={dropdownRef}>
-            <label className="im-stepper-label">Organization *</label>
             <div className="im-org-selector">
-              <input
-                ref={inputRef}
-                type="text"
-                className="im-stepper-input im-org-search-input"
-                placeholder="Search organizations..."
-                value={data.organizationId ? getSelectedOrgName() : searchQuery}
-                onChange={handleOrgSearchInput}
-                onFocus={() => setIsDropdownOpen(true)}
-                disabled={disabled}
-                data-testid="organization-search-input"
-              />
+              {/* Custom wrapper to maintain typeahead functionality with dropdown */}
+              <div className="rsp-input-wrapper">
+                <label htmlFor="organization-search" className="rsp-label mb-1 block text-sm font-medium">
+                  Organization *
+                </label>
+                <input
+                  ref={inputRef}
+                  id="organization-search"
+                  type="text"
+                  className="rsp-input im-org-search-input"
+                  placeholder="Search organizations..."
+                  value={data.organizationId ? getSelectedOrgName() : searchQuery}
+                  onChange={handleOrgSearchInput}
+                  onFocus={() => setIsDropdownOpen(true)}
+                  disabled={disabled}
+                  data-testid="organization-search-input"
+                />
+              </div>
               {isLoading && (
                 <span className="im-org-loading">Loading...</span>
               )}
@@ -237,21 +243,16 @@ export function GeneralInfoStep({
           )}
         </div>
         <div className="im-stepper-field">
-          <label className="im-stepper-label">Club Type</label>
-          <select
-            name="clubType"
+          <Select
+            label="Club Type"
+            options={[
+              { value: "", label: "Select type..." },
+              ...CLUB_TYPES
+            ]}
             value={data.clubType}
-            onChange={handleInputChange}
-            className="im-stepper-select"
+            onChange={(value) => onChange({ clubType: value })}
             disabled={disabled}
-          >
-            <option value="">Select type...</option>
-            {CLUB_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       </div>
 

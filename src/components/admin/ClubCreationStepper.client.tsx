@@ -383,7 +383,7 @@ export function ClubCreationStepper() {
       isEditable: adminStatus.adminType === "root_admin",
       prefilledOrg: prefilledOrg,
       isLoading: isLoadingOrgs,
-      organizations: toOrganizationOptions(organizations),
+      organizations: organizations ? toOrganizationOptions(organizations) : [],
       onSearch: handleOrgSearch,
     } : undefined;
 

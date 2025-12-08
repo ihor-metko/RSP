@@ -367,12 +367,16 @@ describe("ClubCreationStepper", () => {
             }),
           });
         }
-        if (url.includes("/api/admin/organizations/search")) {
+        if (url.includes("/api/orgs/org-1")) {
           return Promise.resolve({
             ok: true,
-            json: () => Promise.resolve([
-              { id: "org-1", name: "My Organization", slug: "my-org" },
-            ]),
+            json: () => Promise.resolve({
+              id: "org-1",
+              name: "My Organization",
+              slug: "my-org",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }),
           });
         }
         return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
