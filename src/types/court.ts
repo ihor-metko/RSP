@@ -11,6 +11,76 @@ export interface Court {
   updatedAt?: string;
 }
 
+/**
+ * Court with club information for admin listings
+ */
+export interface CourtWithClubInfo extends Court {
+  clubId: string;
+  isActive?: boolean;
+  club: {
+    id: string;
+    name: string;
+  };
+  organization?: {
+    id: string;
+    name: string;
+  } | null;
+  bookingCount?: number;
+}
+
+/**
+ * Detailed court information with price rules
+ */
+export interface CourtDetail extends Court {
+  clubId: string;
+  isActive?: boolean;
+  club?: {
+    id: string;
+    name: string;
+    businessHours?: Array<{
+      id: string;
+      dayOfWeek: number;
+      openTime: string | null;
+      closeTime: string | null;
+      isClosed: boolean;
+    }>;
+  };
+  courtPriceRules?: Array<{
+    id: string;
+    courtId: string;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    priceCents: number;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+}
+
+/**
+ * Payload for creating a new court
+ */
+export interface CreateCourtPayload {
+  name: string;
+  slug?: string | null;
+  type?: string | null;
+  surface?: string | null;
+  indoor?: boolean;
+  defaultPriceCents?: number;
+}
+
+/**
+ * Payload for updating a court
+ */
+export interface UpdateCourtPayload {
+  name?: string;
+  slug?: string | null;
+  type?: string | null;
+  surface?: string | null;
+  indoor?: boolean;
+  defaultPriceCents?: number;
+}
+
 export interface AvailabilitySlot {
   start: string;
   end: string;
