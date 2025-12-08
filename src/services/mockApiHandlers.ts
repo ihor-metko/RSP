@@ -379,12 +379,128 @@ export async function mockGetOrganizationById(id: string) {
 // Mock Courts API
 // ============================================================================
 
-export async function mockGetCourts(clubId?: string) {
+export async function mockGetCourts(params: {
+  adminType: "root_admin" | "organization_admin" | "club_admin";
+  managedIds: string[];
+  filters: {
+    search?: string;
+    clubId?: string;
+    status?: string;
+    sortBy?: string;
+    sortOrder?: string;
+    page?: number;
+    limit?: number;
+  };
+}) {
+  const { adminType, managedIds, filters } = params;
+  const { search, clubId, status, sortBy = "name", sortOrder = "asc", page = 1, limit = 20 } = filters;
+
   let courts = getMockCourts();
-  if (clubId) {
-    courts = courts.filter((c) => c.clubId === clubId);
+  const clubs = getMockClubs();
+  const organizations = getMockOrganizations();
+  const bookings = getMockBookings();
+
+  // Filter by role
+  if (adminType === "organization_admin") {
+    courts = courts.filter((court) => {
+      const club = clubs.find((c) => c.id === court.clubId);
+      return club && club.organizationId && managedIds.includes(club.organizationId);
+    });
+  } else if (adminType === "club_admin") {
+    courts = courts.filter((court) => managedIds.includes(court.clubId));
   }
-  return courts;
+
+  // Apply search filter
+  if (search) {
+    const searchLower = search.toLowerCase();
+    courts = courts.filter((court) =>
+      court.name.toLowerCase().includes(searchLower)
+    );
+  }
+
+  // Apply club filter
+  if (clubId) {
+    courts = courts.filter((court) => court.clubId === clubId);
+  }
+
+  // Apply status filter
+  if (status === "active") {
+    courts = courts.filter((court) => court.isActive);
+  } else if (status === "inactive") {
+    courts = courts.filter((court) => !court.isActive);
+  }
+
+  // Count bookings for each court
+  const courtsWithBookings = courts.map((court) => {
+    const courtBookings = bookings.filter((b) => b.courtId === court.id);
+    return {
+      ...court,
+      bookingCount: courtBookings.length,
+    };
+  });
+
+  // Sort courts
+  let sortedCourts = [...courtsWithBookings];
+  if (sortBy === "name") {
+    sortedCourts.sort((a, b) => {
+      const comparison = a.name.localeCompare(b.name);
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+  } else if (sortBy === "bookings") {
+    sortedCourts.sort((a, b) => {
+      const comparison = a.bookingCount - b.bookingCount;
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
+  }
+
+  // Calculate pagination
+  const totalCount = sortedCourts.length;
+  const totalPages = Math.ceil(totalCount / limit);
+  const skip = (page - 1) * limit;
+  const paginatedCourts = sortedCourts.slice(skip, skip + limit);
+
+  // Transform to response format
+  const courtsWithDetails = paginatedCourts.map((court) => {
+    const club = clubs.find((c) => c.id === court.clubId);
+    const organization = club?.organizationId
+      ? organizations.find((o) => o.id === club.organizationId)
+      : undefined;
+
+    return {
+      id: court.id,
+      name: court.name,
+      slug: court.slug,
+      type: court.type,
+      surface: court.surface,
+      indoor: court.indoor,
+      isActive: court.isActive,
+      defaultPriceCents: court.defaultPriceCents,
+      createdAt: court.createdAt.toISOString(),
+      updatedAt: court.updatedAt.toISOString(),
+      club: {
+        id: club?.id || "",
+        name: club?.name || "",
+      },
+      organization: organization
+        ? {
+            id: organization.id,
+            name: organization.name,
+          }
+        : null,
+      bookingCount: court.bookingCount,
+    };
+  });
+
+  return {
+    courts: courtsWithDetails,
+    pagination: {
+      page,
+      limit,
+      total: totalCount,
+      totalPages,
+      hasMore: page * limit < totalCount,
+    },
+  };
 }
 
 export async function mockGetCourtById(id: string) {
