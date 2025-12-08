@@ -30,10 +30,36 @@ The architecture is designed to scale. The initial MVP uses Next.js for both fro
 npm install
 ```
 
-2. Run the development server:
+2. Set up environment variables:
+
+```bash
+cp .env.example .env.local
+# Edit .env.local with your configuration
+```
+
+3. Run the development server:
 
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Development Features
+
+### Mock Data for Admin Pages
+
+For development and QA purposes, you can enable mock data to view full UI states without backend dependencies:
+
+1. Add to your `.env.local`:
+   ```
+   NEXT_PUBLIC_USE_MOCKS=true
+   ```
+
+2. Restart the dev server
+
+3. Navigate to any admin detail page (organizations, clubs, users) to see mock data
+
+See [src/mocks/README.md](./src/mocks/README.md) for complete documentation.
+
+**Note**: Mocks are automatically disabled in production builds and never run in production.
