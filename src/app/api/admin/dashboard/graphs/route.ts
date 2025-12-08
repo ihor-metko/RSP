@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { Prisma } from "@prisma/client";
 import type { DashboardGraphsResponse, TimeRange, BookingTrendDataPoint, ActiveUsersDataPoint } from "@/types/graphs";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetDashboardGraphs } from "@/services/mockApiHandlers";
 
 /**
  * Helper function to get date range based on time range parameter
@@ -91,6 +94,16 @@ export async function GET(request: Request): Promise<NextResponse<DashboardGraph
     const { searchParams } = new URL(request.url);
     const timeRangeParam = searchParams.get("timeRange");
     const timeRange: TimeRange = timeRangeParam === "month" ? "month" : "week";
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const mockResult = await mockGetDashboardGraphs({
+        adminType,
+        managedIds,
+        timeRange,
+      });
+      return NextResponse.json(mockResult);
+    }
 
     const { startDate, endDate } = getDateRange(timeRange);
     const dateLabels = generateDateLabels(startDate, endDate);
