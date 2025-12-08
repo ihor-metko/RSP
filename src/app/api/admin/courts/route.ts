@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import type { Prisma } from "@prisma/client";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetCourts } from "@/services/mockApiHandlers";
 
 /**
  * GET /api/admin/courts
@@ -37,6 +40,25 @@ export async function GET(request: Request) {
     const sortOrder = searchParams.get("sortOrder") || "asc";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      return NextResponse.json(
+        await mockGetCourts({
+          adminType: authResult.adminType,
+          managedIds: authResult.managedIds,
+          filters: {
+            search,
+            clubId,
+            status,
+            sortBy,
+            sortOrder,
+            page,
+            limit,
+          },
+        })
+      );
+    }
 
     // Build the where clause based on admin type
     let whereClause: Prisma.CourtWhereInput = {};
