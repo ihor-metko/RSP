@@ -113,6 +113,8 @@ All mocks must pass TypeScript compilation. If you see type errors:
 - Check that all required fields are included
 - Ensure nested objects match their types
 
+**Note**: There is a pre-existing TypeScript error in `src/app/api/admin/unified-dashboard/route.ts` that is unrelated to the mock data implementation. This does not affect the functionality of mocks.
+
 ## Testing Checklist
 
 Before committing mock changes:
@@ -122,6 +124,7 @@ Before committing mock changes:
 - [ ] Production build succeeds (`npm run build`)
 - [ ] Mocks don't run with flag disabled
 - [ ] TypeScript compiles without errors
+- [ ] Run the smoke test: `npx ts-node --project tsconfig.scripts.json scripts/check-mocks.ts`
 
 ## Questions?
 
