@@ -414,3 +414,332 @@ export async function mockGetUserByEmail(email: string) {
   const users = getMockUsers();
   return users.find((u) => u.email === email);
 }
+
+// ============================================================================
+// Mock Unified Dashboard API
+// ============================================================================
+
+export async function mockGetUnifiedDashboard(params: {
+  adminType: "root_admin" | "organization_admin" | "club_admin";
+  managedIds: string[];
+}) {
+  const { adminType, managedIds } = params;
+  const bookings = getMockBookings();
+  const courts = getMockCourts();
+  const clubs = getMockClubs();
+  const organizations = getMockOrganizations();
+  const users = getMockUsers();
+  const clubMemberships = getMockClubMemberships();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  if (adminType === "root_admin") {
+    // Platform-wide statistics
+    const activeBookings = bookings.filter((b) =>
+      ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+    ).length;
+
+    const activeBookingsCount = bookings.filter(
+      (b) =>
+        b.start >= today &&
+        ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+    ).length;
+
+    const pastBookingsCount = bookings.filter(
+      (b) =>
+        b.start < today &&
+        ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+    ).length;
+
+    return {
+      adminType,
+      isRoot: true,
+      platformStats: {
+        totalOrganizations: organizations.filter((o) => !o.archivedAt).length,
+        totalClubs: clubs.length,
+        totalUsers: users.length,
+        activeBookings,
+        activeBookingsCount,
+        pastBookingsCount,
+      },
+    };
+  }
+
+  if (adminType === "organization_admin") {
+    // Metrics for each managed organization
+    const organizationData = managedIds.map((orgId) => {
+      const org = organizations.find((o) => o.id === orgId);
+      if (!org) return null;
+
+      const orgClubs = clubs.filter((c) => c.organizationId === orgId);
+      const orgClubIds = orgClubs.map((c) => c.id);
+      const orgCourts = courts.filter((c) => orgClubIds.includes(c.clubId));
+      const orgCourtIds = orgCourts.map((c) => c.id);
+      const orgBookings = bookings.filter((b) => orgCourtIds.includes(b.courtId));
+
+      const bookingsToday = orgBookings.filter(
+        (b) => b.start >= today && b.start < tomorrow
+      ).length;
+
+      const activeBookings = orgBookings.filter(
+        (b) =>
+          b.start >= today &&
+          ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+      ).length;
+
+      const pastBookings = orgBookings.filter(
+        (b) =>
+          b.start < today &&
+          ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+      ).length;
+
+      const clubAdminsCount = clubMemberships.filter(
+        (m) => m.role === "CLUB_ADMIN" && orgClubIds.includes(m.clubId)
+      ).length;
+
+      return {
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        clubsCount: orgClubs.length,
+        courtsCount: orgCourts.length,
+        bookingsToday,
+        clubAdminsCount,
+        activeBookings,
+        pastBookings,
+      };
+    });
+
+    return {
+      adminType,
+      isRoot: false,
+      organizations: organizationData.filter(Boolean),
+    };
+  }
+
+  if (adminType === "club_admin") {
+    // Metrics for each managed club
+    const clubData = managedIds.map((clubId) => {
+      const club = clubs.find((c) => c.id === clubId);
+      if (!club) return null;
+
+      const clubCourts = courts.filter((c) => c.clubId === clubId);
+      const clubCourtIds = clubCourts.map((c) => c.id);
+      const clubBookings = bookings.filter((b) => clubCourtIds.includes(b.courtId));
+
+      const bookingsToday = clubBookings.filter(
+        (b) => b.start >= today && b.start < tomorrow
+      ).length;
+
+      const activeBookings = clubBookings.filter(
+        (b) =>
+          b.start >= today &&
+          ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+      ).length;
+
+      const pastBookings = clubBookings.filter(
+        (b) =>
+          b.start < today &&
+          ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+      ).length;
+
+      const organization = club.organizationId
+        ? organizations.find((o) => o.id === club.organizationId)
+        : undefined;
+
+      return {
+        id: club.id,
+        name: club.name,
+        slug: club.slug,
+        organizationId: club.organizationId,
+        organizationName: organization?.name ?? null,
+        courtsCount: clubCourts.length,
+        bookingsToday,
+        activeBookings,
+        pastBookings,
+      };
+    });
+
+    return {
+      adminType,
+      isRoot: false,
+      clubs: clubData.filter(Boolean),
+    };
+  }
+
+  // Should not reach here
+  throw new Error("Unknown admin type");
+}
+
+// ============================================================================
+// Mock Registered Users API
+// ============================================================================
+
+export async function mockGetRegisteredUsers() {
+  const users = getMockUsers();
+  const memberships = getMockMemberships();
+  const clubMemberships = getMockClubMemberships();
+
+  // Get admin user IDs to exclude
+  const adminIds = new Set<string>();
+
+  // Root admins
+  users.filter((u) => u.isRoot).forEach((u) => adminIds.add(u.id));
+
+  // Organization admins
+  memberships
+    .filter((m) => m.role === "ORGANIZATION_ADMIN")
+    .forEach((m) => adminIds.add(m.userId));
+
+  // Club admins
+  clubMemberships
+    .filter((m) => m.role === "CLUB_ADMIN")
+    .forEach((m) => adminIds.add(m.userId));
+
+  // Count real users (excluding admins)
+  const realUsers = users.filter((u) => !adminIds.has(u.id));
+  const totalUsers = realUsers.length;
+
+  // Generate trend data for the last 30 days
+  // For mock data, we'll create a simple pattern
+  const trend = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split("T")[0];
+
+    // Simple mock pattern: random 0-3 registrations per day
+    const count = Math.floor(Math.random() * 4);
+
+    trend.push({
+      date: dateStr,
+      count,
+    });
+  }
+
+  return {
+    totalUsers,
+    trend,
+  };
+}
+
+// ============================================================================
+// Mock Dashboard Graphs API
+// ============================================================================
+
+export async function mockGetDashboardGraphs(params: {
+  adminType: "root_admin" | "organization_admin" | "club_admin";
+  managedIds: string[];
+  timeRange: "week" | "month";
+}) {
+  const { adminType, managedIds, timeRange } = params;
+  const bookings = getMockBookings();
+  const courts = getMockCourts();
+  const clubs = getMockClubs();
+
+  // Determine date range
+  const endDate = new Date();
+  endDate.setHours(23, 59, 59, 999);
+  const startDate = new Date();
+  startDate.setHours(0, 0, 0, 0);
+
+  if (timeRange === "week") {
+    startDate.setDate(startDate.getDate() - 6); // Last 7 days including today
+  } else {
+    startDate.setDate(startDate.getDate() - 29); // Last 30 days including today
+  }
+
+  // Generate date labels
+  const dateLabels: string[] = [];
+  const currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    dateLabels.push(currentDate.toISOString().split("T")[0]);
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // Filter bookings based on admin type
+  let relevantBookings = bookings.filter(
+    (b) =>
+      b.createdAt >= startDate &&
+      b.createdAt <= endDate &&
+      ["pending", "paid", "reserved", "confirmed"].includes(b.status)
+  );
+
+  if (adminType === "organization_admin") {
+    // Filter by organization
+    const orgClubs = clubs.filter((c) => managedIds.includes(c.organizationId || ""));
+    const orgClubIds = orgClubs.map((c) => c.id);
+    const orgCourtIds = courts
+      .filter((c) => orgClubIds.includes(c.clubId))
+      .map((c) => c.id);
+    relevantBookings = relevantBookings.filter((b) =>
+      orgCourtIds.includes(b.courtId)
+    );
+  } else if (adminType === "club_admin") {
+    // Filter by club
+    const clubCourtIds = courts
+      .filter((c) => managedIds.includes(c.clubId))
+      .map((c) => c.id);
+    relevantBookings = relevantBookings.filter((b) =>
+      clubCourtIds.includes(b.courtId)
+    );
+  }
+
+  // Count bookings and unique users by date
+  const bookingCountsByDate = new Map<string, number>();
+  const activeUsersByDate = new Map<string, Set<string>>();
+
+  dateLabels.forEach((date) => {
+    bookingCountsByDate.set(date, 0);
+    activeUsersByDate.set(date, new Set<string>());
+  });
+
+  relevantBookings.forEach((booking) => {
+    const dateStr = booking.createdAt.toISOString().split("T")[0];
+    const currentCount = bookingCountsByDate.get(dateStr) || 0;
+    bookingCountsByDate.set(dateStr, currentCount + 1);
+
+    const usersOnDate = activeUsersByDate.get(dateStr);
+    if (usersOnDate) {
+      usersOnDate.add(booking.userId);
+    }
+  });
+
+  // Format date labels for display
+  const formatDateLabel = (dateStr: string): string => {
+    const parts = dateStr.split("-");
+    const [year, month, day] = parts.map(Number);
+    const date = new Date(year, month - 1, day);
+
+    if (timeRange === "week") {
+      return date.toLocaleDateString("en-US", { weekday: "short" });
+    } else {
+      return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+  };
+
+  // Build response data
+  const bookingTrends = dateLabels.map((date) => ({
+    date,
+    bookings: bookingCountsByDate.get(date) || 0,
+    label: formatDateLabel(date),
+  }));
+
+  const activeUsers = dateLabels.map((date) => ({
+    date,
+    users: activeUsersByDate.get(date)?.size || 0,
+    label: formatDateLabel(date),
+  }));
+
+  return {
+    bookingTrends,
+    activeUsers,
+    timeRange,
+  };
+}
