@@ -38,11 +38,10 @@ export function AdminQuickBookingWizard({
 }: AdminQuickBookingWizardProps) {
   const t = useTranslations();
   
-  // Use Zustand store for organizations
-  const organizations = useOrganizationStore((state) => state.organizations);
+  // Use Zustand store for organizations with auto-fetch
+  const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
   const isLoadingOrgs = useOrganizationStore((state) => state.loading);
   const orgError = useOrganizationStore((state) => state.error);
-  const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
 
   const [state, setState] = useState<WizardState>(() => {
     const firstStepId = getFirstVisibleStepId(adminType, predefinedData);
@@ -149,53 +148,32 @@ export function AdminQuickBookingWizard({
     }
   }, [isOpen, adminType, predefinedData]);
 
-  // Fetch organizations (Step 1) - use Zustand store
+  // Update availableOrganizations and loading state from store (auto-fetch handled by selector)
   useEffect(() => {
-    const loadOrganizations = async () => {
-      if (!isOpen || state.currentStep !== 1 || adminType !== "root_admin") {
-        return;
-      }
+    if (!isOpen || state.currentStep !== 1 || adminType !== "root_admin") {
+      return;
+    }
 
-      if (predefinedData?.organizationId) {
-        return; // Skip if org is predefined
-      }
+    if (predefinedData?.organizationId) {
+      return; // Skip if org is predefined
+    }
 
-      setState((prev) => ({
-        ...prev,
-        isLoadingOrganizations: true,
-        organizationsError: null,
-      }));
+    // Update loading state from store
+    setState((prev) => ({
+      ...prev,
+      isLoadingOrganizations: isLoadingOrgs,
+      organizationsError: orgError,
+    }));
 
-      try {
-        await fetchOrganizations();
-        // Don't access organizations here - let separate useEffect handle it
-        // This prevents stale closure issues and ensures UI updates when store state changes
-        setState((prev) => ({
-          ...prev,
-          isLoadingOrganizations: false,
-        }));
-      } catch {
-        setState((prev) => ({
-          ...prev,
-          isLoadingOrganizations: false,
-          organizationsError: orgError || t("auth.errorOccurred"),
-        }));
-      }
-    };
-
-    loadOrganizations();
-  }, [isOpen, state.currentStep, adminType, predefinedData, fetchOrganizations, orgError, t]);
-
-  // Update availableOrganizations when store organizations change
-  useEffect(() => {
-    if (organizations.length > 0 && isOpen && state.currentStep === 1) {
+    // Update available organizations when store data changes
+    if (organizations.length > 0) {
       const orgs: WizardOrganization[] = organizations.map(toOrganizationOption);
       setState((prev) => ({
         ...prev,
         availableOrganizations: orgs,
       }));
     }
-  }, [organizations, isOpen, state.currentStep]);
+  }, [isOpen, state.currentStep, adminType, predefinedData, organizations, isLoadingOrgs, orgError]);
 
   // Fetch clubs (Step 2)
   useEffect(() => {

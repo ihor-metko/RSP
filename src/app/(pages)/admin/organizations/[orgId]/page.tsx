@@ -110,10 +110,6 @@ export default function OrganizationDetailPage() {
   const orgId = params?.orgId as string;
 
   // Use Zustand store
-  const currentOrg = useOrganizationStore((state) => state.currentOrg);
-  const storeLoading = useOrganizationStore((state) => state.loading);
-  const storeError = useOrganizationStore((state) => state.error);
-  const fetchOrganizationById = useOrganizationStore((state) => state.fetchOrganizationById);
   const updateOrganization = useOrganizationStore((state) => state.updateOrganization);
   const deleteOrganization = useOrganizationStore((state) => state.deleteOrganization);
   const setCurrentOrg = useOrganizationStore((state) => state.setCurrentOrg);
@@ -201,7 +197,7 @@ export default function OrganizationDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [orgId, router, t]);
+  }, [orgId, router, t, setCurrentOrg]);
 
   const fetchUsersPreview = useCallback(async () => {
     try {

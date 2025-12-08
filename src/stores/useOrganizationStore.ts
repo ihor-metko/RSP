@@ -14,26 +14,34 @@ interface OrganizationState {
   currentOrg: Organization | null;
   loading: boolean;
   error: string | null;
+  hasFetched: boolean;
 
   // Actions
   setOrganizations: (orgs: Organization[]) => void;
   setCurrentOrg: (org: Organization | null) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  fetchOrganizations: () => Promise<void>;
+  fetchOrganizations: (force?: boolean) => Promise<void>;
   fetchOrganizationById: (id: string) => Promise<void>;
   createOrganization: (payload: CreateOrganizationPayload) => Promise<Organization>;
   updateOrganization: (id: string, payload: UpdateOrganizationPayload) => Promise<Organization>;
   deleteOrganization: (id: string, confirmOrgSlug?: string) => Promise<void>;
+  refetch: () => Promise<void>;
 
   // Selectors
   getOrganizationById: (id: string) => Organization | undefined;
   isOrgSelected: (id: string) => boolean;
+  getOrganizationsWithAutoFetch: () => Organization[];
 }
 
 /**
  * Zustand store for managing organizations
  * SSR-friendly, lightweight, and integrates with existing API patterns
+ * 
+ * Features:
+ * - Lazy fetching: data is only fetched when needed
+ * - Auto-fetch selector: automatically fetches data if not loaded
+ * - Single source of truth for organization data
  */
 export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   // Initial state
@@ -41,6 +49,7 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   currentOrg: null,
   loading: false,
   error: null,
+  hasFetched: false,
 
   // State setters
   setOrganizations: (orgs) => set({ organizations: orgs }),
@@ -51,8 +60,20 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   
   setError: (error) => set({ error }),
 
-  // Fetch all organizations (for root admin)
-  fetchOrganizations: async () => {
+  // Fetch all organizations (for root admin) with lazy loading support
+  fetchOrganizations: async (force = false) => {
+    const state = get();
+    
+    // Skip fetch if already loaded and not forcing refresh
+    if (state.hasFetched && !force && !state.error) {
+      return;
+    }
+    
+    // Skip if already loading to prevent duplicate requests
+    if (state.loading) {
+      return;
+    }
+
     set({ loading: true, error: null });
     try {
       const response = await fetch("/api/admin/organizations");
@@ -63,7 +84,7 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
       }
 
       const data = await response.json();
-      set({ organizations: data, loading: false });
+      set({ organizations: data, loading: false, hasFetched: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch organizations";
       set({ error: errorMessage, loading: false });
@@ -201,6 +222,12 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
     }
   },
 
+  // Force refetch organizations (clears cache and fetches fresh data)
+  refetch: async () => {
+    const { fetchOrganizations } = get();
+    await fetchOrganizations(true);
+  },
+
   // Selector: Get organization by ID from the store
   getOrganizationById: (id: string) => {
     return get().organizations.find((org) => org.id === id);
@@ -209,5 +236,28 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   // Selector: Check if an organization is currently selected
   isOrgSelected: (id: string) => {
     return get().currentOrg?.id === id;
+  },
+
+  // Selector with auto-fetch: Returns organizations and automatically fetches if not loaded
+  // Note: This is a synchronous selector. The actual fetch triggering should be done
+  // in a useEffect hook in the consuming component to avoid state update during render issues.
+  // This selector just returns the current state and provides a flag indicating if fetch is needed.
+  getOrganizationsWithAutoFetch: () => {
+    const state = get();
+    
+    // Trigger fetch if not loaded and not currently loading
+    // This is safe because it's wrapped in a Promise microtask
+    if (!state.hasFetched && !state.loading && !state.error) {
+      // Schedule fetch in microtask to avoid state update during render
+      Promise.resolve().then(() => {
+        const currentState = get();
+        // Double-check state hasn't changed
+        if (!currentState.hasFetched && !currentState.loading) {
+          currentState.fetchOrganizations();
+        }
+      });
+    }
+    
+    return state.organizations;
   },
 }));

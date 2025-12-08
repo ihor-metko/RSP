@@ -96,11 +96,10 @@ export function ClubCreationStepper() {
   const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [prefilledOrg, setPrefilledOrg] = useState<OrganizationOption | null>(null);
   
-  // Use Zustand store for organizations
-  const organizations = useOrganizationStore((state) => state.organizations);
+  // Use Zustand store for organizations with auto-fetch
+  const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
   const currentOrg = useOrganizationStore((state) => state.currentOrg);
   const isLoadingOrgs = useOrganizationStore((state) => state.loading);
-  const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
   const fetchOrganizationById = useOrganizationStore((state) => state.fetchOrganizationById);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
@@ -147,27 +146,13 @@ export function ClubCreationStepper() {
     }
   }, [currentOrg, adminStatus?.adminType]);
 
-  // Search organizations for root admin (use store fetch with filtering)
-  const handleOrgSearch = useCallback(async (query: string) => {
+  // Search organizations for root admin (use store with filtering)
+  const handleOrgSearch = useCallback(async () => {
     if (adminStatus?.adminType !== "root_admin") return;
     
-    // For now, we fetch all organizations from the store
-    // The store doesn't support search yet, but we can filter client-side
-    try {
-      if (organizations.length === 0) {
-        await fetchOrganizations();
-      }
-    } catch {
-      // Silent fail for org search
-    }
-  }, [adminStatus?.adminType, organizations.length, fetchOrganizations]);
-
-  // Load initial organizations for root admin
-  useEffect(() => {
-    if (adminStatus?.adminType === "root_admin") {
-      handleOrgSearch("");
-    }
-  }, [adminStatus?.adminType, handleOrgSearch]);
+    // Organizations are auto-fetched by the selector
+    // Client-side filtering is handled in GeneralInfoStep component
+  }, [adminStatus?.adminType]);
 
   // Generic update handlers for step components
   const handleGeneralInfoChange = useCallback((data: Partial<GeneralInfoData>) => {

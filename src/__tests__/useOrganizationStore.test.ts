@@ -12,12 +12,13 @@ global.fetch = jest.fn();
 describe("useOrganizationStore", () => {
   beforeEach(() => {
     // Clear store state before each test
-    const { result } = renderHook(() => useOrganizationStore());
-    act(() => {
-      result.current.setOrganizations([]);
-      result.current.setCurrentOrg(null);
-      result.current.setLoading(false);
-      result.current.setError(null);
+    // Reset the entire store to initial state
+    useOrganizationStore.setState({
+      organizations: [],
+      currentOrg: null,
+      loading: false,
+      error: null,
+      hasFetched: false,
     });
     // Clear fetch mock
     jest.clearAllMocks();
@@ -31,6 +32,7 @@ describe("useOrganizationStore", () => {
       expect(result.current.currentOrg).toBeNull();
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
+      expect(result.current.hasFetched).toBe(false);
     });
   });
 
@@ -102,7 +104,74 @@ describe("useOrganizationStore", () => {
       expect(result.current.organizations).toEqual(mockOrgs);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
+      expect(result.current.hasFetched).toBe(true);
       expect(global.fetch).toHaveBeenCalledWith("/api/admin/organizations");
+    });
+
+    it("should skip fetch if already fetched (lazy loading)", async () => {
+      const mockOrgs: Organization[] = [
+        { id: "1", name: "Org 1", slug: "org-1", createdAt: "2024-01-01" },
+      ];
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrgs,
+      });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // First fetch
+      await act(async () => {
+        await result.current.fetchOrganizations();
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.hasFetched).toBe(true);
+
+      // Second fetch should be skipped
+      await act(async () => {
+        await result.current.fetchOrganizations();
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1); // Still 1, not called again
+    });
+
+    it("should force fetch when force=true", async () => {
+      const mockOrgs1: Organization[] = [
+        { id: "1", name: "Org 1", slug: "org-1", createdAt: "2024-01-01" },
+      ];
+      const mockOrgs2: Organization[] = [
+        { id: "1", name: "Org 1", slug: "org-1", createdAt: "2024-01-01" },
+        { id: "2", name: "Org 2", slug: "org-2", createdAt: "2024-01-02" },
+      ];
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockOrgs1,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockOrgs2,
+        });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // First fetch
+      await act(async () => {
+        await result.current.fetchOrganizations();
+      });
+
+      expect(result.current.organizations).toHaveLength(1);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+
+      // Force refetch
+      await act(async () => {
+        await result.current.fetchOrganizations(true);
+      });
+
+      expect(result.current.organizations).toHaveLength(2);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
     });
 
     it("should handle fetch error", async () => {
@@ -517,6 +586,127 @@ describe("useOrganizationStore", () => {
       const { result } = renderHook(() => useOrganizationStore());
 
       expect(result.current.isOrgSelected("1")).toBe(false);
+    });
+  });
+
+  describe("refetch", () => {
+    it("should force refresh organizations", async () => {
+      const mockOrgs1: Organization[] = [
+        { id: "1", name: "Org 1", slug: "org-1", createdAt: "2024-01-01" },
+      ];
+      const mockOrgs2: Organization[] = [
+        { id: "1", name: "Org 1", slug: "org-1", createdAt: "2024-01-01" },
+        { id: "2", name: "Org 2", slug: "org-2", createdAt: "2024-01-02" },
+      ];
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockOrgs1,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockOrgs2,
+        });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // First fetch
+      await act(async () => {
+        await result.current.fetchOrganizations();
+      });
+
+      expect(result.current.organizations).toHaveLength(1);
+
+      // Refetch should force a new fetch
+      await act(async () => {
+        await result.current.refetch();
+      });
+
+      expect(result.current.organizations).toHaveLength(2);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("getOrganizationsWithAutoFetch", () => {
+    it("should return organizations without fetching if already loaded", async () => {
+      const mockOrgs: Organization[] = [
+        { id: "1", name: "Org 1", slug: "org-1", createdAt: "2024-01-01" },
+      ];
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrgs,
+      });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // Pre-fetch
+      await act(async () => {
+        await result.current.fetchOrganizations();
+      });
+
+      jest.clearAllMocks();
+
+      // Use auto-fetch selector
+      let orgs: Organization[] = [];
+      act(() => {
+        orgs = result.current.getOrganizationsWithAutoFetch();
+      });
+
+      expect(orgs).toEqual(mockOrgs);
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("should trigger fetch if not loaded", async () => {
+      const mockOrgs: Organization[] = [
+        { id: "1", name: "Org 1", slug: "org-1", createdAt: "2024-01-01" },
+      ];
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrgs,
+      });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // Use auto-fetch selector before any manual fetch
+      act(() => {
+        result.current.getOrganizationsWithAutoFetch();
+      });
+
+      // Wait for the async fetch to complete
+      await waitFor(() => expect(result.current.hasFetched).toBe(true));
+
+      expect(result.current.organizations).toEqual(mockOrgs);
+      expect(global.fetch).toHaveBeenCalledWith("/api/admin/organizations");
+    });
+
+    it("should not trigger duplicate fetches if already loading", async () => {
+      const mockOrgs: Organization[] = [
+        { id: "1", name: "Org 1", slug: "org-1", createdAt: "2024-01-01" },
+      ];
+
+      (global.fetch as jest.Mock).mockImplementation(() => 
+        new Promise((resolve) => setTimeout(() => resolve({
+          ok: true,
+          json: async () => mockOrgs,
+        }), 100))
+      );
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // Trigger auto-fetch multiple times while loading
+      act(() => {
+        result.current.getOrganizationsWithAutoFetch();
+        result.current.getOrganizationsWithAutoFetch();
+        result.current.getOrganizationsWithAutoFetch();
+      });
+
+      await waitFor(() => expect(result.current.hasFetched).toBe(true));
+
+      // Should only have called fetch once
+      expect(global.fetch).toHaveBeenCalledTimes(1);
     });
   });
 });

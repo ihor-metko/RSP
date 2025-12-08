@@ -8,7 +8,6 @@ import Link from "next/link";
 import OrgHeader from "@/components/admin/OrgHeader";
 import KeyMetrics from "@/components/admin/KeyMetrics";
 import { Button } from "@/components/ui";
-import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import type { OrgDashboardResponse } from "@/app/api/orgs/[orgId]/dashboard/route";
 import "./OrgDashboard.css";
 
@@ -95,9 +94,9 @@ export default function OrgDashboardPage() {
   const params = useParams();
   const orgId = params.orgId as string;
 
-  // Use Zustand store for organization state
-  const fetchOrganizationById = useOrganizationStore((state) => state.fetchOrganizationById);
-  const setCurrentOrg = useOrganizationStore((state) => state.setCurrentOrg);
+  // Note: We don't use the organization store here because the dashboard API
+  // only returns partial org data (id, name, slug) without createdAt and other fields.
+  // If full org data is needed, components should fetch from the organization store separately.
 
   const [dashboardData, setDashboardData] = useState<OrgDashboardResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,7 +126,9 @@ export default function OrgDashboardPage() {
       setDashboardData(data);
       
       // Update store's currentOrg when dashboard loads successfully
-      setCurrentOrg(data.org);
+      // Note: Dashboard response only includes minimal org data (id, name, slug)
+      // We don't update the store here since it would overwrite complete org data with partial data
+      // Components should use the full organization store if they need complete data
     } catch (err) {
       // Log error in development for debugging
       if (process.env.NODE_ENV === "development") {
@@ -137,7 +138,7 @@ export default function OrgDashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [orgId, router, t, setCurrentOrg]);
+  }, [orgId, router, t]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -149,6 +150,8 @@ export default function OrgDashboardPage() {
 
     fetchDashboard();
   }, [session, status, router, fetchDashboard]);
+  
+  // Note: setCurrentOrg removed because dashboard doesn't provide complete org data
 
   if (status === "loading" || loading) {
     return (

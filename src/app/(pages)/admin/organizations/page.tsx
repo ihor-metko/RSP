@@ -11,12 +11,6 @@ import type { Organization } from "@/types/organization";
 import "@/components/admin/AdminOrganizationCard.css";
 import "./page.css";
 
-interface OrganizationUser {
-  id: string;
-  name: string | null;
-  email: string;
-}
-
 interface User {
   id: string;
   name: string | null;
@@ -56,14 +50,14 @@ export default function AdminOrganizationsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Use Zustand store for organizations
-  const organizations = useOrganizationStore((state) => state.organizations);
+  // Use Zustand store for organizations with auto-fetch
+  const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
   const loading = useOrganizationStore((state) => state.loading);
   const storeError = useOrganizationStore((state) => state.error);
-  const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
   const createOrganization = useOrganizationStore((state) => state.createOrganization);
   const updateOrganization = useOrganizationStore((state) => state.updateOrganization);
   const deleteOrganization = useOrganizationStore((state) => state.deleteOrganization);
+  const refetch = useOrganizationStore((state) => state.refetch);
 
   // Local error state for specific operations
   const [error, setError] = useState("");
@@ -181,7 +175,7 @@ export default function AdminOrganizationsPage() {
           comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
           break;
         case "clubCount":
-          comparison = a.clubCount - b.clubCount;
+          comparison = (a.clubCount || 0) - (b.clubCount || 0);
           break;
         case "adminCount":
           comparison = (a.superAdmins?.length || 0) - (b.superAdmins?.length || 0);
@@ -227,7 +221,7 @@ export default function AdminOrganizationsPage() {
 
   const loadOrganizations = useCallback(async () => {
     try {
-      await fetchOrganizations();
+      await refetch();
       setError("");
     } catch (err) {
       // Error is already set in the store, but we handle routing here
@@ -238,7 +232,7 @@ export default function AdminOrganizationsPage() {
         setError(t("organizations.failedToLoad"));
       }
     }
-  }, [fetchOrganizations, router, t]);
+  }, [refetch, router, t]);
 
   const fetchUsers = useCallback(async (query: string = "") => {
     try {
@@ -260,8 +254,12 @@ export default function AdminOrganizationsPage() {
       return;
     }
 
-    loadOrganizations();
-  }, [session, status, router, loadOrganizations]);
+    // No need to manually fetch - auto-fetch selector will handle it
+    // Only check for auth errors if present
+    if (storeError && (storeError.includes("401") || storeError.includes("403"))) {
+      router.push("/auth/sign-in");
+    }
+  }, [session, status, router, storeError]);
 
   // Debounced user search
   useEffect(() => {
@@ -1267,9 +1265,9 @@ export default function AdminOrganizationsPage() {
           <p className="im-delete-confirm-text">
             {t("organizations.deleteConfirm", { name: deletingOrg?.name ?? "" })}
           </p>
-          {deletingOrg && deletingOrg.clubCount > 0 && (
+          {deletingOrg && (deletingOrg.clubCount || 0) > 0 && (
             <div className="rsp-warning bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-sm">
-              {t("organizations.deleteWithClubs", { count: deletingOrg.clubCount })}
+              {t("organizations.deleteWithClubs", { count: deletingOrg.clubCount || 0 })}
             </div>
           )}
           <div className="flex justify-end gap-2 mt-4">

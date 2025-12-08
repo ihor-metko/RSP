@@ -9,7 +9,7 @@ export interface AdminOrganizationCardProps {
     name: string;
     slug: string;
     createdAt: string;
-    clubCount: number;
+    clubCount?: number;
     createdBy?: {
       id: string;
       name: string | null;
@@ -87,12 +87,12 @@ export function AdminOrganizationCard({
         <div className="im-admin-org-status">
           <span
             className={`im-admin-org-status-badge ${
-              organization.clubCount > 0
+              (organization.clubCount || 0) > 0
                 ? "im-admin-org-status-badge--active"
                 : "im-admin-org-status-badge--inactive"
             }`}
           >
-            {organization.clubCount > 0
+            {(organization.clubCount || 0) > 0
               ? t("organizations.active")
               : t("organizations.inactive")}
           </span>
@@ -155,7 +155,7 @@ export function AdminOrganizationCard({
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
             <span className="im-admin-org-meta-value">
-              {organization.clubCount} {organization.clubCount === 1 ? t("admin.club") : t("admin.clubs")}
+              {organization.clubCount || 0} {(organization.clubCount || 0) === 1 ? t("admin.club") : t("admin.clubs")}
             </span>
           </div>
 
@@ -255,7 +255,7 @@ export function AdminOrganizationCard({
             size="small"
             onClick={onDelete}
             className="im-admin-org-action-btn"
-            disabled={organization.clubCount > 0}
+            disabled={(organization.clubCount || 0) > 0}
           >
             {t("common.delete")}
           </Button>
