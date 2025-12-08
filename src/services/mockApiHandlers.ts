@@ -24,6 +24,15 @@ import {
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
 // ============================================================================
+// Constants for default pagination and sorting
+// ============================================================================
+
+const DEFAULT_SORT_BY = "name";
+const DEFAULT_SORT_ORDER = "asc";
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 20;
+
+// ============================================================================
 // Mock Bookings API
 // ============================================================================
 
@@ -393,17 +402,29 @@ export async function mockGetCourts(params: {
   };
 }) {
   const { adminType, managedIds, filters } = params;
-  const { search, clubId, status, sortBy = "name", sortOrder = "asc", page = 1, limit = 20 } = filters;
+  const {
+    search,
+    clubId,
+    status,
+    sortBy = DEFAULT_SORT_BY,
+    sortOrder = DEFAULT_SORT_ORDER,
+    page = DEFAULT_PAGE,
+    limit = DEFAULT_LIMIT,
+  } = filters;
 
   let courts = getMockCourts();
   const clubs = getMockClubs();
   const organizations = getMockOrganizations();
   const bookings = getMockBookings();
 
+  // Create lookup maps for O(1) access
+  const clubMap = new Map(clubs.map((club) => [club.id, club]));
+  const organizationMap = new Map(organizations.map((org) => [org.id, org]));
+
   // Filter by role
   if (adminType === "organization_admin") {
     courts = courts.filter((court) => {
-      const club = clubs.find((c) => c.id === court.clubId);
+      const club = clubMap.get(court.clubId);
       return club && club.organizationId && managedIds.includes(club.organizationId);
     });
   } else if (adminType === "club_admin") {
@@ -461,10 +482,15 @@ export async function mockGetCourts(params: {
 
   // Transform to response format
   const courtsWithDetails = paginatedCourts.map((court) => {
-    const club = clubs.find((c) => c.id === court.clubId);
+    const club = clubMap.get(court.clubId);
     const organization = club?.organizationId
-      ? organizations.find((o) => o.id === club.organizationId)
+      ? organizationMap.get(club.organizationId)
       : undefined;
+
+    // Courts should always have valid club associations in mock data
+    if (!club) {
+      throw new Error(`Invalid mock data: Court ${court.id} has no associated club`);
+    }
 
     return {
       id: court.id,
@@ -478,8 +504,8 @@ export async function mockGetCourts(params: {
       createdAt: court.createdAt.toISOString(),
       updatedAt: court.updatedAt.toISOString(),
       club: {
-        id: club?.id || "",
-        name: club?.name || "",
+        id: club.id,
+        name: club.name,
       },
       organization: organization
         ? {
