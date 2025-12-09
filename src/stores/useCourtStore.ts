@@ -13,19 +13,38 @@ import type {
  * that can be used across admin dashboards, booking pages, and club management pages.
  * 
  * Features:
- * - Fetch courts by club ID
- * - Fetch individual court details
+ * - Fetch courts by club ID with inflight request guards (prevents duplicate concurrent requests)
+ * - Fetch-if-missing pattern: returns cached data when available, fetches only when needed
+ * - Fetch individual court details with caching
  * - Create, update, and delete courts with optimistic updates
  * - Helper methods for court selection and lookup
  * - Error and loading state management
+ * - Cache invalidation support
+ * 
+ * Note: SSR pages should fetch data server-side and hydrate the store after mount.
+ * Use useCourtStore.getState().setCourts(serverData) to populate the store with
+ * server-fetched data after hydration.
  * 
  * @example
  * ```tsx
- * const { courts, loading, fetchCourtsByClubId } = useCourtStore();
+ * // Fetch courts if not already loaded
+ * const courts = useCourtStore(state => state.courts);
+ * const fetchCourtsIfNeeded = useCourtStore(state => state.fetchCourtsIfNeeded);
  * 
  * useEffect(() => {
- *   fetchCourtsByClubId("club-123");
- * }, []);
+ *   fetchCourtsIfNeeded().catch(console.error);
+ * }, [fetchCourtsIfNeeded]);
+ * ```
+ * 
+ * @example
+ * ```tsx
+ * // Ensure a specific court is loaded
+ * const ensureCourtById = useCourtStore(state => state.ensureCourtById);
+ * const court = useCourtStore(state => state.courtsById[courtId]);
+ * 
+ * useEffect(() => {
+ *   ensureCourtById(courtId).catch(console.error);
+ * }, [ensureCourtById, courtId]);
  * ```
  */
 
@@ -35,9 +54,17 @@ import type {
 interface CourtState {
   // State
   courts: Court[];
+  courtsById: Record<string, CourtDetail>;
   currentCourt: CourtDetail | null;
   loading: boolean;
+  loadingCourts: boolean;
   error: string | null;
+  courtsError: string | null;
+  lastFetchedAt: number | null;
+
+  // Internal inflight guards (not intended for external use)
+  _inflightFetchCourts: Promise<Court[]> | null;
+  _inflightFetchCourtById: Record<string, Promise<CourtDetail>>;
 
   // Actions
   setCourts: (courts: Court[]) => void;
@@ -45,6 +72,13 @@ interface CourtState {
   clearCurrentCourt: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  
+  // Fetch-if-missing methods with inflight guards
+  fetchCourtsIfNeeded: (options?: { force?: boolean; clubId?: string }) => Promise<Court[]>;
+  ensureCourtById: (courtId: string, options?: { force?: boolean; clubId?: string }) => Promise<CourtDetail>;
+  invalidateCourts: () => void;
+
+  // Legacy methods (kept for backward compatibility during migration)
   fetchCourtsByClubId: (clubId: string) => Promise<void>;
   fetchCourtById: (clubId: string, courtId: string) => Promise<void>;
   createCourt: (clubId: string, payload: CreateCourtPayload) => Promise<Court>;
@@ -63,12 +97,18 @@ interface CourtState {
 export const useCourtStore = create<CourtState>((set, get) => ({
   // Initial state
   courts: [],
+  courtsById: {},
   currentCourt: null,
   loading: false,
+  loadingCourts: false,
   error: null,
+  courtsError: null,
+  lastFetchedAt: null,
+  _inflightFetchCourts: null,
+  _inflightFetchCourtById: {},
 
   // State setters
-  setCourts: (courts) => set({ courts }),
+  setCourts: (courts) => set({ courts, lastFetchedAt: Date.now() }),
   
   setCurrentCourt: (court) => set({ currentCourt: court }),
   
@@ -77,6 +117,151 @@ export const useCourtStore = create<CourtState>((set, get) => ({
   setLoading: (loading) => set({ loading }),
   
   setError: (error) => set({ error }),
+
+  // Fetch courts if not already loaded (with inflight guard)
+  fetchCourtsIfNeeded: async (options = {}) => {
+    const { force = false, clubId } = options;
+    const state = get();
+
+    // If not forcing and courts already loaded, return cached data
+    if (!force && state.courts.length > 0) {
+      return Promise.resolve(state.courts);
+    }
+
+    // If already fetching, return the existing promise
+    if (state._inflightFetchCourts) {
+      return state._inflightFetchCourts;
+    }
+
+    // Create new fetch promise
+    const fetchPromise = (async () => {
+      set({ loadingCourts: true, courtsError: null });
+      try {
+        // Use clubId if provided, otherwise use a general endpoint
+        const endpoint = clubId ? `/api/clubs/${clubId}/courts` : '/api/courts';
+        const response = await fetch(endpoint);
+        
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: "Failed to fetch courts" }));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        // Handle both direct array and wrapped response
+        const courts = data.courts || data;
+        
+        set({ 
+          courts, 
+          loadingCourts: false, 
+          lastFetchedAt: Date.now(),
+          _inflightFetchCourts: null 
+        });
+        
+        return courts;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch courts";
+        set({ 
+          courtsError: errorMessage, 
+          loadingCourts: false,
+          _inflightFetchCourts: null 
+        });
+        throw error;
+      }
+    })();
+
+    set({ _inflightFetchCourts: fetchPromise });
+    return fetchPromise;
+  },
+
+  // Ensure a specific court is loaded by ID (with inflight guard)
+  ensureCourtById: async (courtId: string, options = {}) => {
+    const { force = false, clubId } = options;
+    const state = get();
+
+    // If not forcing and court already cached, return it
+    if (!force && state.courtsById[courtId]) {
+      return Promise.resolve(state.courtsById[courtId]);
+    }
+
+    // If already fetching this court, return the existing promise
+    if (state._inflightFetchCourtById[courtId]) {
+      return state._inflightFetchCourtById[courtId];
+    }
+
+    // Create new fetch promise
+    const fetchPromise = (async () => {
+      set({ loadingCourts: true, courtsError: null });
+      try {
+        // Try multiple endpoints based on what's available
+        let response;
+        if (clubId) {
+          response = await fetch(`/api/admin/clubs/${clubId}/courts/${courtId}`);
+        } else {
+          response = await fetch(`/api/courts/${courtId}`);
+        }
+        
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: "Failed to fetch court" }));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const court: CourtDetail = await response.json();
+        
+        // Update both courtsById cache and courts array if not present
+        set((state) => {
+          const courtsById = { ...state.courtsById, [courtId]: court };
+          const courtExists = state.courts.some(c => c.id === courtId);
+          const courts = courtExists 
+            ? state.courts.map(c => c.id === courtId ? court : c)
+            : [...state.courts, court];
+          
+          const inflightById = { ...state._inflightFetchCourtById };
+          delete inflightById[courtId];
+          
+          return { 
+            courtsById,
+            courts,
+            loadingCourts: false,
+            _inflightFetchCourtById: inflightById
+          };
+        });
+        
+        return court;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch court";
+        set((state) => {
+          const inflightById = { ...state._inflightFetchCourtById };
+          delete inflightById[courtId];
+          return {
+            courtsError: errorMessage, 
+            loadingCourts: false,
+            _inflightFetchCourtById: inflightById
+          };
+        });
+        throw error;
+      }
+    })();
+
+    set((state) => ({ 
+      _inflightFetchCourtById: { 
+        ...state._inflightFetchCourtById, 
+        [courtId]: fetchPromise 
+      } 
+    }));
+    
+    return fetchPromise;
+  },
+
+  // Invalidate caches and clear stored data
+  invalidateCourts: () => {
+    set({ 
+      courts: [], 
+      courtsById: {},
+      lastFetchedAt: null,
+      _inflightFetchCourts: null,
+      _inflightFetchCourtById: {}
+    });
+  },
 
   // Fetch courts by club ID
   fetchCourtsByClubId: async (clubId: string) => {
@@ -137,10 +322,12 @@ export const useCourtStore = create<CourtState>((set, get) => ({
 
       const newCourt = await response.json();
       
-      // Optimistically add to courts list
+      // Optimistically add to courts list and update cache
       set((state) => ({
         courts: [...state.courts, newCourt],
+        courtsById: { ...state.courtsById, [newCourt.id]: newCourt },
         loading: false,
+        lastFetchedAt: Date.now(),
       }));
 
       return newCourt;
@@ -168,7 +355,7 @@ export const useCourtStore = create<CourtState>((set, get) => ({
 
       const updatedCourt = await response.json();
 
-      // Update in courts list - merge updated fields with existing court
+      // Update in courts list and cache - merge updated fields with existing court
       set((state) => ({
         courts: state.courts.map((court) =>
           court.id === courtId 
@@ -180,6 +367,12 @@ export const useCourtStore = create<CourtState>((set, get) => ({
               } 
             : court
         ),
+        courtsById: {
+          ...state.courtsById,
+          [courtId]: state.courtsById[courtId] 
+            ? { ...state.courtsById[courtId], ...updatedCourt, id: courtId }
+            : updatedCourt
+        },
         // Update currentCourt if it matches
         currentCourt: state.currentCourt?.id === courtId 
           ? { 
@@ -190,6 +383,7 @@ export const useCourtStore = create<CourtState>((set, get) => ({
             } 
           : state.currentCourt,
         loading: false,
+        lastFetchedAt: Date.now(),
       }));
 
       return updatedCourt;
@@ -213,12 +407,19 @@ export const useCourtStore = create<CourtState>((set, get) => ({
         throw new Error(data.error || `HTTP ${response.status}`);
       }
 
-      // Remove from courts list and clear currentCourt if it was deleted
-      set((state) => ({
-        courts: state.courts.filter((court) => court.id !== courtId),
-        currentCourt: state.currentCourt?.id === courtId ? null : state.currentCourt,
-        loading: false,
-      }));
+      // Remove from courts list, cache, and clear currentCourt if it was deleted
+      set((state) => {
+        const courtsById = { ...state.courtsById };
+        delete courtsById[courtId];
+        
+        return {
+          courts: state.courts.filter((court) => court.id !== courtId),
+          courtsById,
+          currentCourt: state.currentCourt?.id === courtId ? null : state.currentCourt,
+          loading: false,
+          lastFetchedAt: Date.now(),
+        };
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to delete court";
       set({ error: errorMessage, loading: false });
