@@ -52,8 +52,6 @@ export default function AdminOrganizationsPage() {
   const loading = useOrganizationStore((state) => state.loading);
   const storeError = useOrganizationStore((state) => state.error);
   const createOrganization = useOrganizationStore((state) => state.createOrganization);
-  const updateOrganization = useOrganizationStore((state) => state.updateOrganization);
-  const deleteOrganization = useOrganizationStore((state) => state.deleteOrganization);
   const refetch = useOrganizationStore((state) => state.refetch);
 
   // Local error state for specific operations
@@ -86,25 +84,7 @@ export default function AdminOrganizationsPage() {
   const [assignError, setAssignError] = useState("");
   const [assigning, setAssigning] = useState(false);
 
-  // State for manage admins modal
-  const [isManageAdminsModalOpen, setIsManageAdminsModalOpen] = useState(false);
-  const [managingOrg, setManagingOrg] = useState<Organization | null>(null);
-  const [manageError, setManageError] = useState("");
-  const [processing, setProcessing] = useState(false);
-
-  // State for edit organization modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
-  const [editOrgName, setEditOrgName] = useState("");
-  const [editOrgSlug, setEditOrgSlug] = useState("");
-  const [editError, setEditError] = useState("");
-  const [editing, setEditing] = useState(false);
-
-  // State for delete organization modal
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deletingOrg, setDeletingOrg] = useState<Organization | null>(null);
-  const [deleteError, setDeleteError] = useState("");
-  const [deleting, setDeleting] = useState(false);
+  // Note: Manage Admins, Edit, and Delete actions are now available only from the organization detail page
 
   // State for club admins management modal
   const [isClubAdminsModalOpen, setIsClubAdminsModalOpen] = useState(false);
@@ -295,18 +275,7 @@ export default function AdminOrganizationsPage() {
     }
   };
 
-  const handleOpenAssignModal = (org: Organization) => {
-    setSelectedOrg(org);
-    setAssignMode("existing");
-    setUserSearch("");
-    setSelectedUserId("");
-    setNewAdminName("");
-    setNewAdminEmail("");
-    setNewAdminPassword("");
-    setAssignError("");
-    setIsAssignModalOpen(true);
-    fetchUsers();
-  };
+
 
   const handleCloseAssignModal = () => {
     setIsAssignModalOpen(false);
@@ -356,168 +325,7 @@ export default function AdminOrganizationsPage() {
     }
   };
 
-  const handleOpenManageAdminsModal = (org: Organization) => {
-    setManagingOrg(org);
-    setManageError("");
-    setIsManageAdminsModalOpen(true);
-  };
-
-  const handleCloseManageAdminsModal = () => {
-    setIsManageAdminsModalOpen(false);
-    setManagingOrg(null);
-    setManageError("");
-  };
-
-  const handleSetOwner = async (userId: string) => {
-    if (!managingOrg) return;
-
-    setProcessing(true);
-    setManageError("");
-
-    try {
-      const response = await fetch("/api/admin/organizations/set-owner", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationId: managingOrg.id,
-          userId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to set owner");
-      }
-
-      showToast(t("organizations.ownerUpdated"), "success");
-      await loadOrganizations();
-
-      // Update local state
-      const updatedOrg = organizations.find(o => o.id === managingOrg.id);
-      if (updatedOrg) {
-        setManagingOrg(updatedOrg);
-      }
-    } catch (err) {
-      setManageError(err instanceof Error ? err.message : "Failed to set owner");
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleRemoveAdmin = async (userId: string) => {
-    if (!managingOrg) return;
-
-    setProcessing(true);
-    setManageError("");
-
-    try {
-      const response = await fetch("/api/admin/organizations/remove-admin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationId: managingOrg.id,
-          userId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to remove admin");
-      }
-
-      showToast(t("organizations.adminRemoved"), "success");
-      await loadOrganizations();
-
-      // Update local state
-      const updatedOrg = organizations.find(o => o.id === managingOrg.id);
-      if (updatedOrg) {
-        setManagingOrg(updatedOrg);
-      }
-    } catch (err) {
-      setManageError(err instanceof Error ? err.message : "Failed to remove admin");
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  // Edit organization handlers
-  const handleOpenEditModal = (org: Organization) => {
-    setEditingOrg(org);
-    setEditOrgName(org.name);
-    setEditOrgSlug(org.slug);
-    setEditError("");
-    setIsEditModalOpen(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingOrg(null);
-    setEditOrgName("");
-    setEditOrgSlug("");
-    setEditError("");
-  };
-
-  const handleEditOrganization = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingOrg) return;
-
-    setEditError("");
-    setEditing(true);
-
-    try {
-      await updateOrganization(editingOrg.id, {
-        name: editOrgName,
-        slug: editOrgSlug,
-      });
-
-      showToast(t("organizations.updateSuccess"), "success");
-      handleCloseEditModal();
-    } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Failed to update organization");
-    } finally {
-      setEditing(false);
-    }
-  };
-
-  // Delete organization handlers
-  const handleOpenDeleteModal = (org: Organization) => {
-    setDeletingOrg(org);
-    setDeleteError("");
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleCloseDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setDeletingOrg(null);
-    setDeleteError("");
-  };
-
-  const handleDeleteOrganization = async () => {
-    if (!deletingOrg) return;
-
-    // Validate before attempting delete
-    if ((deletingOrg.clubCount || 0) > 0) {
-      setDeleteError(t("organizations.deleteWithClubs", { count: deletingOrg.clubCount || 0 }));
-      return;
-    }
-
-    setDeleteError("");
-    setDeleting(true);
-
-    try {
-      await deleteOrganization(deletingOrg.id, deletingOrg.slug);
-
-      showToast(t("organizations.deleteSuccess"), "success");
-      handleCloseDeleteModal();
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : "Failed to delete organization";
-      setDeleteError(errorMsg);
-    } finally {
-      setDeleting(false);
-    }
-  };
+  // Manage Admins, Edit, and Delete handlers removed - these actions are now only available from the organization detail page
 
   // ============ Club Admins Management Functions ============
 
@@ -759,16 +567,7 @@ export default function AdminOrganizationsPage() {
     }
   };
 
-  // Update managingOrg when organizations change (use managingOrg.id to avoid infinite loop)
-  const managingOrgId = managingOrg?.id;
-  useEffect(() => {
-    if (managingOrgId) {
-      const updatedOrg = organizations.find(o => o.id === managingOrgId);
-      if (updatedOrg) {
-        setManagingOrg(updatedOrg);
-      }
-    }
-  }, [organizations, managingOrgId]);
+
 
   if (status === "loading" || loading) {
     return (
@@ -882,14 +681,7 @@ export default function AdminOrganizationsPage() {
                 <AdminOrganizationCard
                   key={org.id}
                   organization={org}
-                  canEdit={true}
-                  canDelete={true}
-                  canManageAdmins={true}
                   onView={(orgId) => router.push(`/admin/organizations/${orgId}`)}
-                  onEdit={() => handleOpenEditModal(org)}
-                  onDelete={() => handleOpenDeleteModal(org)}
-                  onManageAdmins={() => handleOpenManageAdminsModal(org)}
-                  onAddAdmin={() => handleOpenAssignModal(org)}
                 />
               ))}
             </div>
@@ -1124,168 +916,8 @@ export default function AdminOrganizationsPage() {
         </form>
       </Modal>
 
-      {/* Manage SuperAdmins Modal */}
-      <Modal
-        isOpen={isManageAdminsModalOpen}
-        onClose={handleCloseManageAdminsModal}
-        title={t("organizations.manageSuperAdmins")}
-      >
-        <div className="space-y-4">
-          {manageError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {manageError}
-            </div>
-          )}
-
-          <p className="im-assign-org-name">
-            {t("organizations.managingAdminsFor")}: <strong>{managingOrg?.name}</strong>
-          </p>
-
-          <div className="im-manage-admins-list">
-            {managingOrg?.superAdmins?.map((admin) => (
-              <div key={admin.id} className="im-manage-admin-item">
-                <div className="im-manage-admin-info">
-                  <span className="im-manage-admin-name">{admin.name || admin.email}</span>
-                  <span className="im-manage-admin-email">{admin.email}</span>
-                  {admin.isPrimaryOwner && (
-                    <span 
-                      className="im-manage-admin-owner-badge im-tooltip-wrapper"
-                      role="note"
-                      aria-label={t("organizations.ownerTooltip")}
-                    >
-                      {t("organizations.owner")}
-                    </span>
-                  )}
-                </div>
-                <div className="im-manage-admin-actions">
-                  {!admin.isPrimaryOwner && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="small"
-                        onClick={() => handleSetOwner(admin.id)}
-                        disabled={processing}
-                      >
-                        {t("organizations.setAsOwner")}
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="small"
-                        onClick={() => handleRemoveAdmin(admin.id)}
-                        disabled={processing}
-                      >
-                        {t("organizations.remove")}
-                      </Button>
-                    </>
-                  )}
-                  {admin.isPrimaryOwner && managingOrg?.superAdmins?.length === 1 && (
-                    <Button
-                      variant="danger"
-                      size="small"
-                      onClick={() => handleRemoveAdmin(admin.id)}
-                      disabled={processing}
-                    >
-                      {t("organizations.remove")}
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={handleCloseManageAdminsModal}>
-              {t("common.close")}
-            </Button>
-            <Button onClick={() => {
-              handleCloseManageAdminsModal();
-              if (managingOrg) handleOpenAssignModal(managingOrg);
-            }}>
-              {t("organizations.addAdmin")}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Edit Organization Modal */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={handleCloseEditModal}
-        title={t("organizations.editOrganization")}
-      >
-        <form onSubmit={handleEditOrganization} className="space-y-4">
-          {editError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {editError}
-            </div>
-          )}
-          <Input
-            label={t("organizations.orgName")}
-            value={editOrgName}
-            onChange={(e) => setEditOrgName(e.target.value)}
-            placeholder={t("organizations.orgNamePlaceholder")}
-            required
-          />
-          <Input
-            label={t("organizations.orgSlug")}
-            value={editOrgSlug}
-            onChange={(e) => setEditOrgSlug(e.target.value)}
-            placeholder={t("organizations.orgSlugPlaceholder")}
-          />
-          <p className="im-form-hint">{t("organizations.slugHint")}</p>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCloseEditModal}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={editing}>
-              {editing ? t("common.processing") : t("common.save")}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Delete Organization Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        title={t("organizations.deleteOrganization")}
-      >
-        <div className="space-y-4">
-          {deleteError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {deleteError}
-            </div>
-          )}
-          <p className="im-delete-confirm-text">
-            {t("organizations.deleteConfirm", { name: deletingOrg?.name ?? "" })}
-          </p>
-          {deletingOrg && (deletingOrg.clubCount || 0) > 0 && (
-            <div className="rsp-warning bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-sm">
-              {t("organizations.deleteWithClubs", { count: deletingOrg.clubCount || 0 })}
-            </div>
-          )}
-          <div className="flex justify-end gap-2 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCloseDeleteModal}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              onClick={handleDeleteOrganization}
-              disabled={deleting || (deletingOrg?.clubCount ?? 0) > 0}
-            >
-              {deleting ? t("common.processing") : t("common.delete")}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      {/* Manage SuperAdmins, Edit Organization, and Delete Organization modals removed */}
+      {/* These actions are now only available from the organization detail page */}
 
       {/* Club Admins Management Modal */}
       <Modal

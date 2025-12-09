@@ -35,6 +35,27 @@
   color: #ffffff;
 }
 
+.im-admin-org-name-link {
+  @apply w-full text-left transition-opacity duration-200;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.im-admin-org-name-link:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.im-admin-org-name-link:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .im-admin-org-slug {
   @apply text-sm font-mono;
   color: rgba(255, 255, 255, 0.8);

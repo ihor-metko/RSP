@@ -27,38 +27,17 @@ export interface AdminOrganizationCardProps {
       isPrimaryOwner: boolean;
     }>;
   };
-  /** Whether user can edit this organization */
-  canEdit?: boolean;
-  /** Whether user can delete this organization */
-  canDelete?: boolean;
-  /** Whether user can manage admins */
-  canManageAdmins?: boolean;
   /** Callback when View button is clicked */
   onView?: (orgId: string) => void;
-  /** Callback when Edit button is clicked */
-  onEdit?: () => void;
-  /** Callback when Delete button is clicked */
-  onDelete?: () => void;
-  /** Callback when Manage Admins button is clicked */
-  onManageAdmins?: () => void;
-  /** Callback when Add Admin button is clicked */
-  onAddAdmin?: () => void;
 }
 
 /**
  * Admin Organization Card component - Card-based display for organization management
- * Displays key organization information with admin actions (view, edit, delete, manage admins)
+ * Displays key organization information with view action to navigate to details page
  */
 export function AdminOrganizationCard({
   organization,
-  canEdit = false,
-  canDelete = false,
-  canManageAdmins = false,
   onView,
-  onEdit,
-  onDelete,
-  onManageAdmins,
-  onAddAdmin,
 }: AdminOrganizationCardProps) {
   const t = useTranslations();
 
@@ -78,7 +57,17 @@ export function AdminOrganizationCard({
       <div className="im-admin-org-card-header">
         <div className="im-admin-org-card-header-content">
           <h2 id={`admin-org-name-${organization.id}`} className="im-admin-org-name">
-            {organization.name}
+            {onView ? (
+              <button
+                onClick={() => onView(organization.id)}
+                className="im-admin-org-name-link"
+                aria-label={t("organizations.viewDetails")}
+              >
+                {organization.name}
+              </button>
+            ) : (
+              organization.name
+            )}
           </h2>
           <p className="im-admin-org-slug">{organization.slug}</p>
         </div>
@@ -213,51 +202,6 @@ export function AdminOrganizationCard({
             className="im-admin-org-action-btn"
           >
             {t("organizations.viewDetails")}
-          </Button>
-        )}
-
-        {canEdit && onEdit && (
-          <Button
-            variant="outline"
-            size="small"
-            onClick={onEdit}
-            className="im-admin-org-action-btn"
-          >
-            {t("common.edit")}
-          </Button>
-        )}
-
-        {canManageAdmins && organization.superAdmins && organization.superAdmins.length > 0 && onManageAdmins && (
-          <Button
-            variant="outline"
-            size="small"
-            onClick={onManageAdmins}
-            className="im-admin-org-action-btn"
-          >
-            {t("organizations.manageAdmins")}
-          </Button>
-        )}
-
-        {canEdit && onAddAdmin && (
-          <Button
-            variant="outline"
-            size="small"
-            onClick={onAddAdmin}
-            className="im-admin-org-action-btn"
-          >
-            {t("organizations.addAdmin")}
-          </Button>
-        )}
-
-        {canDelete && onDelete && (
-          <Button
-            variant="danger"
-            size="small"
-            onClick={onDelete}
-            className="im-admin-org-action-btn"
-            disabled={(organization.clubCount || 0) > 0}
-          >
-            {t("common.delete")}
           </Button>
         )}
       </div>

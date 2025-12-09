@@ -80,112 +80,28 @@ describe("AdminOrganizationCard", () => {
     expect(screen.getByText("organizations.viewDetails")).toBeInTheDocument();
   });
 
-  it("should render Edit button when canEdit is true and onEdit callback is provided", () => {
-    const onEdit = jest.fn();
-    render(
-      <AdminOrganizationCard 
-        organization={mockOrganization} 
-        canEdit={true}
-        onEdit={onEdit} 
-      />
-    );
-    
-    expect(screen.getByText("common.edit")).toBeInTheDocument();
-  });
-
-  it("should not render Edit button when canEdit is false", () => {
-    const onEdit = jest.fn();
-    render(
-      <AdminOrganizationCard 
-        organization={mockOrganization} 
-        canEdit={false}
-        onEdit={onEdit} 
-      />
-    );
+  it("should not render Edit button - removed per requirements", () => {
+    render(<AdminOrganizationCard organization={mockOrganization} />);
     
     expect(screen.queryByText("common.edit")).not.toBeInTheDocument();
   });
 
-  it("should render Delete button when canDelete is true and onDelete callback is provided", () => {
-    const onDelete = jest.fn();
-    render(
-      <AdminOrganizationCard 
-        organization={mockOrganization} 
-        canDelete={true}
-        onDelete={onDelete} 
-      />
-    );
+  it("should not render Delete button - removed per requirements", () => {
+    render(<AdminOrganizationCard organization={mockOrganization} />);
     
-    expect(screen.getByText("common.delete")).toBeInTheDocument();
+    expect(screen.queryByText("common.delete")).not.toBeInTheDocument();
   });
 
-  it("should disable Delete button when organization has clubs", () => {
-    const onDelete = jest.fn();
-    render(
-      <AdminOrganizationCard 
-        organization={mockOrganization} 
-        canDelete={true}
-        onDelete={onDelete} 
-      />
-    );
-    
-    const deleteButton = screen.getByText("common.delete").closest("button");
-    expect(deleteButton).toBeDisabled();
-  });
-
-  it("should enable Delete button when organization has no clubs", () => {
-    const orgWithNoClubs = { ...mockOrganization, clubCount: 0 };
-    const onDelete = jest.fn();
-    render(
-      <AdminOrganizationCard 
-        organization={orgWithNoClubs} 
-        canDelete={true}
-        onDelete={onDelete} 
-      />
-    );
-    
-    const deleteButton = screen.getByText("common.delete").closest("button");
-    expect(deleteButton).not.toBeDisabled();
-  });
-
-  it("should render Manage Admins button when canManageAdmins is true and superAdmins exist", () => {
-    const onManageAdmins = jest.fn();
-    render(
-      <AdminOrganizationCard 
-        organization={mockOrganization} 
-        canManageAdmins={true}
-        onManageAdmins={onManageAdmins} 
-      />
-    );
-    
-    expect(screen.getByText("organizations.manageAdmins")).toBeInTheDocument();
-  });
-
-  it("should not render Manage Admins button when no superAdmins exist", () => {
-    const orgWithNoAdmins = { ...mockOrganization, superAdmins: [] };
-    const onManageAdmins = jest.fn();
-    render(
-      <AdminOrganizationCard 
-        organization={orgWithNoAdmins} 
-        canManageAdmins={true}
-        onManageAdmins={onManageAdmins} 
-      />
-    );
+  it("should not render Manage Admins button - removed per requirements", () => {
+    render(<AdminOrganizationCard organization={mockOrganization} />);
     
     expect(screen.queryByText("organizations.manageAdmins")).not.toBeInTheDocument();
   });
 
-  it("should render Add Admin button when canEdit is true and onAddAdmin callback is provided", () => {
-    const onAddAdmin = jest.fn();
-    render(
-      <AdminOrganizationCard 
-        organization={mockOrganization} 
-        canEdit={true}
-        onAddAdmin={onAddAdmin} 
-      />
-    );
+  it("should not render Add Admin button - removed per requirements", () => {
+    render(<AdminOrganizationCard organization={mockOrganization} />);
     
-    expect(screen.getByText("organizations.addAdmin")).toBeInTheDocument();
+    expect(screen.queryByText("organizations.addAdmin")).not.toBeInTheDocument();
   });
 
   it("should show not assigned message when no superAdmins exist", () => {
@@ -193,5 +109,27 @@ describe("AdminOrganizationCard", () => {
     render(<AdminOrganizationCard organization={orgWithNoAdmins} />);
     
     expect(screen.getByText("organizations.notAssigned")).toBeInTheDocument();
+  });
+
+  it("should make organization name clickable when onView is provided", () => {
+    const onView = jest.fn();
+    render(
+      <AdminOrganizationCard organization={mockOrganization} onView={onView} />
+    );
+    
+    // Find the organization name button (should contain the organization name)
+    const nameButtons = screen.getAllByRole("button", { name: /organizations\.viewDetails/i });
+    const nameButton = nameButtons.find(btn => btn.textContent === "Test Organization");
+    expect(nameButton).toBeInTheDocument();
+    expect(nameButton).toHaveTextContent("Test Organization");
+  });
+
+  it("should render organization name as plain text when onView is not provided", () => {
+    render(<AdminOrganizationCard organization={mockOrganization} />);
+    
+    // The name should still be present but not as a button
+    expect(screen.getByText("Test Organization")).toBeInTheDocument();
+    // Should not have a clickable element with aria-label
+    expect(screen.queryByRole("button", { name: /organizations\.viewDetails/i })).not.toBeInTheDocument();
   });
 });
