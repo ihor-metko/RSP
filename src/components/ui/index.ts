@@ -22,3 +22,5 @@ export { Table } from "./Table";
 export type { TableColumn, TableProps } from "./Table";
 export { Tooltip } from "./Tooltip";
 export type { TooltipProps } from "./Tooltip";
+export { NotificationsDropdown } from "./NotificationsDropdown";
+export type { NotificationsDropdownProps } from "./NotificationsDropdown";

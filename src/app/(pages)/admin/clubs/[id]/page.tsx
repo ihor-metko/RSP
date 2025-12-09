@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal, IMLink, Breadcrumbs, ImageCarousel } from "@/components/ui";
-import { NotificationBell } from "@/components/admin/NotificationBell";
 import { ClubHeaderView } from "@/components/admin/club/ClubHeaderView";
 import { ClubContactsView } from "@/components/admin/club/ClubContactsView";
 import { ClubHoursView } from "@/components/admin/club/ClubHoursView";
@@ -296,10 +295,6 @@ export default function AdminClubDetailPage({
           >
             {club.isPublic ? "Published" : "Unpublished"}
           </span>
-        </div>
-        {/* Admin controls on hero */}
-        <div className="im-admin-club-hero-controls">
-          <NotificationBell />
         </div>
       </section>
 
