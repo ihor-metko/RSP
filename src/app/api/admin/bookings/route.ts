@@ -29,6 +29,7 @@ export interface AdminBookingResponse {
   end: string;
   status: string;
   price: number;
+  sportType: string;
   coachId: string | null;
   coachName: string | null;
   createdAt: string;
@@ -233,6 +234,7 @@ export async function GET(
       end: booking.end.toISOString(),
       status: booking.status,
       price: booking.price,
+      sportType: booking.sportType || "PADEL",
       coachId: booking.coachId,
       coachName: booking.coach?.user.name ?? null,
       createdAt: booking.createdAt.toISOString(),

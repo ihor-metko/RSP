@@ -95,6 +95,16 @@ export async function POST(request: Request) {
 
     // Implement atomic booking logic inside a transaction
     const booking = await prisma.$transaction(async (tx) => {
+      // Get court to retrieve sportType
+      const court = await tx.court.findUnique({
+        where: { id: body.courtId },
+        select: { sportType: true },
+      });
+
+      if (!court) {
+        throw new Error("COURT_NOT_FOUND");
+      }
+
       // Check for overlapping bookings for the selected courtId
       const overlappingBookings = await tx.booking.findFirst({
         where: {
@@ -119,6 +129,7 @@ export async function POST(request: Request) {
           start: startTime,
           end: endTime,
           price: resolvedPrice,
+          sportType: court.sportType || "PADEL",
           status: "reserved",
         },
       });

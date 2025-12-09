@@ -123,6 +123,7 @@ export async function GET(request: Request) {
         tags: true,
         isPublic: true,
         status: true,
+        supportedSports: true,
         createdAt: true,
         organizationId: true,
         organization: {
@@ -187,6 +188,7 @@ export async function GET(request: Request) {
         tags: club.tags,
         isPublic: club.isPublic,
         status: club.status,
+        supportedSports: club.supportedSports,
         createdAt: club.createdAt,
         indoorCount,
         outdoorCount,

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { Button, Input } from "@/components/ui";
 import { SectionEditModal } from "@/components/admin/club/SectionEditModal";
 import { formatPrice, centsToDollars, dollarsToCents } from "@/utils/price";
+import { SportType, SPORT_TYPE_OPTIONS, getSportName } from "@/constants/sports";
 import type { CourtDetail } from "./types";
 import "./CourtBasicBlock.css";
 
@@ -15,6 +16,7 @@ interface CourtBasicBlockProps {
     type: string;
     surface: string;
     indoor: boolean;
+    sportType: SportType;
     defaultPriceCents: number;
   }) => Promise<unknown>;
 }
@@ -30,6 +32,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
     type: court.type || "",
     surface: court.surface || "",
     indoor: court.indoor,
+    sportType: court.sportType || SportType.PADEL,
     defaultPriceCents: court.defaultPriceCents,
   });
 
@@ -40,6 +43,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
       type: court.type || "",
       surface: court.surface || "",
       indoor: court.indoor,
+      sportType: court.sportType || SportType.PADEL,
       defaultPriceCents: court.defaultPriceCents,
     });
     setError("");
@@ -54,8 +58,8 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
   }, []);
 
   const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { name, value, type, checked } = e.target;
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name, value, type, checked } = e.target as HTMLInputElement;
       setFormData((prev) => ({
         ...prev,
         [name]: type === "checkbox" ? checked : value,
@@ -195,6 +199,13 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
           </div>
 
           <div className="im-block-row">
+            <span className="im-block-label">Sport Type</span>
+            <span className="im-block-value">
+              {court.sportType ? getSportName(court.sportType as SportType) : "Padel"}
+            </span>
+          </div>
+
+          <div className="im-block-row">
             <span className="im-block-label">Environment</span>
             <span className="im-block-value">
               <span className={`im-court-badge ${court.indoor ? "im-court-badge--indoor" : "im-court-badge--outdoor"}`}>
@@ -282,6 +293,25 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
               disabled={isSaving}
             />
           </div>
+        </div>
+
+        <div className="im-modal-field">
+          <label className="rsp-label mb-1 block text-sm font-medium">
+            Sport Type
+          </label>
+          <select
+            name="sportType"
+            value={formData.sportType}
+            onChange={handleInputChange}
+            disabled={isSaving}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {SPORT_TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="im-modal-field">
