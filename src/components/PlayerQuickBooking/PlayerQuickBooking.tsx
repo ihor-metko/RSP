@@ -35,9 +35,9 @@ export function PlayerQuickBooking({
 }: PlayerQuickBookingProps) {
   const t = useTranslations();
   
-  // Use centralized club store
+  // Use centralized club store with new idempotent method
   const clubsFromStore = useClubStore((state) => state.clubs);
-  const fetchClubsFromStore = useClubStore((state) => state.fetchClubs);
+  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
 
   // Determine visible steps based on preselected data
   const visibleSteps = useMemo(
@@ -214,7 +214,8 @@ export function PlayerQuickBooking({
     }));
 
     try {
-      await fetchClubsFromStore();
+      // Use new idempotent method with inflight guard
+      await fetchClubsIfNeeded();
       // Clubs will be synced via useEffect below
     } catch {
       setState((prev) => ({
@@ -223,7 +224,7 @@ export function PlayerQuickBooking({
         clubsError: t("auth.errorOccurred"),
       }));
     }
-  }, [t, fetchClubsFromStore]);
+  }, [t, fetchClubsIfNeeded]);
   
   // Sync clubs from store to local state
   useEffect(() => {

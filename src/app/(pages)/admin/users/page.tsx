@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button, Input, Modal, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { useClubStore } from "@/stores/useClubStore";
 import "./page.css";
 
 /* Icon Components */
@@ -339,11 +340,10 @@ export default function AdminUsersPage() {
 
   const fetchClubs = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/clubs");
-      if (response.ok) {
-        const data = await response.json();
-        setClubs(data.map((club: { id: string; name: string }) => ({ id: club.id, name: club.name })));
-      }
+      // Use store with inflight guard
+      await useClubStore.getState().fetchClubsIfNeeded();
+      const data = useClubStore.getState().clubs;
+      setClubs(data.map((club) => ({ id: club.id, name: club.name })));
     } catch {
       // Silent fail
     }
