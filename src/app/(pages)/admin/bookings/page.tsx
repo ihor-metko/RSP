@@ -177,13 +177,13 @@ export default function AdminBookingsPage() {
 
   // Update local clubs when store clubs change
   useEffect(() => {
-    if (storeClubs.length > 0) {
+    if (storeClubs.length > 0 && adminStatus?.adminType !== "club_admin") {
       setClubs(storeClubs.map((club) => ({
         value: club.id,
         label: club.name,
       })));
     }
-  }, [storeClubs]);
+  }, [storeClubs, adminStatus]);
 
   // Fetch bookings
   const fetchBookings = useCallback(async () => {
