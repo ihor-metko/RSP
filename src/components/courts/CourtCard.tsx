@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui";
+import { Button, IMLink } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import {
@@ -11,7 +11,10 @@ import {
   getStatusLabel,
   calculateAvailabilitySummary,
 } from "@/utils/court-card";
+import { useUserStore } from "@/stores/useUserStore";
 import type { Court, AvailabilitySlot } from "@/types/court";
+import type { Club } from "@/types/club";
+import type { Organization } from "@/types/organization";
 import "../CourtCard.css";
 
 interface CourtCardProps {
@@ -31,6 +34,12 @@ interface CourtCardProps {
   showLegend?: boolean;
   showAvailabilitySummary?: boolean;
   showDetailedAvailability?: boolean;
+  // Admin-only props
+  club?: Club; // Only id and name are used. Club link navigates to /admin/clubs/{id}
+  organization?: Organization; // Only name is used for display
+  isActive?: boolean;
+  onEdit?: (courtId: string) => void;
+  onDelete?: (courtId: string) => void;
 }
 
 export function CourtCard({
@@ -50,10 +59,22 @@ export function CourtCard({
   showLegend = true,
   showAvailabilitySummary = true,
   showDetailedAvailability = true,
+  club,
+  organization,
+  isActive = true,
+  onEdit,
+  onDelete,
 }: CourtCardProps) {
   const t = useTranslations();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  
+  // Check if user has admin role
+  const hasAnyRole = useUserStore((state) => state.hasAnyRole);
+  const isAdmin = hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"]);
+  
+  // Determine if admin info should be displayed
+  const showAdminInfo = isAdmin && (club || organization);
 
   // Memoize the court image URL to avoid recalculating on every render
   const imageUrl = useMemo(() => getSupabaseStorageUrl(court.imageUrl), [court.imageUrl]);
@@ -239,6 +260,43 @@ export function CourtCard({
 
       {/* Card Body - Availability (conditionally shown based on showDetails for hover/tap mode) */}
       <div className={`im-court-card-body ${showDetailedAvailability && !showDetails ? "im-court-card-body--collapsed" : ""}`}>
+        {/* Admin Info Section - Only visible to admins */}
+        {showAdminInfo && (
+          <div className="im-court-card-admin-info">
+            {/* Organization Info */}
+            {organization && (
+              <div className="im-court-card-info-item">
+                <span className="im-court-card-info-label">
+                  {t("sidebar.organizations")}:{" "}
+                </span>
+                <span className="im-court-card-info-value">{organization.name}</span>
+              </div>
+            )}
+
+            {/* Club Info */}
+            {club && (
+              <div className="im-court-card-info-item">
+                <span className="im-court-card-info-label">
+                  {t("admin.courts.clubLabel")}:{" "}
+                </span>
+                <IMLink href={`/admin/clubs/${club.id}`} className="im-court-card-info-link">
+                  {club.name}
+                </IMLink>
+              </div>
+            )}
+
+            {/* Court Status */}
+            <div className="im-court-card-info-item">
+              <span className="im-court-card-info-label">
+                {t("admin.courts.status")}:{" "}
+              </span>
+              <span className={isActive ? "im-court-card-status-active" : "im-court-card-status-inactive"}>
+                {isActive ? t("admin.courts.active") : t("admin.courts.inactive")}
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="im-court-card-availability">
           <div className="im-court-card-availability-header">
             <span className="im-court-card-availability-title">
@@ -319,6 +377,43 @@ export function CourtCard({
             aria-label={`${t("booking.viewSchedule")} ${court.name}`}
           >
             {t("booking.viewSchedule")}
+          </Button>
+        )}
+        
+        {/* Admin Actions */}
+        {showAdminInfo && club && (
+          <IMLink
+            href={`/admin/clubs/${club.id}/courts/${court.id}/price-rules`}
+            className="flex-1"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button variant="outline" className="w-full">
+              {t("admin.courts.pricing")}
+            </Button>
+          </IMLink>
+        )}
+        {onEdit && (
+          <Button
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(court.id);
+            }}
+            className="flex-1"
+          >
+            {t("common.edit")}
+          </Button>
+        )}
+        {onDelete && (
+          <Button
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(court.id);
+            }}
+            className="text-red-500 hover:text-red-700 flex-1"
+          >
+            {t("common.delete")}
           </Button>
         )}
       </div>

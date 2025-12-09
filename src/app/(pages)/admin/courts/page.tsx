@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Card, Modal, IMLink, PageHeader } from "@/components/ui";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
-import { AdminCourtCard } from "@/components/courts";
+import { CourtCard } from "@/components/courts";
 import type { AdminStatusResponse, AdminType } from "@/app/api/me/admin-status/route";
+import type { Club } from "@/types/club";
+import type { Organization } from "@/types/organization";
 
 interface Court {
   id: string;
@@ -419,7 +421,7 @@ export default function AdminCourtsPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courts.map((court) => (
-                <AdminCourtCard
+                <CourtCard
                   key={court.id}
                   court={{
                     id: court.id,
@@ -431,16 +433,29 @@ export default function AdminCourtsPage() {
                     defaultPriceCents: court.defaultPriceCents,
                     imageUrl: null,
                   }}
-                  clubId={court.club.id}
-                  clubName={court.club.name}
-                  orgName={court.organization?.name}
+                  club={
+                    // Pass minimal club info - only id and name are used by CourtCard
+                    {
+                      id: court.club.id,
+                      name: court.club.name,
+                    } as Club
+                  }
+                  organization={
+                    // Pass minimal org info - only name is used by CourtCard
+                    court.organization
+                      ? ({ name: court.organization.name } as Organization)
+                      : undefined
+                  }
                   isActive={court.isActive}
+                  showBookButton={false}
+                  showViewSchedule={false}
+                  showViewDetails={true}
                   onViewDetails={(courtId) => router.push(`/admin/clubs/${court.club.id}/courts/${courtId}`)}
                   onEdit={canEdit(adminStatus?.adminType) ? () => handleOpenEditModal(court) : undefined}
                   onDelete={canDelete(adminStatus?.adminType) ? () => handleOpenDeleteModal(court) : undefined}
-                  showOrganization={showOrganizationFilter}
-                  canEdit={canEdit(adminStatus?.adminType)}
-                  canDelete={canDelete(adminStatus?.adminType)}
+                  showLegend={false}
+                  showAvailabilitySummary={false}
+                  showDetailedAvailability={false}
                 />
             ))}
           </div>

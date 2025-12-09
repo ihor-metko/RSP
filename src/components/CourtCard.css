@@ -145,6 +145,53 @@
   @apply max-h-96 p-4 opacity-100;
 }
 
+/* ===== Admin Info Section ===== */
+.im-court-card-admin-info {
+  @apply mb-3 pb-3 space-y-1.5 border-b;
+  border-color: var(--im-border);
+}
+
+.im-court-card-info-item {
+  @apply flex items-baseline text-sm;
+}
+
+.im-court-card-info-label {
+  @apply font-medium mr-1;
+  color: var(--im-muted);
+}
+
+.im-court-card-info-value {
+  @apply font-normal;
+  color: var(--im-text);
+}
+
+.im-court-card-info-link {
+  @apply font-normal underline transition-colors;
+  color: var(--im-primary);
+}
+
+.im-court-card-info-link:hover {
+  color: var(--im-primary-hover);
+}
+
+.im-court-card-status-active {
+  @apply font-medium;
+  color: #22c55e;
+}
+
+.dark .im-court-card-status-active {
+  color: #4ade80;
+}
+
+.im-court-card-status-inactive {
+  @apply font-medium;
+  color: #ef4444;
+}
+
+.dark .im-court-card-status-inactive {
+  color: #f87171;
+}
+
 /* ===== Availability Section ===== */
 .im-court-card-availability {
   @apply mb-3;

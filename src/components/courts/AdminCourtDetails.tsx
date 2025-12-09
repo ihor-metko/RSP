@@ -16,6 +16,12 @@ interface AdminCourtDetailsProps {
   canDelete?: boolean;
 }
 
+/**
+ * @deprecated This component is deprecated. Admin details are now integrated 
+ * directly into the unified CourtCard component. Use CourtCard with club and 
+ * organization props instead.
+ */
+
 export function AdminCourtDetails({
   courtId,
   clubId,
