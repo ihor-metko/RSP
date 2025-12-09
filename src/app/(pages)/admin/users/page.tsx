@@ -181,6 +181,13 @@ interface UserFilters {
   statusFilter: string;
   organizationFilter: string;
   clubFilter: string;
+  dateRangeField: "createdAt" | "lastActive";
+  dateFrom: string;
+  dateTo: string;
+  activeLast30d: boolean;
+  neverBooked: boolean;
+  showOnlyAdmins: boolean;
+  showOnlyUsers: boolean;
 }
 
 export default function AdminUsersPage() {
@@ -209,11 +216,18 @@ export default function AdminUsersPage() {
       statusFilter: "",
       organizationFilter: "",
       clubFilter: "",
+      dateRangeField: "createdAt",
+      dateFrom: "",
+      dateTo: "",
+      activeLast30d: false,
+      neverBooked: false,
+      showOnlyAdmins: false,
+      showOnlyUsers: false,
     },
-    defaultSortBy: "createdAt",
+    defaultSortBy: "lastActive",
     defaultSortOrder: "desc",
     defaultPage: 1,
-    defaultPageSize: 10,
+    defaultPageSize: 25,
   });
 
   // Get users from store
@@ -277,6 +291,13 @@ export default function AdminUsersPage() {
           clubId: filters.clubFilter || undefined,
           sortBy: sortBy as any,
           sortOrder: sortOrder as any,
+          dateRangeField: filters.dateRangeField,
+          dateFrom: filters.dateFrom || undefined,
+          dateTo: filters.dateTo || undefined,
+          activeLast30d: filters.activeLast30d || undefined,
+          neverBooked: filters.neverBooked || undefined,
+          showOnlyAdmins: filters.showOnlyAdmins || undefined,
+          showOnlyUsers: filters.showOnlyUsers || undefined,
         },
         force: true,
       });
@@ -438,12 +459,24 @@ export default function AdminUsersPage() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString();
+    return new Date(dateString).toLocaleDateString("uk-UA", {
+      timeZone: "Europe/Kyiv",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
   };
 
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleString();
+    return new Date(dateString).toLocaleString("uk-UA", {
+      timeZone: "Europe/Kyiv",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const getRoleLabel = (role: string) => {
@@ -490,7 +523,9 @@ export default function AdminUsersPage() {
   const statusOptions = [
     { value: "", label: t("users.allStatuses") },
     { value: "active", label: t("users.status.active") },
-    { value: "blocked", label: t("users.status.blocked") },
+    { value: "suspended", label: t("users.status.suspended") },
+    { value: "invited", label: t("users.status.invited") },
+    { value: "deleted", label: t("users.status.deleted") },
   ];
 
   const organizationOptions = [
@@ -556,14 +591,62 @@ export default function AdminUsersPage() {
               <FilterIcon />
               <span>{t("users.filters")}</span>
             </div>
-            {(filters.searchQuery || filters.roleFilter || filters.statusFilter || filters.organizationFilter || filters.clubFilter) && (
+            {(filters.searchQuery || filters.roleFilter || filters.statusFilter || filters.organizationFilter || filters.clubFilter || filters.dateFrom || filters.dateTo || filters.activeLast30d || filters.neverBooked || filters.showOnlyAdmins || filters.showOnlyUsers) && (
               <Button variant="outline" size="small" onClick={handleClearFilters}>
                 <XIcon />
                 {t("users.clearFilters")}
               </Button>
             )}
           </div>
+          
+          {/* Quick preset buttons */}
+          <div className="im-quick-filters">
+            <Button
+              variant={filters.activeLast30d ? "primary" : "outline"}
+              size="small"
+              onClick={() => setFilter("activeLast30d", !filters.activeLast30d)}
+            >
+              {t("users.quickFilters.activeLast30d")}
+            </Button>
+            <Button
+              variant={filters.neverBooked ? "primary" : "outline"}
+              size="small"
+              onClick={() => setFilter("neverBooked", !filters.neverBooked)}
+            >
+              {t("users.quickFilters.neverBooked")}
+            </Button>
+            <Button
+              variant={filters.showOnlyAdmins ? "primary" : "outline"}
+              size="small"
+              onClick={() => {
+                if (filters.showOnlyAdmins) {
+                  setFilter("showOnlyAdmins", false);
+                } else {
+                  setFilter("showOnlyAdmins", true);
+                  setFilter("showOnlyUsers", false);
+                }
+              }}
+            >
+              {t("users.quickFilters.showOnlyAdmins")}
+            </Button>
+            <Button
+              variant={filters.showOnlyUsers ? "primary" : "outline"}
+              size="small"
+              onClick={() => {
+                if (filters.showOnlyUsers) {
+                  setFilter("showOnlyUsers", false);
+                } else {
+                  setFilter("showOnlyUsers", true);
+                  setFilter("showOnlyAdmins", false);
+                }
+              }}
+            >
+              {t("users.quickFilters.showOnlyUsers")}
+            </Button>
+          </div>
+
           <div className="im-filters-grid">
+            {/* Global search */}
             <div className="im-filter-field im-filter-field--search">
               <div className="im-search-input-wrapper">
                 <span className="im-search-icon"><SearchIcon /></span>
@@ -575,6 +658,8 @@ export default function AdminUsersPage() {
                 />
               </div>
             </div>
+            
+            {/* Role filter */}
             <div className="im-filter-field">
               <Select
                 label={t("users.filterByRole")}
@@ -583,6 +668,8 @@ export default function AdminUsersPage() {
                 onChange={(value) => setFilter("roleFilter", value)}
               />
             </div>
+            
+            {/* Status filter */}
             <div className="im-filter-field">
               <Select
                 label={t("users.filterByStatus")}
@@ -591,6 +678,8 @@ export default function AdminUsersPage() {
                 onChange={(value) => setFilter("statusFilter", value)}
               />
             </div>
+            
+            {/* Organization filter */}
             <div className="im-filter-field">
               <Select
                 label={t("users.filterByOrganization")}
@@ -599,12 +688,51 @@ export default function AdminUsersPage() {
                 onChange={(value) => setFilter("organizationFilter", value)}
               />
             </div>
+            
+            {/* Club filter */}
             <div className="im-filter-field">
               <Select
                 label={t("users.filterByClub")}
                 options={clubOptions}
                 value={filters.clubFilter}
                 onChange={(value) => setFilter("clubFilter", value)}
+              />
+            </div>
+          </div>
+          
+          {/* Date range filter */}
+          <div className="im-date-range-filter">
+            <div className="im-date-range-header">
+              <span className="im-date-range-label">{t("users.dateRange.label")}</span>
+              <div className="im-date-range-toggle">
+                <button
+                  className={`im-toggle-btn ${filters.dateRangeField === "createdAt" ? "im-toggle-btn--active" : ""}`}
+                  onClick={() => setFilter("dateRangeField", "createdAt")}
+                >
+                  {t("users.dateRange.createdAt")}
+                </button>
+                <button
+                  className={`im-toggle-btn ${filters.dateRangeField === "lastActive" ? "im-toggle-btn--active" : ""}`}
+                  onClick={() => setFilter("dateRangeField", "lastActive")}
+                >
+                  {t("users.dateRange.lastActive")}
+                </button>
+              </div>
+            </div>
+            <div className="im-date-range-inputs">
+              <Input
+                type="date"
+                value={filters.dateFrom}
+                onChange={(e) => setFilter("dateFrom", e.target.value)}
+                placeholder={t("users.dateRange.from")}
+                label={t("users.dateRange.from")}
+              />
+              <Input
+                type="date"
+                value={filters.dateTo}
+                onChange={(e) => setFilter("dateTo", e.target.value)}
+                placeholder={t("users.dateRange.to")}
+                label={t("users.dateRange.to")}
               />
             </div>
           </div>
@@ -647,25 +775,38 @@ export default function AdminUsersPage() {
                         </span>
                       </span>
                     </th>
+                    <th>{t("users.columns.email")}</th>
+                    <th>{t("users.columns.role")}</th>
                     <th
-                      className={`im-th-sortable ${sortBy === "email" ? "im-th-sorted" : ""}`}
-                      onClick={() => handleSort("email")}
-                      onKeyDown={(e) => e.key === "Enter" && handleSort("email")}
+                      className={`im-th-sortable ${sortBy === "lastActive" ? "im-th-sorted" : ""}`}
+                      onClick={() => handleSort("lastActive")}
+                      onKeyDown={(e) => e.key === "Enter" && handleSort("lastActive")}
                       tabIndex={0}
                       role="button"
-                      aria-sort={sortBy === "email" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
+                      aria-sort={sortBy === "lastActive" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
                     >
                       <span className="im-th-content">
-                        {t("users.columns.email")}
+                        {t("users.columns.lastActive")}
                         <span className="im-sort-indicator" aria-hidden="true">
-                          {sortBy === "email" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                          {sortBy === "lastActive" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
                         </span>
                       </span>
                     </th>
-                    <th>{t("users.columns.role")}</th>
-                    <th>{t("users.columns.organization")}</th>
-                    <th>{t("users.columns.club")}</th>
-                    <th>{t("users.columns.status")}</th>
+                    <th
+                      className={`im-th-sortable ${sortBy === "totalBookings" ? "im-th-sorted" : ""}`}
+                      onClick={() => handleSort("totalBookings")}
+                      onKeyDown={(e) => e.key === "Enter" && handleSort("totalBookings")}
+                      tabIndex={0}
+                      role="button"
+                      aria-sort={sortBy === "totalBookings" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
+                    >
+                      <span className="im-th-content">
+                        {t("users.columns.totalBookings")}
+                        <span className="im-sort-indicator" aria-hidden="true">
+                          {sortBy === "totalBookings" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
+                        </span>
+                      </span>
+                    </th>
                     <th
                       className={`im-th-sortable ${sortBy === "createdAt" ? "im-th-sorted" : ""}`}
                       onClick={() => handleSort("createdAt")}
@@ -675,24 +816,9 @@ export default function AdminUsersPage() {
                       aria-sort={sortBy === "createdAt" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
                     >
                       <span className="im-th-content">
-                        {t("users.columns.registeredAt")}
+                        {t("users.columns.createdAt")}
                         <span className="im-sort-indicator" aria-hidden="true">
                           {sortBy === "createdAt" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
-                        </span>
-                      </span>
-                    </th>
-                    <th
-                      className={`im-th-sortable ${sortBy === "lastLoginAt" ? "im-th-sorted" : ""}`}
-                      onClick={() => handleSort("lastLoginAt")}
-                      onKeyDown={(e) => e.key === "Enter" && handleSort("lastLoginAt")}
-                      tabIndex={0}
-                      role="button"
-                      aria-sort={sortBy === "lastLoginAt" ? (sortOrder === "asc" ? "ascending" : "descending") : undefined}
-                    >
-                      <span className="im-th-content">
-                        {t("users.columns.lastActivity")}
-                        <span className="im-sort-indicator" aria-hidden="true">
-                          {sortBy === "lastLoginAt" ? (sortOrder === "asc" ? "↑" : "↓") : "↕"}
                         </span>
                       </span>
                     </th>
@@ -702,54 +828,64 @@ export default function AdminUsersPage() {
                 <tbody className="im-users-table-body">
                   {users.map((user) => (
                     <tr key={user.id} className="im-user-row">
+                      {/* Avatar + Name (clickable to user detail) */}
                       <td className="im-td-user">
                         <div className="im-user-info">
                           <div className="im-user-avatar">
                             {user.name ? user.name.charAt(0).toUpperCase() : "?"}
                           </div>
-                          <span className="im-user-name">{user.name || "-"}</span>
+                          <Link href={`/admin/users/${user.id}`} className="im-user-name-link">
+                            {user.name || t("users.unnamed")}
+                          </Link>
                         </div>
                       </td>
+                      {/* Email (mailto link) */}
                       <td className="im-td-email">
-                        <div className="im-email-wrapper">
+                        <a href={`mailto:${user.email}`} className="im-email-link">
                           <MailIcon />
                           <span>{user.email}</span>
+                        </a>
+                      </td>
+                      {/* Role (with org/club info below, no avatars) */}
+                      <td className="im-td-role">
+                        <div className="im-role-cell">
+                          <Badge
+                            variant={getRoleBadgeVariant(user.role)}
+                            icon={getRoleIcon(user.role)}
+                          >
+                            {getRoleLabel(user.role)}
+                          </Badge>
+                          {user.organization && (
+                            <div className="im-role-context">
+                              Org: {user.organization.name}
+                            </div>
+                          )}
+                          {user.club && (
+                            <div className="im-role-context">
+                              Club: {user.club.name}
+                            </div>
+                          )}
                         </div>
                       </td>
-                      <td className="im-td-role">
-                        <Badge
-                          variant={getRoleBadgeVariant(user.role)}
-                          icon={getRoleIcon(user.role)}
-                        >
-                          {getRoleLabel(user.role)}
-                        </Badge>
+                      {/* Last active / Last login (Europe/Kyiv timezone) */}
+                      <td className="im-td-date">
+                        <Tooltip content={user.lastActivity ? formatDateTime(user.lastActivity) : t("users.neverActive")}>
+                          <div className="im-date-display">
+                            <CalendarIcon />
+                            <span>{user.lastActivity ? formatDateTime(user.lastActivity) : t("users.never")}</span>
+                          </div>
+                        </Tooltip>
                       </td>
-                      <td className="im-td-organization">
-                        {user.organization ? (
-                          <Link href="/admin/organizations" className="im-link">
-                            <BuildingIcon />
-                            <span>{user.organization.name}</span>
-                          </Link>
-                        ) : (
-                          <span className="im-empty-cell">—</span>
-                        )}
+                      {/* Total bookings (with last 30d subtext) */}
+                      <td className="im-td-bookings">
+                        <div className="im-bookings-cell">
+                          <span className="im-bookings-total">{user.totalBookings || 0}</span>
+                          <span className="im-bookings-recent">
+                            {user.bookingsLast30d || 0} {t("users.inLast30d")}
+                          </span>
+                        </div>
                       </td>
-                      <td className="im-td-club">
-                        {user.club ? (
-                          <Link href={`/admin/clubs/${user.club.id}`} className="im-link">
-                            <HomeIcon />
-                            <span>{user.club.name}</span>
-                          </Link>
-                        ) : (
-                          <span className="im-empty-cell">—</span>
-                        )}
-                      </td>
-                      <td className="im-td-status">
-                        <Badge variant={user.blocked ? "error" : "success"}>
-                          <span className={`im-status-dot ${user.blocked ? "im-status-dot--blocked" : "im-status-dot--active"}`} />
-                          {user.blocked ? t("users.status.blocked") : t("users.status.active")}
-                        </Badge>
-                      </td>
+                      {/* Created at */}
                       <td className="im-td-date">
                         <Tooltip content={formatDateTime(user.createdAt)}>
                           <div className="im-date-display">
@@ -758,58 +894,14 @@ export default function AdminUsersPage() {
                           </div>
                         </Tooltip>
                       </td>
-                      <td className="im-td-date">
-                        <Tooltip content={user.lastActivity ? formatDateTime(user.lastActivity) : t("users.neverLoggedIn")}>
-                          <div className="im-date-display">
-                            <CalendarIcon />
-                            <span>{formatDate(user.lastActivity)}</span>
-                          </div>
-                        </Tooltip>
-                      </td>
+                      {/* Actions (View only) */}
                       <td className="im-td-actions">
                         <div className="im-actions-group">
                           <Tooltip content={t("users.actions.viewDetails")}>
-                            <button
-                              className="im-icon-btn im-icon-btn--view"
-                              onClick={() => handleViewUser(user)}
-                              aria-label={t("users.actions.view")}
-                            >
+                            <Link href={`/admin/users/${user.id}`} className="im-icon-btn im-icon-btn--view">
                               <EyeIcon />
-                            </button>
+                            </Link>
                           </Tooltip>
-                          {user.role !== "root_admin" && (
-                            <>
-                              <Tooltip content={t("users.actions.editRole")}>
-                                <button
-                                  className="im-icon-btn im-icon-btn--edit"
-                                  onClick={() => handleEditRole(user)}
-                                  aria-label={t("users.actions.editRole")}
-                                >
-                                  <EditIcon />
-                                </button>
-                              </Tooltip>
-                              <Tooltip content={user.blocked ? t("users.actions.unblock") : t("users.actions.block")}>
-                                <button
-                                  className={`im-icon-btn ${user.blocked ? "im-icon-btn--unblock" : "im-icon-btn--block"}`}
-                                  onClick={() => handleToggleBlock(user)}
-                                  disabled={processing}
-                                  aria-label={user.blocked ? t("users.actions.unblock") : t("users.actions.block")}
-                                >
-                                  {user.blocked ? <UnlockIcon /> : <LockIcon />}
-                                </button>
-                              </Tooltip>
-                              <Tooltip content={t("users.actions.delete")}>
-                                <button
-                                  className="im-icon-btn im-icon-btn--delete"
-                                  onClick={() => handleDeleteUser(user)}
-                                  disabled={processing}
-                                  aria-label={t("users.actions.delete")}
-                                >
-                                  <TrashIcon />
-                                </button>
-                              </Tooltip>
-                            </>
-                          )}
                         </div>
                       </td>
                     </tr>

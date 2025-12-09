@@ -157,9 +157,22 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         if (filters.role) params.append("role", filters.role);
         if (filters.organizationId) params.append("organizationId", filters.organizationId);
         if (filters.clubId) params.append("clubId", filters.clubId);
-        if (filters.status) params.append("status", filters.status);
+        if (filters.status) {
+          if (Array.isArray(filters.status)) {
+            filters.status.forEach(s => params.append("status", s));
+          } else {
+            params.append("status", filters.status);
+          }
+        }
         if (filters.sortBy) params.append("sortBy", filters.sortBy);
         if (filters.sortOrder) params.append("sortOrder", filters.sortOrder);
+        if (filters.dateRangeField) params.append("dateRangeField", filters.dateRangeField);
+        if (filters.dateFrom) params.append("dateFrom", filters.dateFrom);
+        if (filters.dateTo) params.append("dateTo", filters.dateTo);
+        if (filters.activeLast30d) params.append("activeLast30d", "true");
+        if (filters.neverBooked) params.append("neverBooked", "true");
+        if (filters.showOnlyAdmins) params.append("showOnlyAdmins", "true");
+        if (filters.showOnlyUsers) params.append("showOnlyUsers", "true");
 
         const response = await fetch(`/api/admin/users/list?${params.toString()}`);
         
