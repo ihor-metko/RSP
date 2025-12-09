@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Card, Modal, IMLink, PageHeader } from "@/components/ui";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
-import { CourtCard } from "@/components/CourtCard";
+import { AdminCourtCard } from "@/components/courts";
 import type { AdminStatusResponse, AdminType } from "@/app/api/me/admin-status/route";
 
 interface Court {
@@ -419,8 +419,8 @@ export default function AdminCourtsPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {courts.map((court) => (
-              <div key={court.id} className="flex flex-col">
-                <CourtCard
+                <AdminCourtCard
+                  key={court.id}
                   court={{
                     id: court.id,
                     name: court.name,
@@ -431,77 +431,17 @@ export default function AdminCourtsPage() {
                     defaultPriceCents: court.defaultPriceCents,
                     imageUrl: null,
                   }}
-                  showBookButton={false}
-                  showViewSchedule={false}
-                  showViewDetails={true}
+                  clubId={court.club.id}
+                  clubName={court.club.name}
+                  orgName={court.organization?.name}
+                  isActive={court.isActive}
                   onViewDetails={(courtId) => router.push(`/admin/clubs/${court.club.id}/courts/${courtId}`)}
-                  showLegend={false}
-                  showAvailabilitySummary={false}
-                  showDetailedAvailability={false}
+                  onEdit={canEdit(adminStatus?.adminType) ? () => handleOpenEditModal(court) : undefined}
+                  onDelete={canDelete(adminStatus?.adminType) ? () => handleOpenDeleteModal(court) : undefined}
+                  showOrganization={showOrganizationFilter}
+                  canEdit={canEdit(adminStatus?.adminType)}
+                  canDelete={canDelete(adminStatus?.adminType)}
                 />
-                
-                {/* Organization and Club Info */}
-                <Card className="mt-3 p-4">
-                  {showOrganizationFilter && court.organization && (
-                    <div className="mb-2 text-sm">
-                      <span className="font-medium" style={{ color: "var(--im-muted)" }}>
-                        {t("sidebar.organizations")}:{" "}
-                      </span>
-                      <span>{court.organization.name}</span>
-                    </div>
-                  )}
-                  <div className="mb-2 text-sm">
-                    <span className="font-medium" style={{ color: "var(--im-muted)" }}>
-                      {t("admin.courts.clubLabel")}:{" "}
-                    </span>
-                    <IMLink href={`/admin/clubs/${court.club.id}`}>
-                      {court.club.name}
-                    </IMLink>
-                  </div>
-                  <div className="mb-3 text-sm">
-                    <span className="font-medium" style={{ color: "var(--im-muted)" }}>
-                      {t("admin.courts.status")}:{" "}
-                    </span>
-                    <span className={court.isActive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
-                      {court.isActive ? t("admin.courts.active") : t("admin.courts.inactive")}
-                    </span>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-wrap gap-2">
-                    <IMLink
-                      href={`/admin/clubs/${court.club.id}/courts/${court.id}/price-rules`}
-                      className="flex-1"
-                    >
-                      <Button variant="outline" className="w-full">
-                        {t("admin.courts.pricing")}
-                      </Button>
-                    </IMLink>
-                  </div>
-                  {(canEdit(adminStatus?.adminType) || canDelete(adminStatus?.adminType)) && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {canEdit(adminStatus?.adminType) && (
-                        <Button
-                          variant="outline"
-                          onClick={() => handleOpenEditModal(court)}
-                          className="flex-1"
-                        >
-                          {t("common.edit")}
-                        </Button>
-                      )}
-                      {canDelete(adminStatus?.adminType) && (
-                        <Button
-                          variant="outline"
-                          onClick={() => handleOpenDeleteModal(court)}
-                          className="text-red-500 hover:text-red-700 flex-1"
-                        >
-                          {t("common.delete")}
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </Card>
-              </div>
             ))}
           </div>
 
