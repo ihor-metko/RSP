@@ -9,6 +9,7 @@ import { Button, Input, Modal, PageHeader, Breadcrumbs, Select, Badge, Card, Too
 import { useListController } from "@/hooks";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
+import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 
 import "./page.css";
 
@@ -161,57 +162,7 @@ function MailIcon() {
   );
 }
 
-interface Organization {
-  id: string;
-  name: string;
-}
-
-interface Club {
-  id: string;
-  name: string;
-}
-
-interface User {
-  id: string;
-  name: string | null;
-  email: string;
-  role: "root_admin" | "organization_admin" | "club_admin" | "user";
-  organization: Organization | null;
-  club: Club | null;
-  blocked: boolean;
-  createdAt: string;
-  lastActivity: string | null;
-}
-
-interface UserDetail extends User {
-  emailVerified: string | null;
-  image: string | null;
-  lastLoginAt: string | null;
-  memberships: Array<{
-    id: string;
-    role: string;
-    isPrimaryOwner: boolean;
-    organization: { id: string; name: string; slug: string };
-  }>;
-  clubMemberships: Array<{
-    id: string;
-    role: string;
-    club: { id: string; name: string; slug: string };
-  }>;
-  bookings: Array<{
-    id: string;
-    start: string;
-    end: string;
-    status: string;
-    createdAt: string;
-    court: { name: string; club: { name: string } };
-  }>;
-  coaches: Array<{
-    id: string;
-    bio: string | null;
-    club: { id: string; name: string } | null;
-  }>;
-}
+import type { AdminUser, AdminUserDetail } from "@/types/adminUser";
 
 interface OrganizationOption {
   id: string;
@@ -265,12 +216,19 @@ export default function AdminUsersPage() {
     defaultPageSize: 10,
   });
 
-  // Users list state
-  const [users, setUsers] = useState<User[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // Get users from store
+  const users = useAdminUsersStore((state) => state.users);
+  const pagination = useAdminUsersStore((state) => state.pagination);
+  const loading = useAdminUsersStore((state) => state.loading);
+  const error = useAdminUsersStore((state) => state.error);
+  const fetchUsersFromStore = useAdminUsersStore((state) => state.fetchUsers);
+  const ensureUserById = useAdminUsersStore((state) => state.ensureUserById);
+  const blockUser = useAdminUsersStore((state) => state.blockUser);
+  const unblockUser = useAdminUsersStore((state) => state.unblockUser);
+  const deleteUserFromStore = useAdminUsersStore((state) => state.deleteUser);
+  
+  const totalCount = pagination?.totalCount || 0;
+  const totalPages = pagination?.totalPages || 0;
 
   // Options for filters
   const storeOrganizations = useOrganizationStore((state) => state.organizations);
@@ -282,9 +240,9 @@ export default function AdminUsersPage() {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editRoleModalOpen, setEditRoleModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [userDetail, setUserDetail] = useState<AdminUserDetail | null>(null);
+  const loadingDetail = useAdminUsersStore((state) => state.loadingDetail);
 
   // Role edit state
   const [newRole, setNewRole] = useState("");
@@ -308,39 +266,26 @@ export default function AdminUsersPage() {
 
   const fetchUsers = useCallback(async () => {
     try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      params.set("page", page.toString());
-      params.set("pageSize", pageSize.toString());
-      params.set("sortBy", sortBy);
-      params.set("sortOrder", sortOrder);
-
-      if (filters.searchQuery) params.set("search", filters.searchQuery);
-      if (filters.roleFilter) params.set("role", filters.roleFilter);
-      if (filters.statusFilter) params.set("status", filters.statusFilter);
-      if (filters.organizationFilter) params.set("organizationId", filters.organizationFilter);
-      if (filters.clubFilter) params.set("clubId", filters.clubFilter);
-
-      const response = await fetch(`/api/admin/users/list?${params.toString()}`);
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          router.push("/auth/sign-in");
-          return;
-        }
-        throw new Error("Failed to fetch users");
-      }
-      const data = await response.json();
-      setUsers(data.users);
-      setTotalCount(data.pagination.totalCount);
-      setTotalPages(data.pagination.totalPages);
-      setError("");
+      await fetchUsersFromStore({
+        page,
+        pageSize,
+        filters: {
+          search: filters.searchQuery,
+          role: filters.roleFilter ? (filters.roleFilter as any) : undefined,
+          status: filters.statusFilter ? (filters.statusFilter as any) : undefined,
+          organizationId: filters.organizationFilter || undefined,
+          clubId: filters.clubFilter || undefined,
+          sortBy: sortBy as any,
+          sortOrder: sortOrder as any,
+        },
+        force: true,
+      });
       setErrorKey("");
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
       setErrorKey("users.failedToLoad");
-    } finally {
-      setLoading(false);
     }
-  }, [page, pageSize, sortBy, sortOrder, filters, router]);
+  }, [page, pageSize, sortBy, sortOrder, filters, fetchUsersFromStore]);
 
   const fetchOrganizations = useCallback(async () => {
     try {
@@ -397,25 +342,19 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleViewUser = async (user: User) => {
+  const handleViewUser = async (user: AdminUser) => {
     setSelectedUser(user);
     setViewModalOpen(true);
-    setLoadingDetail(true);
 
     try {
-      const response = await fetch(`/api/admin/users/${user.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setUserDetail(data);
-      }
+      const data = await ensureUserById(user.id);
+      setUserDetail(data);
     } catch {
       showToast(t("users.failedToLoadDetails"), "error");
-    } finally {
-      setLoadingDetail(false);
     }
   };
 
-  const handleEditRole = (user: User) => {
+  const handleEditRole = (user: AdminUser) => {
     setSelectedUser(user);
     setNewRole(user.role);
     setSelectedOrgId(user.organization?.id || "");
@@ -456,22 +395,16 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleToggleBlock = async (user: User) => {
+  const handleToggleBlock = async (user: AdminUser) => {
     setProcessing(true);
     try {
-      const response = await fetch(`/api/admin/users/${user.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blocked: !user.blocked }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to update user");
+      if (user.blocked) {
+        await unblockUser(user.id);
+        showToast(t("users.userUnblocked"), "success");
+      } else {
+        await blockUser(user.id);
+        showToast(t("users.userBlocked"), "success");
       }
-
-      showToast(user.blocked ? t("users.userUnblocked") : t("users.userBlocked"), "success");
-      fetchUsers();
     } catch (err) {
       showToast(err instanceof Error ? err.message : t("users.failedToUpdateUser"), "error");
     } finally {
@@ -479,7 +412,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleDeleteUser = (user: User) => {
+  const handleDeleteUser = (user: AdminUser) => {
     setSelectedUser(user);
     setDeleteModalOpen(true);
   };
@@ -489,18 +422,9 @@ export default function AdminUsersPage() {
 
     setProcessing(true);
     try {
-      const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete user");
-      }
-
+      await deleteUserFromStore(selectedUser.id);
       showToast(t("users.userDeleted"), "success");
       setDeleteModalOpen(false);
-      fetchUsers();
     } catch (err) {
       showToast(err instanceof Error ? err.message : t("users.failedToDeleteUser"), "error");
     } finally {

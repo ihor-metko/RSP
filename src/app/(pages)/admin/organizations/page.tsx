@@ -8,18 +8,11 @@ import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
 import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
+import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import type { Organization } from "@/types/organization";
 import { SportType, SPORT_TYPE_OPTIONS } from "@/constants/sports";
 import "@/components/admin/AdminOrganizationCard.css";
 import "./page.css";
-
-interface User {
-  id: string;
-  name: string | null;
-  email: string;
-  isOrgAdmin: boolean;
-  organizationName: string | null;
-}
 
 interface Club {
   id: string;
@@ -79,7 +72,8 @@ export default function AdminOrganizationsPage() {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [assignMode, setAssignMode] = useState<"existing" | "new">("existing");
-  const [users, setUsers] = useState<User[]>([]);
+  const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
+  const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
   const [userSearch, setUserSearch] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
   const [newAdminName, setNewAdminName] = useState("");
@@ -115,11 +109,11 @@ export default function AdminOrganizationsPage() {
   const [orgClubs, setOrgClubs] = useState<Club[]>([]);
   const [clubAdminsLoading, setClubAdminsLoading] = useState(false);
   const [clubAdminsError, setClubAdminsError] = useState("");
-  
+
   // State for add club admin modal
   const [isAddClubAdminModalOpen, setIsAddClubAdminModalOpen] = useState(false);
   const [clubAdminUserSearch, setClubAdminUserSearch] = useState("");
-  const [clubAdminUsers, setClubAdminUsers] = useState<User[]>([]);
+  const [clubAdminUsers, setClubAdminUsers] = useState<any[]>([]);
   const [selectedClubAdminUserId, setSelectedClubAdminUserId] = useState("");
   const [selectedClubId, setSelectedClubId] = useState("");
   const [clubAdminAssignMode, setClubAdminAssignMode] = useState<"existing" | "new">("existing");
@@ -242,15 +236,11 @@ export default function AdminOrganizationsPage() {
 
   const fetchUsers = useCallback(async (query: string = "") => {
     try {
-      const response = await fetch(`/api/admin/users?q=${encodeURIComponent(query)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      }
+      await fetchSimpleUsers(query);
     } catch {
       // Silent fail for user search
     }
-  }, []);
+  }, [fetchSimpleUsers]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -535,7 +525,7 @@ export default function AdminOrganizationsPage() {
     try {
       setClubAdminsLoading(true);
       setClubAdminsError("");
-      
+
       const response = await fetch(`/api/orgs/${orgId}/club-admins`);
       if (!response.ok) {
         throw new Error("Failed to fetch club admins");
@@ -551,12 +541,12 @@ export default function AdminOrganizationsPage() {
 
   // Fetch clubs for an organization using store
   const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
-  
+
   const fetchOrgClubs = useCallback(async (orgId: string) => {
     try {
       // Use store method with inflight guard
       await fetchClubsIfNeeded();
-      
+
       // Get clubs from store and filter to organization
       const allClubs = useClubStore.getState().clubs;
       const orgClubsList = allClubs.filter((club) => club.organization?.id === orgId);
@@ -643,14 +633,14 @@ export default function AdminOrganizationsPage() {
     try {
       const payload = clubAdminAssignMode === "new"
         ? {
-            email: newClubAdminEmail,
-            name: newClubAdminName,
-            clubId: selectedClubId,
-          }
+          email: newClubAdminEmail,
+          name: newClubAdminName,
+          clubId: selectedClubId,
+        }
         : {
-            userId: selectedClubAdminUserId,
-            clubId: selectedClubId,
-          };
+          userId: selectedClubAdminUserId,
+          clubId: selectedClubId,
+        };
 
       const response = await fetch(`/api/orgs/${clubAdminsOrg.id}/club-admins`, {
         method: "POST",
@@ -1060,10 +1050,10 @@ export default function AdminOrganizationsPage() {
                 placeholder={t("organizations.searchUsersPlaceholder")}
               />
               <div className="im-user-list">
-                {users.length === 0 ? (
+                {simpleUsers.length === 0 ? (
                   <p className="im-user-list-empty">{t("organizations.noUsersFound")}</p>
                 ) : (
-                  users.map((user) => {
+                  simpleUsers.map((user) => {
                     // Check if user is already an admin of the selected org
                     const isAlreadyAdminOfThisOrg = selectedOrg?.superAdmins?.some(
                       (admin) => admin.id === user.id
@@ -1168,7 +1158,7 @@ export default function AdminOrganizationsPage() {
                   <span className="im-manage-admin-name">{admin.name || admin.email}</span>
                   <span className="im-manage-admin-email">{admin.email}</span>
                   {admin.isPrimaryOwner && (
-                    <span 
+                    <span
                       className="im-manage-admin-owner-badge im-tooltip-wrapper"
                       role="note"
                       aria-label={t("organizations.ownerTooltip")}
@@ -1566,7 +1556,7 @@ export default function AdminOrganizationsPage() {
           )}
 
           <p className="im-delete-confirm-text">
-            {t("clubAdmins.removeConfirm", { 
+            {t("clubAdmins.removeConfirm", {
               name: removingClubAdmin?.userName || removingClubAdmin?.userEmail || "",
               club: removingClubAdmin?.clubName || ""
             })}

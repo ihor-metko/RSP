@@ -6,13 +6,9 @@ import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import type { SimpleUser } from "@/types/adminUser";
 import "./page.css";
-
-interface User {
-  id: string;
-  name: string | null;
-  email: string;
-}
 
 interface SuperAdmin extends User {
   isPrimaryOwner: boolean;
@@ -140,7 +136,8 @@ export default function OrganizationDetailPage() {
   // Reassign owner modal
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [reassignMode, setReassignMode] = useState<"existing" | "new">("existing");
-  const [searchedUsers, setSearchedUsers] = useState<SearchedUser[]>([]);
+  const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
+  const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
   const [userSearch, setUserSearch] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
   const [newOwnerName, setNewOwnerName] = useState("");
@@ -213,24 +210,11 @@ export default function OrganizationDetailPage() {
 
   const fetchUsers = useCallback(async (query: string = "") => {
     try {
-      const response = await fetch(`/api/admin/users?q=${encodeURIComponent(query)}`);
-      if (response.ok) {
-        const data = await response.json();
-        // Validate that response is an array
-        if (Array.isArray(data)) {
-          setSearchedUsers(data);
-        } else {
-          setSearchedUsers([]);
-        }
-      } else {
-        // Clear search results on error
-        setSearchedUsers([]);
-      }
+      await fetchSimpleUsers(query);
     } catch {
-      // Clear search results on error
-      setSearchedUsers([]);
+      // Silent fail for user search
     }
-  }, []);
+  }, [fetchSimpleUsers]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -877,10 +861,10 @@ export default function OrganizationDetailPage() {
                 placeholder={t("organizations.searchUsersPlaceholder")}
               />
               <div className="im-user-list">
-                {searchedUsers.length === 0 ? (
+                {simpleUsers.length === 0 ? (
                   <p className="im-user-list-empty">{t("organizations.noUsersFound")}</p>
                 ) : (
-                  searchedUsers.map((user) => (
+                  simpleUsers.map((user) => (
                     <label
                       key={user.id}
                       className={`im-user-option ${selectedUserId === user.id ? "im-user-option--selected" : ""}`}
