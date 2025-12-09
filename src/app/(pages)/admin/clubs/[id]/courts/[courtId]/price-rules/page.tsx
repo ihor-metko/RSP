@@ -114,20 +114,13 @@ export default function PriceRulesPage({
     if (!courtId) return;
 
     try {
-      const response = await fetch(`/api/courts/${courtId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("Court not found");
-          return;
-        }
-        throw new Error("Failed to fetch court");
-      }
-      const data = await response.json();
-      setCourt(data);
+      const { ensureCourtById } = await import("@/stores/useCourtStore").then(m => m.useCourtStore.getState());
+      const courtData = await ensureCourtById(courtId, { clubId: clubId || undefined });
+      setCourt(courtData);
     } catch {
       setError("Failed to load court");
     }
-  }, [courtId]);
+  }, [courtId, clubId]);
 
   useEffect(() => {
     if (status === "loading") return;

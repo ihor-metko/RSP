@@ -6,19 +6,8 @@ import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { formatPrice } from "@/utils/price";
-
-
-interface Court {
-  id: string;
-  name: string;
-  slug: string | null;
-  type: string | null;
-  surface: string | null;
-  indoor: boolean;
-  defaultPriceCents: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import { useCourtStore } from "@/stores/useCourtStore";
+import type { Court } from "@/types/court";
 
 interface Club {
   id: string;
@@ -34,8 +23,6 @@ export default function AdminCourtsPage({
   const router = useRouter();
   const [clubId, setClubId] = useState<string | null>(null);
   const [club, setClub] = useState<Club | null>(null);
-  const [courts, setCourts] = useState<Court[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -43,34 +30,20 @@ export default function AdminCourtsPage({
   const [deletingCourt, setDeletingCourt] = useState<Court | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Use court store
+  const courts = useCourtStore((state) => state.courts);
+  const loadingCourts = useCourtStore((state) => state.loadingCourts);
+  const courtsError = useCourtStore((state) => state.courtsError);
+  const fetchCourtsIfNeeded = useCourtStore((state) => state.fetchCourtsIfNeeded);
+  const createCourt = useCourtStore((state) => state.createCourt);
+  const updateCourt = useCourtStore((state) => state.updateCourt);
+  const deleteCourt = useCourtStore((state) => state.deleteCourt);
+
   useEffect(() => {
     params.then((resolvedParams) => {
       setClubId(resolvedParams.id);
     });
   }, [params]);
-
-  const fetchCourts = useCallback(async () => {
-    if (!clubId) return;
-
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/clubs/${clubId}/courts`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("Club not found");
-          return;
-        }
-        throw new Error("Failed to fetch courts");
-      }
-      const data = await response.json();
-      setCourts(data.courts);
-      setError("");
-    } catch {
-      setError("Failed to load courts");
-    } finally {
-      setLoading(false);
-    }
-  }, [clubId]);
 
   const fetchClub = useCallback(async () => {
     if (!clubId) return;
@@ -101,9 +74,11 @@ export default function AdminCourtsPage({
 
     if (clubId) {
       fetchClub();
-      fetchCourts();
+      fetchCourtsIfNeeded({ clubId }).catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to load courts");
+      });
     }
-  }, [session, status, router, clubId, fetchClub, fetchCourts]);
+  }, [session, status, router, clubId, fetchClub, fetchCourtsIfNeeded]);
 
   const handleOpenCreateModal = () => {
     setEditingCourt(null);
@@ -135,24 +110,12 @@ export default function AdminCourtsPage({
 
     setSubmitting(true);
     try {
-      const url = editingCourt
-        ? `/api/clubs/${clubId}/courts/${editingCourt.id}`
-        : `/api/clubs/${clubId}/courts`;
-      const method = editingCourt ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to save court");
+      if (editingCourt) {
+        await updateCourt(clubId, editingCourt.id, formData);
+      } else {
+        await createCourt(clubId, formData);
       }
-
       handleCloseModal();
-      fetchCourts();
     } catch (err) {
       throw err;
     } finally {
@@ -165,18 +128,8 @@ export default function AdminCourtsPage({
 
     setSubmitting(true);
     try {
-      const response = await fetch(
-        `/api/clubs/${clubId}/courts/${deletingCourt.id}`,
-        { method: "DELETE" }
-      );
-
-      if (!response.ok && response.status !== 204) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete court");
-      }
-
+      await deleteCourt(clubId, deletingCourt.id);
       handleCloseDeleteModal();
-      fetchCourts();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete court");
     } finally {
@@ -184,7 +137,7 @@ export default function AdminCourtsPage({
     }
   };
 
-  if (status === "loading" || loading) {
+  if (status === "loading" || loadingCourts) {
     return (
       <main className="rsp-container p-8">
         <div className="rsp-loading text-center">Loading...</div>
@@ -213,9 +166,9 @@ export default function AdminCourtsPage({
           <Button onClick={handleOpenCreateModal}>+ Add Court</Button>
         </div>
 
-        {error && (
+        {(error || courtsError) && (
           <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-            {error}
+            {error || courtsError}
           </div>
         )}
 

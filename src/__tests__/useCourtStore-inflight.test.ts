@@ -156,8 +156,9 @@ describe("useCourtStore - Inflight Guards & Fetch-if-Missing", () => {
         },
       ];
 
-      let resolvePromise: (value: any) => void;
-      const fetchPromise = new Promise((resolve) => {
+      type FetchResponse = { ok: boolean; json: () => Promise<{ courts: Court[] }> };
+      let resolvePromise: ((value: FetchResponse) => void) | undefined;
+      const fetchPromise = new Promise<FetchResponse>((resolve) => {
         resolvePromise = resolve;
       });
 
@@ -201,8 +202,9 @@ describe("useCourtStore - Inflight Guards & Fetch-if-Missing", () => {
       await act(async () => {
         try {
           await result.current.fetchCourtsIfNeeded({ clubId: "club-1" });
-        } catch {
-          // Expected to throw
+        } catch (error) {
+          // Expected to throw - error is intentionally unused
+          void error;
         }
       });
 
@@ -387,8 +389,9 @@ describe("useCourtStore - Inflight Guards & Fetch-if-Missing", () => {
         isActive: true,
       };
 
-      let resolvePromise: (value: any) => void;
-      const fetchPromise = new Promise((resolve) => {
+      type FetchResponse = { ok: boolean; json: () => Promise<CourtDetail> };
+      let resolvePromise: ((value: FetchResponse) => void) | undefined;
+      const fetchPromise = new Promise<FetchResponse>((resolve) => {
         resolvePromise = resolve;
       });
 
@@ -432,8 +435,9 @@ describe("useCourtStore - Inflight Guards & Fetch-if-Missing", () => {
       await act(async () => {
         try {
           await result.current.ensureCourtById("court-999");
-        } catch {
-          // Expected to throw
+        } catch (error) {
+          // Expected to throw - error is intentionally unused
+          void error;
         }
       });
 

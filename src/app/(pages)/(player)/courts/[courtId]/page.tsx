@@ -105,24 +105,22 @@ export default function CourtDetailPage({
     };
   }, []);
 
-  // Fetch court details
+  // Fetch court details using store
   useEffect(() => {
     async function fetchCourtData() {
       try {
         const resolvedParams = await params;
-        const response = await fetch(`/api/courts/${resolvedParams.courtId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("Court not found");
-          } else {
-            setError("Failed to load court data");
-          }
-          return;
+        const { ensureCourtById } = await import("@/stores/useCourtStore").then(m => m.useCourtStore.getState());
+        
+        // Try to get from cache first, then fetch if needed
+        const courtData = await ensureCourtById(resolvedParams.courtId);
+        setCourt(courtData);
+      } catch (err) {
+        if (err instanceof Error && err.message.includes("404")) {
+          setError("Court not found");
+        } else {
+          setError("Failed to load court data");
         }
-        const data = await response.json();
-        setCourt(data);
-      } catch {
-        setError("Failed to load court data");
       } finally {
         setIsLoading(false);
       }

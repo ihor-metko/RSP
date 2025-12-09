@@ -11,8 +11,9 @@ import {
   CourtMetaBlock,
   CourtPreview,
 } from "@/components/admin/court";
+import { useCourtStore } from "@/stores/useCourtStore";
+import type { CourtDetail as StoreCourtDetail } from "@/types/court";
 
-import type { CourtDetail } from "@/components/admin/court";
 import "./page.css";
 
 export default function CourtDetailPage({
@@ -24,12 +25,18 @@ export default function CourtDetailPage({
   const router = useRouter();
   const [clubId, setClubId] = useState<string | null>(null);
   const [courtId, setCourtId] = useState<string | null>(null);
-  const [court, setCourt] = useState<CourtDetail | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Use court store
+  const loadingCourts = useCourtStore((state) => state.loadingCourts);
+  const updateCourtStore = useCourtStore((state) => state.updateCourt);
+  const deleteCourtStore = useCourtStore((state) => state.deleteCourt);
+  
+  // Local state for court - using store's CourtDetail type
+  const [court, setCourt] = useState<StoreCourtDetail | null>(null);
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -42,26 +49,21 @@ export default function CourtDetailPage({
     if (!clubId || !courtId) return;
 
     try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/clubs/${clubId}/courts/${courtId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
+      const { ensureCourtById } = await import("@/stores/useCourtStore").then(m => m.useCourtStore.getState());
+      const courtData = await ensureCourtById(courtId, { clubId });
+      setCourt(courtData);
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message.includes("404")) {
           setError("Court not found");
-          return;
-        }
-        if (response.status === 401 || response.status === 403) {
+        } else if (err.message.includes("401") || err.message.includes("403")) {
           router.push("/auth/sign-in");
-          return;
+        } else {
+          setError("Failed to load court");
         }
-        throw new Error("Failed to fetch court");
+      } else {
+        setError("Failed to load court");
       }
-      const data = await response.json();
-      setCourt(data);
-      setError("");
-    } catch {
-      setError("Failed to load court");
-    } finally {
-      setLoading(false);
     }
   }, [clubId, courtId, router]);
 
@@ -88,34 +90,17 @@ export default function CourtDetailPage({
       if (!clubId || !courtId) return;
 
       try {
-        const response = await fetch(`/api/admin/clubs/${clubId}/courts/${courtId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const data = await response.json();
-          // If there are field errors, throw them to the block component
-          if (data.errors) {
-            const error = new Error(data.error || "Validation failed");
-            (error as Error & { errors: Record<string, string> }).errors = data.errors;
-            throw error;
-          }
-          throw new Error(data.error || "Failed to update court");
-        }
-
-        const updatedCourt = await response.json();
-        setCourt(updatedCourt);
+        await updateCourtStore(clubId, courtId, payload);
+        // Refetch to get updated CourtDetail with full data
+        await fetchCourt();
         showToast("success", "Changes saved successfully");
-        return updatedCourt;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to save changes";
         showToast("error", message);
         throw err;
       }
     },
-    [clubId, courtId, showToast]
+    [clubId, courtId, updateCourtStore, fetchCourt, showToast]
   );
 
   const handleDelete = async () => {
@@ -123,15 +108,7 @@ export default function CourtDetailPage({
 
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/admin/clubs/${clubId}/courts/${courtId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok && response.status !== 204) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete court");
-      }
-
+      await deleteCourtStore(clubId, courtId);
       router.push(`/admin/clubs/${clubId}/courts`);
     } catch (err) {
       showToast("error", err instanceof Error ? err.message : "Failed to delete court");
@@ -141,7 +118,7 @@ export default function CourtDetailPage({
   };
 
   // Loading skeleton
-  if (status === "loading" || loading) {
+  if (status === "loading" || loadingCourts) {
     return (
       <main className="im-court-detail-page">
         <div className="im-court-detail-skeleton">
@@ -236,15 +213,15 @@ export default function CourtDetailPage({
         <div className="im-court-detail-content">
           {/* Blocks Column */}
           <div className="im-court-detail-blocks">
-            <CourtBasicBlock court={court} onUpdate={handleBlockUpdate} />
-            <CourtPricingBlock court={court} clubId={clubId!} />
-            <CourtScheduleBlock court={court} />
-            <CourtMetaBlock court={court} />
+            <CourtBasicBlock court={court as unknown as Parameters<typeof CourtBasicBlock>[0]['court']} onUpdate={handleBlockUpdate} />
+            <CourtPricingBlock court={court as unknown as Parameters<typeof CourtPricingBlock>[0]['court']} clubId={clubId!} />
+            <CourtScheduleBlock court={court as unknown as Parameters<typeof CourtScheduleBlock>[0]['court']} />
+            <CourtMetaBlock court={court as unknown as Parameters<typeof CourtMetaBlock>[0]['court']} />
           </div>
 
           {/* Preview Column */}
           <div className="im-court-detail-preview">
-            <CourtPreview court={court} clubId={clubId!} />
+            <CourtPreview court={court as unknown as Parameters<typeof CourtPreview>[0]['court']} clubId={clubId!} />
           </div>
         </div>
       </div>
