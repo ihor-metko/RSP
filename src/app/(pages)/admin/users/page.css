@@ -269,6 +269,29 @@
   background-color: rgba(255, 255, 255, 0.02);
 }
 
+/* Clickable Row Styles */
+.im-user-row--clickable {
+  @apply cursor-pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.im-user-row--clickable:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.dark .im-user-row--clickable:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.im-user-row--clickable:active {
+  transform: scale(0.995);
+}
+
+.im-user-row--clickable:focus {
+  @apply outline-none ring-2 ring-inset;
+  ring-color: var(--rsp-primary);
+}
+
 .im-users-table-body td {
   @apply px-4 py-4 text-sm;
   color: var(--rsp-foreground);

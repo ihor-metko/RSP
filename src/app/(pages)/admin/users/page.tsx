@@ -701,7 +701,20 @@ export default function AdminUsersPage() {
                 </thead>
                 <tbody className="im-users-table-body">
                   {users.map((user) => (
-                    <tr key={user.id} className="im-user-row">
+                    <tr 
+                      key={user.id} 
+                      className="im-user-row im-user-row--clickable"
+                      onClick={() => router.push(`/admin/users/${user.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.code === "Enter" || e.code === "Space") {
+                          e.preventDefault();
+                          router.push(`/admin/users/${user.id}`);
+                        }
+                      }}
+                      aria-label={t("users.actions.viewUserDetail", { name: user.name || user.email })}
+                    >
                       <td className="im-td-user">
                         <div className="im-user-info">
                           <div className="im-user-avatar">
@@ -766,7 +779,7 @@ export default function AdminUsersPage() {
                           </div>
                         </Tooltip>
                       </td>
-                      <td className="im-td-actions">
+                      <td className="im-td-actions" onClick={(e) => e.stopPropagation()}>
                         <div className="im-actions-group">
                           <Tooltip content={t("users.actions.viewDetails")}>
                             <button

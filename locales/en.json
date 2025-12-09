@@ -996,6 +996,7 @@
     "actions": {
       "view": "View",
       "viewDetails": "View user details",
+      "viewUserDetail": "View details for {name}",
       "editRole": "Edit Role",
       "block": "Block",
       "unblock": "Unblock",
