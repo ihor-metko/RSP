@@ -127,7 +127,7 @@ function MailIcon() {
   );
 }
 
-// AdminUser type is used in users.map callback below
+import type { AdminUser } from "@/types/adminUser";
 
 interface OrganizationOption {
   id: string;
@@ -694,12 +694,12 @@ export default function AdminUsersPage() {
                           </Badge>
                           {user.organization && (
                             <div className="im-role-context">
-                              Org: {user.organization.name}
+                              {t("users.org")}: {user.organization.name}
                             </div>
                           )}
                           {user.club && (
                             <div className="im-role-context">
-                              Club: {user.club.name}
+                              {t("users.club")}: {user.club.name}
                             </div>
                           )}
                         </div>

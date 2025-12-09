@@ -54,7 +54,7 @@ export async function GET(request: Request) {
     const roleFilter = searchParams.get("role") as UserRole | null;
     const organizationId = searchParams.get("organizationId") || null;
     const clubId = searchParams.get("clubId") || null;
-    const statusFilter = searchParams.get("status") || null;
+    const statusFilters = searchParams.getAll("status");
     const dateRangeField = searchParams.get("dateRangeField") as "createdAt" | "lastActive" | null;
     const dateFrom = searchParams.get("dateFrom");
     const dateTo = searchParams.get("dateTo");
@@ -81,21 +81,31 @@ export async function GET(request: Request) {
       });
     }
     
-    // Filter by status
-    if (statusFilter === "blocked" || statusFilter === "suspended") {
-      whereConditions.push({ blocked: true });
-    } else if (statusFilter === "active") {
-      whereConditions.push({ blocked: false });
-    } else if (statusFilter === "invited") {
-      // Users who have an account but haven't verified email
-      whereConditions.push({ 
-        blocked: false,
-        emailVerified: null,
-      });
-    } else if (statusFilter === "deleted") {
-      // In our system, we don't have soft delete, so this would be empty
-      // But keeping for API consistency
-      whereConditions.push({ id: "never-match" });
+    // Filter by status (handle multiple status filters)
+    if (statusFilters.length > 0) {
+      const statusConditions: Prisma.UserWhereInput[] = [];
+      
+      for (const statusFilter of statusFilters) {
+        if (statusFilter === "blocked" || statusFilter === "suspended") {
+          statusConditions.push({ blocked: true });
+        } else if (statusFilter === "active") {
+          statusConditions.push({ blocked: false });
+        } else if (statusFilter === "invited") {
+          // Users who have an account but haven't verified email
+          statusConditions.push({ 
+            blocked: false,
+            emailVerified: null,
+          });
+        } else if (statusFilter === "deleted") {
+          // In our system, we don't have soft delete, so this would be empty
+          // But keeping for API consistency
+          statusConditions.push({ id: "never-match" });
+        }
+      }
+      
+      if (statusConditions.length > 0) {
+        whereConditions.push({ OR: statusConditions });
+      }
     }
     
     // Quick filter: Active last 30 days
