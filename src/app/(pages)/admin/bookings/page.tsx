@@ -10,6 +10,7 @@ import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import { useListController } from "@/hooks";
+import { AdminListLoading } from "@/components/admin";
 import type { AdminBookingsListResponse, AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import type { AdminBookingDetailResponse } from "@/app/api/admin/bookings/[id]/route";
 import "./AdminBookings.css";
@@ -288,10 +289,7 @@ export default function AdminBookingsPage() {
   if (isLoading) {
     return (
       <main className="im-admin-bookings-page">
-        <div className="im-admin-bookings-loading">
-          <div className="im-admin-bookings-loading-spinner" />
-          <span>{t("common.loading")}</span>
-        </div>
+        <AdminListLoading message={t("common.loading")} />
       </main>
     );
   }
@@ -407,10 +405,7 @@ export default function AdminBookingsPage() {
 
       {/* Bookings table */}
       {loading ? (
-        <div className="im-admin-bookings-loading">
-          <div className="im-admin-bookings-loading-spinner" />
-          <span>{t("common.loading")}</span>
-        </div>
+        <AdminListLoading message={t("common.loading")} />
       ) : bookingsData?.bookings.length === 0 ? (
         <div className="im-admin-bookings-table-container">
           <div className="im-admin-bookings-empty">

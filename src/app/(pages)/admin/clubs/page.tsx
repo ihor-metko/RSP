@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, IMLink, PageHeader } from "@/components/ui";
-import { AdminClubCard } from "@/components/admin/AdminClubCard";
+import { AdminClubCard, AdminListLoading } from "@/components/admin";
 import { useListController } from "@/hooks";
 import type { ClubWithCounts } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
@@ -166,10 +166,7 @@ export default function AdminClubsPage() {
   if (isLoadingStore || loading) {
     return (
       <main className="im-admin-clubs-page">
-        <div className="im-admin-clubs-loading">
-          <div className="im-admin-clubs-loading-spinner" />
-          <span className="im-admin-clubs-loading-text">{t("common.loading")}</span>
-        </div>
+        <AdminListLoading message={t("common.loading")} />
       </main>
     );
   }
