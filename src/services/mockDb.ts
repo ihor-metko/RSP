@@ -2,7 +2,7 @@
 // This module provides mock data and CRUD helpers for development when the database is unavailable.
 // See TODO_MOCK_CLEANUP.md for removal instructions.
 
-import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule } from "@prisma/client";
+import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule, Coach, ClubGallery } from "@prisma/client";
 
 // ============================================================================
 // Mock Data State (mutable at runtime for testing flows)
@@ -17,6 +17,8 @@ let mockMemberships: Membership[] = [];
 let mockClubMemberships: ClubMembership[] = [];
 let mockBusinessHours: ClubBusinessHours[] = [];
 let mockCourtPriceRules: CourtPriceRule[] = [];
+let mockCoaches: Coach[] = [];
+let mockGalleryImages: ClubGallery[] = [];
 
 // ============================================================================
 // Initialization (called once to seed data)
@@ -33,6 +35,8 @@ export function initializeMockData() {
   mockClubMemberships = [];
   mockBusinessHours = [];
   mockCourtPriceRules = [];
+  mockCoaches = [];
+  mockGalleryImages = [];
 
   // Create mock users
   mockUsers = [
@@ -92,6 +96,45 @@ export function initializeMockData() {
       id: "user-5",
       name: "Jane Player",
       email: "player2@example.com",
+      emailVerified: new Date("2024-01-01"),
+      image: null,
+      password: "hashed_password",
+      isRoot: false,
+      blocked: false,
+      lastLoginAt: new Date(),
+      createdAt: new Date("2024-01-01"),
+      updatedAt: new Date("2024-01-01"),
+    },
+    {
+      id: "user-coach-1",
+      name: "Coach Mike Rodriguez",
+      email: "mike.coach@example.com",
+      emailVerified: new Date("2024-01-01"),
+      image: null,
+      password: "hashed_password",
+      isRoot: false,
+      blocked: false,
+      lastLoginAt: new Date(),
+      createdAt: new Date("2024-01-01"),
+      updatedAt: new Date("2024-01-01"),
+    },
+    {
+      id: "user-coach-2",
+      name: "Coach Sarah Johnson",
+      email: "sarah.coach@example.com",
+      emailVerified: new Date("2024-01-01"),
+      image: null,
+      password: "hashed_password",
+      isRoot: false,
+      blocked: false,
+      lastLoginAt: new Date(),
+      createdAt: new Date("2024-01-01"),
+      updatedAt: new Date("2024-01-01"),
+    },
+    {
+      id: "user-coach-3",
+      name: "Coach David Martinez",
+      email: "david.coach@example.com",
       emailVerified: new Date("2024-01-01"),
       image: null,
       password: "hashed_password",
@@ -505,6 +548,101 @@ export function initializeMockData() {
       });
     }
   }
+
+  // Create mock coaches
+  mockCoaches = [
+    {
+      id: "coach-1",
+      userId: "user-coach-1",
+      clubId: "club-1",
+      bio: "Professional padel coach with 10+ years of experience. Specialized in beginner to intermediate training.",
+      phone: "+1555111111",
+      createdAt: new Date("2024-01-15"),
+    },
+    {
+      id: "coach-2",
+      userId: "user-coach-2",
+      clubId: "club-1",
+      bio: "Former professional player. Expert in advanced techniques and competitive play.",
+      phone: "+1555222222",
+      createdAt: new Date("2024-01-20"),
+    },
+    {
+      id: "coach-3",
+      userId: "user-coach-3",
+      clubId: "club-3",
+      bio: "Elite padel academy head coach. International tournament experience.",
+      phone: "+1555333333",
+      createdAt: new Date("2024-03-01"),
+    },
+  ];
+
+  // Create mock gallery images
+  mockGalleryImages = [
+    {
+      id: "gallery-1",
+      clubId: "club-1",
+      imageUrl: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800",
+      imageKey: "club-1/gallery-1.jpg",
+      altText: "Indoor court with professional lighting",
+      sortOrder: 0,
+      createdAt: new Date("2024-01-15"),
+    },
+    {
+      id: "gallery-2",
+      clubId: "club-1",
+      imageUrl: "https://images.unsplash.com/photo-1622163642998-1ea32b0bbc67?w=800",
+      imageKey: "club-1/gallery-2.jpg",
+      altText: "Modern facility lobby",
+      sortOrder: 1,
+      createdAt: new Date("2024-01-15"),
+    },
+    {
+      id: "gallery-3",
+      clubId: "club-1",
+      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800",
+      imageKey: "club-1/gallery-3.jpg",
+      altText: "Outdoor courts with city view",
+      sortOrder: 2,
+      createdAt: new Date("2024-01-15"),
+    },
+    {
+      id: "gallery-4",
+      clubId: "club-2",
+      imageUrl: "https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=800",
+      imageKey: "club-2/gallery-1.jpg",
+      altText: "Family-friendly outdoor courts",
+      sortOrder: 0,
+      createdAt: new Date("2024-02-01"),
+    },
+    {
+      id: "gallery-5",
+      clubId: "club-2",
+      imageUrl: "https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800",
+      imageKey: "club-2/gallery-2.jpg",
+      altText: "Kids training session",
+      sortOrder: 1,
+      createdAt: new Date("2024-02-01"),
+    },
+    {
+      id: "gallery-6",
+      clubId: "club-3",
+      imageUrl: "https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800",
+      imageKey: "club-3/gallery-1.jpg",
+      altText: "Professional training facility",
+      sortOrder: 0,
+      createdAt: new Date("2024-03-01"),
+    },
+    {
+      id: "gallery-7",
+      clubId: "club-3",
+      imageUrl: "https://images.unsplash.com/photo-1600965962102-9d260a71890d?w=800",
+      imageKey: "club-3/gallery-2.jpg",
+      altText: "Championship-level courts",
+      sortOrder: 1,
+      createdAt: new Date("2024-03-01"),
+    },
+  ];
 }
 
 // Initialize data on module load
@@ -548,6 +686,14 @@ export function getMockBusinessHours() {
 
 export function getMockCourtPriceRules() {
   return [...mockCourtPriceRules];
+}
+
+export function getMockCoaches() {
+  return [...mockCoaches];
+}
+
+export function getMockGalleryImages() {
+  return [...mockGalleryImages];
 }
 
 // ============================================================================

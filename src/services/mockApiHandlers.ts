@@ -12,6 +12,8 @@ import {
   getMockClubMemberships,
   getMockBusinessHours,
   getMockCourtPriceRules,
+  getMockCoaches,
+  getMockGalleryImages,
   findUserById,
   findClubById,
   findCourtById,
