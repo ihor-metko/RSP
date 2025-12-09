@@ -283,7 +283,7 @@ export default function AdminCourtsPage() {
     setSortOrder(newSortOrder);
   };
 
-  if (status === "loading" || loading || isLoadingStore) {
+  if (loading || isLoadingStore) {
     return (
       <main className="rsp-container p-8">
         <div className="rsp-loading text-center">{t("common.loading")}</div>

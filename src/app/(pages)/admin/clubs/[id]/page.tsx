@@ -161,7 +161,7 @@ export default function AdminClubDetailPage({
   const canDelete = adminStatus?.adminType === "root_admin";
 
   // Loading skeleton
-  if (status === "loading" || loading || isLoadingStore) {
+  if (loading || isLoadingStore) {
     return (
       <main className="im-admin-club-detail-page">
         <div className="im-admin-club-skeleton-hero" />

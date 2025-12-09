@@ -285,6 +285,11 @@ export const useUserStore = create<UserState>((set, get) => ({
    * 
    * @param clubId - Optional club ID to check if user is admin of that specific club
    * @returns true if the user is a club admin (and of the specific club if provided), false otherwise
+   * 
+   * Note: Organization admins have access to all clubs within their organizations.
+   * This check only verifies if the user has the CLUB_ADMIN role for a specific club.
+   * For checking access to clubs within an organization's scope, use server-side
+   * authorization with the full context.
    */
   isClubAdmin: (clubId?: string) => {
     const { adminStatus, user } = get();
@@ -294,8 +299,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       return true;
     }
 
-    // Org admins might have access to clubs through their organizations
-    // but for this specific check, we only return true for club_admin type
+    // Check if user has club_admin role
     if (adminStatus?.adminType !== "club_admin") {
       return false;
     }
