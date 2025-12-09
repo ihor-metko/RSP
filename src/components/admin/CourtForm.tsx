@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button, Input } from "@/components/ui";
 import { centsToDollars, dollarsToCents } from "@/utils/price";
+import { SPORT_TYPE_OPTIONS, SportType } from "@/constants/sports";
 
 export interface CourtFormData {
   name: string;
@@ -10,6 +11,7 @@ export interface CourtFormData {
   type: string;
   surface: string;
   indoor: boolean;
+  sportType?: SportType;
   defaultPriceCents: number;
 }
 
@@ -32,6 +34,7 @@ export function CourtForm({
     type: initialValues?.type || "",
     surface: initialValues?.surface || "",
     indoor: initialValues?.indoor ?? false,
+    sportType: initialValues?.sportType || SportType.PADEL,
     defaultPriceCents: initialValues?.defaultPriceCents ?? 0,
   });
 
@@ -115,6 +118,30 @@ export function CourtForm({
         placeholder="e.g., artificial, clay"
         disabled={isSubmitting}
       />
+
+      <div className="rsp-input-wrapper">
+        <label className="rsp-label mb-1 block text-sm font-medium">
+          Sport Type
+        </label>
+        <select
+          name="sportType"
+          value={formData.sportType}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              sportType: e.target.value as SportType,
+            }))
+          }
+          disabled={isSubmitting}
+          className="rsp-input w-full"
+        >
+          {SPORT_TYPE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="rsp-input-wrapper">
         <label className="rsp-label mb-1 block text-sm font-medium">

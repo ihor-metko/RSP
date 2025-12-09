@@ -22,6 +22,8 @@ export interface UploadedFile {
   preview?: string;
 }
 
+import { SportType } from "@/constants/sports";
+
 /**
  * Inline court data for creation/editing
  */
@@ -31,6 +33,7 @@ export interface InlineCourt {
   type: string;
   surface: string;
   indoor: boolean;
+  sportType?: SportType;
   defaultPriceCents: number;
 }
 

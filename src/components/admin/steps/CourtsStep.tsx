@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { Button, Input } from "@/components/ui";
+import { SPORT_TYPE_OPTIONS, SportType } from "@/constants/sports";
 import type { InlineCourt } from "@/types/admin";
 
 export type { InlineCourt };
@@ -34,6 +35,7 @@ export function CourtsStep({
       type: "",
       surface: "",
       indoor: false,
+      sportType: SportType.PADEL,
       defaultPriceCents: 0,
     };
     onChange({ courts: [...data.courts, newCourt] });
@@ -117,6 +119,26 @@ export function CourtsStep({
                     placeholder="e.g., artificial, clay"
                     disabled={disabled}
                   />
+                </div>
+
+                <div className="im-inline-courts-field">
+                  <label className="im-label mb-1 block text-sm font-medium">
+                    Sport Type
+                  </label>
+                  <select
+                    value={court.sportType || SportType.PADEL}
+                    onChange={(e) =>
+                      handleCourtChange(court.id, "sportType", e.target.value as SportType)
+                    }
+                    disabled={disabled}
+                    className="im-input w-full"
+                  >
+                    {SPORT_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="im-inline-courts-field">

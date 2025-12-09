@@ -11,6 +11,7 @@ import {
   getStatusLabel,
   calculateAvailabilitySummary,
 } from "@/utils/court-card";
+import { getSportName } from "@/constants/sports";
 import type { Court, AvailabilitySlot } from "@/types/court";
 import "./CourtCard.css";
 
@@ -218,6 +219,11 @@ export function CourtCard({
         
         {/* Badges on top */}
         <div className="im-court-card-badges">
+          {court.sportType && (
+            <span className="im-court-card-badge im-court-card-badge--sport">
+              {getSportName(court.sportType)}
+            </span>
+          )}
           {court.type && (
             <span className="im-court-card-badge">{court.type}</span>
           )}
