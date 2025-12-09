@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetCourtDetailById } from "@/services/mockApiHandlers";
 
 export async function GET(
   request: Request,
@@ -15,6 +18,21 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const { id: clubId, courtId } = resolvedParams;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const court = await mockGetCourtDetailById(courtId);
+      if (!court) {
+        return NextResponse.json({ error: "Court not found" }, { status: 404 });
+      }
+      if (court.clubId !== clubId) {
+        return NextResponse.json(
+          { error: "Court does not belong to this club" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(court);
+    }
 
     const court = await prisma.court.findUnique({
       where: { id: courtId },
@@ -70,6 +88,73 @@ export async function PATCH(
   try {
     const resolvedParams = await params;
     const { id: clubId, courtId } = resolvedParams;
+    const body = await request.json();
+    const { name, slug, type, surface, indoor, defaultPriceCents } = body;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      // Validation
+      const errors: Record<string, string> = {};
+
+      // Name validation: required, 2-120 chars
+      if (name !== undefined) {
+        if (typeof name !== "string" || name.trim() === "") {
+          errors.name = "Name is required";
+        } else if (name.trim().length < 2) {
+          errors.name = "Name must be at least 2 characters";
+        } else if (name.trim().length > 120) {
+          errors.name = "Name must be at most 120 characters";
+        }
+      }
+
+      // Slug validation: pattern [a-z0-9-]+
+      if (slug !== undefined && slug !== null && slug !== "") {
+        if (!/^[a-z0-9-]+$/.test(slug)) {
+          errors.slug = "Slug must contain only lowercase letters, numbers, and hyphens";
+        }
+      }
+
+      // Price validation: >= 0
+      if (defaultPriceCents !== undefined) {
+        if (typeof defaultPriceCents !== "number" || defaultPriceCents < 0) {
+          errors.defaultPriceCents = "Price must be a non-negative number";
+        }
+      }
+
+      if (Object.keys(errors).length > 0) {
+        return NextResponse.json(
+          { error: "Validation failed", errors },
+          { status: 400 }
+        );
+      }
+
+      try {
+        const { mockUpdateCourtDetail } = await import("@/services/mockApiHandlers");
+        const updateData: Record<string, unknown> = {};
+        if (name !== undefined) updateData.name = name.trim();
+        if (slug !== undefined) updateData.slug = slug?.trim() || null;
+        if (type !== undefined) updateData.type = type?.trim() || null;
+        if (surface !== undefined) updateData.surface = surface?.trim() || null;
+        if (indoor !== undefined) updateData.indoor = indoor;
+        if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
+
+        const updatedCourt = await mockUpdateCourtDetail(courtId, clubId, updateData);
+        return NextResponse.json(updatedCourt);
+      } catch (err) {
+        if (err instanceof Error) {
+          if (err.message.includes("not found")) {
+            return NextResponse.json({ error: "Court not found" }, { status: 404 });
+          }
+          if (err.message.includes("does not belong")) {
+            return NextResponse.json(
+              { error: "Court does not belong to this club" },
+              { status: 404 }
+            );
+          }
+        }
+        throw err;
+      }
+    }
 
     // Check if court exists and belongs to the club
     const existingCourt = await prisma.court.findUnique({
@@ -86,9 +171,6 @@ export async function PATCH(
         { status: 404 }
       );
     }
-
-    const body = await request.json();
-    const { name, slug, type, surface, indoor, defaultPriceCents } = body;
 
     // Validation
     const errors: Record<string, string> = {};
@@ -214,6 +296,28 @@ export async function DELETE(
   try {
     const resolvedParams = await params;
     const { id: clubId, courtId } = resolvedParams;
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      try {
+        const { mockDeleteCourtDetail } = await import("@/services/mockApiHandlers");
+        await mockDeleteCourtDetail(courtId, clubId);
+        return new NextResponse(null, { status: 204 });
+      } catch (err) {
+        if (err instanceof Error) {
+          if (err.message.includes("not found")) {
+            return NextResponse.json({ error: "Court not found" }, { status: 404 });
+          }
+          if (err.message.includes("does not belong")) {
+            return NextResponse.json(
+              { error: "Court does not belong to this club" },
+              { status: 404 }
+            );
+          }
+        }
+        throw err;
+      }
+    }
 
     // Check if court exists and belongs to the club
     const existingCourt = await prisma.court.findUnique({

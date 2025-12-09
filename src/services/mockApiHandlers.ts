@@ -10,6 +10,8 @@ import {
   getMockUsers,
   getMockMemberships,
   getMockClubMemberships,
+  getMockBusinessHours,
+  getMockCourtPriceRules,
   findUserById,
   findClubById,
   findCourtById,
@@ -20,6 +22,8 @@ import {
   deleteMockBooking,
   createMockClub,
   createMockOrganization,
+  updateMockCourt,
+  deleteMockCourt,
 } from "./mockDb";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
@@ -533,11 +537,107 @@ export async function mockGetCourtById(id: string) {
   const court = findCourtById(id);
   if (!court) return null;
 
-  const club = findClubById(court.clubId);
+  // Return only the fields that match the real API response (no club relation)
   return {
-    ...court,
-    club: club ? { id: club.id, name: club.name } : null,
+    id: court.id,
+    name: court.name,
+    slug: court.slug,
+    type: court.type,
+    surface: court.surface,
+    indoor: court.indoor,
+    defaultPriceCents: court.defaultPriceCents,
+    clubId: court.clubId,
+    createdAt: court.createdAt.toISOString(),
+    updatedAt: court.updatedAt.toISOString(),
   };
+}
+
+export async function mockGetCourtDetailById(id: string) {
+  const court = findCourtById(id);
+  if (!court) return null;
+
+  const club = findClubById(court.clubId);
+  const businessHours = getMockBusinessHours().filter((bh) => bh.clubId === court.clubId);
+  const courtPriceRules = getMockCourtPriceRules().filter((pr) => pr.courtId === id);
+
+  return {
+    id: court.id,
+    name: court.name,
+    slug: court.slug,
+    type: court.type,
+    surface: court.surface,
+    indoor: court.indoor,
+    defaultPriceCents: court.defaultPriceCents,
+    clubId: court.clubId,
+    isActive: court.isActive,
+    createdAt: court.createdAt.toISOString(),
+    updatedAt: court.updatedAt.toISOString(),
+    club: club
+      ? {
+          id: club.id,
+          name: club.name,
+          businessHours: businessHours.map((bh) => ({
+            id: bh.id,
+            dayOfWeek: bh.dayOfWeek,
+            openTime: bh.openTime,
+            closeTime: bh.closeTime,
+            isClosed: bh.isClosed,
+          })),
+        }
+      : null,
+    courtPriceRules: courtPriceRules.map((pr) => ({
+      id: pr.id,
+      courtId: pr.courtId,
+      dayOfWeek: pr.dayOfWeek !== null ? pr.dayOfWeek : 0,
+      startTime: pr.startTime,
+      endTime: pr.endTime,
+      priceCents: pr.priceCents,
+      createdAt: pr.createdAt.toISOString(),
+      updatedAt: pr.updatedAt.toISOString(),
+    })),
+  };
+}
+
+export async function mockUpdateCourtDetail(
+  courtId: string,
+  clubId: string,
+  updateData: Record<string, unknown>
+) {
+  const existingCourt = findCourtById(courtId);
+  if (!existingCourt) {
+    throw new Error("Court not found");
+  }
+
+  if (existingCourt.clubId !== clubId) {
+    throw new Error("Court does not belong to this club");
+  }
+
+  // Update the court
+  const updatedCourt = updateMockCourt(courtId, updateData);
+  if (!updatedCourt) {
+    throw new Error("Failed to update court");
+  }
+
+  // Return the full court detail
+  return mockGetCourtDetailById(courtId);
+}
+
+export async function mockDeleteCourtDetail(courtId: string, clubId: string) {
+  const existingCourt = findCourtById(courtId);
+  if (!existingCourt) {
+    throw new Error("Court not found");
+  }
+
+  if (existingCourt.clubId !== clubId) {
+    throw new Error("Court does not belong to this club");
+  }
+
+  const success = deleteMockCourt(courtId);
+  if (!success) {
+    throw new Error("Failed to delete court");
+  }
+
+  return true;
 }
 
 // ============================================================================
