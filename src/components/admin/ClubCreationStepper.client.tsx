@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { toOrganizationOptions, toOrganizationOption } from "@/utils/organization";
 import {
   GeneralInfoStep,
@@ -19,7 +20,6 @@ import {
   type OrganizationOption,
 } from "./steps";
 import type { UploadedFile, BusinessHour, InlineCourt } from "@/types/admin";
-import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
 import "./ClubCreationStepper.css";
 import "./InlineCourtsField.css";
 import "./steps/steps.css";
@@ -93,8 +93,10 @@ export function ClubCreationStepper() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Organization context state
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [prefilledOrg, setPrefilledOrg] = useState<OrganizationOption | null>(null);
+  
+  // Get admin status from user store
+  const adminStatus = useUserStore((state) => state.adminStatus);
   
   // Use Zustand store for organizations with auto-fetch
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
@@ -107,35 +109,25 @@ export function ClubCreationStepper() {
     setTimeout(() => setToast(null), 5000);
   }, []);
 
-  // Fetch admin status on mount
+  // Fetch organization for organization admin on mount
   useEffect(() => {
-    const fetchAdminStatus = async () => {
-      try {
-        const response = await fetch("/api/me/admin-status");
-        if (response.ok) {
-          const data: AdminStatusResponse = await response.json();
-          setAdminStatus(data);
-
-          // If organization admin, fetch their organization from store
-          if (data.adminType === "organization_admin" && data.managedIds.length > 0) {
-            const orgId = data.managedIds[0];
-            try {
-              await fetchOrganizationById(orgId);
-              // Don't access currentOrg here - let separate useEffect handle it
-              // This avoids race conditions and follows React's data flow patterns
-            } catch {
-              // If org fetch fails, set organization ID only
-              setFormData(prev => ({ ...prev, organizationId: orgId }));
-            }
-          }
+    const fetchOrgForAdmin = async () => {
+      // If organization admin, fetch their organization from store
+      if (adminStatus?.adminType === "organization_admin" && adminStatus.managedIds.length > 0) {
+        const orgId = adminStatus.managedIds[0];
+        try {
+          await fetchOrganizationById(orgId);
+          // Don't access currentOrg here - let separate useEffect handle it
+          // This avoids race conditions and follows React's data flow patterns
+        } catch {
+          // If org fetch fails, set organization ID only
+          setFormData(prev => ({ ...prev, organizationId: orgId }));
         }
-      } catch {
-        // Silent fail for admin status
       }
     };
 
-    fetchAdminStatus();
-  }, [fetchOrganizationById]);
+    fetchOrgForAdmin();
+  }, [adminStatus, fetchOrganizationById]);
 
   // Update prefilledOrg when currentOrg changes (for organization admin)
   useEffect(() => {

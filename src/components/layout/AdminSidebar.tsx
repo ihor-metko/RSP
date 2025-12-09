@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
+import { useUserStore } from "@/stores/useUserStore";
+import type { AdminStatus } from "@/app/api/me/route";
 import "./AdminSidebar.css";
 
 const SIDEBAR_COLLAPSED_KEY = "admin-sidebar-collapsed";
@@ -391,7 +391,7 @@ interface RoleInfo {
 /**
  * Get role display info for admins
  */
-function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>): RoleInfo | null {
+function getRoleInfo(adminStatus: AdminStatus | null, t: ReturnType<typeof useTranslations>): RoleInfo | null {
   if (!adminStatus?.isAdmin) {
     return null;
   }
@@ -455,7 +455,6 @@ export interface AdminSidebarProps {
  * - aria-label on collapse toggle button
  */
 export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: AdminSidebarProps) {
-  const { data: session, status } = useSession();
   const pathname = usePathname();
   const t = useTranslations();
   const sidebarRef = useRef<HTMLElement>(null);
@@ -463,10 +462,13 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
-  const [isLoadingAdminStatus, setIsLoadingAdminStatus] = useState(true);
 
-  const isRoot = session?.user?.isRoot ?? false;
+  // Get admin status from store
+  const adminStatus = useUserStore(state => state.adminStatus);
+  const user = useUserStore(state => state.user);
+  const isLoading = useUserStore(state => state.isLoading);
+
+  const isRoot = user?.isRoot ?? false;
 
   // Load collapsed state from localStorage on mount
   useEffect(() => {
@@ -492,46 +494,8 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
     });
   }, [onCollapsedChange]);
 
-  // Fetch admin status when session is available
-  useEffect(() => {
-    const fetchAdminStatus = async () => {
-      if (status === "loading") return;
-
-      if (!session?.user) {
-        setAdminStatus(null);
-        setIsLoadingAdminStatus(false);
-        return;
-      }
-
-      // If user is root, we already know they're an admin
-      if (isRoot) {
-        setAdminStatus({
-          isAdmin: true,
-          adminType: "root_admin",
-          isRoot: true,
-          managedIds: [],
-        });
-        setIsLoadingAdminStatus(false);
-        return;
-      }
-
-      try {
-        const response = await fetch("/api/me/admin-status");
-        if (response.ok) {
-          const data: AdminStatusResponse = await response.json();
-          setAdminStatus(data);
-        } else {
-          setAdminStatus(null);
-        }
-      } catch {
-        setAdminStatus(null);
-      } finally {
-        setIsLoadingAdminStatus(false);
-      }
-    };
-
-    fetchAdminStatus();
-  }, [session, status, isRoot]);
+  // Admin status is now loaded from the store via UserStoreInitializer
+  // No need to fetch it separately here
 
   // Check if user is a club admin
   const isClubAdmin = adminStatus?.adminType === "club_admin";
@@ -641,8 +605,8 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
 
   const roleInfo = getRoleInfo(adminStatus, t);
 
-  // Don't render while loading admin status
-  if (isLoadingAdminStatus) {
+  // Don't render while loading user data
+  if (isLoading) {
     return null;
   }
 
