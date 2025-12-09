@@ -8,6 +8,8 @@ import { Button, Input, Card, Modal, IMLink, PageHeader } from "@/components/ui"
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { CourtCard } from "@/components/courts";
 import type { AdminStatusResponse, AdminType } from "@/app/api/me/admin-status/route";
+import type { Club } from "@/types/club";
+import type { Organization } from "@/types/organization";
 
 interface Court {
   id: string;
@@ -431,22 +433,19 @@ export default function AdminCourtsPage() {
                     defaultPriceCents: court.defaultPriceCents,
                     imageUrl: null,
                   }}
-                  club={{
-                    id: court.club.id,
-                    name: court.club.name,
-                    location: "",
-                    contactInfo: null,
-                    openingHours: null,
-                    logo: null,
-                    status: "active",
-                    createdAt: "",
-                  }}
-                  organization={court.organization ? {
-                    id: court.organization.id,
-                    name: court.organization.name,
-                    slug: "",
-                    createdAt: "",
-                  } : undefined}
+                  club={
+                    // Pass minimal club info - only id and name are used by CourtCard
+                    {
+                      id: court.club.id,
+                      name: court.club.name,
+                    } as Club
+                  }
+                  organization={
+                    // Pass minimal org info - only name is used by CourtCard
+                    court.organization
+                      ? ({ name: court.organization.name } as Organization)
+                      : undefined
+                  }
                   isActive={court.isActive}
                   showBookButton={false}
                   showViewSchedule={false}

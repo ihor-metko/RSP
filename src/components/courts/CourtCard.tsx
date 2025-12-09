@@ -35,8 +35,8 @@ interface CourtCardProps {
   showAvailabilitySummary?: boolean;
   showDetailedAvailability?: boolean;
   // Admin-only props
-  club?: Club;
-  organization?: Organization;
+  club?: Club; // Only id and name are used. Club link navigates to /admin/clubs/{id}
+  organization?: Organization; // Only name is used for display
   isActive?: boolean;
   onEdit?: (courtId: string) => void;
   onDelete?: (courtId: string) => void;
