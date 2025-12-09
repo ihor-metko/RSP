@@ -20,12 +20,17 @@ jest.mock("@/hooks/useAdminNotifications", () => ({
 
 // Mock UI components
 jest.mock("@/components/ui", () => ({
-  Button: ({ children, onClick, ...props }: any) => (
+  Button: ({ children, onClick, ...props }: React.ComponentProps<'button'>) => (
     <button onClick={onClick} {...props}>
       {children}
     </button>
   ),
-  Modal: ({ isOpen, onClose, title, children }: any) =>
+  Modal: ({ isOpen, onClose, title, children }: { 
+    isOpen: boolean; 
+    onClose: () => void; 
+    title: string; 
+    children: React.ReactNode 
+  }) =>
     isOpen ? (
       <div role="dialog" data-testid="modal">
         <h2>{title}</h2>
@@ -37,10 +42,12 @@ jest.mock("@/components/ui", () => ({
 
 // Mock NotificationToastContainer
 jest.mock("@/components/admin/NotificationToast", () => ({
-  NotificationToastContainer: ({ toasts }: any) =>
+  NotificationToastContainer: ({ toasts }: { 
+    toasts: Array<{ id: string; type: string; summary: string }> 
+  }) =>
     toasts.length > 0 ? (
       <div data-testid="toast-container">
-        {toasts.map((toast: any) => (
+        {toasts.map((toast) => (
           <div key={toast.id} data-testid={`toast-${toast.id}`}>
             {toast.summary}
           </div>
