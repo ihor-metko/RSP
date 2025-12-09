@@ -97,9 +97,9 @@ export async function GET(request: Request) {
             emailVerified: null,
           });
         } else if (statusFilter === "deleted") {
-          // In our system, we don't have soft delete, so this would be empty
-          // But keeping for API consistency
-          statusConditions.push({ id: "never-match" });
+          // In our system, we don't have soft delete, so return empty condition
+          // Using an impossible condition that matches no users
+          statusConditions.push({ id: { in: [] } });
         }
       }
       

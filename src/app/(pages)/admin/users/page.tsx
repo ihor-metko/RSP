@@ -375,6 +375,7 @@ export default function AdminUsersPage() {
   const statusOptions = [
     { value: "", label: t("users.allStatuses") },
     { value: "active", label: t("users.status.active") },
+    { value: "blocked", label: t("users.status.blocked") },
     { value: "suspended", label: t("users.status.suspended") },
     { value: "invited", label: t("users.status.invited") },
     { value: "deleted", label: t("users.status.deleted") },
