@@ -16,6 +16,7 @@ interface CourtAvailabilityStatus {
   courtName: string;
   courtType: string | null;
   indoor: boolean;
+  sportType: string;
   status: "available" | "booked" | "partial" | "pending";
 }
 
@@ -49,6 +50,7 @@ interface WeeklyAvailabilityResponse {
     name: string;
     type: string | null;
     indoor: boolean;
+    sportType: string;
   }>;
   mode?: "rolling" | "calendar";
 }
@@ -121,6 +123,7 @@ export async function GET(
             name: true,
             type: true,
             indoor: true,
+            sportType: true,
           },
           orderBy: { name: "asc" },
         },
@@ -239,6 +242,7 @@ export async function GET(
             courtName: court.name,
             courtType: court.type,
             indoor: court.indoor,
+            sportType: court.sportType,
             status,
           });
 
@@ -292,6 +296,7 @@ export async function GET(
         name: c.name,
         type: c.type,
         indoor: c.indoor,
+        sportType: c.sportType,
       })),
       mode: modeParam || "rolling",
     };

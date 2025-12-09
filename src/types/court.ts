@@ -117,6 +117,7 @@ export interface CourtAvailabilityStatus {
   courtName: string;
   courtType: string | null;
   indoor: boolean;
+  sportType: string;
   status: "available" | "booked" | "partial" | "pending";
 }
 
@@ -152,6 +153,7 @@ export interface WeeklyAvailabilityResponse {
     name: string;
     type: string | null;
     indoor: boolean;
+    sportType: string;
   }>;
   mode?: AvailabilityMode;
 }
