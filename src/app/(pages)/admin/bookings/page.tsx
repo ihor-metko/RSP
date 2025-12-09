@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { PageHeader, Button, Modal, Select, Input } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { useClubStore } from "@/stores/useClubStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import type { AdminBookingsListResponse, AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import type { AdminBookingDetailResponse } from "@/app/api/admin/bookings/[id]/route";
@@ -152,15 +153,13 @@ export default function AdminBookingsPage() {
           // Don't map here - let separate useEffect handle it when store updates
         }
 
-        // Fetch clubs
-        const clubsResponse = await fetch("/api/admin/clubs");
-        if (clubsResponse.ok) {
-          const clubsData = await clubsResponse.json();
-          setClubs(clubsData.map((club: { id: string; name: string }) => ({
-            value: club.id,
-            label: club.name,
-          })));
-        }
+        // Fetch clubs using store with inflight guard
+        await useClubStore.getState().fetchClubsIfNeeded();
+        const clubsData = useClubStore.getState().clubs;
+        setClubs(clubsData.map((club) => ({
+          value: club.id,
+          label: club.name,
+        })));
       } catch {
         // Silently fail - filter options are optional
       }

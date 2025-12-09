@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { useClubStore } from "@/stores/useClubStore";
 import { toOrganizationOption } from "@/utils/organization";
 import { Step1Organization } from "./Step1Organization";
 import { Step2Club } from "./Step2Club";
@@ -175,9 +176,11 @@ export function AdminQuickBookingWizard({
     }
   }, [isOpen, state.currentStep, adminType, predefinedData, organizations, isLoadingOrgs, orgError]);
 
-  // Fetch clubs (Step 2)
+  // Fetch clubs (Step 2) - using store with inflight guard
+  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+
   useEffect(() => {
-    const fetchClubs = async () => {
+    const loadClubs = async () => {
       if (!isOpen || state.currentStep !== 2) {
         return;
       }
@@ -196,25 +199,17 @@ export function AdminQuickBookingWizard({
       }));
 
       try {
-        const response = await fetch("/api/admin/clubs");
-        if (!response.ok) {
-          throw new Error("Failed to fetch clubs");
-        }
-        const data = await response.json();
+        // Use store method with inflight guard to prevent duplicate requests
+        await fetchClubsIfNeeded();
 
-        let clubs: WizardClub[] = data.map(
-          (club: {
-            id: string;
-            name: string;
-            organizationId: string;
-            organization?: { name: string };
-          }) => ({
-            id: club.id,
-            name: club.name,
-            organizationId: club.organizationId || "",
-            organizationName: club.organization?.name,
-          })
-        );
+        // Map clubs from store to wizard format
+        const storeClubs = useClubStore.getState().clubs;
+        let clubs: WizardClub[] = storeClubs.map((club) => ({
+          id: club.id,
+          name: club.name,
+          organizationId: club.organization?.id || "",
+          organizationName: club.organization?.name,
+        }));
 
         // Filter by selected organization for root admin
         if (
@@ -231,22 +226,23 @@ export function AdminQuickBookingWizard({
           availableClubs: clubs,
           isLoadingClubs: false,
         }));
-      } catch {
+      } catch (error) {
         setState((prev) => ({
           ...prev,
           isLoadingClubs: false,
-          clubsError: t("auth.errorOccurred"),
+          clubsError: error instanceof Error ? error.message : t("auth.errorOccurred"),
         }));
       }
     };
 
-    fetchClubs();
+    loadClubs();
   }, [
     isOpen,
     state.currentStep,
     state.stepOrganization.selectedOrganizationId,
     adminType,
     predefinedData,
+    fetchClubsIfNeeded,
     t,
   ]);
 

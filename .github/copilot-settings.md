@@ -75,7 +75,7 @@ All user state and role checks **must** use the centralized `useUserStore` Zusta
    - `ROOT_ADMIN`: Platform root administrator
    - `ORGANIZATION_ADMIN`: Organization administrator
    - `CLUB_ADMIN`: Club administrator
-   
+
    **Note**: Context-specific membership roles (e.g., `MEMBER` in organization or club) are not stored in the client store. These are managed server-side via the `requireRole` helper with appropriate context (organization ID or club ID).
 
 4. **Usage Examples**
@@ -125,3 +125,27 @@ All generated documentation should be saved under the `/docs` folder at the proj
 - Use Markdown (`.md`) for all docs.
 - Include clear titles, short descriptions, and relevant lists or tables where appropriate.
 - Keep content concise and structured for easy navigation.
+
+# 5. State Management Guidelines (Zustand)
+
+This project uses Zustand as the global state manager for all app-level entities.
+
+## Core Principles
+
+1. **All entity data (organizations, clubs, courts, users, overlays, bookings, etc.) must be stored in Zustand stores. No direct fetch calls in components.**
+2. **Each store must implement a lazy-loading pattern:**
+   - Component calls: `store.getEntityList()`
+   - If the list is empty → store performs the fetch → saves to state → returns data
+   - If the list already exists → store returns it without fetching
+3. **All components must read entity data only from Zustand stores, not from direct API fetches.**
+4. **Stores must contain:**
+   - State
+   - Actions
+   - A `loadIfNeeded` mechanism (lazy fetch)
+   - A `refresh` method (forced refetch)
+
+## Usage Rules
+
+### Components:
+- NEVER call `fetch()` directly to load organizations, clubs, courts, users, or bookings.
+- ALWAYS use the corresponding Zustand store:

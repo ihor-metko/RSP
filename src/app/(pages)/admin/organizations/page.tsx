@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
 import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { useClubStore } from "@/stores/useClubStore";
 import type { Organization } from "@/types/organization";
 import "@/components/admin/AdminOrganizationCard.css";
 import "./page.css";
@@ -24,11 +25,7 @@ interface Club {
   name: string;
 }
 
-interface ClubApiResponse {
-  id: string;
-  name: string;
-  organization?: { id: string };
-}
+
 
 interface ClubAdmin {
   id: string;
@@ -543,16 +540,17 @@ export default function AdminOrganizationsPage() {
     }
   }, [t]);
 
-  // Fetch clubs for an organization
+  // Fetch clubs for an organization using store
+  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+  
   const fetchOrgClubs = useCallback(async (orgId: string) => {
     try {
-      const response = await fetch(`/api/admin/clubs`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch clubs");
-      }
-      const data: ClubApiResponse[] = await response.json();
-      // Filter to only clubs in this organization
-      const orgClubsList = data.filter((club) => club.organization?.id === orgId);
+      // Use store method with inflight guard
+      await fetchClubsIfNeeded();
+      
+      // Get clubs from store and filter to organization
+      const allClubs = useClubStore.getState().clubs;
+      const orgClubsList = allClubs.filter((club) => club.organization?.id === orgId);
       setOrgClubs(orgClubsList.map((club) => ({
         id: club.id,
         name: club.name,
@@ -560,7 +558,7 @@ export default function AdminOrganizationsPage() {
     } catch {
       setClubAdminsError(t("clubAdmins.failedToLoadClubs"));
     }
-  }, [t]);
+  }, [t, fetchClubsIfNeeded]);
 
   // Open club admins modal
   // Note: This is kept for the Club Admins modal functionality but not directly exposed in the card view

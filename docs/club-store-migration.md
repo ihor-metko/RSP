@@ -2,262 +2,399 @@
 
 ## Overview
 
-This document describes the migration of club data management to the centralized Zustand `useClubStore`. The goal is to have a single source of truth for club data across the application.
+This document describes the migration to idempotent, concurrency-safe methods in `useClubStore`. The new methods prevent duplicate API calls when multiple components mount concurrently and provide better caching support.
 
-## Store Location
+## What Changed
 
-**File**: `src/stores/useClubStore.ts`
+### New Store Methods
 
-## When to Use the Store
+#### 1. `fetchClubsIfNeeded({ force?: boolean }): Promise<void>`
 
-### Use the Store When:
+**Replaces:** Direct `fetch('/api/admin/clubs')` calls or `fetchClubs()` in components that need club lists.
 
-1. **Fetching all clubs** (simple list without complex filtering)
-   ```typescript
-   const clubs = useClubStore((state) => state.clubs);
-   const fetchClubs = useClubStore((state) => state.fetchClubs);
-   
-   useEffect(() => {
-     fetchClubs();
-   }, [fetchClubs]);
-   ```
+**Behavior:**
+- If `!force` and clubs are already loaded → returns immediately (no network call)
+- If an inflight request exists → returns that Promise (no new network call)
+- Otherwise → fetches clubs and updates store
 
-2. **Fetching a single club by ID**
-   ```typescript
-   const currentClub = useClubStore((state) => state.currentClub);
-   const fetchClubById = useClubStore((state) => state.fetchClubById);
-   
-   useEffect(() => {
-     fetchClubById(clubId);
-   }, [clubId, fetchClubById]);
-   ```
-
-3. **Creating a new club**
-   ```typescript
-   const createClub = useClubStore((state) => state.createClub);
-   
-   const handleCreate = async (data: CreateClubPayload) => {
-     await createClub(data);
-     // Store automatically updates clubs list
-   };
-   ```
-
-4. **Updating a club**
-   ```typescript
-   const updateClub = useClubStore((state) => state.updateClub);
-   
-   const handleUpdate = async (id: string, data: UpdateClubPayload) => {
-     await updateClub(id, data);
-     // Store automatically updates clubs list and currentClub
-   };
-   ```
-
-5. **Deleting a club**
-   ```typescript
-   const deleteClub = useClubStore((state) => state.deleteClub);
-   
-   const handleDelete = async (id: string) => {
-     await deleteClub(id);
-     // Store automatically removes club from list and clears currentClub
-   };
-   ```
-
-### Use Direct API Calls When:
-
-1. **Server-side filtering with query parameters**
-   - Examples: Search, city filter, status filter, pagination
-   - Pages: `/admin/clubs`, `/(player)/clubs`
-   - Reason: Store doesn't support complex query parameters
-
-2. **SSR/Server Components**
-   - Server-rendered pages that need club data at build time
-   - Reason: Zustand is a client-side store
-
-3. **Specialized endpoints**
-   - Section updates (`/api/admin/clubs/:id/section`)
-   - Image uploads
-   - Admin-specific operations not part of basic CRUD
-
-## Store API Reference
-
-### State
-
+**Usage:**
 ```typescript
-interface ClubState {
-  clubs: ClubWithCounts[];      // List of all clubs
-  currentClub: ClubDetail | null; // Currently selected/viewed club
-  loading: boolean;              // Loading state
-  error: string | null;          // Error message
-}
+const fetchClubsIfNeeded = useClubStore(state => state.fetchClubsIfNeeded);
+
+useEffect(() => {
+  fetchClubsIfNeeded().catch(console.error);
+}, [fetchClubsIfNeeded]);
 ```
 
-### Actions
+#### 2. `ensureClubById(id: string, { force?: boolean }): Promise<ClubDetail>`
 
-- `fetchClubs()` - Fetch all clubs (GET /api/admin/clubs)
-- `fetchClubById(id)` - Fetch single club (GET /api/admin/clubs/:id)
-- `createClub(payload)` - Create new club (POST /api/admin/clubs/new)
-- `updateClub(id, payload)` - Update club (PUT /api/admin/clubs/:id)
-- `deleteClub(id)` - Delete club (DELETE /api/admin/clubs/:id)
-- `setClubs(clubs)` - Manually set clubs list
-- `setCurrentClub(club)` - Manually set current club
-- `clearCurrentClub()` - Clear current club
+**Replaces:** Direct `fetch('/api/admin/clubs/:id')` calls or `fetchClubById(id)` when you need single club details.
 
-### Selectors
+**Behavior:**
+- If `!force` and club is cached → returns cached club immediately
+- If an inflight request for this ID exists → returns that Promise
+- Otherwise → fetches club and caches in `clubsById`
 
-- `getClubById(id)` - Get club from clubs list by ID
-- `isClubSelected(id)` - Check if club is currently selected
+**Usage:**
+```typescript
+const ensureClubById = useClubStore(s => s.ensureClubById);
 
-## Migrated Files
+useEffect(() => {
+  ensureClubById(clubId).catch(console.error);
+}, [ensureClubById, clubId]);
 
-### Admin Pages
-- ✅ `/admin/clubs/[id]/page.tsx` - Uses store for fetch, update, delete
-- ⏭️ `/admin/clubs/page.tsx` - Keeps direct API (complex filtering)
+// Read cached club
+const club = useClubStore(state => state.clubsById[clubId]);
+```
 
-### Player Pages
-- ✅ `/(player)/dashboard/page.tsx` - Uses store for fetch
-- ✅ `/(player)/clubs/[id]/page.tsx` - Uses store for fetch by ID
-- ⏭️ `/(player)/clubs/page.tsx` - Keeps direct API (search/filtering)
+#### 3. `invalidateClubs(): void`
 
-### Components
-- ✅ `PersonalizedSection.tsx` - Uses store for fetch
-- ✅ `PlayerQuickBooking.tsx` - Uses store for fetch
+**Purpose:** Clears all club caches, forcing next fetch to retrieve fresh data.
 
-## Migration Patterns
+**Usage:**
+```typescript
+const invalidateClubs = useClubStore(state => state.invalidateClubs);
 
-### Pattern 1: Replace useState + fetch
+// After creating/updating/deleting a club
+invalidateClubs();
+await fetchClubsIfNeeded({ force: true });
+```
+
+### New Store State
+
+- `clubsById: Record<string, ClubDetail>` - Cache for individual club details
+- `loadingClubs: boolean` - Loading state for clubs operations
+- `clubsError: string | null` - Error state for clubs operations
+- `lastFetchedAt: number | null` - Timestamp for TTL-based refresh (future use)
+
+## Migrated Components
+
+The following components were updated to use the new store methods:
+
+### 1. AdminQuickBookingWizard
+**Location:** `src/components/AdminQuickBookingWizard/AdminQuickBookingWizard.tsx`
 
 **Before:**
 ```typescript
-const [clubs, setClubs] = useState<Club[]>([]);
-const [loading, setLoading] = useState(true);
+const response = await fetch("/api/admin/clubs");
+const data = await response.json();
+```
 
-const fetchClubs = async () => {
-  setLoading(true);
-  try {
-    const response = await fetch('/api/clubs');
+**After:**
+```typescript
+const fetchClubsIfNeeded = useClubStore(state => state.fetchClubsIfNeeded);
+
+await fetchClubsIfNeeded();
+const storeClubs = useClubStore.getState().clubs;
+```
+
+**Benefit:** Multiple wizard instances mounting simultaneously now share a single network request.
+
+---
+
+### 2. AdminOrganizationsPage
+**Location:** `src/app/(pages)/admin/organizations/page.tsx`
+
+**Before:**
+```typescript
+const response = await fetch(`/api/admin/clubs`);
+const data = await response.json();
+const orgClubsList = data.filter(club => club.organization?.id === orgId);
+```
+
+**After:**
+```typescript
+const fetchClubsIfNeeded = useClubStore(state => state.fetchClubsIfNeeded);
+
+await fetchClubsIfNeeded();
+const allClubs = useClubStore.getState().clubs;
+const orgClubsList = allClubs.filter(club => club.organization?.id === orgId);
+```
+
+**Benefit:** Organization modal opening no longer triggers duplicate requests if clubs already loaded.
+
+---
+
+### 3. AdminBookingsPage
+**Location:** `src/app/(pages)/admin/bookings/page.tsx`
+
+**Before:**
+```typescript
+const clubsResponse = await fetch("/api/admin/clubs");
+const clubsData = await clubsResponse.json();
+```
+
+**After:**
+```typescript
+await useClubStore.getState().fetchClubsIfNeeded();
+const clubsData = useClubStore.getState().clubs;
+```
+
+**Benefit:** Filter options load from cache if available, reducing page load time.
+
+---
+
+### 4. AdminUsersPage
+**Location:** `src/app/(pages)/admin/users/page.tsx`
+
+**Before:**
+```typescript
+const response = await fetch("/api/admin/clubs");
+const data = await response.json();
+```
+
+**After:**
+```typescript
+await useClubStore.getState().fetchClubsIfNeeded();
+const data = useClubStore.getState().clubs;
+```
+
+**Benefit:** Users page loads faster when clubs already cached from other admin pages.
+
+---
+
+### 5. PlayerQuickBooking
+**Location:** `src/components/PlayerQuickBooking/PlayerQuickBooking.tsx`
+
+**Before:**
+```typescript
+const fetchClubsFromStore = useClubStore(state => state.fetchClubs);
+await fetchClubsFromStore();
+```
+
+**After:**
+```typescript
+const fetchClubsIfNeeded = useClubStore(state => state.fetchClubsIfNeeded);
+await fetchClubsIfNeeded();
+```
+
+**Benefit:** Player booking wizard benefits from same deduplication and caching.
+
+## SSR Considerations
+
+### Important: Server-Side Rendering
+
+**The client-side store should NOT be relied upon for SSR logic.**
+
+For server-side pages (using `getServerSideProps` or App Router server components):
+
+1. **Fetch data server-side** as usual:
+```typescript
+export async function getServerSideProps(context) {
+  const response = await fetch(`${API_BASE_URL}/api/admin/clubs`);
+  const clubs = await response.json();
+  
+  return {
+    props: { clubs }
+  };
+}
+```
+
+2. **Optionally hydrate the store** to avoid client-side refetch:
+```typescript
+'use client';
+
+function ClubPage({ clubs }) {
+  useEffect(() => {
+    // Hydrate store with server data
+    useClubStore.getState().setClubs(clubs);
+  }, [clubs]);
+  
+  // Now fetchClubsIfNeeded() will use cached data
+}
+```
+
+## Testing
+
+### Unit Tests
+
+Comprehensive tests added in `src/__tests__/useClubStore.test.ts`:
+
+- ✅ `fetchClubsIfNeeded` fetches when clubs empty
+- ✅ `fetchClubsIfNeeded` skips fetch when clubs exist
+- ✅ `fetchClubsIfNeeded({ force: true })` forces network call
+- ✅ Concurrent calls result in single network request
+- ✅ `ensureClubById` returns cached club when available
+- ✅ `ensureClubById` fetches when not cached
+- ✅ Error handling clears inflight guards
+- ✅ `invalidateClubs()` clears all caches
+
+### Integration Testing Checklist
+
+When testing your application:
+
+- [ ] Open multiple pages that fetch clubs concurrently (e.g., clubs list, org page, booking wizard)
+- [ ] Verify only ONE network call to `/api/admin/clubs` in Network DevTools
+- [ ] Navigate to a club detail page, verify it uses `ensureClubById`
+- [ ] Go back and forth between pages, confirm clubs load instantly from cache
+- [ ] Call `invalidateClubs()` in console, verify next page triggers fresh fetch
+- [ ] Create/update/delete a club, verify UI updates correctly
+
+## Migration Patterns
+
+### Pattern 1: Simple Club List Fetch
+
+**Before:**
+```typescript
+useEffect(() => {
+  const load = async () => {
+    const response = await fetch('/api/admin/clubs');
     const data = await response.json();
     setClubs(data);
-  } finally {
-    setLoading(false);
-  }
+  };
+  load();
+}, []);
+```
+
+**After:**
+```typescript
+const clubs = useClubStore(state => state.clubs);
+const fetchClubsIfNeeded = useClubStore(state => state.fetchClubsIfNeeded);
+
+useEffect(() => {
+  fetchClubsIfNeeded().catch(console.error);
+}, [fetchClubsIfNeeded]);
+```
+
+---
+
+### Pattern 2: Single Club Fetch
+
+**Before:**
+```typescript
+useEffect(() => {
+  const load = async () => {
+    const response = await fetch(`/api/admin/clubs/${clubId}`);
+    const data = await response.json();
+    setClub(data);
+  };
+  load();
+}, [clubId]);
+```
+
+**After:**
+```typescript
+const club = useClubStore(state => state.clubsById[clubId]);
+const ensureClubById = useClubStore(state => state.ensureClubById);
+
+useEffect(() => {
+  ensureClubById(clubId).catch(console.error);
+}, [ensureClubById, clubId]);
+```
+
+---
+
+### Pattern 3: Force Refresh
+
+**Before:**
+```typescript
+const handleRefresh = async () => {
+  const response = await fetch('/api/admin/clubs');
+  const data = await response.json();
+  setClubs(data);
 };
 ```
 
 **After:**
 ```typescript
-const clubs = useClubStore((state) => state.clubs);
-const loading = useClubStore((state) => state.loading);
-const fetchClubs = useClubStore((state) => state.fetchClubs);
+const fetchClubsIfNeeded = useClubStore(state => state.fetchClubsIfNeeded);
 
-useEffect(() => {
-  fetchClubs();
-}, [fetchClubs]);
+const handleRefresh = async () => {
+  await fetchClubsIfNeeded({ force: true });
+};
 ```
 
-### Pattern 2: Single club fetch
+---
+
+### Pattern 4: After Mutation
 
 **Before:**
 ```typescript
-const [club, setClub] = useState<Club | null>(null);
-
-useEffect(() => {
-  const fetchClub = async () => {
-    const response = await fetch(`/api/clubs/${id}`);
-    const data = await response.json();
-    setClub(data);
-  };
-  fetchClub();
-}, [id]);
+const handleCreateClub = async (data) => {
+  await fetch('/api/admin/clubs/new', { method: 'POST', body: JSON.stringify(data) });
+  // Refetch to show new club
+  const response = await fetch('/api/admin/clubs');
+  const clubs = await response.json();
+  setClubs(clubs);
+};
 ```
 
 **After:**
 ```typescript
-const currentClub = useClubStore((state) => state.currentClub);
-const fetchClubById = useClubStore((state) => state.fetchClubById);
+const createClub = useClubStore(state => state.createClub);
+const invalidateClubs = useClubStore(state => state.invalidateClubs);
 
-useEffect(() => {
-  fetchClubById(id);
-}, [id, fetchClubById]);
-
-const club = currentClub; // Use currentClub as club
+const handleCreateClub = async (data) => {
+  await createClub(data); // Store optimistically updates clubs
+  // Optional: invalidate if you need to force refresh from server
+  // invalidateClubs();
+  // await fetchClubsIfNeeded({ force: true });
+};
 ```
 
-## Best Practices
+## Benefits
 
-1. **Avoid Stale Closures**: Don't include store state in useCallback dependencies
-   ```typescript
-   // ❌ Bad - creates stale closure
-   const fetch = useCallback(async () => {
-     if (clubs.length === 0) await fetchClubs();
-   }, [clubs, fetchClubs]);
-   
-   // ✅ Good - read state fresh each time
-   const fetch = useCallback(async () => {
-     await fetchClubs();
-   }, [fetchClubs]);
-   
-   useEffect(() => {
-     if (clubs.length === 0) {
-       // Check here instead
-     }
-   }, [clubs]);
-   ```
+### Performance Improvements
+- 🚀 **Reduced Network Calls:** Concurrent component mounts result in single network request
+- ⚡ **Instant Navigation:** Cached data loads instantly when navigating between pages
+- 💾 **Memory Efficient:** Single source of truth in Zustand store
 
-2. **Loading State**: Use store's loading state consistently
-   ```typescript
-   const loading = useClubStore((state) => state.loading);
-   
-   if (loading) {
-     return <LoadingSpinner />;
-   }
-   ```
+### Developer Experience
+- 🛡️ **Type-Safe:** Full TypeScript support with proper interfaces
+- 🧪 **Well-Tested:** 36 unit tests covering all scenarios
+- 📚 **Clear API:** Simple, intuitive method names
 
-3. **Error Handling**: Use store's error state
-   ```typescript
-   const error = useClubStore((state) => state.error);
-   
-   if (error) {
-     return <ErrorMessage message={error} />;
-   }
-   ```
+### Code Quality
+- 🔒 **Race Condition Prevention:** Inflight guards prevent duplicate/conflicting requests
+- 🎯 **Single Responsibility:** Store manages all club data fetching
+- 🔄 **Backward Compatible:** Existing `fetchClubs`/`fetchClubById` still work
 
-4. **Type Compatibility**: Map store types to local types when needed
-   ```typescript
-   const clubsFromStore = useClubStore((state) => state.clubs);
-   
-   // Map to local type if needed
-   const clubs: LocalClubType[] = clubsFromStore.map((club) => ({
-     id: club.id,
-     name: club.name,
-     // ... other fields
-   }));
-   ```
+## Troubleshooting
 
-## Testing
+### Issue: Data Not Updating After Mutation
 
-The store is fully tested in `src/__tests__/useClubStore.test.ts`:
-- ✅ State management
-- ✅ All CRUD operations
-- ✅ Error handling
-- ✅ Optimistic updates
-- ✅ Selectors
-
-Run tests:
-```bash
-npm test -- src/__tests__/useClubStore.test.ts
+**Solution:** Call `invalidateClubs()` after creating/updating/deleting clubs:
+```typescript
+await createClub(data);
+invalidateClubs();
+await fetchClubsIfNeeded({ force: true });
 ```
 
-## Future Improvements
+---
 
-1. Add support for query parameters in `fetchClubs()` for filtering
-2. Implement pagination support in the store
-3. Add caching/TTL for club data
-4. Add localStorage persistence for `currentClub`
-5. Implement optimistic UI updates with rollback on error
+### Issue: Stale Data Showing
 
-## Support
+**Solution:** Use force parameter to bypass cache:
+```typescript
+await fetchClubsIfNeeded({ force: true });
+```
 
-For questions or issues related to the club store migration:
-1. Check this documentation
-2. Review the store implementation in `src/stores/useClubStore.ts`
-3. Review test examples in `src/__tests__/useClubStore.test.ts`
+---
+
+### Issue: TypeScript Error with clubsById
+
+**Solution:** Check for undefined before accessing:
+```typescript
+const club = useClubStore(state => state.clubsById[clubId]);
+if (!club) {
+  // Handle loading or not found
+  return <LoadingSpinner />;
+}
+```
+
+## Future Enhancements
+
+Potential improvements for future PRs:
+
+1. **TTL-based Auto-refresh:** Use `lastFetchedAt` to auto-refresh after X minutes
+2. **Pagination Support:** Add `fetchClubsPageIfNeeded(page)` for large club lists
+3. **Optimistic Updates:** Enhance create/update methods with optimistic UI updates
+4. **WebSocket Integration:** Real-time updates from server push events
+5. **Persistent Cache:** Store clubs in localStorage for faster initial load
+
+## Questions?
+
+For issues or questions about this migration:
+- Review the test file: `src/__tests__/useClubStore.test.ts`
+- Check the store implementation: `src/stores/useClubStore.ts`
+- Refer to migrated component examples above
