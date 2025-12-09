@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { Button, Input, Modal, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
+import { Button, Input, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
 import { useListController } from "@/hooks";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
@@ -127,7 +127,7 @@ function MailIcon() {
   );
 }
 
-import type { AdminUser } from "@/types/adminUser";
+// AdminUser type is used in users.map callback below
 
 interface OrganizationOption {
   id: string;
@@ -213,16 +213,10 @@ export default function AdminUsersPage() {
 
   // No modals needed anymore since we only have View action which navigates to detail page
 
-  // Toast state
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-
   // Error key for translated messages
   const [errorKey, setErrorKey] = useState<string>("");
 
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
-  };
+  // showToast function removed as we no longer show in-page toasts
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -414,22 +408,7 @@ export default function AdminUsersPage() {
         description={t("users.subtitle")}
       />
 
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`im-toast im-toast--${toast.type}`} role="alert">
-          <span className="im-toast-icon">
-            {toast.type === "success" ? "✓" : "✕"}
-          </span>
-          <span className="im-toast-message">{toast.message}</span>
-          <button
-            className="im-toast-close"
-            onClick={() => setToast(null)}
-            aria-label={t("common.close")}
-          >
-            <XIcon />
-          </button>
-        </div>
-      )}
+      {/* No toast notifications needed */}
 
       <section className="rsp-content">
         <Breadcrumbs
