@@ -537,10 +537,18 @@ export async function mockGetCourtById(id: string) {
   const court = findCourtById(id);
   if (!court) return null;
 
-  const club = findClubById(court.clubId);
+  // Return only the fields that match the real API response (no club relation)
   return {
-    ...court,
-    club: club ? { id: club.id, name: club.name } : null,
+    id: court.id,
+    name: court.name,
+    slug: court.slug,
+    type: court.type,
+    surface: court.surface,
+    indoor: court.indoor,
+    defaultPriceCents: court.defaultPriceCents,
+    clubId: court.clubId,
+    createdAt: court.createdAt.toISOString(),
+    updatedAt: court.updatedAt.toISOString(),
   };
 }
 
@@ -580,7 +588,7 @@ export async function mockGetCourtDetailById(id: string) {
     courtPriceRules: courtPriceRules.map((pr) => ({
       id: pr.id,
       courtId: pr.courtId,
-      dayOfWeek: pr.dayOfWeek ?? 0,
+      dayOfWeek: pr.dayOfWeek !== null ? pr.dayOfWeek : 0,
       startTime: pr.startTime,
       endTime: pr.endTime,
       priceCents: pr.priceCents,
