@@ -2,7 +2,7 @@
 // This module provides mock data and CRUD helpers for development when the database is unavailable.
 // See TODO_MOCK_CLEANUP.md for removal instructions.
 
-import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule, Coach, ClubGallery } from "@prisma/client";
+import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule, Coach, ClubGallery, AuditLog } from "@prisma/client";
 
 // ============================================================================
 // Mock Data State (mutable at runtime for testing flows)
@@ -19,6 +19,7 @@ let mockBusinessHours: ClubBusinessHours[] = [];
 let mockCourtPriceRules: CourtPriceRule[] = [];
 let mockCoaches: Coach[] = [];
 let mockGalleryImages: ClubGallery[] = [];
+let mockAuditLogs: AuditLog[] = [];
 
 // ============================================================================
 // Initialization (called once to seed data)
@@ -37,6 +38,7 @@ export function initializeMockData() {
   mockCourtPriceRules = [];
   mockCoaches = [];
   mockGalleryImages = [];
+  mockAuditLogs = [];
 
   // Create mock users
   mockUsers = [
@@ -643,6 +645,115 @@ export function initializeMockData() {
       createdAt: new Date("2024-03-01"),
     },
   ];
+
+  // Create mock audit logs for organization activity
+  const auditNow = new Date();
+  const oneDayAgo = new Date(auditNow);
+  oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+  const twoDaysAgo = new Date(auditNow);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  const threeDaysAgo = new Date(auditNow);
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  const fiveDaysAgo = new Date(auditNow);
+  fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+  const sevenDaysAgo = new Date(auditNow);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  mockAuditLogs = [
+    // org-1 (Padel Sports Inc) activities
+    {
+      id: "audit-1",
+      actorId: "user-1",
+      action: "org.create",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ organizationName: "Padel Sports Inc" }),
+      createdAt: new Date("2024-01-01"),
+    },
+    {
+      id: "audit-2",
+      actorId: "user-2",
+      action: "org.update",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ changes: { contactEmail: "contact@padelsports.com" } }),
+      createdAt: sevenDaysAgo,
+    },
+    {
+      id: "audit-3",
+      actorId: "user-1",
+      action: "org.assign_admin",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ adminEmail: "orgadmin@example.com", adminName: "Org Admin" }),
+      createdAt: fiveDaysAgo,
+    },
+    {
+      id: "audit-4",
+      actorId: "user-2",
+      action: "org.update",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ changes: { website: "https://padelsports.com" } }),
+      createdAt: threeDaysAgo,
+    },
+    {
+      id: "audit-5",
+      actorId: "user-2",
+      action: "org.update",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ changes: { address: "123 Sports Ave" } }),
+      createdAt: twoDaysAgo,
+    },
+    // org-2 (Tennis & Padel Corp) activities
+    {
+      id: "audit-6",
+      actorId: "user-1",
+      action: "org.create",
+      targetType: "organization",
+      targetId: "org-2",
+      detail: JSON.stringify({ organizationName: "Tennis & Padel Corp" }),
+      createdAt: new Date("2024-01-01"),
+    },
+    {
+      id: "audit-7",
+      actorId: "user-3",
+      action: "org.update",
+      targetType: "organization",
+      targetId: "org-2",
+      detail: JSON.stringify({ changes: { contactEmail: "info@tennispadel.com" } }),
+      createdAt: fiveDaysAgo,
+    },
+    {
+      id: "audit-8",
+      actorId: "user-1",
+      action: "org.assign_admin",
+      targetType: "organization",
+      targetId: "org-2",
+      detail: JSON.stringify({ adminEmail: "clubadmin@example.com", adminName: "Club Admin" }),
+      createdAt: threeDaysAgo,
+    },
+    // org-3 (Archived Organization) activities
+    {
+      id: "audit-9",
+      actorId: "user-1",
+      action: "org.create",
+      targetType: "organization",
+      targetId: "org-3",
+      detail: JSON.stringify({ organizationName: "Archived Organization" }),
+      createdAt: new Date("2024-01-01"),
+    },
+    {
+      id: "audit-10",
+      actorId: "user-1",
+      action: "org.archive",
+      targetType: "organization",
+      targetId: "org-3",
+      detail: JSON.stringify({ reason: "No longer active" }),
+      createdAt: new Date("2024-06-01"),
+    },
+  ];
 }
 
 // Initialize data on module load
@@ -694,6 +805,10 @@ export function getMockCoaches() {
 
 export function getMockGalleryImages() {
   return [...mockGalleryImages];
+}
+
+export function getMockAuditLogs() {
+  return [...mockAuditLogs];
 }
 
 // ============================================================================

@@ -12,8 +12,7 @@ import {
   getMockClubMemberships,
   getMockBusinessHours,
   getMockCourtPriceRules,
-  getMockCoaches,
-  getMockGalleryImages,
+  getMockAuditLogs,
   findUserById,
   findClubById,
   findCourtById,
@@ -387,6 +386,162 @@ export async function mockGetOrganizationById(id: string) {
     ...org,
     clubs,
     memberships,
+  };
+}
+
+/**
+ * Mock handler for full organization detail endpoint
+ * Returns complete org detail with metrics, clubs preview, admins, and activity
+ */
+export async function mockGetOrganizationDetail(orgId: string) {
+  const org = findOrganizationById(orgId);
+  if (!org) return null;
+
+  const users = getMockUsers();
+  const clubs = getMockClubs();
+  const courts = getMockCourts();
+  const bookings = getMockBookings();
+  const memberships = getMockMemberships();
+  const clubMemberships = getMockClubMemberships();
+  const auditLogs = getMockAuditLogs();
+
+  // Find creator
+  const createdBy = users.find((u) => u.id === org.createdById);
+
+  // Find super admins
+  const orgMemberships = memberships.filter(
+    (m) => m.organizationId === orgId && m.role === "ORGANIZATION_ADMIN"
+  );
+  const superAdmins = orgMemberships.map((m) => {
+    const user = users.find((u) => u.id === m.userId);
+    return {
+      id: user!.id,
+      name: user!.name,
+      email: user!.email,
+      isPrimaryOwner: m.isPrimaryOwner,
+      membershipId: m.id,
+    };
+  });
+
+  // Calculate metrics
+  const orgClubs = clubs.filter((c) => c.organizationId === orgId);
+  const clubIds = orgClubs.map((c) => c.id);
+  const orgCourts = courts.filter((c) => clubIds.includes(c.clubId));
+  const courtIds = orgCourts.map((c) => c.id);
+  const orgBookings = bookings.filter((b) => courtIds.includes(b.courtId));
+
+  const totalClubs = orgClubs.length;
+  const totalCourts = orgCourts.length;
+  const activeBookings = orgBookings.filter(
+    (b) =>
+      ["pending", "paid", "reserved", "confirmed"].includes(b.status) &&
+      b.start >= new Date()
+  ).length;
+  const uniqueUserIds = new Set(orgBookings.map((b) => b.userId));
+  const activeUsers = uniqueUserIds.size;
+
+  // Clubs preview (first 5)
+  const clubsPreview = orgClubs.slice(0, 5).map((club) => {
+    const clubCourts = courts.filter((c) => c.clubId === club.id);
+    const clubAdminsCount = clubMemberships.filter(
+      (cm) => cm.clubId === club.id && cm.role === "CLUB_ADMIN"
+    ).length;
+
+    return {
+      id: club.id,
+      name: club.name,
+      slug: club.slug,
+      city: club.city,
+      isPublic: club.isPublic,
+      courtCount: clubCourts.length,
+      adminCount: clubAdminsCount,
+      createdAt: club.createdAt,
+    };
+  });
+
+  // Club admins (first 10)
+  const clubAdminMemberships = clubMemberships.filter(
+    (cm) => clubIds.includes(cm.clubId) && cm.role === "CLUB_ADMIN"
+  ).slice(0, 10);
+
+  const clubAdmins = clubAdminMemberships.map((cm) => {
+    const user = users.find((u) => u.id === cm.userId);
+    const club = clubs.find((c) => c.id === cm.clubId);
+    return {
+      id: cm.id,
+      userId: user!.id,
+      userName: user!.name,
+      userEmail: user!.email,
+      clubId: club!.id,
+      clubName: club!.name,
+    };
+  });
+
+  // Recent activity (audit logs - last 10)
+  const orgAuditLogs = auditLogs
+    .filter((log) => log.targetType === "organization" && log.targetId === orgId)
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, 10);
+
+  const actorIds = [...new Set(orgAuditLogs.map((log) => log.actorId))];
+  const actors = users.filter((u) => actorIds.includes(u.id));
+  const actorMap = new Map(actors.map((a) => [a.id, a]));
+
+  const recentActivity = orgAuditLogs.map((log) => {
+    const actor = actorMap.get(log.actorId);
+    return {
+      id: log.id,
+      action: log.action,
+      actor: actor
+        ? {
+            id: actor.id,
+            name: actor.name,
+            email: actor.email,
+          }
+        : {
+            id: log.actorId,
+            name: null,
+            email: null,
+          },
+      detail: log.detail ? JSON.parse(log.detail) : null,
+      createdAt: log.createdAt,
+    };
+  });
+
+  return {
+    id: org.id,
+    name: org.name,
+    slug: org.slug,
+    contactEmail: org.contactEmail,
+    contactPhone: org.contactPhone,
+    website: org.website,
+    address: org.address,
+    metadata: org.metadata ? JSON.parse(org.metadata) : null,
+    archivedAt: org.archivedAt,
+    createdAt: org.createdAt,
+    updatedAt: org.updatedAt,
+    createdBy: createdBy
+      ? {
+          id: createdBy.id,
+          name: createdBy.name,
+          email: createdBy.email,
+        }
+      : {
+          id: org.createdById,
+          name: null,
+          email: "unknown@example.com",
+        },
+    superAdmins,
+    primaryOwner: superAdmins.find((a) => a.isPrimaryOwner) || superAdmins[0] || null,
+    metrics: {
+      totalClubs,
+      totalCourts,
+      activeBookings,
+      activeUsers,
+    },
+    clubsPreview,
+    clubAdmins,
+    recentActivity,
   };
 }
 
@@ -985,5 +1140,182 @@ export async function mockGetDashboardGraphs(params: {
     bookingTrends,
     activeUsers,
     timeRange,
+  };
+}
+
+// ============================================================================
+// Mock Organization Activity API
+// ============================================================================
+
+export async function mockGetOrganizationActivity(params: {
+  orgId: string;
+  limit?: number;
+  cursor?: string;
+}) {
+  const { orgId, limit = 20, cursor } = params;
+  const auditLogs = getMockAuditLogs();
+  const users = getMockUsers();
+
+  // Filter logs for this organization
+  let orgLogs = auditLogs.filter(
+    (log) => log.targetType === "organization" && log.targetId === orgId
+  );
+
+  // Sort by creation date descending
+  orgLogs.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  // Handle cursor-based pagination
+  if (cursor) {
+    const cursorIndex = orgLogs.findIndex((log) => log.id === cursor);
+    if (cursorIndex !== -1) {
+      orgLogs = orgLogs.slice(cursorIndex + 1);
+    }
+  }
+
+  // Take limit + 1 to determine if there are more results
+  const hasMore = orgLogs.length > limit;
+  const items = hasMore ? orgLogs.slice(0, limit) : orgLogs;
+  const nextCursor = hasMore ? items[items.length - 1]?.id : null;
+
+  // Get actor details
+  const actorIds = [...new Set(items.map((log) => log.actorId))];
+  const actors = users.filter((u) => actorIds.includes(u.id));
+  const actorMap = new Map(actors.map((a) => [a.id, a]));
+
+  // Format response
+  const formattedLogs = items.map((log) => {
+    const actor = actorMap.get(log.actorId);
+    return {
+      id: log.id,
+      action: log.action,
+      actor: actor
+        ? {
+            id: actor.id,
+            name: actor.name,
+            email: actor.email,
+          }
+        : {
+            id: log.actorId,
+            name: null,
+            email: null,
+          },
+      detail: log.detail ? JSON.parse(log.detail) : null,
+      createdAt: log.createdAt,
+    };
+  });
+
+  return {
+    items: formattedLogs,
+    pagination: {
+      limit,
+      hasMore,
+      nextCursor,
+    },
+  };
+}
+
+// ============================================================================
+// Mock Organization Users API
+// ============================================================================
+
+export async function mockGetOrganizationUsers(params: {
+  orgId: string;
+  limit?: number;
+}) {
+  const { orgId, limit = 5 } = params;
+  const clubs = getMockClubs();
+  const courts = getMockCourts();
+  const bookings = getMockBookings();
+  const users = getMockUsers();
+  const memberships = getMockMemberships();
+  const clubMemberships = getMockClubMemberships();
+
+  // Find all clubs in this org
+  const orgClubs = clubs.filter((c) => c.organizationId === orgId);
+  const clubIds = orgClubs.map((c) => c.id);
+
+  // Find all courts in these clubs
+  const orgCourts = courts.filter((c) => clubIds.includes(c.clubId));
+  const courtIds = orgCourts.map((c) => c.id);
+
+  // Find all bookings for these courts
+  const orgBookings = bookings.filter((b) => courtIds.includes(b.courtId));
+
+  // Get admin user IDs to exclude
+  const adminIds = new Set<string>();
+  
+  // Root admins
+  users.filter((u) => u.isRoot).forEach((u) => adminIds.add(u.id));
+  
+  // Organization admins
+  memberships
+    .filter((m) => m.role === "ORGANIZATION_ADMIN")
+    .forEach((m) => adminIds.add(m.userId));
+  
+  // Club admins
+  clubMemberships
+    .filter((m) => m.role === "CLUB_ADMIN")
+    .forEach((m) => adminIds.add(m.userId));
+
+  // Get unique user IDs from bookings (excluding admins)
+  const uniqueUserIds = [...new Set(orgBookings.map((b) => b.userId))].filter(
+    (userId) => !adminIds.has(userId)
+  );
+
+  // Get user details and last booking
+  const userPreviews = uniqueUserIds
+    .map((userId) => {
+      const user = users.find((u) => u.id === userId);
+      if (!user) return null;
+
+      const userBookings = orgBookings.filter((b) => b.userId === userId);
+      const lastBooking = userBookings.sort(
+        (a, b) => b.start.getTime() - a.start.getTime()
+      )[0];
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const hasBookingToday = userBookings.some((b) => {
+        const bookingDate = new Date(b.start);
+        bookingDate.setHours(0, 0, 0, 0);
+        return bookingDate.getTime() === today.getTime();
+      });
+
+      // Skip users without bookings (shouldn't happen but be defensive)
+      if (!lastBooking) return null;
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        lastLoginAt: user.lastLoginAt ? user.lastLoginAt : null,
+        lastBookingAt: lastBooking.start,
+        hasBookingToday,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      // Sort by last booking date descending
+      return new Date(b!.lastBookingAt).getTime() - new Date(a!.lastBookingAt).getTime();
+    });
+
+  // Count users active today
+  const activeToday = userPreviews.filter((u) => u!.hasBookingToday).length;
+
+  // Take the first N users for preview
+  const items = userPreviews.slice(0, limit);
+
+  return {
+    items: items.map((item) => ({
+      id: item!.id,
+      name: item!.name,
+      email: item!.email,
+      lastLoginAt: item!.lastLoginAt,
+      lastBookingAt: item!.lastBookingAt,
+    })),
+    summary: {
+      totalUsers: uniqueUserIds.length,
+      activeToday,
+    },
   };
 }

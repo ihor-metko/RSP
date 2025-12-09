@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { requireOrganizationAdmin } from "@/lib/requireRole";
 import { MembershipRole } from "@/constants/roles";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetOrganizationDetail } from "@/services/mockApiHandlers";
 
 /**
  * GET /api/orgs/[orgId]
@@ -19,6 +22,18 @@ export async function GET(
     const authResult = await requireOrganizationAdmin(orgId);
     if (!authResult.authorized) {
       return authResult.response;
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const orgDetail = await mockGetOrganizationDetail(orgId);
+      if (!orgDetail) {
+        return NextResponse.json(
+          { error: "Organization not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(orgDetail);
     }
 
     // Fetch organization with related data
