@@ -228,8 +228,14 @@ export async function mockGetBookingById(id: string) {
 export async function mockGetClubs(params: {
   adminType: "root_admin" | "organization_admin" | "club_admin";
   managedIds: string[];
+  search?: string;
+  city?: string;
+  status?: string;
+  organizationId?: string;
+  sortBy?: string;
+  sortOrder?: string;
 }) {
-  const { adminType, managedIds } = params;
+  const { adminType, managedIds, search, city, status, organizationId, sortBy = "createdAt", sortOrder = "desc" } = params;
   let clubs = getMockClubs();
   const courts = getMockCourts();
   const bookings = getMockBookings();
@@ -244,8 +250,33 @@ export async function mockGetClubs(params: {
     clubs = clubs.filter((c) => managedIds.includes(c.id));
   }
 
+  // Apply search filter
+  if (search) {
+    const searchLower = search.toLowerCase();
+    clubs = clubs.filter((c) =>
+      c.name.toLowerCase().includes(searchLower) ||
+      c.location.toLowerCase().includes(searchLower) ||
+      (c.city && c.city.toLowerCase().includes(searchLower))
+    );
+  }
+
+  // Apply city filter
+  if (city) {
+    clubs = clubs.filter((c) => c.city === city);
+  }
+
+  // Apply status filter
+  if (status) {
+    clubs = clubs.filter((c) => c.status === status);
+  }
+
+  // Apply organization filter (only for root admin)
+  if (organizationId && adminType === "root_admin") {
+    clubs = clubs.filter((c) => c.organizationId === organizationId);
+  }
+
   // Transform to response format
-  return clubs.map((club) => {
+  const clubsWithCounts = clubs.map((club) => {
     const clubCourts = courts.filter((c) => c.clubId === club.id);
     const clubBookings = bookings.filter((b) => {
       const court = courts.find((c) => c.id === b.courtId);
@@ -283,6 +314,7 @@ export async function mockGetClubs(params: {
       heroImage: club.heroImage,
       tags: club.tags,
       isPublic: club.isPublic,
+      status: club.status,
       createdAt: club.createdAt,
       indoorCount,
       outdoorCount,
@@ -292,6 +324,33 @@ export async function mockGetClubs(params: {
       admins,
     };
   });
+
+  // Apply sorting
+  clubsWithCounts.sort((a, b) => {
+    let aVal: string | number;
+    let bVal: string | number;
+
+    if (sortBy === "name") {
+      aVal = a.name.toLowerCase();
+      bVal = b.name.toLowerCase();
+    } else if (sortBy === "city") {
+      aVal = (a.city || "").toLowerCase();
+      bVal = (b.city || "").toLowerCase();
+    } else if (sortBy === "bookingCount") {
+      aVal = a.bookingCount;
+      bVal = b.bookingCount;
+    } else {
+      // Default to createdAt
+      aVal = new Date(a.createdAt).getTime();
+      bVal = new Date(b.createdAt).getTime();
+    }
+
+    if (aVal < bVal) return sortOrder === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortOrder === "asc" ? 1 : -1;
+    return 0;
+  });
+
+  return clubsWithCounts;
 }
 
 export async function mockCreateClub(data: {

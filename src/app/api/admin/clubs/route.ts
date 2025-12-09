@@ -31,6 +31,12 @@ export async function GET(request: Request) {
       const clubs = await mockGetClubs({
         adminType: authResult.adminType,
         managedIds: authResult.managedIds,
+        search,
+        city,
+        status,
+        organizationId,
+        sortBy,
+        sortOrder,
       });
       return NextResponse.json(clubs);
     }

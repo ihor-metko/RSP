@@ -152,8 +152,8 @@ describe("Mock Mode Integration Tests", () => {
         managedIds: ["org-1"],
       });
 
-      // org-1 has club-1 and club-2
-      expect(clubs.length).toBe(2);
+      // org-1 has club-1, club-2, and club-4
+      expect(clubs.length).toBe(3);
       expect(clubs.every((c) => c.organization?.id === "org-1")).toBe(true);
     });
 
@@ -168,6 +168,89 @@ describe("Mock Mode Integration Tests", () => {
       expect(clubWithCourts!.indoorCount + clubWithCourts!.outdoorCount).toBe(
         clubWithCourts!.courtCount
       );
+    });
+
+    it("should filter clubs by search query", async () => {
+      const clubs = await mockGetClubs({
+        adminType: "root_admin",
+        managedIds: [],
+        search: "downtown",
+      });
+
+      expect(clubs.length).toBeGreaterThan(0);
+      expect(clubs.some((c) => c.name.toLowerCase().includes("downtown"))).toBe(true);
+    });
+
+    it("should filter clubs by city", async () => {
+      const clubs = await mockGetClubs({
+        adminType: "root_admin",
+        managedIds: [],
+        city: "Miami",
+      });
+
+      expect(clubs.length).toBeGreaterThan(0);
+      expect(clubs.every((c) => c.city === "Miami")).toBe(true);
+    });
+
+    it("should filter clubs by status", async () => {
+      const clubs = await mockGetClubs({
+        adminType: "root_admin",
+        managedIds: [],
+        status: "draft",
+      });
+
+      expect(clubs.length).toBeGreaterThan(0);
+      expect(clubs.every((c) => c.status === "draft")).toBe(true);
+    });
+
+    it("should sort clubs by name ascending", async () => {
+      const clubs = await mockGetClubs({
+        adminType: "root_admin",
+        managedIds: [],
+        sortBy: "name",
+        sortOrder: "asc",
+      });
+
+      expect(clubs.length).toBeGreaterThan(1);
+      for (let i = 1; i < clubs.length; i++) {
+        expect(clubs[i - 1].name.toLowerCase() <= clubs[i].name.toLowerCase()).toBe(true);
+      }
+    });
+
+    it("should sort clubs by name descending", async () => {
+      const clubs = await mockGetClubs({
+        adminType: "root_admin",
+        managedIds: [],
+        sortBy: "name",
+        sortOrder: "desc",
+      });
+
+      expect(clubs.length).toBeGreaterThan(1);
+      for (let i = 1; i < clubs.length; i++) {
+        expect(clubs[i - 1].name.toLowerCase() >= clubs[i].name.toLowerCase()).toBe(true);
+      }
+    });
+
+    it("should filter clubs by organization for root admin", async () => {
+      const clubs = await mockGetClubs({
+        adminType: "root_admin",
+        managedIds: [],
+        organizationId: "org-2",
+      });
+
+      expect(clubs.length).toBeGreaterThan(0);
+      expect(clubs.every((c) => c.organization?.id === "org-2")).toBe(true);
+    });
+
+    it("should combine multiple filters", async () => {
+      const clubs = await mockGetClubs({
+        adminType: "root_admin",
+        managedIds: [],
+        status: "active",
+        city: "Miami",
+      });
+
+      expect(clubs.every((c) => c.status === "active" && c.city === "Miami")).toBe(true);
     });
   });
 
@@ -223,15 +306,15 @@ describe("Mock Mode Integration Tests", () => {
     });
 
     it("should restrict org admin to their organizations", async () => {
-      // Org admin for org-2 should only see club-3
+      // Org admin for org-2 should only see club-3 and club-5
       const clubs = await mockGetClubs({
         adminType: "organization_admin",
         managedIds: ["org-2"],
       });
 
-      expect(clubs.length).toBe(1);
-      expect(clubs[0].id).toBe("club-3");
-      expect(clubs[0].organization?.id).toBe("org-2");
+      expect(clubs.length).toBe(2);
+      expect(clubs.every((c) => c.organization?.id === "org-2")).toBe(true);
+      expect(clubs.map((c) => c.id).sort()).toEqual(["club-3", "club-5"]);
     });
   });
 
