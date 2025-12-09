@@ -5,9 +5,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
-import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard";
+import { AdminOrganizationCard, AdminListLoading } from "@/components/admin";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
+import { useListController } from "@/hooks";
 import type { Organization } from "@/types/organization";
 import "@/components/admin/AdminOrganizationCard.css";
 import "./page.css";
@@ -42,6 +43,11 @@ type SortDirection = "asc" | "desc";
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 
+// Define filters interface
+interface OrganizationFilters {
+  searchQuery: string;
+}
+
 export default function AdminOrganizationsPage() {
   const t = useTranslations();
   const { data: session, status } = useSession();
@@ -59,12 +65,37 @@ export default function AdminOrganizationsPage() {
   // Local error state for specific operations
   const [error, setError] = useState("");
 
-  // State for search, sort, and pagination
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  // Use list controller hook for persistent filters, sort, and pagination
+  const {
+    filters,
+    setFilter,
+    sortBy: sortByKey,
+    setSortBy: setSortByKey,
+    sortOrder,
+    setSortOrder,
+    page: currentPage,
+    setPage: setCurrentPage,
+    pageSize: itemsPerPage,
+    setPageSize: setItemsPerPage,
+    clearFilters,
+  } = useListController<OrganizationFilters>({
+    entityKey: "organizations",
+    defaultFilters: {
+      searchQuery: "",
+    },
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc",
+    defaultPage: 1,
+    defaultPageSize: 10,
+  });
+
+  // Map sortByKey back to SortField type for backward compatibility
+  const sortField = sortByKey as SortField;
+  const setSortField = (field: SortField) => setSortByKey(field);
+  const sortDirection = sortOrder as SortDirection;
+  const setSortDirection = (direction: SortDirection) => setSortOrder(direction);
+  const searchQuery = filters.searchQuery;
+  const setSearchQuery = (query: string) => setFilter("searchQuery", query);
 
   // State for create organization modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -193,10 +224,7 @@ export default function AdminOrganizationsPage() {
   // Total pages
   const totalPages = Math.ceil(filteredAndSortedOrganizations.length / itemsPerPage);
 
-  // Reset to first page when search or items per page changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, itemsPerPage]);
+  // Note: Page reset is now handled automatically by useListController
 
   // Sort options for the select component
   const sortOptions = [
