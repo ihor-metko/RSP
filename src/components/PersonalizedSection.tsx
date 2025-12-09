@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Card, Button, Select, Modal } from "@/components/ui";
+import { useClubStore } from "@/stores/useClubStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
 import "./PersonalizedSection.css";
@@ -30,12 +31,6 @@ interface UpcomingBooking {
 
 interface HomeData {
   upcomingBookings: UpcomingBooking[];
-}
-
-interface Club {
-  id: string;
-  name: string;
-  location: string;
 }
 
 interface PersonalizedSectionProps {
@@ -146,9 +141,13 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Clubs for quick booking
-  const [clubs, setClubs] = useState<Club[]>([]);
-  const [clubsLoading, setClubsLoading] = useState(true);
+  // Use centralized club store for quick booking
+  const clubsFromStore = useClubStore((state) => state.clubs);
+  const clubsLoading = useClubStore((state) => state.loading);
+  const fetchClubsFromStore = useClubStore((state) => state.fetchClubs);
+  
+  // Memoize clubs to avoid unnecessary re-renders
+  const clubs = useMemo(() => clubsFromStore, [clubsFromStore]);
 
   // Quick Booking Wizard State
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -192,20 +191,14 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     }
   }, [t]);
 
-  // Fetch clubs for quick booking
+  // Fetch clubs for quick booking using store
   const fetchClubs = useCallback(async () => {
     try {
-      const response = await fetch("/api/clubs?limit=20");
-      if (response.ok) {
-        const data = await response.json();
-        setClubs(data);
-      }
+      await fetchClubsFromStore();
     } catch {
-      // Silently fail - not critical
-    } finally {
-      setClubsLoading(false);
+      // Silently fail - not critical for this component
     }
-  }, []);
+  }, [fetchClubsFromStore]);
 
   useEffect(() => {
     fetchHomeData();

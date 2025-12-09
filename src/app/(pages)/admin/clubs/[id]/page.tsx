@@ -14,11 +14,11 @@ import { ClubGalleryView } from "@/components/admin/club/ClubGalleryView";
 import { ClubCoachesView } from "@/components/admin/club/ClubCoachesView";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { GalleryModal } from "@/components/GalleryModal";
+import { useClubStore } from "@/stores/useClubStore";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
 
-import type { ClubDetail } from "@/types/club";
 import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
 import "./page.css";
 
@@ -31,8 +31,13 @@ export default function AdminClubDetailPage({
   const router = useRouter();
   const t = useTranslations();
   const [clubId, setClubId] = useState<string | null>(null);
-  const [club, setClub] = useState<ClubDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  
+  // Use centralized club store
+  const currentClub = useClubStore((state) => state.currentClub);
+  const loading = useClubStore((state) => state.loading);
+  const fetchClubById = useClubStore((state) => state.fetchClubById);
+  const deleteClub = useClubStore((state) => state.deleteClub);
+  
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -41,6 +46,9 @@ export default function AdminClubDetailPage({
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+
+  // Get club from store (currentClub is set by fetchClubById)
+  const club = currentClub;
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -71,28 +79,19 @@ export default function AdminClubDetailPage({
     if (!clubId) return;
 
     try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/clubs/${clubId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("Club not found");
-          return;
-        }
-        if (response.status === 401 || response.status === 403) {
-          router.push("/auth/sign-in");
-          return;
-        }
-        throw new Error("Failed to fetch club");
-      }
-      const data = await response.json();
-      setClub(data);
+      await fetchClubById(clubId);
       setError("");
-    } catch {
-      setError("Failed to load club");
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to load club";
+      if (errorMessage.includes("404") || errorMessage.includes("not found")) {
+        setError("Club not found");
+      } else if (errorMessage.includes("401") || errorMessage.includes("403")) {
+        router.push("/auth/sign-in");
+      } else {
+        setError(errorMessage);
+      }
     }
-  }, [clubId, router]);
+  }, [clubId, fetchClubById, router]);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -125,6 +124,8 @@ export default function AdminClubDetailPage({
     if (!clubId) return;
 
     try {
+      // Section updates still use direct API call as they're not part of the basic store
+      // This is a specialized admin endpoint for partial updates
       const response = await fetch(`/api/admin/clubs/${clubId}/section`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -137,7 +138,8 @@ export default function AdminClubDetailPage({
       }
 
       const updatedClub = await response.json();
-      setClub(updatedClub);
+      // Refresh club data from store to keep it in sync
+      await fetchClubById(clubId);
       showToast("success", "Changes saved successfully");
       return updatedClub;
     } catch (err) {
@@ -145,22 +147,14 @@ export default function AdminClubDetailPage({
       showToast("error", message);
       throw err;
     }
-  }, [clubId, showToast]);
+  }, [clubId, fetchClubById, showToast]);
 
   const handleDelete = async () => {
     if (!clubId) return;
 
     setSubmitting(true);
     try {
-      const response = await fetch(`/api/admin/clubs/${clubId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete club");
-      }
-
+      await deleteClub(clubId);
       router.push("/admin/clubs");
     } catch (err) {
       showToast("error", err instanceof Error ? err.message : "Failed to delete club");

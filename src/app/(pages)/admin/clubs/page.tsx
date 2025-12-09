@@ -13,6 +13,14 @@ import "@/components/admin/AdminClubCard.css";
 type SortField = "name" | "city" | "createdAt" | "bookingCount";
 type SortDirection = "asc" | "desc";
 
+/**
+ * Admin Clubs Page
+ * 
+ * Note: This page uses direct API calls instead of useClubStore because it requires
+ * server-side filtering, pagination, and sorting with query parameters that are not
+ * supported by the basic store implementation. Complex admin pages with server-side
+ * features should continue using direct API calls for optimal performance.
+ */
 export default function AdminClubsPage() {
   const t = useTranslations();
   const { data: session, status } = useSession();

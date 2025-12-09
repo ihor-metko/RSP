@@ -8,6 +8,15 @@ import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
 import "@/components/ClubsList.css";
 
+/**
+ * Player Clubs Page
+ * 
+ * Note: This page uses direct API calls instead of useClubStore because it requires
+ * server-side filtering with query parameters (search, city, indoor filter) that are
+ * not supported by the basic store implementation. Public-facing pages with complex
+ * filtering should continue using direct API calls for optimal performance.
+ */
+
 interface ClubWithCounts {
   id: string;
   name: string;

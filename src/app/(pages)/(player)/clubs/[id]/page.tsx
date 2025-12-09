@@ -15,6 +15,7 @@ import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
 import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel } from "@/components/ui";
+import { useClubStore } from "@/stores/useClubStore";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
@@ -93,7 +94,13 @@ export default function ClubDetailPage({
   const { data: session, status: authStatus } = useSession();
   const pathname = usePathname();
   const t = useTranslations();
-  const [club, setClub] = useState<ClubWithDetails | null>(null);
+  
+  // Use centralized club store
+  const currentClub = useClubStore((state) => state.currentClub);
+  const fetchClubById = useClubStore((state) => state.fetchClubById);
+  
+  // Map currentClub to ClubWithDetails (they should be compatible)
+  const club = currentClub as ClubWithDetails | null;
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -155,31 +162,30 @@ export default function ClubDetailPage({
     async function fetchClubData() {
       try {
         const resolvedParams = await params;
-        const response = await fetch(`/api/clubs/${resolvedParams.id}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError(t("clubs.clubNotFound"));
-          } else {
-            setError(t("clubs.failedToLoadClub"));
-          }
-          return;
-        }
-        const data = await response.json();
-        setClub(data);
-        // Fetch availability for all courts
-        if (data.courts && data.courts.length > 0) {
-          fetchAvailability(data.courts);
+        await fetchClubById(resolvedParams.id);
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : t("clubs.failedToLoadClub");
+        if (errorMessage.includes("404") || errorMessage.includes("not found")) {
+          setError(t("clubs.clubNotFound"));
         } else {
-          setAvailabilityLoading(false);
+          setError(errorMessage);
         }
-      } catch {
-        setError(t("clubs.failedToLoadClub"));
       } finally {
         setIsLoading(false);
       }
     }
     fetchClubData();
-  }, [params, fetchAvailability, t]);
+  }, [params, fetchClubById, t]);
+  
+  // Fetch availability when club data is loaded
+  useEffect(() => {
+    if (club?.courts && club.courts.length > 0) {
+      fetchAvailability(club.courts);
+    } else if (club) {
+      setAvailabilityLoading(false);
+    }
+  }, [club, fetchAvailability]);
 
   const handleBookClick = (courtId: string) => {
     if (!isAuthenticated) {
