@@ -10,6 +10,7 @@ import type { AdminType } from "@/app/api/me/admin-status/route";
 import type { Club } from "@/types/club";
 import type { Organization } from "@/types/organization";
 import { useUserStore } from "@/stores/useUserStore";
+import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
 
 interface Court {
   id: string;
@@ -69,6 +70,7 @@ export default function AdminCourtsPage() {
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [selectedClub, setSelectedClub] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<"all" | "active" | "inactive">("all");
+  const [selectedSportType, setSelectedSportType] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "bookings">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -90,6 +92,7 @@ export default function AdminCourtsPage() {
       if (searchQuery) params.append("search", searchQuery);
       if (selectedClub) params.append("clubId", selectedClub);
       if (selectedStatus !== "all") params.append("status", selectedStatus);
+      if (selectedSportType) params.append("sportType", selectedSportType);
       params.append("sortBy", sortBy);
       params.append("sortOrder", sortOrder);
 
@@ -270,6 +273,7 @@ export default function AdminCourtsPage() {
     setSelectedOrganization("");
     setSelectedClub("");
     setSelectedStatus("all");
+    setSelectedSportType("");
   };
 
   const handleLoadMore = () => {
@@ -356,6 +360,20 @@ export default function AdminCourtsPage() {
           </select>
 
           <select
+            value={selectedSportType}
+            onChange={(e) => setSelectedSportType(e.target.value)}
+            className="im-native-select"
+            aria-label={t("admin.courts.filterBySport")}
+          >
+            <option value="">{t("admin.courts.allSports")}</option>
+            {SPORT_TYPE_OPTIONS.map((sport) => (
+              <option key={sport.value} value={sport.value}>
+                {sport.label}
+              </option>
+            ))}
+          </select>
+
+          <select
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => handleSortChange(e.target.value)}
             className="im-native-select"
@@ -367,7 +385,7 @@ export default function AdminCourtsPage() {
             <option value="bookings-asc">{t("admin.courts.sortBookingsAsc")}</option>
           </select>
 
-          {(searchQuery || selectedOrganization || selectedClub || selectedStatus !== "all") && (
+          {(searchQuery || selectedOrganization || selectedClub || selectedStatus !== "all" || selectedSportType) && (
             <Button variant="outline" onClick={handleClearFilters}>
               {t("common.clearFilters")}
             </Button>
