@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, IMLink, PageHeader } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import type { ClubWithCounts } from "@/types/club";
-import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
+import { useUserStore } from "@/stores/useUserStore";
 import "@/components/admin/AdminClubCard.css";
 
 type SortField = "name" | "city" | "createdAt" | "bookingCount";
@@ -23,13 +22,15 @@ type SortDirection = "asc" | "desc";
  */
 export default function AdminClubsPage() {
   const t = useTranslations();
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
-  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+  
+  // Get admin status from user store
+  const adminStatus = useUserStore((state) => state.adminStatus);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const isLoadingStore = useUserStore((state) => state.isLoading);
 
   // Filtering state
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,24 +48,7 @@ export default function AdminClubsPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const fetchAdminStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/me/admin-status");
-      if (response.ok) {
-        const data: AdminStatusResponse = await response.json();
-        setAdminStatus(data);
-        return data;
-      } else {
-        setAdminStatus(null);
-        return null;
-      }
-    } catch {
-      setAdminStatus(null);
-      return null;
-    } finally {
-      setLoadingAdminStatus(false);
-    }
-  }, []);
+  // Admin status is loaded from store via UserStoreInitializer
 
   const fetchClubs = useCallback(async () => {
     try {
@@ -103,23 +87,21 @@ export default function AdminClubsPage() {
   }, [router, t, searchQuery, selectedCity, selectedStatus, selectedOrganization, sortField, sortDirection, page, pageSize]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (isLoadingStore) return;
 
-    if (!session?.user) {
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
 
-    // First fetch admin status, then clubs
-    fetchAdminStatus().then((adminData) => {
-      if (adminData?.isAdmin) {
-        fetchClubs();
-      } else {
-        // User is not an admin, redirect
-        router.push("/auth/sign-in");
-      }
-    });
-  }, [session, status, router, fetchAdminStatus, fetchClubs]);
+    // Fetch clubs if user is admin
+    if (adminStatus?.isAdmin) {
+      fetchClubs();
+    } else {
+      // User is not an admin, redirect
+      router.push("/auth/sign-in");
+    }
+  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchClubs]);
 
   // Extract unique organizations and cities for filters (client-side for now)
   const { organizations, cities } = useMemo(() => {
@@ -155,7 +137,7 @@ export default function AdminClubsPage() {
     setPage(1);
   };
 
-  if (status === "loading" || loading || loadingAdminStatus) {
+  if (isLoadingStore || loading) {
     return (
       <main className="im-admin-clubs-page">
         <div className="im-admin-clubs-loading">

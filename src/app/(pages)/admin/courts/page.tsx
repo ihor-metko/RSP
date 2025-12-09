@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Card, Modal, IMLink, PageHeader } from "@/components/ui";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { CourtCard } from "@/components/courts";
-import type { AdminStatusResponse, AdminType } from "@/app/api/me/admin-status/route";
+import type { AdminType } from "@/app/api/me/admin-status/route";
 import type { Club } from "@/types/club";
 import type { Organization } from "@/types/organization";
+import { useUserStore } from "@/stores/useUserStore";
 
 interface Court {
   id: string;
@@ -43,7 +43,6 @@ interface PaginationInfo {
 
 export default function AdminCourtsPage() {
   const t = useTranslations();
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,8 +53,9 @@ export default function AdminCourtsPage() {
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
   const [deletingCourt, setDeletingCourt] = useState<Court | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
-  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+  const adminStatus = useUserStore((state) => state.adminStatus);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const isLoadingStore = useUserStore((state) => state.isLoading);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 20,
@@ -72,25 +72,7 @@ export default function AdminCourtsPage() {
   const [sortBy, setSortBy] = useState<"name" | "bookings">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const fetchAdminStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/me/admin-status");
-      if (response.ok) {
-        const data: AdminStatusResponse = await response.json();
-        setAdminStatus(data);
-        return data;
-      } else {
-        setAdminStatus(null);
-        return null;
-      }
-    } catch {
-      setAdminStatus(null);
-      return null;
-    } finally {
-      setLoadingAdminStatus(false);
-    }
-  }, []);
-
+  // Admin status is loaded from store via UserStoreInitializer
   const fetchCourts = useCallback(async (page: number = 1, append: boolean = false) => {
     try {
       if (append) {
@@ -119,15 +101,15 @@ export default function AdminCourtsPage() {
         }
         throw new Error("Failed to fetch courts");
       }
-      
+
       const data = await response.json();
-      
+
       if (append) {
         setCourts((prev) => [...prev, ...data.courts]);
       } else {
         setCourts(data.courts);
       }
-      
+
       setPagination(data.pagination);
       setError("");
     } catch {
@@ -139,24 +121,22 @@ export default function AdminCourtsPage() {
   }, [router, t, searchQuery, selectedClub, selectedStatus, sortBy, sortOrder]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (isLoadingStore) return;
 
-    if (!session?.user) {
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
 
-    // First fetch admin status, then courts
-    fetchAdminStatus().then((adminData) => {
-      if (adminData?.isAdmin) {
-        fetchCourts(1, false);
-      } else {
-        // User is not an admin, redirect
-        router.push("/auth/sign-in");
-      }
-    });
+    // Check admin status and fetch data
+    if (adminStatus?.isAdmin) {
+      fetchCourts(1, false);
+    } else if (!isLoadingStore) {
+      // User is not an admin, redirect
+      router.push("/auth/sign-in");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, status, router, fetchAdminStatus]);
+  }, [isLoggedIn, isLoadingStore, adminStatus, router]);
 
   // Refetch when filters or sorting change
   useEffect(() => {
@@ -304,7 +284,7 @@ export default function AdminCourtsPage() {
     setSortOrder(newSortOrder);
   };
 
-  if (status === "loading" || loading || loadingAdminStatus) {
+  if (loading || isLoadingStore) {
     return (
       <main className="rsp-container p-8">
         <div className="rsp-loading text-center">{t("common.loading")}</div>
@@ -457,21 +437,21 @@ export default function AdminCourtsPage() {
                   showAvailabilitySummary={false}
                   showDetailedAvailability={false}
                 />
-            ))}
-          </div>
-
-          {/* Load More Button */}
-          {pagination.hasMore && (
-            <div className="mt-6 text-center">
-              <Button
-                variant="outline"
-                onClick={handleLoadMore}
-                disabled={loadingMore}
-              >
-                {loadingMore ? t("admin.courts.loading") : t("admin.courts.loadMore")}
-              </Button>
+              ))}
             </div>
-          )}
+
+            {/* Load More Button */}
+            {pagination.hasMore && (
+              <div className="mt-6 text-center">
+                <Button
+                  variant="outline"
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? t("admin.courts.loading") : t("admin.courts.loadMore")}
+                </Button>
+              </div>
+            )}
           </>
         )}
       </section>
@@ -486,13 +466,13 @@ export default function AdminCourtsPage() {
           initialValues={
             editingCourt
               ? {
-                  name: editingCourt.name,
-                  slug: editingCourt.slug || "",
-                  type: editingCourt.type || "",
-                  surface: editingCourt.surface || "",
-                  indoor: editingCourt.indoor,
-                  defaultPriceCents: editingCourt.defaultPriceCents,
-                }
+                name: editingCourt.name,
+                slug: editingCourt.slug || "",
+                type: editingCourt.type || "",
+                surface: editingCourt.surface || "",
+                indoor: editingCourt.indoor,
+                defaultPriceCents: editingCourt.defaultPriceCents,
+              }
               : undefined
           }
           onSubmit={handleSubmit}

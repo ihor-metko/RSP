@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, Modal, Select, Input } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
+import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import type { AdminBookingsListResponse, AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import type { AdminBookingDetailResponse } from "@/app/api/admin/bookings/[id]/route";
-import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
 import "./AdminBookings.css";
 
 /**
@@ -63,12 +62,12 @@ interface FilterOption {
  */
 export default function AdminBookingsPage() {
   const t = useTranslations();
-  const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
 
-  // Admin status
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
-  const [isLoadingAdminStatus, setIsLoadingAdminStatus] = useState(true);
+  // Get admin status from user store
+  const adminStatus = useUserStore((state) => state.adminStatus);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const isLoading = useUserStore((state) => state.isLoading);
 
   // Bookings data
   const [bookingsData, setBookingsData] = useState<AdminBookingsListResponse | null>(null);
@@ -103,45 +102,7 @@ export default function AdminBookingsPage() {
   // Admin Booking Wizard state
   const [isBookingWizardOpen, setIsBookingWizardOpen] = useState(false);
 
-  // Fetch admin status
-  useEffect(() => {
-    const fetchAdminStatus = async () => {
-      if (sessionStatus === "loading") return;
-
-      if (!session?.user) {
-        setAdminStatus(null);
-        setIsLoadingAdminStatus(false);
-        return;
-      }
-
-      if (session.user.isRoot) {
-        setAdminStatus({
-          isAdmin: true,
-          adminType: "root_admin",
-          isRoot: true,
-          managedIds: [],
-        });
-        setIsLoadingAdminStatus(false);
-        return;
-      }
-
-      try {
-        const response = await fetch("/api/me/admin-status");
-        if (response.ok) {
-          const data: AdminStatusResponse = await response.json();
-          setAdminStatus(data);
-        } else {
-          setAdminStatus(null);
-        }
-      } catch {
-        setAdminStatus(null);
-      } finally {
-        setIsLoadingAdminStatus(false);
-      }
-    };
-
-    fetchAdminStatus();
-  }, [session, sessionStatus]);
+  // Admin status is loaded from store via UserStoreInitializer
 
   // Fetch filter options (organizations and clubs)
   useEffect(() => {
@@ -311,8 +272,8 @@ export default function AdminBookingsPage() {
     { value: "cancelled", label: t("common.cancelled") },
   ];
 
-  // Redirect if not authenticated
-  if (sessionStatus === "loading" || isLoadingAdminStatus) {
+  // Show loading state while user store is loading
+  if (isLoading) {
     return (
       <main className="im-admin-bookings-page">
         <div className="im-admin-bookings-loading">
@@ -323,7 +284,7 @@ export default function AdminBookingsPage() {
     );
   }
 
-  if (!session?.user || !adminStatus?.isAdmin) {
+  if (!isLoggedIn || !adminStatus?.isAdmin) {
     router.push("/auth/sign-in");
     return null;
   }

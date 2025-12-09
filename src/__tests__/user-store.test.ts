@@ -134,23 +134,19 @@ describe("useUserStore", () => {
         email: "admin@example.com",
         name: "Admin User",
         isRoot: true,
+        adminStatus: {
+          isAdmin: true,
+          adminType: "root_admin",
+          managedIds: [],
+        },
+        memberships: [],
+        clubMemberships: [],
       };
 
-      const mockAdminStatusResponse = {
-        isAdmin: true,
-        adminType: "root_admin",
-        managedIds: [],
-      };
-
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => mockMeResponse,
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => mockAdminStatusResponse,
-        });
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockMeResponse,
+      });
 
       await act(async () => {
         await useUserStore.getState().loadUser();
@@ -167,6 +163,11 @@ describe("useUserStore", () => {
         expect(state.roles).toEqual(["ROOT_ADMIN"]);
         expect(state.isLoggedIn).toBe(true);
         expect(state.isLoading).toBe(false);
+        expect(state.adminStatus).toEqual({
+          isAdmin: true,
+          adminType: "root_admin",
+          managedIds: [],
+        });
       });
     });
 
@@ -176,23 +177,26 @@ describe("useUserStore", () => {
         email: "orgadmin@example.com",
         name: "Org Admin",
         isRoot: false,
+        adminStatus: {
+          isAdmin: true,
+          adminType: "organization_admin",
+          managedIds: ["org-1"],
+          isPrimaryOwner: false,
+        },
+        memberships: [
+          {
+            organizationId: "org-1",
+            role: "ORGANIZATION_ADMIN",
+            isPrimaryOwner: false,
+          },
+        ],
+        clubMemberships: [],
       };
 
-      const mockAdminStatusResponse = {
-        isAdmin: true,
-        adminType: "organization_admin",
-        managedIds: ["org-1"],
-      };
-
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => mockMeResponse,
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => mockAdminStatusResponse,
-        });
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockMeResponse,
+      });
 
       await act(async () => {
         await useUserStore.getState().loadUser();
@@ -208,6 +212,7 @@ describe("useUserStore", () => {
         });
         expect(state.roles).toEqual(["ORGANIZATION_ADMIN"]);
         expect(state.isLoggedIn).toBe(true);
+        expect(state.memberships).toHaveLength(1);
       });
     });
 
@@ -217,23 +222,28 @@ describe("useUserStore", () => {
         email: "clubadmin@example.com",
         name: "Club Admin",
         isRoot: false,
+        adminStatus: {
+          isAdmin: true,
+          adminType: "club_admin",
+          managedIds: ["club-1"],
+          assignedClub: {
+            id: "club-1",
+            name: "Test Club",
+          },
+        },
+        memberships: [],
+        clubMemberships: [
+          {
+            clubId: "club-1",
+            role: "CLUB_ADMIN",
+          },
+        ],
       };
 
-      const mockAdminStatusResponse = {
-        isAdmin: true,
-        adminType: "club_admin",
-        managedIds: ["club-1"],
-      };
-
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => mockMeResponse,
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => mockAdminStatusResponse,
-        });
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockMeResponse,
+      });
 
       await act(async () => {
         await useUserStore.getState().loadUser();
@@ -241,6 +251,7 @@ describe("useUserStore", () => {
 
       await waitFor(() => {
         expect(useUserStore.getState().roles).toEqual(["CLUB_ADMIN"]);
+        expect(useUserStore.getState().clubMemberships).toHaveLength(1);
       });
     });
 

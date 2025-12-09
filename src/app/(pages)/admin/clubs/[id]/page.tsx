@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal, IMLink, Breadcrumbs, ImageCarousel } from "@/components/ui";
@@ -19,7 +18,7 @@ import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
 
-import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
+import { useUserStore } from "@/stores/useUserStore";
 import "./page.css";
 
 export default function AdminClubDetailPage({
@@ -27,8 +26,7 @@ export default function AdminClubDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+    const router = useRouter();
   const t = useTranslations();
   const [clubId, setClubId] = useState<string | null>(null);
   
@@ -44,8 +42,9 @@ export default function AdminClubDetailPage({
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
-  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+  const adminStatus = useUserStore((state) => state.adminStatus);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const isLoadingStore = useUserStore((state) => state.isLoading);
 
   // Get club from store (currentClub is set by fetchClubById)
   const club = currentClub;
@@ -56,25 +55,7 @@ export default function AdminClubDetailPage({
     });
   }, [params]);
 
-  const fetchAdminStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/me/admin-status");
-      if (response.ok) {
-        const data: AdminStatusResponse = await response.json();
-        setAdminStatus(data);
-        return data;
-      } else {
-        setAdminStatus(null);
-        return null;
-      }
-    } catch {
-      setAdminStatus(null);
-      return null;
-    } finally {
-      setLoadingAdminStatus(false);
-    }
-  }, []);
-
+  // Admin status is loaded from store via UserStoreInitializer
   const fetchClub = useCallback(async () => {
     if (!clubId) return;
 
@@ -94,26 +75,24 @@ export default function AdminClubDetailPage({
   }, [clubId, fetchClubById, router]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (isLoadingStore) return;
 
-    if (!session?.user) {
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
 
-    // Fetch admin status to check if user has admin access
-    fetchAdminStatus().then((adminData) => {
-      if (adminData?.isAdmin) {
-        // User is an admin (root, organization, or club admin)
-        if (clubId) {
-          fetchClub();
-        }
-      } else {
-        // User is not an admin, redirect
-        router.push("/auth/sign-in");
+    // Check admin status and fetch data
+    if (adminStatus?.isAdmin) {
+      // User is an admin (root, organization, or club admin)
+      if (clubId) {
+        fetchClub();
       }
-    });
-  }, [session, status, router, clubId, fetchClub, fetchAdminStatus]);
+    } else if (!isLoadingStore) {
+      // User is not an admin, redirect
+      router.push("/auth/sign-in");
+    }
+  }, [isLoggedIn, isLoadingStore, adminStatus, router, clubId, fetchClub]);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -182,7 +161,7 @@ export default function AdminClubDetailPage({
   const canDelete = adminStatus?.adminType === "root_admin";
 
   // Loading skeleton
-  if (status === "loading" || loading || loadingAdminStatus) {
+  if (loading || isLoadingStore) {
     return (
       <main className="im-admin-club-detail-page">
         <div className="im-admin-club-skeleton-hero" />
