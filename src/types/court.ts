@@ -20,6 +20,7 @@ export interface Court {
 export interface CourtWithClubInfo extends Court {
   clubId: string;
   isActive?: boolean;
+  sportType?: SportType;
   club: {
     id: string;
     name: string;
@@ -152,6 +153,7 @@ export interface WeeklyAvailabilityResponse {
     name: string;
     type: string | null;
     indoor: boolean;
+    sportType?: string;
   }>;
   mode?: AvailabilityMode;
 }

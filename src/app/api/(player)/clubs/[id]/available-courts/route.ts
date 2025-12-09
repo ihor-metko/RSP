@@ -14,6 +14,7 @@ interface AvailableCourt {
   type: string | null;
   surface: string | null;
   indoor: boolean;
+  sportType: string;
   defaultPriceCents: number;
 }
 
@@ -146,6 +147,7 @@ export async function GET(
             type: true,
             surface: true,
             indoor: true,
+            sportType: true,
             defaultPriceCents: true,
           },
         },
@@ -215,6 +217,7 @@ export async function GET(
           type: court.type,
           surface: court.surface,
           indoor: court.indoor,
+          sportType: court.sportType || "PADEL",
           defaultPriceCents: court.defaultPriceCents,
         });
       }
