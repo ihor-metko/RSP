@@ -186,6 +186,21 @@
   color: #9ca3af;
 }
 
+.im-admin-badge-sport {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #ea580c;
+}
+
+.dark .im-admin-badge-sport {
+  background-color: rgba(249, 115, 22, 0.25);
+  color: #fb923c;
+}
+
+/* Supported Sports Section */
+.im-admin-club-sports {
+  @apply flex flex-wrap gap-1.5 mt-2;
+}
+
 /* Card Actions Section */
 .im-admin-club-card-actions {
   @apply flex flex-wrap gap-2 p-4 pt-0;

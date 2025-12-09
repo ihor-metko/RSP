@@ -8,6 +8,7 @@ import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import { useListController } from "@/hooks";
 import type { ClubWithCounts } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
+import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
 import "@/components/admin/AdminClubCard.css";
 
 type SortField = "name" | "city" | "createdAt" | "bookingCount";
@@ -19,6 +20,7 @@ interface ClubFilters {
   selectedOrganization: string;
   selectedCity: string;
   selectedStatus: string;
+  selectedSportType: string;
 }
 
 /**
@@ -62,6 +64,7 @@ export default function AdminClubsPage() {
       selectedOrganization: "",
       selectedCity: "",
       selectedStatus: "",
+      selectedSportType: "",
     },
     defaultSortBy: "createdAt",
     defaultSortOrder: "desc",
@@ -89,6 +92,7 @@ export default function AdminClubsPage() {
       if (filters.selectedCity) params.append("city", filters.selectedCity);
       if (filters.selectedStatus) params.append("status", filters.selectedStatus);
       if (filters.selectedOrganization) params.append("organizationId", filters.selectedOrganization);
+      if (filters.selectedSportType) params.append("sportType", filters.selectedSportType);
       params.append("sortBy", sortField);
       params.append("sortOrder", sortDirection);
       params.append("page", page.toString());
@@ -235,6 +239,20 @@ export default function AdminClubsPage() {
               <option value="active">{t("admin.clubs.statusActive")}</option>
               <option value="draft">{t("admin.clubs.statusDraft")}</option>
               <option value="suspended">{t("admin.clubs.statusSuspended")}</option>
+            </select>
+
+            <select
+              value={filters.selectedSportType}
+              onChange={(e) => setFilter("selectedSportType", e.target.value)}
+              className="im-admin-clubs-filter im-native-select"
+              aria-label={t("admin.clubs.filterBySport")}
+            >
+              <option value="">{t("admin.clubs.allSports")}</option>
+              {SPORT_TYPE_OPTIONS.map((sport) => (
+                <option key={sport.value} value={sport.value}>
+                  {sport.label}
+                </option>
+              ))}
             </select>
 
             <select

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { IMLink } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
+import { getSportName } from "@/constants/sports";
 import type { ClubWithCounts } from "@/types/club";
 import "./AdminClubCard.css";
 
@@ -192,6 +193,17 @@ export function AdminClubCard({ club, showOrganization }: AdminClubCardProps) {
               </span>
             )}
           </div>
+
+          {/* Supported Sports */}
+          {club.supportedSports && club.supportedSports.length > 0 && (
+            <div className="im-admin-club-sports" role="list" aria-label={t("admin.clubs.supportedSports")}>
+              {club.supportedSports.map((sport) => (
+                <span key={sport} className="im-admin-badge im-admin-badge-sport" role="listitem">
+                  {getSportName(sport)}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

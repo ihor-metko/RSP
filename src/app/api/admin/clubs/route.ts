@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     const city = searchParams.get("city") || "";
     const status = searchParams.get("status") || "";
     const organizationId = searchParams.get("organizationId") || "";
+    const sportType = searchParams.get("sportType") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
         city,
         status,
         organizationId,
+        sportType,
         sortBy,
         sortOrder,
       });
@@ -86,6 +88,16 @@ export async function GET(request: Request) {
     // Apply organization filter (only for root admin)
     if (organizationId && authResult.adminType === "root_admin") {
       whereClause = { ...whereClause, organizationId };
+    }
+
+    // Apply sport type filter
+    if (sportType) {
+      whereClause = {
+        ...whereClause,
+        supportedSports: {
+          has: sportType,
+        },
+      };
     }
 
     // Determine sort order
