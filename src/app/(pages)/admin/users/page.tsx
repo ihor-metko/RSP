@@ -708,7 +708,7 @@ export default function AdminUsersPage() {
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
+                        if (e.code === "Enter" || e.code === "Space") {
                           e.preventDefault();
                           router.push(`/admin/users/${user.id}`);
                         }
