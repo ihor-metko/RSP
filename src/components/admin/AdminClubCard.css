@@ -212,7 +212,7 @@
 
 /* ===== Admin Clubs Page Layout ===== */
 .im-admin-clubs-page {
-  @apply p-8 mx-auto;
+  @apply p-8 mx-auto w-full max-w-7xl;
   background-color: var(--rsp-background);
   color: var(--rsp-foreground);
 }
