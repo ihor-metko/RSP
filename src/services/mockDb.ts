@@ -2,7 +2,7 @@
 // This module provides mock data and CRUD helpers for development when the database is unavailable.
 // See TODO_MOCK_CLEANUP.md for removal instructions.
 
-import type { User, Organization, Club, Court, Booking, Membership, ClubMembership } from "@prisma/client";
+import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule } from "@prisma/client";
 
 // ============================================================================
 // Mock Data State (mutable at runtime for testing flows)
@@ -15,6 +15,8 @@ let mockCourts: Court[] = [];
 let mockBookings: Booking[] = [];
 let mockMemberships: Membership[] = [];
 let mockClubMemberships: ClubMembership[] = [];
+let mockBusinessHours: ClubBusinessHours[] = [];
+let mockCourtPriceRules: CourtPriceRule[] = [];
 
 // ============================================================================
 // Initialization (called once to seed data)
@@ -29,6 +31,8 @@ export function initializeMockData() {
   mockBookings = [];
   mockMemberships = [];
   mockClubMemberships = [];
+  mockBusinessHours = [];
+  mockCourtPriceRules = [];
 
   // Create mock users
   mockUsers = [
@@ -436,6 +440,71 @@ export function initializeMockData() {
       updatedAt: new Date("2024-03-01"),
     },
   ];
+
+  // Create mock business hours for clubs
+  // Standard hours: Mon-Fri 6am-10pm, Sat-Sun 8am-8pm
+  const standardBusinessHours = [
+    { dayOfWeek: 0, openTime: "08:00", closeTime: "20:00", isClosed: false }, // Sunday
+    { dayOfWeek: 1, openTime: "06:00", closeTime: "22:00", isClosed: false }, // Monday
+    { dayOfWeek: 2, openTime: "06:00", closeTime: "22:00", isClosed: false }, // Tuesday
+    { dayOfWeek: 3, openTime: "06:00", closeTime: "22:00", isClosed: false }, // Wednesday
+    { dayOfWeek: 4, openTime: "06:00", closeTime: "22:00", isClosed: false }, // Thursday
+    { dayOfWeek: 5, openTime: "06:00", closeTime: "22:00", isClosed: false }, // Friday
+    { dayOfWeek: 6, openTime: "08:00", closeTime: "20:00", isClosed: false }, // Saturday
+  ];
+
+  mockBusinessHours = [];
+  for (const club of mockClubs) {
+    for (const hours of standardBusinessHours) {
+      mockBusinessHours.push({
+        id: `bh-${club.id}-${hours.dayOfWeek}`,
+        clubId: club.id,
+        dayOfWeek: hours.dayOfWeek,
+        openTime: hours.openTime,
+        closeTime: hours.closeTime,
+        isClosed: hours.isClosed,
+        createdAt: new Date("2024-01-15"),
+        updatedAt: new Date("2024-01-15"),
+      });
+    }
+  }
+
+  // Create mock court price rules
+  // Peak hours: weekdays 5pm-9pm and weekends 9am-6pm charge 25% more
+  mockCourtPriceRules = [];
+  for (const court of mockCourts) {
+    const peakPriceCents = Math.floor(court.defaultPriceCents * 1.25);
+    
+    // Weekday peak hours (5pm-9pm)
+    for (let day = 1; day <= 5; day++) {
+      mockCourtPriceRules.push({
+        id: `pr-${court.id}-wd-peak-${day}`,
+        courtId: court.id,
+        dayOfWeek: day,
+        date: null,
+        startTime: "17:00",
+        endTime: "21:00",
+        priceCents: peakPriceCents,
+        createdAt: new Date("2024-01-15"),
+        updatedAt: new Date("2024-01-15"),
+      });
+    }
+
+    // Weekend peak hours (9am-6pm)
+    for (const day of [0, 6]) {
+      mockCourtPriceRules.push({
+        id: `pr-${court.id}-we-peak-${day}`,
+        courtId: court.id,
+        dayOfWeek: day,
+        date: null,
+        startTime: "09:00",
+        endTime: "18:00",
+        priceCents: peakPriceCents,
+        createdAt: new Date("2024-01-15"),
+        updatedAt: new Date("2024-01-15"),
+      });
+    }
+  }
 }
 
 // Initialize data on module load
@@ -471,6 +540,14 @@ export function getMockMemberships() {
 
 export function getMockClubMemberships() {
   return [...mockClubMemberships];
+}
+
+export function getMockBusinessHours() {
+  return [...mockBusinessHours];
+}
+
+export function getMockCourtPriceRules() {
+  return [...mockCourtPriceRules];
 }
 
 // ============================================================================
@@ -626,6 +703,34 @@ export function createMockOrganization(data: {
   };
   mockOrganizations.push(org);
   return org;
+}
+
+export function updateMockCourt(id: string, data: Partial<Court>): Court | null {
+  const index = mockCourts.findIndex((c) => c.id === id);
+  if (index === -1) return null;
+
+  mockCourts[index] = {
+    ...mockCourts[index],
+    ...data,
+    updatedAt: new Date(),
+  };
+  return mockCourts[index];
+}
+
+export function deleteMockCourt(id: string): boolean {
+  const index = mockCourts.findIndex((c) => c.id === id);
+  if (index === -1) return false;
+  mockCourts.splice(index, 1);
+  
+  // Also delete associated price rules
+  const priceRuleIndices: number[] = [];
+  mockCourtPriceRules.forEach((pr, i) => {
+    if (pr.courtId === id) priceRuleIndices.push(i);
+  });
+  // Remove in reverse order to avoid index shifting
+  priceRuleIndices.reverse().forEach((i) => mockCourtPriceRules.splice(i, 1));
+  
+  return true;
 }
 
 // ============================================================================
