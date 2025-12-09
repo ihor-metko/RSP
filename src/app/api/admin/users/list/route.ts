@@ -120,7 +120,7 @@ export async function GET(request: Request) {
     
     // Date range filter
     if (dateRangeField && (dateFrom || dateTo)) {
-      const dateConditions: any = {};
+      const dateConditions: { gte?: Date; lte?: Date } = {};
       if (dateFrom) {
         dateConditions.gte = new Date(dateFrom);
       }
