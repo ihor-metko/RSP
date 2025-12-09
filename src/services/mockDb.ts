@@ -627,7 +627,7 @@ export function initializeMockData() {
     {
       id: "gallery-6",
       clubId: "club-3",
-      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800",
+      imageUrl: "https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?w=800",
       imageKey: "club-3/gallery-1.jpg",
       altText: "Professional training facility",
       sortOrder: 0,
@@ -636,7 +636,7 @@ export function initializeMockData() {
     {
       id: "gallery-7",
       clubId: "club-3",
-      imageUrl: "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800",
+      imageUrl: "https://images.unsplash.com/photo-1600965962102-9d260a71890d?w=800",
       imageKey: "club-3/gallery-2.jpg",
       altText: "Championship-level courts",
       sortOrder: 1,

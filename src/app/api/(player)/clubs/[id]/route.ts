@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode, getMockClubs, getMockCourts, getMockCoaches, getMockBusinessHours, getMockGalleryImages, getMockUsers } from "@/services/mockDb";
 
+// Maximum number of gallery images to return
+const MAX_GALLERY_IMAGES = 6;
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -57,7 +60,7 @@ export async function GET(
       const clubGallery = mockGalleryImages
         .filter((img) => img.clubId === clubId)
         .sort((a, b) => a.sortOrder - b.sortOrder)
-        .slice(0, 6);
+        .slice(0, MAX_GALLERY_IMAGES);
       
       return NextResponse.json({
         id: club.id,
