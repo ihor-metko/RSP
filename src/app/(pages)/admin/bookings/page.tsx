@@ -87,6 +87,8 @@ export default function AdminBookingsPage() {
   // Filter options
   const storeOrganizations = useOrganizationStore((state) => state.organizations);
   const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
+  const storeClubs = useClubStore((state) => state.clubs);
+  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
   const [organizations, setOrganizations] = useState<FilterOption[]>([]);
   const [clubs, setClubs] = useState<FilterOption[]>([]);
 
@@ -154,19 +156,14 @@ export default function AdminBookingsPage() {
         }
 
         // Fetch clubs using store with inflight guard
-        await useClubStore.getState().fetchClubsIfNeeded();
-        const clubsData = useClubStore.getState().clubs;
-        setClubs(clubsData.map((club) => ({
-          value: club.id,
-          label: club.name,
-        })));
+        await fetchClubsIfNeeded();
       } catch {
         // Silently fail - filter options are optional
       }
     };
 
     fetchFilterOptions();
-  }, [adminStatus, fetchOrganizations]);
+  }, [adminStatus, fetchOrganizations, fetchClubsIfNeeded]);
 
   // Update local organizations when store organizations change
   useEffect(() => {
@@ -177,6 +174,16 @@ export default function AdminBookingsPage() {
       })));
     }
   }, [storeOrganizations, adminStatus]);
+
+  // Update local clubs when store clubs change
+  useEffect(() => {
+    if (storeClubs.length > 0 && adminStatus?.adminType !== "club_admin") {
+      setClubs(storeClubs.map((club) => ({
+        value: club.id,
+        label: club.name,
+      })));
+    }
+  }, [storeClubs, adminStatus]);
 
   // Fetch bookings
   const fetchBookings = useCallback(async () => {
