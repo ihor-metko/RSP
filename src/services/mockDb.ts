@@ -994,10 +994,6 @@ export function deleteMockCourt(id: string): boolean {
   return true;
 }
 
-export function findAuditLogsByTargetTypeAndId(targetType: string, targetId: string): AuditLog[] {
-  return mockAuditLogs.filter((log) => log.targetType === targetType && log.targetId === targetId);
-}
-
 // ============================================================================
 // Helper to check if mock mode is enabled
 // ============================================================================

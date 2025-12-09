@@ -455,7 +455,7 @@ export async function mockGetOrganizationDetail(orgId: string) {
       isPublic: club.isPublic,
       courtCount: clubCourts.length,
       adminCount: clubAdminsCount,
-      createdAt: club.createdAt.toISOString(),
+      createdAt: club.createdAt,
     };
   });
 
@@ -504,7 +504,7 @@ export async function mockGetOrganizationDetail(orgId: string) {
             email: null,
           },
       detail: log.detail ? JSON.parse(log.detail) : null,
-      createdAt: log.createdAt.toISOString(),
+      createdAt: log.createdAt,
     };
   });
 
@@ -517,9 +517,9 @@ export async function mockGetOrganizationDetail(orgId: string) {
     website: org.website,
     address: org.address,
     metadata: org.metadata ? JSON.parse(org.metadata) : null,
-    archivedAt: org.archivedAt ? org.archivedAt.toISOString() : null,
-    createdAt: org.createdAt.toISOString(),
-    updatedAt: org.updatedAt.toISOString(),
+    archivedAt: org.archivedAt,
+    createdAt: org.createdAt,
+    updatedAt: org.updatedAt,
     createdBy: createdBy
       ? {
           id: createdBy.id,
@@ -1200,7 +1200,7 @@ export async function mockGetOrganizationActivity(params: {
             email: null,
           },
       detail: log.detail ? JSON.parse(log.detail) : null,
-      createdAt: log.createdAt.toISOString(),
+      createdAt: log.createdAt,
     };
   });
 
@@ -1281,12 +1281,15 @@ export async function mockGetOrganizationUsers(params: {
         return bookingDate.getTime() === today.getTime();
       });
 
+      // Skip users without bookings (shouldn't happen but be defensive)
+      if (!lastBooking) return null;
+
       return {
         id: user.id,
         name: user.name,
         email: user.email,
-        lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : null,
-        lastBookingAt: lastBooking ? lastBooking.start.toISOString() : new Date().toISOString(),
+        lastLoginAt: user.lastLoginAt ? user.lastLoginAt : null,
+        lastBookingAt: lastBooking.start,
         hasBookingToday,
       };
     })
