@@ -5,10 +5,11 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { Button, Input, Modal, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
+import { Button, Input, Modal, PageHeader, Breadcrumbs, Select, Badge, Tooltip } from "@/components/ui";
 import { useListController } from "@/hooks";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
+import { AdminListFilters, AdminListPagination, AdminListEmpty } from "@/components/admin";
 
 import "./page.css";
 
@@ -18,14 +19,6 @@ function SearchIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.35-4.35" />
-    </svg>
-  );
-}
-
-function FilterIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
     </svg>
   );
 }
@@ -112,31 +105,6 @@ function TrashIcon() {
       <path d="M3 6h18" />
       <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
       <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-    </svg>
-  );
-}
-
-function ChevronLeftIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
     </svg>
   );
 }
@@ -626,65 +594,56 @@ export default function AdminUsersPage() {
         />
 
         {/* Filters Card */}
-        <Card className="im-filters-card">
-          <div className="im-filters-header">
-            <div className="im-filters-title">
-              <FilterIcon />
-              <span>{t("users.filters")}</span>
-            </div>
-            {(filters.searchQuery || filters.roleFilter || filters.statusFilter || filters.organizationFilter || filters.clubFilter) && (
-              <Button variant="outline" size="small" onClick={handleClearFilters}>
-                <XIcon />
-                {t("users.clearFilters")}
-              </Button>
-            )}
-          </div>
-          <div className="im-filters-grid">
-            <div className="im-filter-field im-filter-field--search">
-              <div className="im-search-input-wrapper">
-                <span className="im-search-icon"><SearchIcon /></span>
-                <Input
-                  value={filters.searchQuery}
-                  onChange={(e) => setFilter("searchQuery", e.target.value)}
-                  placeholder={t("users.searchPlaceholder")}
-                  aria-label={t("common.search")}
-                />
-              </div>
-            </div>
-            <div className="im-filter-field">
-              <Select
-                label={t("users.filterByRole")}
-                options={roleOptions}
-                value={filters.roleFilter}
-                onChange={(value) => setFilter("roleFilter", value)}
-              />
-            </div>
-            <div className="im-filter-field">
-              <Select
-                label={t("users.filterByStatus")}
-                options={statusOptions}
-                value={filters.statusFilter}
-                onChange={(value) => setFilter("statusFilter", value)}
-              />
-            </div>
-            <div className="im-filter-field">
-              <Select
-                label={t("users.filterByOrganization")}
-                options={organizationOptions}
-                value={filters.organizationFilter}
-                onChange={(value) => setFilter("organizationFilter", value)}
-              />
-            </div>
-            <div className="im-filter-field">
-              <Select
-                label={t("users.filterByClub")}
-                options={clubOptions}
-                value={filters.clubFilter}
-                onChange={(value) => setFilter("clubFilter", value)}
+        <AdminListFilters
+          title={t("users.filters")}
+          hasActiveFilters={!!(filters.searchQuery || filters.roleFilter || filters.statusFilter || filters.organizationFilter || filters.clubFilter)}
+          onClearFilters={handleClearFilters}
+          clearFiltersText={t("users.clearFilters")}
+        >
+          <div className="im-filter-field im-filter-field--search">
+            <div className="im-search-input-wrapper">
+              <span className="im-search-icon"><SearchIcon /></span>
+              <Input
+                value={filters.searchQuery}
+                onChange={(e) => setFilter("searchQuery", e.target.value)}
+                placeholder={t("users.searchPlaceholder")}
+                aria-label={t("common.search")}
               />
             </div>
           </div>
-        </Card>
+          <div className="im-filter-field">
+            <Select
+              label={t("users.filterByRole")}
+              options={roleOptions}
+              value={filters.roleFilter}
+              onChange={(value) => setFilter("roleFilter", value)}
+            />
+          </div>
+          <div className="im-filter-field">
+            <Select
+              label={t("users.filterByStatus")}
+              options={statusOptions}
+              value={filters.statusFilter}
+              onChange={(value) => setFilter("statusFilter", value)}
+            />
+          </div>
+          <div className="im-filter-field">
+            <Select
+              label={t("users.filterByOrganization")}
+              options={organizationOptions}
+              value={filters.organizationFilter}
+              onChange={(value) => setFilter("organizationFilter", value)}
+            />
+          </div>
+          <div className="im-filter-field">
+            <Select
+              label={t("users.filterByClub")}
+              options={clubOptions}
+              value={filters.clubFilter}
+              onChange={(value) => setFilter("clubFilter", value)}
+            />
+          </div>
+        </AdminListFilters>
 
         {(error || errorKey) && (
           <div className="im-error-alert" role="alert">
@@ -694,13 +653,11 @@ export default function AdminUsersPage() {
         )}
 
         {users.length === 0 && !loading ? (
-          <Card className="im-empty-state">
-            <div className="im-empty-state-icon">
-              <UserIcon />
-            </div>
-            <h3 className="im-empty-state-title">{t("users.noUsers")}</h3>
-            <p className="im-empty-state-description">{t("users.noUsersDescription")}</p>
-          </Card>
+          <AdminListEmpty
+            icon={<UserIcon />}
+            title={t("users.noUsers")}
+            description={t("users.noUsersDescription")}
+          />
         ) : (
           <>
             {/* Users Table */}
@@ -895,72 +852,22 @@ export default function AdminUsersPage() {
             </div>
 
             {/* Pagination */}
-            <Card className="im-pagination-card">
-              <div className="im-pagination-info">
-                <span className="im-pagination-text">
-                  {t("users.pagination.showing", {
-                    start: (page - 1) * pageSize + 1,
-                    end: Math.min(page * pageSize, totalCount),
-                    total: totalCount,
-                  })}
-                </span>
-              </div>
-              <div className="im-pagination-controls">
-                <button
-                  className="im-pagination-btn"
-                  onClick={() => setPage(page - 1)}
-                  disabled={page <= 1}
-                  aria-label={t("users.pagination.previous")}
-                >
-                  <ChevronLeftIcon />
-                  <span className="im-pagination-btn-text">{t("users.pagination.previous")}</span>
-                </button>
-                <div className="im-pagination-pages">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = page <= 3
-                      ? i + 1
-                      : page + i - 2;
-                    if (pageNum < 1 || pageNum > totalPages) return null;
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`im-pagination-page ${page === pageNum ? "im-pagination-page--active" : ""}`}
-                        onClick={() => setPage(pageNum)}
-                        aria-label={`Page ${pageNum}`}
-                        aria-current={page === pageNum ? "page" : undefined}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  className="im-pagination-btn"
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= totalPages}
-                  aria-label={t("users.pagination.next")}
-                >
-                  <span className="im-pagination-btn-text">{t("users.pagination.next")}</span>
-                  <ChevronRightIcon />
-                </button>
-              </div>
-              <div className="im-pagination-size">
-                <label htmlFor="page-size" className="im-pagination-size-label">
-                  {t("users.pagination.pageSize")}
-                </label>
-                <select
-                  id="page-size"
-                  className="im-pagination-size-select"
-                  value={pageSize}
-                  onChange={(e) => setPageSize(parseInt(e.target.value))}
-                >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-            </Card>
+            <AdminListPagination
+              page={page}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              translations={{
+                showing: t("users.pagination.showing").split(" ")[0],
+                to: t("users.pagination.showing").includes("to") ? "to" : "-",
+                of: t("users.pagination.showing").includes("of") ? "of" : "/",
+                previous: t("users.pagination.previous"),
+                next: t("users.pagination.next"),
+                pageSize: t("users.pagination.pageSize"),
+              }}
+            />
           </>
         )}
       </section>
