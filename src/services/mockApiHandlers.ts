@@ -1388,6 +1388,9 @@ export async function mockGetOrganizationUsers(params: {
 // Mock Admin Notifications API
 // ============================================================================
 
+// Constants for notification API limits
+const MAX_NOTIFICATIONS_LIMIT = 100;
+
 export async function mockGetAdminNotifications(params: {
   unreadOnly?: boolean;
   limit?: number;
@@ -1410,7 +1413,7 @@ export async function mockGetAdminNotifications(params: {
   // Apply pagination
   const totalCount = notifications.length;
   const unreadCount = getMockAdminNotifications().filter((n) => !n.read).length;
-  const paginatedNotifications = notifications.slice(offset, offset + Math.min(limit, 100));
+  const paginatedNotifications = notifications.slice(offset, offset + Math.min(limit, MAX_NOTIFICATIONS_LIMIT));
 
   // Enrich notifications with player and coach names
   const enrichedNotifications = paginatedNotifications.map((notification) => {

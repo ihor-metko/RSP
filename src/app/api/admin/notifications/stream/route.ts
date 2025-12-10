@@ -47,6 +47,7 @@ export async function GET(): Promise<Response> {
         }, 30000);
 
         // In mock mode, simulate a new notification every 2 minutes
+        const MOCK_NOTIFICATION_INTERVAL_MS = 120000; // 2 minutes
         const mockNotificationInterval = setInterval(() => {
           try {
             // Create a mock notification
@@ -86,7 +87,7 @@ export async function GET(): Promise<Response> {
             clearInterval(heartbeatInterval);
             clearInterval(mockNotificationInterval);
           }
-        }, 120000); // Every 2 minutes
+        }, MOCK_NOTIFICATION_INTERVAL_MS);
 
         // Handle stream close
         return () => {

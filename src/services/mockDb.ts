@@ -1243,7 +1243,7 @@ export function markAllMockNotificationsAsRead(): number {
 }
 
 export function createMockAdminNotification(data: {
-  type: string;
+  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
   playerId: string;
   coachId: string;
   trainingRequestId?: string | null;
