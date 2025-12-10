@@ -1,7 +1,7 @@
 # Dashboard Graphs Implementation
 
 ## Overview
-This document describes the dashboard graphs feature implemented for all admin types in the RSP platform.
+This document describes the dashboard graphs feature implemented for all admin types in the ArenaOne platform.
 
 ## Features
 

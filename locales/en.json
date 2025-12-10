@@ -67,8 +67,8 @@
     "totalPrice": "Total Price"
   },
   "home": {
-    "title": "Padel Club",
-    "welcomeTitle": "Welcome to Padel Club",
+    "title": "ArenaOne",
+    "welcomeTitle": "Welcome to ArenaOne",
     "welcomeMessage": "This is an example card component using rsp- prefixed classes for structure and styling.",
     "yourName": "Your Name",
     "enterYourName": "Enter your name",
@@ -726,7 +726,7 @@
     "bookingsError": "Failed to load bookings. Please try again."
   },
   "footer": {
-    "brandName": "Padel Club",
+    "brandName": "ArenaOne",
     "tagline": "Find and book padel courts at the best clubs near you.",
     "quickLinks": "Quick Links",
     "home": "Home",
@@ -868,6 +868,7 @@
     "bookings": "Bookings",
     "notifications": "Notifications",
     "settings": "Global Settings",
+    "sportConfig": "Sport config",
     "roleRootAdmin": "Root Admin",
     "roleSuperAdmin": "Super Admin",
     "roleAdmin": "Admin",
@@ -877,7 +878,8 @@
     "collapse": "Collapse",
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "organization": "Organization"
   },
   "organizations": {
     "title": "Organizations",
@@ -995,6 +997,7 @@
     "actions": {
       "view": "View",
       "viewDetails": "View user details",
+      "viewUserDetail": "View details for {name}",
       "editRole": "Edit Role",
       "block": "Block",
       "unblock": "Unblock",
@@ -1265,6 +1268,8 @@
     "activeUsersDesc": "Number of users who logged in",
     "bookings": "Bookings",
     "users": "Users",
-    "errorLoading": "Failed to load graph data"
+    "errorLoading": "Failed to load graph data",
+    "notEnoughData": "Not enough data yet",
+    "notEnoughDataDesc": "We need more data points to display a meaningful chart. Keep using the platform and check back soon!"
   }
 }

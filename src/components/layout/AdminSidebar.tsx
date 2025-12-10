@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
+import { useUserStore } from "@/stores/useUserStore";
+import type { AdminStatus } from "@/app/api/me/route";
 import "./AdminSidebar.css";
 
 const SIDEBAR_COLLAPSED_KEY = "admin-sidebar-collapsed";
@@ -357,6 +357,13 @@ function getNavItems(): NavItem[] {
       icon: <SettingsIcon />,
       rootOnly: true,
     },
+    {
+      id: "sport-config",
+      href: "/admin/sport-config",
+      labelKey: "sidebar.sportConfig",
+      icon: <SettingsIcon />,
+      rootOnly: true,
+    },
   ];
 }
 
@@ -391,7 +398,7 @@ interface RoleInfo {
 /**
  * Get role display info for admins
  */
-function getRoleInfo(adminStatus: AdminStatusResponse | null, t: ReturnType<typeof useTranslations>): RoleInfo | null {
+function getRoleInfo(adminStatus: AdminStatus | null, t: ReturnType<typeof useTranslations>): RoleInfo | null {
   if (!adminStatus?.isAdmin) {
     return null;
   }
@@ -455,7 +462,6 @@ export interface AdminSidebarProps {
  * - aria-label on collapse toggle button
  */
 export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: AdminSidebarProps) {
-  const { data: session, status } = useSession();
   const pathname = usePathname();
   const t = useTranslations();
   const sidebarRef = useRef<HTMLElement>(null);
@@ -463,10 +469,13 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
-  const [isLoadingAdminStatus, setIsLoadingAdminStatus] = useState(true);
 
-  const isRoot = session?.user?.isRoot ?? false;
+  // Get admin status from store
+  const adminStatus = useUserStore(state => state.adminStatus);
+  const user = useUserStore(state => state.user);
+  const isLoading = useUserStore(state => state.isLoading);
+
+  const isRoot = user?.isRoot ?? false;
 
   // Load collapsed state from localStorage on mount
   useEffect(() => {
@@ -492,54 +501,42 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
     });
   }, [onCollapsedChange]);
 
-  // Fetch admin status when session is available
-  useEffect(() => {
-    const fetchAdminStatus = async () => {
-      if (status === "loading") return;
+  // Admin status is now loaded from the store via UserStoreInitializer
+  // No need to fetch it separately here
 
-      if (!session?.user) {
-        setAdminStatus(null);
-        setIsLoadingAdminStatus(false);
-        return;
-      }
-
-      // If user is root, we already know they're an admin
-      if (isRoot) {
-        setAdminStatus({
-          isAdmin: true,
-          adminType: "root_admin",
-          isRoot: true,
-          managedIds: [],
-        });
-        setIsLoadingAdminStatus(false);
-        return;
-      }
-
-      try {
-        const response = await fetch("/api/me/admin-status");
-        if (response.ok) {
-          const data: AdminStatusResponse = await response.json();
-          setAdminStatus(data);
-        } else {
-          setAdminStatus(null);
-        }
-      } catch {
-        setAdminStatus(null);
-      } finally {
-        setIsLoadingAdminStatus(false);
-      }
-    };
-
-    fetchAdminStatus();
-  }, [session, status, isRoot]);
-
-  // Check if user is a club admin
+  // Check if user is a club admin or organization admin
   const isClubAdmin = adminStatus?.adminType === "club_admin";
+  const isOrgAdmin = adminStatus?.adminType === "organization_admin";
 
   // Get filtered navigation items based on isRoot status and admin type
   const navItems = useMemo(() => {
     const allItems = getNavItems();
     let filteredItems = filterNavByRoot(allItems, isRoot, isClubAdmin);
+
+    // For OrganizationAdmin (SuperAdmin), insert a direct link to their organization after Dashboard
+    // Only show if they have exactly one organization (single org scenario)
+    // For multiple orgs, could link to /admin/organizations filtered to their orgs (future enhancement)
+    if (isOrgAdmin && adminStatus?.managedIds && adminStatus.managedIds.length === 1) {
+      const orgId = adminStatus.managedIds[0];
+      const orgLink: NavItem = {
+        id: "my-organization",
+        href: `/admin/organizations/${orgId}`,
+        labelKey: "sidebar.organization",
+        icon: <OrganizationsIcon />,
+      };
+
+      // Insert after dashboard
+      const dashboardIndex = filteredItems.findIndex(item => item.id === "dashboard");
+      if (dashboardIndex >= 0) {
+        filteredItems = [
+          ...filteredItems.slice(0, dashboardIndex + 1),
+          orgLink,
+          ...filteredItems.slice(dashboardIndex + 1),
+        ];
+      } else {
+        filteredItems = [orgLink, ...filteredItems];
+      }
+    }
 
     // For ClubAdmin, insert a direct link to their assigned club after Dashboard
     if (isClubAdmin && adminStatus?.assignedClub) {
@@ -565,7 +562,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
     }
 
     return filteredItems;
-  }, [isRoot, isClubAdmin, adminStatus?.assignedClub]);
+  }, [isRoot, isClubAdmin, isOrgAdmin, adminStatus?.assignedClub, adminStatus?.managedIds]);
 
   // Close sidebar when clicking outside on mobile
   const handleClickOutside = useCallback(
@@ -641,8 +638,8 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
 
   const roleInfo = getRoleInfo(adminStatus, t);
 
-  // Don't render while loading admin status
-  if (isLoadingAdminStatus) {
+  // Don't render while loading user data
+  if (isLoading) {
     return null;
   }
 

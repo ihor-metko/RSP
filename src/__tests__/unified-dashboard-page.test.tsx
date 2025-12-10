@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import AdminDashboardPage from "@/app/(pages)/admin/dashboard/page";
@@ -147,6 +147,13 @@ jest.mock("@/components/admin/RegisteredUsersCard", () => ({
   RegisteredUsersCard: () => <div data-testid="registered-users-card">Registered Users</div>,
 }));
 
+// Mock DashboardGraphs component
+jest.mock("@/components/admin/DashboardGraphs", () => {
+  const MockDashboardGraphs = () => <div data-testid="dashboard-graphs">Dashboard Graphs</div>;
+  MockDashboardGraphs.displayName = "MockDashboardGraphs";
+  return MockDashboardGraphs;
+});
+
 const mockUseSession = useSession as jest.Mock;
 const mockUseRouter = useRouter as jest.Mock;
 
@@ -157,6 +164,11 @@ describe("AdminDashboardPage (Unified)", () => {
     jest.clearAllMocks();
     mockUseRouter.mockReturnValue({ push: mockPush });
     global.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    cleanup();
+    jest.clearAllTimers();
   });
 
   it("should show loading state while session is loading", () => {
@@ -290,7 +302,8 @@ describe("AdminDashboardPage (Unified)", () => {
     render(<AdminDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Test Organization")).toBeInTheDocument();
+      // Organization admin now sees aggregated stats in Root Admin layout
+      expect(screen.getByText("Total Clubs")).toBeInTheDocument();
     }, { timeout: 5000 });
   });
 
@@ -377,8 +390,9 @@ describe("AdminDashboardPage (Unified)", () => {
     render(<AdminDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Organization One")).toBeInTheDocument();
-      expect(screen.getByText("Organization Two")).toBeInTheDocument();
+      // Organization admin now sees aggregated stats from all organizations
+      // Total clubs should be 2 + 3 = 5
+      expect(screen.getByText("Total Clubs")).toBeInTheDocument();
     });
   });
 });

@@ -4,8 +4,9 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { DarkModeToggle, LanguageSwitcher } from "@/components/ui";
+import { DarkModeToggle, LanguageSwitcher, NotificationsDropdown } from "@/components/ui";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
+import { useUserStore } from "@/stores/useUserStore";
 import UserMenu from "./UserMenu";
 import "./Header.css";
 
@@ -186,6 +187,10 @@ export default function Header({ title, showSearch = false, hideProfile = false 
   const userName = session?.user?.name;
   const userEmail = session?.user?.email;
 
+  // Get admin status from store to show notifications for admin users
+  const adminStatus = useUserStore(state => state.adminStatus);
+  const isAdmin = adminStatus?.isAdmin ?? false;
+
   // Close mobile menu when clicking outside
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
@@ -254,6 +259,11 @@ export default function Header({ title, showSearch = false, hideProfile = false 
             <LanguageSwitcher currentLocale={currentLocale} />
             <DarkModeToggle />
           </div>
+
+          {/* Notifications - Admin users only */}
+          {isAuthenticated && isAdmin && (
+            <NotificationsDropdown maxDropdownItems={10} />
+          )}
 
           {/* Profile or Auth links */}
           {!hideProfile && (

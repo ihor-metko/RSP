@@ -40,7 +40,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, slug } = body;
+    const { name, slug, supportedSports } = body;
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({
@@ -97,6 +97,7 @@ export async function PATCH(
       data: {
         ...(name !== undefined && { name: name.trim() }),
         slug: finalSlug,
+        ...(supportedSports !== undefined && { supportedSports }),
       },
       include: {
         _count: {
@@ -146,6 +147,7 @@ export async function PATCH(
       createdBy: updatedOrganization.createdBy,
       superAdmins,
       superAdmin: superAdmins.find((a) => a.isPrimaryOwner) || superAdmins[0] || null,
+      supportedSports: updatedOrganization.supportedSports,
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

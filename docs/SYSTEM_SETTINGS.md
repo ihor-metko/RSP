@@ -1,6 +1,6 @@
 # System Settings
 
-This document defines the coding rules and conventions for the RSP project. **Before starting any task, developers must first check these system settings and follow the rules.**
+This document defines the coding rules and conventions for the ArenaOne project. **Before starting any task, developers must first check these system settings and follow the rules.**
 
 ## Quick Reference
 

@@ -1,80 +1,98 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, IMLink, PageHeader } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
+import { useListController } from "@/hooks";
 import type { ClubWithCounts } from "@/types/club";
-import type { AdminStatusResponse } from "@/app/api/me/admin-status/route";
+import { useUserStore } from "@/stores/useUserStore";
+import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
 import "@/components/admin/AdminClubCard.css";
 
 type SortField = "name" | "city" | "createdAt" | "bookingCount";
 type SortDirection = "asc" | "desc";
 
+// Define filters interface
+interface ClubFilters {
+  searchQuery: string;
+  selectedOrganization: string;
+  selectedCity: string;
+  selectedStatus: string;
+  selectedSportType: string;
+}
+
 /**
  * Admin Clubs Page
- * 
+ *
  * Note: This page uses direct API calls instead of useClubStore because it requires
  * server-side filtering, pagination, and sorting with query parameters that are not
  * supported by the basic store implementation. Complex admin pages with server-side
  * features should continue using direct API calls for optimal performance.
  */
+
 export default function AdminClubsPage() {
   const t = useTranslations();
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [adminStatus, setAdminStatus] = useState<AdminStatusResponse | null>(null);
-  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+  
+  // Get admin status from user store
+  const adminStatus = useUserStore((state) => state.adminStatus);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const isLoadingStore = useUserStore((state) => state.isLoading);
 
-  // Filtering state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedOrganization, setSelectedOrganization] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
+  // Use list controller hook for persistent filters
+  const {
+    filters,
+    setFilter,
+    sortBy: sortByKey,
+    setSortBy: setSortByKey,
+    sortOrder,
+    setSortOrder,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    clearFilters,
+  } = useListController<ClubFilters>({
+    entityKey: "clubs",
+    defaultFilters: {
+      searchQuery: "",
+      selectedOrganization: "",
+      selectedCity: "",
+      selectedStatus: "",
+      selectedSportType: "",
+    },
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc",
+    defaultPage: 1,
+    defaultPageSize: 20,
+  });
 
-  // Sorting state
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  // Map sortByKey back to SortField type for backward compatibility
+  const sortField = sortByKey as SortField;
+  const setSortField = (field: SortField) => setSortByKey(field);
+  const sortDirection = sortOrder as SortDirection;
+  const setSortDirection = (direction: SortDirection) => setSortOrder(direction);
 
-  // Pagination state
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const fetchAdminStatus = useCallback(async () => {
-    try {
-      const response = await fetch("/api/me/admin-status");
-      if (response.ok) {
-        const data: AdminStatusResponse = await response.json();
-        setAdminStatus(data);
-        return data;
-      } else {
-        setAdminStatus(null);
-        return null;
-      }
-    } catch {
-      setAdminStatus(null);
-      return null;
-    } finally {
-      setLoadingAdminStatus(false);
-    }
-  }, []);
+  // Admin status is loaded from store via UserStoreInitializer
 
   const fetchClubs = useCallback(async () => {
     try {
       setLoading(true);
       // Build query parameters
       const params = new URLSearchParams();
-      if (searchQuery) params.append("search", searchQuery);
-      if (selectedCity) params.append("city", selectedCity);
-      if (selectedStatus) params.append("status", selectedStatus);
-      if (selectedOrganization) params.append("organizationId", selectedOrganization);
+      if (filters.searchQuery) params.append("search", filters.searchQuery);
+      if (filters.selectedCity) params.append("city", filters.selectedCity);
+      if (filters.selectedStatus) params.append("status", filters.selectedStatus);
+      if (filters.selectedOrganization) params.append("organizationId", filters.selectedOrganization);
+      if (filters.selectedSportType) params.append("sportType", filters.selectedSportType);
       params.append("sortBy", sortField);
       params.append("sortOrder", sortDirection);
       params.append("page", page.toString());
@@ -100,26 +118,24 @@ export default function AdminClubsPage() {
     } finally {
       setLoading(false);
     }
-  }, [router, t, searchQuery, selectedCity, selectedStatus, selectedOrganization, sortField, sortDirection, page, pageSize]);
+  }, [router, t, filters, sortField, sortDirection, page, pageSize]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (isLoadingStore) return;
 
-    if (!session?.user) {
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
 
-    // First fetch admin status, then clubs
-    fetchAdminStatus().then((adminData) => {
-      if (adminData?.isAdmin) {
-        fetchClubs();
-      } else {
-        // User is not an admin, redirect
-        router.push("/auth/sign-in");
-      }
-    });
-  }, [session, status, router, fetchAdminStatus, fetchClubs]);
+    // Fetch clubs if user is admin
+    if (adminStatus?.isAdmin) {
+      fetchClubs();
+    } else {
+      // User is not an admin, redirect
+      router.push("/auth/sign-in");
+    }
+  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchClubs]);
 
   // Extract unique organizations and cities for filters (client-side for now)
   const { organizations, cities } = useMemo(() => {
@@ -146,16 +162,12 @@ export default function AdminClubsPage() {
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
 
   const handleClearFilters = () => {
-    setSearchQuery("");
-    setSelectedOrganization("");
-    setSelectedCity("");
-    setSelectedStatus("");
+    clearFilters();
     setSortField("createdAt");
     setSortDirection("desc");
-    setPage(1);
   };
 
-  if (status === "loading" || loading || loadingAdminStatus) {
+  if (isLoadingStore || loading) {
     return (
       <main className="im-admin-clubs-page">
         <div className="im-admin-clubs-loading">
@@ -180,15 +192,15 @@ export default function AdminClubsPage() {
           <div className="im-admin-clubs-actions-left">
             <Input
               placeholder={t("common.search")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={filters.searchQuery}
+              onChange={(e) => setFilter("searchQuery", e.target.value)}
               className="im-admin-clubs-search"
             />
 
             {showOrganizationFilter && organizations.length > 0 && (
               <select
-                value={selectedOrganization}
-                onChange={(e) => setSelectedOrganization(e.target.value)}
+                value={filters.selectedOrganization}
+                onChange={(e) => setFilter("selectedOrganization", e.target.value)}
                 className="im-admin-clubs-filter im-native-select"
                 aria-label={t("admin.clubs.filterByOrganization")}
               >
@@ -203,8 +215,8 @@ export default function AdminClubsPage() {
 
             {cities.length > 0 && (
               <select
-                value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
+                value={filters.selectedCity}
+                onChange={(e) => setFilter("selectedCity", e.target.value)}
                 className="im-admin-clubs-filter im-native-select"
                 aria-label={t("admin.clubs.filterByCity")}
               >
@@ -218,8 +230,8 @@ export default function AdminClubsPage() {
             )}
 
             <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              value={filters.selectedStatus}
+              onChange={(e) => setFilter("selectedStatus", e.target.value)}
               className="im-admin-clubs-filter im-native-select"
               aria-label={t("admin.clubs.filterByStatus")}
             >
@@ -227,6 +239,20 @@ export default function AdminClubsPage() {
               <option value="active">{t("admin.clubs.statusActive")}</option>
               <option value="draft">{t("admin.clubs.statusDraft")}</option>
               <option value="suspended">{t("admin.clubs.statusSuspended")}</option>
+            </select>
+
+            <select
+              value={filters.selectedSportType}
+              onChange={(e) => setFilter("selectedSportType", e.target.value)}
+              className="im-admin-clubs-filter im-native-select"
+              aria-label={t("admin.clubs.filterBySport")}
+            >
+              <option value="">{t("admin.clubs.allSports")}</option>
+              {SPORT_TYPE_OPTIONS.map((sport) => (
+                <option key={sport.value} value={sport.value}>
+                  {sport.label}
+                </option>
+              ))}
             </select>
 
             <select
@@ -247,7 +273,7 @@ export default function AdminClubsPage() {
               <option value="bookingCount-desc">{t("admin.clubs.sortBookings")}</option>
             </select>
 
-            {(searchQuery || selectedOrganization || selectedCity || selectedStatus) && (
+            {(filters.searchQuery || filters.selectedOrganization || filters.selectedCity || filters.selectedStatus) && (
               <Button variant="outline" onClick={handleClearFilters}>
                 {t("common.clearFilters")}
               </Button>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+import { isSupportedSport } from "@/constants/sports";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetCourtDetailById } from "@/services/mockApiHandlers";
@@ -89,7 +90,7 @@ export async function PATCH(
     const resolvedParams = await params;
     const { id: clubId, courtId } = resolvedParams;
     const body = await request.json();
-    const { name, slug, type, surface, indoor, defaultPriceCents } = body;
+    const { name, slug, type, surface, indoor, sportType, defaultPriceCents } = body;
 
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
@@ -121,6 +122,11 @@ export async function PATCH(
         }
       }
 
+      // Sport type validation
+      if (sportType !== undefined && !isSupportedSport(sportType)) {
+        errors.sportType = "Invalid sport type";
+      }
+
       if (Object.keys(errors).length > 0) {
         return NextResponse.json(
           { error: "Validation failed", errors },
@@ -136,6 +142,7 @@ export async function PATCH(
         if (type !== undefined) updateData.type = type?.trim() || null;
         if (surface !== undefined) updateData.surface = surface?.trim() || null;
         if (indoor !== undefined) updateData.indoor = indoor;
+        if (sportType !== undefined) updateData.sportType = sportType;
         if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
 
         const updatedCourt = await mockUpdateCourtDetail(courtId, clubId, updateData);
@@ -200,6 +207,11 @@ export async function PATCH(
       }
     }
 
+    // Sport type validation
+    if (sportType !== undefined && !isSupportedSport(sportType)) {
+      errors.sportType = "Invalid sport type";
+    }
+
     if (Object.keys(errors).length > 0) {
       return NextResponse.json(
         { error: "Validation failed", errors },
@@ -250,6 +262,7 @@ export async function PATCH(
     if (type !== undefined) updateData.type = type?.trim() || null;
     if (surface !== undefined) updateData.surface = surface?.trim() || null;
     if (indoor !== undefined) updateData.indoor = indoor;
+    if (sportType !== undefined) updateData.sportType = sportType;
     if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
 
     const updatedCourt = await prisma.court.update({

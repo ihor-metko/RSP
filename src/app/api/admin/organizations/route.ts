@@ -135,7 +135,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, slug } = body;
+    const { name, slug, supportedSports } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(
@@ -164,6 +164,7 @@ export async function POST(request: Request) {
         name: name.trim(),
         slug: finalSlug,
         createdById: authResult.userId,
+        supportedSports: supportedSports || ["PADEL"],
       },
       include: {
         createdBy: {
@@ -185,6 +186,7 @@ export async function POST(request: Request) {
         clubCount: 0,
         createdBy: organization.createdBy,
         superAdmin: null,
+        supportedSports: organization.supportedSports,
       },
       { status: 201 }
     );

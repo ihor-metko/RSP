@@ -3,7 +3,6 @@
 /* ===== Organization Detail Page - Redesigned Styles ===== */
 
 .im-org-detail-page {
-  @apply min-h-screen;
   padding: 1.5rem;
 }
 
@@ -76,6 +75,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;

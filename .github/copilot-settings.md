@@ -1,4 +1,4 @@
-# Copilot Settings for Padel Platform
+# Copilot Settings for ArenaOne
 
 ## 1. Universal Role-Based Access Control
 

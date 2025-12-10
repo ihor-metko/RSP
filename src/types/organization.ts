@@ -2,6 +2,8 @@
  * Organization types for admin UI
  */
 
+import { SportType } from "@/constants/sports";
+
 /**
  * Organization entity
  */
@@ -17,6 +19,7 @@ export interface Organization {
   website?: string | null;
   address?: string | null;
   metadata?: Record<string, unknown> | null;
+  supportedSports?: SportType[];
   clubCount?: number;
   createdBy?: {
     id: string;
@@ -48,6 +51,7 @@ export interface CreateOrganizationPayload {
   website?: string;
   address?: string;
   metadata?: Record<string, unknown>;
+  supportedSports?: SportType[];
 }
 
 /**
@@ -61,4 +65,5 @@ export interface UpdateOrganizationPayload {
   website?: string | null;
   address?: string | null;
   metadata?: Record<string, unknown> | null;
+  supportedSports?: SportType[];
 }

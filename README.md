@@ -1,6 +1,6 @@
-# Padel Club MVP
+# ArenaOne
 
-A booking MVP for the Padel Club.
+A booking platform for ArenaOne.
 
 ## Stack
 

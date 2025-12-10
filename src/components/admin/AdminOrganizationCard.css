@@ -147,6 +147,33 @@
   @apply truncate;
 }
 
+/* Supported Sports Section */
+.im-admin-org-sports {
+  @apply flex flex-col gap-2 pt-2 border-t;
+  border-top-color: var(--rsp-border);
+}
+
+.im-admin-org-sports-label {
+  @apply text-xs font-medium uppercase;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.im-admin-org-sports-badges {
+  @apply flex flex-wrap gap-1.5;
+}
+
+.im-admin-org-sport-badge {
+  @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded;
+  background-color: var(--rsp-primary);
+  color: #ffffff;
+  opacity: 0.9;
+}
+
+.im-admin-org-sport-badge:hover {
+  opacity: 1;
+}
+
 /* Card Actions Section */
 .im-admin-org-card-actions {
   @apply flex flex-wrap gap-2 p-4 pt-0 mt-auto;

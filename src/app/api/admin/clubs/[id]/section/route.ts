@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+import { SportType } from "@/constants/sports";
 
 type Section = "header" | "contacts" | "hours" | "gallery" | "coaches";
 
@@ -9,6 +10,7 @@ interface HeaderPayload {
   slug: string;
   shortDescription: string;
   isPublic: boolean;
+  supportedSports?: SportType[];
 }
 
 interface ContactsPayload {
@@ -178,6 +180,9 @@ export async function PATCH(
             slug: headerPayload.slug?.trim() || existingClub.slug,
             shortDescription: headerPayload.shortDescription?.trim() || null,
             isPublic: headerPayload.isPublic ?? existingClub.isPublic,
+            ...(headerPayload.supportedSports !== undefined && { 
+              supportedSports: headerPayload.supportedSports 
+            }),
           },
           include: {
             courts: true,

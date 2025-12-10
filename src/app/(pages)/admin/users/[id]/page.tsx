@@ -6,6 +6,8 @@ import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button, Modal, Breadcrumbs, Badge, Card, Input } from "@/components/ui";
+import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import type { AdminUserDetail } from "@/types/adminUser";
 import "./page.css";
 
 /* Icon Components */
@@ -132,82 +134,7 @@ function AlertTriangleIcon() {
   );
 }
 
-interface UserDetailData {
-  id: string;
-  name: string | null;
-  email: string;
-  status?: string;
-  blocked?: boolean;
-  isRoot?: boolean;
-  role?: string;
-  createdAt?: string;
-  lastLoginAt?: string;
-  emailVerified?: boolean;
-  mfaEnabled?: boolean;
-  totalBookings?: number;
-  viewScope: "root" | "organization" | "club";
-  viewContext?: {
-    type: string;
-    id: string;
-    name?: string;
-  };
-  allowedActions: {
-    canBlock: boolean;
-    canUnblock: boolean;
-    canDelete: boolean;
-    canEditRole: boolean;
-    canImpersonate: boolean;
-  };
-  // Root scope fields
-  memberships?: Array<{
-    id: string;
-    role: string;
-    isPrimaryOwner: boolean;
-    organization: { id: string; name: string; slug: string };
-  }>;
-  clubMemberships?: Array<{
-    id: string;
-    role: string;
-    club: { id: string; name: string; slug: string };
-  }>;
-  bookings?: Array<{
-    id: string;
-    start: string;
-    end: string;
-    status: string;
-    createdAt: string;
-    court: { name: string; club?: { name: string } };
-  }>;
-  auditSummary?: Array<{
-    id: string;
-    actorId: string;
-    action: string;
-    detail: string | null;
-    createdAt: string;
-  }>;
-  // Org scope fields
-  lastBookingAt_in_org?: string;
-  bookingsCount_in_org?: number;
-  roles_in_org?: string[];
-  recentBookings_in_org?: Array<{
-    id: string;
-    start: string;
-    end: string;
-    status: string;
-    createdAt: string;
-    court: { name: string; club: { id: string; name: string } };
-  }>;
-  // Club scope fields
-  lastBookingAt_in_club?: string;
-  bookings_in_club?: Array<{
-    id: string;
-    start: string;
-    end: string;
-    status: string;
-    createdAt: string;
-    court: { name: string };
-  }>;
-}
+// Using AdminUserDetail from types
 
 export default function UserDetailPage() {
   const t = useTranslations();
@@ -216,8 +143,14 @@ export default function UserDetailPage() {
   const params = useParams();
   const userId = params.id as string;
 
-  const [user, setUser] = useState<UserDetailData | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Get user from store
+  const ensureUserById = useAdminUsersStore((state) => state.ensureUserById);
+  const blockUserFromStore = useAdminUsersStore((state) => state.blockUser);
+  const unblockUserFromStore = useAdminUsersStore((state) => state.unblockUser);
+  const loading = useAdminUsersStore((state) => state.loadingDetail);
+  const storeError = useAdminUsersStore((state) => state.detailError);
+  
+  const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [error, setError] = useState("");
   const [processing, setProcessing] = useState(false);
 
@@ -236,30 +169,23 @@ export default function UserDetailPage() {
 
   const fetchUser = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/users/${userId}`);
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          setError(t("userDetail.forbidden"));
-          return;
-        }
-        if (response.status === 404) {
-          setError(t("userDetail.notFound"));
-          return;
-        }
-        throw new Error("Failed to fetch user");
-      }
-
-      const data = await response.json();
+      const data = await ensureUserById(userId);
       setUser(data);
       setError("");
-    } catch {
-      setError(t("userDetail.failedToLoad"));
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message.includes("403")) {
+          setError(t("userDetail.forbidden"));
+        } else if (err.message.includes("404")) {
+          setError(t("userDetail.notFound"));
+        } else {
+          setError(t("userDetail.failedToLoad"));
+        }
+      } else {
+        setError(t("userDetail.failedToLoad"));
+      }
     }
-  }, [userId, t]);
+  }, [userId, ensureUserById, t]);
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
@@ -283,15 +209,7 @@ export default function UserDetailPage() {
 
     setProcessing(true);
     try {
-      const response = await fetch(`/api/admin/users/${userId}/block`, {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to block user");
-      }
-
+      await blockUserFromStore(userId);
       showToast(t("userDetail.userBlocked"), "success");
       setBlockModalOpen(false);
       setConfirmEmail("");
@@ -308,15 +226,7 @@ export default function UserDetailPage() {
 
     setProcessing(true);
     try {
-      const response = await fetch(`/api/admin/users/${userId}/unblock`, {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to unblock user");
-      }
-
+      await unblockUserFromStore(userId);
       showToast(t("userDetail.userUnblocked"), "success");
       setUnblockModalOpen(false);
       fetchUser();

@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireOrganizationAdmin } from "@/lib/requireRole";
 import { TargetType } from "@/lib/auditLog";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetOrganizationActivity } from "@/services/mockApiHandlers";
 
 /**
  * GET /api/orgs/[orgId]/activity
@@ -30,6 +33,16 @@ export async function GET(
     const cursor = url.searchParams.get("cursor");
 
     const limit = Math.min(Math.max(parseInt(limitParam || "20", 10) || 20, 1), 100);
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const activity = await mockGetOrganizationActivity({
+        orgId,
+        limit,
+        cursor: cursor || undefined,
+      });
+      return NextResponse.json(activity);
+    }
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({

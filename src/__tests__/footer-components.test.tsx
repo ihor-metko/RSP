@@ -9,7 +9,7 @@ import { render, screen } from "@testing-library/react";
 jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => {
     const translations: Record<string, string> = {
-      "footer.brandName": "Padel Club",
+      "footer.brandName": "ArenaOne",
       "footer.tagline": "Find and book padel courts at the best clubs near you.",
       "footer.quickLinks": "Quick Links",
       "footer.home": "Home",
@@ -55,7 +55,7 @@ describe("Footer Components", () => {
   describe("PublicFooter", () => {
     it("renders the brand name", () => {
       render(<PublicFooter />);
-      expect(screen.getByText("Padel Club")).toBeInTheDocument();
+      expect(screen.getByText("ArenaOne")).toBeInTheDocument();
     });
 
     it("renders the tagline", () => {
@@ -91,7 +91,7 @@ describe("Footer Components", () => {
       render(<PublicFooter />);
       const currentYear = new Date().getFullYear();
       expect(
-        screen.getByText(new RegExp(`© ${currentYear}.*Padel Club.*All rights reserved.`))
+        screen.getByText(new RegExp(`© ${currentYear}.*ArenaOne.*All rights reserved.`))
       ).toBeInTheDocument();
     });
 
@@ -119,14 +119,14 @@ describe("Footer Components", () => {
   describe("DashboardFooter", () => {
     it("renders the brand name", () => {
       render(<DashboardFooter />);
-      expect(screen.getByText(/Padel Club/)).toBeInTheDocument();
+      expect(screen.getByText(/ArenaOne/)).toBeInTheDocument();
     });
 
     it("renders copyright text with current year", () => {
       render(<DashboardFooter />);
       const currentYear = new Date().getFullYear();
       expect(
-        screen.getByText(new RegExp(`© ${currentYear}.*Padel Club`))
+        screen.getByText(new RegExp(`© ${currentYear}.*ArenaOne`))
       ).toBeInTheDocument();
     });
 

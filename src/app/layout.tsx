@@ -7,8 +7,8 @@ import { getLocale, getMessages } from "next-intl/server";
 import { MockModeWarning } from "@/components/MockModeWarning";
 
 export const metadata: Metadata = {
-  title: "Padel Club MVP",
-  description: "Padel Club booking MVP",
+  title: "ArenaOne",
+  description: "ArenaOne booking platform",
 };
 
 export default async function RootLayout({

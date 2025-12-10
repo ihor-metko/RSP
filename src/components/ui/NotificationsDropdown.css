@@ -1,0 +1,250 @@
+@reference "tailwindcss";
+
+/* Notification Bell Container */
+.tm-notification-bell {
+  @apply relative;
+}
+
+/* Bell Button */
+.tm-bell-button {
+  @apply relative w-10 h-10 flex items-center justify-center rounded-full;
+  @apply cursor-pointer transition-colors;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.tm-bell-button:hover {
+  background-color: var(--rsp-background);
+}
+
+.tm-bell-button:focus {
+  @apply outline-none ring-2 ring-offset-2;
+  ring-color: var(--rsp-primary);
+}
+
+/* Bell Icon */
+.tm-bell-icon {
+  @apply text-xl;
+}
+
+/* Unread Badge */
+.tm-bell-badge {
+  @apply absolute -top-1 -right-1 min-w-5 h-5 flex items-center justify-center;
+  @apply text-xs font-bold rounded-full px-1;
+  @apply bg-red-500 text-white;
+}
+
+/* Connection Status Indicator */
+.tm-bell-status {
+  @apply absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2;
+  border-color: var(--rsp-card-bg);
+}
+
+.tm-bell-status--connected {
+  @apply bg-green-500;
+}
+
+.tm-bell-status--connecting {
+  @apply bg-yellow-500;
+}
+
+.tm-bell-status--disconnected {
+  @apply bg-gray-400;
+}
+
+.tm-bell-status--polling {
+  @apply bg-blue-500;
+}
+
+/* Dropdown */
+.tm-bell-dropdown {
+  @apply absolute right-0 top-12 w-80 max-h-96 overflow-hidden;
+  @apply rounded-lg shadow-xl z-50;
+  background-color: var(--rsp-card-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+/* Dropdown Header */
+.tm-dropdown-header {
+  @apply flex items-center justify-between px-4 py-3;
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.tm-dropdown-header h3 {
+  @apply text-sm font-semibold;
+  color: var(--rsp-foreground);
+}
+
+.tm-mark-all-btn {
+  @apply text-xs px-2 py-1;
+}
+
+/* Dropdown States */
+.tm-dropdown-loading,
+.tm-dropdown-error,
+.tm-dropdown-empty {
+  @apply px-4 py-8 text-center text-sm;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.tm-dropdown-error {
+  @apply text-red-500;
+  opacity: 1;
+}
+
+/* Dropdown List */
+.tm-dropdown-list {
+  @apply max-h-64 overflow-y-auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Dropdown Item */
+.tm-dropdown-item {
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.tm-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.tm-dropdown-item-button {
+  @apply w-full flex items-start gap-3 px-4 py-3;
+  @apply cursor-pointer transition-colors text-left;
+  background: transparent;
+  border: none;
+}
+
+.tm-dropdown-item-button:hover {
+  background-color: var(--rsp-background);
+}
+
+.tm-dropdown-item--unread .tm-dropdown-item-button {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.dark .tm-dropdown-item--unread .tm-dropdown-item-button {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Item Icon */
+.tm-dropdown-item-icon {
+  @apply text-lg flex-shrink-0;
+}
+
+/* Item Content */
+.tm-dropdown-item-content {
+  @apply flex-grow min-w-0;
+}
+
+.tm-dropdown-item-summary {
+  @apply text-sm block truncate;
+  color: var(--rsp-foreground);
+}
+
+.tm-dropdown-item-time {
+  @apply text-xs block mt-1;
+  color: var(--rsp-foreground);
+  opacity: 0.5;
+}
+
+/* Dropdown Footer */
+.tm-dropdown-footer {
+  @apply px-4 py-3 text-center;
+  border-top: 1px solid var(--rsp-border);
+}
+
+.tm-view-all-btn {
+  @apply w-full text-sm;
+}
+
+/* ==================== */
+/* Notification Details */
+/* ==================== */
+
+.tm-notification-details {
+  @apply space-y-4;
+}
+
+.tm-details-header {
+  @apply flex items-center gap-3 pb-4;
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.tm-details-icon {
+  @apply text-3xl;
+}
+
+.tm-details-type {
+  @apply px-3 py-1 rounded-full text-sm font-semibold uppercase;
+}
+
+.tm-details-type--requested {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.dark .tm-details-type--requested {
+  @apply bg-blue-900/50 text-blue-300;
+}
+
+.tm-details-type--accepted {
+  @apply bg-green-100 text-green-800;
+}
+
+.dark .tm-details-type--accepted {
+  @apply bg-green-900/50 text-green-300;
+}
+
+.tm-details-type--declined {
+  @apply bg-red-100 text-red-800;
+}
+
+.dark .tm-details-type--declined {
+  @apply bg-red-900/50 text-red-300;
+}
+
+.tm-details-type--canceled {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.dark .tm-details-type--canceled {
+  @apply bg-gray-700 text-gray-300;
+}
+
+/* Details Body */
+.tm-details-body {
+  @apply space-y-3;
+}
+
+.tm-details-row {
+  @apply flex flex-col gap-1;
+}
+
+.tm-details-label {
+  @apply text-xs font-medium uppercase tracking-wide;
+  color: var(--rsp-foreground);
+  opacity: 0.5;
+}
+
+.tm-details-value {
+  @apply text-sm;
+  color: var(--rsp-foreground);
+}
+
+.tm-details-email {
+  @apply text-xs;
+  opacity: 0.7;
+}
+
+.tm-details-id {
+  @apply font-mono text-xs;
+  opacity: 0.7;
+}
+
+/* Details Footer */
+.tm-details-footer {
+  @apply pt-4 flex justify-end;
+  border-top: 1px solid var(--rsp-border);
+}

@@ -1,0 +1,303 @@
+@reference "tailwindcss";
+
+/**
+ * Skeleton Component Styles
+ * Reusable loading placeholders with shimmer animations
+ * Uses im-* semantic classes for dark theme support
+ */
+
+/* ===== CSS Variables ===== */
+:root {
+  --im-skeleton-animation-duration: 1.5s;
+  --im-skeleton-base-color: #e5e7eb;
+  --im-skeleton-shine-color: #f3f4f6;
+}
+
+.dark {
+  --im-skeleton-base-color: #1f2937;
+  --im-skeleton-shine-color: #374151;
+}
+
+/* ===== Base Skeleton Styles ===== */
+.im-skeleton {
+  @apply rounded;
+  background: linear-gradient(
+    90deg,
+    var(--im-skeleton-base-color) 25%,
+    var(--im-skeleton-shine-color) 50%,
+    var(--im-skeleton-base-color) 75%
+  );
+  background-size: 200% 100%;
+  animation: im-shimmer var(--im-skeleton-animation-duration) infinite;
+}
+
+/* Shimmer animation */
+@keyframes im-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ===== MetricCardSkeleton Styles ===== */
+.im-metric-card-skeleton {
+  @apply flex items-center gap-4 p-6 rounded-xl;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+}
+
+/* Size variants */
+.im-metric-card-skeleton--sm {
+  @apply p-4 gap-3;
+}
+
+.im-metric-card-skeleton--md {
+  @apply p-5 gap-4;
+}
+
+.im-metric-card-skeleton--lg {
+  @apply p-6 gap-4;
+}
+
+/* Icon placeholder */
+.im-skeleton-icon {
+  @apply flex-shrink-0 rounded-xl;
+}
+
+.im-skeleton-icon--sm {
+  @apply w-10 h-10;
+}
+
+.im-skeleton-icon--md {
+  @apply w-12 h-12;
+}
+
+.im-skeleton-icon--lg {
+  @apply w-14 h-14;
+}
+
+/* Content area */
+.im-skeleton-content {
+  @apply flex flex-col gap-2 flex-1;
+}
+
+/* Value placeholder */
+.im-skeleton-value {
+  @apply h-8 rounded;
+}
+
+.im-skeleton-value--sm {
+  @apply h-6 w-16;
+}
+
+.im-skeleton-value--md {
+  @apply h-7 w-20;
+}
+
+.im-skeleton-value--lg {
+  @apply h-8 w-24;
+}
+
+/* Title placeholder */
+.im-skeleton-title {
+  @apply h-4 rounded;
+}
+
+.im-skeleton-title--sm {
+  @apply h-3 w-20;
+}
+
+.im-skeleton-title--md {
+  @apply h-4 w-24;
+}
+
+.im-skeleton-title--lg {
+  @apply h-4 w-28;
+}
+
+/* Delta/subtitle placeholder */
+.im-skeleton-delta {
+  @apply h-3 w-16 rounded mt-1;
+}
+
+/* ===== StatListSkeleton Styles ===== */
+.im-stat-list-skeleton {
+  @apply space-y-3;
+}
+
+.im-stat-list-skeleton-item {
+  @apply flex items-center gap-3 p-3 rounded-lg;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+}
+
+.im-stat-list-skeleton-avatar {
+  @apply w-10 h-10 rounded-full flex-shrink-0;
+}
+
+.im-stat-list-skeleton-content {
+  @apply flex-1 space-y-2;
+}
+
+.im-stat-list-skeleton-line-primary {
+  @apply h-4 w-32 rounded;
+}
+
+.im-stat-list-skeleton-line-secondary {
+  @apply h-3 w-24 rounded;
+}
+
+/* ===== GraphSkeleton Styles ===== */
+.im-graph-skeleton {
+  @apply rounded-lg p-6;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  min-height: 300px;
+  position: relative;
+}
+
+.im-graph-skeleton-header {
+  @apply mb-4 space-y-2;
+}
+
+.im-graph-skeleton-title {
+  @apply h-6 w-48 rounded;
+}
+
+.im-graph-skeleton-description {
+  @apply h-4 w-64 rounded;
+}
+
+.im-graph-skeleton-chart {
+  @apply mt-4 relative;
+  height: 250px;
+}
+
+/* Grid lines */
+.im-graph-skeleton-grid {
+  @apply absolute inset-0 flex flex-col justify-between;
+  opacity: 0.3;
+}
+
+.im-graph-skeleton-grid-line {
+  @apply h-px w-full;
+  background-color: var(--im-border);
+}
+
+/* X-axis ticks */
+.im-graph-skeleton-x-axis {
+  @apply flex justify-between mt-2;
+}
+
+.im-graph-skeleton-x-tick {
+  @apply h-3 w-12 rounded;
+}
+
+/* Chart area shimmer */
+.im-graph-skeleton-area {
+  @apply absolute inset-0 rounded opacity-20;
+}
+
+/* ===== Graph Empty State ===== */
+.im-graph-empty-state {
+  @apply flex flex-col items-center justify-center p-8 rounded-lg;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  min-height: 300px;
+}
+
+.im-graph-empty-icon {
+  @apply w-16 h-16 mb-4 rounded-full flex items-center justify-center;
+  background-color: var(--im-skeleton-base-color);
+}
+
+.im-graph-empty-icon svg {
+  @apply w-8 h-8;
+  color: var(--im-muted);
+}
+
+.im-graph-empty-title {
+  @apply text-lg font-semibold mb-2;
+  color: var(--im-foreground);
+}
+
+.im-graph-empty-description {
+  @apply text-sm text-center max-w-md;
+  color: var(--im-muted);
+}
+
+/* ===== DashboardPlaceholder Styles ===== */
+.im-dashboard-placeholder {
+  @apply space-y-8;
+}
+
+.im-dashboard-placeholder-header {
+  @apply space-y-2;
+}
+
+.im-dashboard-placeholder-title {
+  @apply h-8 w-64 rounded;
+}
+
+.im-dashboard-placeholder-description {
+  @apply h-4 w-96 rounded;
+}
+
+.im-dashboard-placeholder-metrics {
+  @apply grid gap-6;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 640px) {
+  .im-dashboard-placeholder-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .im-dashboard-placeholder-metrics {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.im-dashboard-placeholder-graphs {
+  @apply grid gap-6;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .im-dashboard-placeholder-graphs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== Screen Reader Only ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 767px) {
+  .im-metric-card-skeleton {
+    @apply p-4;
+  }
+
+  .im-graph-skeleton {
+    @apply p-4;
+    min-height: 250px;
+  }
+
+  .im-graph-skeleton-chart {
+    height: 200px;
+  }
+}

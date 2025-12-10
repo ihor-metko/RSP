@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
+import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { toOrganizationOption } from "@/utils/organization";
 import { Step1Organization } from "./Step1Organization";
 import { Step2Club } from "./Step2Club";
@@ -247,6 +248,10 @@ export function AdminQuickBookingWizard({
   ]);
 
   // Fetch users (Step 3)
+  const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
+  const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
+  const usersLoading = useAdminUsersStore((state) => state.loading);
+  
   useEffect(() => {
     const fetchUsers = async () => {
       if (!isOpen || state.currentStep !== 3) {
@@ -264,13 +269,9 @@ export function AdminQuickBookingWizard({
       }));
 
       try {
-        const response = await fetch("/api/admin/users");
-        if (!response.ok) {
-          throw new Error("Failed to fetch users");
-        }
-        const data = await response.json();
-        const users: WizardUser[] = data.map(
-          (user: { id: string; name: string | null; email: string }) => ({
+        await fetchSimpleUsers();
+        const users: WizardUser[] = simpleUsers.map(
+          (user) => ({
             id: user.id,
             name: user.name,
             email: user.email,
@@ -291,7 +292,7 @@ export function AdminQuickBookingWizard({
     };
 
     fetchUsers();
-  }, [isOpen, state.currentStep, predefinedData, t]);
+  }, [isOpen, state.currentStep, predefinedData, fetchSimpleUsers, simpleUsers, t]);
 
   // Fetch courts (Step 5)
   const fetchAvailableCourts = useCallback(async () => {

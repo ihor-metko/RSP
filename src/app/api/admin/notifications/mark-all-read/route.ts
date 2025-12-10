@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockMarkAllNotificationsAsRead } from "@/services/mockApiHandlers";
 
 /**
  * POST /api/admin/notifications/mark-all-read
@@ -12,6 +15,12 @@ export async function POST(request: Request) {
     const authResult = await requireRootAdmin(request);
     if (!authResult.authorized) {
       return authResult.response;
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const mockResult = await mockMarkAllNotificationsAsRead();
+      return NextResponse.json(mockResult);
     }
 
     const result = await prisma.adminNotification.updateMany({

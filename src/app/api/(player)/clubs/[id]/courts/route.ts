@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+import { isSupportedSport } from "@/constants/sports";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode, findClubById, getMockCourts } from "@/services/mockDb";
 
@@ -45,6 +46,7 @@ export async function GET(
         type: true,
         surface: true,
         indoor: true,
+        sportType: true,
         defaultPriceCents: true,
         createdAt: true,
         updatedAt: true,
@@ -87,11 +89,19 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { name, slug, type, surface, indoor, defaultPriceCents } = body;
+    const { name, slug, type, surface, indoor, sportType, defaultPriceCents } = body;
 
     if (!name || typeof name !== "string" || name.trim() === "") {
       return NextResponse.json(
         { error: "Name is required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate sportType if provided
+    if (sportType && !isSupportedSport(sportType)) {
+      return NextResponse.json(
+        { error: "Invalid sport type" },
         { status: 400 }
       );
     }
@@ -117,6 +127,7 @@ export async function POST(
         type: type?.trim() || null,
         surface: surface?.trim() || null,
         indoor: indoor ?? false,
+        sportType: sportType || "PADEL",
         defaultPriceCents: defaultPriceCents ?? 0,
       },
     });

@@ -2,14 +2,8 @@
  * @jest-environment jsdom
  */
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import AdminSidebar from "@/components/layout/AdminSidebar";
-
-// Mock next-auth
-jest.mock("next-auth/react", () => ({
-  useSession: jest.fn(),
-}));
 
 // Mock next/navigation
 jest.mock("next/navigation", () => ({
@@ -46,6 +40,7 @@ jest.mock("next-intl", () => ({
         "sidebar.collapseSidebar": "Collapse sidebar",
         "sidebar.expandSidebar": "Expand sidebar",
         "sidebar.comingSoon": "Coming Soon",
+        "sidebar.organization": "Organization",
       };
       return translations[key] || key;
     };
@@ -62,30 +57,55 @@ jest.mock("next/link", () => {
   return MockLink;
 });
 
-const mockUseSession = useSession as jest.Mock;
+// Mock useUserStore
+const mockUserStore = {
+  user: null,
+  roles: [],
+  isLoggedIn: false,
+  isLoading: false,
+  adminStatus: null,
+  memberships: [],
+  clubMemberships: [],
+};
+
+jest.mock("@/stores/useUserStore", () => ({
+  useUserStore: jest.fn((selector) => {
+    if (typeof selector === "function") {
+      return selector(mockUserStore);
+    }
+    return mockUserStore;
+  }),
+}));
+
 const mockUsePathname = usePathname as jest.Mock;
 
-// Helper to mock fetch for admin-status API
-const mockAdminStatusFetch = (adminStatus: {
-  isAdmin: boolean;
-  adminType: "root_admin" | "organization_admin" | "club_admin" | "none";
-  isRoot: boolean;
-  managedIds: string[];
-  assignedClub?: { id: string; name: string };
-  isPrimaryOwner?: boolean;
+// Helper to set user store state
+const setMockUserStore = (config: {
+  user?: { id: string; name: string | null; email: string | null; isRoot: boolean } | null;
+  adminStatus?: {
+    isAdmin: boolean;
+    adminType: "root_admin" | "organization_admin" | "club_admin" | "none";
+    managedIds: string[];
+    assignedClub?: { id: string; name: string };
+    isPrimaryOwner?: boolean;
+  } | null;
+  isLoading?: boolean;
 }) => {
-  global.fetch = jest.fn().mockResolvedValue({
-    ok: true,
-    json: async () => adminStatus,
-  });
+  mockUserStore.user = config.user ?? null;
+  mockUserStore.adminStatus = config.adminStatus ?? null;
+  mockUserStore.isLoading = config.isLoading ?? false;
+  mockUserStore.isLoggedIn = !!config.user;
 };
 
 describe("AdminSidebar Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePathname.mockReturnValue("/admin/dashboard");
-    // Reset fetch mock
-    global.fetch = jest.fn();
+    // Reset mock user store
+    mockUserStore.user = null;
+    mockUserStore.adminStatus = null;
+    mockUserStore.isLoading = false;
+    mockUserStore.isLoggedIn = false;
   });
 
   afterEach(() => {
@@ -94,22 +114,18 @@ describe("AdminSidebar Component", () => {
 
   describe("Non-admin users", () => {
     it("does not render for player role", async () => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "user-1",
-            name: "John Player",
-            email: "player@test.com",
-            isRoot: false,
-          },
+      setMockUserStore({
+        user: {
+          id: "user-1",
+          name: "John Player",
+          email: "player@test.com",
+          isRoot: false,
         },
-        status: "authenticated",
-      });
-      mockAdminStatusFetch({
-        isAdmin: false,
-        adminType: "none",
-        isRoot: false,
-        managedIds: [],
+        adminStatus: {
+          isAdmin: false,
+          adminType: "none",
+          managedIds: [],
+        },
       });
 
       const { container } = render(<AdminSidebar />);
@@ -120,22 +136,18 @@ describe("AdminSidebar Component", () => {
     });
 
     it("does not render for coach role", async () => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "user-1",
-            name: "Jane Coach",
-            email: "coach@test.com",
-            isRoot: false,
-          },
+      setMockUserStore({
+        user: {
+          id: "user-1",
+          name: "Jane Coach",
+          email: "coach@test.com",
+          isRoot: false,
         },
-        status: "authenticated",
-      });
-      mockAdminStatusFetch({
-        isAdmin: false,
-        adminType: "none",
-        isRoot: false,
-        managedIds: [],
+        adminStatus: {
+          isAdmin: false,
+          adminType: "none",
+          managedIds: [],
+        },
       });
 
       const { container } = render(<AdminSidebar />);
@@ -146,9 +158,9 @@ describe("AdminSidebar Component", () => {
     });
 
     it("does not render for unauthenticated users", () => {
-      mockUseSession.mockReturnValue({
-        data: null,
-        status: "unauthenticated",
+      setMockUserStore({
+        user: null,
+        adminStatus: null,
       });
 
       const { container } = render(<AdminSidebar />);
@@ -158,19 +170,19 @@ describe("AdminSidebar Component", () => {
 
   describe("Root Admin", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-1",
-            name: "Root Admin",
-            email: "root@test.com",
-            isRoot: true,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-1",
+          name: "Root Admin",
+          email: "root@test.com",
+          isRoot: true,
         },
-        status: "authenticated",
+        adminStatus: {
+          isAdmin: true,
+          adminType: "root_admin",
+          managedIds: [],
+        },
       });
-      // Root admins are detected via isRoot flag, so no API call needed
-      // but the component still checks for faster UX
     });
 
     it("renders the sidebar for root_admin role", async () => {
@@ -247,26 +259,32 @@ describe("AdminSidebar Component", () => {
       // Verify it's a div, not a link
       expect(statsItem?.tagName).toBe("DIV");
     });
+
+    it("does NOT show Organization nav item (Root Admin already has Organizations list)", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      // Root admin should not see the singular "Organization" nav item
+      // They have access to the full Organizations list instead
+      expect(screen.queryByText("Organization")).not.toBeInTheDocument();
+    });
   });
 
   describe("Organization Admin (Super Admin)", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-2",
-            name: "Super Admin",
-            email: "super@test.com",
-            isRoot: false,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-2",
+          name: "Super Admin",
+          email: "super@test.com",
+          isRoot: false,
         },
-        status: "authenticated",
-      });
-      mockAdminStatusFetch({
-        isAdmin: true,
-        adminType: "organization_admin",
-        isRoot: false,
-        managedIds: ["org-1"],
+        adminStatus: {
+          isAdmin: true,
+          adminType: "organization_admin",
+          managedIds: ["org-1"],
+        },
       });
     });
 
@@ -307,27 +325,82 @@ describe("AdminSidebar Component", () => {
       });
       expect(screen.queryByText("Global Settings")).not.toBeInTheDocument();
     });
+
+    it("shows Organization nav item for single org SuperAdmin", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      // When collapsed, the label is in the title attribute
+      // When expanded, the label is visible text
+      // Let's expand the sidebar first
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      fireEvent.click(collapseBtn);
+      
+      await waitFor(() => {
+        expect(screen.getByText("Organization")).toBeInTheDocument();
+      });
+    });
+
+    it("Organization nav item links to correct org detail page", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      
+      // Expand sidebar to see labels
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      fireEvent.click(collapseBtn);
+      
+      await waitFor(() => {
+        const orgLink = screen.getByRole("menuitem", { name: /Organization/i });
+        expect(orgLink).toHaveAttribute("href", "/admin/organizations/org-1");
+      });
+    });
+  });
+
+  describe("Organization Admin with multiple orgs", () => {
+    beforeEach(() => {
+      setMockUserStore({
+        user: {
+          id: "admin-multi",
+          name: "Multi Org Admin",
+          email: "multiorg@test.com",
+          isRoot: false,
+        },
+        adminStatus: {
+          isAdmin: true,
+          adminType: "organization_admin",
+          managedIds: ["org-1", "org-2"],
+        },
+      });
+    });
+
+    it("does NOT show Organization nav item for multiple orgs (future enhancement)", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      // Should NOT show the Organization link when managing multiple orgs
+      expect(screen.queryByText("Organization")).not.toBeInTheDocument();
+    });
   });
 
   describe("Organization Owner (Primary Owner)", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-2",
-            name: "Org Owner",
-            email: "owner@test.com",
-            isRoot: false,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-2",
+          name: "Org Owner",
+          email: "owner@test.com",
+          isRoot: false,
         },
-        status: "authenticated",
-      });
-      mockAdminStatusFetch({
-        isAdmin: true,
-        adminType: "organization_admin",
-        isRoot: false,
-        managedIds: ["org-1"],
-        isPrimaryOwner: true,
+        adminStatus: {
+          isAdmin: true,
+          adminType: "organization_admin",
+          managedIds: ["org-1"],
+          isPrimaryOwner: true,
+        },
       });
     });
 
@@ -365,23 +438,19 @@ describe("AdminSidebar Component", () => {
 
   describe("Club Admin", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-3",
-            name: "Club Admin",
-            email: "admin@test.com",
-            isRoot: false,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-3",
+          name: "Club Admin",
+          email: "admin@test.com",
+          isRoot: false,
         },
-        status: "authenticated",
-      });
-      mockAdminStatusFetch({
-        isAdmin: true,
-        adminType: "club_admin",
-        isRoot: false,
-        managedIds: ["club-1"],
-        assignedClub: { id: "club-1", name: "My Test Club" },
+        adminStatus: {
+          isAdmin: true,
+          adminType: "club_admin",
+          managedIds: ["club-1"],
+          assignedClub: { id: "club-1", name: "My Test Club" },
+        },
       });
     });
 
@@ -440,23 +509,19 @@ describe("AdminSidebar Component", () => {
 
   describe("Club Admin without assigned club", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-4",
-            name: "Unassigned Admin",
-            email: "unassigned@test.com",
-            isRoot: false,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-4",
+          name: "Unassigned Admin",
+          email: "unassigned@test.com",
+          isRoot: false,
         },
-        status: "authenticated",
-      });
-      mockAdminStatusFetch({
-        isAdmin: true,
-        adminType: "club_admin",
-        isRoot: false,
-        managedIds: [],
-        // No assignedClub
+        adminStatus: {
+          isAdmin: true,
+          adminType: "club_admin",
+          managedIds: [],
+          // No assignedClub
+        },
       });
     });
 
@@ -472,16 +537,18 @@ describe("AdminSidebar Component", () => {
 
   describe("Mobile behavior", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-1",
-            name: "Root Admin",
-            email: "root@test.com",
-            isRoot: true,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-1",
+          name: "Root Admin",
+          email: "root@test.com",
+          isRoot: true,
         },
-        status: "authenticated",
+        adminStatus: {
+          isAdmin: true,
+          adminType: "root_admin",
+          managedIds: [],
+        },
       });
     });
 
@@ -547,16 +614,18 @@ describe("AdminSidebar Component", () => {
 
   describe("Collapsible behavior", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-1",
-            name: "Root Admin",
-            email: "root@test.com",
-            isRoot: true,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-1",
+          name: "Root Admin",
+          email: "root@test.com",
+          isRoot: true,
         },
-        status: "authenticated",
+        adminStatus: {
+          isAdmin: true,
+          adminType: "root_admin",
+          managedIds: [],
+        },
       });
       // Clear localStorage before each test
       localStorage.clear();
@@ -671,16 +740,18 @@ describe("AdminSidebar Component", () => {
 
   describe("Accessibility", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-1",
-            name: "Root Admin",
-            email: "root@test.com",
-            isRoot: true,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-1",
+          name: "Root Admin",
+          email: "root@test.com",
+          isRoot: true,
         },
-        status: "authenticated",
+        adminStatus: {
+          isAdmin: true,
+          adminType: "root_admin",
+          managedIds: [],
+        },
       });
     });
 
@@ -712,16 +783,18 @@ describe("AdminSidebar Component", () => {
 
   describe("Active state", () => {
     beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          user: {
-            id: "admin-1",
-            name: "Root Admin",
-            email: "root@test.com",
-            isRoot: true,
-          },
+      setMockUserStore({
+        user: {
+          id: "admin-1",
+          name: "Root Admin",
+          email: "root@test.com",
+          isRoot: true,
         },
-        status: "authenticated",
+        adminStatus: {
+          isAdmin: true,
+          adminType: "root_admin",
+          managedIds: [],
+        },
       });
     });
 

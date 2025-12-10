@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui";
+import { getSportName, SportType } from "@/constants/sports";
 
 export interface AdminOrganizationCardProps {
   organization: {
@@ -10,6 +11,7 @@ export interface AdminOrganizationCardProps {
     slug: string;
     createdAt: string;
     clubCount?: number;
+    supportedSports?: SportType[];
     createdBy?: {
       id: string;
       name: string | null;
@@ -190,6 +192,20 @@ export function AdminOrganizationCard({
             <span className="im-admin-org-meta-value">{formattedDate}</span>
           </div>
         </div>
+
+        {/* Supported Sports */}
+        {organization.supportedSports && organization.supportedSports.length > 0 && (
+          <div className="im-admin-org-sports">
+            <span className="im-admin-org-sports-label">{t("organizations.supportedSports")}:</span>
+            <div className="im-admin-org-sports-badges">
+              {organization.supportedSports.map((sport) => (
+                <span key={sport} className="im-admin-org-sport-badge">
+                  {getSportName(sport)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}

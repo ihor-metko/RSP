@@ -36,6 +36,7 @@ export async function GET(request: Request) {
     const search = searchParams.get("search") || "";
     const clubId = searchParams.get("clubId") || "";
     const status = searchParams.get("status") || "all";
+    const sportType = searchParams.get("sportType") || "";
     const sortBy = searchParams.get("sortBy") || "name";
     const sortOrder = searchParams.get("sortOrder") || "asc";
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -51,6 +52,7 @@ export async function GET(request: Request) {
             search,
             clubId,
             status,
+            sportType,
             sortBy,
             sortOrder,
             page,
@@ -103,6 +105,11 @@ export async function GET(request: Request) {
     }
     // "all" status shows both active and inactive
 
+    // Add sport type filter
+    if (sportType) {
+      whereClause.sportType = sportType;
+    }
+
     // Build orderBy clause
     let orderBy: Prisma.CourtOrderByWithRelationInput | Prisma.CourtOrderByWithRelationInput[] = { createdAt: "desc" };
     
@@ -135,6 +142,7 @@ export async function GET(request: Request) {
         type: true,
         surface: true,
         indoor: true,
+        sportType: true,
         isActive: true,
         defaultPriceCents: true,
         createdAt: true,
@@ -168,6 +176,7 @@ export async function GET(request: Request) {
       type: court.type,
       surface: court.surface,
       indoor: court.indoor,
+      sportType: court.sportType,
       isActive: court.isActive,
       defaultPriceCents: court.defaultPriceCents,
       createdAt: court.createdAt,

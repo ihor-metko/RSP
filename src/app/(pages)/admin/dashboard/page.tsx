@@ -6,11 +6,10 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
-import KeyMetrics from "@/components/admin/KeyMetrics";
 import BookingsOverview from "@/components/admin/BookingsOverview";
 import { RegisteredUsersCard } from "@/components/admin/RegisteredUsersCard";
 import DashboardGraphs from "@/components/admin/DashboardGraphs";
-import type { UnifiedDashboardResponse, UnifiedDashboardOrg, UnifiedDashboardClub } from "@/app/api/admin/unified-dashboard/route";
+import type { UnifiedDashboardResponse, UnifiedDashboardClub } from "@/app/api/admin/unified-dashboard/route";
 import "./RootDashboard.css";
 
 /**
@@ -211,44 +210,7 @@ function StatCard({ title, value, icon, colorClass }: StatCardProps) {
   );
 }
 
-/**
- * Organization Card Component
- * Displays organization metrics and navigation links
- */
-interface OrgCardProps {
-  org: UnifiedDashboardOrg;
-}
 
-function OrgCard({ org }: OrgCardProps) {
-  const t = useTranslations();
-
-  // Prepare breakdown by clubs for organization admin
-  const clubBreakdown = org.clubsCount > 0
-    ? [{ label: t("unifiedDashboard.byClubs"), count: org.clubsCount }]
-    : undefined;
-
-  return (
-    <div className="im-dashboard-section">
-      <div className="im-org-card-header">
-        <h3 className="im-org-card-title">{org.name}</h3>
-        <span className="im-org-card-slug">/{org.slug}</span>
-      </div>
-
-      <KeyMetrics
-        clubsCount={org.clubsCount}
-        courtsCount={org.courtsCount}
-        bookingsToday={org.bookingsToday}
-        clubAdminsCount={org.clubAdminsCount}
-      />
-
-      <BookingsOverview
-        activeBookings={org.activeBookings}
-        pastBookings={org.pastBookings}
-        activeBreakdown={clubBreakdown}
-      />
-    </div>
-  );
-}
 
 /**
  * Club Card Component
@@ -507,14 +469,25 @@ export default function AdminDashboardPage() {
           </>
         )}
 
-        {/* Organization Admin: Organization-specific dashboards */}
+        {/* Organization Admin: Organization-scoped dashboard with Root Admin layout */}
         {dashboardData.adminType === "organization_admin" && dashboardData.organizations && (
           <>
-            <div className="im-org-cards-container">
-              {dashboardData.organizations.map((org) => (
-                <OrgCard key={org.id} org={org} />
-              ))}
+            {/* Clubs Count Card - organization-scoped */}
+            <div className="im-stats-grid">
+              <StatCard
+                title={t("rootAdmin.dashboard.totalClubs")}
+                value={dashboardData.organizations.reduce((sum, org) => sum + org.clubsCount, 0)}
+                icon={<ClubsIcon />}
+                colorClass="im-stat-card--clubs"
+              />
             </div>
+
+            {/* Bookings Overview Section - organization-scoped */}
+            <BookingsOverview
+              activeBookings={dashboardData.organizations.reduce((sum, org) => sum + org.activeBookings, 0)}
+              pastBookings={dashboardData.organizations.reduce((sum, org) => sum + org.pastBookings, 0)}
+            />
+
             {/* Dashboard Graphs Section */}
             <DashboardGraphs />
           </>

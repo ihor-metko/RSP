@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockUpdateAdminNotification } from "@/services/mockApiHandlers";
 
 /**
  * PATCH /api/admin/notifications/[id]
@@ -26,6 +29,23 @@ export async function PATCH(
         { error: "Missing or invalid 'read' field (must be boolean)" },
         { status: 400 }
       );
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      try {
+        const updated = await mockUpdateAdminNotification(notificationId, { read: body.read });
+        return NextResponse.json({
+          id: updated.id,
+          read: updated.read,
+          message: body.read ? "Notification marked as read" : "Notification marked as unread",
+        });
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : "Notification not found" },
+          { status: 404 }
+        );
+      }
     }
 
     // Find and update notification

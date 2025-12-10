@@ -1,3 +1,5 @@
+import { SportType } from "@/constants/sports";
+
 export interface Club {
   id: string;
   name: string;
@@ -6,6 +8,7 @@ export interface Club {
   openingHours: string | null;
   logo: string | null;
   status: string;
+  supportedSports?: SportType[];
   createdAt: string;
 }
 
@@ -30,6 +33,7 @@ export interface ClubWithCounts extends Club {
   tags?: string | null;
   isPublic?: boolean;
   status: string;
+  supportedSports?: SportType[];
   indoorCount?: number;
   outdoorCount?: number;
   courtCount?: number;
@@ -87,6 +91,7 @@ export interface ClubCourt {
   type: string | null;
   surface: string | null;
   indoor: boolean;
+  sportType?: SportType;
   defaultPriceCents: number;
   createdAt: string;
   updatedAt: string;
@@ -133,6 +138,7 @@ export interface ClubDetail {
   isPublic: boolean;
   status: string;
   tags: string | null;
+  supportedSports?: SportType[];
   createdAt: string;
   updatedAt: string;
   courts: ClubCourt[];
@@ -164,6 +170,7 @@ export interface CreateClubPayload {
   timezone?: string;
   isPublic?: boolean;
   tags?: string | null;
+  supportedSports?: SportType[];
   heroImage?: string;
   logo?: string;
   gallery?: Array<{
@@ -181,6 +188,7 @@ export interface CreateClubPayload {
     type: string | null;
     surface: string | null;
     indoor: boolean;
+    sportType?: SportType;
     defaultPriceCents: number;
   }>;
 }
@@ -194,4 +202,5 @@ export interface UpdateClubPayload {
   contactInfo?: string | null;
   openingHours?: string | null;
   logo?: string | null;
+  supportedSports?: SportType[];
 }

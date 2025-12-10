@@ -78,6 +78,16 @@
   color: var(--im-text-primary, #111827);
 }
 
+.im-admin-organizations-filters {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.im-admin-organizations-filters .im-select-wrapper {
+  min-width: 140px;
+}
+
 .im-admin-organizations-sort {
   display: flex;
   gap: 0.5rem;

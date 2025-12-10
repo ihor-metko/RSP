@@ -15,6 +15,7 @@ import {
   Legend,
 } from "recharts";
 import type { DashboardGraphsResponse, TimeRange } from "@/types/graphs";
+import { GraphSkeleton, GraphEmptyState, DEFAULT_MIN_POINTS_TO_RENDER } from "@/components/ui/skeletons";
 import "./DashboardGraphs.css";
 
 export interface DashboardGraphsProps {
@@ -30,6 +31,12 @@ export interface DashboardGraphsProps {
    * If not provided, the component manages its own error state.
    */
   error?: string;
+  /**
+   * Minimum data points required to render graphs.
+   * If data has fewer points, shows empty state instead.
+   * Default: 3
+   */
+  minPointsToRender?: number;
 }
 
 /**
@@ -72,7 +79,11 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
  * - Uses dark theme with im-* classes
  * - Responsive and accessible
  */
-export default function DashboardGraphs({ loading: externalLoading, error: externalError }: DashboardGraphsProps) {
+export default function DashboardGraphs({ 
+  loading: externalLoading, 
+  error: externalError,
+  minPointsToRender = DEFAULT_MIN_POINTS_TO_RENDER,
+}: DashboardGraphsProps) {
   const t = useTranslations();
   const [data, setData] = useState<DashboardGraphsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,9 +129,9 @@ export default function DashboardGraphs({ loading: externalLoading, error: exter
         <div className="im-dashboard-graphs-header">
           <h2 className="im-dashboard-graphs-title">{t("dashboardGraphs.title")}</h2>
         </div>
-        <div className="im-dashboard-graphs-loading">
-          <div className="im-dashboard-graphs-loading-spinner" />
-          <span className="im-dashboard-graphs-loading-text">{t("common.loading")}</span>
+        <div className="im-dashboard-graphs-grid">
+          <GraphSkeleton showHeader={true} />
+          <GraphSkeleton showHeader={true} />
         </div>
       </div>
     );
@@ -142,6 +153,10 @@ export default function DashboardGraphs({ loading: externalLoading, error: exter
   if (!data) {
     return null;
   }
+
+  // Check if we have enough data points to render meaningful graphs
+  const hasEnoughBookingData = data.bookingTrends.length >= minPointsToRender;
+  const hasEnoughUserData = data.activeUsers.length >= minPointsToRender;
 
   return (
     <div className="im-dashboard-graphs-section">
@@ -170,71 +185,85 @@ export default function DashboardGraphs({ loading: externalLoading, error: exter
         <div className="im-graph-card">
           <h3 className="im-graph-card-title">{t("dashboardGraphs.bookingTrends")}</h3>
           <p className="im-graph-card-description">{t("dashboardGraphs.bookingTrendsDesc")}</p>
-          <div className="im-graph-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={data.bookingTrends}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--im-border-color)" />
-                <XAxis
-                  dataKey="label"
-                  stroke="var(--im-text-secondary)"
-                  tick={{ fill: "var(--im-text-secondary)" }}
-                />
-                <YAxis
-                  stroke="var(--im-text-secondary)"
-                  tick={{ fill: "var(--im-text-secondary)" }}
-                  allowDecimals={false}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Bar
-                  dataKey="bookings"
-                  name={t("dashboardGraphs.bookings")}
-                  fill="var(--im-primary)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {hasEnoughBookingData ? (
+            <div className="im-graph-container">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={data.bookingTrends}
+                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--im-border-color)" />
+                  <XAxis
+                    dataKey="label"
+                    stroke="var(--im-text-secondary)"
+                    tick={{ fill: "var(--im-text-secondary)" }}
+                  />
+                  <YAxis
+                    stroke="var(--im-text-secondary)"
+                    tick={{ fill: "var(--im-text-secondary)" }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Bar
+                    dataKey="bookings"
+                    name={t("dashboardGraphs.bookings")}
+                    fill="var(--im-primary)"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <GraphEmptyState
+              message={t("dashboardGraphs.notEnoughData")}
+              description={t("dashboardGraphs.notEnoughDataDesc")}
+            />
+          )}
         </div>
 
         {/* Active Users Graph */}
         <div className="im-graph-card">
           <h3 className="im-graph-card-title">{t("dashboardGraphs.activeUsers")}</h3>
           <p className="im-graph-card-description">{t("dashboardGraphs.activeUsersDesc")}</p>
-          <div className="im-graph-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart
-                data={data.activeUsers}
-                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--im-border-color)" />
-                <XAxis
-                  dataKey="label"
-                  stroke="var(--im-text-secondary)"
-                  tick={{ fill: "var(--im-text-secondary)" }}
-                />
-                <YAxis
-                  stroke="var(--im-text-secondary)"
-                  tick={{ fill: "var(--im-text-secondary)" }}
-                  allowDecimals={false}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="users"
-                  name={t("dashboardGraphs.users")}
-                  stroke="var(--im-success)"
-                  strokeWidth={2}
-                  dot={{ fill: "var(--im-success)", r: 4 }}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {hasEnoughUserData ? (
+            <div className="im-graph-container">
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={data.activeUsers}
+                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--im-border-color)" />
+                  <XAxis
+                    dataKey="label"
+                    stroke="var(--im-text-secondary)"
+                    tick={{ fill: "var(--im-text-secondary)" }}
+                  />
+                  <YAxis
+                    stroke="var(--im-text-secondary)"
+                    tick={{ fill: "var(--im-text-secondary)" }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="users"
+                    name={t("dashboardGraphs.users")}
+                    stroke="var(--im-success)"
+                    strokeWidth={2}
+                    dot={{ fill: "var(--im-success)", r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <GraphEmptyState
+              message={t("dashboardGraphs.notEnoughData")}
+              description={t("dashboardGraphs.notEnoughDataDesc")}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -134,11 +134,6 @@
   color: var(--im-primary);
 }
 
-.im-sidebar-nav-link:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: -2px;
-}
-
 .im-sidebar-nav-link--active {
   background-color: var(--im-primary);
   color: white;

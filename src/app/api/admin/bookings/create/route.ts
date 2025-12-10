@@ -151,7 +151,10 @@ export async function POST(request: Request) {
     // Fetch court details with club
     const court = await prisma.court.findUnique({
       where: { id: courtId },
-      include: {
+      select: {
+        id: true,
+        sportType: true,
+        defaultPriceCents: true,
         club: {
           select: {
             id: true,
@@ -292,6 +295,7 @@ export async function POST(request: Request) {
         start,
         end,
         price: priceCents,
+        sportType: court.sportType || "PADEL",
         status: "reserved", // Admin bookings are automatically reserved
       },
       include: {

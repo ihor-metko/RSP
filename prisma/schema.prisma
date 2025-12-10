@@ -22,6 +22,15 @@ enum ClubMembershipRole {
   MEMBER
 }
 
+// Sport types supported by the platform
+enum SportType {
+  PADEL
+  TENNIS
+  PICKLEBALL
+  SQUASH
+  BADMINTON
+}
+
 model User {
   id              String           @id @default(uuid())
   name            String?
@@ -53,6 +62,7 @@ model Organization {
   website     String?
   address     String?
   metadata    String?      @db.Text // JSON string for additional metadata
+  supportedSports SportType[] @default([PADEL]) // Sports supported by this organization
   createdById String
   createdBy   User         @relation("OrganizationCreator", fields: [createdById], references: [id])
   archivedAt  DateTime?    // Soft-delete timestamp
@@ -157,6 +167,7 @@ model Club {
   isPublic         Boolean          @default(true)
   status           String           @default("active") // "active", "draft", "suspended"
   tags             String?          // JSON array of tags
+  supportedSports  SportType[]      @default([PADEL]) // Sports supported by this club
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @default(now()) @updatedAt
   courts           Court[]
@@ -222,6 +233,7 @@ model Court {
   type              String?
   surface           String?
   indoor            Boolean       @default(false)
+  sportType         SportType     @default(PADEL) // Type of sport for this court
   isActive          Boolean       @default(true)
   defaultPriceCents Int           @default(0)
   createdAt         DateTime      @default(now())
@@ -314,6 +326,7 @@ model Booking {
   start     DateTime
   end       DateTime
   price     Int
+  sportType SportType @default(PADEL) // Type of sport for this booking
   status    String // "pending", "paid", "cancelled"
   paymentId String?
   createdAt DateTime  @default(now())
@@ -331,15 +344,16 @@ model Payment {
 }
 
 model PricingRule {
-  id        String   @id @default(uuid())
-  club      Club     @relation(fields: [clubId], references: [id])
+  id        String    @id @default(uuid())
+  club      Club      @relation(fields: [clubId], references: [id])
   clubId    String
-  court     Court?   @relation(fields: [courtId], references: [id])
+  court     Court?    @relation(fields: [courtId], references: [id])
   courtId   String?
   startTime Int
   endTime   Int
   price     Int
-  createdAt DateTime @default(now())
+  sportType SportType @default(PADEL) // Type of sport for this pricing rule
+  createdAt DateTime  @default(now())
 }
 
 model TrainingRequest {

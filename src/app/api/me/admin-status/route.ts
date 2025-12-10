@@ -18,6 +18,9 @@ export interface AssignedClub {
 
 /**
  * Admin status response type.
+ * 
+ * @deprecated This endpoint is deprecated. Use GET /api/me instead which returns
+ * the same information plus additional user data in a single request.
  */
 export interface AdminStatusResponse {
   isAdmin: boolean;
@@ -43,6 +46,10 @@ export interface AdminStatusResponse {
 
 /**
  * GET /api/me/admin-status
+ * 
+ * @deprecated This endpoint is deprecated and maintained only for backwards compatibility.
+ * Use GET /api/me instead which returns the same information plus additional user data
+ * in a single request.
  * 
  * Returns the admin status of the current user for client-side awareness.
  * This endpoint is used by the UI to determine what admin elements to show/hide.

@@ -117,7 +117,7 @@ export const BrandTerms = {
   SPORT_NAME: "Padel",
 
   /** The project/application name */
-  APP_NAME: "RSP",
+  APP_NAME: "ArenaOne",
 
   /** Incorrect variations to avoid */
   INCORRECT_TERMS: ["Paddle", "paddle", "PADDLE"] as const,

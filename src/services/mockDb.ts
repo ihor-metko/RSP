@@ -2,7 +2,7 @@
 // This module provides mock data and CRUD helpers for development when the database is unavailable.
 // See TODO_MOCK_CLEANUP.md for removal instructions.
 
-import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule, Coach, ClubGallery } from "@prisma/client";
+import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule, Coach, ClubGallery, AuditLog, AdminNotification } from "@prisma/client";
 
 // ============================================================================
 // Mock Data State (mutable at runtime for testing flows)
@@ -19,6 +19,8 @@ let mockBusinessHours: ClubBusinessHours[] = [];
 let mockCourtPriceRules: CourtPriceRule[] = [];
 let mockCoaches: Coach[] = [];
 let mockGalleryImages: ClubGallery[] = [];
+let mockAuditLogs: AuditLog[] = [];
+let mockAdminNotifications: AdminNotification[] = [];
 
 // ============================================================================
 // Initialization (called once to seed data)
@@ -37,6 +39,8 @@ export function initializeMockData() {
   mockCourtPriceRules = [];
   mockCoaches = [];
   mockGalleryImages = [];
+  mockAuditLogs = [];
+  mockAdminNotifications = [];
 
   // Create mock users
   mockUsers = [
@@ -149,7 +153,7 @@ export function initializeMockData() {
   // Create mock organizations
   mockOrganizations = [
     {
-      id: "org-1",
+      id: "64f3b281-c4cf-4fba-82a5-f4d20b0c7c29",
       name: "Padel Sports Inc",
       slug: "padel-sports-inc",
       contactEmail: "contact@padelsports.com",
@@ -281,6 +285,64 @@ export function initializeMockData() {
       createdAt: new Date("2024-03-01"),
       updatedAt: new Date("2024-03-01"),
     },
+    {
+      id: "club-4",
+      name: "Queens Sports Complex",
+      slug: "queens-sports-complex",
+      organizationId: "org-1",
+      createdById: "user-2",
+      shortDescription: "Modern multi-sport facility",
+      longDescription: "State-of-the-art facility with multiple courts and amenities",
+      location: "750 Queens Blvd",
+      city: "Queens",
+      country: "USA",
+      latitude: 40.7282,
+      longitude: -73.8514,
+      phone: "+1444444444",
+      email: "info@queenssports.com",
+      website: "https://queenssports.com",
+      socialLinks: JSON.stringify({ twitter: "@queenssports", instagram: "@queenssports" }),
+      contactInfo: "Book online or call us",
+      openingHours: "Mon-Sun: 5am-11pm",
+      logo: null,
+      heroImage: null,
+      defaultCurrency: "USD",
+      timezone: "America/New_York",
+      isPublic: true,
+      status: "draft",
+      tags: JSON.stringify(["modern", "multi-sport", "indoor"]),
+      createdAt: new Date("2024-04-01"),
+      updatedAt: new Date("2024-04-01"),
+    },
+    {
+      id: "club-5",
+      name: "Los Angeles Padel Club",
+      slug: "los-angeles-padel-club",
+      organizationId: "org-2",
+      createdById: "user-3",
+      shortDescription: "West Coast premier padel destination",
+      longDescription: "Beautiful outdoor courts with stunning views",
+      location: "888 Sunset Blvd",
+      city: "Los Angeles",
+      country: "USA",
+      latitude: 34.0522,
+      longitude: -118.2437,
+      phone: "+1555555555",
+      email: "info@lapadel.com",
+      website: "https://lapadel.com",
+      socialLinks: JSON.stringify({ instagram: "@lapadel" }),
+      contactInfo: "Visit us for a tour",
+      openingHours: "Daily: 7am-9pm",
+      logo: null,
+      heroImage: null,
+      defaultCurrency: "USD",
+      timezone: "America/Los_Angeles",
+      isPublic: true,
+      status: "active",
+      tags: JSON.stringify(["outdoor", "scenic", "premium"]),
+      createdAt: new Date("2024-05-01"),
+      updatedAt: new Date("2024-05-01"),
+    },
   ];
 
   // Create mock courts
@@ -375,6 +437,71 @@ export function initializeMockData() {
       defaultPriceCents: 8000,
       createdAt: new Date("2024-03-01"),
       updatedAt: new Date("2024-03-01"),
+    },
+    {
+      id: "court-8",
+      clubId: "club-4",
+      name: "Court Alpha",
+      slug: "queens-sports-complex-court-alpha",
+      type: "padel",
+      surface: "artificial_grass",
+      indoor: true,
+      isActive: true,
+      defaultPriceCents: 6000,
+      createdAt: new Date("2024-04-01"),
+      updatedAt: new Date("2024-04-01"),
+    },
+    {
+      id: "court-9",
+      clubId: "club-4",
+      name: "Court Beta",
+      slug: "queens-sports-complex-court-beta",
+      type: "padel",
+      surface: "artificial_grass",
+      indoor: true,
+      isActive: true,
+      defaultPriceCents: 6000,
+      createdAt: new Date("2024-04-01"),
+      updatedAt: new Date("2024-04-01"),
+    },
+    {
+      id: "court-10",
+      clubId: "club-5",
+      name: "Sunset Court 1",
+      slug: "los-angeles-padel-club-sunset-court-1",
+      type: "padel",
+      surface: "artificial_grass",
+      indoor: false,
+      isActive: true,
+      defaultPriceCents: 7000,
+      createdAt: new Date("2024-05-01"),
+      updatedAt: new Date("2024-05-01"),
+    },
+    {
+      id: "court-11",
+      clubId: "club-5",
+      name: "Sunset Court 2",
+      slug: "los-angeles-padel-club-sunset-court-2",
+      type: "padel",
+      surface: "artificial_grass",
+      indoor: false,
+      isActive: true,
+      defaultPriceCents: 7000,
+      createdAt: new Date("2024-05-01"),
+      updatedAt: new Date("2024-05-01"),
+    },
+    {
+      id: "court-12",
+      clubId: "club-5",
+      name: "Sunset Court 3",
+      slug: "los-angeles-padel-club-sunset-court-3",
+      type: "padel",
+      surface: "professional",
+      indoor: false,
+      isActive: true,
+      defaultPriceCents: 9000,
+      createdAt: new Date("2024-05-01"),
+      updatedAt: new Date("2024-05-01"),
     },
   ];
 
@@ -517,7 +644,7 @@ export function initializeMockData() {
   mockCourtPriceRules = [];
   for (const court of mockCourts) {
     const peakPriceCents = Math.floor(court.defaultPriceCents * 1.25);
-    
+
     // Weekday peak hours (5pm-9pm)
     for (let day = 1; day <= 5; day++) {
       mockCourtPriceRules.push({
@@ -643,6 +770,204 @@ export function initializeMockData() {
       createdAt: new Date("2024-03-01"),
     },
   ];
+
+  // Create mock audit logs for organization activity
+  const auditNow = new Date();
+  const oneDayAgo = new Date(auditNow);
+  oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+  const twoDaysAgo = new Date(auditNow);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  const threeDaysAgo = new Date(auditNow);
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  const fiveDaysAgo = new Date(auditNow);
+  fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
+  const sevenDaysAgo = new Date(auditNow);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  mockAuditLogs = [
+    // org-1 (Padel Sports Inc) activities
+    {
+      id: "audit-1",
+      actorId: "user-1",
+      action: "org.create",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ organizationName: "Padel Sports Inc" }),
+      createdAt: new Date("2024-01-01"),
+    },
+    {
+      id: "audit-2",
+      actorId: "user-2",
+      action: "org.update",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ changes: { contactEmail: "contact@padelsports.com" } }),
+      createdAt: sevenDaysAgo,
+    },
+    {
+      id: "audit-3",
+      actorId: "user-1",
+      action: "org.assign_admin",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ adminEmail: "orgadmin@example.com", adminName: "Org Admin" }),
+      createdAt: fiveDaysAgo,
+    },
+    {
+      id: "audit-4",
+      actorId: "user-2",
+      action: "org.update",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ changes: { website: "https://padelsports.com" } }),
+      createdAt: threeDaysAgo,
+    },
+    {
+      id: "audit-5",
+      actorId: "user-2",
+      action: "org.update",
+      targetType: "organization",
+      targetId: "org-1",
+      detail: JSON.stringify({ changes: { address: "123 Sports Ave" } }),
+      createdAt: twoDaysAgo,
+    },
+    // org-2 (Tennis & Padel Corp) activities
+    {
+      id: "audit-6",
+      actorId: "user-1",
+      action: "org.create",
+      targetType: "organization",
+      targetId: "org-2",
+      detail: JSON.stringify({ organizationName: "Tennis & Padel Corp" }),
+      createdAt: new Date("2024-01-01"),
+    },
+    {
+      id: "audit-7",
+      actorId: "user-3",
+      action: "org.update",
+      targetType: "organization",
+      targetId: "org-2",
+      detail: JSON.stringify({ changes: { contactEmail: "info@tennispadel.com" } }),
+      createdAt: fiveDaysAgo,
+    },
+    {
+      id: "audit-8",
+      actorId: "user-1",
+      action: "org.assign_admin",
+      targetType: "organization",
+      targetId: "org-2",
+      detail: JSON.stringify({ adminEmail: "clubadmin@example.com", adminName: "Club Admin" }),
+      createdAt: threeDaysAgo,
+    },
+    // org-3 (Archived Organization) activities
+    {
+      id: "audit-9",
+      actorId: "user-1",
+      action: "org.create",
+      targetType: "organization",
+      targetId: "org-3",
+      detail: JSON.stringify({ organizationName: "Archived Organization" }),
+      createdAt: new Date("2024-01-01"),
+    },
+    {
+      id: "audit-10",
+      actorId: "user-1",
+      action: "org.archive",
+      targetType: "organization",
+      targetId: "org-3",
+      detail: JSON.stringify({ reason: "No longer active" }),
+      createdAt: new Date("2024-06-01"),
+    },
+  ];
+
+  // Create mock admin notifications
+  const notifNow = new Date();
+  const oneHourAgo = new Date(notifNow);
+  oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+  const twoHoursAgo = new Date(notifNow);
+  twoHoursAgo.setHours(twoHoursAgo.getHours() - 2);
+  const fiveHoursAgo = new Date(notifNow);
+  fiveHoursAgo.setHours(fiveHoursAgo.getHours() - 5);
+  const oneDayAgoNotif = new Date(notifNow);
+  oneDayAgoNotif.setDate(oneDayAgoNotif.getDate() - 1);
+  const twoDaysAgoNotif = new Date(notifNow);
+  twoDaysAgoNotif.setDate(twoDaysAgoNotif.getDate() - 2);
+
+  const tomorrowSession = new Date(notifNow);
+  tomorrowSession.setDate(tomorrowSession.getDate() + 1);
+  tomorrowSession.setHours(10, 0, 0, 0);
+
+  const nextWeekSession = new Date(notifNow);
+  nextWeekSession.setDate(nextWeekSession.getDate() + 7);
+  nextWeekSession.setHours(14, 30, 0, 0);
+
+  mockAdminNotifications = [
+    {
+      id: "notif-1",
+      type: "REQUESTED",
+      playerId: "user-4",
+      coachId: "coach-1",
+      trainingRequestId: "tr-1",
+      bookingId: null,
+      sessionDate: tomorrowSession,
+      sessionTime: "10:00",
+      courtInfo: "Court 1 - Downtown Padel Club",
+      read: false,
+      createdAt: oneHourAgo,
+    },
+    {
+      id: "notif-2",
+      type: "ACCEPTED",
+      playerId: "user-5",
+      coachId: "coach-2",
+      trainingRequestId: "tr-2",
+      bookingId: "booking-mock-1",
+      sessionDate: nextWeekSession,
+      sessionTime: "14:30",
+      courtInfo: "Court 2 - Downtown Padel Club",
+      read: false,
+      createdAt: twoHoursAgo,
+    },
+    {
+      id: "notif-3",
+      type: "DECLINED",
+      playerId: "user-4",
+      coachId: "coach-3",
+      trainingRequestId: "tr-3",
+      bookingId: null,
+      sessionDate: null,
+      sessionTime: null,
+      courtInfo: null,
+      read: true,
+      createdAt: fiveHoursAgo,
+    },
+    {
+      id: "notif-4",
+      type: "REQUESTED",
+      playerId: "user-5",
+      coachId: "coach-1",
+      trainingRequestId: "tr-4",
+      bookingId: null,
+      sessionDate: tomorrowSession,
+      sessionTime: "15:00",
+      courtInfo: "Court 3 - Downtown Padel Club",
+      read: true,
+      createdAt: oneDayAgoNotif,
+    },
+    {
+      id: "notif-5",
+      type: "CANCELED",
+      playerId: "user-4",
+      coachId: "coach-2",
+      trainingRequestId: "tr-5",
+      bookingId: "booking-mock-2",
+      sessionDate: null,
+      sessionTime: null,
+      courtInfo: "Court A - Suburban Padel Center",
+      read: true,
+      createdAt: twoDaysAgoNotif,
+    },
+  ];
 }
 
 // Initialize data on module load
@@ -694,6 +1019,14 @@ export function getMockCoaches() {
 
 export function getMockGalleryImages() {
   return [...mockGalleryImages];
+}
+
+export function getMockAuditLogs() {
+  return [...mockAuditLogs];
+}
+
+export function getMockAdminNotifications() {
+  return [...mockAdminNotifications];
 }
 
 // ============================================================================
@@ -867,7 +1200,7 @@ export function deleteMockCourt(id: string): boolean {
   const index = mockCourts.findIndex((c) => c.id === id);
   if (index === -1) return false;
   mockCourts.splice(index, 1);
-  
+
   // Also delete associated price rules
   const priceRuleIndices: number[] = [];
   mockCourtPriceRules.forEach((pr, i) => {
@@ -875,8 +1208,65 @@ export function deleteMockCourt(id: string): boolean {
   });
   // Remove in reverse order to avoid index shifting
   priceRuleIndices.reverse().forEach((i) => mockCourtPriceRules.splice(i, 1));
-  
+
   return true;
+}
+
+// ============================================================================
+// Admin Notifications Helpers
+// ============================================================================
+
+export function findAdminNotificationById(id: string): AdminNotification | undefined {
+  return mockAdminNotifications.find((n) => n.id === id);
+}
+
+export function updateMockNotification(id: string, data: Partial<AdminNotification>): AdminNotification | null {
+  const index = mockAdminNotifications.findIndex((n) => n.id === id);
+  if (index === -1) return null;
+
+  mockAdminNotifications[index] = {
+    ...mockAdminNotifications[index],
+    ...data,
+  };
+  return mockAdminNotifications[index];
+}
+
+export function markAllMockNotificationsAsRead(): number {
+  let count = 0;
+  mockAdminNotifications.forEach((notification) => {
+    if (!notification.read) {
+      notification.read = true;
+      count++;
+    }
+  });
+  return count;
+}
+
+export function createMockAdminNotification(data: {
+  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
+  playerId: string;
+  coachId: string;
+  trainingRequestId?: string | null;
+  bookingId?: string | null;
+  sessionDate?: Date | null;
+  sessionTime?: string | null;
+  courtInfo?: string | null;
+}): AdminNotification {
+  const notification: AdminNotification = {
+    id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+    type: data.type,
+    playerId: data.playerId,
+    coachId: data.coachId,
+    trainingRequestId: data.trainingRequestId || null,
+    bookingId: data.bookingId || null,
+    sessionDate: data.sessionDate || null,
+    sessionTime: data.sessionTime || null,
+    courtInfo: data.courtInfo || null,
+    read: false,
+    createdAt: new Date(),
+  };
+  mockAdminNotifications.unshift(notification);
+  return notification;
 }
 
 // ============================================================================

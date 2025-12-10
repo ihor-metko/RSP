@@ -3,6 +3,7 @@
  */
 import { render, screen, fireEvent } from "@testing-library/react";
 import { useSession } from "next-auth/react";
+import { useUserStore } from "@/stores/useUserStore";
 import Header from "@/components/layout/Header";
 
 // Mock next-auth
@@ -66,6 +67,20 @@ jest.mock("@/hooks/useCurrentLocale", () => ({
 jest.mock("@/components/ui", () => ({
   DarkModeToggle: () => <button data-testid="dark-mode-toggle">Toggle Theme</button>,
   LanguageSwitcher: () => <button data-testid="language-switcher">Language</button>,
+  NotificationsDropdown: () => <div data-testid="notifications-dropdown">Notifications</div>,
+}));
+
+// Mock useUserStore
+jest.mock("@/stores/useUserStore", () => ({
+  useUserStore: jest.fn((selector) => {
+    const state = {
+      adminStatus: null,
+      user: null,
+      isLoggedIn: false,
+      isLoading: false,
+    };
+    return selector(state);
+  }),
 }));
 
 // Mock next/link
@@ -78,10 +93,21 @@ jest.mock("next/link", () => {
 });
 
 const mockUseSession = useSession as jest.Mock;
+const mockUseUserStore = useUserStore as unknown as jest.Mock;
 
 describe("Header Component", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset useUserStore mock to default non-admin state
+    mockUseUserStore.mockImplementation((selector) => {
+      const state = {
+        adminStatus: null,
+        user: null,
+        isLoggedIn: false,
+        isLoading: false,
+      };
+      return selector(state);
+    });
   });
 
   describe("Unauthenticated state", () => {
@@ -248,6 +274,109 @@ describe("Header Component", () => {
       fireEvent.click(profileButton);
       // Admin badge should be visible in dropdown
       expect(screen.getByText("Admin")).toBeInTheDocument();
+    });
+
+    it("does not show notifications dropdown for non-admin users", () => {
+      // Ensure adminStatus is null (non-admin)
+      mockUseUserStore.mockImplementation((selector) => {
+        const state = {
+          adminStatus: null,
+          user: null,
+          isLoggedIn: true,
+          isLoading: false,
+        };
+        return selector(state);
+      });
+
+      render(<Header />);
+      expect(screen.queryByTestId("notifications-dropdown")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Admin Notifications", () => {
+    beforeEach(() => {
+      mockUseSession.mockReturnValue({
+        data: {
+          user: {
+            id: "admin-1",
+            name: "Admin User",
+            email: "admin@test.com",
+            role: "super_admin",
+          },
+        },
+        status: "authenticated",
+      });
+
+      // Mock admin user with adminStatus
+      mockUseUserStore.mockImplementation((selector) => {
+        const state = {
+          adminStatus: {
+            isAdmin: true,
+            adminType: "root_admin",
+            isPrimaryOwner: false,
+          },
+          user: {
+            id: "admin-1",
+            name: "Admin User",
+            email: "admin@test.com",
+          },
+          isLoggedIn: true,
+          isLoading: false,
+        };
+        return selector(state);
+      });
+    });
+
+    it("shows notifications dropdown for admin users", () => {
+      render(<Header />);
+      expect(screen.getByTestId("notifications-dropdown")).toBeInTheDocument();
+    });
+
+    it("shows notifications dropdown for organization admins", () => {
+      mockUseUserStore.mockImplementation((selector) => {
+        const state = {
+          adminStatus: {
+            isAdmin: true,
+            adminType: "organization_admin",
+            isPrimaryOwner: false,
+          },
+          user: {
+            id: "org-admin-1",
+            name: "Org Admin",
+            email: "orgadmin@test.com",
+          },
+          isLoggedIn: true,
+          isLoading: false,
+        };
+        return selector(state);
+      });
+
+      render(<Header />);
+      expect(screen.getByTestId("notifications-dropdown")).toBeInTheDocument();
+    });
+
+    it("shows notifications dropdown for club admins", () => {
+      mockUseUserStore.mockImplementation((selector) => {
+        const state = {
+          adminStatus: {
+            isAdmin: true,
+            adminType: "club_admin",
+            isPrimaryOwner: false,
+            assignedClub: { id: "club-1", name: "Test Club" },
+          },
+          user: {
+            id: "club-admin-1",
+            name: "Club Admin",
+            email: "clubadmin@test.com",
+          },
+          isLoggedIn: true,
+          isLoading: false,
+        };
+        return selector(state);
+      });
+
+      render(<Header />);
+      expect(screen.getByTestId("notifications-dropdown")).toBeInTheDocument();
     });
   });
 

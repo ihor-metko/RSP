@@ -1,6 +1,6 @@
 # PageHeader Component
 
-A universal, reusable page header component for both player and admin pages in the RSP platform.
+A universal, reusable page header component for both player and admin pages in the ArenaOne platform.
 
 ## Features
 

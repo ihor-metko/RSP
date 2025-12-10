@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     const city = searchParams.get("city") || "";
     const status = searchParams.get("status") || "";
     const organizationId = searchParams.get("organizationId") || "";
+    const sportType = searchParams.get("sportType") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -31,6 +32,13 @@ export async function GET(request: Request) {
       const clubs = await mockGetClubs({
         adminType: authResult.adminType,
         managedIds: authResult.managedIds,
+        search,
+        city,
+        status,
+        organizationId,
+        sportType,
+        sortBy,
+        sortOrder,
       });
       return NextResponse.json(clubs);
     }
@@ -82,6 +90,16 @@ export async function GET(request: Request) {
       whereClause = { ...whereClause, organizationId };
     }
 
+    // Apply sport type filter
+    if (sportType) {
+      whereClause = {
+        ...whereClause,
+        supportedSports: {
+          has: sportType,
+        },
+      };
+    }
+
     // Determine sort order
     const orderBy: Prisma.ClubOrderByWithRelationInput = {};
     if (sortBy === "name") {
@@ -117,6 +135,7 @@ export async function GET(request: Request) {
         tags: true,
         isPublic: true,
         status: true,
+        supportedSports: true,
         createdAt: true,
         organizationId: true,
         organization: {
@@ -181,6 +200,7 @@ export async function GET(request: Request) {
         tags: club.tags,
         isPublic: club.isPublic,
         status: club.status,
+        supportedSports: club.supportedSports,
         createdAt: club.createdAt,
         indoorCount,
         outdoorCount,

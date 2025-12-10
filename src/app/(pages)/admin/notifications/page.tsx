@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { IMLink } from "@/components/ui";
 import { AdminNotificationsPanel } from "@/components/admin/AdminNotifications";
-import { NotificationBell } from "@/components/admin/NotificationBell";
 
 
 export default function AdminNotificationsPage() {
@@ -40,9 +39,6 @@ export default function AdminNotificationsPage() {
           <p className="rsp-subtitle text-gray-500 mt-2">
             Track all training booking events
           </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <NotificationBell />
         </div>
       </header>
 

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { MeResponse, AdminStatus, MembershipInfo, ClubMembershipInfo } from "@/app/api/me/route";
 
 /**
  * User object type for the store
@@ -30,15 +31,6 @@ export const USER_ROLE = {
 } as const;
 
 /**
- * Admin status response from API
- */
-interface AdminStatusResponse {
-  isAdmin: boolean;
-  adminType: "root_admin" | "organization_admin" | "club_admin" | "none";
-  managedIds: string[];
-}
-
-/**
  * User store state interface
  */
 interface UserState {
@@ -47,16 +39,25 @@ interface UserState {
   roles: string[];
   isLoggedIn: boolean;
   isLoading: boolean;
+  adminStatus: AdminStatus | null;
+  memberships: MembershipInfo[];
+  clubMemberships: ClubMembershipInfo[];
 
   // Actions
   setUser: (user: User | null) => void;
   setRoles: (roles: string[]) => void;
   loadUser: () => Promise<void>;
+  reloadUser: () => Promise<void>;
   clearUser: () => void;
   
   // Role checks
   hasRole: (role: string) => boolean;
   hasAnyRole: (roles: string[]) => boolean;
+  
+  // Admin checks
+  isAdmin: () => boolean;
+  isOrgAdmin: (orgId?: string) => boolean;
+  isClubAdmin: (clubId?: string) => boolean;
 }
 
 /**
@@ -97,6 +98,9 @@ export const useUserStore = create<UserState>((set, get) => ({
   roles: [],
   isLoggedIn: false,
   isLoading: false,
+  adminStatus: null,
+  memberships: [],
+  clubMemberships: [],
 
   /**
    * Set the current user and update isLoggedIn status
@@ -117,12 +121,12 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   /**
    * Load the current user from the API
-   * Fetches user info from /api/me and admin status from /api/me/admin-status
+   * Fetches consolidated user info and admin status from /api/me
    */
   loadUser: async () => {
     set({ isLoading: true });
     try {
-      // Fetch user info
+      // Fetch consolidated user info and admin status
       const meResponse = await fetch("/api/me");
       
       if (!meResponse.ok) {
@@ -132,38 +136,34 @@ export const useUserStore = create<UserState>((set, get) => ({
           roles: [],
           isLoggedIn: false,
           isLoading: false,
+          adminStatus: null,
+          memberships: [],
+          clubMemberships: [],
         });
         return;
       }
 
-      const userData = await meResponse.json();
+      const meData: MeResponse = await meResponse.json();
       
       // Build user object
       const user: User = {
-        id: userData.userId,
-        email: userData.email,
-        name: userData.name,
-        isRoot: userData.isRoot,
+        id: meData.userId,
+        email: meData.email,
+        name: meData.name,
+        isRoot: meData.isRoot,
       };
 
-      // Fetch admin status to determine roles
-      const adminStatusResponse = await fetch("/api/me/admin-status");
+      // Map admin type to role
       let roles: string[] = [];
-
-      if (adminStatusResponse.ok) {
-        const adminStatus: AdminStatusResponse = await adminStatusResponse.json();
-        
-        // Map admin type to role
-        const roleMap: Record<string, string> = {
-          [ADMIN_TYPE.ROOT]: USER_ROLE.ROOT_ADMIN,
-          [ADMIN_TYPE.ORGANIZATION]: USER_ROLE.ORGANIZATION_ADMIN,
-          [ADMIN_TYPE.CLUB]: USER_ROLE.CLUB_ADMIN,
-        };
-        
-        const role = roleMap[adminStatus.adminType];
-        if (role) {
-          roles = [role];
-        }
+      const roleMap: Record<string, string> = {
+        [ADMIN_TYPE.ROOT]: USER_ROLE.ROOT_ADMIN,
+        [ADMIN_TYPE.ORGANIZATION]: USER_ROLE.ORGANIZATION_ADMIN,
+        [ADMIN_TYPE.CLUB]: USER_ROLE.CLUB_ADMIN,
+      };
+      
+      const role = roleMap[meData.adminStatus.adminType];
+      if (role) {
+        roles = [role];
       }
 
       set({
@@ -171,6 +171,9 @@ export const useUserStore = create<UserState>((set, get) => ({
         roles,
         isLoggedIn: true,
         isLoading: false,
+        adminStatus: meData.adminStatus,
+        memberships: meData.memberships,
+        clubMemberships: meData.clubMemberships,
       });
     } catch (error) {
       console.error("Failed to load user:", error);
@@ -179,8 +182,19 @@ export const useUserStore = create<UserState>((set, get) => ({
         roles: [],
         isLoggedIn: false,
         isLoading: false,
+        adminStatus: null,
+        memberships: [],
+        clubMemberships: [],
       });
     }
+  },
+
+  /**
+   * Force reload the current user from the API
+   * Use this after role changes or membership updates
+   */
+  reloadUser: async () => {
+    await get().loadUser();
   },
 
   /**
@@ -192,6 +206,9 @@ export const useUserStore = create<UserState>((set, get) => ({
       roles: [],
       isLoggedIn: false,
       isLoading: false,
+      adminStatus: null,
+      memberships: [],
+      clubMemberships: [],
     });
   },
 
@@ -224,6 +241,76 @@ export const useUserStore = create<UserState>((set, get) => ({
   hasAnyRole: (roles: string[]) => {
     const { roles: userRoles } = get();
     return roles.some(role => userRoles.includes(role));
+  },
+
+  /**
+   * Check if the current user is an admin (any admin type)
+   * 
+   * @returns true if the user is any type of admin, false otherwise
+   */
+  isAdmin: () => {
+    const { adminStatus } = get();
+    return adminStatus?.isAdmin ?? false;
+  },
+
+  /**
+   * Check if the current user is an organization admin
+   * 
+   * @param orgId - Optional organization ID to check if user is admin of that specific org
+   * @returns true if the user is an org admin (and of the specific org if provided), false otherwise
+   */
+  isOrgAdmin: (orgId?: string) => {
+    const { adminStatus, user } = get();
+    
+    // Root admins have access to all organizations
+    if (user?.isRoot) {
+      return true;
+    }
+
+    if (adminStatus?.adminType !== "organization_admin") {
+      return false;
+    }
+
+    // If no specific orgId is provided, just check if user is an org admin
+    if (!orgId) {
+      return true;
+    }
+
+    // Check if user manages the specific organization
+    return adminStatus.managedIds.includes(orgId);
+  },
+
+  /**
+   * Check if the current user is a club admin
+   * 
+   * @param clubId - Optional club ID to check if user is admin of that specific club
+   * @returns true if the user is a club admin (and of the specific club if provided), false otherwise
+   * 
+   * Note: Organization admins have access to all clubs within their organizations.
+   * This check only verifies if the user has the CLUB_ADMIN role for a specific club.
+   * For checking access to clubs within an organization's scope, use server-side
+   * authorization with the full context.
+   */
+  isClubAdmin: (clubId?: string) => {
+    const { adminStatus, user } = get();
+    
+    // Root admins have access to all clubs
+    if (user?.isRoot) {
+      return true;
+    }
+
+    // Check if user has club_admin role
+    if (adminStatus?.adminType !== "club_admin") {
+      return false;
+    }
+
+    // If no specific clubId is provided, just check if user is a club admin
+    if (!clubId) {
+      return true;
+    }
+
+    // Check if user manages the specific club
+    return adminStatus.managedIds.includes(clubId);
   },
 }));
 
