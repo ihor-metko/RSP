@@ -340,9 +340,33 @@ describe("AdminDashboardPage (Unified)", () => {
 
     render(<AdminDashboardPage />);
 
+    // Verify all components are displayed
     await waitFor(() => {
+      // Verify club name is displayed
       expect(screen.getByText("Test Club")).toBeInTheDocument();
-    }, { timeout: 5000 });
+
+      // Verify "Courts" stat card is displayed with correct value
+      expect(screen.getByText("Courts")).toBeInTheDocument();
+      expect(screen.getByText("4")).toBeInTheDocument();
+
+      // Verify "Bookings Today" stat card is displayed
+      expect(screen.getByText("Bookings Today")).toBeInTheDocument();
+      expect(screen.getByText("8")).toBeInTheDocument();
+
+      // Verify BookingsOverview component is rendered with correct data
+      const bookingsOverview = screen.getByTestId("bookings-overview");
+      expect(bookingsOverview).toBeInTheDocument();
+      expect(screen.getByTestId("active-bookings")).toHaveTextContent("12");
+      expect(screen.getByTestId("past-bookings")).toHaveTextContent("30");
+
+      // Verify Dashboard Graphs section is rendered
+      expect(screen.getByTestId("dashboard-graphs")).toBeInTheDocument();
+
+      // Verify navigation links are present
+      expect(screen.getByText("Manage Club")).toBeInTheDocument();
+      expect(screen.getByText("Manage Courts")).toBeInTheDocument();
+      expect(screen.getByText("View Bookings")).toBeInTheDocument();
+    });
   });
 
   it("should display multiple organizations for org admins", async () => {
