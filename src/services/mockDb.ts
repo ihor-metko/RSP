@@ -153,7 +153,7 @@ export function initializeMockData() {
   // Create mock organizations
   mockOrganizations = [
     {
-      id: "org-1",
+      id: "64f3b281-c4cf-4fba-82a5-f4d20b0c7c29",
       name: "Padel Sports Inc",
       slug: "padel-sports-inc",
       contactEmail: "contact@padelsports.com",
@@ -644,7 +644,7 @@ export function initializeMockData() {
   mockCourtPriceRules = [];
   for (const court of mockCourts) {
     const peakPriceCents = Math.floor(court.defaultPriceCents * 1.25);
-    
+
     // Weekday peak hours (5pm-9pm)
     for (let day = 1; day <= 5; day++) {
       mockCourtPriceRules.push({
@@ -1200,7 +1200,7 @@ export function deleteMockCourt(id: string): boolean {
   const index = mockCourts.findIndex((c) => c.id === id);
   if (index === -1) return false;
   mockCourts.splice(index, 1);
-  
+
   // Also delete associated price rules
   const priceRuleIndices: number[] = [];
   mockCourtPriceRules.forEach((pr, i) => {
@@ -1208,7 +1208,7 @@ export function deleteMockCourt(id: string): boolean {
   });
   // Remove in reverse order to avoid index shifting
   priceRuleIndices.reverse().forEach((i) => mockCourtPriceRules.splice(i, 1));
-  
+
   return true;
 }
 

@@ -504,13 +504,39 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
   // Admin status is now loaded from the store via UserStoreInitializer
   // No need to fetch it separately here
 
-  // Check if user is a club admin
+  // Check if user is a club admin or organization admin
   const isClubAdmin = adminStatus?.adminType === "club_admin";
+  const isOrgAdmin = adminStatus?.adminType === "organization_admin";
 
   // Get filtered navigation items based on isRoot status and admin type
   const navItems = useMemo(() => {
     const allItems = getNavItems();
     let filteredItems = filterNavByRoot(allItems, isRoot, isClubAdmin);
+
+    // For OrganizationAdmin (SuperAdmin), insert a direct link to their organization after Dashboard
+    // Only show if they have exactly one organization (single org scenario)
+    // For multiple orgs, could link to /admin/organizations filtered to their orgs (future enhancement)
+    if (isOrgAdmin && adminStatus?.managedIds && adminStatus.managedIds.length === 1) {
+      const orgId = adminStatus.managedIds[0];
+      const orgLink: NavItem = {
+        id: "my-organization",
+        href: `/admin/organizations/${orgId}`,
+        labelKey: "sidebar.organization",
+        icon: <OrganizationsIcon />,
+      };
+
+      // Insert after dashboard
+      const dashboardIndex = filteredItems.findIndex(item => item.id === "dashboard");
+      if (dashboardIndex >= 0) {
+        filteredItems = [
+          ...filteredItems.slice(0, dashboardIndex + 1),
+          orgLink,
+          ...filteredItems.slice(dashboardIndex + 1),
+        ];
+      } else {
+        filteredItems = [orgLink, ...filteredItems];
+      }
+    }
 
     // For ClubAdmin, insert a direct link to their assigned club after Dashboard
     if (isClubAdmin && adminStatus?.assignedClub) {
@@ -536,7 +562,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
     }
 
     return filteredItems;
-  }, [isRoot, isClubAdmin, adminStatus?.assignedClub]);
+  }, [isRoot, isClubAdmin, isOrgAdmin, adminStatus?.assignedClub, adminStatus?.managedIds]);
 
   // Close sidebar when clicking outside on mobile
   const handleClickOutside = useCallback(
