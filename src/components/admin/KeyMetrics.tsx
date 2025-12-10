@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { MetricCardSkeleton } from "@/components/ui/skeletons";
 import "./KeyMetrics.css";
 
 /**
@@ -159,13 +160,7 @@ export default function KeyMetrics({
     return (
       <div className="im-metrics-grid" role="list" aria-busy="true">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="im-metric-card im-metric-card--loading">
-            <div className="im-metric-skeleton im-metric-skeleton--icon" />
-            <div className="im-metric-skeleton-content">
-              <div className="im-metric-skeleton im-metric-skeleton--value" />
-              <div className="im-metric-skeleton im-metric-skeleton--title" />
-            </div>
-          </div>
+          <MetricCardSkeleton key={i} size="lg" variant="stat" />
         ))}
       </div>
     );
