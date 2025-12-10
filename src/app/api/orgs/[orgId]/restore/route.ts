@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireOrganizationAdmin } from "@/lib/requireRole";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
-
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 
 /**
- * POST /api/orgs/[orgId]/archive
- * Soft-archive the organization (set archivedAt).
+ * POST /api/orgs/[orgId]/restore
+ * Restore a soft-archived organization (clear archivedAt).
  * Allowed: isRoot OR ORGANIZATION_ADMIN of this org
  */
 export async function POST(
@@ -25,9 +24,9 @@ export async function POST(
 
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
-      const { mockArchiveOrganizationHandler } = await import("@/services/mockApiHandlers");
+      const { mockRestoreOrganizationHandler } = await import("@/services/mockApiHandlers");
       try {
-        const result = await mockArchiveOrganizationHandler({
+        const result = await mockRestoreOrganizationHandler({
           orgId,
           userId: authResult.userId,
         });
@@ -58,19 +57,19 @@ export async function POST(
       );
     }
 
-    // Check if already archived
-    if (organization.archivedAt) {
+    // Check if not archived
+    if (!organization.archivedAt) {
       return NextResponse.json(
-        { error: "Organization is already archived" },
+        { error: "Organization is not archived" },
         { status: 400 }
       );
     }
 
-    // Archive the organization
-    const archivedOrganization = await prisma.organization.update({
+    // Restore the organization
+    const restoredOrganization = await prisma.organization.update({
       where: { id: orgId },
       data: {
-        archivedAt: new Date(),
+        archivedAt: null,
       },
       include: {
         createdBy: {
@@ -89,7 +88,7 @@ export async function POST(
     // Create audit log
     await auditLog(
       authResult.userId,
-      AuditAction.ORG_ARCHIVE,
+      AuditAction.ORG_RESTORE,
       TargetType.ORGANIZATION,
       orgId,
       {
@@ -100,19 +99,19 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: "Organization archived successfully",
+      message: "Organization restored successfully",
       organization: {
-        id: archivedOrganization.id,
-        name: archivedOrganization.name,
-        slug: archivedOrganization.slug,
-        archivedAt: archivedOrganization.archivedAt,
-        createdAt: archivedOrganization.createdAt,
-        clubCount: archivedOrganization._count.clubs,
+        id: restoredOrganization.id,
+        name: restoredOrganization.name,
+        slug: restoredOrganization.slug,
+        archivedAt: restoredOrganization.archivedAt,
+        createdAt: restoredOrganization.createdAt,
+        clubCount: restoredOrganization._count.clubs,
       },
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Error archiving organization:", error);
+      console.error("Error restoring organization:", error);
     }
     return NextResponse.json(
       { error: "Internal server error" },

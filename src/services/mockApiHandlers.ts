@@ -26,10 +26,20 @@ import {
   deleteMockBooking,
   createMockClub,
   createMockOrganization,
+  createMockUser,
   updateMockCourt,
   deleteMockCourt,
   updateMockNotification,
   markAllMockNotificationsAsRead,
+  updateMockOrganization,
+  archiveMockOrganization,
+  restoreMockOrganization,
+  deleteMockOrganization,
+  findMembershipByUserAndOrg,
+  findOrganizationBySlug,
+  createMockMembership,
+  updateMockMembership,
+  createMockAuditLog,
 } from "./mockDb";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
@@ -1488,5 +1498,588 @@ export async function mockMarkAllNotificationsAsRead() {
   return {
     message: `Marked ${count} notification(s) as read`,
     count,
+  };
+}
+
+// ============================================================================
+// Mock Organization Management API (Enhanced)
+// ============================================================================
+
+import { simulateLatency, checkErrorSimulation } from "./mockConfig";
+import type { Organization, Membership } from "@prisma/client";
+
+/**
+ * Helper to generate slug from name
+ */
+function generateSlug(name: string): string {
+  const slug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (!slug) {
+    return `org-${Date.now()}`;
+  }
+
+  return slug;
+}
+
+/**
+ * Mock handler for creating an organization
+ */
+export async function mockCreateOrganizationHandler(data: {
+  name: string;
+  slug?: string;
+  supportedSports?: string[];
+  createdById: string;
+}) {
+  // Simulate latency
+  await simulateLatency();
+
+  // Check for error simulation
+  const errorSim = checkErrorSimulation("create");
+  if (errorSim) {
+    if (errorSim.errorType === "duplicate_slug") {
+      throw { status: 409, message: "An organization with this slug already exists" };
+    } else if (errorSim.errorType === "validation_error") {
+      throw { status: 400, message: "Organization name is required" };
+    } else if (errorSim.errorType === "permission_error") {
+      throw { status: 403, message: "You do not have permission to create organizations" };
+    } else {
+      throw { status: errorSim.statusCode, message: errorSim.message };
+    }
+  }
+
+  // Validate name
+  if (!data.name || typeof data.name !== "string" || data.name.trim().length === 0) {
+    throw { status: 400, message: "Organization name is required" };
+  }
+
+  // Generate slug
+  const finalSlug = data.slug?.trim() || generateSlug(data.name);
+
+  // Check for duplicate slug
+  const existingOrg = findOrganizationBySlug(finalSlug);
+  if (existingOrg) {
+    throw { status: 409, message: "An organization with this slug already exists" };
+  }
+
+  // Create organization
+  const org = createMockOrganization({
+    name: data.name.trim(),
+    slug: finalSlug,
+    createdById: data.createdById,
+    supportedSports: data.supportedSports || ["PADEL"],
+  });
+
+  // Create audit log
+  createMockAuditLog({
+    actorId: data.createdById,
+    action: "org.create",
+    targetType: "organization",
+    targetId: org.id,
+    detail: {
+      organizationName: org.name,
+      slug: org.slug,
+    },
+  });
+
+  return {
+    id: org.id,
+    name: org.name,
+    slug: org.slug,
+    contactEmail: org.contactEmail,
+    contactPhone: org.contactPhone,
+    website: org.website,
+    address: org.address,
+    archivedAt: org.archivedAt,
+    createdAt: org.createdAt,
+    updatedAt: org.updatedAt,
+    createdBy: { id: org.createdById, name: null, email: "mock@example.com" },
+    clubCount: 0,
+    superAdmin: null,
+    supportedSports: org.supportedSports,
+  };
+}
+
+/**
+ * Mock handler for updating an organization
+ */
+export async function mockUpdateOrganizationHandler(data: {
+  orgId: string;
+  name?: string;
+  slug?: string;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  website?: string | null;
+  address?: string | null;
+  metadata?: Record<string, unknown> | null;
+  supportedSports?: string[];
+  userId: string;
+}) {
+  // Simulate latency
+  await simulateLatency();
+
+  // Check for error simulation
+  const errorSim = checkErrorSimulation("update");
+  if (errorSim) {
+    if (errorSim.errorType === "duplicate_slug") {
+      throw { status: 409, message: "An organization with this slug already exists" };
+    } else if (errorSim.errorType === "validation_error") {
+      throw { status: 400, message: "Organization name cannot be empty" };
+    } else if (errorSim.errorType === "permission_error") {
+      throw { status: 403, message: "You do not have permission to update this organization" };
+    } else if (errorSim.errorType === "not_found") {
+      throw { status: 404, message: "Organization not found" };
+    } else {
+      throw { status: errorSim.statusCode, message: errorSim.message };
+    }
+  }
+
+  const org = findOrganizationById(data.orgId);
+  if (!org) {
+    throw { status: 404, message: "Organization not found" };
+  }
+
+  // Check if archived
+  if (org.archivedAt) {
+    throw { status: 400, message: "Cannot update archived organization" };
+  }
+
+  // Validate name if provided
+  if (data.name !== undefined) {
+    if (typeof data.name !== "string" || data.name.trim().length === 0) {
+      throw { status: 400, message: "Organization name cannot be empty" };
+    }
+  }
+
+  // Determine final slug
+  let finalSlug = org.slug;
+  const trimmedName = data.name?.trim();
+  if (data.slug !== undefined) {
+    finalSlug = data.slug.trim() || generateSlug(trimmedName || org.name);
+  } else if (trimmedName && trimmedName !== org.name) {
+    finalSlug = generateSlug(trimmedName);
+  }
+
+  // Check slug conflict
+  if (finalSlug !== org.slug) {
+    const existingOrg = findOrganizationBySlug(finalSlug);
+    if (existingOrg && existingOrg.id !== data.orgId) {
+      throw { status: 409, message: "An organization with this slug already exists" };
+    }
+  }
+
+  // Build update data
+  const updateData: Partial<Organization> = {};
+  if (data.name !== undefined) updateData.name = data.name.trim();
+  if (data.slug !== undefined || data.name !== undefined) updateData.slug = finalSlug;
+  if (data.contactEmail !== undefined) updateData.contactEmail = data.contactEmail?.trim() || null;
+  if (data.contactPhone !== undefined) updateData.contactPhone = data.contactPhone?.trim() || null;
+  if (data.website !== undefined) updateData.website = data.website?.trim() || null;
+  if (data.address !== undefined) updateData.address = data.address?.trim() || null;
+  if (data.metadata !== undefined) {
+    updateData.metadata = data.metadata ? JSON.stringify(data.metadata) : null;
+  }
+
+  // Update organization
+  const updatedOrg = updateMockOrganization(data.orgId, updateData);
+  if (!updatedOrg) {
+    throw { status: 500, message: "Failed to update organization" };
+  }
+
+  // Create audit log
+  createMockAuditLog({
+    actorId: data.userId,
+    action: "org.update",
+    targetType: "organization",
+    targetId: data.orgId,
+    detail: {
+      changes: updateData,
+      previousName: org.name,
+      previousSlug: org.slug,
+    },
+  });
+
+  const clubs = getMockClubs().filter((c) => c.organizationId === data.orgId);
+
+  return {
+    id: updatedOrg.id,
+    name: updatedOrg.name,
+    slug: updatedOrg.slug,
+    contactEmail: updatedOrg.contactEmail,
+    contactPhone: updatedOrg.contactPhone,
+    website: updatedOrg.website,
+    address: updatedOrg.address,
+    metadata: updatedOrg.metadata ? JSON.parse(updatedOrg.metadata) : null,
+    archivedAt: updatedOrg.archivedAt,
+    createdAt: updatedOrg.createdAt,
+    updatedAt: updatedOrg.updatedAt,
+    createdBy: { id: updatedOrg.createdById, name: null, email: "mock@example.com" },
+    clubCount: clubs.length,
+  };
+}
+
+/**
+ * Mock handler for archiving an organization
+ */
+export async function mockArchiveOrganizationHandler(data: {
+  orgId: string;
+  userId: string;
+}) {
+  // Simulate latency
+  await simulateLatency();
+
+  // Check for error simulation
+  const errorSim = checkErrorSimulation("archive");
+  if (errorSim) {
+    if (errorSim.errorType === "not_found") {
+      throw { status: 404, message: "Organization not found" };
+    } else if (errorSim.errorType === "permission_error") {
+      throw { status: 403, message: "You do not have permission to archive this organization" };
+    } else if (errorSim.errorType === "conflict") {
+      throw { status: 400, message: "Organization is already archived" };
+    } else {
+      throw { status: errorSim.statusCode, message: errorSim.message };
+    }
+  }
+
+  const org = findOrganizationById(data.orgId);
+  if (!org) {
+    throw { status: 404, message: "Organization not found" };
+  }
+
+  if (org.archivedAt) {
+    throw { status: 400, message: "Organization is already archived" };
+  }
+
+  const archivedOrg = archiveMockOrganization(data.orgId);
+  if (!archivedOrg) {
+    throw { status: 500, message: "Failed to archive organization" };
+  }
+
+  const clubs = getMockClubs().filter((c) => c.organizationId === data.orgId);
+
+  // Create audit log
+  createMockAuditLog({
+    actorId: data.userId,
+    action: "org.archive",
+    targetType: "organization",
+    targetId: data.orgId,
+    detail: {
+      organizationName: org.name,
+      clubCount: clubs.length,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Organization archived successfully",
+    organization: {
+      id: archivedOrg.id,
+      name: archivedOrg.name,
+      slug: archivedOrg.slug,
+      archivedAt: archivedOrg.archivedAt,
+      createdAt: archivedOrg.createdAt,
+      clubCount: clubs.length,
+    },
+  };
+}
+
+/**
+ * Mock handler for restoring an archived organization
+ */
+export async function mockRestoreOrganizationHandler(data: {
+  orgId: string;
+  userId: string;
+}) {
+  // Simulate latency
+  await simulateLatency();
+
+  // Check for error simulation
+  const errorSim = checkErrorSimulation("restore");
+  if (errorSim) {
+    if (errorSim.errorType === "not_found") {
+      throw { status: 404, message: "Organization not found" };
+    } else if (errorSim.errorType === "permission_error") {
+      throw { status: 403, message: "You do not have permission to restore this organization" };
+    } else if (errorSim.errorType === "conflict") {
+      throw { status: 400, message: "Organization is not archived" };
+    } else {
+      throw { status: errorSim.statusCode, message: errorSim.message };
+    }
+  }
+
+  const org = findOrganizationById(data.orgId);
+  if (!org) {
+    throw { status: 404, message: "Organization not found" };
+  }
+
+  if (!org.archivedAt) {
+    throw { status: 400, message: "Organization is not archived" };
+  }
+
+  const restoredOrg = restoreMockOrganization(data.orgId);
+  if (!restoredOrg) {
+    throw { status: 500, message: "Failed to restore organization" };
+  }
+
+  const clubs = getMockClubs().filter((c) => c.organizationId === data.orgId);
+
+  // Create audit log
+  createMockAuditLog({
+    actorId: data.userId,
+    action: "org.restore",
+    targetType: "organization",
+    targetId: data.orgId,
+    detail: {
+      organizationName: org.name,
+      clubCount: clubs.length,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Organization restored successfully",
+    organization: {
+      id: restoredOrg.id,
+      name: restoredOrg.name,
+      slug: restoredOrg.slug,
+      archivedAt: restoredOrg.archivedAt,
+      createdAt: restoredOrg.createdAt,
+      clubCount: clubs.length,
+    },
+  };
+}
+
+/**
+ * Mock handler for deleting an organization
+ */
+export async function mockDeleteOrganizationHandler(data: {
+  orgId: string;
+  userId: string;
+  confirmOrgSlug?: string;
+}) {
+  // Simulate latency
+  await simulateLatency();
+
+  // Check for error simulation
+  const errorSim = checkErrorSimulation("delete");
+  if (errorSim) {
+    if (errorSim.errorType === "not_found") {
+      throw { status: 404, message: "Organization not found" };
+    } else if (errorSim.errorType === "permission_error") {
+      throw { status: 403, message: "You do not have permission to delete this organization" };
+    } else if (errorSim.errorType === "conflict") {
+      throw { status: 409, message: "Cannot delete organization with active clubs" };
+    } else {
+      throw { status: errorSim.statusCode, message: errorSim.message };
+    }
+  }
+
+  const org = findOrganizationById(data.orgId);
+  if (!org) {
+    throw { status: 404, message: "Organization not found" };
+  }
+
+  const clubs = getMockClubs().filter((c) => c.organizationId === data.orgId);
+  const clubIds = clubs.map((c) => c.id);
+  const courts = getMockCourts().filter((c) => clubIds.includes(c.clubId));
+  const courtIds = courts.map((c) => c.id);
+  const bookings = getMockBookings().filter((b) => courtIds.includes(b.courtId));
+  const activeBookings = bookings.filter(
+    (b) =>
+      ["pending", "paid", "reserved", "confirmed"].includes(b.status) &&
+      b.start >= new Date()
+  );
+
+  // Check for active clubs - require confirmation if any exist
+  if (clubs.length > 0) {
+    if (!data.confirmOrgSlug || data.confirmOrgSlug !== org.slug) {
+      throw {
+        status: 409,
+        message: "Cannot delete organization with active clubs",
+        clubCount: clubs.length,
+        requiresConfirmation: true,
+        hint: "Provide confirmOrgSlug matching the organization slug to confirm deletion",
+      };
+    }
+  }
+
+  // Check for active bookings
+  if (activeBookings.length > 0) {
+    if (!data.confirmOrgSlug || data.confirmOrgSlug !== org.slug) {
+      throw {
+        status: 409,
+        message: "Cannot delete organization with active bookings",
+        activeBookingsCount: activeBookings.length,
+        requiresConfirmation: true,
+        hint: "Provide confirmOrgSlug matching the organization slug to confirm deletion",
+      };
+    }
+  }
+
+  // Delete organization
+  const success = deleteMockOrganization(data.orgId);
+  if (!success) {
+    throw { status: 500, message: "Failed to delete organization" };
+  }
+
+  // Create audit log
+  createMockAuditLog({
+    actorId: data.userId,
+    action: "org.delete",
+    targetType: "organization",
+    targetId: data.orgId,
+    detail: {
+      organizationName: org.name,
+      organizationSlug: org.slug,
+      clubCount: clubs.length,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Organization deleted successfully",
+  };
+}
+
+/**
+ * Mock handler for reassigning organization owner
+ */
+export async function mockReassignOwnerHandler(data: {
+  orgId: string;
+  userId?: string;
+  email?: string;
+  name?: string;
+  actorId: string;
+}) {
+  // Simulate latency
+  await simulateLatency();
+
+  // Check for error simulation
+  const errorSim = checkErrorSimulation("reassignOwner");
+  if (errorSim) {
+    if (errorSim.errorType === "not_found") {
+      throw { status: 404, message: "Organization not found" };
+    } else if (errorSim.errorType === "permission_error") {
+      throw { status: 403, message: "You do not have permission to reassign organization owner" };
+    } else if (errorSim.errorType === "validation_error") {
+      throw { status: 400, message: "Either userId or email is required" };
+    } else {
+      throw { status: errorSim.statusCode, message: errorSim.message };
+    }
+  }
+
+  const org = findOrganizationById(data.orgId);
+  if (!org) {
+    throw { status: 404, message: "Organization not found" };
+  }
+
+  if (org.archivedAt) {
+    throw { status: 400, message: "Cannot modify archived organization" };
+  }
+
+  let targetUserId: string;
+  let isNewUser = false;
+
+  if (data.userId) {
+    const user = findUserById(data.userId);
+    if (!user) {
+      throw { status: 404, message: "User not found" };
+    }
+    targetUserId = data.userId;
+  } else if (data.email) {
+    const emailLower = data.email.toLowerCase().trim();
+    const users = getMockUsers();
+    const existingUser = users.find((u) => u.email === emailLower);
+
+    if (existingUser) {
+      targetUserId = existingUser.id;
+    } else {
+      if (!data.name || typeof data.name !== "string" || data.name.trim().length === 0) {
+        throw { status: 400, message: "Name is required for new user" };
+      }
+
+      const newUser = createMockUser({
+        name: data.name.trim(),
+        email: emailLower,
+        isRoot: false,
+      });
+      targetUserId = newUser.id;
+      isNewUser = true;
+    }
+  } else {
+    throw { status: 400, message: "Either userId or email is required" };
+  }
+
+  // Find current primary owner
+  const memberships = getMockMemberships();
+  const currentOwner = memberships.find(
+    (m) =>
+      m.organizationId === data.orgId &&
+      m.role === "ORGANIZATION_ADMIN" &&
+      m.isPrimaryOwner
+  );
+
+  // Update current owner if exists
+  if (currentOwner) {
+    updateMockMembership(currentOwner.id, { isPrimaryOwner: false });
+  }
+
+  // Check if target user already has a membership
+  const existingMembership = findMembershipByUserAndOrg(targetUserId, data.orgId);
+
+  if (existingMembership) {
+    updateMockMembership(existingMembership.id, {
+      role: "ORGANIZATION_ADMIN",
+      isPrimaryOwner: true,
+    });
+  } else {
+    createMockMembership({
+      userId: targetUserId,
+      organizationId: data.orgId,
+      role: "ORGANIZATION_ADMIN",
+      isPrimaryOwner: true,
+    });
+  }
+
+  const newOwner = findUserById(targetUserId);
+
+  // Create audit log
+  createMockAuditLog({
+    actorId: data.actorId,
+    action: "org.reassign_owner",
+    targetType: "organization",
+    targetId: data.orgId,
+    detail: {
+      previousOwnerId: currentOwner?.userId,
+      previousOwnerEmail: currentOwner ? findUserById(currentOwner.userId)?.email : null,
+      newOwnerId: targetUserId,
+      newOwnerEmail: newOwner?.email,
+      isNewUser,
+    },
+  });
+
+  return {
+    success: true,
+    message: "Primary owner reassigned successfully",
+    previousOwner: currentOwner
+      ? {
+          id: currentOwner.userId,
+          name: findUserById(currentOwner.userId)?.name || null,
+          email: findUserById(currentOwner.userId)?.email || "",
+        }
+      : null,
+    newOwner: newOwner
+      ? {
+          id: newOwner.id,
+          name: newOwner.name,
+          email: newOwner.email,
+        }
+      : null,
+    isNewUser,
   };
 }

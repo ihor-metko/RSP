@@ -259,6 +259,31 @@ export async function PUT(
     const body = await request.json();
     const { name, slug, contactEmail, contactPhone, website, address, metadata } = body;
 
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const { mockUpdateOrganizationHandler } = await import("@/services/mockApiHandlers");
+      try {
+        const result = await mockUpdateOrganizationHandler({
+          orgId,
+          name,
+          slug,
+          contactEmail,
+          contactPhone,
+          website,
+          address,
+          metadata,
+          userId: authResult.userId,
+        });
+        return NextResponse.json(result);
+      } catch (error: unknown) {
+        const err = error as { status?: number; message?: string };
+        return NextResponse.json(
+          { error: err.message || "Internal server error" },
+          { status: err.status || 500 }
+        );
+      }
+    }
+
     // Verify organization exists
     const organization = await prisma.organization.findUnique({
       where: { id: orgId },

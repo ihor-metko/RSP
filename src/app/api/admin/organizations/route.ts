@@ -137,6 +137,26 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, slug, supportedSports } = body;
 
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const { mockCreateOrganizationHandler } = await import("@/services/mockApiHandlers");
+      try {
+        const result = await mockCreateOrganizationHandler({
+          name,
+          slug,
+          supportedSports,
+          createdById: authResult.userId,
+        });
+        return NextResponse.json(result, { status: 201 });
+      } catch (error: unknown) {
+        const err = error as { status?: number; message?: string };
+        return NextResponse.json(
+          { error: err.message || "Internal server error" },
+          { status: err.status || 500 }
+        );
+      }
+    }
+
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(
         { error: "Organization name is required" },

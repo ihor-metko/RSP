@@ -7,6 +7,7 @@ export const AuditAction = {
   ORG_CREATE: "org.create",
   ORG_UPDATE: "org.update",
   ORG_ARCHIVE: "org.archive",
+  ORG_RESTORE: "org.restore",
   ORG_DELETE: "org.delete",
   ORG_REASSIGN_OWNER: "org.reassign_owner",
   ORG_ASSIGN_ADMIN: "org.assign_admin",

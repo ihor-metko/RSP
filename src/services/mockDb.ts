@@ -161,6 +161,7 @@ export function initializeMockData() {
       website: "https://padelsports.com",
       address: "123 Sports Ave",
       metadata: JSON.stringify({ region: "North" }),
+      supportedSports: ["PADEL"],
       createdById: "user-1",
       archivedAt: null,
       createdAt: new Date("2024-01-01"),
@@ -175,6 +176,7 @@ export function initializeMockData() {
       website: "https://tennispadel.com",
       address: "456 Court St",
       metadata: JSON.stringify({ region: "South" }),
+      supportedSports: ["TENNIS", "PADEL"],
       createdById: "user-1",
       archivedAt: null,
       createdAt: new Date("2024-01-01"),
@@ -189,6 +191,7 @@ export function initializeMockData() {
       website: null,
       address: null,
       metadata: null,
+      supportedSports: ["PADEL"],
       createdById: "user-1",
       archivedAt: new Date("2024-06-01"),
       createdAt: new Date("2024-01-01"),
@@ -1165,16 +1168,19 @@ export function createMockClub(data: {
 export function createMockOrganization(data: {
   name: string;
   createdById: string;
+  slug?: string;
+  supportedSports?: string[];
 }): Organization {
   const org: Organization = {
     id: generateMockId("org"),
     name: data.name,
-    slug: data.name.toLowerCase().replace(/\s+/g, "-"),
+    slug: data.slug || data.name.toLowerCase().replace(/\s+/g, "-"),
     contactEmail: null,
     contactPhone: null,
     website: null,
     address: null,
     metadata: null,
+    supportedSports: data.supportedSports || ["PADEL"],
     createdById: data.createdById,
     archivedAt: null,
     createdAt: new Date(),
@@ -1182,6 +1188,118 @@ export function createMockOrganization(data: {
   };
   mockOrganizations.push(org);
   return org;
+}
+
+export function updateMockOrganization(id: string, data: Partial<Organization>): Organization | null {
+  const index = mockOrganizations.findIndex((o) => o.id === id);
+  if (index === -1) return null;
+
+  mockOrganizations[index] = {
+    ...mockOrganizations[index],
+    ...data,
+    updatedAt: new Date(),
+  };
+  return mockOrganizations[index];
+}
+
+export function archiveMockOrganization(id: string): Organization | null {
+  const index = mockOrganizations.findIndex((o) => o.id === id);
+  if (index === -1) return null;
+
+  mockOrganizations[index] = {
+    ...mockOrganizations[index],
+    archivedAt: new Date(),
+    updatedAt: new Date(),
+  };
+  return mockOrganizations[index];
+}
+
+export function restoreMockOrganization(id: string): Organization | null {
+  const index = mockOrganizations.findIndex((o) => o.id === id);
+  if (index === -1) return null;
+
+  mockOrganizations[index] = {
+    ...mockOrganizations[index],
+    archivedAt: null,
+    updatedAt: new Date(),
+  };
+  return mockOrganizations[index];
+}
+
+export function deleteMockOrganization(id: string): boolean {
+  const index = mockOrganizations.findIndex((o) => o.id === id);
+  if (index === -1) return false;
+
+  // Remove organization
+  mockOrganizations.splice(index, 1);
+
+  // Remove associated memberships
+  const membershipIndicesToRemove: number[] = [];
+  mockMemberships.forEach((m, i) => {
+    if (m.organizationId === id) membershipIndicesToRemove.push(i);
+  });
+  membershipIndicesToRemove.reverse().forEach((i) => mockMemberships.splice(i, 1));
+
+  return true;
+}
+
+export function findMembershipByUserAndOrg(userId: string, organizationId: string): Membership | undefined {
+  return mockMemberships.find((m) => m.userId === userId && m.organizationId === organizationId);
+}
+
+export function findOrganizationBySlug(slug: string): Organization | undefined {
+  return mockOrganizations.find((o) => o.slug === slug);
+}
+
+export function createMockMembership(data: {
+  userId: string;
+  organizationId: string;
+  role: "ORGANIZATION_ADMIN" | "CLUB_ADMIN";
+  isPrimaryOwner?: boolean;
+}): Membership {
+  const membership: Membership = {
+    id: generateMockId("membership"),
+    userId: data.userId,
+    organizationId: data.organizationId,
+    role: data.role,
+    isPrimaryOwner: data.isPrimaryOwner || false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  mockMemberships.push(membership);
+  return membership;
+}
+
+export function updateMockMembership(id: string, data: Partial<Membership>): Membership | null {
+  const index = mockMemberships.findIndex((m) => m.id === id);
+  if (index === -1) return null;
+
+  mockMemberships[index] = {
+    ...mockMemberships[index],
+    ...data,
+    updatedAt: new Date(),
+  };
+  return mockMemberships[index];
+}
+
+export function createMockAuditLog(data: {
+  actorId: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  detail?: Record<string, unknown> | null;
+}): AuditLog {
+  const auditLog: AuditLog = {
+    id: generateMockId("audit"),
+    actorId: data.actorId,
+    action: data.action,
+    targetType: data.targetType,
+    targetId: data.targetId,
+    detail: data.detail ? JSON.stringify(data.detail) : null,
+    createdAt: new Date(),
+  };
+  mockAuditLogs.push(auditLog);
+  return auditLog;
 }
 
 export function updateMockCourt(id: string, data: Partial<Court>): Court | null {
