@@ -1,0 +1,138 @@
+/* AdminList Component Styles */
+
+.im-admin-list-page {
+  @apply min-h-screen;
+}
+
+.im-admin-list-loading {
+  @apply flex flex-col items-center justify-center min-h-[400px] gap-4;
+}
+
+.im-admin-list-loading-spinner {
+  @apply w-12 h-12 border-4 rounded-full animate-spin;
+  border-color: var(--im-primary) transparent transparent transparent;
+}
+
+.im-admin-list-loading-text {
+  @apply text-lg;
+  color: var(--im-text-muted);
+}
+
+.im-empty-state {
+  @apply flex flex-col items-center justify-center min-h-[300px] text-center;
+}
+
+.im-empty-state-content {
+  @apply flex flex-col items-center gap-4 max-w-md;
+}
+
+.im-empty-state-icon {
+  @apply w-16 h-16 flex items-center justify-center;
+  color: var(--im-text-muted);
+}
+
+.im-empty-state-icon svg {
+  @apply w-full h-full;
+}
+
+.im-empty-state-title {
+  @apply text-xl font-semibold;
+  color: var(--im-text-primary);
+}
+
+.im-empty-state-description {
+  @apply text-base;
+  color: var(--im-text-muted);
+}
+
+.im-error-alert {
+  @apply flex items-center gap-3 p-4 mb-6 rounded-lg border;
+  background-color: var(--im-error-bg);
+  border-color: var(--im-error-border);
+  color: var(--im-error-text);
+}
+
+.im-error-icon {
+  @apply flex items-center justify-center w-6 h-6 rounded-full font-bold text-sm;
+  background-color: var(--im-error);
+  color: white;
+}
+
+/* Pagination Styles */
+.im-pagination-card {
+  @apply flex flex-wrap items-center justify-between gap-4 p-4 mt-6;
+}
+
+.im-pagination-info {
+  @apply flex items-center;
+}
+
+.im-pagination-text {
+  @apply text-sm;
+  color: var(--im-text-muted);
+}
+
+.im-pagination-controls {
+  @apply flex items-center gap-2;
+}
+
+.im-pagination-btn {
+  @apply flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors;
+  background-color: var(--im-bg-primary);
+  border-color: var(--im-border);
+  color: var(--im-text-primary);
+}
+
+.im-pagination-btn:hover:not(:disabled) {
+  background-color: var(--im-bg-secondary);
+}
+
+.im-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.im-pagination-btn svg {
+  @apply w-4 h-4;
+}
+
+.im-pagination-btn-text {
+  @apply text-sm font-medium;
+}
+
+.im-pagination-pages {
+  @apply flex items-center gap-1;
+}
+
+.im-pagination-page {
+  @apply w-10 h-10 flex items-center justify-center rounded-lg border transition-colors text-sm font-medium;
+  background-color: var(--im-bg-primary);
+  border-color: var(--im-border);
+  color: var(--im-text-primary);
+}
+
+.im-pagination-page:hover {
+  background-color: var(--im-bg-secondary);
+}
+
+.im-pagination-page--active {
+  background-color: var(--im-primary);
+  border-color: var(--im-primary);
+  color: white;
+}
+
+.im-pagination-size {
+  @apply flex items-center gap-2;
+}
+
+.im-pagination-size-label {
+  @apply text-sm font-medium;
+  color: var(--im-text-muted);
+}
+
+.im-pagination-size-select {
+  @apply px-3 py-2 rounded-lg border text-sm;
+  background-color: var(--im-bg-primary);
+  border-color: var(--im-border);
+  color: var(--im-text-primary);
+}
