@@ -470,35 +470,28 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Organization Admin: Organization-scoped dashboard with Root Admin layout */}
-        {dashboardData.adminType === "organization_admin" && dashboardData.organizations && (() => {
-          // Aggregate data across all managed organizations
-          const totalClubs = dashboardData.organizations.reduce((sum, org) => sum + org.clubsCount, 0);
-          const totalActiveBookings = dashboardData.organizations.reduce((sum, org) => sum + org.activeBookings, 0);
-          const totalPastBookings = dashboardData.organizations.reduce((sum, org) => sum + org.pastBookings, 0);
-
-          return (
-            <>
-              {/* Clubs Count Card - organization-scoped */}
-              <div className="im-stats-grid">
-                <StatCard
-                  title={t("rootAdmin.dashboard.totalClubs")}
-                  value={totalClubs}
-                  icon={<ClubsIcon />}
-                  colorClass="im-stat-card--clubs"
-                />
-              </div>
-
-              {/* Bookings Overview Section - organization-scoped */}
-              <BookingsOverview
-                activeBookings={totalActiveBookings}
-                pastBookings={totalPastBookings}
+        {dashboardData.adminType === "organization_admin" && dashboardData.organizations && (
+          <>
+            {/* Clubs Count Card - organization-scoped */}
+            <div className="im-stats-grid">
+              <StatCard
+                title={t("rootAdmin.dashboard.totalClubs")}
+                value={dashboardData.organizations.reduce((sum, org) => sum + org.clubsCount, 0)}
+                icon={<ClubsIcon />}
+                colorClass="im-stat-card--clubs"
               />
+            </div>
 
-              {/* Dashboard Graphs Section */}
-              <DashboardGraphs />
-            </>
-          );
-        })()}
+            {/* Bookings Overview Section - organization-scoped */}
+            <BookingsOverview
+              activeBookings={dashboardData.organizations.reduce((sum, org) => sum + org.activeBookings, 0)}
+              pastBookings={dashboardData.organizations.reduce((sum, org) => sum + org.pastBookings, 0)}
+            />
+
+            {/* Dashboard Graphs Section */}
+            <DashboardGraphs />
+          </>
+        )}
 
         {/* Club Admin: Club-specific dashboards */}
         {dashboardData.adminType === "club_admin" && dashboardData.clubs && (
