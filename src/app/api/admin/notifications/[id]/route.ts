@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
-import { mockUpdateAdminNotification, mockGetAdminNotificationById } from "@/services/mockApiHandlers";
+import { mockUpdateAdminNotification } from "@/services/mockApiHandlers";
 
 /**
  * PATCH /api/admin/notifications/[id]
