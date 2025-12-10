@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
+// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+import { isMockMode } from "@/services/mockDb";
+import { mockGetAdminNotifications } from "@/services/mockApiHandlers";
 
 /**
  * GET /api/admin/notifications
@@ -18,6 +21,16 @@ export async function GET(request: Request) {
     const unreadOnly = searchParams.get("unreadOnly") === "true";
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const mockResult = await mockGetAdminNotifications({
+        unreadOnly,
+        limit,
+        offset,
+      });
+      return NextResponse.json(mockResult);
+    }
 
     // Build where clause
     const whereClause: { read?: boolean } = {};

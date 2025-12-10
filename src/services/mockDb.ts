@@ -2,7 +2,7 @@
 // This module provides mock data and CRUD helpers for development when the database is unavailable.
 // See TODO_MOCK_CLEANUP.md for removal instructions.
 
-import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule, Coach, ClubGallery, AuditLog } from "@prisma/client";
+import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule, Coach, ClubGallery, AuditLog, AdminNotification } from "@prisma/client";
 
 // ============================================================================
 // Mock Data State (mutable at runtime for testing flows)
@@ -20,6 +20,7 @@ let mockCourtPriceRules: CourtPriceRule[] = [];
 let mockCoaches: Coach[] = [];
 let mockGalleryImages: ClubGallery[] = [];
 let mockAuditLogs: AuditLog[] = [];
+let mockAdminNotifications: AdminNotification[] = [];
 
 // ============================================================================
 // Initialization (called once to seed data)
@@ -39,6 +40,7 @@ export function initializeMockData() {
   mockCoaches = [];
   mockGalleryImages = [];
   mockAuditLogs = [];
+  mockAdminNotifications = [];
 
   // Create mock users
   mockUsers = [
@@ -877,6 +879,95 @@ export function initializeMockData() {
       createdAt: new Date("2024-06-01"),
     },
   ];
+
+  // Create mock admin notifications
+  const notifNow = new Date();
+  const oneHourAgo = new Date(notifNow);
+  oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+  const twoHoursAgo = new Date(notifNow);
+  twoHoursAgo.setHours(twoHoursAgo.getHours() - 2);
+  const fiveHoursAgo = new Date(notifNow);
+  fiveHoursAgo.setHours(fiveHoursAgo.getHours() - 5);
+  const oneDayAgoNotif = new Date(notifNow);
+  oneDayAgoNotif.setDate(oneDayAgoNotif.getDate() - 1);
+  const twoDaysAgoNotif = new Date(notifNow);
+  twoDaysAgoNotif.setDate(twoDaysAgoNotif.getDate() - 2);
+
+  const tomorrowSession = new Date(notifNow);
+  tomorrowSession.setDate(tomorrowSession.getDate() + 1);
+  tomorrowSession.setHours(10, 0, 0, 0);
+
+  const nextWeekSession = new Date(notifNow);
+  nextWeekSession.setDate(nextWeekSession.getDate() + 7);
+  nextWeekSession.setHours(14, 30, 0, 0);
+
+  mockAdminNotifications = [
+    {
+      id: "notif-1",
+      type: "REQUESTED",
+      playerId: "user-4",
+      coachId: "coach-1",
+      trainingRequestId: "tr-1",
+      bookingId: null,
+      sessionDate: tomorrowSession,
+      sessionTime: "10:00",
+      courtInfo: "Court 1 - Downtown Padel Club",
+      read: false,
+      createdAt: oneHourAgo,
+    },
+    {
+      id: "notif-2",
+      type: "ACCEPTED",
+      playerId: "user-5",
+      coachId: "coach-2",
+      trainingRequestId: "tr-2",
+      bookingId: "booking-mock-1",
+      sessionDate: nextWeekSession,
+      sessionTime: "14:30",
+      courtInfo: "Court 2 - Downtown Padel Club",
+      read: false,
+      createdAt: twoHoursAgo,
+    },
+    {
+      id: "notif-3",
+      type: "DECLINED",
+      playerId: "user-4",
+      coachId: "coach-3",
+      trainingRequestId: "tr-3",
+      bookingId: null,
+      sessionDate: null,
+      sessionTime: null,
+      courtInfo: null,
+      read: true,
+      createdAt: fiveHoursAgo,
+    },
+    {
+      id: "notif-4",
+      type: "REQUESTED",
+      playerId: "user-5",
+      coachId: "coach-1",
+      trainingRequestId: "tr-4",
+      bookingId: null,
+      sessionDate: tomorrowSession,
+      sessionTime: "15:00",
+      courtInfo: "Court 3 - Downtown Padel Club",
+      read: true,
+      createdAt: oneDayAgoNotif,
+    },
+    {
+      id: "notif-5",
+      type: "CANCELED",
+      playerId: "user-4",
+      coachId: "coach-2",
+      trainingRequestId: "tr-5",
+      bookingId: "booking-mock-2",
+      sessionDate: null,
+      sessionTime: null,
+      courtInfo: "Court A - Suburban Padel Center",
+      read: true,
+      createdAt: twoDaysAgoNotif,
+    },
+  ];
 }
 
 // Initialize data on module load
@@ -932,6 +1023,10 @@ export function getMockGalleryImages() {
 
 export function getMockAuditLogs() {
   return [...mockAuditLogs];
+}
+
+export function getMockAdminNotifications() {
+  return [...mockAdminNotifications];
 }
 
 // ============================================================================
@@ -1115,6 +1210,63 @@ export function deleteMockCourt(id: string): boolean {
   priceRuleIndices.reverse().forEach((i) => mockCourtPriceRules.splice(i, 1));
   
   return true;
+}
+
+// ============================================================================
+// Admin Notifications Helpers
+// ============================================================================
+
+export function findAdminNotificationById(id: string): AdminNotification | undefined {
+  return mockAdminNotifications.find((n) => n.id === id);
+}
+
+export function updateMockNotification(id: string, data: Partial<AdminNotification>): AdminNotification | null {
+  const index = mockAdminNotifications.findIndex((n) => n.id === id);
+  if (index === -1) return null;
+
+  mockAdminNotifications[index] = {
+    ...mockAdminNotifications[index],
+    ...data,
+  };
+  return mockAdminNotifications[index];
+}
+
+export function markAllMockNotificationsAsRead(): number {
+  let count = 0;
+  mockAdminNotifications.forEach((notification) => {
+    if (!notification.read) {
+      notification.read = true;
+      count++;
+    }
+  });
+  return count;
+}
+
+export function createMockAdminNotification(data: {
+  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
+  playerId: string;
+  coachId: string;
+  trainingRequestId?: string | null;
+  bookingId?: string | null;
+  sessionDate?: Date | null;
+  sessionTime?: string | null;
+  courtInfo?: string | null;
+}): AdminNotification {
+  const notification: AdminNotification = {
+    id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+    type: data.type,
+    playerId: data.playerId,
+    coachId: data.coachId,
+    trainingRequestId: data.trainingRequestId || null,
+    bookingId: data.bookingId || null,
+    sessionDate: data.sessionDate || null,
+    sessionTime: data.sessionTime || null,
+    courtInfo: data.courtInfo || null,
+    read: false,
+    createdAt: new Date(),
+  };
+  mockAdminNotifications.unshift(notification);
+  return notification;
 }
 
 // ============================================================================
