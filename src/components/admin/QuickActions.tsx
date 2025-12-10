@@ -96,9 +96,6 @@ export interface QuickActionsProps {
 export default function QuickActions({ organizationId, clubId }: QuickActionsProps) {
   const t = useTranslations();
   const hasRole = useUserStore((state) => state.hasRole);
-  const hasAnyRole = useUserStore((state) => state.hasAnyRole);
-  const user = useUserStore((state) => state.user);
-
   // Check user roles
   const isRootAdmin = hasRole("ROOT_ADMIN");
   const isOrgAdmin = hasRole("ORGANIZATION_ADMIN");
