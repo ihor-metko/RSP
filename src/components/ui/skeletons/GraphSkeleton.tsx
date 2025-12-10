@@ -65,6 +65,11 @@ export default function GraphSkeleton({
 }
 
 /**
+ * Default minimum data points required to render a graph
+ */
+export const DEFAULT_MIN_POINTS_TO_RENDER = 3;
+
+/**
  * GraphEmptyState Component
  * 
  * Displays when graph has insufficient data points.
@@ -72,7 +77,7 @@ export default function GraphSkeleton({
  * 
  * Features:
  * - Icon + message layout
- * - Configurable minimum points message
+ * - Configurable message and description
  * - Accessible
  */
 
@@ -87,7 +92,7 @@ interface GraphEmptyStateProps {
 
 export function GraphEmptyState({
   message = "Not enough data yet",
-  description = "We need at least 3 data points to display a meaningful chart. Keep using the platform and check back soon!",
+  description = "We need more data points to display a meaningful chart. Keep using the platform and check back soon!",
   className = "",
 }: GraphEmptyStateProps) {
   return (

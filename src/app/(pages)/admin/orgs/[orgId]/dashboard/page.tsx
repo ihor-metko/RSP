@@ -206,6 +206,7 @@ export default function OrgDashboardPage() {
           courtsCount={metrics.courtsCount}
           bookingsToday={metrics.bookingsToday}
           clubAdminsCount={metrics.clubAdminsCount}
+          loading={false}
         />
 
         {/* Quick Actions */}

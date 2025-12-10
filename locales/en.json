@@ -1269,6 +1269,6 @@
     "users": "Users",
     "errorLoading": "Failed to load graph data",
     "notEnoughData": "Not enough data yet",
-    "notEnoughDataDesc": "We need at least 3 data points to display a meaningful chart. Keep using the platform and check back soon!"
+    "notEnoughDataDesc": "We need more data points to display a meaningful chart. Keep using the platform and check back soon!"
   }
 }

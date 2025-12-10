@@ -15,7 +15,7 @@ import {
   Legend,
 } from "recharts";
 import type { DashboardGraphsResponse, TimeRange } from "@/types/graphs";
-import { GraphSkeleton, GraphEmptyState } from "@/components/ui/skeletons";
+import { GraphSkeleton, GraphEmptyState, DEFAULT_MIN_POINTS_TO_RENDER } from "@/components/ui/skeletons";
 import "./DashboardGraphs.css";
 
 export interface DashboardGraphsProps {
@@ -82,7 +82,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 export default function DashboardGraphs({ 
   loading: externalLoading, 
   error: externalError,
-  minPointsToRender = 3,
+  minPointsToRender = DEFAULT_MIN_POINTS_TO_RENDER,
 }: DashboardGraphsProps) {
   const t = useTranslations();
   const [data, setData] = useState<DashboardGraphsResponse | null>(null);
