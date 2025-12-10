@@ -13,11 +13,14 @@ import {
   getMockBusinessHours,
   getMockCourtPriceRules,
   getMockAuditLogs,
+  getMockAdminNotifications,
+  getMockCoaches,
   findUserById,
   findClubById,
   findCourtById,
   findBookingById,
   findOrganizationById,
+  findAdminNotificationById,
   createMockBooking,
   cancelMockBooking,
   deleteMockBooking,
@@ -25,6 +28,8 @@ import {
   createMockOrganization,
   updateMockCourt,
   deleteMockCourt,
+  updateMockNotification,
+  markAllMockNotificationsAsRead,
 } from "./mockDb";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
@@ -1376,5 +1381,112 @@ export async function mockGetOrganizationUsers(params: {
       totalUsers: uniqueUserIds.length,
       activeToday,
     },
+  };
+}
+
+// ============================================================================
+// Mock Admin Notifications API
+// ============================================================================
+
+// Constants for notification API limits
+const MAX_NOTIFICATIONS_LIMIT = 100;
+
+export async function mockGetAdminNotifications(params: {
+  unreadOnly?: boolean;
+  limit?: number;
+  offset?: number;
+}) {
+  const { unreadOnly = false, limit = 50, offset = 0 } = params;
+  
+  let notifications = getMockAdminNotifications();
+  const users = getMockUsers();
+  const coaches = getMockCoaches();
+
+  // Filter by read status if needed
+  if (unreadOnly) {
+    notifications = notifications.filter((n) => !n.read);
+  }
+
+  // Sort by creation date descending
+  notifications.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+  // Apply pagination
+  const totalCount = notifications.length;
+  const unreadCount = getMockAdminNotifications().filter((n) => !n.read).length;
+  const paginatedNotifications = notifications.slice(offset, offset + Math.min(limit, MAX_NOTIFICATIONS_LIMIT));
+
+  // Enrich notifications with player and coach names
+  const enrichedNotifications = paginatedNotifications.map((notification) => {
+    const player = users.find((u) => u.id === notification.playerId);
+    const coach = coaches.find((c) => c.id === notification.coachId);
+    const coachUser = coach ? users.find((u) => u.id === coach.userId) : undefined;
+
+    return {
+      id: notification.id,
+      type: notification.type,
+      playerId: notification.playerId,
+      playerName: player?.name || "Unknown Player",
+      playerEmail: player?.email || null,
+      coachId: notification.coachId,
+      coachName: coachUser?.name || "Unknown Coach",
+      trainingRequestId: notification.trainingRequestId,
+      bookingId: notification.bookingId,
+      sessionDate: notification.sessionDate?.toISOString().split("T")[0] || null,
+      sessionTime: notification.sessionTime,
+      courtInfo: notification.courtInfo,
+      read: notification.read,
+      createdAt: notification.createdAt.toISOString(),
+    };
+  });
+
+  return {
+    notifications: enrichedNotifications,
+    totalCount,
+    unreadCount,
+    hasMore: offset + paginatedNotifications.length < totalCount,
+  };
+}
+
+export async function mockGetAdminNotificationById(id: string) {
+  const notification = findAdminNotificationById(id);
+  if (!notification) return null;
+
+  const users = getMockUsers();
+  const coaches = getMockCoaches();
+  const player = users.find((u) => u.id === notification.playerId);
+  const coach = coaches.find((c) => c.id === notification.coachId);
+  const coachUser = coach ? users.find((u) => u.id === coach.userId) : undefined;
+
+  return {
+    id: notification.id,
+    type: notification.type,
+    playerId: notification.playerId,
+    playerName: player?.name || "Unknown Player",
+    playerEmail: player?.email || null,
+    coachId: notification.coachId,
+    coachName: coachUser?.name || "Unknown Coach",
+    trainingRequestId: notification.trainingRequestId,
+    bookingId: notification.bookingId,
+    sessionDate: notification.sessionDate?.toISOString().split("T")[0] || null,
+    sessionTime: notification.sessionTime,
+    courtInfo: notification.courtInfo,
+    read: notification.read,
+    createdAt: notification.createdAt.toISOString(),
+  };
+}
+
+export async function mockUpdateAdminNotification(id: string, data: { read: boolean }) {
+  const updated = updateMockNotification(id, { read: data.read });
+  if (!updated) {
+    throw new Error("Notification not found");
+  }
+  return mockGetAdminNotificationById(id);
+}
+
+export async function mockMarkAllNotificationsAsRead() {
+  const count = markAllMockNotificationsAsRead();
+  return {
+    message: `Marked ${count} notification(s) as read`,
+    count,
   };
 }
