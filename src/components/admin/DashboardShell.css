@@ -1,0 +1,49 @@
+/* Dashboard Shell Layout */
+.im-dashboard-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.im-dashboard-shell-header {
+  width: 100%;
+}
+
+.im-dashboard-shell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.im-dashboard-shell-metrics {
+  width: 100%;
+}
+
+.im-dashboard-shell-quick-actions {
+  width: 100%;
+}
+
+.im-dashboard-shell-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Responsive layout for larger screens */
+@media (min-width: 1024px) {
+  .im-dashboard-shell-content {
+    gap: 2rem;
+  }
+  
+  .im-dashboard-shell {
+    gap: 2rem;
+  }
+  
+  .im-dashboard-shell-main {
+    gap: 2rem;
+  }
+}

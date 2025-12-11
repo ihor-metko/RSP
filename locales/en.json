@@ -1271,5 +1271,38 @@
     "errorLoading": "Failed to load graph data",
     "notEnoughData": "Not enough data yet",
     "notEnoughDataDesc": "We need more data points to display a meaningful chart. Keep using the platform and check back soon!"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "description": "Perform common tasks quickly",
+    "createClub": "Create Club",
+    "createClubDescription": "Add a new club to your organization",
+    "inviteAdmin": "Invite Admin",
+    "inviteAdminDescription": "Invite a new administrator",
+    "createCourt": "Create Court",
+    "createCourtDescription": "Add a new court to this club"
+  },
+  "clubsPreview": {
+    "title": "Clubs",
+    "noClubs": "No clubs available. Create your first club to get started.",
+    "viewAll": "View All Clubs",
+    "showMore": "Show {count} more clubs",
+    "courts": "Courts",
+    "bookingsToday": "Today",
+    "viewDetails": "View Details"
+  },
+  "adminsPanel": {
+    "title": "Administrators",
+    "description": "Manage organization and club administrators",
+    "orgAdmins": "Organization Admins",
+    "clubAdmins": "Club Admins",
+    "manageAdmins": "Manage Admins"
+  },
+  "activityFeed": {
+    "title": "Recent Activity",
+    "noActivity": "No recent activity to display",
+    "viewAll": "View All Activity",
+    "showMore": "Show {count} more activities",
+    "by": "by"
   }
 }
