@@ -35,6 +35,7 @@
     "duration": "Тривалість",
     "status": "Статус",
     "minutes": "хвилин",
+    "days": "днів",
     "perHour": "/ година",
     "indoor": "Критий",
     "outdoor": "Відкритий",
@@ -448,6 +449,145 @@
       "active": "Активний",
       "inactive": "Неактивний",
       "loadMore": "Завантажити ще",
+      "loading": "Завантаження...",
+      "new": {
+        "title": "Новий корт",
+        "steps": {
+          "basic": "Основне",
+          "pricing": "Ціни",
+          "schedule": "Розклад",
+          "media": "Медіа",
+          "meta": "Додатково"
+        },
+        "basicStep": {
+          "title": "Основна інформація",
+          "description": "Введіть основні відомості про ваш корт.",
+          "courtName": "Назва корту *",
+          "courtNamePlaceholder": "Введіть назву корту",
+          "slug": "Slug (опційно)",
+          "slugPlaceholder": "nazva-kortu-slug",
+          "slugHint": "Автоматично генерується з назви, якщо порожньо",
+          "courtType": "Тип корту",
+          "selectType": "Оберіть тип...",
+          "surface": "Покриття",
+          "selectSurface": "Оберіть покриття...",
+          "indoorCourt": "Закритий корт",
+          "shortDescription": "Короткий опис",
+          "shortDescriptionPlaceholder": "Короткий опис корту..."
+        },
+        "pricingStep": {
+          "title": "Ціноутворення",
+          "description": "Встановіть базові ціни для цього корту.",
+          "defaultPrice": "Базова ціна",
+          "pricePlaceholder": "0.00",
+          "currency": "Валюта",
+          "currencyHint": "За замовчуванням валюта клубу",
+          "defaultSlotLength": "Базова тривалість слоту"
+        },
+        "scheduleStep": {
+          "title": "Розклад",
+          "description": "Встановіть робочі години корту. Залиште порожнім для використання годин клубу.",
+          "openTime": "Час відкриття",
+          "closeTime": "Час закриття",
+          "timeError": "Час відкриття має бути раніше часу закриття",
+          "clubHoursHint": "Години роботи клубу будуть використані, якщо не вказано тут.",
+          "noClubHoursHint": "Години роботи клубу не налаштовані. Рекомендується вказати години корту."
+        },
+        "mediaStep": {
+          "title": "Медіа",
+          "description": "Завантажте зображення для цього корту. Головне зображення буде показане як основне фото.",
+          "mainImage": "Головне зображення",
+          "uploading": "Завантаження...",
+          "addMainImage": "Додати головне зображення",
+          "gallery": "Галерея зображень",
+          "add": "Додати"
+        },
+        "metaStep": {
+          "title": "Додаткові налаштування",
+          "description": "Налаштуйте видимість та додаткові опції.",
+          "visibility": "Видимість",
+          "visibilityDraft": "Чернетка (не видно публічно)",
+          "visibilityPublished": "Опубліковано (видно публічно)",
+          "tags": "Теги",
+          "tagsPlaceholder": "напр., для-початківців, турнір",
+          "tagsHint": "Теги через кому",
+          "maxPlayers": "Макс. гравців",
+          "notes": "Примітки",
+          "notesPlaceholder": "Додаткові примітки або інструкції...",
+          "notesHint": "Внутрішні примітки, не показуються публічно"
+        },
+        "progress": {
+          "complete": "% завершено"
+        },
+        "actions": {
+          "saveDraft": "Зберегти чернетку",
+          "saveAndPublish": "Зберегти та опублікувати",
+          "backToClubs": "← До клубів"
+        },
+        "submitting": {
+          "creating": "Створення корту..."
+        },
+        "errors": {
+          "nameRequired": "Назва обов'язкова",
+          "nameMinLength": "Назва має бути мінімум 2 символи",
+          "nameMaxLength": "Назва має бути максимум 120 символів",
+          "slugPattern": "Slug може містити лише малі літери, цифри та дефіси",
+          "priceNegative": "Ціна не може бути від'ємною",
+          "maxPlayersMin": "Має бути мінімум 1",
+          "maxPlayersMax": "Не може перевищувати 20",
+          "clubNotFound": "Клуб не знайдено",
+          "failedToLoadClub": "Не вдалося завантажити клуб",
+          "failedToCreateCourt": "Не вдалося створити корт",
+          "uploadFailed": "Помилка завантаження"
+        },
+        "types": {
+          "padel": "Падел",
+          "tennis": "Теніс",
+          "squash": "Сквош",
+          "badminton": "Бадмінтон",
+          "pickleball": "Піклбол"
+        },
+        "surfaces": {
+          "artificialGrass": "Штучна трава",
+          "clay": "Грунт",
+          "hard": "Твердий",
+          "grass": "Трава",
+          "carpet": "Килим"
+        },
+        "slotLengths": {
+          "30": "30 хвилин",
+          "60": "60 хвилин",
+          "90": "90 хвилин",
+          "120": "120 хвилин"
+        },
+        "currencies": {
+          "usd": "USD ($)",
+          "eur": "EUR (€)",
+          "gbp": "GBP (£)",
+          "uah": "UAH (₴)"
+        }
+      }
+    },
+    "sportConfig": {
+      "title": "Конфігурація видів спорту",
+      "description": "Перегляд налаштувань для різних видів спорту",
+      "slotDuration": "Тривалість слоту",
+      "availableSlots": "Доступні слоти",
+      "players": "Гравці",
+      "playersLabel": "гравців",
+      "typical": "Типово",
+      "bookingDuration": "Тривалість бронювання",
+      "advanceBooking": "Попереднє бронювання",
+      "advanceRequired": "Попереднє бронювання обов'язкове",
+      "advanceOptional": "Попереднє бронювання опціональне",
+      "surfaces": "Покриття",
+      "coaching": "Тренування",
+      "available": "Доступно",
+      "notAvailable": "Недоступно"
+    },
+    "notifications": {
+      "title": "Адмін - Сповіщення",
+      "subtitle": "Відстежуйте всі події бронювання тренувань",
       "loading": "Завантаження..."
     }
   },

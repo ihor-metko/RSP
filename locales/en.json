@@ -35,6 +35,7 @@
     "duration": "Duration",
     "status": "Status",
     "minutes": "minutes",
+    "days": "days",
     "perHour": "/ hour",
     "indoor": "Indoor",
     "outdoor": "Outdoor",
@@ -467,6 +468,145 @@
       "active": "Active",
       "inactive": "Inactive",
       "loadMore": "Load More",
+      "loading": "Loading...",
+      "new": {
+        "title": "New Court",
+        "steps": {
+          "basic": "Basic",
+          "pricing": "Pricing",
+          "schedule": "Schedule",
+          "media": "Media",
+          "meta": "Meta"
+        },
+        "basicStep": {
+          "title": "Basic Information",
+          "description": "Enter the basic details about your court.",
+          "courtName": "Court Name *",
+          "courtNamePlaceholder": "Enter court name",
+          "slug": "Slug (optional)",
+          "slugPlaceholder": "court-name-slug",
+          "slugHint": "Auto-generated from name if empty",
+          "courtType": "Court Type",
+          "selectType": "Select type...",
+          "surface": "Surface",
+          "selectSurface": "Select surface...",
+          "indoorCourt": "Indoor Court",
+          "shortDescription": "Short Description",
+          "shortDescriptionPlaceholder": "Brief description of the court..."
+        },
+        "pricingStep": {
+          "title": "Pricing",
+          "description": "Set the default pricing for this court.",
+          "defaultPrice": "Default Price",
+          "pricePlaceholder": "0.00",
+          "currency": "Currency",
+          "currencyHint": "Defaults to club currency",
+          "defaultSlotLength": "Default Slot Length"
+        },
+        "scheduleStep": {
+          "title": "Schedule",
+          "description": "Set court-specific operating hours. Leave empty to use club hours.",
+          "openTime": "Open Time",
+          "closeTime": "Close Time",
+          "timeError": "Open time must be before close time",
+          "clubHoursHint": "Club hours will be used if not specified here.",
+          "noClubHoursHint": "No club hours configured. Court hours are recommended."
+        },
+        "mediaStep": {
+          "title": "Media",
+          "description": "Upload images for this court. The main image will be shown as the primary photo.",
+          "mainImage": "Main Image",
+          "uploading": "Uploading...",
+          "addMainImage": "Add Main Image",
+          "gallery": "Gallery Images",
+          "add": "Add"
+        },
+        "metaStep": {
+          "title": "Additional Settings",
+          "description": "Configure visibility and additional options.",
+          "visibility": "Visibility",
+          "visibilityDraft": "Draft (not visible to public)",
+          "visibilityPublished": "Published (visible to public)",
+          "tags": "Tags",
+          "tagsPlaceholder": "e.g., beginner-friendly, tournament",
+          "tagsHint": "Comma-separated tags",
+          "maxPlayers": "Max Players",
+          "notes": "Notes",
+          "notesPlaceholder": "Additional notes or instructions...",
+          "notesHint": "Internal notes, not shown to public"
+        },
+        "progress": {
+          "complete": "% complete"
+        },
+        "actions": {
+          "saveDraft": "Save Draft",
+          "saveAndPublish": "Save & Publish",
+          "backToClubs": "← Back to Clubs"
+        },
+        "submitting": {
+          "creating": "Creating court..."
+        },
+        "errors": {
+          "nameRequired": "Name is required",
+          "nameMinLength": "Name must be at least 2 characters",
+          "nameMaxLength": "Name must be at most 120 characters",
+          "slugPattern": "Slug can only contain lowercase letters, numbers, and hyphens",
+          "priceNegative": "Price cannot be negative",
+          "maxPlayersMin": "Must be at least 1",
+          "maxPlayersMax": "Cannot exceed 20",
+          "clubNotFound": "Club not found",
+          "failedToLoadClub": "Failed to load club",
+          "failedToCreateCourt": "Failed to create court",
+          "uploadFailed": "Upload failed"
+        },
+        "types": {
+          "padel": "Padel",
+          "tennis": "Tennis",
+          "squash": "Squash",
+          "badminton": "Badminton",
+          "pickleball": "Pickleball"
+        },
+        "surfaces": {
+          "artificialGrass": "Artificial Grass",
+          "clay": "Clay",
+          "hard": "Hard",
+          "grass": "Grass",
+          "carpet": "Carpet"
+        },
+        "slotLengths": {
+          "30": "30 minutes",
+          "60": "60 minutes",
+          "90": "90 minutes",
+          "120": "120 minutes"
+        },
+        "currencies": {
+          "usd": "USD ($)",
+          "eur": "EUR (€)",
+          "gbp": "GBP (£)",
+          "uah": "UAH (₴)"
+        }
+      }
+    },
+    "sportConfig": {
+      "title": "Sport Configuration",
+      "description": "View sport-specific configurations and settings",
+      "slotDuration": "Slot Duration",
+      "availableSlots": "Available slots",
+      "players": "Players",
+      "playersLabel": "players",
+      "typical": "Typical",
+      "bookingDuration": "Booking Duration",
+      "advanceBooking": "Advance Booking",
+      "advanceRequired": "Advance booking required",
+      "advanceOptional": "Advance booking optional",
+      "surfaces": "Surfaces",
+      "coaching": "Coaching",
+      "available": "Available",
+      "notAvailable": "Not Available"
+    },
+    "notifications": {
+      "title": "Admin - Notifications",
+      "subtitle": "Track all training booking events",
       "loading": "Loading..."
     }
   },
