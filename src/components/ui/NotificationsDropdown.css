@@ -28,6 +28,11 @@
   color: var(--im-icon-color);
 }
 
+.im-bell-icon-svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* Unread Badge */
 .im-bell-badge {
   @apply absolute -top-1 -right-1 min-w-5 h-5 flex items-center justify-center;
