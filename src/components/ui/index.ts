@@ -26,3 +26,5 @@ export { Tooltip } from "./Tooltip";
 export type { TooltipProps } from "./Tooltip";
 export { NotificationsDropdown } from "./NotificationsDropdown";
 export type { NotificationsDropdownProps } from "./NotificationsDropdown";
+export { EntityBanner } from "./EntityBanner";
+export type { EntityBannerProps } from "./EntityBanner";

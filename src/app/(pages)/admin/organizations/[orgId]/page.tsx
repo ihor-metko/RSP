@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, PageHeader } from "@/components/ui";
+import { Button, Input, Modal, PageHeader, EntityBanner } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
-import type { SimpleUser } from "@/types/adminUser";
+
 import "./page.css";
+import "@/components/ClubDetailPage.css";
 
 interface SuperAdmin extends User {
   isPrimaryOwner: boolean;
@@ -79,13 +80,6 @@ interface OrgDetail {
 interface UsersPreviewData {
   items: UserPreview[];
   summary: { totalUsers: number; activeToday: number };
-}
-
-interface SearchedUser {
-  id: string;
-  name: string | null;
-  email: string;
-  isOrgAdmin: boolean;
 }
 
 /**
@@ -403,34 +397,50 @@ export default function OrganizationDetailPage() {
     );
   }
 
+  // Prepare banner data
+  const bannerSubtitle = org.address || (org.website ? `${t("orgDetail.website")}: ${org.website}` : null);
+  const bannerLocation = org.address || null;
+
   return (
     <main className="im-org-detail-page">
-      <PageHeader
+      {/* Organization Banner */}
+      <EntityBanner
         title={org.name}
-        description={org.archivedAt ? t("orgDetail.archived") : org.slug}
-        actions={
-          <div className="im-org-detail-header-actions">
-            <Button variant="outline" onClick={handleOpenEditModal} disabled={!!org.archivedAt}>
-              {t("common.edit")}
-            </Button>
-            {isRoot && (
-              <>
-                <Button variant="outline" onClick={handleOpenReassignModal} disabled={!!org.archivedAt}>
-                  {t("orgDetail.reassignOwner")}
-                </Button>
-                {!org.archivedAt && (
-                  <Button variant="outline" onClick={() => setIsArchiveModalOpen(true)}>
-                    {t("orgDetail.archive")}
-                  </Button>
-                )}
-                <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)}>
-                  {t("common.delete")}
-                </Button>
-              </>
-            )}
-          </div>
-        }
+        subtitle={bannerSubtitle}
+        location={bannerLocation}
+        imageUrl={null}
+        logoUrl={null}
+        imageAlt={`${org.name} banner`}
+        logoAlt={`${org.name} logo`}
       />
+
+      <div className="rsp-club-content">
+        <PageHeader
+          title={org.name}
+          description={org.archivedAt ? t("orgDetail.archived") : org.slug}
+          actions={
+            <div className="im-org-detail-header-actions">
+              <Button variant="outline" onClick={handleOpenEditModal} disabled={!!org.archivedAt}>
+                {t("common.edit")}
+              </Button>
+              {isRoot && (
+                <>
+                  <Button variant="outline" onClick={handleOpenReassignModal} disabled={!!org.archivedAt}>
+                    {t("orgDetail.reassignOwner")}
+                  </Button>
+                  {!org.archivedAt && (
+                    <Button variant="outline" onClick={() => setIsArchiveModalOpen(true)}>
+                      {t("orgDetail.archive")}
+                    </Button>
+                  )}
+                  <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)}>
+                    {t("common.delete")}
+                  </Button>
+                </>
+              )}
+            </div>
+          }
+        />
 
       {/* Toast */}
       {toast && (
@@ -984,6 +994,7 @@ export default function OrganizationDetailPage() {
           </div>
         </div>
       </Modal>
+      </div>
     </main>
   );
 }

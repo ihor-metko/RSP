@@ -14,7 +14,7 @@ import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
-import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel } from "@/components/ui";
+import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel, EntityBanner } from "@/components/ui";
 import { useClubStore } from "@/stores/useClubStore";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
@@ -372,8 +372,6 @@ export default function ClubDetailPage({
   // Prepare derived data
   const heroImageUrl = getSupabaseStorageUrl(club.heroImage);
   const logoUrl = getSupabaseStorageUrl(club.logo);
-  const hasHeroImage = isValidImageUrl(heroImageUrl);
-  const hasLogo = isValidImageUrl(logoUrl);
   const hasValidCoordinates = club.latitude !== null && club.longitude !== null && club.latitude !== undefined && club.longitude !== undefined;
 
   // Format location display
@@ -391,47 +389,16 @@ export default function ClubDetailPage({
 
   return (
     <main className="rsp-club-detail-page">
-      {/* Hero Section with Club Name & Short Description */}
-      <section className="rsp-club-hero">
-        {hasHeroImage ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={heroImageUrl as string}
-              alt={`${club.name} hero image`}
-              className="rsp-club-hero-image"
-            />
-            <div className="rsp-club-hero-overlay" />
-          </>
-        ) : (
-          <div className="rsp-club-hero-placeholder">
-            <span className="rsp-club-hero-placeholder-text">
-              {club.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        <div className="rsp-club-hero-content">
-          {hasLogo && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={logoUrl as string}
-              alt={`${club.name} logo`}
-              className="rsp-club-hero-logo"
-            />
-          )}
-          <h1 className="rsp-club-hero-name">{club.name}</h1>
-          {club.shortDescription && (
-            <p className="rsp-club-hero-short-desc">{club.shortDescription}</p>
-          )}
-          <p className="rsp-club-hero-location">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            {locationDisplay}
-          </p>
-        </div>
-      </section>
+      {/* Hero Banner Section */}
+      <EntityBanner
+        title={club.name}
+        subtitle={club.shortDescription}
+        location={locationDisplay}
+        imageUrl={heroImageUrl}
+        logoUrl={logoUrl}
+        imageAlt={`${club.name} hero image`}
+        logoAlt={`${club.name} logo`}
+      />
 
       {/* Main Content */}
       <div className="rsp-club-content">
