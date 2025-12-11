@@ -92,8 +92,7 @@ export function OrgSelector<TFilters = Record<string, unknown>>({
   };
 
   if (allowMultiple) {
-    // TODO: Implement multi-select when needed
-    console.warn("OrgSelector: allowMultiple is not yet implemented");
+    throw new Error("OrgSelector: allowMultiple is not yet implemented. Please use single selection mode.");
   }
 
   return (

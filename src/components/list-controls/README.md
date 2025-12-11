@@ -2,6 +2,37 @@
 
 Reusable UI components for list filtering, sorting, and pagination that integrate with the `useListController` hook.
 
+## Quick Start
+
+```typescript
+import { useListController } from "@/hooks";
+import { 
+  ListControllerProvider,
+  ListToolbar,
+  ListSearch,
+  PaginationControls,
+} from "@/components/list-controls";
+
+function MyListPage() {
+  const controller = useListController({
+    entityKey: "users",
+    defaultFilters: { searchQuery: "" },
+  });
+
+  return (
+    <ListControllerProvider controller={controller}>
+      <ListToolbar>
+        <ListSearch placeholder="Search..." />
+      </ListToolbar>
+      
+      {/* Your table/grid here */}
+      
+      <PaginationControls totalCount={100} totalPages={4} />
+    </ListControllerProvider>
+  );
+}
+```
+
 ## Overview
 
 These components provide a consistent, accessible, and type-safe way to build list pages with filters, sorting, and pagination. They eliminate code duplication across admin pages and ensure a uniform user experience.

@@ -61,13 +61,16 @@ export function ListSearch<TFilters = Record<string, unknown>>({
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update local value when filter changes externally
+  // Note: localValue is intentionally excluded from dependencies to prevent
+  // infinite loops. We only want to update localValue when the external
+  // filter changes, not when localValue changes (which would be circular).
   useEffect(() => {
     const filterValue = (controller.filters[filterKey] as string) || "";
     if (filterValue !== localValue) {
       setLocalValue(filterValue);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [controller.filters[filterKey]]);
+  }, [controller.filters[filterKey], filterKey]);
 
   // Debounced update function
   const updateFilter = useCallback(

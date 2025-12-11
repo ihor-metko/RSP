@@ -40,6 +40,35 @@ function ChevronRightIcon() {
 }
 
 /**
+ * Calculate which page numbers to display in pagination.
+ * Shows up to 5 pages centered around the current page.
+ * 
+ * Examples:
+ * - page=1, total=10: [1, 2, 3, 4, 5]
+ * - page=3, total=10: [1, 2, 3, 4, 5]
+ * - page=5, total=10: [3, 4, 5, 6, 7]
+ * - page=10, total=10: [6, 7, 8, 9, 10]
+ */
+function calculateVisiblePages(currentPage: number, totalPages: number): number[] {
+  const maxVisible = 5;
+  
+  // If total pages <= maxVisible, show all pages
+  if (totalPages <= maxVisible) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+  
+  // Calculate start page to center current page
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+  
+  // Adjust if we're near the end
+  if (startPage + maxVisible - 1 > totalPages) {
+    startPage = totalPages - maxVisible + 1;
+  }
+  
+  return Array.from({ length: maxVisible }, (_, i) => startPage + i);
+}
+
+/**
  * Pagination controls component with page navigation and size selector.
  * 
  * Features:
@@ -118,12 +147,7 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
         </Button>
 
         <div className="im-pagination-pages">
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            // Show 5 pages centered around current page
-            const pageNum = page <= 3 ? i + 1 : page + i - 2;
-            
-            if (pageNum < 1 || pageNum > totalPages) return null;
-            
+          {calculateVisiblePages(page, totalPages).map((pageNum) => {
             return (
               <button
                 key={pageNum}
