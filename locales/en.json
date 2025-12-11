@@ -603,6 +603,11 @@
       "coaching": "Coaching",
       "available": "Available",
       "notAvailable": "Not Available"
+    },
+    "notifications": {
+      "title": "Admin - Notifications",
+      "subtitle": "Track all training booking events",
+      "loading": "Loading..."
     }
   },
   "coach": {

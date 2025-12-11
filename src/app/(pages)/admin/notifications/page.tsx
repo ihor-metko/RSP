@@ -2,12 +2,14 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { IMLink } from "@/components/ui";
 import { AdminNotificationsPanel } from "@/components/admin/AdminNotifications";
 
 
 export default function AdminNotificationsPage() {
+  const t = useTranslations();
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -22,7 +24,7 @@ export default function AdminNotificationsPage() {
   if (status === "loading") {
     return (
       <main className="rsp-container p-8">
-        <div className="rsp-loading text-center">Loading...</div>
+        <div className="rsp-loading text-center">{t("admin.notifications.loading")}</div>
       </main>
     );
   }
@@ -35,9 +37,9 @@ export default function AdminNotificationsPage() {
     <main className="rsp-container p-8">
       <header className="rsp-header flex items-center justify-between mb-8">
         <div>
-          <h1 className="rsp-title text-3xl font-bold">Admin - Notifications</h1>
+          <h1 className="rsp-title text-3xl font-bold">{t("admin.notifications.title")}</h1>
           <p className="rsp-subtitle text-gray-500 mt-2">
-            Track all training booking events
+            {t("admin.notifications.subtitle")}
           </p>
         </div>
       </header>
@@ -45,7 +47,7 @@ export default function AdminNotificationsPage() {
       <section className="rsp-content">
         <div className="flex justify-between items-center mb-6">
           <IMLink href="/">
-            ← Back to Home
+            {t("common.backToHome")}
           </IMLink>
         </div>
 
