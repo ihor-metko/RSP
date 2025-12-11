@@ -202,7 +202,7 @@ export function initializeMockData() {
   // Create mock clubs
   mockClubs = [
     {
-      id: "club-1",
+      id: "6d47229c-280f-475e-bb81-2a0d47d36771",
       name: "Downtown Padel Club",
       slug: "downtown-padel-club",
       organizationId: "org-1",
