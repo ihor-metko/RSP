@@ -1134,10 +1134,13 @@
     "failedToLoad": "Не вдалося завантажити панель. Спробуйте пізніше.",
     "managementLinks": "Сторінки керування",
     "courts": "Корти",
+    "totalCourts": "Всього кортів",
     "bookingsToday": "Бронювань сьогодні",
     "manageClub": "Керувати клубом",
     "manageCourts": "Керувати кортами",
-    "viewBookings": "Переглянути бронювання"
+    "viewBookings": "Переглянути бронювання",
+    "byClubs": "По клубах",
+    "byCourts": "По кортах"
   },
   "adminBookings": {
     "title": "Керування бронюваннями",

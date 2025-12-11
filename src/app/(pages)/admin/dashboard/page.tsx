@@ -58,6 +58,25 @@ function ClubsIcon() {
   );
 }
 
+function CourtsIcon() {
+  return (
+    <svg
+      className="im-stat-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="12" y1="3" x2="12" y2="21" />
+    </svg>
+  );
+}
+
 interface StatCardProps {
   title: string;
   value: number;
@@ -277,6 +296,31 @@ export default function AdminDashboardPage() {
         {/* Club Admin: Club-specific dashboards */}
         {dashboardData.adminType === "club_admin" && dashboardData.clubs && (
           <>
+            <div className="im-dashboard-section">
+              <h2 className="im-dashboard-section-title">
+                {t("unifiedDashboard.clubsStatsTitle")}
+              </h2>
+              <p className="im-dashboard-section-description">
+                {t("unifiedDashboard.clubsStatsDescription")}
+              </p>
+            </div>
+
+            {/* Total Courts Card - club admin scoped */}
+            <div className="im-stats-grid">
+              <StatCard
+                title={t("unifiedDashboard.totalCourts")}
+                value={dashboardData.clubs.reduce((sum, club) => sum + club.courtsCount, 0)}
+                icon={<CourtsIcon />}
+                colorClass="im-stat-card--courts"
+              />
+            </div>
+
+            {/* Bookings Overview Section - club admin scoped */}
+            <BookingsOverview
+              activeBookings={dashboardData.clubs.reduce((sum, club) => sum + club.activeBookings, 0)}
+              pastBookings={dashboardData.clubs.reduce((sum, club) => sum + club.pastBookings, 0)}
+            />
+
             {/* Clubs Preview */}
             <ClubsPreview clubs={dashboardData.clubs} maxPreview={10} />
 

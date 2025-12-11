@@ -1216,6 +1216,7 @@
     "failedToLoad": "Failed to load dashboard. Please try again later.",
     "managementLinks": "Management pages",
     "courts": "Courts",
+    "totalCourts": "Total Courts",
     "bookingsToday": "Bookings Today",
     "manageClub": "Manage Club",
     "manageCourts": "Manage Courts",

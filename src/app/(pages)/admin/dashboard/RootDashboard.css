@@ -127,6 +127,17 @@
   color: #a78bfa;
 }
 
+/* Courts Card - Green */
+.im-stat-card--courts .im-stat-card-icon {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.dark .im-stat-card--courts .im-stat-card-icon {
+  background-color: rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
 /* ===== Dashboard Section ===== */
 .im-dashboard-section {}
 
