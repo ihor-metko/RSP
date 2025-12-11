@@ -3,6 +3,7 @@ import { SportType } from "@/constants/sports";
 export interface Court {
   id: string;
   name: string;
+  clubId?: string; // Optional for backward compatibility
   slug?: string | null;
   type?: string | null;
   surface?: string | null;

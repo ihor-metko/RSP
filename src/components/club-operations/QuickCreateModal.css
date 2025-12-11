@@ -1,0 +1,100 @@
+/* Quick Create Modal Styles */
+.im-quick-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px;
+}
+
+.im-quick-create-error {
+  padding: 12px;
+  background-color: var(--color-error-bg, #fee2e2);
+  color: var(--color-error-text, #991b1b);
+  border: 1px solid var(--color-error, #ef4444);
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.im-quick-create-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.im-quick-create-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.im-quick-create-hint {
+  font-size: 12px;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+  margin-top: -2px;
+}
+
+.im-quick-create-summary {
+  padding: 16px;
+  background-color: var(--color-bg-tertiary, #f3f4f6);
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #e5e7eb);
+}
+
+.im-quick-create-summary-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin: 0 0 12px 0;
+}
+
+.im-quick-create-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary, #374151);
+}
+
+.im-quick-create-summary-content strong {
+  color: var(--color-text-primary, #111827);
+}
+
+.im-quick-create-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* Dark mode */
+:root[data-theme="dark"] .im-quick-create-error {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+:root[data-theme="dark"] .im-quick-create-label {
+  color: var(--color-text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .im-quick-create-hint {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+:root[data-theme="dark"] .im-quick-create-summary {
+  background-color: var(--color-bg-tertiary, #374151);
+  border-color: var(--color-border, #4b5563);
+}
+
+:root[data-theme="dark"] .im-quick-create-summary-title {
+  color: var(--color-text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .im-quick-create-summary-content {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+:root[data-theme="dark"] .im-quick-create-summary-content strong {
+  color: var(--color-text-primary, #f9fafb);
+}

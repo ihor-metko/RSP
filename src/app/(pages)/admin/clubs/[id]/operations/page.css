@@ -1,0 +1,161 @@
+/* Club Operations Page Styles */
+.im-club-operations-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.im-club-operations-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.im-club-operations-date-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.im-club-operations-date-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+}
+
+.im-club-operations-error-banner {
+  padding: 16px;
+  background-color: var(--color-error-bg, #fee2e2);
+  border: 1px solid var(--color-error, #ef4444);
+  border-radius: 6px;
+  color: var(--color-error-text, #991b1b);
+  font-size: 14px;
+}
+
+.im-club-operations-content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
+  align-items: start;
+}
+
+.im-club-operations-calendar {
+  min-height: 600px;
+}
+
+.im-club-operations-sidebar {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - 120px);
+  overflow: hidden;
+}
+
+.im-club-operations-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 40px 20px;
+}
+
+.im-club-operations-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 12px;
+  background-color: var(--color-bg-secondary, #ffffff);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.im-club-operations-empty h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin: 0;
+}
+
+.im-club-operations-empty p {
+  font-size: 14px;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+  text-align: center;
+}
+
+.im-club-operations-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+}
+
+.im-club-operations-error h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin: 0;
+}
+
+/* Dark mode */
+:root[data-theme="dark"] .im-club-operations-date-label {
+  color: var(--color-text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .im-club-operations-error-banner {
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+:root[data-theme="dark"] .im-club-operations-empty {
+  background-color: var(--color-bg-secondary, #1f2937);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .im-club-operations-empty h3 {
+  color: var(--color-text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .im-club-operations-empty p {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+:root[data-theme="dark"] .im-club-operations-error h2 {
+  color: var(--color-text-primary, #f9fafb);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+  .im-club-operations-content {
+    grid-template-columns: 1fr 350px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .im-club-operations-content {
+    grid-template-columns: 1fr;
+  }
+
+  .im-club-operations-sidebar {
+    position: static;
+    max-height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .im-club-operations-page {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .im-club-operations-content {
+    gap: 16px;
+  }
+}

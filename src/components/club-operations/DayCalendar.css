@@ -1,0 +1,213 @@
+/* Day Calendar Component Styles */
+.im-day-calendar {
+  background-color: var(--color-bg-secondary, #ffffff);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.im-day-calendar-grid {
+  display: flex;
+  flex-direction: column;
+  min-width: 800px;
+  overflow-x: auto;
+}
+
+/* Header */
+.im-day-calendar-header {
+  display: grid;
+  grid-template-columns: 80px repeat(auto-fit, minmax(150px, 1fr));
+  border-bottom: 2px solid var(--color-border, #e5e7eb);
+  background-color: var(--color-bg-primary, #f9fafb);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.im-day-calendar-time-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-secondary, #6b7280);
+  border-right: 1px solid var(--color-border, #e5e7eb);
+}
+
+.im-day-calendar-court-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  border-right: 1px solid var(--color-border, #e5e7eb);
+  text-align: center;
+}
+
+.im-day-calendar-court-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--color-text-primary, #111827);
+  margin-bottom: 2px;
+}
+
+.im-day-calendar-court-type {
+  font-size: 12px;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+/* Body */
+.im-day-calendar-body {
+  display: grid;
+  grid-template-columns: 80px repeat(auto-fit, minmax(150px, 1fr));
+  min-height: 600px;
+}
+
+/* Time column */
+.im-day-calendar-time-column {
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid var(--color-border, #e5e7eb);
+  background-color: var(--color-bg-primary, #f9fafb);
+}
+
+.im-day-calendar-time-slot {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--color-border-light, #f3f4f6);
+  padding: 8px;
+}
+
+.im-day-calendar-time-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+/* Court columns */
+.im-day-calendar-court-column {
+  position: relative;
+  border-right: 1px solid var(--color-border, #e5e7eb);
+  background-color: var(--color-bg-secondary, #ffffff);
+}
+
+.im-day-calendar-court-column:last-child {
+  border-right: none;
+}
+
+/* Slots (clickable areas) */
+.im-day-calendar-slot {
+  height: 60px;
+  border-bottom: 1px solid var(--color-border-light, #f3f4f6);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.im-day-calendar-slot:hover {
+  background-color: var(--color-hover-bg, #f3f4f6);
+}
+
+.im-day-calendar-slot:focus {
+  outline: 2px solid var(--color-primary, #3b82f6);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+/* Bookings container - positioned absolutely to overlay slots */
+.im-day-calendar-bookings-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.im-day-calendar-bookings-container > * {
+  pointer-events: all;
+}
+
+/* Empty state */
+.im-day-calendar-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--color-text-secondary, #6b7280);
+  font-size: 14px;
+}
+
+/* Dark mode */
+:root[data-theme="dark"] .im-day-calendar {
+  background-color: var(--color-bg-secondary, #1f2937);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+:root[data-theme="dark"] .im-day-calendar-header {
+  background-color: var(--color-bg-primary, #111827);
+  border-bottom-color: var(--color-border, #374151);
+}
+
+:root[data-theme="dark"] .im-day-calendar-time-header,
+:root[data-theme="dark"] .im-day-calendar-court-header {
+  border-right-color: var(--color-border, #374151);
+}
+
+:root[data-theme="dark"] .im-day-calendar-court-name {
+  color: var(--color-text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .im-day-calendar-court-type {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+:root[data-theme="dark"] .im-day-calendar-time-column {
+  background-color: var(--color-bg-primary, #111827);
+  border-right-color: var(--color-border, #374151);
+}
+
+:root[data-theme="dark"] .im-day-calendar-time-slot {
+  border-bottom-color: var(--color-border-light, #374151);
+}
+
+:root[data-theme="dark"] .im-day-calendar-time-label {
+  color: var(--color-text-secondary, #9ca3af);
+}
+
+:root[data-theme="dark"] .im-day-calendar-court-column {
+  background-color: var(--color-bg-secondary, #1f2937);
+  border-right-color: var(--color-border, #374151);
+}
+
+:root[data-theme="dark"] .im-day-calendar-slot {
+  border-bottom-color: var(--color-border-light, #374151);
+}
+
+:root[data-theme="dark"] .im-day-calendar-slot:hover {
+  background-color: var(--color-hover-bg, #374151);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .im-day-calendar-grid {
+    min-width: 600px;
+  }
+
+  .im-day-calendar-header,
+  .im-day-calendar-body {
+    grid-template-columns: 70px repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  .im-day-calendar-time-header {
+    font-size: 12px;
+  }
+
+  .im-day-calendar-court-name {
+    font-size: 13px;
+  }
+
+  .im-day-calendar-court-type {
+    font-size: 11px;
+  }
+}
