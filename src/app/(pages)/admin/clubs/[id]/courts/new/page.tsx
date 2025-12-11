@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
 import { Button, Card, Breadcrumbs } from "@/components/ui";
@@ -58,37 +59,6 @@ interface Club {
   }>;
 }
 
-const STEPS = [
-  { id: "basic", label: "Basic", number: 1 },
-  { id: "pricing", label: "Pricing", number: 2 },
-  { id: "schedule", label: "Schedule", number: 3 },
-  { id: "media", label: "Media", number: 4 },
-  { id: "meta", label: "Meta", number: 5 },
-];
-
-const COURT_TYPES = [
-  { value: "padel", label: "Padel" },
-  { value: "tennis", label: "Tennis" },
-  { value: "squash", label: "Squash" },
-  { value: "badminton", label: "Badminton" },
-  { value: "pickleball", label: "Pickleball" },
-];
-
-const SURFACE_TYPES = [
-  { value: "artificial-grass", label: "Artificial Grass" },
-  { value: "clay", label: "Clay" },
-  { value: "hard", label: "Hard" },
-  { value: "grass", label: "Grass" },
-  { value: "carpet", label: "Carpet" },
-];
-
-const SLOT_LENGTHS = [
-  { value: 30, label: "30 minutes" },
-  { value: 60, label: "60 minutes" },
-  { value: 90, label: "90 minutes" },
-  { value: 120, label: "120 minutes" },
-];
-
 const defaultFormValues: CourtFormData = {
   name: "",
   slug: "",
@@ -123,6 +93,7 @@ export default function CreateCourtPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const t = useTranslations();
   const { data: session, status } = useSession();
   const router = useRouter();
   const [clubId, setClubId] = useState<string | null>(null);
@@ -137,6 +108,38 @@ export default function CreateCourtPage({
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const mainImageInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  // Constants with translations
+  const STEPS = [
+    { id: "basic", label: t("admin.courts.new.steps.basic"), number: 1 },
+    { id: "pricing", label: t("admin.courts.new.steps.pricing"), number: 2 },
+    { id: "schedule", label: t("admin.courts.new.steps.schedule"), number: 3 },
+    { id: "media", label: t("admin.courts.new.steps.media"), number: 4 },
+    { id: "meta", label: t("admin.courts.new.steps.meta"), number: 5 },
+  ];
+
+  const COURT_TYPES = [
+    { value: "padel", label: t("admin.courts.new.types.padel") },
+    { value: "tennis", label: t("admin.courts.new.types.tennis") },
+    { value: "squash", label: t("admin.courts.new.types.squash") },
+    { value: "badminton", label: t("admin.courts.new.types.badminton") },
+    { value: "pickleball", label: t("admin.courts.new.types.pickleball") },
+  ];
+
+  const SURFACE_TYPES = [
+    { value: "artificial-grass", label: t("admin.courts.new.surfaces.artificialGrass") },
+    { value: "clay", label: t("admin.courts.new.surfaces.clay") },
+    { value: "hard", label: t("admin.courts.new.surfaces.hard") },
+    { value: "grass", label: t("admin.courts.new.surfaces.grass") },
+    { value: "carpet", label: t("admin.courts.new.surfaces.carpet") },
+  ];
+
+  const SLOT_LENGTHS = [
+    { value: 30, label: t("admin.courts.new.slotLengths.30") },
+    { value: 60, label: t("admin.courts.new.slotLengths.60") },
+    { value: 90, label: t("admin.courts.new.slotLengths.90") },
+    { value: 120, label: t("admin.courts.new.slotLengths.120") },
+  ];
 
   // Form handling with react-hook-form
   const {
@@ -191,10 +194,10 @@ export default function CreateCourtPage({
         const response = await fetch(`/api/clubs/${clubId}`);
         if (!response.ok) {
           if (response.status === 404) {
-            setError("Club not found");
+            setError(t("admin.courts.new.errors.clubNotFound"));
             return;
           }
-          throw new Error("Failed to fetch club");
+          throw new Error(t("admin.courts.new.errors.failedToLoadClub"));
         }
         const data = await response.json();
         setClub(data);
@@ -205,7 +208,7 @@ export default function CreateCourtPage({
         }
       } catch (err) {
         console.error("Failed to load club:", err);
-        setError("Failed to load club");
+        setError(t("admin.courts.new.errors.failedToLoadClub"));
       } finally {
         setLoading(false);
       }
@@ -558,26 +561,26 @@ export default function CreateCourtPage({
   // Basic Step
   const renderBasicStep = () => (
     <div className="im-create-court-step-content">
-      <h2 className="im-create-court-step-title">Basic Information</h2>
+      <h2 className="im-create-court-step-title">{t("admin.courts.new.basicStep.title")}</h2>
       <p className="im-create-court-step-description">
-        Enter the basic details about your court.
+        {t("admin.courts.new.basicStep.description")}
       </p>
 
       <div className="im-create-court-row">
         <div className="im-create-court-field im-create-court-field--full">
-          <label className="im-create-court-label">Court Name *</label>
+          <label className="im-create-court-label">{t("admin.courts.new.basicStep.courtName")}</label>
           <input
             {...register("name", {
-              required: "Name is required",
-              minLength: { value: 2, message: "Name must be at least 2 characters" },
-              maxLength: { value: 120, message: "Name must be at most 120 characters" },
+              required: t("admin.courts.new.errors.nameRequired"),
+              minLength: { value: 2, message: t("admin.courts.new.errors.nameMinLength") },
+              maxLength: { value: 120, message: t("admin.courts.new.errors.nameMaxLength") },
             })}
             onChange={(e) => {
               register("name").onChange(e);
               handleNameChange(e);
             }}
             className={`im-create-court-input ${errors.name ? "im-create-court-input--error" : ""}`}
-            placeholder="Enter court name"
+            placeholder={t("admin.courts.new.basicStep.courtNamePlaceholder")}
             disabled={isSubmitting}
           />
           {errors.name && <span className="im-create-court-error">{errors.name.message}</span>}
@@ -586,30 +589,30 @@ export default function CreateCourtPage({
 
       <div className="im-create-court-row im-create-court-row--two">
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Slug (optional)</label>
+          <label className="im-create-court-label">{t("admin.courts.new.basicStep.slug")}</label>
           <input
             {...register("slug", {
               pattern: {
                 value: /^[a-z0-9-]*$/,
-                message: "Slug can only contain lowercase letters, numbers, and hyphens",
+                message: t("admin.courts.new.errors.slugPattern"),
               },
             })}
             className={`im-create-court-input ${errors.slug ? "im-create-court-input--error" : ""}`}
-            placeholder="court-name-slug"
+            placeholder={t("admin.courts.new.basicStep.slugPlaceholder")}
             disabled={isSubmitting}
           />
-          <span className="im-create-court-hint">Auto-generated from name if empty</span>
+          <span className="im-create-court-hint">{t("admin.courts.new.basicStep.slugHint")}</span>
           {errors.slug && <span className="im-create-court-error">{errors.slug.message}</span>}
         </div>
 
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Court Type</label>
+          <label className="im-create-court-label">{t("admin.courts.new.basicStep.courtType")}</label>
           <select
             {...register("type")}
             className="im-create-court-select"
             disabled={isSubmitting}
           >
-            <option value="">Select type...</option>
+            <option value="">{t("admin.courts.new.basicStep.selectType")}</option>
             {COURT_TYPES.map((type) => (
               <option key={type.value} value={type.value}>
                 {type.label}
@@ -621,13 +624,13 @@ export default function CreateCourtPage({
 
       <div className="im-create-court-row im-create-court-row--two">
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Surface</label>
+          <label className="im-create-court-label">{t("admin.courts.new.basicStep.surface")}</label>
           <select
             {...register("surface")}
             className="im-create-court-select"
             disabled={isSubmitting}
           >
-            <option value="">Select surface...</option>
+            <option value="">{t("admin.courts.new.basicStep.selectSurface")}</option>
             {SURFACE_TYPES.map((surface) => (
               <option key={surface.value} value={surface.value}>
                 {surface.label}
@@ -644,18 +647,18 @@ export default function CreateCourtPage({
               className="im-create-court-checkbox"
               disabled={isSubmitting}
             />
-            <span className="im-create-court-checkbox-label">Indoor Court</span>
+            <span className="im-create-court-checkbox-label">{t("admin.courts.new.basicStep.indoorCourt")}</span>
           </label>
         </div>
       </div>
 
       <div className="im-create-court-row">
         <div className="im-create-court-field im-create-court-field--full">
-          <label className="im-create-court-label">Short Description</label>
+          <label className="im-create-court-label">{t("admin.courts.new.basicStep.shortDescription")}</label>
           <textarea
             {...register("shortDescription")}
             className="im-create-court-textarea"
-            placeholder="Brief description of the court..."
+            placeholder={t("admin.courts.new.basicStep.shortDescriptionPlaceholder")}
             rows={3}
             disabled={isSubmitting}
           />
@@ -667,19 +670,19 @@ export default function CreateCourtPage({
   // Pricing Step
   const renderPricingStep = () => (
     <div className="im-create-court-step-content">
-      <h2 className="im-create-court-step-title">Pricing</h2>
+      <h2 className="im-create-court-step-title">{t("admin.courts.new.pricingStep.title")}</h2>
       <p className="im-create-court-step-description">
-        Set the default pricing for this court.
+        {t("admin.courts.new.pricingStep.description")}
       </p>
 
       <div className="im-create-court-row im-create-court-row--two">
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Default Price</label>
+          <label className="im-create-court-label">{t("admin.courts.new.pricingStep.defaultPrice")}</label>
           <Controller
             name="defaultPrice"
             control={control}
             rules={{
-              min: { value: 0, message: "Price cannot be negative" },
+              min: { value: 0, message: t("admin.courts.new.errors.priceNegative") },
             }}
             render={({ field }) => (
               <input
@@ -689,7 +692,7 @@ export default function CreateCourtPage({
                 value={field.value}
                 onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                 className={`im-create-court-input ${errors.defaultPrice ? "im-create-court-input--error" : ""}`}
-                placeholder="0.00"
+                placeholder={t("admin.courts.new.pricingStep.pricePlaceholder")}
                 disabled={isSubmitting}
               />
             )}
@@ -700,24 +703,24 @@ export default function CreateCourtPage({
         </div>
 
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Currency</label>
+          <label className="im-create-court-label">{t("admin.courts.new.pricingStep.currency")}</label>
           <select
             {...register("currency")}
             className="im-create-court-select"
             disabled={isSubmitting}
           >
-            <option value="USD">USD ($)</option>
-            <option value="EUR">EUR (€)</option>
-            <option value="GBP">GBP (£)</option>
-            <option value="UAH">UAH (₴)</option>
+            <option value="USD">{t("admin.courts.new.currencies.usd")}</option>
+            <option value="EUR">{t("admin.courts.new.currencies.eur")}</option>
+            <option value="GBP">{t("admin.courts.new.currencies.gbp")}</option>
+            <option value="UAH">{t("admin.courts.new.currencies.uah")}</option>
           </select>
-          <span className="im-create-court-hint">Defaults to club currency</span>
+          <span className="im-create-court-hint">{t("admin.courts.new.pricingStep.currencyHint")}</span>
         </div>
       </div>
 
       <div className="im-create-court-row">
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Default Slot Length</label>
+          <label className="im-create-court-label">{t("admin.courts.new.pricingStep.defaultSlotLength")}</label>
           <select
             {...register("defaultSlotLengthMinutes", { valueAsNumber: true })}
             className="im-create-court-select"
@@ -740,19 +743,19 @@ export default function CreateCourtPage({
     const courtCloseTime = watch("courtCloseTime");
     const timeError =
       courtOpenTime && courtCloseTime && courtOpenTime >= courtCloseTime
-        ? "Open time must be before close time"
+        ? t("admin.courts.new.scheduleStep.timeError")
         : null;
 
     return (
       <div className="im-create-court-step-content">
-        <h2 className="im-create-court-step-title">Schedule</h2>
+        <h2 className="im-create-court-step-title">{t("admin.courts.new.scheduleStep.title")}</h2>
         <p className="im-create-court-step-description">
-          Set court-specific operating hours. Leave empty to use club hours.
+          {t("admin.courts.new.scheduleStep.description")}
         </p>
 
         <div className="im-create-court-row im-create-court-row--two">
           <div className="im-create-court-field">
-            <label className="im-create-court-label">Open Time</label>
+            <label className="im-create-court-label">{t("admin.courts.new.scheduleStep.openTime")}</label>
             <input
               type="time"
               {...register("courtOpenTime")}
@@ -762,7 +765,7 @@ export default function CreateCourtPage({
           </div>
 
           <div className="im-create-court-field">
-            <label className="im-create-court-label">Close Time</label>
+            <label className="im-create-court-label">{t("admin.courts.new.scheduleStep.closeTime")}</label>
             <input
               type="time"
               {...register("courtCloseTime")}
@@ -781,8 +784,8 @@ export default function CreateCourtPage({
         <div className="im-create-court-row">
           <span className="im-create-court-hint">
             {club?.businessHours && club.businessHours.length > 0
-              ? "Club hours will be used if not specified here."
-              : "No club hours configured. Court hours are recommended."}
+              ? t("admin.courts.new.scheduleStep.clubHoursHint")
+              : t("admin.courts.new.scheduleStep.noClubHoursHint")}
           </span>
         </div>
       </div>
@@ -796,21 +799,21 @@ export default function CreateCourtPage({
 
     return (
       <div className="im-create-court-step-content">
-        <h2 className="im-create-court-step-title">Media</h2>
+        <h2 className="im-create-court-step-title">{t("admin.courts.new.mediaStep.title")}</h2>
         <p className="im-create-court-step-description">
-          Upload images for this court. The main image will be shown as the primary photo.
+          {t("admin.courts.new.mediaStep.description")}
         </p>
 
         {/* Main Image */}
         <div className="im-create-court-row">
           <div className="im-create-court-field">
-            <label className="im-create-court-label">Main Image</label>
+            <label className="im-create-court-label">{t("admin.courts.new.mediaStep.mainImage")}</label>
             {mainImage ? (
               <div className="im-create-court-gallery-item im-create-court-gallery-item--main" style={{ width: "150px" }}>
                 {mainImage.uploading ? (
                   <div className="im-create-court-upload-progress">
                     <div className="im-create-court-spinner" />
-                    <span>Uploading...</span>
+                    <span>{t("admin.courts.new.mediaStep.uploading")}</span>
                   </div>
                 ) : (
                   <>
@@ -846,7 +849,7 @@ export default function CreateCourtPage({
                 disabled={isSubmitting}
               >
                 <span className="im-create-court-gallery-add-icon">+</span>
-                <span>Add Main Image</span>
+                <span>{t("admin.courts.new.mediaStep.addMainImage")}</span>
               </button>
             )}
             <input
@@ -920,7 +923,7 @@ export default function CreateCourtPage({
                 disabled={isSubmitting}
               >
                 <span className="im-create-court-gallery-add-icon">+</span>
-                <span>Add</span>
+                <span>{t("admin.courts.new.mediaStep.add")}</span>
               </button>
             </div>
 
@@ -942,45 +945,45 @@ export default function CreateCourtPage({
   // Meta Step
   const renderMetaStep = () => (
     <div className="im-create-court-step-content">
-      <h2 className="im-create-court-step-title">Additional Settings</h2>
+      <h2 className="im-create-court-step-title">{t("admin.courts.new.metaStep.title")}</h2>
       <p className="im-create-court-step-description">
-        Configure visibility and additional options.
+        {t("admin.courts.new.metaStep.description")}
       </p>
 
       <div className="im-create-court-row">
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Visibility</label>
+          <label className="im-create-court-label">{t("admin.courts.new.metaStep.visibility")}</label>
           <select
             {...register("visibility")}
             className="im-create-court-select"
             disabled={isSubmitting}
           >
-            <option value="draft">Draft (not visible to public)</option>
-            <option value="published">Published (visible to public)</option>
+            <option value="draft">{t("admin.courts.new.metaStep.visibilityDraft")}</option>
+            <option value="published">{t("admin.courts.new.metaStep.visibilityPublished")}</option>
           </select>
         </div>
       </div>
 
       <div className="im-create-court-row im-create-court-row--two">
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Tags</label>
+          <label className="im-create-court-label">{t("admin.courts.new.metaStep.tags")}</label>
           <input
             {...register("tags")}
             className="im-create-court-input"
-            placeholder="e.g., beginner-friendly, tournament"
+            placeholder={t("admin.courts.new.metaStep.tagsPlaceholder")}
             disabled={isSubmitting}
           />
-          <span className="im-create-court-hint">Comma-separated tags</span>
+          <span className="im-create-court-hint">{t("admin.courts.new.metaStep.tagsHint")}</span>
         </div>
 
         <div className="im-create-court-field">
-          <label className="im-create-court-label">Max Players</label>
+          <label className="im-create-court-label">{t("admin.courts.new.metaStep.maxPlayers")}</label>
           <Controller
             name="maxPlayers"
             control={control}
             rules={{
-              min: { value: 1, message: "Must be at least 1" },
-              max: { value: 20, message: "Cannot exceed 20" },
+              min: { value: 1, message: t("admin.courts.new.errors.maxPlayersMin") },
+              max: { value: 20, message: t("admin.courts.new.errors.maxPlayersMax") },
             }}
             render={({ field }) => (
               <input
@@ -1002,15 +1005,15 @@ export default function CreateCourtPage({
 
       <div className="im-create-court-row">
         <div className="im-create-court-field im-create-court-field--full">
-          <label className="im-create-court-label">Notes</label>
+          <label className="im-create-court-label">{t("admin.courts.new.metaStep.notes")}</label>
           <textarea
             {...register("notes")}
             className="im-create-court-textarea"
-            placeholder="Additional notes or instructions..."
+            placeholder={t("admin.courts.new.metaStep.notesPlaceholder")}
             rows={3}
             disabled={isSubmitting}
           />
-          <span className="im-create-court-hint">Internal notes, not shown to public</span>
+          <span className="im-create-court-hint">{t("admin.courts.new.metaStep.notesHint")}</span>
         </div>
       </div>
     </div>
@@ -1036,7 +1039,7 @@ export default function CreateCourtPage({
           <Card>
             <div className="im-create-court-error-banner">{error}</div>
             <div style={{ marginTop: "1rem" }}>
-              <Link href="/admin/clubs">← Back to Clubs</Link>
+              <Link href="/admin/clubs">{t("admin.courts.new.actions.backToClubs")}</Link>
             </div>
           </Card>
         </div>
@@ -1061,7 +1064,7 @@ export default function CreateCourtPage({
         <div className="im-create-court-submitting-overlay">
           <div className="im-create-court-submitting-content">
             <div className="im-create-court-submitting-spinner" />
-            <span className="im-create-court-submitting-text">Creating court...</span>
+            <span className="im-create-court-submitting-text">{t("admin.courts.new.submitting.creating")}</span>
           </div>
         </div>
       )}
@@ -1071,11 +1074,11 @@ export default function CreateCourtPage({
         <div className="im-create-court-header-content">
           <Breadcrumbs
             items={[
-              { label: "Admin", href: "/admin/clubs" },
-              { label: "Clubs", href: "/admin/clubs" },
-              { label: club?.name || "Club", href: `/admin/clubs/${clubId}` },
-              { label: "Courts", href: `/admin/clubs/${clubId}/courts` },
-              { label: "New Court" },
+              { label: t("breadcrumbs.admin"), href: "/admin/clubs" },
+              { label: t("breadcrumbs.clubs"), href: "/admin/clubs" },
+              { label: club?.name || t("breadcrumbs.club"), href: `/admin/clubs/${clubId}` },
+              { label: t("breadcrumbs.courts"), href: `/admin/clubs/${clubId}/courts` },
+              { label: t("admin.courts.new.title") },
             ]}
             separator="/"
           />
@@ -1087,7 +1090,7 @@ export default function CreateCourtPage({
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
-            <span>{progressPercentage}% complete</span>
+            <span>{progressPercentage}{t("admin.courts.new.progress.complete")}</span>
           </div>
 
           <div className="im-create-court-header-actions">
@@ -1097,14 +1100,14 @@ export default function CreateCourtPage({
               onClick={handleSubmit((data) => onSubmit(data, "draft"))}
               disabled={isSubmitting}
             >
-              Save Draft
+              {t("admin.courts.new.actions.saveDraft")}
             </Button>
             <Button
               type="button"
               onClick={handleSubmit((data) => onSubmit(data, "published"))}
               disabled={isSubmitting || !canPublish}
             >
-              Save &amp; Publish
+              {t("admin.courts.new.actions.saveAndPublish")}
             </Button>
           </div>
         </div>
