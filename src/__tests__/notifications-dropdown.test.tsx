@@ -156,7 +156,7 @@ describe("NotificationsDropdown Component", () => {
       });
 
       render(<NotificationsDropdown />);
-      const statusIndicator = document.querySelector(".tm-bell-status--connected");
+      const statusIndicator = document.querySelector(".im-bell-status--connected");
       expect(statusIndicator).toBeInTheDocument();
     });
   });

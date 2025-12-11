@@ -35,6 +35,28 @@ export interface NotificationsDropdownProps {
   maxDropdownItems?: number;
 }
 
+/**
+ * Bell icon component - outline style matching header icons
+ * Uses consistent sizing with color: currentColor for theme compatibility
+ */
+function BellIcon() {
+  return (
+    <svg
+      className="im-bell-icon-svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    </svg>
+  );
+}
+
 function formatTimeAgo(dateStr: string): string {
   const date = new Date(dateStr);
   const now = new Date();
@@ -201,24 +223,26 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
       />
 
       {/* Bell Icon and Dropdown */}
-      <div className="tm-notification-bell" ref={dropdownRef}>
+      <div className="im-notification-bell" ref={dropdownRef}>
         <button
-          className="tm-bell-button"
+          className="im-bell-button"
           onClick={() => setIsOpen((prev) => !prev)}
           onKeyDown={handleKeyDown}
           aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`}
           aria-expanded={isOpen}
           aria-haspopup="true"
         >
-          <span className="tm-bell-icon">🔔</span>
+          <span className="im-bell-icon">
+            <BellIcon />
+          </span>
           {unreadCount > 0 && (
-            <span className="tm-bell-badge" aria-hidden="true">
+            <span className="im-bell-badge" aria-hidden="true">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
           {/* Connection status indicator */}
           <span
-            className={`tm-bell-status tm-bell-status--${connectionStatus}`}
+            className={`im-bell-status im-bell-status--${connectionStatus}`}
             aria-label={`Connection status: ${connectionStatus}`}
           />
         </button>
@@ -226,16 +250,16 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
         {/* Dropdown */}
         {isOpen && (
           <div
-            className="tm-bell-dropdown"
+            className="im-bell-dropdown"
             role="menu"
             aria-label="Notifications dropdown"
           >
-            <div className="tm-dropdown-header">
+            <div className="im-dropdown-header">
               <h3>Notifications</h3>
               {unreadCount > 0 && (
                 <Button
                   variant="outline"
-                  className="tm-mark-all-btn"
+                  className="im-mark-all-btn"
                   onClick={handleMarkAllRead}
                 >
                   Mark all read
@@ -244,40 +268,40 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
             </div>
 
             {loading && (
-              <div className="tm-dropdown-loading">Loading...</div>
+              <div className="im-dropdown-loading">Loading...</div>
             )}
 
             {error && (
-              <div className="tm-dropdown-error">{error}</div>
+              <div className="im-dropdown-error">{error}</div>
             )}
 
             {!loading && !error && displayedNotifications.length === 0 && (
-              <div className="tm-dropdown-empty">No notifications</div>
+              <div className="im-dropdown-empty">No notifications</div>
             )}
 
             {!loading && !error && displayedNotifications.length > 0 && (
-              <ul className="tm-dropdown-list" role="listbox">
+              <ul className="im-dropdown-list" role="listbox">
                 {displayedNotifications.map((notification) => (
                   <li
                     key={notification.id}
                     role="option"
                     aria-selected={false}
-                    className={`tm-dropdown-item ${
-                      !notification.read ? "tm-dropdown-item--unread" : ""
+                    className={`im-dropdown-item ${
+                      !notification.read ? "im-dropdown-item--unread" : ""
                     }`}
                   >
                     <button
-                      className="tm-dropdown-item-button"
+                      className="im-dropdown-item-button"
                       onClick={() => handleViewNotification(notification)}
                     >
-                      <span className="tm-dropdown-item-icon">
+                      <span className="im-dropdown-item-icon">
                         {getNotificationIcon(notification.type)}
                       </span>
-                      <div className="tm-dropdown-item-content">
-                        <span className="tm-dropdown-item-summary">
+                      <div className="im-dropdown-item-content">
+                        <span className="im-dropdown-item-summary">
                           {generateNotificationSummary(notification)}
                         </span>
-                        <span className="tm-dropdown-item-time">
+                        <span className="im-dropdown-item-time">
                           {formatTimeAgo(notification.createdAt)}
                         </span>
                       </div>
@@ -287,8 +311,8 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
               </ul>
             )}
 
-            <div className="tm-dropdown-footer">
-              <Button variant="outline" onClick={handleViewAll} className="tm-view-all-btn">
+            <div className="im-dropdown-footer">
+              <Button variant="outline" onClick={handleViewAll} className="im-view-all-btn">
                 View all notifications
               </Button>
             </div>
@@ -303,33 +327,33 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
           onClose={() => setSelectedNotification(null)}
           title="Notification Details"
         >
-          <div className="tm-notification-details">
-            <div className="tm-details-header">
-              <span className="tm-details-icon">
+          <div className="im-notification-details">
+            <div className="im-details-header">
+              <span className="im-details-icon">
                 {getNotificationIcon(selectedNotification.type)}
               </span>
               <span
-                className={`tm-details-type tm-details-type--${selectedNotification.type.toLowerCase()}`}
+                className={`im-details-type im-details-type--${selectedNotification.type.toLowerCase()}`}
               >
                 {selectedNotification.type}
               </span>
             </div>
 
-            <div className="tm-details-body">
-              <div className="tm-details-row">
-                <span className="tm-details-label">Summary</span>
-                <span className="tm-details-value">
+            <div className="im-details-body">
+              <div className="im-details-row">
+                <span className="im-details-label">Summary</span>
+                <span className="im-details-value">
                   {generateNotificationSummary(selectedNotification)}
                 </span>
               </div>
 
               {selectedNotification.playerName && (
-                <div className="tm-details-row">
-                  <span className="tm-details-label">Player</span>
-                  <span className="tm-details-value">
+                <div className="im-details-row">
+                  <span className="im-details-label">Player</span>
+                  <span className="im-details-value">
                     {selectedNotification.playerName}
                     {selectedNotification.playerEmail && (
-                      <span className="tm-details-email">
+                      <span className="im-details-email">
                         {" "}({selectedNotification.playerEmail})
                       </span>
                     )}
@@ -338,16 +362,16 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
               )}
 
               {selectedNotification.coachName && (
-                <div className="tm-details-row">
-                  <span className="tm-details-label">Coach</span>
-                  <span className="tm-details-value">{selectedNotification.coachName}</span>
+                <div className="im-details-row">
+                  <span className="im-details-label">Coach</span>
+                  <span className="im-details-value">{selectedNotification.coachName}</span>
                 </div>
               )}
 
               {selectedNotification.sessionDate && (
-                <div className="tm-details-row">
-                  <span className="tm-details-label">Session Date</span>
-                  <span className="tm-details-value">
+                <div className="im-details-row">
+                  <span className="im-details-label">Session Date</span>
+                  <span className="im-details-value">
                     {new Date(selectedNotification.sessionDate).toLocaleDateString("en-US", {
                       weekday: "long",
                       year: "numeric",
@@ -359,46 +383,46 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
               )}
 
               {selectedNotification.sessionTime && (
-                <div className="tm-details-row">
-                  <span className="tm-details-label">Session Time</span>
-                  <span className="tm-details-value">{selectedNotification.sessionTime}</span>
+                <div className="im-details-row">
+                  <span className="im-details-label">Session Time</span>
+                  <span className="im-details-value">{selectedNotification.sessionTime}</span>
                 </div>
               )}
 
               {selectedNotification.courtInfo && (
-                <div className="tm-details-row">
-                  <span className="tm-details-label">Court</span>
-                  <span className="tm-details-value">{selectedNotification.courtInfo}</span>
+                <div className="im-details-row">
+                  <span className="im-details-label">Court</span>
+                  <span className="im-details-value">{selectedNotification.courtInfo}</span>
                 </div>
               )}
 
               {selectedNotification.bookingId && (
-                <div className="tm-details-row">
-                  <span className="tm-details-label">Booking ID</span>
-                  <span className="tm-details-value tm-details-id">
+                <div className="im-details-row">
+                  <span className="im-details-label">Booking ID</span>
+                  <span className="im-details-value im-details-id">
                     {selectedNotification.bookingId}
                   </span>
                 </div>
               )}
 
               {selectedNotification.trainingRequestId && (
-                <div className="tm-details-row">
-                  <span className="tm-details-label">Training Request ID</span>
-                  <span className="tm-details-value tm-details-id">
+                <div className="im-details-row">
+                  <span className="im-details-label">Training Request ID</span>
+                  <span className="im-details-value im-details-id">
                     {selectedNotification.trainingRequestId}
                   </span>
                 </div>
               )}
 
-              <div className="tm-details-row">
-                <span className="tm-details-label">Received</span>
-                <span className="tm-details-value">
+              <div className="im-details-row">
+                <span className="im-details-label">Received</span>
+                <span className="im-details-value">
                   {new Date(selectedNotification.createdAt).toLocaleString()}
                 </span>
               </div>
             </div>
 
-            <div className="tm-details-footer">
+            <div className="im-details-footer">
               <Button variant="outline" onClick={() => setSelectedNotification(null)}>
                 Close
               </Button>
