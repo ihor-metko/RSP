@@ -41,12 +41,18 @@ function formatDateTime(isoString: string): string {
 /**
  * Get user initials from name for avatar
  */
-function getInitials(name: string | null | undefined, email: string): string {
+function getInitials(name: string | null | undefined, email: string | null): string {
+  const getEmailInitial = () => {
+    return email && email.length > 0 ? email.charAt(0).toUpperCase() : "?";
+  };
+
   if (!name) {
-    return email.charAt(0).toUpperCase();
+    return getEmailInitial();
   }
   const parts = name.split(" ").filter(Boolean);
-  if (parts.length === 0) return email.charAt(0).toUpperCase();
+  if (parts.length === 0) {
+    return getEmailInitial();
+  }
   if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
   return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
