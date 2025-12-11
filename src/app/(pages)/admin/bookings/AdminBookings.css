@@ -182,42 +182,34 @@
   }
 }
 
-/* Actions column */
-.im-admin-bookings-actions {
+/* User Info Cell */
+.im-td-user {
+  min-width: 180px;
+}
+
+.im-user-info {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.im-admin-bookings-action-btn {
-  padding: 0.25rem 0.5rem;
+.im-user-avatar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
   font-size: 0.75rem;
-  border-radius: 0.25rem;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.im-admin-bookings-action-btn--view {
+  font-weight: 600;
   background: var(--im-accent);
   color: white;
 }
 
-.im-admin-bookings-action-btn--view:hover {
-  background: var(--im-accent-hover);
-}
-
-.im-admin-bookings-action-btn--cancel {
-  background: rgba(239, 68, 68, 0.15);
-  color: rgb(239, 68, 68);
-}
-
-.im-admin-bookings-action-btn--cancel:hover {
-  background: rgba(239, 68, 68, 0.25);
-}
-
-.im-admin-bookings-action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.im-user-name {
+  font-weight: 500;
+  color: var(--im-text-primary);
 }
 
 /* Modal content */

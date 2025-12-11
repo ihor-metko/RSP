@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader, Button, Modal, Table, type TableColumn } from "@/components/ui";
+import { PageHeader, Button, Modal, type TableColumn } from "@/components/ui";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { formatPrice } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
@@ -47,6 +47,25 @@ function formatDateTime(isoString: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/**
+ * Get user initials from name for avatar
+ */
+function getInitials(name: string | null | undefined, email: string | null): string {
+  const getEmailInitial = () => {
+    return email && email.length > 0 ? email.charAt(0).toUpperCase() : "?";
+  };
+
+  if (!name) {
+    return getEmailInitial();
+  }
+  const parts = name.split(" ").filter(Boolean);
+  if (parts.length === 0) {
+    return getEmailInitial();
+  }
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
 }
 
 /**
@@ -240,18 +259,18 @@ export default function AdminBookingsPage() {
   const getQuickPresets = () => {
     const today = new Date();
     const todayStr = today.toISOString().split("T")[0];
-    
+
     const next7Days = new Date(today);
     next7Days.setDate(next7Days.getDate() + 7);
     const next7DaysStr = next7Days.toISOString().split("T")[0];
-    
+
     const startOfWeek = new Date(today);
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
     startOfWeek.setHours(0, 0, 0, 0);
     const startOfWeekStr = startOfWeek.toISOString().split("T")[0];
-    
+
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
@@ -320,21 +339,21 @@ export default function AdminBookingsPage() {
     },
     ...(adminStatus?.adminType === "root_admin"
       ? [
-          {
-            key: "organizationName",
-            header: t("adminBookings.organization"),
-            render: (booking: AdminBookingResponse) => booking.organizationName || "—",
-          },
-        ]
+        {
+          key: "organizationName",
+          header: t("adminBookings.organization"),
+          render: (booking: AdminBookingResponse) => booking.organizationName || "—",
+        },
+      ]
       : []),
     ...(adminStatus?.adminType !== "club_admin"
       ? [
-          {
-            key: "clubName",
-            header: t("adminBookings.club"),
-            render: (booking: AdminBookingResponse) => booking.clubName,
-          },
-        ]
+        {
+          key: "clubName",
+          header: t("adminBookings.club"),
+          render: (booking: AdminBookingResponse) => booking.clubName,
+        },
+      ]
       : []),
     {
       key: "court",
@@ -470,13 +489,47 @@ export default function AdminBookingsPage() {
           </div>
         ) : (
           <>
-            <Table
-              columns={columns}
-              data={bookingsData.bookings}
-              keyExtractor={(booking) => booking.id}
-              ariaLabel={t("adminBookings.tableLabel") || "Bookings table"}
-              className="im-admin-bookings-table"
-            />
+            <div className="im-admin-bookings-table-container">
+              <table className="im-admin-bookings-table">
+                <thead>
+                  <tr>
+                    <th>{t("adminBookings.user")}</th>
+                    {adminStatus.adminType === "root_admin" && <th>{t("adminBookings.organization")}</th>}
+                    {adminStatus.adminType !== "club_admin" && <th>{t("adminBookings.club")}</th>}
+                    <th>{t("adminBookings.court")}</th>
+                    <th>{t("adminBookings.dateTime")}</th>
+                    <th>{t("common.duration")}</th>
+                    <th>{t("common.status")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookingsData?.bookings.map((booking) => (
+                    <tr key={booking.id} onClick={() => handleViewBooking(booking)}>
+                      <td className="im-td-user">
+                        <div className="im-user-info">
+                          <div className="im-user-avatar">
+                            {getInitials(booking.userName, booking.userEmail)}
+                          </div>
+                          <span className="im-user-name">
+                            {booking.userName || booking.userEmail}
+                          </span>
+                        </div>
+                      </td>
+                      {adminStatus.adminType === "root_admin" && (
+                        <td>{booking.organizationName || "—"}</td>
+                      )}
+                      {adminStatus.adminType !== "club_admin" && (
+                        <td>{booking.clubName}</td>
+                      )}
+                      <td>{booking.courtName}</td>
+                      <td>{formatDateTime(booking.start)}</td>
+                      <td>{calculateDuration(booking.start, booking.end)} {t("common.minutes")}</td>
+                      <td><StatusBadge status={booking.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {/* Pagination Controls */}
             <PaginationControls
@@ -488,118 +541,118 @@ export default function AdminBookingsPage() {
           </>
         )}
 
-      {/* Booking Detail Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title={t("adminBookings.bookingDetails")}
-      >
-        {isLoadingDetail ? (
-          <div className="im-admin-bookings-loading">
-            <div className="im-admin-bookings-loading-spinner" />
-            <span>{t("common.loading")}</span>
-          </div>
-        ) : selectedBooking ? (
-          <div className="im-booking-detail-modal">
-            {/* User Information */}
-            <div className="im-booking-detail-section">
-              <h4 className="im-booking-detail-section-title">{t("adminBookings.userInfo")}</h4>
-              <div className="im-booking-detail-grid">
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.name")}</span>
-                  <span className="im-booking-detail-value">{selectedBooking.userName || "—"}</span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.email")}</span>
-                  <span className="im-booking-detail-value">{selectedBooking.userEmail}</span>
+        {/* Booking Detail Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title={t("adminBookings.bookingDetails")}
+        >
+          {isLoadingDetail ? (
+            <div className="im-admin-bookings-loading">
+              <div className="im-admin-bookings-loading-spinner" />
+              <span>{t("common.loading")}</span>
+            </div>
+          ) : selectedBooking ? (
+            <div className="im-booking-detail-modal">
+              {/* User Information */}
+              <div className="im-booking-detail-section">
+                <h4 className="im-booking-detail-section-title">{t("adminBookings.userInfo")}</h4>
+                <div className="im-booking-detail-grid">
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.name")}</span>
+                    <span className="im-booking-detail-value">{selectedBooking.userName || "—"}</span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.email")}</span>
+                    <span className="im-booking-detail-value">{selectedBooking.userEmail}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Court Information */}
-            <div className="im-booking-detail-section">
-              <h4 className="im-booking-detail-section-title">{t("adminBookings.courtInfo")}</h4>
-              <div className="im-booking-detail-grid">
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("adminBookings.court")}</span>
-                  <span className="im-booking-detail-value">{selectedBooking.courtName}</span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("adminBookings.club")}</span>
-                  <span className="im-booking-detail-value">{selectedBooking.clubName}</span>
-                </div>
-                {selectedBooking.courtType && (
+              {/* Court Information */}
+              <div className="im-booking-detail-section">
+                <h4 className="im-booking-detail-section-title">{t("adminBookings.courtInfo")}</h4>
+                <div className="im-booking-detail-grid">
                   <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("admin.courts.type")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.courtType}</span>
+                    <span className="im-booking-detail-label">{t("adminBookings.court")}</span>
+                    <span className="im-booking-detail-value">{selectedBooking.courtName}</span>
                   </div>
-                )}
-                {selectedBooking.courtSurface && (
                   <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("admin.courts.surface")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.courtSurface}</span>
+                    <span className="im-booking-detail-label">{t("adminBookings.club")}</span>
+                    <span className="im-booking-detail-value">{selectedBooking.clubName}</span>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Booking Details */}
-            <div className="im-booking-detail-section">
-              <h4 className="im-booking-detail-section-title">{t("adminBookings.bookingInfo")}</h4>
-              <div className="im-booking-detail-grid">
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("adminBookings.dateTime")}</span>
-                  <span className="im-booking-detail-value">
-                    {formatDateTime(selectedBooking.start)} — {formatDateTime(selectedBooking.end)}
-                  </span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.duration")}</span>
-                  <span className="im-booking-detail-value">
-                    {calculateDuration(selectedBooking.start, selectedBooking.end)} {t("common.minutes")}
-                  </span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.status")}</span>
-                  <span className="im-booking-detail-value">
-                    <StatusBadge status={selectedBooking.status} />
-                  </span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.price")}</span>
-                  <span className="im-booking-detail-value">{formatPrice(selectedBooking.price)}</span>
-                </div>
-                {selectedBooking.coachName && (
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("adminBookings.coach")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.coachName}</span>
-                  </div>
-                )}
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("adminBookings.createdAt")}</span>
-                  <span className="im-booking-detail-value">{formatDateTime(selectedBooking.createdAt)}</span>
+                  {selectedBooking.courtType && (
+                    <div className="im-booking-detail-item">
+                      <span className="im-booking-detail-label">{t("admin.courts.type")}</span>
+                      <span className="im-booking-detail-value">{selectedBooking.courtType}</span>
+                    </div>
+                  )}
+                  {selectedBooking.courtSurface && (
+                    <div className="im-booking-detail-item">
+                      <span className="im-booking-detail-label">{t("admin.courts.surface")}</span>
+                      <span className="im-booking-detail-value">{selectedBooking.courtSurface}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
 
-            {/* Actions */}
-            <div className="im-booking-detail-actions">
-              <Button variant="outline" onClick={handleCloseModal}>
-                {t("common.close")}
-              </Button>
-              {selectedBooking.status !== "cancelled" && (
-                <Button
-                  variant="danger"
-                  onClick={() => handleCancelBooking(selectedBooking.id)}
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? t("adminBookings.cancelling") : t("adminBookings.cancelBooking")}
+              {/* Booking Details */}
+              <div className="im-booking-detail-section">
+                <h4 className="im-booking-detail-section-title">{t("adminBookings.bookingInfo")}</h4>
+                <div className="im-booking-detail-grid">
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("adminBookings.dateTime")}</span>
+                    <span className="im-booking-detail-value">
+                      {formatDateTime(selectedBooking.start)} — {formatDateTime(selectedBooking.end)}
+                    </span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.duration")}</span>
+                    <span className="im-booking-detail-value">
+                      {calculateDuration(selectedBooking.start, selectedBooking.end)} {t("common.minutes")}
+                    </span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.status")}</span>
+                    <span className="im-booking-detail-value">
+                      <StatusBadge status={selectedBooking.status} />
+                    </span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.price")}</span>
+                    <span className="im-booking-detail-value">{formatPrice(selectedBooking.price)}</span>
+                  </div>
+                  {selectedBooking.coachName && (
+                    <div className="im-booking-detail-item">
+                      <span className="im-booking-detail-label">{t("adminBookings.coach")}</span>
+                      <span className="im-booking-detail-value">{selectedBooking.coachName}</span>
+                    </div>
+                  )}
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("adminBookings.createdAt")}</span>
+                    <span className="im-booking-detail-value">{formatDateTime(selectedBooking.createdAt)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="im-booking-detail-actions">
+                <Button variant="outline" onClick={handleCloseModal}>
+                  {t("common.close")}
                 </Button>
-              )}
+                {selectedBooking.status !== "cancelled" && (
+                  <Button
+                    variant="danger"
+                    onClick={() => handleCancelBooking(selectedBooking.id)}
+                    disabled={isCancelling}
+                  >
+                    {isCancelling ? t("adminBookings.cancelling") : t("adminBookings.cancelBooking")}
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
-        ) : null}
-      </Modal>
+          ) : null}
+        </Modal>
 
         {/* Admin Booking Wizard */}
         {adminStatus?.isAdmin && adminStatus.adminType !== "none" && (
