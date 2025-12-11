@@ -1265,6 +1265,7 @@
   },
   "dashboardGraphs": {
     "title": "Analytics",
+    "description": "This section shows key platform metrics and charts, including organizations, clubs, registered users, and bookings, providing a quick overview of platform activity.",
     "week": "Week",
     "month": "Month",
     "bookingTrends": "Booking Trends",

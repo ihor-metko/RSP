@@ -19,13 +19,13 @@ import { GraphSkeleton, GraphEmptyState, DEFAULT_MIN_POINTS_TO_RENDER } from "@/
 import "./DashboardGraphs.css";
 
 export interface DashboardGraphsProps {
-  /** 
+  /**
    * External loading state (optional).
    * Use this when you want to control loading from a parent component.
    * If not provided, the component manages its own loading state.
    */
   loading?: boolean;
-  /** 
+  /**
    * External error message (optional).
    * Use this when you want to display errors from a parent component.
    * If not provided, the component manages its own error state.
@@ -79,8 +79,8 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
  * - Uses dark theme with im-* classes
  * - Responsive and accessible
  */
-export default function DashboardGraphs({ 
-  loading: externalLoading, 
+export default function DashboardGraphs({
+  loading: externalLoading,
   error: externalError,
   minPointsToRender = DEFAULT_MIN_POINTS_TO_RENDER,
 }: DashboardGraphsProps) {
@@ -96,7 +96,7 @@ export default function DashboardGraphs({
       setError("");
 
       const response = await fetch(`/api/admin/dashboard/graphs?timeRange=${range}`);
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch graph data");
       }
@@ -128,6 +128,7 @@ export default function DashboardGraphs({
       <div className="im-dashboard-graphs-section">
         <div className="im-dashboard-graphs-header">
           <h2 className="im-dashboard-graphs-title">{t("dashboardGraphs.title")}</h2>
+          <p className="im-booking-overview-section-description">{t("dashboardGraphs.description")}</p>
         </div>
         <div className="im-dashboard-graphs-grid">
           <GraphSkeleton showHeader={true} />
@@ -142,6 +143,7 @@ export default function DashboardGraphs({
       <div className="im-dashboard-graphs-section">
         <div className="im-dashboard-graphs-header">
           <h2 className="im-dashboard-graphs-title">{t("dashboardGraphs.title")}</h2>
+          <p className="im-booking-overview-section-description">{t("dashboardGraphs.description")}</p>
         </div>
         <div className="im-dashboard-graphs-error">
           <p>{errorMessage}</p>
@@ -161,7 +163,11 @@ export default function DashboardGraphs({
   return (
     <div className="im-dashboard-graphs-section">
       <div className="im-dashboard-graphs-header">
-        <h2 className="im-dashboard-graphs-title">{t("dashboardGraphs.title")}</h2>
+        <div className="flex flex-col">
+          <h2 className="im-dashboard-graphs-title">{t("dashboardGraphs.title")}</h2>
+          <p className="im-booking-overview-section-description">{t("dashboardGraphs.description")}</p>
+        </div>
+
         <div className="im-dashboard-graphs-controls">
           <button
             onClick={() => handleTimeRangeChange("week")}
@@ -192,9 +198,9 @@ export default function DashboardGraphs({
                   data={data.bookingTrends}
                   margin={{ top: 10, right: 30, left: 10, bottom: 5 }}
                 >
-                  <CartesianGrid 
-                    strokeDasharray="3 3" 
-                    stroke="var(--im-border-color)" 
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--im-border-color)"
                     strokeOpacity={0.5}
                   />
                   <XAxis
@@ -211,8 +217,8 @@ export default function DashboardGraphs({
                     domain={[0, 'auto']}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend 
-                    wrapperStyle={{ 
+                  <Legend
+                    wrapperStyle={{
                       paddingTop: '10px',
                       color: 'var(--im-text-primary)'
                     }}
@@ -246,9 +252,9 @@ export default function DashboardGraphs({
                   data={data.activeUsers}
                   margin={{ top: 10, right: 30, left: 10, bottom: 5 }}
                 >
-                  <CartesianGrid 
-                    strokeDasharray="3 3" 
-                    stroke="var(--im-border-color)" 
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--im-border-color)"
                     strokeOpacity={0.5}
                   />
                   <XAxis
@@ -265,8 +271,8 @@ export default function DashboardGraphs({
                     domain={[0, 'auto']}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend 
-                    wrapperStyle={{ 
+                  <Legend
+                    wrapperStyle={{
                       paddingTop: '10px',
                       color: 'var(--im-text-primary)'
                     }}
