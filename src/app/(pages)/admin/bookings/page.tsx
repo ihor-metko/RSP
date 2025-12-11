@@ -445,7 +445,7 @@ export default function AdminBookingsPage() {
 
         {/* Bookings table with loading and empty states */}
         {isLoadingBookings ? (
-          <TableSkeleton rows={controller.pageSize > 20 ? 20 : controller.pageSize} columns={columns.length} showHeader />
+          <TableSkeleton rows={Math.min(controller.pageSize, 20)} columns={columns.length} showHeader />
         ) : !bookingsData || bookingsData.bookings.length === 0 ? (
           <div className="im-admin-bookings-table-container">
             <div className="im-admin-bookings-empty">
