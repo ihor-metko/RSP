@@ -1,22 +1,35 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRootAdmin } from "@/lib/requireRole";
+import { requireClubAccess } from "@/lib/requireRole";
+import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
 import { deleteFromStorage, isSupabaseStorageConfigured } from "@/lib/supabase";
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string; imageId: string }> }
 ) {
-  const authResult = await requireRootAdmin(request);
-
-  if (!authResult.authorized) {
-    return authResult.response;
-  }
-
   try {
     const resolvedParams = await params;
     const clubId = resolvedParams.id;
     const imageId = resolvedParams.imageId;
+
+    // Check access - club admins cannot delete images (only root and org admins)
+    const authResult = await requireClubAccess(clubId, { allowClubAdmin: false });
+
+    if (!authResult.authorized) {
+      // Log unauthorized access attempt
+      await auditLog(
+        authResult.userId || "unknown",
+        AuditAction.UNAUTHORIZED_ACCESS_ATTEMPT,
+        TargetType.CLUB,
+        clubId,
+        {
+          attemptedPath: `/api/admin/clubs/${clubId}/images/${imageId}`,
+          method: "DELETE",
+        }
+      );
+      return authResult.response;
+    }
 
     // Check if club exists
     const club = await prisma.club.findUnique({

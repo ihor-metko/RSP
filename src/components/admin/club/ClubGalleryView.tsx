@@ -19,7 +19,7 @@ interface GalleryImage {
 
 interface ClubGalleryViewProps {
   club: ClubDetail;
-  onUpdate: (payload: {
+  onUpdate?: (payload: {
     heroImage: string | null;
     logo: string | null;
     gallery: GalleryImage[];
@@ -201,7 +201,8 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
     setIsSaving(true);
     setError("");
     try {
-      await onUpdate({
+      if (onUpdate) {
+        await onUpdate({
         heroImage,
         logo,
         gallery: gallery.map((img, index) => ({

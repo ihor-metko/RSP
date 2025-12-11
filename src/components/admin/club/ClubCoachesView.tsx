@@ -21,7 +21,7 @@ interface AvailableCoach {
 
 interface ClubCoachesViewProps {
   club: ClubDetail;
-  onUpdate: (payload: { coachIds: string[] }) => Promise<unknown>;
+  onUpdate?: (payload: { coachIds: string[] }) => Promise<unknown>;
 }
 
 export function ClubCoachesView({ club, onUpdate }: ClubCoachesViewProps) {
@@ -81,8 +81,10 @@ export function ClubCoachesView({ club, onUpdate }: ClubCoachesViewProps) {
     setIsSaving(true);
     setError("");
     try {
-      await onUpdate({ coachIds: selectedCoachIds });
+      if (onUpdate) {
+        await onUpdate({ coachIds: selectedCoachIds });
       setIsEditing(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
     } finally {

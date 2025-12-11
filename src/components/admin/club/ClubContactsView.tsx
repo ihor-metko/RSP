@@ -8,7 +8,7 @@ import "./ClubContactsView.css";
 
 interface ClubContactsViewProps {
   club: ClubDetail;
-  onUpdate: (payload: {
+  onUpdate?: (payload: {
     location: string;
     city?: string | null;
     country?: string | null;
@@ -91,16 +91,18 @@ export function ClubContactsView({ club, onUpdate }: ClubContactsViewProps) {
     setIsSaving(true);
     setError("");
     try {
-      await onUpdate({
-        location: formData.location.trim(),
-        city: formData.city.trim() || null,
-        country: formData.country.trim() || null,
-        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-        phone: formData.phone.trim() || null,
-        email: formData.email.trim() || null,
-        website: formData.website.trim() || null,
-      });
+      if (onUpdate) {
+        await onUpdate({
+          location: formData.location.trim(),
+          city: formData.city.trim() || null,
+          country: formData.country.trim() || null,
+          latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+          longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+          phone: formData.phone.trim() || null,
+          email: formData.email.trim() || null,
+          website: formData.website.trim() || null,
+        });
+      }
       setIsEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
@@ -115,13 +117,15 @@ export function ClubContactsView({ club, onUpdate }: ClubContactsViewProps) {
     <>
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Contact Information</h2>
-        <Button
-          variant="outline"
-          onClick={handleEdit}
-          className="im-section-edit-btn"
-        >
-          Edit
-        </Button>
+        {onUpdate && (
+          <Button
+            variant="outline"
+            onClick={handleEdit}
+            className="im-section-edit-btn"
+          >
+            Edit
+          </Button>
+        )}
       </div>
 
       <div className="im-section-view">

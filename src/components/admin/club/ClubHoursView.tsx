@@ -34,7 +34,7 @@ interface SpecialHour {
 
 interface ClubHoursViewProps {
   club: ClubDetail;
-  onUpdate: (payload: {
+  onUpdate?: (payload: {
     businessHours: BusinessHour[];
     specialHours: SpecialHour[];
   }) => Promise<unknown>;
@@ -205,8 +205,10 @@ export function ClubHoursView({ club, onUpdate }: ClubHoursViewProps) {
     setIsSaving(true);
     setError("");
     try {
-      await onUpdate({ businessHours, specialHours });
+      if (onUpdate) {
+        await onUpdate({ businessHours, specialHours });
       setIsEditing(false);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
     } finally {

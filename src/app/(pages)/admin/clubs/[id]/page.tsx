@@ -65,13 +65,16 @@ export default function AdminClubDetailPage({
       const errorMessage = err instanceof Error ? err.message : "Failed to load club";
       if (errorMessage.includes("404") || errorMessage.includes("not found")) {
         setError("Club not found");
-      } else if (errorMessage.includes("401") || errorMessage.includes("403")) {
+      } else if (errorMessage.includes("403") || errorMessage.includes("Forbidden")) {
+        setError("Access denied — you are not authorized to view this club");
+        showToast("error", "Access denied — you are not authorized to view this club");
+      } else if (errorMessage.includes("401")) {
         router.push("/auth/sign-in");
       } else {
         setError(errorMessage);
       }
     }
-  }, [clubId, fetchClubById, router]);
+  }, [clubId, fetchClubById, router, showToast]);
 
   useEffect(() => {
     if (isLoadingStore) return;
@@ -158,6 +161,9 @@ export default function AdminClubDetailPage({
 
   // Determine if user can delete clubs (only root admin)
   const canDelete = adminStatus?.adminType === "root_admin";
+  
+  // Determine if user can edit clubs (root and org admins, but not club admins)
+  const canEdit = adminStatus?.adminType === "root_admin" || adminStatus?.adminType === "organization_admin";
 
   // Loading skeleton
   if (loading || isLoadingStore) {
@@ -313,12 +319,14 @@ export default function AdminClubDetailPage({
             />
           </div>
           <div className="im-admin-club-actions">
-            <Button
-              variant="outline"
-              onClick={handleTogglePublish}
-            >
-              {club.isPublic ? "Unpublish" : "Publish"}
-            </Button>
+            {canEdit && (
+              <Button
+                variant="outline"
+                onClick={handleTogglePublish}
+              >
+                {club.isPublic ? "Unpublish" : "Publish"}
+              </Button>
+            )}
             {canDelete && (
               <Button
                 variant="outline"
@@ -346,7 +354,7 @@ export default function AdminClubDetailPage({
             <Card className="im-admin-club-info-card">
               <ClubHeaderView
                 club={club}
-                onUpdate={(payload) => handleSectionUpdate("header", payload)}
+                onUpdate={canEdit ? (payload) => handleSectionUpdate("header", payload) : undefined}
               />
             </Card>
 
@@ -426,7 +434,7 @@ export default function AdminClubDetailPage({
             <Card className="im-admin-club-info-card">
               <ClubContactsView
                 club={club}
-                onUpdate={(payload) => handleSectionUpdate("contacts", payload)}
+                onUpdate={canEdit ? (payload) => handleSectionUpdate("contacts", payload) : undefined}
               />
             </Card>
 
@@ -434,7 +442,7 @@ export default function AdminClubDetailPage({
             <Card className="im-admin-club-info-card">
               <ClubHoursView
                 club={club}
-                onUpdate={(payload) => handleSectionUpdate("hours", payload)}
+                onUpdate={canEdit ? (payload) => handleSectionUpdate("hours", payload) : undefined}
               />
             </Card>
 
@@ -442,7 +450,7 @@ export default function AdminClubDetailPage({
             <Card className="im-admin-club-info-card">
               <ClubCoachesView
                 club={club}
-                onUpdate={(payload) => handleSectionUpdate("coaches", payload)}
+                onUpdate={canEdit ? (payload) => handleSectionUpdate("coaches", payload) : undefined}
               />
             </Card>
           </div>
@@ -453,7 +461,7 @@ export default function AdminClubDetailPage({
           <Card className="im-admin-club-info-card">
             <ClubGalleryView
               club={club}
-              onUpdate={(payload) => handleSectionUpdate("gallery", payload)}
+              onUpdate={canEdit ? (payload) => handleSectionUpdate("gallery", payload) : undefined}
             />
           </Card>
 

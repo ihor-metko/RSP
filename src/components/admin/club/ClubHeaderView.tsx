@@ -9,7 +9,7 @@ import "./ClubHeaderView.css";
 
 interface ClubHeaderViewProps {
   club: ClubDetail;
-  onUpdate: (payload: {
+  onUpdate?: (payload: {
     name: string;
     slug: string;
     shortDescription: string;
@@ -65,7 +65,9 @@ export function ClubHeaderView({ club, onUpdate }: ClubHeaderViewProps) {
     setIsSaving(true);
     setError("");
     try {
-      await onUpdate(formData);
+      if (onUpdate) {
+        await onUpdate(formData);
+      }
       setIsEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
@@ -78,13 +80,15 @@ export function ClubHeaderView({ club, onUpdate }: ClubHeaderViewProps) {
     <>
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Club Header</h2>
-        <Button
-          variant="outline"
-          onClick={handleEdit}
-          className="im-section-edit-btn"
-        >
-          Edit
-        </Button>
+        {onUpdate && (
+          <Button
+            variant="outline"
+            onClick={handleEdit}
+            className="im-section-edit-btn"
+          >
+            Edit
+          </Button>
+        )}
       </div>
 
       <div className="im-section-view">
