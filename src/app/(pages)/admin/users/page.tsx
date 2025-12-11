@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button, Input, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
+import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { useListController } from "@/hooks";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
@@ -391,38 +392,36 @@ export default function AdminUsersPage() {
     ...clubs.map((club) => ({ value: club.id, label: club.name })),
   ];
 
-  if (status === "loading" || loading) {
-    return (
-      <main className="im-admin-users-page">
-        <div className="im-admin-users-loading">
-          <div className="im-admin-users-loading-spinner" />
-          <span className="im-admin-users-loading-text">{t("common.loading")}</span>
-        </div>
-      </main>
-    );
-  }
+  const isLoadingData = status === "loading" || loading;
 
   return (
     <main className="im-admin-users-page">
-      <PageHeader
-        title={t("users.title")}
-        description={t("users.subtitle")}
-      />
+      {isLoadingData ? (
+        <PageHeaderSkeleton showDescription />
+      ) : (
+        <PageHeader
+          title={t("users.title")}
+          description={t("users.subtitle")}
+        />
+      )}
 
       {/* No toast notifications needed */}
 
       <section className="rsp-content">
-        <Breadcrumbs
-          items={[
-            { label: t("breadcrumbs.home"), href: "/" },
-            { label: t("breadcrumbs.admin"), href: "/admin/dashboard" },
-            { label: t("users.breadcrumb") },
-          ]}
-          className="mb-6"
-          ariaLabel={t("breadcrumbs.navigation")}
-        />
+        {!isLoadingData && (
+          <Breadcrumbs
+            items={[
+              { label: t("breadcrumbs.home"), href: "/" },
+              { label: t("breadcrumbs.admin"), href: "/admin/dashboard" },
+              { label: t("users.breadcrumb") },
+            ]}
+            className="mb-6"
+            ariaLabel={t("breadcrumbs.navigation")}
+          />
+        )}
 
         {/* Filters Card */}
+        {!isLoadingData && (
         <Card className="im-filters-card">
           <div className="im-filters-header">
             <div className="im-filters-title">
@@ -575,6 +574,7 @@ export default function AdminUsersPage() {
             </div>
           </div>
         </Card>
+        )}
 
         {(error || errorKey) && (
           <div className="im-error-alert" role="alert">
@@ -583,7 +583,9 @@ export default function AdminUsersPage() {
           </div>
         )}
 
-        {users.length === 0 && !loading ? (
+        {isLoadingData ? (
+          <TableSkeleton rows={pageSize > 20 ? 20 : pageSize} columns={7} showHeader />
+        ) : users.length === 0 ? (
           <Card className="im-empty-state">
             <div className="im-empty-state-icon">
               <UserIcon />

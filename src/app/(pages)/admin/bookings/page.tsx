@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, Modal, Select, Input } from "@/components/ui";
+import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { formatPrice } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
@@ -406,11 +407,8 @@ export default function AdminBookingsPage() {
       )}
 
       {/* Bookings table */}
-      {loading ? (
-        <div className="im-admin-bookings-loading">
-          <div className="im-admin-bookings-loading-spinner" />
-          <span>{t("common.loading")}</span>
-        </div>
+      {isLoadingData ? (
+        <TableSkeleton rows={pageSize > 20 ? 20 : pageSize} columns={8} showHeader />
       ) : bookingsData?.bookings.length === 0 ? (
         <div className="im-admin-bookings-table-container">
           <div className="im-admin-bookings-empty">
