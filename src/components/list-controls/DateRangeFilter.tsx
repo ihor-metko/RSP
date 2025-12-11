@@ -27,14 +27,23 @@ interface DateRangeFilterProps<TFilters = Record<string, unknown>> {
 /**
  * Date range filter component for filtering by date ranges.
  * 
+ * A reusable component for filtering data by date ranges. Provides two date inputs
+ * (from/to) with consistent im-* styling and full accessibility support.
+ * 
  * Features:
- * - From and To date inputs
- * - Integrates with useListController
- * - Resets page to 1 on change
- * - Accessible date inputs
+ * - From and To date inputs with calendar popups
+ * - Integrates seamlessly with useListController
+ * - Resets page to 1 on change for consistent UX
+ * - Accessible with proper ARIA labels
+ * - Responsive layout (stacks on mobile)
+ * - Consistent im-* styling for dark theme support
+ * 
+ * Usage:
+ * Can be used standalone or within ListToolbar for consistent filter layouts.
  * 
  * @example
  * ```tsx
+ * // Basic usage
  * <DateRangeFilter 
  *   controller={controller}
  *   field="createdAt"
@@ -42,6 +51,11 @@ interface DateRangeFilterProps<TFilters = Record<string, unknown>> {
  *   fromLabel="From"
  *   toLabel="To"
  * />
+ * 
+ * // Within ListToolbar
+ * <ListToolbar controller={controller}>
+ *   <DateRangeFilter field="bookingDate" label="Booking Date" />
+ * </ListToolbar>
  * ```
  */
 export function DateRangeFilter<TFilters = Record<string, unknown>>({

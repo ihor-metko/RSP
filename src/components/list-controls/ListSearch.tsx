@@ -21,15 +21,26 @@ interface ListSearchProps<TFilters = Record<string, unknown>> {
 /**
  * Debounced search input component for list filtering.
  * 
+ * A smart search input that automatically debounces user input to reduce
+ * unnecessary API calls while providing immediate visual feedback.
+ * 
  * Features:
- * - Auto-debounced search (default 300ms)
- * - Press Enter to trigger immediate search
- * - Automatically resets page to 1 when searching
+ * - Auto-debounced search (default 300ms) to reduce API load
+ * - Press Enter to trigger immediate search (bypasses debounce)
+ * - Automatically resets page to 1 when searching for consistent UX
+ * - Local state for immediate UI updates
+ * - Syncs with external filter changes
  * - Accessible with proper aria-labels
+ * - Consistent im-* styling for dark theme support
+ * - Integrates seamlessly with useListController
+ * 
+ * Usage:
+ * Use within ListToolbar for consistent layout, or standalone for simple search.
+ * The component handles all debouncing and state management automatically.
  * 
  * @example
  * ```tsx
- * // With context
+ * // Basic usage with context
  * <ListControllerProvider controller={controller}>
  *   <ListSearch placeholder="Search users..." />
  * </ListControllerProvider>
@@ -39,6 +50,13 @@ interface ListSearchProps<TFilters = Record<string, unknown>> {
  *   controller={controller} 
  *   placeholder="Search..."
  *   debounceMs={500}
+ * />
+ * 
+ * // Custom filter key
+ * <ListSearch 
+ *   controller={controller}
+ *   placeholder="Search by name..."
+ *   filterKey="nameQuery"
  * />
  * ```
  */

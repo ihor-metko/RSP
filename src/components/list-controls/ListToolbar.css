@@ -3,6 +3,9 @@
 /* List Toolbar Styles */
 .im-list-toolbar {
   @apply flex flex-wrap items-center gap-4 p-4;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  border-radius: var(--border-radius, 0.5rem);
 }
 
 .im-list-toolbar--compact {
@@ -13,25 +16,63 @@
   @apply flex-1 flex flex-wrap items-center gap-3;
 }
 
+/* Ensure consistent spacing for filter controls */
+.im-list-toolbar-content > * {
+  min-width: 150px;
+  flex-shrink: 0;
+}
+
+/* Search input gets more space */
+.im-list-toolbar-content > *:first-child {
+  min-width: 200px;
+  flex-grow: 1;
+}
+
 .im-list-toolbar-actions {
   @apply flex items-center gap-2;
 }
 
+.im-list-toolbar-actions button {
+  @apply transition-all duration-200;
+  font-size: var(--font-size-sm, 0.875rem);
+}
+
 .im-list-toolbar-actions button svg {
   @apply w-4 h-4;
+  color: currentColor;
+}
+
+.im-list-toolbar-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover, 0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+/* Focus state for keyboard navigation */
+.im-list-toolbar-actions button:focus-visible {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .im-list-toolbar {
-    @apply flex-col items-stretch;
+    @apply flex-col items-stretch gap-3 p-3;
   }
 
   .im-list-toolbar-content {
-    @apply flex-col items-stretch;
+    @apply flex-col items-stretch gap-2;
+  }
+  
+  .im-list-toolbar-content > * {
+    min-width: 0;
+    width: 100%;
   }
 
   .im-list-toolbar-actions {
-    @apply justify-end;
+    @apply justify-end w-full;
+  }
+  
+  .im-list-toolbar-actions button {
+    @apply flex-1 justify-center;
   }
 }

@@ -3,6 +3,9 @@
 /* Pagination Controls Styles */
 .im-pagination-card {
   @apply flex flex-wrap items-center justify-between gap-4 p-4;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  border-radius: var(--border-radius, 0.5rem);
 }
 
 .im-pagination-info {
@@ -10,8 +13,8 @@
 }
 
 .im-pagination-text {
-  @apply text-sm;
-  color: var(--text-secondary);
+  @apply text-sm font-medium;
+  color: var(--im-text-secondary);
 }
 
 .im-pagination-controls {
@@ -20,14 +23,25 @@
 
 .im-pagination-btn {
   @apply flex items-center gap-1;
+  @apply transition-all duration-200;
 }
 
 .im-pagination-btn svg {
   @apply w-4 h-4;
+  color: currentColor;
 }
 
 .im-pagination-btn-text {
   @apply hidden sm:inline;
+}
+
+/* Disabled state for pagination buttons */
+.im-pagination-btn:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.im-pagination-btn:disabled:hover {
+  transform: none;
 }
 
 .im-pagination-pages {
@@ -35,22 +49,47 @@
 }
 
 .im-pagination-page {
-  @apply min-w-[2rem] h-8 px-2 rounded-sm;
+  @apply min-w-[2rem] h-8 px-2;
   @apply flex items-center justify-center;
   @apply text-sm font-medium;
-  @apply transition-colors;
-  color: var(--text-secondary);
-  background: var(--surface-secondary);
+  @apply transition-all duration-200;
+  @apply cursor-pointer;
+  color: var(--im-text-secondary);
+  background: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  border-radius: var(--border-radius-sm, 0.25rem);
 }
 
 .im-pagination-page:hover:not(.im-pagination-page--active) {
-  background: var(--surface-hover);
-  color: var(--text-primary);
+  background: var(--im-bg-tertiary);
+  color: var(--im-text-primary);
+  border-color: var(--im-border-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover, 0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
 .im-pagination-page--active {
-  background: var(--primary-color);
-  color: var(--text-on-primary);
+  background: var(--im-primary);
+  color: #ffffff;
+  border-color: var(--im-primary);
+  font-weight: 600;
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
+}
+
+.dark .im-pagination-page--active {
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.3);
+}
+
+.im-pagination-page--active:hover {
+  background: var(--im-primary-hover);
+  border-color: var(--im-primary-hover);
+  transform: none;
+}
+
+/* Focus state for keyboard navigation */
+.im-pagination-page:focus-visible {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
 }
 
 .im-pagination-size {
@@ -64,18 +103,22 @@
 /* Responsive adjustments */
 @media (max-width: 640px) {
   .im-pagination-card {
-    @apply flex-col items-stretch;
+    @apply flex-col items-stretch gap-3 p-3;
   }
 
   .im-pagination-info {
-    @apply justify-center;
+    @apply justify-center text-center;
   }
 
   .im-pagination-controls {
-    @apply justify-center;
+    @apply justify-center flex-wrap;
   }
 
   .im-pagination-size {
     @apply justify-center;
+  }
+  
+  .im-pagination-pages {
+    @apply flex-wrap justify-center;
   }
 }
