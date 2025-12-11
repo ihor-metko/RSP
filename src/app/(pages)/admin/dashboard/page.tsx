@@ -9,9 +9,7 @@ import BookingsOverview from "@/components/admin/BookingsOverview";
 import { RegisteredUsersCard } from "@/components/admin/RegisteredUsersCard";
 import DashboardGraphs from "@/components/admin/DashboardGraphs";
 import DashboardShell from "@/components/admin/DashboardShell";
-import QuickActions from "@/components/admin/QuickActions";
 import ClubsPreview from "@/components/admin/ClubsPreview";
-import AdminsPanel from "@/components/admin/AdminsPanel";
 import type { UnifiedDashboardResponse } from "@/app/api/admin/unified-dashboard/route";
 import { fetchUnifiedDashboard } from "@/services/dashboard";
 import "./RootDashboard.css";
@@ -194,6 +192,15 @@ export default function AdminDashboardPage() {
         {/* Root Admin: Platform Statistics */}
         {dashboardData.adminType === "root_admin" && dashboardData.platformStats && (
           <>
+            <div className="im-dashboard-section">
+              <h2 className="im-dashboard-section-title">
+                {t("rootAdmin.dashboard.platformStatsTitle")}
+              </h2>
+              <p className="im-dashboard-section-description">
+                {t("rootAdmin.dashboard.platformStatsDescription")}
+              </p>
+            </div>
+
             <div className="im-stats-grid">
               <StatCard
                 title={t("rootAdmin.dashboard.totalOrganizations")}
@@ -210,6 +217,15 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Registered Users Card - Shows filtered, real players only */}
+            <div className="im-dashboard-section">
+              <h2 className="im-dashboard-section-title">
+                {t("rootAdmin.dashboard.registeredUsersTitle")}
+              </h2>
+              <p className="im-dashboard-section-description">
+                {t("rootAdmin.dashboard.registeredUsersDescription")}
+              </p>
+            </div>
+
             <div className="im-stats-grid" style={{ gridTemplateColumns: "1fr" }}>
               <RegisteredUsersCard />
             </div>
@@ -237,6 +253,15 @@ export default function AdminDashboardPage() {
         {/* Organization Admin: Organization-scoped dashboard */}
         {dashboardData.adminType === "organization_admin" && dashboardData.organizations && (
           <>
+            <div className="im-dashboard-section">
+              <h2 className="im-dashboard-section-title">
+                {t("unifiedDashboard.clubsStatsTitle")}
+              </h2>
+              <p className="im-dashboard-section-description">
+                {t("unifiedDashboard.clubsStatsDescription")}
+              </p>
+            </div>
+
             {/* Clubs Count Card - organization-scoped */}
             <div className="im-stats-grid">
               <StatCard
