@@ -459,7 +459,6 @@ export default function AdminBookingsPage() {
                 <th>{t("adminBookings.dateTime")}</th>
                 <th>{t("common.duration")}</th>
                 <th>{t("common.status")}</th>
-                <th>{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -485,16 +484,6 @@ export default function AdminBookingsPage() {
                   <td>{formatDateTime(booking.start)}</td>
                   <td>{calculateDuration(booking.start, booking.end)} {t("common.minutes")}</td>
                   <td><StatusBadge status={booking.status} /></td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <div className="im-admin-bookings-actions">
-                      <button
-                        className="im-admin-bookings-action-btn im-admin-bookings-action-btn--view"
-                        onClick={() => handleViewBooking(booking)}
-                      >
-                        {t("common.view")}
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
             </tbody>
