@@ -286,6 +286,167 @@
   border-width: 0;
 }
 
+/* ===== TableSkeleton Styles ===== */
+.im-table-skeleton {
+  @apply w-full;
+}
+
+.im-table-skeleton-container {
+  @apply w-full overflow-x-auto rounded-lg;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+}
+
+.im-table-skeleton-table {
+  @apply w-full border-collapse;
+}
+
+.im-table-skeleton-header {
+  background-color: var(--im-skeleton-base-color);
+  opacity: 0.5;
+}
+
+.im-table-skeleton-header-cell {
+  @apply p-4 text-left;
+}
+
+.im-table-skeleton-header-content {
+  @apply h-4 w-24 rounded;
+}
+
+.im-table-skeleton-body {
+  @apply divide-y;
+  border-color: var(--im-border);
+}
+
+.im-table-skeleton-row {
+  @apply transition-colors;
+}
+
+.im-table-skeleton-row:hover {
+  background-color: var(--im-skeleton-base-color);
+  opacity: 0.3;
+}
+
+.im-table-skeleton-cell {
+  @apply p-4;
+}
+
+.im-table-skeleton-cell-content {
+  @apply h-4 w-full rounded;
+  max-width: 200px;
+}
+
+/* ===== CardListSkeleton Styles ===== */
+.im-card-list-skeleton {
+  @apply w-full;
+}
+
+.im-card-list-skeleton-grid {
+  @apply grid gap-6;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.im-card-skeleton {
+  @apply rounded-lg overflow-hidden;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+}
+
+.im-card-skeleton-image {
+  @apply w-full rounded-t-lg;
+  height: 200px;
+}
+
+.im-card-skeleton--compact .im-card-skeleton-content {
+  @apply p-4;
+}
+
+.im-card-skeleton--default .im-card-skeleton-content,
+.im-card-skeleton--detailed .im-card-skeleton-content {
+  @apply p-6;
+}
+
+.im-card-skeleton-title {
+  @apply h-6 w-3/4 rounded mb-3;
+}
+
+.im-card-skeleton-description {
+  @apply space-y-2 mb-4;
+}
+
+.im-card-skeleton-line {
+  @apply h-4 rounded;
+}
+
+.im-card-skeleton-line--long {
+  @apply w-full;
+}
+
+.im-card-skeleton-line--medium {
+  @apply w-4/5;
+}
+
+.im-card-skeleton-line--short {
+  @apply w-2/3;
+}
+
+.im-card-skeleton-meta {
+  @apply flex gap-2 mb-4;
+}
+
+.im-card-skeleton-badge {
+  @apply h-6 w-16 rounded-full;
+}
+
+.im-card-skeleton-button {
+  @apply h-10 w-full rounded;
+}
+
+/* ===== FormSkeleton Styles ===== */
+.im-form-skeleton {
+  @apply w-full;
+}
+
+.im-form-skeleton-container {
+  @apply space-y-6 p-6 rounded-lg;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+}
+
+.im-form-skeleton-field {
+  @apply space-y-2;
+}
+
+.im-form-skeleton-label {
+  @apply h-4 w-32 rounded;
+}
+
+.im-form-skeleton-input {
+  @apply h-10 w-full rounded;
+}
+
+.im-form-skeleton-actions {
+  @apply flex justify-end pt-4;
+}
+
+.im-form-skeleton-button {
+  @apply h-10 w-32 rounded;
+}
+
+/* ===== PageHeaderSkeleton Styles ===== */
+.im-page-header-skeleton {
+  @apply space-y-3 mb-8;
+}
+
+.im-page-header-skeleton-title {
+  @apply h-8 w-64 rounded;
+}
+
+.im-page-header-skeleton-description {
+  @apply h-5 w-96 rounded;
+}
+
 /* ===== Responsive Adjustments ===== */
 @media (max-width: 767px) {
   .im-metric-card-skeleton {
@@ -299,5 +460,21 @@
 
   .im-graph-skeleton-chart {
     height: 200px;
+  }
+
+  .im-card-list-skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .im-page-header-skeleton-title {
+    @apply w-48;
+  }
+
+  .im-page-header-skeleton-description {
+    @apply w-full;
+  }
+
+  .im-table-skeleton-cell-content {
+    max-width: 150px;
   }
 }

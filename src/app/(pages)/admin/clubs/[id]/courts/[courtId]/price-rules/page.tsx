@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
+import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { PriceRuleForm, PriceRuleFormData } from "@/components/admin/PriceRuleForm";
 import { formatPrice } from "@/utils/price";
 import { useCourtStore } from "@/stores/useCourtStore";
@@ -238,7 +239,8 @@ export default function PriceRulesPage({
   if (status === "loading" || loading) {
     return (
       <main className="rsp-container p-8">
-        <div className="rsp-loading text-center">Loading...</div>
+        <PageHeaderSkeleton showDescription />
+        <TableSkeleton rows={5} columns={6} showHeader />
       </main>
     );
   }

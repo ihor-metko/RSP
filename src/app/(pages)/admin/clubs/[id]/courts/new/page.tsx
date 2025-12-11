@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
 import { Button, Card, Breadcrumbs } from "@/components/ui";
+import { FormSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { formatPrice, dollarsToCents } from "@/utils/price";
 
 import "./page.css";
@@ -1019,10 +1020,9 @@ export default function CreateCourtPage({
   if (status === "loading" || loading) {
     return (
       <main className="im-create-court-page">
+        <PageHeaderSkeleton showDescription />
         <div className="im-create-court-layout">
-          <Card>
-            <div style={{ textAlign: "center", padding: "2rem" }}>Loading...</div>
-          </Card>
+          <FormSkeleton fields={10} showButton />
         </div>
       </main>
     );

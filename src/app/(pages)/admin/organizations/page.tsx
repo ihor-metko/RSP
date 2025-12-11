@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
+import { CardListSkeleton } from "@/components/ui/skeletons";
 import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
@@ -668,7 +669,9 @@ export default function AdminOrganizationsPage() {
           </div>
         )}
 
-        {organizations.length === 0 ? (
+        {isLoadingData ? (
+          <CardListSkeleton count={itemsPerPage > 10 ? 10 : itemsPerPage} variant="default" />
+        ) : organizations.length === 0 ? (
           <div className="im-admin-organizations-empty">
             <p className="im-admin-organizations-empty-text">
               {t("organizations.noOrganizations")}

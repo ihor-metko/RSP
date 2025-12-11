@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, Modal, Select, Input } from "@/components/ui";
+import { TableSkeleton } from "@/components/ui/skeletons";
 import { formatPrice } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
@@ -81,7 +82,7 @@ export default function AdminBookingsPage() {
 
   // Bookings data
   const [bookingsData, setBookingsData] = useState<AdminBookingsListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoadingBookings, setIsLoadingBookings] = useState(true);
   const [error, setError] = useState("");
 
   // Use list controller hook for persistent filters
@@ -172,7 +173,7 @@ export default function AdminBookingsPage() {
   const fetchBookings = useCallback(async () => {
     if (!adminStatus?.isAdmin) return;
 
-    setLoading(true);
+    setIsLoadingBookings(true);
     setError("");
 
     try {
@@ -205,7 +206,7 @@ export default function AdminBookingsPage() {
     } catch {
       setError(t("adminBookings.failedToLoad"));
     } finally {
-      setLoading(false);
+      setIsLoadingBookings(false);
     }
   }, [adminStatus, page, pageSize, filters, router, t]);
 
@@ -406,11 +407,8 @@ export default function AdminBookingsPage() {
       )}
 
       {/* Bookings table */}
-      {loading ? (
-        <div className="im-admin-bookings-loading">
-          <div className="im-admin-bookings-loading-spinner" />
-          <span>{t("common.loading")}</span>
-        </div>
+      {isLoadingBookings ? (
+        <TableSkeleton rows={pageSize > 20 ? 20 : pageSize} columns={8} showHeader />
       ) : bookingsData?.bookings.length === 0 ? (
         <div className="im-admin-bookings-table-container">
           <div className="im-admin-bookings-empty">

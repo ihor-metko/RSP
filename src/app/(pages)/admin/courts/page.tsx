@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Card, Modal, IMLink, PageHeader } from "@/components/ui";
+import { CardListSkeleton } from "@/components/ui/skeletons";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { CourtCard } from "@/components/courts";
 import type { AdminType } from "@/app/api/me/admin-status/route";
@@ -409,7 +410,9 @@ export default function AdminCourtsPage() {
           </div>
         )}
 
-        {courts.length === 0 && !loading ? (
+        {isLoadingData ? (
+          <CardListSkeleton count={9} variant="compact" />
+        ) : courts.length === 0 ? (
           <Card>
             <div className="py-8 text-center text-gray-500">
               {t("admin.courts.noResults")}

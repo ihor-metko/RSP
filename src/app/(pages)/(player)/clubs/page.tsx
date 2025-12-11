@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IMLink, PageHeader } from "@/components/ui";
+import { CardListSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
 import "@/components/ClubsList.css";
@@ -111,16 +112,7 @@ export default function ClubsPage() {
     fetchClubs(params);
   }, [updateUrl, fetchClubs]);
 
-  if (loading && clubs.length === 0) {
-    return (
-      <main className="tm-clubs-page">
-        <div className="tm-clubs-loading">
-          <div className="tm-clubs-loading-spinner" />
-          <span className="tm-clubs-loading-text">{t("clubs.loadingClubs")}</span>
-        </div>
-      </main>
-    );
-  }
+  const isInitialLoading = loading && clubs.length === 0;
 
   if (error && clubs.length === 0) {
     return (
@@ -138,43 +130,27 @@ export default function ClubsPage() {
 
   return (
     <main className="tm-clubs-page">
-      <PageHeader
-        title={t("clubs.title")}
-        description={t("clubs.subtitle")}
-      />
+      {isInitialLoading ? (
+        <PageHeaderSkeleton showDescription />
+      ) : (
+        <PageHeader
+          title={t("clubs.title")}
+          description={t("clubs.subtitle")}
+        />
+      )}
 
       {/* Search bar with URL-driven values */}
-      <PublicSearchBar
-        initialQ={currentParams.q}
-        initialCity={currentParams.city}
-        initialIndoor={currentParams.indoor}
-        onSearch={handleSearch}
-      />
+      {!isInitialLoading && (
+        <PublicSearchBar
+          initialQ={currentParams.q}
+          initialCity={currentParams.city}
+          initialIndoor={currentParams.indoor}
+          onSearch={handleSearch}
+        />
+      )}
 
-      {loading ? (
-        <div className="tm-clubs-grid">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rsp-club-card rsp-club-card--modern animate-pulse">
-              {/* Image skeleton */}
-              <div className="rsp-club-card-image bg-gray-200 dark:bg-gray-700" />
-              {/* Content skeleton */}
-              <div className="rsp-club-card-content">
-                <div className="h-5 w-3/4 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-                <div className="h-4 w-full bg-gray-200 dark:bg-gray-700 rounded mb-1" />
-                <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
-                <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded mb-3" />
-                <div className="flex gap-2">
-                  <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full" />
-                  <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full" />
-                </div>
-              </div>
-              {/* Button skeleton */}
-              <div className="rsp-club-card-actions">
-                <div className="h-10 w-full bg-gray-200 dark:bg-gray-700 rounded" />
-              </div>
-            </div>
-          ))}
-        </div>
+      {isInitialLoading || loading ? (
+        <CardListSkeleton count={6} variant="default" />
       ) : clubs.length === 0 ? (
         <div className="tm-clubs-empty">
           <p className="tm-clubs-empty-text">
