@@ -310,13 +310,46 @@ export default function AdminUsersPage() {
           />
         )}
 
-        {/* Filters using list-controls components */}
+        {/* Filters using list-controls components - consolidated toolbar */}
         {!isLoadingData && (
         <ListControllerProvider controller={controller}>
           <ListToolbar showReset resetLabel={t("users.clearFilters")}>
             <ListSearch 
               placeholder={t("users.searchPlaceholder")}
               filterKey="searchQuery"
+            />
+
+            <QuickPresets
+              presets={[
+                {
+                  id: "active_last_30d",
+                  label: t("users.quickFilters.activeLast30d"),
+                  filters: { activeLast30d: true },
+                },
+                {
+                  id: "never_booked",
+                  label: t("users.quickFilters.neverBooked"),
+                  filters: { neverBooked: true },
+                },
+                {
+                  id: "show_only_admins",
+                  label: t("users.quickFilters.showOnlyAdmins"),
+                  filters: { showOnlyAdmins: true, showOnlyUsers: false },
+                },
+                {
+                  id: "show_only_users",
+                  label: t("users.quickFilters.showOnlyUsers"),
+                  filters: { showOnlyUsers: true, showOnlyAdmins: false },
+                },
+              ]}
+            />
+
+            <DateRangeFilter
+              field={filters.dateRangeField}
+              fromKey="dateFrom"
+              toKey="dateTo"
+              fromLabel={t("users.dateRange.from")}
+              toLabel={t("users.dateRange.to")}
             />
             
             <RoleFilter
@@ -355,60 +388,6 @@ export default function AdminUsersPage() {
               placeholder={t("users.allClubs")}
             />
           </ListToolbar>
-
-          {/* Quick preset buttons */}
-          <QuickPresets
-            presets={[
-              {
-                id: "active_last_30d",
-                label: t("users.quickFilters.activeLast30d"),
-                filters: { activeLast30d: true },
-              },
-              {
-                id: "never_booked",
-                label: t("users.quickFilters.neverBooked"),
-                filters: { neverBooked: true },
-              },
-              {
-                id: "show_only_admins",
-                label: t("users.quickFilters.showOnlyAdmins"),
-                filters: { showOnlyAdmins: true, showOnlyUsers: false },
-              },
-              {
-                id: "show_only_users",
-                label: t("users.quickFilters.showOnlyUsers"),
-                filters: { showOnlyUsers: true, showOnlyAdmins: false },
-              },
-            ]}
-          />
-
-          {/* Date range filter with toggle for field selection */}
-          <Card className="im-date-range-field-card">
-            <div className="im-date-range-header">
-              <span className="im-date-range-label">{t("users.dateRange.label")}</span>
-              <div className="im-date-range-toggle">
-                <button
-                  className={`im-toggle-btn ${filters.dateRangeField === "createdAt" ? "im-toggle-btn--active" : ""}`}
-                  onClick={() => setFilter("dateRangeField", "createdAt")}
-                >
-                  {t("users.dateRange.createdAt")}
-                </button>
-                <button
-                  className={`im-toggle-btn ${filters.dateRangeField === "lastActive" ? "im-toggle-btn--active" : ""}`}
-                  onClick={() => setFilter("dateRangeField", "lastActive")}
-                >
-                  {t("users.dateRange.lastActive")}
-                </button>
-              </div>
-            </div>
-            <DateRangeFilter
-              field={filters.dateRangeField}
-              fromKey="dateFrom"
-              toKey="dateTo"
-              fromLabel={t("users.dateRange.from")}
-              toLabel={t("users.dateRange.to")}
-            />
-          </Card>
         </ListControllerProvider>
         )}
 

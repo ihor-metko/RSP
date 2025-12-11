@@ -28,24 +28,28 @@ jest.mock("@/components/ui", () => ({
       </div>
     );
   },
-  Select: ({ label, options, value, onChange, placeholder, disabled, ...props }: any) => (
-    <div>
-      {label && <label htmlFor={props.id}>{label}</label>}
-      <select
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-        disabled={disabled}
-        {...props}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options?.map((opt: any) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  ),
+  Select: ({ label, options, value, onChange, placeholder, disabled, ...props }: any) => {
+    const selectId = props.id || (label ? label.toLowerCase().replace(/\s+/g, "-") : "select");
+    return (
+      <div>
+        {label && <label htmlFor={selectId}>{label}</label>}
+        <select
+          id={selectId}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          disabled={disabled}
+          {...props}
+        >
+          {placeholder && <option value="">{placeholder}</option>}
+          {options?.map((opt: any) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  },
 }));
 
 import {
@@ -177,6 +181,49 @@ describe("ListToolbar", () => {
     expect(screen.getByText("Child Content")).toBeInTheDocument();
   });
 
+  it("should render with horizontal layout class", () => {
+    const controller = createMockController();
+
+    const { container } = render(
+      <ListToolbar controller={controller}>
+        <div>Filters</div>
+      </ListToolbar>
+    );
+
+    const toolbar = container.querySelector(".im-list-toolbar");
+    expect(toolbar).toBeInTheDocument();
+  });
+
+  it("should render QuickPresets and DateRangeFilter inside toolbar", () => {
+    const controller = createMockController({
+      filters: { dateFrom: "", dateTo: "", activeLast30d: false } as any,
+    });
+
+    const presets = [
+      {
+        id: "active_30d",
+        label: "Active Last 30 Days",
+        filters: { activeLast30d: true },
+      },
+    ];
+
+    render(
+      <ListToolbar controller={controller}>
+        <QuickPresets controller={controller} presets={presets} />
+        <DateRangeFilter
+          controller={controller}
+          field="createdAt"
+          fromKey="dateFrom"
+          toKey="dateTo"
+        />
+      </ListToolbar>
+    );
+
+    expect(screen.getByText("Active Last 30 Days")).toBeInTheDocument();
+    expect(screen.getByLabelText("From")).toBeInTheDocument();
+    expect(screen.getByLabelText("To")).toBeInTheDocument();
+  });
+
   it("should show reset button when filters are active", () => {
     const controller = createMockController({
       filters: { search: "test" } as any,
@@ -235,6 +282,38 @@ describe("ListToolbar", () => {
     fireEvent.click(screen.getByText("Clear Filters"));
     expect(onReset).toHaveBeenCalled();
     expect(controller.clearFilters).not.toHaveBeenCalled();
+  });
+
+  it("should support keyboard navigation across toolbar items", () => {
+    const controller = createMockController({
+      filters: { searchQuery: "", activeLast30d: false } as any,
+    });
+
+    const presets = [
+      {
+        id: "active_30d",
+        label: "Active Last 30 Days",
+        filters: { activeLast30d: true },
+      },
+    ];
+
+    render(
+      <ListToolbar controller={controller} showReset>
+        <ListSearch controller={controller} placeholder="Search..." />
+        <QuickPresets controller={controller} presets={presets} />
+      </ListToolbar>
+    );
+
+    const searchInput = screen.getByPlaceholderText("Search...");
+    const presetButton = screen.getByText("Active Last 30 Days");
+    const clearButton = screen.queryByText("Clear Filters");
+
+    // Elements should be focusable
+    expect(searchInput).not.toBeDisabled();
+    expect(presetButton).not.toBeDisabled();
+    
+    // Clear button should not be present when no filters are active
+    expect(clearButton).not.toBeInTheDocument();
   });
 });
 

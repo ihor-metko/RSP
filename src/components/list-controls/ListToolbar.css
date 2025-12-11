@@ -2,10 +2,13 @@
 
 /* List Toolbar Styles */
 .im-list-toolbar {
-  @apply flex flex-wrap items-center gap-4 p-4;
+  @apply p-4;
   background-color: var(--im-card-bg);
   border: 1px solid var(--im-border);
   border-radius: var(--border-radius, 0.5rem);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .im-list-toolbar--compact {
@@ -13,12 +16,37 @@
 }
 
 .im-list-toolbar-content {
-  @apply flex-1 flex flex-wrap items-center gap-3;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow-x: auto;
+  /* Show scrollbar on overflow */
+  scrollbar-width: thin;
+  scrollbar-color: var(--im-border-hover) transparent;
 }
 
-/* Ensure consistent spacing for filter controls */
+/* Webkit scrollbar styling */
+.im-list-toolbar-content::-webkit-scrollbar {
+  height: 6px;
+}
+
+.im-list-toolbar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.im-list-toolbar-content::-webkit-scrollbar-thumb {
+  background-color: var(--im-border-hover);
+  border-radius: 3px;
+}
+
+.im-list-toolbar-content::-webkit-scrollbar-thumb:hover {
+  background-color: var(--im-muted);
+}
+
+/* Ensure consistent spacing and min-widths for filter controls */
 .im-list-toolbar-content > * {
-  min-width: 150px;
+  min-width: 160px;
   flex-shrink: 0;
 }
 
@@ -26,10 +54,23 @@
 .im-list-toolbar-content > *:first-child {
   min-width: 200px;
   flex-grow: 1;
+  max-width: 400px;
+}
+
+/* Date range filter needs more width */
+.im-list-toolbar-content > .im-date-range-filter {
+  min-width: 320px;
+}
+
+/* Quick presets should be more compact */
+.im-list-toolbar-content > .im-quick-presets {
+  min-width: auto;
+  flex-shrink: 1;
 }
 
 .im-list-toolbar-actions {
   @apply flex items-center gap-2;
+  flex-shrink: 0;
 }
 
 .im-list-toolbar-actions button {
@@ -53,19 +94,30 @@
   outline-offset: 2px;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments - on narrow screens allow horizontal scroll */
 @media (max-width: 768px) {
   .im-list-toolbar {
     @apply flex-col items-stretch gap-3 p-3;
   }
 
   .im-list-toolbar-content {
-    @apply flex-col items-stretch gap-2;
+    /* Keep horizontal scroll on mobile */
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
   }
   
   .im-list-toolbar-content > * {
-    min-width: 0;
-    width: 100%;
+    /* Maintain min-widths but allow flexibility */
+    min-width: 140px;
+  }
+
+  .im-list-toolbar-content > *:first-child {
+    min-width: 160px;
+    max-width: 300px;
+  }
+
+  .im-list-toolbar-content > .im-date-range-filter {
+    min-width: 280px;
   }
 
   .im-list-toolbar-actions {

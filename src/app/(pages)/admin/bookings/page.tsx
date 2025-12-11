@@ -405,11 +405,22 @@ export default function AdminBookingsPage() {
           }
         />
 
-        {/* List Controls Toolbar */}
+        {/* List Controls Toolbar with consolidated filters */}
         <ListToolbar showReset>
           <ListSearch
             placeholder={t("adminBookings.searchPlaceholder") || "Search bookings..."}
             filterKey="searchQuery"
+          />
+
+          <QuickPresets presets={getQuickPresets()} />
+
+          <DateRangeFilter
+            field="startAt"
+            label={t("adminBookings.dateRange") || "Date Range"}
+            fromKey="dateFrom"
+            toKey="dateTo"
+            fromLabel={t("adminBookings.from") || "From"}
+            toLabel={t("adminBookings.to") || "To"}
           />
 
           <SortSelect
@@ -441,19 +452,6 @@ export default function AdminBookingsPage() {
             placeholder={t("common.allStatuses") || "All Statuses"}
           />
         </ListToolbar>
-
-        {/* Quick Presets */}
-        <QuickPresets presets={getQuickPresets()} />
-
-        {/* Date Range Filter */}
-        <DateRangeFilter
-          field="startAt"
-          label={t("adminBookings.dateRange") || "Date Range"}
-          fromKey="dateFrom"
-          toKey="dateTo"
-          fromLabel={t("adminBookings.from") || "From"}
-          toLabel={t("adminBookings.to") || "To"}
-        />
 
         {/* Error message */}
         {error && (

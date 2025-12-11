@@ -2,8 +2,10 @@
 
 /* Quick Presets Styles */
 .im-quick-presets {
-  @apply flex flex-wrap items-center gap-2;
-  padding: var(--spacing-2, 0.5rem);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
 }
 
 /* Ensure preset buttons have consistent styling */
@@ -11,6 +13,7 @@
   @apply transition-all duration-200;
   font-size: var(--font-size-sm);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 /* Active preset visual indication */
@@ -37,13 +40,19 @@
   outline-offset: 2px;
 }
 
-/* Responsive adjustments */
+/* When in toolbar - more compact, inline layout */
+.im-list-toolbar-content .im-quick-presets {
+  flex-wrap: nowrap;
+  padding: 0;
+}
+
+/* Responsive adjustments - allow wrapping on very narrow screens only */
 @media (max-width: 640px) {
-  .im-quick-presets {
+  .im-quick-presets:not(.im-list-toolbar-content .im-quick-presets) {
     @apply flex-col items-stretch;
   }
   
-  .im-quick-presets button {
+  .im-quick-presets:not(.im-list-toolbar-content .im-quick-presets) button {
     @apply w-full justify-center;
   }
 }
