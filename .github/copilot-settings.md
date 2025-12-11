@@ -149,3 +149,9 @@ This project uses Zustand as the global state manager for all app-level entities
 ### Components:
 - NEVER call `fetch()` directly to load organizations, clubs, courts, users, or bookings.
 - ALWAYS use the corresponding Zustand store:
+
+# 6. Skeleton Loaders for Loading States
+
+When data is being fetched or confirmed on any page, **do not block or hide the UI with a full-page loader**.
+Instead, use **skeleton loaders** that mimic the layout of the actual content (cards, tables, charts, etc.).
+Ensure skeletons are consistent with the **dark theme**, use `im-*` classes, and are applied **universally across all pages** where loading occurs.

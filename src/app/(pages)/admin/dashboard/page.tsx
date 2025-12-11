@@ -238,15 +238,6 @@ export default function AdminDashboardPage() {
 
             {/* Dashboard Graphs Section */}
             <DashboardGraphs />
-
-            <div className="im-dashboard-section">
-              <h2 className="im-dashboard-section-title">
-                {t("rootAdmin.dashboard.platformOverview")}
-              </h2>
-              <p className="im-dashboard-section-description">
-                {t("rootAdmin.dashboard.platformOverviewDescription")}
-              </p>
-            </div>
           </>
         )}
 
