@@ -8,6 +8,18 @@ import Link from "next/link";
 import { Button, Input, PageHeader, Breadcrumbs, Select, Badge, Card, Tooltip } from "@/components/ui";
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { useListController } from "@/hooks";
+import { 
+  ListControllerProvider,
+  ListToolbar,
+  ListSearch,
+  OrgSelector,
+  ClubSelector,
+  RoleFilter,
+  StatusFilter,
+  DateRangeFilter,
+  QuickPresets,
+  PaginationControls,
+} from "@/components/list-controls";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
@@ -15,22 +27,6 @@ import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import "./page.css";
 
 /* Icon Components */
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  );
-}
-
-function FilterIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-    </svg>
-  );
-}
 
 function UserIcon() {
   return (
@@ -81,32 +77,7 @@ function EyeIcon() {
   );
 }
 
-// Icons removed as they're no longer needed after simplifying to View-only actions
 
-function ChevronLeftIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
 
 function CalendarIcon() {
   return (
@@ -130,16 +101,6 @@ function MailIcon() {
 
 import type { AdminUser } from "@/types/adminUser";
 
-interface OrganizationOption {
-  id: string;
-  name: string;
-}
-
-interface ClubOption {
-  id: string;
-  name: string;
-}
-
 // Define filters interface
 interface UserFilters {
   searchQuery: string;
@@ -162,19 +123,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
 
   // Use list controller hook for persistent filters
-  const {
-    filters,
-    setFilter,
-    sortBy,
-    setSortBy,
-    sortOrder,
-    setSortOrder,
-    page,
-    setPage,
-    pageSize,
-    setPageSize,
-    clearFilters,
-  } = useListController<UserFilters>({
+  const controller = useListController<UserFilters>({
     entityKey: "users",
     defaultFilters: {
       searchQuery: "",
@@ -196,6 +145,20 @@ export default function AdminUsersPage() {
     defaultPageSize: 25,
   });
 
+  const {
+    filters,
+    setFilter,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    clearFilters,
+  } = controller;
+
   // Get users from store
   const users = useAdminUsersStore((state) => state.users);
   const pagination = useAdminUsersStore((state) => state.pagination);
@@ -205,12 +168,6 @@ export default function AdminUsersPage() {
 
   const totalCount = pagination?.totalCount || 0;
   const totalPages = pagination?.totalPages || 0;
-
-  // Options for filters
-  const storeOrganizations = useOrganizationStore((state) => state.organizations);
-  const fetchOrganizationsFromStore = useOrganizationStore((state) => state.fetchOrganizations);
-  const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
-  const [clubs, setClubs] = useState<ClubOption[]>([]);
 
   // No modals needed anymore since we only have View action which navigates to detail page
 
@@ -249,33 +206,6 @@ export default function AdminUsersPage() {
     }
   }, [page, pageSize, sortBy, sortOrder, filters, fetchUsersFromStore]);
 
-  const fetchOrganizations = useCallback(async () => {
-    try {
-      await fetchOrganizationsFromStore();
-      // Don't map here - let useEffect handle it when store updates
-    } catch {
-      // Silent fail
-    }
-  }, [fetchOrganizationsFromStore]);
-
-  // Update local organizations when store organizations change
-  useEffect(() => {
-    if (storeOrganizations.length > 0) {
-      setOrganizations(storeOrganizations.map((org) => ({ id: org.id, name: org.name })));
-    }
-  }, [storeOrganizations]);
-
-  const fetchClubs = useCallback(async () => {
-    try {
-      // Use store with inflight guard
-      await useClubStore.getState().fetchClubsIfNeeded();
-      const data = useClubStore.getState().clubs;
-      setClubs(data.map((club) => ({ id: club.id, name: club.name })));
-    } catch {
-      // Silent fail
-    }
-  }, []);
-
   useEffect(() => {
     if (status === "loading") return;
 
@@ -285,9 +215,7 @@ export default function AdminUsersPage() {
     }
 
     fetchUsers();
-    fetchOrganizations();
-    fetchClubs();
-  }, [session, status, router, fetchUsers, fetchOrganizations, fetchClubs]);
+  }, [session, status, router, fetchUsers]);
 
   // Fetch users when dependencies change (filters already handle debouncing via useListController)
   useEffect(() => {
@@ -365,33 +293,6 @@ export default function AdminUsersPage() {
     }
   };
 
-  const roleOptions = [
-    { value: "", label: t("common.allRoles") },
-    { value: "root_admin", label: t("users.roles.rootAdmin") },
-    { value: "organization_admin", label: t("users.roles.organizationAdmin") },
-    { value: "club_admin", label: t("users.roles.clubAdmin") },
-    { value: "user", label: t("users.roles.user") },
-  ];
-
-  const statusOptions = [
-    { value: "", label: t("users.allStatuses") },
-    { value: "active", label: t("users.status.active") },
-    { value: "blocked", label: t("users.status.blocked") },
-    { value: "suspended", label: t("users.status.suspended") },
-    { value: "invited", label: t("users.status.invited") },
-    { value: "deleted", label: t("users.status.deleted") },
-  ];
-
-  const organizationOptions = [
-    { value: "", label: t("users.allOrganizations") },
-    ...organizations.map((org) => ({ value: org.id, label: org.name })),
-  ];
-
-  const clubOptions = [
-    { value: "", label: t("users.allClubs") },
-    ...clubs.map((club) => ({ value: club.id, label: club.name })),
-  ];
-
   const isLoadingData = status === "loading" || loading;
 
   return (
@@ -420,125 +321,80 @@ export default function AdminUsersPage() {
           />
         )}
 
-        {/* Filters Card */}
+        {/* Filters using list-controls components */}
         {!isLoadingData && (
-        <Card className="im-filters-card">
-          <div className="im-filters-header">
-            <div className="im-filters-title">
-              <FilterIcon />
-              <span>{t("users.filters")}</span>
-            </div>
-            {(filters.searchQuery || filters.roleFilter || filters.statusFilter || filters.organizationFilter || filters.clubFilter || filters.dateFrom || filters.dateTo || filters.activeLast30d || filters.neverBooked || filters.showOnlyAdmins || filters.showOnlyUsers) && (
-              <Button variant="outline" size="small" onClick={handleClearFilters}>
-                <XIcon />
-                {t("users.clearFilters")}
-              </Button>
-            )}
-          </div>
+        <ListControllerProvider controller={controller}>
+          <ListToolbar showReset resetLabel={t("users.clearFilters")}>
+            <ListSearch 
+              placeholder={t("users.searchPlaceholder")}
+              filterKey="searchQuery"
+            />
+            
+            <RoleFilter
+              filterKey="roleFilter"
+              label={t("users.filterByRole")}
+              roles={[
+                { value: "root_admin", label: t("users.roles.rootAdmin") },
+                { value: "organization_admin", label: t("users.roles.organizationAdmin") },
+                { value: "club_admin", label: t("users.roles.clubAdmin") },
+                { value: "user", label: t("users.roles.user") },
+              ]}
+            />
+            
+            <StatusFilter
+              filterKey="statusFilter"
+              label={t("users.filterByStatus")}
+              statuses={[
+                { value: "active", label: t("users.status.active") },
+                { value: "blocked", label: t("users.status.blocked") },
+                { value: "suspended", label: t("users.status.suspended") },
+                { value: "invited", label: t("users.status.invited") },
+                { value: "deleted", label: t("users.status.deleted") },
+              ]}
+            />
+            
+            <OrgSelector
+              filterKey="organizationFilter"
+              label={t("users.filterByOrganization")}
+              placeholder={t("users.allOrganizations")}
+            />
+            
+            <ClubSelector
+              filterKey="clubFilter"
+              orgFilterKey="organizationFilter"
+              label={t("users.filterByClub")}
+              placeholder={t("users.allClubs")}
+            />
+          </ListToolbar>
 
           {/* Quick preset buttons */}
-          <div className="im-quick-filters">
-            <Button
-              variant={filters.activeLast30d ? "primary" : "outline"}
-              size="small"
-              onClick={() => setFilter("activeLast30d", !filters.activeLast30d)}
-            >
-              {t("users.quickFilters.activeLast30d")}
-            </Button>
-            <Button
-              variant={filters.neverBooked ? "primary" : "outline"}
-              size="small"
-              onClick={() => setFilter("neverBooked", !filters.neverBooked)}
-            >
-              {t("users.quickFilters.neverBooked")}
-            </Button>
-            <Button
-              variant={filters.showOnlyAdmins ? "primary" : "outline"}
-              size="small"
-              onClick={() => {
-                if (filters.showOnlyAdmins) {
-                  setFilter("showOnlyAdmins", false);
-                } else {
-                  setFilter("showOnlyAdmins", true);
-                  setFilter("showOnlyUsers", false);
-                }
-              }}
-            >
-              {t("users.quickFilters.showOnlyAdmins")}
-            </Button>
-            <Button
-              variant={filters.showOnlyUsers ? "primary" : "outline"}
-              size="small"
-              onClick={() => {
-                if (filters.showOnlyUsers) {
-                  setFilter("showOnlyUsers", false);
-                } else {
-                  setFilter("showOnlyUsers", true);
-                  setFilter("showOnlyAdmins", false);
-                }
-              }}
-            >
-              {t("users.quickFilters.showOnlyUsers")}
-            </Button>
-          </div>
+          <QuickPresets
+            presets={[
+              {
+                id: "active_last_30d",
+                label: t("users.quickFilters.activeLast30d"),
+                filters: { activeLast30d: true },
+              },
+              {
+                id: "never_booked",
+                label: t("users.quickFilters.neverBooked"),
+                filters: { neverBooked: true },
+              },
+              {
+                id: "show_only_admins",
+                label: t("users.quickFilters.showOnlyAdmins"),
+                filters: { showOnlyAdmins: true, showOnlyUsers: false },
+              },
+              {
+                id: "show_only_users",
+                label: t("users.quickFilters.showOnlyUsers"),
+                filters: { showOnlyUsers: true, showOnlyAdmins: false },
+              },
+            ]}
+          />
 
-          <div className="im-filters-grid">
-            {/* Global search */}
-            <div className="im-filter-field im-filter-field--search">
-              <div className="im-search-input-wrapper">
-                <span className="im-search-icon"><SearchIcon /></span>
-                <Input
-                  value={filters.searchQuery}
-                  onChange={(e) => setFilter("searchQuery", e.target.value)}
-                  placeholder={t("users.searchPlaceholder")}
-                  aria-label={t("common.search")}
-                />
-              </div>
-            </div>
-
-            {/* Role filter */}
-            <div className="im-filter-field">
-              <Select
-                label={t("users.filterByRole")}
-                options={roleOptions}
-                value={filters.roleFilter}
-                onChange={(value) => setFilter("roleFilter", value)}
-              />
-            </div>
-
-            {/* Status filter */}
-            <div className="im-filter-field">
-              <Select
-                label={t("users.filterByStatus")}
-                options={statusOptions}
-                value={filters.statusFilter}
-                onChange={(value) => setFilter("statusFilter", value)}
-              />
-            </div>
-
-            {/* Organization filter */}
-            <div className="im-filter-field">
-              <Select
-                label={t("users.filterByOrganization")}
-                options={organizationOptions}
-                value={filters.organizationFilter}
-                onChange={(value) => setFilter("organizationFilter", value)}
-              />
-            </div>
-
-            {/* Club filter */}
-            <div className="im-filter-field">
-              <Select
-                label={t("users.filterByClub")}
-                options={clubOptions}
-                value={filters.clubFilter}
-                onChange={(value) => setFilter("clubFilter", value)}
-              />
-            </div>
-          </div>
-
-          {/* Date range filter */}
-          <div className="im-date-range-filter">
+          {/* Date range filter with toggle for field selection */}
+          <Card className="im-date-range-field-card">
             <div className="im-date-range-header">
               <span className="im-date-range-label">{t("users.dateRange.label")}</span>
               <div className="im-date-range-toggle">
@@ -556,24 +412,15 @@ export default function AdminUsersPage() {
                 </button>
               </div>
             </div>
-            <div className="im-date-range-inputs">
-              <Input
-                type="date"
-                value={filters.dateFrom}
-                onChange={(e) => setFilter("dateFrom", e.target.value)}
-                placeholder={t("users.dateRange.from")}
-                label={t("users.dateRange.from")}
-              />
-              <Input
-                type="date"
-                value={filters.dateTo}
-                onChange={(e) => setFilter("dateTo", e.target.value)}
-                placeholder={t("users.dateRange.to")}
-                label={t("users.dateRange.to")}
-              />
-            </div>
-          </div>
-        </Card>
+            <DateRangeFilter
+              field={filters.dateRangeField}
+              fromKey="dateFrom"
+              toKey="dateTo"
+              fromLabel={t("users.dateRange.from")}
+              toLabel={t("users.dateRange.to")}
+            />
+          </Card>
+        </ListControllerProvider>
         )}
 
         {(error || errorKey) && (
@@ -762,73 +609,30 @@ export default function AdminUsersPage() {
               </table>
             </div>
 
-            {/* Pagination */}
-            <Card className="im-pagination-card">
-              <div className="im-pagination-info">
-                <span className="im-pagination-text">
-                  {t("users.pagination.showing", {
-                    start: (page - 1) * pageSize + 1,
-                    end: Math.min(page * pageSize, totalCount),
-                    total: totalCount,
-                  })}
-                </span>
-              </div>
-              <div className="im-pagination-controls">
-                <button
-                  className="im-pagination-btn"
-                  onClick={() => setPage(page - 1)}
-                  disabled={page <= 1}
-                  aria-label={t("users.pagination.previous")}
-                >
-                  <ChevronLeftIcon />
-                  <span className="im-pagination-btn-text">{t("users.pagination.previous")}</span>
-                </button>
-                <div className="im-pagination-pages">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    const pageNum = page <= 3
-                      ? i + 1
-                      : page + i - 2;
-                    if (pageNum < 1 || pageNum > totalPages) return null;
-                    return (
-                      <button
-                        key={pageNum}
-                        className={`im-pagination-page ${page === pageNum ? "im-pagination-page--active" : ""}`}
-                        onClick={() => setPage(pageNum)}
-                        aria-label={`Page ${pageNum}`}
-                        aria-current={page === pageNum ? "page" : undefined}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-                <button
-                  className="im-pagination-btn"
-                  onClick={() => setPage(page + 1)}
-                  disabled={page >= totalPages}
-                  aria-label={t("users.pagination.next")}
-                >
-                  <span className="im-pagination-btn-text">{t("users.pagination.next")}</span>
-                  <ChevronRightIcon />
-                </button>
-              </div>
-              <div className="im-pagination-size">
-                <label htmlFor="page-size" className="im-pagination-size-label">
-                  {t("users.pagination.pageSize")}
-                </label>
-                <select
-                  id="page-size"
-                  className="im-pagination-size-select"
-                  value={pageSize}
-                  onChange={(e) => setPageSize(parseInt(e.target.value))}
-                >
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-            </Card>
+            {/* Pagination using list-controls component */}
+            <ListControllerProvider controller={controller}>
+              <PaginationControls
+                totalCount={totalCount}
+                totalPages={totalPages}
+                showPageSize={true}
+                pageSizeOptions={[10, 25, 50, 100]}
+                t={(key, params) => {
+                  if (key === "pagination.showing") {
+                    return t("users.pagination.showing", params);
+                  }
+                  if (key === "pagination.previous") {
+                    return t("users.pagination.previous");
+                  }
+                  if (key === "pagination.next") {
+                    return t("users.pagination.next");
+                  }
+                  if (key === "pagination.pageSize") {
+                    return t("users.pagination.pageSize");
+                  }
+                  return key;
+                }}
+              />
+            </ListControllerProvider>
           </>
         )}
       </section>
