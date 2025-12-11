@@ -93,7 +93,7 @@ function MyListPage() {
 
 ### ListToolbar
 
-Container component for filter controls with optional reset button.
+Container component for filter controls with optional reset button. Renders filters in a **horizontal toolbar layout** with automatic overflow handling.
 
 ```typescript
 <ListToolbar 
@@ -102,7 +102,10 @@ Container component for filter controls with optional reset button.
   resetLabel="Clear Filters"
   compact={false}
 >
-  {/* Add filter components here */}
+  <ListSearch placeholder="Search..." />
+  <QuickPresets presets={presets} />
+  <DateRangeFilter field="createdAt" fromKey="dateFrom" toKey="dateTo" />
+  {/* Add more filter components here */}
 </ListToolbar>
 ```
 
@@ -113,6 +116,14 @@ Container component for filter controls with optional reset button.
 - `onReset?` - Custom reset handler
 - `compact?` - Compact layout mode
 - `className?` - Additional CSS classes
+
+**Layout Features:**
+- **Horizontal single-row layout** - All filters render in one row
+- **Automatic horizontal scroll** - Overflows with visible scrollbar on narrow screens
+- **Min-widths** - Each filter has sensible minimum widths (160px default, 320px for DateRangeFilter)
+- **Responsive** - Maintains horizontal scroll on mobile while adjusting min-widths
+- **Flexible** - Search input can grow up to 400px
+- QuickPresets and DateRangeFilter can be placed directly inside the toolbar
 
 ### ListSearch
 
@@ -404,9 +415,31 @@ export default function UsersPage() {
   return (
     <ListControllerProvider controller={controller}>
       <div className="space-y-4">
-        {/* Toolbar with all filters */}
+        {/* Consolidated horizontal toolbar with all filters */}
         <ListToolbar showReset>
           <ListSearch placeholder="Search users..." />
+          
+          {/* Quick presets integrated into toolbar */}
+          <QuickPresets
+            presets={[
+              { 
+                id: 'active_30d', 
+                label: 'Active Last 30 Days',
+                filters: { activeLast30d: true }
+              },
+              { 
+                id: 'never_booked', 
+                label: 'Never Booked',
+                filters: { neverBooked: true }
+              },
+            ]}
+          />
+
+          {/* Date range filter integrated into toolbar */}
+          <DateRangeFilter
+            field="createdAt"
+            label="Created Date"
+          />
           
           <SortSelect
             label="Sort"
@@ -427,28 +460,7 @@ export default function UsersPage() {
           
           <OrgSelector />
           <ClubSelector />
-          
-          <DateRangeFilter
-            field="createdAt"
-            label="Created Date"
-          />
         </ListToolbar>
-
-        {/* Quick presets */}
-        <QuickPresets
-          presets={[
-            { 
-              id: 'active_30d', 
-              label: 'Active Last 30 Days',
-              filters: { activeLast30d: true }
-            },
-            { 
-              id: 'never_booked', 
-              label: 'Never Booked',
-              filters: { neverBooked: true }
-            },
-          ]}
-        />
 
         {/* Your data display (table, cards, etc.) */}
         {/* ... */}

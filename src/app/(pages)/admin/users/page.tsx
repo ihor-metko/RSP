@@ -143,7 +143,6 @@ export default function AdminUsersPage() {
 
   const {
     filters,
-    setFilter,
     sortBy,
     setSortBy,
     sortOrder,
