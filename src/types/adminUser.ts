@@ -29,7 +29,7 @@ export interface ClubRef {
 }
 
 /**
- * Admin user from list endpoint (/api/admin/users/list)
+ * Admin user from list endpoint (/api/admin/users)
  * This is the minimal user data shown in lists
  */
 export interface AdminUser {
@@ -175,6 +175,7 @@ export interface AdminUserDetail {
 export interface PaginationInfo {
   page: number;
   pageSize: number;
+  limit: number; // Alias for pageSize (used in new unified endpoint)
   totalCount: number;
   totalPages: number;
 }
@@ -208,7 +209,7 @@ export interface UsersFilters {
 }
 
 /**
- * Simple user for autocomplete/search (from /api/admin/users)
+ * Simple user for autocomplete/search (from /api/admin/users?simple=true)
  */
 export interface SimpleUser {
   id: string;

@@ -150,7 +150,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         // Build query params
         const params = new URLSearchParams({
           page: page.toString(),
-          pageSize: pageSize.toString(),
+          limit: pageSize.toString(),
         });
 
         if (filters.search) params.append("search", filters.search);
@@ -174,7 +174,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         if (filters.showOnlyAdmins) params.append("showOnlyAdmins", "true");
         if (filters.showOnlyUsers) params.append("showOnlyUsers", "true");
 
-        const response = await fetch(`/api/admin/users/list?${params.toString()}`);
+        const response = await fetch(`/api/admin/users?${params.toString()}`);
         
         if (!response.ok) {
           const data = await response.json().catch(() => ({ error: "Failed to fetch users" }));
@@ -322,13 +322,15 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   },
 
   /**
-   * Fetch simple users for autocomplete/search (from /api/admin/users)
+   * Fetch simple users for autocomplete/search (from /api/admin/users with simple=true)
    */
   fetchSimpleUsers: async (query = "") => {
     set({ loading: true, error: null });
     try {
-      const params = query ? `?q=${encodeURIComponent(query)}` : "";
-      const response = await fetch(`/api/admin/users${params}`);
+      const params = new URLSearchParams({ simple: "true" });
+      if (query) params.append("q", query);
+      
+      const response = await fetch(`/api/admin/users?${params.toString()}`);
       
       if (!response.ok) {
         const data = await response.json().catch(() => ({ error: "Failed to fetch users" }));
