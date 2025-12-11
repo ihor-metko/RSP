@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { FormSkeleton } from "@/components/ui/skeletons";
 import { ClubCreationStepper } from "@/components/admin/ClubCreationStepper.client";
 import { useUserStore } from "@/stores/useUserStore";
 
@@ -35,7 +36,7 @@ export default function NewClubPage() {
   if (isLoadingStore) {
     return (
       <main className="rsp-container p-8">
-        <div className="rsp-loading text-center">Loading...</div>
+        <FormSkeleton fields={8} showButton />
       </main>
     );
   }

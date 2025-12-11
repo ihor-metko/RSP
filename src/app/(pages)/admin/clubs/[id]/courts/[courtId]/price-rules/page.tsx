@@ -238,7 +238,8 @@ export default function PriceRulesPage({
   if (status === "loading" || loading) {
     return (
       <main className="rsp-container p-8">
-        <div className="rsp-loading text-center">Loading...</div>
+        <PageHeaderSkeleton showDescription />
+        <TableSkeleton rows={5} columns={6} showHeader />
       </main>
     );
   }
