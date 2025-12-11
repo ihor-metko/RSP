@@ -36,15 +36,48 @@ function XIcon() {
 /**
  * Toolbar container component for list controls.
  * 
- * Provides a consistent layout for filters, search, sorting, and other controls.
- * Can automatically render a reset button based on active filters.
+ * A reusable container that provides a consistent, accessible layout for
+ * all list filtering controls (search, selects, date ranges, etc.).
+ * 
+ * Features:
+ * - Consistent horizontal layout for filters
+ * - Automatic reset/clear filters button when filters are active
+ * - Detects active filters automatically
+ * - Integrates seamlessly with useListController
+ * - Responsive layout (stacks on mobile)
+ * - Consistent im-* styling for dark theme support
+ * - Compact mode for tighter layouts
+ * - Proper spacing and alignment for all child controls
+ * 
+ * Usage:
+ * Wrap all your filter components (ListSearch, Select, DateRangeFilter, etc.)
+ * inside ListToolbar to get consistent styling and layout.
  * 
  * @example
  * ```tsx
+ * // Basic usage with reset button
  * <ListToolbar controller={controller} showReset>
  *   <ListSearch placeholder="Search..." />
  *   <SortSelect options={sortOptions} />
- *   <Select label="Status" ... />
+ *   <Select label="Status" options={statusOptions} />
+ * </ListToolbar>
+ * 
+ * // Compact mode
+ * <ListToolbar controller={controller} compact>
+ *   <ListSearch placeholder="Search..." />
+ * </ListToolbar>
+ * 
+ * // Custom reset handler
+ * <ListToolbar 
+ *   controller={controller}
+ *   showReset
+ *   resetLabel="Clear All"
+ *   onReset={() => {
+ *     controller.clearFilters();
+ *     // Additional custom logic
+ *   }}
+ * >
+ *   <ListSearch />
  * </ListToolbar>
  * ```
  */

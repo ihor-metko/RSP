@@ -798,6 +798,50 @@
   color: var(--im-muted);
 }
 
+/* Date Range Field Card Styles */
+.im-date-range-field-card {
+  @apply mb-6 p-4;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  border-radius: var(--border-radius, 0.5rem);
+}
+
+.im-date-range-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.im-date-range-label {
+  @apply text-sm font-medium;
+  color: var(--im-text-primary);
+}
+
+.im-date-range-toggle {
+  @apply flex gap-2;
+}
+
+.im-toggle-btn {
+  @apply px-3 py-1 text-sm font-medium rounded-md transition-all duration-200;
+  background-color: var(--im-bg-secondary);
+  color: var(--im-text-secondary);
+  border: 1px solid var(--im-border);
+}
+
+.im-toggle-btn:hover {
+  background-color: var(--im-bg-tertiary);
+  border-color: var(--im-border-hover);
+}
+
+.im-toggle-btn--active {
+  background-color: var(--im-primary);
+  color: #ffffff;
+  border-color: var(--im-primary);
+}
+
+.im-toggle-btn--active:hover {
+  background-color: var(--im-primary-hover);
+  border-color: var(--im-primary-hover);
+}
+
 /* ===== Responsive Adjustments ===== */
 @media (max-width: 768px) {
   .im-admin-users-page {
@@ -815,13 +859,5 @@
 
   .im-actions-group {
     @apply flex-col;
-  }
-
-  .im-pagination-card {
-    @apply flex-col items-stretch;
-  }
-
-  .im-pagination-controls {
-    @apply justify-center;
   }
 }

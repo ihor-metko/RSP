@@ -3,4 +3,47 @@
 /* Quick Presets Styles */
 .im-quick-presets {
   @apply flex flex-wrap items-center gap-2;
+  padding: var(--spacing-2, 0.5rem);
+}
+
+/* Ensure preset buttons have consistent styling */
+.im-quick-presets button {
+  @apply transition-all duration-200;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* Active preset visual indication */
+.im-quick-presets button[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--im-primary);
+  transform: translateY(-1px);
+  background-color: var(--im-primary);
+  color: #ffffff;
+}
+
+.im-quick-presets button[aria-pressed="true"]:hover {
+  transform: translateY(-1px);
+}
+
+/* Hover state for inactive presets */
+.im-quick-presets button[aria-pressed="false"]:hover {
+  border-color: var(--im-border-hover);
+  background-color: var(--im-card-bg);
+}
+
+/* Focus state for keyboard navigation */
+.im-quick-presets button:focus-visible {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .im-quick-presets {
+    @apply flex-col items-stretch;
+  }
+  
+  .im-quick-presets button {
+    @apply w-full justify-center;
+  }
 }

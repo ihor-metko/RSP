@@ -26,14 +26,26 @@ interface QuickPresetsProps<TFilters = Record<string, unknown>> {
 /**
  * Quick preset buttons component for common filter combinations.
  * 
+ * A reusable component for applying common filter presets with a single click.
+ * Ideal for frequently used filter combinations on admin list pages.
+ * 
  * Features:
- * - Toggle presets on/off
- * - Visual indication of active preset
- * - Integrates with useListController
- * - Resets page to 1 on preset toggle
+ * - Toggle presets on/off with clear visual feedback
+ * - Active state clearly indicated with border highlight
+ * - Integrates seamlessly with useListController
+ * - Resets page to 1 on preset toggle for consistent UX
+ * - Fully accessible with ARIA pressed states
+ * - Responsive layout (stacks on mobile)
+ * - Consistent im-* styling for dark theme support
+ * - Smooth transitions and hover effects
+ * 
+ * Usage:
+ * Define common filter combinations as presets to help users quickly
+ * access frequently used filter states (e.g., "Active Users", "Recent Bookings").
  * 
  * @example
  * ```tsx
+ * // Basic usage
  * <QuickPresets 
  *   controller={controller}
  *   presets={[
@@ -49,6 +61,11 @@ interface QuickPresetsProps<TFilters = Record<string, unknown>> {
  *     },
  *   ]}
  * />
+ * 
+ * // With context from provider
+ * <ListControllerProvider controller={controller}>
+ *   <QuickPresets presets={presets} />
+ * </ListControllerProvider>
  * ```
  */
 export function QuickPresets<TFilters = Record<string, unknown>>({

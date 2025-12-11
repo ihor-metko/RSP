@@ -71,20 +71,46 @@ function calculateVisiblePages(currentPage: number, totalPages: number): number[
 /**
  * Pagination controls component with page navigation and size selector.
  * 
+ * A reusable, fully-featured pagination component that provides intuitive
+ * navigation through large datasets with visual feedback and accessibility support.
+ * 
  * Features:
- * - Previous/Next navigation
- * - Page number display
- * - Page size selector
- * - Shows current range and total count
- * - Keyboard accessible
+ * - Previous/Next navigation with disabled states
+ * - Page number buttons (shows up to 5 pages centered on current)
+ * - Active page clearly highlighted
+ * - Page size selector for flexible display options
+ * - Shows current item range and total count
+ * - Fully keyboard accessible with proper ARIA labels
+ * - Responsive layout (stacks on mobile)
+ * - Consistent im-* styling for dark theme support
+ * - Smooth hover and focus transitions
+ * - Integrates seamlessly with useListController
+ * 
+ * Usage:
+ * Place at the bottom of list pages to enable navigation through paginated data.
+ * Works with any list page using the useListController hook.
  * 
  * @example
  * ```tsx
+ * // Basic usage
  * <PaginationControls 
  *   controller={controller}
  *   totalCount={150}
  *   totalPages={6}
  *   showPageSize={true}
+ * />
+ * 
+ * // With context from provider
+ * <ListControllerProvider controller={controller}>
+ *   <PaginationControls totalCount={data.length} totalPages={totalPages} />
+ * </ListControllerProvider>
+ * 
+ * // Custom page size options
+ * <PaginationControls 
+ *   controller={controller}
+ *   totalCount={500}
+ *   totalPages={10}
+ *   pageSizeOptions={[25, 50, 100, 200]}
  * />
  * ```
  */
