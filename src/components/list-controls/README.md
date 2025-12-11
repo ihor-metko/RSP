@@ -58,6 +58,7 @@ import {
   OrgSelector,
   ClubSelector,
   RoleFilter,
+  StatusFilter,
   DateRangeFilter,
   QuickPresets,
   SortSelect,
@@ -260,6 +261,32 @@ Role filter dropdown.
 - `roles` - Available roles (required)
 - `label?` - Select label (default: "Role")
 - `placeholder?` - Select placeholder (default: "All Roles")
+- `className?` - Additional CSS classes
+
+### StatusFilter
+
+Status filter dropdown for filtering by entity status (bookings, orders, etc.).
+
+```typescript
+<StatusFilter 
+  controller={controller}
+  filterKey="statusFilter"
+  label="Status"
+  statuses={[
+    { value: 'pending', label: 'Pending' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'confirmed', label: 'Confirmed' },
+    { value: 'cancelled', label: 'Cancelled' },
+  ]}
+/>
+```
+
+**Props:**
+- `controller?` - List controller (optional if using context)
+- `filterKey?` - Filter key to update (default: "statusFilter")
+- `statuses` - Available statuses (required)
+- `label?` - Select label (default: "Status")
+- `placeholder?` - Select placeholder (default: "All Statuses")
 - `className?` - Additional CSS classes
 
 ### DateRangeFilter

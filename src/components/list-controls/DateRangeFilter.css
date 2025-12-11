@@ -1,3 +1,5 @@
+@import 'tailwindcss';
+
 /* Date Range Filter Styles */
 .im-date-range-filter {
   @apply flex flex-col gap-2;
@@ -12,6 +14,6 @@
   @apply flex flex-col sm:flex-row gap-2;
 }
 
-.im-date-range-inputs > div {
+.im-date-range-inputs>div {
   @apply flex-1;
 }

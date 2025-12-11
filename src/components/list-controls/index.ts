@@ -13,5 +13,6 @@ export { SortSelect } from "./SortSelect";
 export { OrgSelector } from "./OrgSelector";
 export { ClubSelector } from "./ClubSelector";
 export { RoleFilter } from "./RoleFilter";
+export { StatusFilter } from "./StatusFilter";
 export { DateRangeFilter } from "./DateRangeFilter";
 export { QuickPresets } from "./QuickPresets";

@@ -1,3 +1,5 @@
+@import 'tailwindcss';
+
 /* Pagination Controls Styles */
 .im-pagination-card {
   @apply flex flex-wrap items-center justify-between gap-4 p-4;

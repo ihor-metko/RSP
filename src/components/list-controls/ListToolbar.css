@@ -1,3 +1,5 @@
+@import 'tailwindcss';
+
 /* List Toolbar Styles */
 .im-list-toolbar {
   @apply flex flex-wrap items-center gap-4 p-4;

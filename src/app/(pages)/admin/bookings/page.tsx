@@ -3,23 +3,34 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader, Button, Modal, Select, Input } from "@/components/ui";
+import { PageHeader, Button, Modal, type TableColumn } from "@/components/ui";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { formatPrice } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
-import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { useClubStore } from "@/stores/useClubStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import { useListController } from "@/hooks";
+import {
+  ListControllerProvider,
+  ListToolbar,
+  ListSearch,
+  SortSelect,
+  OrgSelector,
+  ClubSelector,
+  StatusFilter,
+  DateRangeFilter,
+  QuickPresets,
+  PaginationControls,
+} from "@/components/list-controls";
 import type { AdminBookingsListResponse, AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import type { AdminBookingDetailResponse } from "@/app/api/admin/bookings/[id]/route";
 import "./AdminBookings.css";
 
 // Define filters interface
 interface BookingFilters {
-  selectedOrg: string;
-  selectedClub: string;
-  selectedStatus: string;
+  searchQuery: string;
+  organizationFilter: string;
+  clubFilter: string;
+  statusFilter: string;
   dateFrom: string;
   dateTo: string;
 }
@@ -75,14 +86,6 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 /**
- * Organization/Club filter options
- */
-interface FilterOption {
-  value: string;
-  label: string;
-}
-
-/**
  * Admin Bookings Page Component
  *
  * Displays bookings with role-based filtering:
@@ -105,33 +108,21 @@ export default function AdminBookingsPage() {
   const [error, setError] = useState("");
 
   // Use list controller hook for persistent filters
-  const {
-    filters,
-    setFilter,
-    page,
-    setPage,
-    pageSize,
-    clearFilters,
-  } = useListController<BookingFilters>({
+  const controller = useListController<BookingFilters>({
     entityKey: "bookings",
     defaultFilters: {
-      selectedOrg: "",
-      selectedClub: "",
-      selectedStatus: "",
+      searchQuery: "",
+      organizationFilter: "",
+      clubFilter: "",
+      statusFilter: "",
       dateFrom: "",
       dateTo: "",
     },
+    defaultSortBy: "startAt",
+    defaultSortOrder: "asc",
     defaultPage: 1,
-    defaultPageSize: 20,
+    defaultPageSize: 25,
   });
-
-  // Filter options
-  const storeOrganizations = useOrganizationStore((state) => state.organizations);
-  const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
-  const storeClubs = useClubStore((state) => state.clubs);
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
-  const [organizations, setOrganizations] = useState<FilterOption[]>([]);
-  const [clubs, setClubs] = useState<FilterOption[]>([]);
 
   // Modal state
   const [selectedBooking, setSelectedBooking] = useState<AdminBookingDetailResponse | null>(null);
@@ -144,50 +135,6 @@ export default function AdminBookingsPage() {
   // Admin Booking Wizard state
   const [isBookingWizardOpen, setIsBookingWizardOpen] = useState(false);
 
-  // Admin status is loaded from store via UserStoreInitializer
-
-  // Fetch filter options (organizations and clubs)
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-      if (!adminStatus?.isAdmin) return;
-
-      try {
-        // Fetch organizations from store (for root admin)
-        if (adminStatus.adminType === "root_admin") {
-          await fetchOrganizations();
-          // Don't map here - let separate useEffect handle it when store updates
-        }
-
-        // Fetch clubs using store with inflight guard
-        await fetchClubsIfNeeded();
-      } catch {
-        // Silently fail - filter options are optional
-      }
-    };
-
-    fetchFilterOptions();
-  }, [adminStatus, fetchOrganizations, fetchClubsIfNeeded]);
-
-  // Update local organizations when store organizations change
-  useEffect(() => {
-    if (storeOrganizations.length > 0 && adminStatus?.adminType === "root_admin") {
-      setOrganizations(storeOrganizations.map((org) => ({
-        value: org.id,
-        label: org.name,
-      })));
-    }
-  }, [storeOrganizations, adminStatus]);
-
-  // Update local clubs when store clubs change
-  useEffect(() => {
-    if (storeClubs.length > 0 && adminStatus?.adminType !== "club_admin") {
-      setClubs(storeClubs.map((club) => ({
-        value: club.id,
-        label: club.name,
-      })));
-    }
-  }, [storeClubs, adminStatus]);
-
   // Fetch bookings
   const fetchBookings = useCallback(async () => {
     if (!adminStatus?.isAdmin) return;
@@ -197,14 +144,15 @@ export default function AdminBookingsPage() {
 
     try {
       const params = new URLSearchParams();
-      params.set("page", String(page));
-      params.set("perPage", String(pageSize));
+      params.set("page", String(controller.page));
+      params.set("perPage", String(controller.pageSize));
 
-      if (filters.selectedOrg) params.set("orgId", filters.selectedOrg);
-      if (filters.selectedClub) params.set("clubId", filters.selectedClub);
-      if (filters.selectedStatus) params.set("status", filters.selectedStatus);
-      if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
-      if (filters.dateTo) params.set("dateTo", filters.dateTo);
+      if (controller.filters.searchQuery) params.set("search", controller.filters.searchQuery);
+      if (controller.filters.organizationFilter) params.set("orgId", controller.filters.organizationFilter);
+      if (controller.filters.clubFilter) params.set("clubId", controller.filters.clubFilter);
+      if (controller.filters.statusFilter) params.set("status", controller.filters.statusFilter);
+      if (controller.filters.dateFrom) params.set("dateFrom", controller.filters.dateFrom);
+      if (controller.filters.dateTo) params.set("dateTo", controller.filters.dateTo);
 
       const response = await fetch(`/api/admin/bookings?${params.toString()}`);
 
@@ -227,7 +175,7 @@ export default function AdminBookingsPage() {
     } finally {
       setIsLoadingBookings(false);
     }
-  }, [adminStatus, page, pageSize, filters, router, t]);
+  }, [adminStatus, controller.page, controller.pageSize, controller.filters, router, t]);
 
   // Fetch bookings when filters change
   useEffect(() => {
@@ -235,11 +183,6 @@ export default function AdminBookingsPage() {
       fetchBookings();
     }
   }, [adminStatus, fetchBookings]);
-
-  // Clear filters
-  const handleClearFilters = () => {
-    clearFilters();
-  };
 
   // View booking details
   const handleViewBooking = async (booking: AdminBookingResponse) => {
@@ -295,14 +238,62 @@ export default function AdminBookingsPage() {
     setSelectedBooking(null);
   };
 
-  // Status options
+  // Status options for StatusFilter
   const statusOptions = [
-    { value: "", label: t("common.allStatuses") || "All Statuses" },
     { value: "pending", label: t("common.pending") },
     { value: "paid", label: t("adminBookings.statusPaid") },
     { value: "reserved", label: t("adminBookings.statusReserved") },
     { value: "cancelled", label: t("common.cancelled") },
   ];
+
+  // Sort options for SortSelect
+  const sortOptions = [
+    { key: "startAt", label: t("adminBookings.sortByStartTime") || "Start Time", direction: "asc" as const },
+    { key: "startAt", label: t("adminBookings.sortByStartTimeDesc") || "Start Time (Latest)", direction: "desc" as const },
+    { key: "createdAt", label: t("adminBookings.sortByCreated") || "Created (Newest)", direction: "desc" as const },
+    { key: "createdAt", label: t("adminBookings.sortByCreatedAsc") || "Created (Oldest)", direction: "asc" as const },
+    { key: "status", label: t("adminBookings.sortByStatus") || "Status", direction: "asc" as const },
+  ];
+
+  // Quick presets for common date ranges
+  const getQuickPresets = () => {
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+
+    const next7Days = new Date(today);
+    next7Days.setDate(next7Days.getDate() + 7);
+    const next7DaysStr = next7Days.toISOString().split("T")[0];
+
+    const startOfWeek = new Date(today);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+    const startOfWeekStr = startOfWeek.toISOString().split("T")[0];
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    const endOfWeekStr = endOfWeek.toISOString().split("T")[0];
+
+    return [
+      {
+        id: "today",
+        label: t("adminBookings.today") || "Today",
+        filters: { dateFrom: todayStr, dateTo: todayStr },
+      },
+      {
+        id: "next_7_days",
+        label: t("adminBookings.next7Days") || "Next 7 Days",
+        filters: { dateFrom: todayStr, dateTo: next7DaysStr },
+      },
+      {
+        id: "this_week",
+        label: t("adminBookings.thisWeek") || "This Week",
+        filters: { dateFrom: startOfWeekStr, dateTo: endOfWeekStr },
+      },
+    ];
+  };
 
   // Show loading state while user store is loading
   if (isLoading) {
@@ -334,317 +325,346 @@ export default function AdminBookingsPage() {
     await fetchBookings();
   };
 
+  // Define table columns based on admin type
+  const columns: TableColumn<AdminBookingResponse>[] = [
+    {
+      key: "id",
+      header: t("adminBookings.bookingId"),
+      render: (booking) => `${booking.id.slice(0, 8)}...`,
+    },
+    {
+      key: "userName",
+      header: t("adminBookings.user"),
+      render: (booking) => booking.userName || booking.userEmail,
+    },
+    ...(adminStatus?.adminType === "root_admin"
+      ? [
+        {
+          key: "organizationName",
+          header: t("adminBookings.organization"),
+          render: (booking: AdminBookingResponse) => booking.organizationName || "—",
+        },
+      ]
+      : []),
+    ...(adminStatus?.adminType !== "club_admin"
+      ? [
+        {
+          key: "clubName",
+          header: t("adminBookings.club"),
+          render: (booking: AdminBookingResponse) => booking.clubName,
+        },
+      ]
+      : []),
+    {
+      key: "court",
+      header: t("adminBookings.court"),
+      render: (booking) => booking.courtName,
+    },
+    {
+      key: "start",
+      header: t("adminBookings.dateTime"),
+      render: (booking) => formatDateTime(booking.start),
+    },
+    {
+      key: "duration",
+      header: t("common.duration"),
+      render: (booking) => `${calculateDuration(booking.start, booking.end)} ${t("common.minutes")}`,
+    },
+    {
+      key: "status",
+      header: t("common.status"),
+      render: (booking) => <StatusBadge status={booking.status} />,
+    },
+    {
+      key: "actions",
+      header: t("common.actions"),
+      render: (booking) => (
+        <div className="im-admin-bookings-actions" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="outline"
+            size="small"
+            onClick={() => handleViewBooking(booking)}
+          >
+            {t("common.view")}
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <main className="im-admin-bookings-page">
-      <PageHeader
-        title={t("adminBookings.title")}
-        description={t("adminBookings.subtitle")}
-        actions={
-          <Button onClick={handleOpenBookingWizard} variant="primary">
-            {t("adminWizard.title")}
-          </Button>
-        }
-      />
-
-      {/* Filters */}
-      <div className="im-admin-bookings-filters">
-        {/* Organization filter - Root admin only */}
-        {adminStatus.adminType === "root_admin" && (
-          <div className="im-admin-bookings-filter-group">
-            <label>{t("adminBookings.organization")}</label>
-            <Select
-              options={[
-                { value: "", label: t("adminBookings.allOrganizations") },
-                ...organizations,
-              ]}
-              value={filters.selectedOrg}
-              onChange={(value) => setFilter("selectedOrg", value)}
-              placeholder={t("adminBookings.selectOrganization")}
-            />
-          </div>
-        )}
-
-        {/* Club filter - Root and Org admins */}
-        {adminStatus.adminType !== "club_admin" && (
-          <div className="im-admin-bookings-filter-group">
-            <label>{t("adminBookings.club")}</label>
-            <Select
-              options={[
-                { value: "", label: t("adminBookings.allClubs") },
-                ...clubs,
-              ]}
-              value={filters.selectedClub}
-              onChange={(value) => setFilter("selectedClub", value)}
-              placeholder={t("adminBookings.selectClub")}
-            />
-          </div>
-        )}
-
-        {/* Date range filter */}
-        <div className="im-admin-bookings-filter-group">
-          <label>{t("adminBookings.dateRange")}</label>
-          <div className="im-admin-bookings-date-range">
-            <Input
-              type="date"
-              value={filters.dateFrom}
-              onChange={(e) => setFilter("dateFrom", e.target.value)}
-              max={filters.dateTo || undefined}
-            />
-            <span>—</span>
-            <Input
-              type="date"
-              value={filters.dateTo}
-              onChange={(e) => setFilter("dateTo", e.target.value)}
-              min={filters.dateFrom || undefined}
-            />
-          </div>
-        </div>
-
-        {/* Status filter */}
-        <div className="im-admin-bookings-filter-group">
-          <label>{t("common.status")}</label>
-          <Select
-            options={statusOptions}
-            value={filters.selectedStatus}
-            onChange={(value) => setFilter("selectedStatus", value)}
-          />
-        </div>
-
-        {/* Clear filters button */}
-        <div className="im-admin-bookings-filter-actions">
-          <Button variant="outline" size="small" onClick={handleClearFilters}>
-            {t("common.clearFilters")}
-          </Button>
-        </div>
-      </div>
-
-      {/* Error message */}
-      {error && (
-        <div className="im-admin-bookings-error" role="alert">
-          {error}
-        </div>
-      )}
-
-      {/* Bookings table */}
-      {isLoadingBookings ? (
-        <TableSkeleton rows={pageSize > 20 ? 20 : pageSize} columns={8} showHeader />
-      ) : bookingsData?.bookings.length === 0 ? (
-        <div className="im-admin-bookings-table-container">
-          <div className="im-admin-bookings-empty">
-            <svg
-              className="im-admin-bookings-empty-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            <h3 className="im-admin-bookings-empty-title">{t("adminBookings.noBookings")}</h3>
-            <p className="im-admin-bookings-empty-description">{t("adminBookings.noBookingsDescription")}</p>
-          </div>
-        </div>
-      ) : (
-        <div className="im-admin-bookings-table-container">
-          <table className="im-admin-bookings-table">
-            <thead>
-              <tr>
-                <th>{t("adminBookings.user")}</th>
-                {adminStatus.adminType === "root_admin" && <th>{t("adminBookings.organization")}</th>}
-                {adminStatus.adminType !== "club_admin" && <th>{t("adminBookings.club")}</th>}
-                <th>{t("adminBookings.court")}</th>
-                <th>{t("adminBookings.dateTime")}</th>
-                <th>{t("common.duration")}</th>
-                <th>{t("common.status")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookingsData?.bookings.map((booking) => (
-                <tr key={booking.id} onClick={() => handleViewBooking(booking)}>
-                  <td className="im-td-user">
-                    <div className="im-user-info">
-                      <div className="im-user-avatar">
-                        {getInitials(booking.userName, booking.userEmail)}
-                      </div>
-                      <span className="im-user-name">
-                        {booking.userName || booking.userEmail}
-                      </span>
-                    </div>
-                  </td>
-                  {adminStatus.adminType === "root_admin" && (
-                    <td>{booking.organizationName || "—"}</td>
-                  )}
-                  {adminStatus.adminType !== "club_admin" && (
-                    <td>{booking.clubName}</td>
-                  )}
-                  <td>{booking.courtName}</td>
-                  <td>{formatDateTime(booking.start)}</td>
-                  <td>{calculateDuration(booking.start, booking.end)} {t("common.minutes")}</td>
-                  <td><StatusBadge status={booking.status} /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Pagination */}
-          {bookingsData && bookingsData.totalPages > 1 && (
-            <div className="im-admin-bookings-pagination">
-              <span className="im-admin-bookings-pagination-info">
-                {t("adminBookings.showing", {
-                  start: (page - 1) * pageSize + 1,
-                  end: Math.min(page * pageSize, bookingsData.total),
-                  total: bookingsData.total,
-                })}
-              </span>
-              <div className="im-admin-bookings-pagination-controls">
-                <Button
-                  variant="outline"
-                  size="small"
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
-                >
-                  {t("organizations.previous")}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="small"
-                  disabled={page >= bookingsData.totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  {t("organizations.next")}
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Booking Detail Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title={t("adminBookings.bookingDetails")}
-      >
-        {isLoadingDetail ? (
-          <div className="im-admin-bookings-loading">
-            <div className="im-admin-bookings-loading-spinner" />
-            <span>{t("common.loading")}</span>
-          </div>
-        ) : selectedBooking ? (
-          <div className="im-booking-detail-modal">
-            {/* User Information */}
-            <div className="im-booking-detail-section">
-              <h4 className="im-booking-detail-section-title">{t("adminBookings.userInfo")}</h4>
-              <div className="im-booking-detail-grid">
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.name")}</span>
-                  <span className="im-booking-detail-value">{selectedBooking.userName || "—"}</span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.email")}</span>
-                  <span className="im-booking-detail-value">{selectedBooking.userEmail}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Court Information */}
-            <div className="im-booking-detail-section">
-              <h4 className="im-booking-detail-section-title">{t("adminBookings.courtInfo")}</h4>
-              <div className="im-booking-detail-grid">
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("adminBookings.court")}</span>
-                  <span className="im-booking-detail-value">{selectedBooking.courtName}</span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("adminBookings.club")}</span>
-                  <span className="im-booking-detail-value">{selectedBooking.clubName}</span>
-                </div>
-                {selectedBooking.courtType && (
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("admin.courts.type")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.courtType}</span>
-                  </div>
-                )}
-                {selectedBooking.courtSurface && (
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("admin.courts.surface")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.courtSurface}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Booking Details */}
-            <div className="im-booking-detail-section">
-              <h4 className="im-booking-detail-section-title">{t("adminBookings.bookingInfo")}</h4>
-              <div className="im-booking-detail-grid">
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("adminBookings.dateTime")}</span>
-                  <span className="im-booking-detail-value">
-                    {formatDateTime(selectedBooking.start)} — {formatDateTime(selectedBooking.end)}
-                  </span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.duration")}</span>
-                  <span className="im-booking-detail-value">
-                    {calculateDuration(selectedBooking.start, selectedBooking.end)} {t("common.minutes")}
-                  </span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.status")}</span>
-                  <span className="im-booking-detail-value">
-                    <StatusBadge status={selectedBooking.status} />
-                  </span>
-                </div>
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("common.price")}</span>
-                  <span className="im-booking-detail-value">{formatPrice(selectedBooking.price)}</span>
-                </div>
-                {selectedBooking.coachName && (
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("adminBookings.coach")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.coachName}</span>
-                  </div>
-                )}
-                <div className="im-booking-detail-item">
-                  <span className="im-booking-detail-label">{t("adminBookings.createdAt")}</span>
-                  <span className="im-booking-detail-value">{formatDateTime(selectedBooking.createdAt)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="im-booking-detail-actions">
-              <Button variant="outline" onClick={handleCloseModal}>
-                {t("common.close")}
-              </Button>
-              {selectedBooking.status !== "cancelled" && (
-                <Button
-                  variant="danger"
-                  onClick={() => handleCancelBooking(selectedBooking.id)}
-                  disabled={isCancelling}
-                >
-                  {isCancelling ? t("adminBookings.cancelling") : t("adminBookings.cancelBooking")}
-                </Button>
-              )}
-            </div>
-          </div>
-        ) : null}
-      </Modal>
-
-      {/* Admin Booking Wizard */}
-      {adminStatus?.isAdmin && adminStatus.adminType !== "none" && (
-        <AdminQuickBookingWizard
-          isOpen={isBookingWizardOpen}
-          onClose={handleCloseBookingWizard}
-          onBookingComplete={handleBookingComplete}
-          adminType={adminStatus.adminType}
-          managedIds={adminStatus.managedIds}
+    <ListControllerProvider controller={controller}>
+      <main className="im-admin-bookings-page">
+        <PageHeader
+          title={t("adminBookings.title")}
+          description={t("adminBookings.subtitle")}
+          actions={
+            <Button onClick={handleOpenBookingWizard} variant="primary">
+              {t("adminWizard.title")}
+            </Button>
+          }
         />
-      )}
-    </main>
+
+        {/* List Controls Toolbar */}
+        <ListToolbar showReset>
+          <ListSearch
+            placeholder={t("adminBookings.searchPlaceholder") || "Search bookings..."}
+            filterKey="searchQuery"
+          />
+
+          <SortSelect
+            options={sortOptions}
+            label={t("adminBookings.sortBy") || "Sort by"}
+          />
+
+          {adminStatus?.adminType === "root_admin" && (
+            <OrgSelector
+              filterKey="organizationFilter"
+              label={t("adminBookings.organization")}
+              placeholder={t("adminBookings.allOrganizations") || "All Organizations"}
+            />
+          )}
+
+          {adminStatus?.adminType !== "club_admin" && (
+            <ClubSelector
+              filterKey="clubFilter"
+              orgFilterKey="organizationFilter"
+              label={t("adminBookings.club")}
+              placeholder={t("adminBookings.allClubs") || "All Clubs"}
+            />
+          )}
+
+          <StatusFilter
+            statuses={statusOptions}
+            filterKey="statusFilter"
+            label={t("common.status")}
+            placeholder={t("common.allStatuses") || "All Statuses"}
+          />
+        </ListToolbar>
+
+        {/* Quick Presets */}
+        <QuickPresets presets={getQuickPresets()} />
+
+        {/* Date Range Filter */}
+        <DateRangeFilter
+          field="startAt"
+          label={t("adminBookings.dateRange") || "Date Range"}
+          fromKey="dateFrom"
+          toKey="dateTo"
+          fromLabel={t("adminBookings.from") || "From"}
+          toLabel={t("adminBookings.to") || "To"}
+        />
+
+        {/* Error message */}
+        {error && (
+          <div className="im-admin-bookings-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        {/* Bookings table with loading and empty states */}
+        {isLoadingBookings ? (
+          <TableSkeleton rows={Math.min(controller.pageSize, 20)} columns={columns.length} showHeader />
+        ) : !bookingsData || bookingsData.bookings.length === 0 ? (
+          <div className="im-admin-bookings-table-container">
+            <div className="im-admin-bookings-empty">
+              <svg
+                className="im-admin-bookings-empty-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <h3 className="im-admin-bookings-empty-title">{t("adminBookings.noBookings")}</h3>
+              <p className="im-admin-bookings-empty-description">{t("adminBookings.noBookingsDescription")}</p>
+              <Button onClick={handleOpenBookingWizard} variant="primary">
+                {t("adminBookings.createBooking") || "Create Booking"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="im-admin-bookings-table-container">
+              <table className="im-admin-bookings-table">
+                <thead>
+                  <tr>
+                    <th>{t("adminBookings.user")}</th>
+                    {adminStatus.adminType === "root_admin" && <th>{t("adminBookings.organization")}</th>}
+                    {adminStatus.adminType !== "club_admin" && <th>{t("adminBookings.club")}</th>}
+                    <th>{t("adminBookings.court")}</th>
+                    <th>{t("adminBookings.dateTime")}</th>
+                    <th>{t("common.duration")}</th>
+                    <th>{t("common.status")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bookingsData?.bookings.map((booking) => (
+                    <tr key={booking.id} onClick={() => handleViewBooking(booking)}>
+                      <td className="im-td-user">
+                        <div className="im-user-info">
+                          <div className="im-user-avatar">
+                            {getInitials(booking.userName, booking.userEmail)}
+                          </div>
+                          <span className="im-user-name">
+                            {booking.userName || booking.userEmail}
+                          </span>
+                        </div>
+                      </td>
+                      {adminStatus.adminType === "root_admin" && (
+                        <td>{booking.organizationName || "—"}</td>
+                      )}
+                      {adminStatus.adminType !== "club_admin" && (
+                        <td>{booking.clubName}</td>
+                      )}
+                      <td>{booking.courtName}</td>
+                      <td>{formatDateTime(booking.start)}</td>
+                      <td>{calculateDuration(booking.start, booking.end)} {t("common.minutes")}</td>
+                      <td><StatusBadge status={booking.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <PaginationControls
+              totalCount={bookingsData.total}
+              totalPages={bookingsData.totalPages}
+              showPageSize={true}
+              pageSizeOptions={[25, 50, 100]}
+            />
+          </>
+        )}
+
+        {/* Booking Detail Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title={t("adminBookings.bookingDetails")}
+        >
+          {isLoadingDetail ? (
+            <div className="im-admin-bookings-loading">
+              <div className="im-admin-bookings-loading-spinner" />
+              <span>{t("common.loading")}</span>
+            </div>
+          ) : selectedBooking ? (
+            <div className="im-booking-detail-modal">
+              {/* User Information */}
+              <div className="im-booking-detail-section">
+                <h4 className="im-booking-detail-section-title">{t("adminBookings.userInfo")}</h4>
+                <div className="im-booking-detail-grid">
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.name")}</span>
+                    <span className="im-booking-detail-value">{selectedBooking.userName || "—"}</span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.email")}</span>
+                    <span className="im-booking-detail-value">{selectedBooking.userEmail}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Court Information */}
+              <div className="im-booking-detail-section">
+                <h4 className="im-booking-detail-section-title">{t("adminBookings.courtInfo")}</h4>
+                <div className="im-booking-detail-grid">
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("adminBookings.court")}</span>
+                    <span className="im-booking-detail-value">{selectedBooking.courtName}</span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("adminBookings.club")}</span>
+                    <span className="im-booking-detail-value">{selectedBooking.clubName}</span>
+                  </div>
+                  {selectedBooking.courtType && (
+                    <div className="im-booking-detail-item">
+                      <span className="im-booking-detail-label">{t("admin.courts.type")}</span>
+                      <span className="im-booking-detail-value">{selectedBooking.courtType}</span>
+                    </div>
+                  )}
+                  {selectedBooking.courtSurface && (
+                    <div className="im-booking-detail-item">
+                      <span className="im-booking-detail-label">{t("admin.courts.surface")}</span>
+                      <span className="im-booking-detail-value">{selectedBooking.courtSurface}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Booking Details */}
+              <div className="im-booking-detail-section">
+                <h4 className="im-booking-detail-section-title">{t("adminBookings.bookingInfo")}</h4>
+                <div className="im-booking-detail-grid">
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("adminBookings.dateTime")}</span>
+                    <span className="im-booking-detail-value">
+                      {formatDateTime(selectedBooking.start)} — {formatDateTime(selectedBooking.end)}
+                    </span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.duration")}</span>
+                    <span className="im-booking-detail-value">
+                      {calculateDuration(selectedBooking.start, selectedBooking.end)} {t("common.minutes")}
+                    </span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.status")}</span>
+                    <span className="im-booking-detail-value">
+                      <StatusBadge status={selectedBooking.status} />
+                    </span>
+                  </div>
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("common.price")}</span>
+                    <span className="im-booking-detail-value">{formatPrice(selectedBooking.price)}</span>
+                  </div>
+                  {selectedBooking.coachName && (
+                    <div className="im-booking-detail-item">
+                      <span className="im-booking-detail-label">{t("adminBookings.coach")}</span>
+                      <span className="im-booking-detail-value">{selectedBooking.coachName}</span>
+                    </div>
+                  )}
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">{t("adminBookings.createdAt")}</span>
+                    <span className="im-booking-detail-value">{formatDateTime(selectedBooking.createdAt)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="im-booking-detail-actions">
+                <Button variant="outline" onClick={handleCloseModal}>
+                  {t("common.close")}
+                </Button>
+                {selectedBooking.status !== "cancelled" && (
+                  <Button
+                    variant="danger"
+                    onClick={() => handleCancelBooking(selectedBooking.id)}
+                    disabled={isCancelling}
+                  >
+                    {isCancelling ? t("adminBookings.cancelling") : t("adminBookings.cancelBooking")}
+                  </Button>
+                )}
+              </div>
+            </div>
+          ) : null}
+        </Modal>
+
+        {/* Admin Booking Wizard */}
+        {adminStatus?.isAdmin && adminStatus.adminType !== "none" && (
+          <AdminQuickBookingWizard
+            isOpen={isBookingWizardOpen}
+            onClose={handleCloseBookingWizard}
+            onBookingComplete={handleBookingComplete}
+            adminType={adminStatus.adminType}
+            managedIds={adminStatus.managedIds}
+          />
+        )}
+      </main>
+    </ListControllerProvider>
   );
 }
