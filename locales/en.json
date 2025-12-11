@@ -1213,6 +1213,8 @@
     "clubTitle": "Club Dashboard",
     "clubsStatsTitle": "Clubs Statistics",
     "clubsStatsDescription": "Overview of clubs in your organizations",
+    "clubAdminStatsTitle": "Overview",
+    "clubAdminStatsDescription": "Summary of courts and bookings across your clubs",
     "failedToLoad": "Failed to load dashboard. Please try again later.",
     "managementLinks": "Management pages",
     "courts": "Courts",

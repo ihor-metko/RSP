@@ -1131,6 +1131,8 @@
     "clubTitle": "Панель клубу",
     "clubsStatsTitle": "Статистика клубів",
     "clubsStatsDescription": "Огляд клубів у ваших організаціях",
+    "clubAdminStatsTitle": "Огляд",
+    "clubAdminStatsDescription": "Підсумок кортів та бронювань у ваших клубах",
     "failedToLoad": "Не вдалося завантажити панель. Спробуйте пізніше.",
     "managementLinks": "Сторінки керування",
     "courts": "Корти",

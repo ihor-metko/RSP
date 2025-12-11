@@ -298,10 +298,10 @@ export default function AdminDashboardPage() {
           <>
             <div className="im-dashboard-section">
               <h2 className="im-dashboard-section-title">
-                {t("unifiedDashboard.clubsStatsTitle")}
+                {t("unifiedDashboard.clubAdminStatsTitle")}
               </h2>
               <p className="im-dashboard-section-description">
-                {t("unifiedDashboard.clubsStatsDescription")}
+                {t("unifiedDashboard.clubAdminStatsDescription")}
               </p>
             </div>
 
