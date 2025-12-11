@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Button } from "@/components/ui";
+import { Card, Button, Select } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
 import { useControllerOrContext } from "./ListControllerContext";
 import "./PaginationControls.css";
@@ -177,21 +177,16 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
 
       {showPageSize && (
         <div className="im-pagination-size">
-          <label htmlFor="page-size" className="im-pagination-size-label">
-            {t("pagination.pageSize")}
-          </label>
-          <select
-            id="page-size"
+          <Select
+            label={t("pagination.pageSize")}
+            options={pageSizeOptions.map((size) => ({
+              value: size.toString(),
+              label: size.toString(),
+            }))}
+            value={pageSize.toString()}
+            onChange={(value) => setPageSize(parseInt(value, 10))}
             className="im-pagination-size-select"
-            value={pageSize}
-            onChange={(e) => setPageSize(parseInt(e.target.value, 10))}
-          >
-            {pageSizeOptions.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       )}
     </Card>

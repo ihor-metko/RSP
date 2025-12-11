@@ -57,21 +57,8 @@
   @apply flex items-center gap-2;
 }
 
-.im-pagination-size-label {
-  @apply text-sm;
-  color: var(--text-secondary);
-}
-
 .im-pagination-size-select {
-  @apply px-2 py-1 rounded-sm border text-sm;
-  background: var(--surface-secondary);
-  color: var(--text-primary);
-  border-color: var(--border-color);
-}
-
-.im-pagination-size-select:focus {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
+  @apply min-w-[80px];
 }
 
 /* Responsive adjustments */
