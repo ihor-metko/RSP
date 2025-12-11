@@ -56,6 +56,7 @@ import {
   PaginationControls,
   SortSelect,
   RoleFilter,
+  StatusFilter,
   DateRangeFilter,
   QuickPresets,
 } from "@/components/list-controls";
@@ -480,6 +481,67 @@ describe("RoleFilter", () => {
     });
 
     expect(controller.setFilter).toHaveBeenCalledWith("roleFilter", "root_admin");
+  });
+});
+
+describe("StatusFilter", () => {
+  it("should render status options", () => {
+    const controller = createMockController({
+      filters: { statusFilter: "" } as any,
+    });
+
+    const statuses = [
+      { value: "pending", label: "Pending" },
+      { value: "paid", label: "Paid" },
+      { value: "cancelled", label: "Cancelled" },
+    ];
+
+    render(<StatusFilter controller={controller} statuses={statuses} label="Status" />);
+
+    expect(screen.getByLabelText("Status")).toBeInTheDocument();
+  });
+
+  it("should update filter when status is selected", () => {
+    const controller = createMockController({
+      filters: { statusFilter: "" } as any,
+    });
+
+    const statuses = [
+      { value: "pending", label: "Pending" },
+      { value: "paid", label: "Paid" },
+      { value: "cancelled", label: "Cancelled" },
+    ];
+
+    render(<StatusFilter controller={controller} statuses={statuses} />);
+
+    // Simulate selecting a status
+    act(() => {
+      controller.setFilter("statusFilter", "paid");
+    });
+
+    expect(controller.setFilter).toHaveBeenCalledWith("statusFilter", "paid");
+  });
+
+  it("should render with custom filter key", () => {
+    const controller = createMockController({
+      filters: { bookingStatus: "" } as any,
+    });
+
+    const statuses = [
+      { value: "confirmed", label: "Confirmed" },
+      { value: "cancelled", label: "Cancelled" },
+    ];
+
+    render(
+      <StatusFilter
+        controller={controller}
+        statuses={statuses}
+        filterKey="bookingStatus"
+        label="Booking Status"
+      />
+    );
+
+    expect(screen.getByLabelText("Booking Status")).toBeInTheDocument();
   });
 });
 
