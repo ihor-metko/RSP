@@ -152,7 +152,7 @@ export function QuickCreateModal({
             required
             options={courts.map((court) => ({
               value: court.id,
-              label: `${court.name} (${court.indoor ? "Indoor" : "Outdoor"})`,
+              label: `${court.name}${court.indoor !== undefined ? ` (${court.indoor ? "Indoor" : "Outdoor"})` : ""}`,
             }))}
           />
         </div>

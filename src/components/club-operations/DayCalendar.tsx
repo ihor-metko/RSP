@@ -85,7 +85,7 @@ export function DayCalendar({
             <div key={court.id} className="im-day-calendar-court-header">
               <div className="im-day-calendar-court-name">{court.name}</div>
               <div className="im-day-calendar-court-type">
-                {court.indoor ? "Indoor" : "Outdoor"}
+                {court.indoor !== undefined ? (court.indoor ? "Indoor" : "Outdoor") : "Court"}
                 {court.type && ` • ${court.type}`}
               </div>
             </div>
