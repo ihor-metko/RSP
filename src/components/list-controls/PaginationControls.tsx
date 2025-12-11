@@ -2,7 +2,7 @@
 
 import { Card, Button } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
-import { useListControllerContext } from "./ListControllerContext";
+import { useControllerOrContext } from "./ListControllerContext";
 import "./PaginationControls.css";
 
 interface PaginationControlsProps<TFilters = Record<string, unknown>> {
@@ -78,13 +78,8 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
     return translations[key] || key;
   },
 }: PaginationControlsProps<TFilters>) {
-  // Use provided controller or get from context
-  const contextController = controllerProp ? null : useListControllerContext<TFilters>();
-  const controller = controllerProp || contextController;
-
-  if (!controller) {
-    throw new Error("PaginationControls requires either a controller prop or ListControllerProvider");
-  }
+  // Use helper hook that handles both prop and context
+  const controller = useControllerOrContext(controllerProp);
 
   const { page, pageSize, setPage, setPageSize } = controller;
 

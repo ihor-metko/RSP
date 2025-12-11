@@ -60,3 +60,27 @@ export function useListControllerContext<TFilters = Record<string, unknown>>(): 
   
   return context as UseListControllerReturn<TFilters>;
 }
+
+/**
+ * Helper hook to get controller from either prop or context.
+ * Always calls hooks unconditionally to satisfy React rules.
+ * 
+ * @param controllerProp - Optional controller passed as prop
+ * @returns The controller to use
+ * @throws {Error} If neither prop nor context provides a controller
+ */
+export function useControllerOrContext<TFilters = Record<string, unknown>>(
+  controllerProp?: UseListControllerReturn<TFilters>
+): UseListControllerReturn<TFilters> {
+  // Always call context hook unconditionally
+  const context = useContext(ListControllerContext);
+  
+  // Use prop if provided, otherwise use context
+  const controller = controllerProp || context;
+  
+  if (!controller) {
+    throw new Error("Component requires either a controller prop or ListControllerProvider");
+  }
+  
+  return controller as UseListControllerReturn<TFilters>;
+}

@@ -5,7 +5,7 @@
  * that integrate with the useListController hook.
  */
 
-export { ListControllerProvider, useListControllerContext } from "./ListControllerContext";
+export { ListControllerProvider, useListControllerContext, useControllerOrContext } from "./ListControllerContext";
 export { ListToolbar } from "./ListToolbar";
 export { ListSearch } from "./ListSearch";
 export { PaginationControls } from "./PaginationControls";

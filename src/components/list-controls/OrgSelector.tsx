@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Select, type SelectOption } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
-import { useListControllerContext } from "./ListControllerContext";
+import { useControllerOrContext } from "./ListControllerContext";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 
 interface OrgSelectorProps<TFilters = Record<string, unknown>> {
@@ -48,13 +48,8 @@ export function OrgSelector<TFilters = Record<string, unknown>>({
   allowMultiple = false,
   className = "",
 }: OrgSelectorProps<TFilters>) {
-  // Use provided controller or get from context
-  const contextController = controllerProp ? null : useListControllerContext<TFilters>();
-  const controller = controllerProp || contextController;
-
-  if (!controller) {
-    throw new Error("OrgSelector requires either a controller prop or ListControllerProvider");
-  }
+  // Use helper hook that handles both prop and context
+  const controller = useControllerOrContext(controllerProp);
 
   // Get organizations from store
   const organizations = useOrganizationStore((state) => state.organizations);

@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import { Card, Button } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
-import { useListControllerContext } from "./ListControllerContext";
+import { useControllerOrContext } from "./ListControllerContext";
 import "./ListToolbar.css";
 
 interface ListToolbarProps<TFilters = Record<string, unknown>> {
@@ -57,13 +57,8 @@ export function ListToolbar<TFilters = Record<string, unknown>>({
   compact = false,
   className = "",
 }: ListToolbarProps<TFilters>) {
-  // Use provided controller or get from context
-  const contextController = controllerProp ? null : useListControllerContext<TFilters>();
-  const controller = controllerProp || contextController;
-
-  if (!controller) {
-    throw new Error("ListToolbar requires either a controller prop or ListControllerProvider");
-  }
+  // Use helper hook that handles both prop and context
+  const controller = useControllerOrContext(controllerProp);
 
   // Check if any filters are active
   const hasActiveFilters = Object.values(controller.filters).some((value) => {

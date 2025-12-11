@@ -2,7 +2,7 @@
 
 import { Select, type SelectOption } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
-import { useListControllerContext } from "./ListControllerContext";
+import { useControllerOrContext } from "./ListControllerContext";
 
 interface SortOption {
   key: string;
@@ -50,13 +50,8 @@ export function SortSelect<TFilters = Record<string, unknown>>({
   placeholder = "Sort by...",
   className = "",
 }: SortSelectProps<TFilters>) {
-  // Use provided controller or get from context
-  const contextController = controllerProp ? null : useListControllerContext<TFilters>();
-  const controller = controllerProp || contextController;
-
-  if (!controller) {
-    throw new Error("SortSelect requires either a controller prop or ListControllerProvider");
-  }
+  // Use helper hook that handles both prop and context
+  const controller = useControllerOrContext(controllerProp);
 
   const { sortBy, sortOrder, setSortBy, setSortOrder } = controller;
 

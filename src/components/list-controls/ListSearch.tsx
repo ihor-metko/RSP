@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
-import { useListControllerContext } from "./ListControllerContext";
+import { useControllerOrContext } from "./ListControllerContext";
 
 interface ListSearchProps<TFilters = Record<string, unknown>> {
   /** List controller - if not provided, uses context */
@@ -49,13 +49,8 @@ export function ListSearch<TFilters = Record<string, unknown>>({
   filterKey = "searchQuery" as keyof TFilters,
   className = "",
 }: ListSearchProps<TFilters>) {
-  // Use provided controller or get from context
-  const contextController = controllerProp ? null : useListControllerContext<TFilters>();
-  const controller = controllerProp || contextController;
-
-  if (!controller) {
-    throw new Error("ListSearch requires either a controller prop or ListControllerProvider");
-  }
+  // Use helper hook that handles both prop and context
+  const controller = useControllerOrContext(controllerProp);
 
   // Local state for immediate UI updates
   const [localValue, setLocalValue] = useState<string>(

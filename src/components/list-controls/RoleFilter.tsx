@@ -2,7 +2,7 @@
 
 import { Select, type SelectOption } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
-import { useListControllerContext } from "./ListControllerContext";
+import { useControllerOrContext } from "./ListControllerContext";
 
 interface RoleFilterProps<TFilters = Record<string, unknown>> {
   /** List controller - if not provided, uses context */
@@ -50,13 +50,8 @@ export function RoleFilter<TFilters = Record<string, unknown>>({
   placeholder = "All Roles",
   className = "",
 }: RoleFilterProps<TFilters>) {
-  // Use provided controller or get from context
-  const contextController = controllerProp ? null : useListControllerContext<TFilters>();
-  const controller = controllerProp || contextController;
-
-  if (!controller) {
-    throw new Error("RoleFilter requires either a controller prop or ListControllerProvider");
-  }
+  // Use helper hook that handles both prop and context
+  const controller = useControllerOrContext(controllerProp);
 
   // Convert roles to select options
   const options: SelectOption[] = [

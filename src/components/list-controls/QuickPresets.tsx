@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
-import { useListControllerContext } from "./ListControllerContext";
+import { useControllerOrContext } from "./ListControllerContext";
 import "./QuickPresets.css";
 
 interface PresetDefinition<TFilters = Record<string, unknown>> {
@@ -56,13 +56,8 @@ export function QuickPresets<TFilters = Record<string, unknown>>({
   presets,
   className = "",
 }: QuickPresetsProps<TFilters>) {
-  // Use provided controller or get from context
-  const contextController = controllerProp ? null : useListControllerContext<TFilters>();
-  const controller = controllerProp || contextController;
-
-  if (!controller) {
-    throw new Error("QuickPresets requires either a controller prop or ListControllerProvider");
-  }
+  // Use helper hook that handles both prop and context
+  const controller = useControllerOrContext(controllerProp);
 
   // Check if a preset is currently active
   const isPresetActive = (preset: PresetDefinition<TFilters>): boolean => {
