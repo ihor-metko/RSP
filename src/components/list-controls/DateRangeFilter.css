@@ -2,26 +2,33 @@
 
 /* Date Range Filter Styles */
 .im-date-range-filter {
-  @apply flex flex-col gap-2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .im-date-range-label {
-  @apply text-sm font-medium;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--im-text-primary);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .im-date-range-inputs {
-  @apply flex flex-col sm:flex-row gap-2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .im-date-range-inputs > div {
-  @apply flex-1;
+  flex: 1;
   min-width: 0; /* Prevent overflow */
 }
 
 /* Ensure date inputs have consistent styling */
 .im-date-range-inputs input[type="date"] {
-  @apply w-full;
+  width: 100%;
   color: var(--im-text-primary);
   background-color: var(--im-card-bg);
   border-color: var(--im-border);
@@ -41,4 +48,13 @@
 
 .dark .im-date-range-inputs input[type="date"]:focus {
   opacity: 1;
+}
+
+/* When in toolbar - more compact layout */
+.im-list-toolbar-content .im-date-range-filter {
+  flex-direction: row;
+}
+
+.im-list-toolbar-content .im-date-range-inputs {
+  flex: 1;
 }
