@@ -230,9 +230,6 @@ export default function OperationsPage() {
     );
   }
 
-  // Filter courts for this club
-  const clubCourts = courts;
-
   return (
     <main className="im-club-operations-page">
       <PageHeader
@@ -290,7 +287,7 @@ export default function OperationsPage() {
             <div className="im-club-operations-loading">
               <TableSkeleton rows={10} columns={3} />
             </div>
-          ) : clubCourts.length === 0 ? (
+          ) : courts.length === 0 ? (
             <div className="im-club-operations-empty">
               <h3>{t("operations.noCourts") || "No courts available"}</h3>
               <p>
@@ -300,7 +297,7 @@ export default function OperationsPage() {
             </div>
           ) : (
             <DayCalendar
-              courts={clubCourts}
+              courts={courts}
               bookings={bookings}
               selectedDate={selectedDate}
               onBookingClick={handleBookingClick}
@@ -337,7 +334,7 @@ export default function OperationsPage() {
           clubId={selectedClubId}
           courtId={quickCreateData.courtId}
           startTime={quickCreateData.startTime}
-          courts={clubCourts}
+          courts={courts}
           onSuccess={handleBookingSuccess}
         />
       )}
