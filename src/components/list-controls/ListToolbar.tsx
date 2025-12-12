@@ -131,19 +131,17 @@ export function ListToolbar<TFilters = Record<string, unknown>>({
         {children}
       </div>
       
-      <div className="im-list-toolbar-actions">
-        {showReset && hasActiveFilters && (
-          <Button variant="outline" size="small" onClick={handleReset}>
-            <XIcon />
-            {resetLabel}
-          </Button>
-        )}
-        {actionButton && (
-          <div className="im-list-toolbar-action-button">
-            {actionButton}
-          </div>
-        )}
-      </div>
+      {((showReset && hasActiveFilters) || actionButton) && (
+        <div className="im-list-toolbar-actions">
+          {showReset && hasActiveFilters && (
+            <Button variant="outline" size="small" onClick={handleReset}>
+              <XIcon />
+              {resetLabel}
+            </Button>
+          )}
+          {actionButton}
+        </div>
+      )}
     </Card>
   );
 }

@@ -95,11 +95,6 @@
   outline-offset: 2px;
 }
 
-/* Action button container - maintains consistent spacing */
-.im-list-toolbar-action-button {
-  @apply flex items-center;
-}
-
 /* Responsive adjustments - on narrow screens allow horizontal scroll */
 @media (max-width: 768px) {
   .im-list-toolbar {
