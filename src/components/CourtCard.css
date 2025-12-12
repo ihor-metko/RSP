@@ -48,7 +48,7 @@
 
 .im-court-card-image-placeholder {
   @apply w-full h-full flex items-center justify-center;
-  background: linear-gradient(135deg, var(--im-primary) 0%, var(--im-primary-hover) 100%);
+  background: linear-gradient(135deg, var(--entity-color-court) 0%, var(--entity-color-court) 100%);
 }
 
 .im-court-card-image-placeholder-icon {

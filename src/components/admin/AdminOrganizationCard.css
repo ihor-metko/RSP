@@ -12,7 +12,7 @@
 .im-admin-org-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  border-color: var(--rsp-primary);
+  border-color: var(--entity-color-organization);
 }
 
 .dark .im-admin-org-card:hover {
@@ -22,7 +22,7 @@
 /* Card Header Section */
 .im-admin-org-card-header {
   @apply relative p-4 pb-3 border-b;
-  background: linear-gradient(135deg, var(--rsp-primary) 0%, var(--rsp-primary-hover) 100%);
+  background: linear-gradient(135deg, var(--entity-color-organization) 0%, var(--entity-color-organization) 100%);
   border-bottom-color: var(--rsp-border);
 }
 
@@ -165,7 +165,7 @@
 
 .im-admin-org-sport-badge {
   @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded;
-  background-color: var(--rsp-primary);
+  background-color: var(--entity-color-organization);
   color: #ffffff;
   opacity: 0.9;
 }

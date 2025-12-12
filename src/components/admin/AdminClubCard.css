@@ -11,7 +11,7 @@
 .im-admin-club-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  border-color: var(--rsp-primary);
+  border-color: var(--entity-color-club);
 }
 
 .dark .im-admin-club-card:hover {
@@ -40,7 +40,7 @@
 
 .im-admin-club-image-placeholder {
   @apply w-full h-full flex items-center justify-center;
-  background: linear-gradient(135deg, var(--rsp-primary) 0%, var(--rsp-primary-hover) 100%);
+  background: linear-gradient(135deg, var(--entity-color-club) 0%, var(--entity-color-club) 100%);
 }
 
 .im-admin-club-image-placeholder-text {
