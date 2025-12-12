@@ -77,6 +77,22 @@ jest.mock("@/stores/useUserStore", () => ({
   }),
 }));
 
+// Mock useOrganizationStore
+const mockOrganizationStore = {
+  currentOrg: null,
+  loading: false,
+  fetchOrganizationById: jest.fn(() => Promise.resolve()),
+};
+
+jest.mock("@/stores/useOrganizationStore", () => ({
+  useOrganizationStore: jest.fn((selector) => {
+    if (typeof selector === "function") {
+      return selector(mockOrganizationStore);
+    }
+    return mockOrganizationStore;
+  }),
+}));
+
 const mockUsePathname = usePathname as jest.Mock;
 
 // Helper to set user store state
@@ -192,7 +208,7 @@ describe("AdminSidebar Component", () => {
       });
     });
 
-    it("shows Admin Panel title", async () => {
+    it("shows Admin Panel title for Root Admin", async () => {
       render(<AdminSidebar />);
       await waitFor(() => {
         expect(screen.getByText("Admin Panel")).toBeInTheDocument();
@@ -286,6 +302,10 @@ describe("AdminSidebar Component", () => {
           managedIds: ["org-1"],
         },
       });
+      // Reset organization store
+      mockOrganizationStore.currentOrg = null;
+      mockOrganizationStore.loading = false;
+      mockOrganizationStore.fetchOrganizationById.mockClear();
     });
 
     it("renders the sidebar for organization_admin role", async () => {
@@ -355,6 +375,40 @@ describe("AdminSidebar Component", () => {
       await waitFor(() => {
         const orgLink = screen.getByRole("menuitem", { name: /Organization/i });
         expect(orgLink).toHaveAttribute("href", "/admin/organizations/org-1");
+      });
+    });
+
+    it("fetches organization data on mount", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(mockOrganizationStore.fetchOrganizationById).toHaveBeenCalledWith("org-1");
+      });
+    });
+
+    it("displays organization name in sidebar header when loaded", async () => {
+      // Set organization data
+      mockOrganizationStore.currentOrg = {
+        id: "org-1",
+        name: "Test Organization",
+        slug: "test-org",
+        status: "ACTIVE",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Test Organization")).toBeInTheDocument();
+      });
+    });
+
+    it("shows Admin Panel while organization data is loading", async () => {
+      mockOrganizationStore.loading = true;
+      mockOrganizationStore.currentOrg = null;
+
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("Admin Panel")).toBeInTheDocument();
       });
     });
   });
@@ -452,6 +506,10 @@ describe("AdminSidebar Component", () => {
           assignedClub: { id: "club-1", name: "My Test Club" },
         },
       });
+      // Reset organization store
+      mockOrganizationStore.currentOrg = null;
+      mockOrganizationStore.loading = false;
+      mockOrganizationStore.fetchOrganizationById.mockClear();
     });
 
     it("renders the sidebar for club_admin role", async () => {
@@ -504,6 +562,21 @@ describe("AdminSidebar Component", () => {
         expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
       });
       expect(screen.queryByText("Global Settings")).not.toBeInTheDocument();
+    });
+
+    it("displays club name in sidebar header", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByText("My Test Club")).toBeInTheDocument();
+      });
+    });
+
+    it("does not fetch organization data for club admin", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      expect(mockOrganizationStore.fetchOrganizationById).not.toHaveBeenCalled();
     });
   });
 
