@@ -12,6 +12,50 @@ interface UserProfileModalProps {
   userId: string;
 }
 
+// Utility function to check if user is blocked
+const isUserBlocked = (userData: AdminUserDetail | null): boolean => {
+  if (!userData) return false;
+  return userData.blocked || userData.status === "blocked";
+};
+
+// Role label mappings
+const ROLE_LABELS: Record<string, string> = {
+  root_admin: "Root Admin",
+  organization_admin: "Organization Admin",
+  club_admin: "Club Admin",
+  user: "User",
+  ORGANIZATION_ADMIN: "Organization Admin",
+  CLUB_ADMIN: "Club Admin",
+  MEMBER: "Member",
+};
+
+// Role badge variant mappings
+const ROLE_BADGE_VARIANTS: Record<string, "error" | "info" | "warning" | "default"> = {
+  root_admin: "error",
+  organization_admin: "info",
+  club_admin: "warning",
+  user: "default",
+  ORGANIZATION_ADMIN: "info",
+  CLUB_ADMIN: "warning",
+  MEMBER: "default",
+};
+
+// Helper functions moved outside component for better performance
+const getRoleIcon = (role: string) => {
+  switch (role) {
+    case "root_admin":
+      return <ShieldIcon />;
+    case "organization_admin":
+    case "ORGANIZATION_ADMIN":
+      return <BuildingIcon />;
+    case "club_admin":
+    case "CLUB_ADMIN":
+      return <HomeIcon />;
+    default:
+      return <UserIcon />;
+  }
+};
+
 // Icon components
 function UserIcon() {
   return (
@@ -124,51 +168,25 @@ export function UserProfileModal({ isOpen, onClose, userId }: UserProfileModalPr
     return new Date(dateString).toLocaleDateString();
   };
 
+  // Use translation keys for role labels
   const getRoleLabel = (role: string) => {
-    const labels: Record<string, string> = {
-      root_admin: t("users.roles.rootAdmin"),
-      organization_admin: t("users.roles.organizationAdmin"),
-      club_admin: t("users.roles.clubAdmin"),
-      user: t("users.roles.user"),
-      ORGANIZATION_ADMIN: t("users.roles.organizationAdmin"),
-      CLUB_ADMIN: t("users.roles.clubAdmin"),
-      MEMBER: t("users.roles.member"),
+    const translationKey = ROLE_LABELS[role];
+    if (!translationKey) return role;
+    
+    // Map to translation keys
+    const translationMap: Record<string, string> = {
+      "Root Admin": t("users.roles.rootAdmin"),
+      "Organization Admin": t("users.roles.organizationAdmin"),
+      "Club Admin": t("users.roles.clubAdmin"),
+      "User": t("users.roles.user"),
+      "Member": t("users.roles.member"),
     };
-    return labels[role] || role;
+    
+    return translationMap[translationKey] || translationKey;
   };
 
   const getRoleBadgeVariant = (role: string): "error" | "info" | "warning" | "default" => {
-    const variants: Record<string, "error" | "info" | "warning" | "default"> = {
-      root_admin: "error",
-      organization_admin: "info",
-      club_admin: "warning",
-      user: "default",
-      ORGANIZATION_ADMIN: "info",
-      CLUB_ADMIN: "warning",
-      MEMBER: "default",
-    };
-    return variants[role] || "default";
-  };
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "root_admin":
-        return <ShieldIcon />;
-      case "organization_admin":
-      case "ORGANIZATION_ADMIN":
-        return <BuildingIcon />;
-      case "club_admin":
-      case "CLUB_ADMIN":
-        return <HomeIcon />;
-      default:
-        return <UserIcon />;
-    }
-  };
-
-  // Utility function to check if user is blocked
-  const isUserBlocked = (userData: AdminUserDetail | null): boolean => {
-    if (!userData) return false;
-    return userData.blocked || userData.status === "blocked";
+    return ROLE_BADGE_VARIANTS[role] || "default";
   };
 
   return (
