@@ -1338,15 +1338,14 @@
     "reassignWarning": "This will transfer primary ownership of the organization to another user.",
     "reassign": "Reassign",
     "ownerReassigned": "Primary owner reassigned successfully",
-    "actions": {
-      "create": "Organization created",
-      "update": "Organization updated",
-      "archive": "Organization archived",
-      "delete": "Organization deleted",
-      "reassignOwner": "Owner reassigned",
-      "assignAdmin": "Admin assigned",
-      "removeAdmin": "Admin removed"
-    }
+    "superAdmin": "SuperAdmin",
+    "bookingsOverview": "Bookings Overview",
+    "bookingsToday": "Today",
+    "bookingsThisWeek": "This Week",
+    "totalUpcoming": "Total Upcoming",
+    "upcomingBookings": "Next 10 Upcoming Bookings",
+    "noBookings": "No upcoming bookings scheduled.",
+    "viewAllBookings": "View All Bookings"
   },
   "unifiedDashboard": {
     "organizationTitle": "Organization Dashboard",

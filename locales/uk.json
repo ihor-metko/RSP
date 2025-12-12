@@ -1256,15 +1256,14 @@
     "reassignWarning": "Це передасть права власника організації іншому користувачу.",
     "reassign": "Передати",
     "ownerReassigned": "Власника успішно змінено",
-    "actions": {
-      "create": "Організацію створено",
-      "update": "Організацію оновлено",
-      "archive": "Організацію архівовано",
-      "delete": "Організацію видалено",
-      "reassignOwner": "Власника змінено",
-      "assignAdmin": "Адміна призначено",
-      "removeAdmin": "Адміна видалено"
-    }
+    "superAdmin": "СуперАдмін",
+    "bookingsOverview": "Огляд бронювань",
+    "bookingsToday": "Сьогодні",
+    "bookingsThisWeek": "Цього тижня",
+    "totalUpcoming": "Всього майбутніх",
+    "upcomingBookings": "Наступні 10 бронювань",
+    "noBookings": "Немає запланованих бронювань.",
+    "viewAllBookings": "Всі бронювання"
   },
   "unifiedDashboard": {
     "organizationTitle": "Панель організації",
