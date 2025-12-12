@@ -548,6 +548,9 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
   const isOrgAdmin = adminStatus?.adminType === "organization_admin";
 
   // Fetch organization data for organization admins
+  // Note: Currently assumes organization admins manage only one organization
+  // by taking the first ID from managedIds. For multiple organizations,
+  // this could be enhanced to show a dropdown or aggregate information.
   useEffect(() => {
     if (isOrgAdmin && adminStatus?.managedIds && adminStatus.managedIds.length > 0) {
       const orgId = adminStatus.managedIds[0];
@@ -555,6 +558,8 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
       if (!currentOrg || currentOrg.id !== orgId) {
         fetchOrganizationById(orgId).catch((error) => {
           console.error(`Failed to fetch organization ${orgId}:`, error);
+          // Note: On error, the contextName will fall back to "Admin Panel"
+          // which provides a graceful degradation for the user
         });
       }
     }
