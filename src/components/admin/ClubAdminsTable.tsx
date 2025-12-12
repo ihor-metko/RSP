@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button, Modal, Input, Select } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import { UserProfileModal } from "./UserProfileModal";
 
 interface ClubAdmin {
   id: string;
@@ -70,6 +71,10 @@ export default function ClubAdminsTable({
   } | null>(null);
   const [removeError, setRemoveError] = useState("");
   const [removing, setRemoving] = useState(false);
+
+  // View profile modal state
+  const [isViewProfileModalOpen, setIsViewProfileModalOpen] = useState(false);
+  const [selectedAdminUserId, setSelectedAdminUserId] = useState<string | null>(null);
 
   const [toast, setToast] = useState<{
     message: string;
@@ -245,6 +250,12 @@ export default function ClubAdminsTable({
   // Root Admin or Organization Admin can manage club admins
   const canManageClubAdmins = isRoot || isOrgAdmin(orgId);
 
+  // Handle view profile
+  const handleViewProfile = (userId: string) => {
+    setSelectedAdminUserId(userId);
+    setIsViewProfileModalOpen(true);
+  };
+
   return (
     <div className="im-club-admins-section">
       {toast && (
@@ -273,7 +284,7 @@ export default function ClubAdminsTable({
                 <th>{t("common.email")}</th>
                 <th>{t("clubAdmins.club")}</th>
                 <th>{t("clubAdmins.lastLogin")}</th>
-                {canManageClubAdmins && <th>{t("common.actions")}</th>}
+                <th>{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -290,28 +301,37 @@ export default function ClubAdminsTable({
                         ? new Date(admin.lastLoginAt).toLocaleDateString()
                         : t("common.never")}
                     </td>
-                    {canManageClubAdmins && (
-                      <td>
-                        <div className="flex gap-2">
-                          <Button
-                            size="small"
-                            variant="outline"
-                            onClick={() => handleOpenEditModal(admin)}
-                          >
-                            {t("common.edit")}
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="danger"
-                            onClick={() =>
-                              handleOpenRemoveModal(admin, club.membershipId, club.name)
-                            }
-                          >
-                            {t("common.remove")}
-                          </Button>
-                        </div>
-                      </td>
-                    )}
+                    <td>
+                      <div className="flex gap-2">
+                        <Button
+                          size="small"
+                          variant="outline"
+                          onClick={() => handleViewProfile(admin.userId)}
+                        >
+                          {t("common.viewProfile")}
+                        </Button>
+                        {canManageClubAdmins && (
+                          <>
+                            <Button
+                              size="small"
+                              variant="outline"
+                              onClick={() => handleOpenEditModal(admin)}
+                            >
+                              {t("common.edit")}
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="danger"
+                              onClick={() =>
+                                handleOpenRemoveModal(admin, club.membershipId, club.name)
+                              }
+                            >
+                              {t("common.remove")}
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -549,6 +569,18 @@ export default function ClubAdminsTable({
           </div>
         </div>
       </Modal>
+
+      {/* View Profile Modal */}
+      {selectedAdminUserId && (
+        <UserProfileModal
+          isOpen={isViewProfileModalOpen}
+          onClose={() => {
+            setIsViewProfileModalOpen(false);
+            setSelectedAdminUserId(null);
+          }}
+          userId={selectedAdminUserId}
+        />
+      )}
     </div>
   );
 }
