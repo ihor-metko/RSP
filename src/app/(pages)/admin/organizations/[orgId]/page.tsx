@@ -12,6 +12,12 @@ import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import "./page.css";
 import "@/components/ClubDetailPage.css";
 
+interface User {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
 interface SuperAdmin extends User {
   isPrimaryOwner: boolean;
   membershipId: string;
