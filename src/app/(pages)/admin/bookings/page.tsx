@@ -78,11 +78,21 @@ function calculateDuration(start: string, end: string): number {
 }
 
 /**
- * Status badge component
+ * Status badge component with translations
  */
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations();
   const statusClass = `im-booking-status im-booking-status--${status}`;
-  return <span className={statusClass}>{status}</span>;
+  
+  // Map status to translation key
+  const statusLabels: Record<string, string> = {
+    pending: t("adminBookings.statusPending"),
+    paid: t("adminBookings.statusPaid"),
+    reserved: t("adminBookings.statusReserved"),
+    cancelled: t("adminBookings.statusCancelled"),
+  };
+  
+  return <span className={statusClass}>{statusLabels[status] || status}</span>;
 }
 
 /**
@@ -248,11 +258,11 @@ export default function AdminBookingsPage() {
 
   // Sort options for SortSelect
   const sortOptions = [
-    { key: "startAt", label: t("adminBookings.sortByStartTime") || "Start Time", direction: "asc" as const },
-    { key: "startAt", label: t("adminBookings.sortByStartTimeDesc") || "Start Time (Latest)", direction: "desc" as const },
-    { key: "createdAt", label: t("adminBookings.sortByCreated") || "Created (Newest)", direction: "desc" as const },
-    { key: "createdAt", label: t("adminBookings.sortByCreatedAsc") || "Created (Oldest)", direction: "asc" as const },
-    { key: "status", label: t("adminBookings.sortByStatus") || "Status", direction: "asc" as const },
+    { key: "startAt", label: t("adminBookings.sortByStartTime"), direction: "asc" as const },
+    { key: "startAt", label: t("adminBookings.sortByStartTimeDesc"), direction: "desc" as const },
+    { key: "createdAt", label: t("adminBookings.sortByCreated"), direction: "desc" as const },
+    { key: "createdAt", label: t("adminBookings.sortByCreatedAsc"), direction: "asc" as const },
+    { key: "status", label: t("adminBookings.sortByStatus"), direction: "asc" as const },
   ];
 
   // Quick presets for common date ranges
@@ -279,17 +289,17 @@ export default function AdminBookingsPage() {
     return [
       {
         id: "today",
-        label: t("adminBookings.today") || "Today",
+        label: t("adminBookings.today"),
         filters: { dateFrom: todayStr, dateTo: todayStr },
       },
       {
         id: "next_7_days",
-        label: t("adminBookings.next7Days") || "Next 7 Days",
+        label: t("adminBookings.next7Days"),
         filters: { dateFrom: todayStr, dateTo: next7DaysStr },
       },
       {
         id: "this_week",
-        label: t("adminBookings.thisWeek") || "This Week",
+        label: t("adminBookings.thisWeek"),
         filters: { dateFrom: startOfWeekStr, dateTo: endOfWeekStr },
       },
     ];
@@ -408,7 +418,7 @@ export default function AdminBookingsPage() {
         {/* List Controls Toolbar with consolidated filters */}
         <ListToolbar showReset>
           <ListSearch
-            placeholder={t("adminBookings.searchPlaceholder") || "Search bookings..."}
+            placeholder={t("adminBookings.searchPlaceholder")}
             filterKey="searchQuery"
           />
 
@@ -416,23 +426,23 @@ export default function AdminBookingsPage() {
 
           <DateRangeFilter
             field="startAt"
-            label={t("adminBookings.dateRange") || "Date Range"}
+            label={t("adminBookings.dateRange")}
             fromKey="dateFrom"
             toKey="dateTo"
-            fromLabel={t("adminBookings.from") || "From"}
-            toLabel={t("adminBookings.to") || "To"}
+            fromLabel={t("adminBookings.from")}
+            toLabel={t("adminBookings.to")}
           />
 
           <SortSelect
             options={sortOptions}
-            label={t("adminBookings.sortBy") || "Sort by"}
+            label={t("adminBookings.sortBy")}
           />
 
           {adminStatus?.adminType === "root_admin" && (
             <OrgSelector
               filterKey="organizationFilter"
               label={t("adminBookings.organization")}
-              placeholder={t("adminBookings.allOrganizations") || "All Organizations"}
+              placeholder={t("adminBookings.allOrganizations")}
             />
           )}
 
@@ -441,7 +451,7 @@ export default function AdminBookingsPage() {
               filterKey="clubFilter"
               orgFilterKey="organizationFilter"
               label={t("adminBookings.club")}
-              placeholder={t("adminBookings.allClubs") || "All Clubs"}
+              placeholder={t("adminBookings.allClubs")}
             />
           )}
 
@@ -449,7 +459,7 @@ export default function AdminBookingsPage() {
             statuses={statusOptions}
             filterKey="statusFilter"
             label={t("common.status")}
-            placeholder={t("common.allStatuses") || "All Statuses"}
+            placeholder={t("common.allStatuses")}
           />
         </ListToolbar>
 
@@ -481,7 +491,7 @@ export default function AdminBookingsPage() {
               <h3 className="im-admin-bookings-empty-title">{t("adminBookings.noBookings")}</h3>
               <p className="im-admin-bookings-empty-description">{t("adminBookings.noBookingsDescription")}</p>
               <Button onClick={handleOpenBookingWizard} variant="primary">
-                {t("adminBookings.createBooking") || "Create Booking"}
+                {t("adminBookings.createBooking")}
               </Button>
             </div>
           </div>
