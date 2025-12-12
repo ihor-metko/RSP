@@ -54,6 +54,9 @@ export default function OperationsPage() {
     return today.toISOString().split("T")[0];
   });
 
+  // Configuration
+  const UPCOMING_BOOKINGS_LIMIT = 10;
+
   // Check access permissions
   useEffect(() => {
     if (isLoadingUser) return;
@@ -360,6 +363,8 @@ export default function OperationsPage() {
                 {loadingBookings ? (
                   <TableSkeleton rows={3} columns={4} />
                 ) : (
+                  // Note: Type casting is required because Table component expects Record<string, unknown>
+                  // but we're using typed OperationsBooking. This is a limitation of the generic Table component.
                   <Table
                     columns={todayBookingsColumns as unknown as TableColumn<Record<string, unknown>>[]}
                     data={todayBookings as unknown as Record<string, unknown>[]}
@@ -377,9 +382,10 @@ export default function OperationsPage() {
                 {loadingBookings ? (
                   <TableSkeleton rows={3} columns={4} />
                 ) : (
+                  // Note: Type casting required due to Table component design (see above)
                   <Table
                     columns={upcomingBookingsColumns as unknown as TableColumn<Record<string, unknown>>[]}
-                    data={upcomingBookings.slice(0, 10) as unknown as Record<string, unknown>[]}
+                    data={upcomingBookings.slice(0, UPCOMING_BOOKINGS_LIMIT) as unknown as Record<string, unknown>[]}
                     keyExtractor={(booking) => (booking as { id: string }).id}
                     emptyMessage={t("operations.noUpcomingBookings") || "No upcoming bookings"}
                     className="im-operations-table"
@@ -394,6 +400,7 @@ export default function OperationsPage() {
                 {loadingCourts ? (
                   <TableSkeleton rows={3} columns={3} />
                 ) : (
+                  // Note: Type casting required due to Table component design (see above)
                   <Table
                     columns={courtsStatusColumns as unknown as TableColumn<Record<string, unknown>>[]}
                     data={courtsStatus as unknown as Record<string, unknown>[]}
