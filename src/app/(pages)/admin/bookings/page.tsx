@@ -250,10 +250,10 @@ export default function AdminBookingsPage() {
 
   // Status options for StatusFilter
   const statusOptions = [
-    { value: "pending", label: t("common.pending") },
+    { value: "pending", label: t("adminBookings.statusPending") },
     { value: "paid", label: t("adminBookings.statusPaid") },
     { value: "reserved", label: t("adminBookings.statusReserved") },
-    { value: "cancelled", label: t("common.cancelled") },
+    { value: "cancelled", label: t("adminBookings.statusCancelled") },
   ];
 
   // Sort options for SortSelect
