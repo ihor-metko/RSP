@@ -1009,6 +1009,7 @@
     "admins": "Admins",
     "coaches": "Coaches",
     "bookings": "Bookings",
+    "operations": "Operations",
     "notifications": "Notifications",
     "settings": "Global Settings",
     "sportConfig": "Sport config",
@@ -1094,6 +1095,21 @@
     "noResults": "No organizations match your search",
     "clearSearch": "Clear search",
     "itemsPerPage": "Items per page"
+  },
+  "operations": {
+    "title": "Operations",
+    "description": "Manage club operations",
+    "selectClub": "Select a club to view operations",
+    "club": "Club",
+    "selectDate": "Date",
+    "today": "Today",
+    "noCourts": "No courts available",
+    "noCourtsDescription": "This club has no courts configured yet.",
+    "noClubAssigned": "No Club Assigned",
+    "noClubAssignedDescription": "You don't have a club assigned yet. Please contact your administrator.",
+    "goToDashboard": "Go to Dashboard",
+    "clubNotFound": "Club not found",
+    "selectAnotherClub": "Select Another Club"
   },
   "users": {
     "title": "User Management",

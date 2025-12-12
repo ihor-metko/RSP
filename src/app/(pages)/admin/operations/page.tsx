@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, Input } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
@@ -16,13 +16,14 @@ import {
 } from "@/components/club-operations";
 import type { OperationsBooking } from "@/types/booking";
 import { TableSkeleton } from "@/components/ui/skeletons";
+import { ClubSelector } from "@/components/list-controls";
 import "./page.css";
 
 /**
- * ClubOperationsPage
+ * OperationsPage
  * 
  * Main page for club operations - displays a day view calendar and today's bookings list.
- * Protected route accessible only to Club Admins and Organization Admins.
+ * Protected route accessible only to admins from the Admin Panel.
  * 
  * Features:
  * - Day view calendar with courts as columns
@@ -31,12 +32,12 @@ import "./page.css";
  * - Side panel with today's bookings list
  * - Auto-refresh via short-polling (15-30s)
  * - Date picker to view different days
+ * - Club selector for Organization Admins and Root Admins
+ * - Auto-selection for Club Admins (their assigned club)
  */
-export default function ClubOperationsPage() {
+export default function OperationsPage() {
   const t = useTranslations();
   const router = useRouter();
-  const params = useParams();
-  const clubId = params?.id as string;
 
   // User store
   const adminStatus = useUserStore((state) => state.adminStatus);
@@ -58,6 +59,7 @@ export default function ClubOperationsPage() {
   } = useBookingStore();
 
   // Local state
+  const [selectedClubId, setSelectedClubId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -70,9 +72,9 @@ export default function ClubOperationsPage() {
   const [selectedBooking, setSelectedBooking] = useState<OperationsBooking | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const club = clubId ? clubsById[clubId] : null;
+  const club = selectedClubId ? clubsById[selectedClubId] : null;
 
-  // Check access permissions
+  // Check access permissions and set default club
   useEffect(() => {
     if (isLoadingUser) return;
 
@@ -86,46 +88,38 @@ export default function ClubOperationsPage() {
       return;
     }
 
-    // Check if user has access to this club
-    if (adminStatus.adminType === "club_admin") {
-      if (!adminStatus.managedIds.includes(clubId)) {
-        router.push("/admin/dashboard");
-        return;
-      }
-    } else if (adminStatus.adminType === "organization_admin") {
-      // Need to check if club belongs to managed organization
-      // This will be verified server-side
-      // Organization check is done at the API level
+    // Auto-select club for Club Admins
+    if (adminStatus.adminType === "club_admin" && adminStatus.assignedClub) {
+      setSelectedClubId(adminStatus.assignedClub.id);
     }
-    // Root admin has access to all clubs
-  }, [isLoadingUser, isLoggedIn, adminStatus, clubId, club, router]);
+  }, [isLoadingUser, isLoggedIn, adminStatus, router]);
 
   // Load club data
   useEffect(() => {
-    if (clubId) {
-      ensureClubById(clubId).catch(console.error);
-      fetchCourtsIfNeeded({ clubId }).catch(console.error);
+    if (selectedClubId) {
+      ensureClubById(selectedClubId).catch(console.error);
+      fetchCourtsIfNeeded({ clubId: selectedClubId }).catch(console.error);
     }
-  }, [clubId, ensureClubById, fetchCourtsIfNeeded]);
+  }, [selectedClubId, ensureClubById, fetchCourtsIfNeeded]);
 
   // Load bookings for selected date
   useEffect(() => {
-    if (clubId && selectedDate) {
-      fetchBookingsForDay(clubId, selectedDate).catch(console.error);
+    if (selectedClubId && selectedDate) {
+      fetchBookingsForDay(selectedClubId, selectedDate).catch(console.error);
     }
-  }, [clubId, selectedDate, fetchBookingsForDay]);
+  }, [selectedClubId, selectedDate, fetchBookingsForDay]);
 
   // Start polling when page is active
   useEffect(() => {
-    if (!clubId || !selectedDate) return;
+    if (!selectedClubId || !selectedDate) return;
 
     // Start polling every 15 seconds
-    startPolling(clubId, selectedDate, 15000);
+    startPolling(selectedClubId, selectedDate, 15000);
 
     return () => {
       stopPolling();
     };
-  }, [clubId, selectedDate, startPolling, stopPolling]);
+  }, [selectedClubId, selectedDate, startPolling, stopPolling]);
 
   // Handle slot click (create new booking)
   const handleSlotClick = useCallback((courtId: string, startTime: Date) => {
@@ -143,10 +137,10 @@ export default function ClubOperationsPage() {
   const handleBookingSuccess = useCallback(() => {
     // Bookings will auto-refresh via polling
     // Or we can manually trigger a refresh
-    if (clubId && selectedDate) {
-      fetchBookingsForDay(clubId, selectedDate).catch(console.error);
+    if (selectedClubId && selectedDate) {
+      fetchBookingsForDay(selectedClubId, selectedDate).catch(console.error);
     }
-  }, [clubId, selectedDate, fetchBookingsForDay]);
+  }, [selectedClubId, selectedDate, fetchBookingsForDay]);
 
   // Handle date change
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,6 +151,11 @@ export default function ClubOperationsPage() {
   const handleToday = () => {
     const today = new Date();
     setSelectedDate(today.toISOString().split("T")[0]);
+  };
+
+  // Handle club selection change
+  const handleClubChange = (clubId: string) => {
+    setSelectedClubId(clubId);
   };
 
   // Loading state
@@ -175,26 +174,66 @@ export default function ClubOperationsPage() {
     return null;
   }
 
-  // Club not found
-  if (!club && !loadingClub) {
+  // Check if Club Admin has no assigned club
+  const isClubAdmin = adminStatus.adminType === "club_admin";
+  if (isClubAdmin && !adminStatus.assignedClub) {
     return (
       <main className="im-club-operations-page">
         <div className="im-club-operations-error">
-          <h2>Club not found</h2>
-          <Button onClick={() => router.back()}>Go Back</Button>
+          <h2>{t("operations.noClubAssigned") || "No Club Assigned"}</h2>
+          <p>{t("operations.noClubAssignedDescription") || "You don't have a club assigned yet. Please contact your administrator."}</p>
+          <Button onClick={() => router.push("/admin/dashboard")}>
+            {t("operations.goToDashboard") || "Go to Dashboard"}
+          </Button>
         </div>
       </main>
     );
   }
 
-  // Filter courts for this club
-  // Note: The courts from the store should already be filtered by clubId
-  const clubCourts = courts;
+  // No club selected (for Org Admins and Root Admins)
+  if (!selectedClubId && !isClubAdmin) {
+    return (
+      <main className="im-club-operations-page">
+        <PageHeader
+          title={t("operations.title") || "Operations"}
+          description={t("operations.description") || "Manage club operations"}
+        />
+        
+        {/* Club selector */}
+        <div className="im-club-operations-controls">
+          <div className="im-club-operations-club-selector">
+            <label htmlFor="club-select" className="im-club-operations-label">
+              {t("operations.selectClub") || "Select a club to view operations"}
+            </label>
+            <ClubSelector
+              value={selectedClubId}
+              onChange={handleClubChange}
+              organizationFilter=""
+            />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Club not found
+  if (!club && !loadingClub && selectedClubId) {
+    return (
+      <main className="im-club-operations-page">
+        <div className="im-club-operations-error">
+          <h2>{t("operations.clubNotFound") || "Club not found"}</h2>
+          <Button onClick={() => setSelectedClubId("")}>
+            {t("operations.selectAnotherClub") || "Select Another Club"}
+          </Button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="im-club-operations-page">
       <PageHeader
-        title={t("operations.title") || "Club Operations"}
+        title={t("operations.title") || "Operations"}
         description={club?.name || "Loading..."}
         actions={
           <Button onClick={handleToday} variant="outline">
@@ -203,8 +242,23 @@ export default function ClubOperationsPage() {
         }
       />
 
-      {/* Date selector */}
+      {/* Controls - Club selector and date picker */}
       <div className="im-club-operations-controls">
+        {/* Club selector - only for Org Admins and Root Admins */}
+        {!isClubAdmin && (
+          <div className="im-club-operations-club-selector">
+            <label htmlFor="club-select" className="im-club-operations-label">
+              {t("operations.club") || "Club"}
+            </label>
+            <ClubSelector
+              value={selectedClubId}
+              onChange={handleClubChange}
+              organizationFilter=""
+            />
+          </div>
+        )}
+
+        {/* Date picker */}
         <div className="im-club-operations-date-picker">
           <label htmlFor="date" className="im-club-operations-date-label">
             {t("operations.selectDate") || "Date"}
@@ -233,7 +287,7 @@ export default function ClubOperationsPage() {
             <div className="im-club-operations-loading">
               <TableSkeleton rows={10} columns={3} />
             </div>
-          ) : clubCourts.length === 0 ? (
+          ) : courts.length === 0 ? (
             <div className="im-club-operations-empty">
               <h3>{t("operations.noCourts") || "No courts available"}</h3>
               <p>
@@ -243,7 +297,7 @@ export default function ClubOperationsPage() {
             </div>
           ) : (
             <DayCalendar
-              courts={clubCourts}
+              courts={courts}
               bookings={bookings}
               selectedDate={selectedDate}
               onBookingClick={handleBookingClick}
@@ -270,17 +324,17 @@ export default function ClubOperationsPage() {
       </div>
 
       {/* Quick Create Modal */}
-      {quickCreateData && (
+      {quickCreateData && selectedClubId && (
         <QuickCreateModal
           isOpen={isQuickCreateOpen}
           onClose={() => {
             setIsQuickCreateOpen(false);
             setQuickCreateData(null);
           }}
-          clubId={clubId}
+          clubId={selectedClubId}
           courtId={quickCreateData.courtId}
           startTime={quickCreateData.startTime}
-          courts={clubCourts}
+          courts={courts}
           onSuccess={handleBookingSuccess}
         />
       )}

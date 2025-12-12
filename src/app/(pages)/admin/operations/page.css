@@ -15,12 +15,20 @@
   flex-wrap: wrap;
 }
 
+.im-club-operations-club-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 250px;
+}
+
 .im-club-operations-date-picker {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+.im-club-operations-label,
 .im-club-operations-date-label {
   font-size: 14px;
   font-weight: 600;
@@ -104,6 +112,7 @@
 }
 
 /* Dark mode */
+:root[data-theme="dark"] .im-club-operations-label,
 :root[data-theme="dark"] .im-club-operations-date-label {
   color: var(--color-text-primary, #f9fafb);
 }
