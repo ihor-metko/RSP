@@ -12,6 +12,8 @@ import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import "./page.css";
 import "@/components/ClubDetailPage.css";
 
+// Basic user info interface for this component
+// Note: Defined locally to avoid coupling with full User model from Prisma
 interface User {
   id: string;
   name: string | null;
@@ -198,6 +200,10 @@ export default function OrganizationDetailPage() {
 
   const fetchBookingsPreview = useCallback(async () => {
     try {
+      // Constants for booking limits
+      const MAX_SUMMARY_BOOKINGS = 100;
+      const PREVIEW_BOOKINGS_LIMIT = 10;
+      
       // Get today's date range
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -210,9 +216,9 @@ export default function OrganizationDetailPage() {
       
       // Fetch bookings for the organization
       const [todayResponse, weekResponse, upcomingResponse] = await Promise.all([
-        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&dateTo=${tomorrow.toISOString()}&perPage=100`),
-        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&dateTo=${weekFromNow.toISOString()}&perPage=100`),
-        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&perPage=10`)
+        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&dateTo=${tomorrow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
+        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&dateTo=${weekFromNow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
+        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&perPage=${PREVIEW_BOOKINGS_LIMIT}`)
       ]);
       
       if (todayResponse.ok && weekResponse.ok && upcomingResponse.ok) {
@@ -736,27 +742,32 @@ export default function OrganizationDetailPage() {
             ) : (
               <div className="im-bookings-preview-list">
                 <h4 className="im-bookings-preview-title">{t("orgDetail.upcomingBookings")}</h4>
-                {bookingsPreview.items.map((booking) => (
-                  <div key={booking.id} className="im-booking-preview-item">
-                    <div className="im-booking-preview-info">
-                      <span className="im-booking-preview-court">{booking.clubName} - {booking.courtName}</span>
-                      <span className="im-booking-preview-meta">
-                        {booking.userName || booking.userEmail} · {booking.sportType}
+                {bookingsPreview.items.map((booking) => {
+                  const startDate = new Date(booking.start);
+                  const endDate = new Date(booking.end);
+                  
+                  return (
+                    <div key={booking.id} className="im-booking-preview-item">
+                      <div className="im-booking-preview-info">
+                        <span className="im-booking-preview-court">{booking.clubName} - {booking.courtName}</span>
+                        <span className="im-booking-preview-meta">
+                          {booking.userName || booking.userEmail} · {booking.sportType}
+                        </span>
+                      </div>
+                      <div className="im-booking-preview-time">
+                        <span className="im-booking-preview-date">
+                          {startDate.toLocaleDateString()}
+                        </span>
+                        <span className="im-booking-preview-hours">
+                          {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <span className={`im-status-badge im-status-badge--${booking.status.toLowerCase()}`}>
+                        {booking.status}
                       </span>
                     </div>
-                    <div className="im-booking-preview-time">
-                      <span className="im-booking-preview-date">
-                        {new Date(booking.start).toLocaleDateString()}
-                      </span>
-                      <span className="im-booking-preview-hours">
-                        {new Date(booking.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(booking.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <span className={`im-status-badge im-status-badge--${booking.status.toLowerCase()}`}>
-                      {booking.status}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
