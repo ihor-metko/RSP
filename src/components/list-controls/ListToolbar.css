@@ -21,6 +21,7 @@
   align-items: center;
   gap: 0.75rem;
   overflow-x: auto;
+  flex-wrap: wrap;
   /* Show scrollbar on overflow */
   scrollbar-width: thin;
   scrollbar-color: var(--im-border-hover) transparent;
@@ -45,25 +46,25 @@
 }
 
 /* Ensure consistent spacing and min-widths for filter controls */
-.im-list-toolbar-content > * {
+.im-list-toolbar-content>* {
   min-width: 160px;
   flex-shrink: 0;
 }
 
 /* Search input gets more space */
-.im-list-toolbar-content > *:first-child {
+.im-list-toolbar-content>*:first-child {
   min-width: 200px;
   flex-grow: 1;
   max-width: 400px;
 }
 
 /* Date range filter needs more width */
-.im-list-toolbar-content > .im-date-range-filter {
+.im-list-toolbar-content>.im-date-range-filter {
   min-width: 320px;
 }
 
 /* Quick presets should be more compact */
-.im-list-toolbar-content > .im-quick-presets {
+.im-list-toolbar-content>.im-quick-presets {
   min-width: auto;
   flex-shrink: 1;
 }
@@ -105,25 +106,25 @@
     overflow-x: auto;
     padding-bottom: 0.5rem;
   }
-  
-  .im-list-toolbar-content > * {
+
+  .im-list-toolbar-content>* {
     /* Maintain min-widths but allow flexibility */
     min-width: 140px;
   }
 
-  .im-list-toolbar-content > *:first-child {
+  .im-list-toolbar-content>*:first-child {
     min-width: 160px;
     max-width: 300px;
   }
 
-  .im-list-toolbar-content > .im-date-range-filter {
+  .im-list-toolbar-content>.im-date-range-filter {
     min-width: 280px;
   }
 
   .im-list-toolbar-actions {
     @apply justify-end w-full;
   }
-  
+
   .im-list-toolbar-actions button {
     @apply flex-1 justify-center;
   }
