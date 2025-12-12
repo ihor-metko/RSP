@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button, Modal, Input } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import { UserProfileModal } from "./UserProfileModal";
 
 interface OrgAdmin {
   id: string;
@@ -56,6 +57,10 @@ export default function OrganizationAdminsTable({
   const [adminToRemove, setAdminToRemove] = useState<OrgAdmin | null>(null);
   const [removeError, setRemoveError] = useState("");
   const [removing, setRemoving] = useState(false);
+
+  // View profile modal state
+  const [isViewProfileModalOpen, setIsViewProfileModalOpen] = useState(false);
+  const [selectedAdminUserId, setSelectedAdminUserId] = useState<string | null>(null);
 
   const [toast, setToast] = useState<{
     message: string;
@@ -216,8 +221,16 @@ export default function OrganizationAdminsTable({
     return () => clearTimeout(timer);
   }, [userSearch, isAddModalOpen, addMode, fetchSimpleUsers]);
 
-  // Only Root Admin can manage org admins
-  const canManageAdmins = isRoot;
+  // Root Admin or Organization Owner (isPrimaryOwner) can manage org admins
+  const primaryOwner = admins.find((a) => a.isPrimaryOwner);
+  const isOwner = primaryOwner?.userId === user?.id;
+  const canManageAdmins = isRoot || isOwner;
+
+  // Handle view profile
+  const handleViewProfile = (userId: string) => {
+    setSelectedAdminUserId(userId);
+    setIsViewProfileModalOpen(true);
+  };
 
   return (
     <div className="im-org-admins-section">
@@ -258,7 +271,7 @@ export default function OrganizationAdminsTable({
                 <th>{t("common.email")}</th>
                 <th>{t("orgAdmins.role")}</th>
                 <th>{t("orgAdmins.lastLogin")}</th>
-                {canManageAdmins && <th>{t("common.actions")}</th>}
+                <th>{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -282,17 +295,26 @@ export default function OrganizationAdminsTable({
                       ? new Date(admin.lastLoginAt).toLocaleDateString()
                       : t("common.never")}
                   </td>
-                  {canManageAdmins && (
-                    <td>
+                  <td>
+                    <div className="flex gap-2">
                       <Button
                         size="small"
-                        variant="danger"
-                        onClick={() => handleOpenRemoveModal(admin)}
+                        variant="outline"
+                        onClick={() => handleViewProfile(admin.userId)}
                       >
-                        {t("common.remove")}
+                        {t("common.viewProfile")}
                       </Button>
-                    </td>
-                  )}
+                      {canManageAdmins && (
+                        <Button
+                          size="small"
+                          variant="danger"
+                          onClick={() => handleOpenRemoveModal(admin)}
+                        >
+                          {t("common.remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -507,6 +529,18 @@ export default function OrganizationAdminsTable({
           </div>
         </div>
       </Modal>
+
+      {/* View Profile Modal */}
+      {selectedAdminUserId && (
+        <UserProfileModal
+          isOpen={isViewProfileModalOpen}
+          onClose={() => {
+            setIsViewProfileModalOpen(false);
+            setSelectedAdminUserId(null);
+          }}
+          userId={selectedAdminUserId}
+        />
+      )}
     </div>
   );
 }
