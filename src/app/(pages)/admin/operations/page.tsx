@@ -106,12 +106,10 @@ export default function OperationsPage() {
       // For Root Admin, they have access to all clubs
       if (user?.isRoot) {
         setSelectedClubId(urlClubId);
-      } else if (adminStatus.adminType === "organization_admin") {
-        // For Org Admin, we need to validate they have access to this club
-        // We'll defer selection until we can validate against loaded clubs
-        // Store URL clubId temporarily to validate after clubs load
-        // This prevents unauthorized access before validation
       }
+      // For Org Admin with URL clubId:
+      // We defer selection until clubs are loaded to validate access
+      // See separate useEffect below that validates Org Admin URL clubId
     }
     // For Organization Admin and Root Admin without URL clubId: do NOT auto-select
     // They must explicitly choose a club via the selector

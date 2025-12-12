@@ -93,7 +93,9 @@ export function OperationsClubSelector({
     return [];
   }, [clubs, adminStatus, user]);
 
-  // Auto-select if user has only one club (for Org Admin)
+  // Auto-select if Org Admin has only one club
+  // Note: Club Admins are handled in the Operations page itself (auto-select on mount)
+  // This only applies to Org Admins who have exactly one club in their organization
   useEffect(() => {
     if (
       adminStatus?.adminType === "organization_admin" &&
@@ -101,7 +103,7 @@ export function OperationsClubSelector({
       !value &&
       !disabled
     ) {
-      // Auto-select the only available club
+      // Auto-select the only available club for convenience
       onChange(filteredClubs[0].id);
     }
   }, [adminStatus, filteredClubs, value, onChange, disabled]);
