@@ -361,9 +361,9 @@ export default function OperationsPage() {
                   <TableSkeleton rows={3} columns={4} />
                 ) : (
                   <Table
-                    columns={todayBookingsColumns}
-                    data={todayBookings}
-                    keyExtractor={(booking) => booking.id}
+                    columns={todayBookingsColumns as unknown as TableColumn<Record<string, unknown>>[]}
+                    data={todayBookings as unknown as Record<string, unknown>[]}
+                    keyExtractor={(booking) => (booking as { id: string }).id}
                     emptyMessage={t("operations.noBookingsToday") || "No bookings for today"}
                     className="im-operations-table"
                   />
@@ -378,9 +378,9 @@ export default function OperationsPage() {
                   <TableSkeleton rows={3} columns={4} />
                 ) : (
                   <Table
-                    columns={upcomingBookingsColumns}
-                    data={upcomingBookings.slice(0, 10)}
-                    keyExtractor={(booking) => booking.id}
+                    columns={upcomingBookingsColumns as unknown as TableColumn<Record<string, unknown>>[]}
+                    data={upcomingBookings.slice(0, 10) as unknown as Record<string, unknown>[]}
+                    keyExtractor={(booking) => (booking as { id: string }).id}
                     emptyMessage={t("operations.noUpcomingBookings") || "No upcoming bookings"}
                     className="im-operations-table"
                   />
@@ -395,9 +395,9 @@ export default function OperationsPage() {
                   <TableSkeleton rows={3} columns={3} />
                 ) : (
                   <Table
-                    columns={courtsStatusColumns}
-                    data={courtsStatus}
-                    keyExtractor={(item) => item.court.id}
+                    columns={courtsStatusColumns as unknown as TableColumn<Record<string, unknown>>[]}
+                    data={courtsStatus as unknown as Record<string, unknown>[]}
+                    keyExtractor={(item) => (item as { court: { id: string } }).court.id}
                     emptyMessage={t("operations.noCourts") || "No courts available"}
                     className="im-operations-table"
                   />
