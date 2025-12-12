@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useUserStore } from "@/stores/useUserStore";
+import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import type { AdminStatus } from "@/app/api/me/route";
 import "./AdminSidebar.css";
 
@@ -510,6 +511,11 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
 
   const isRoot = user?.isRoot ?? false;
 
+  // Get organization data from store for organization admins
+  const fetchOrganizationById = useOrganizationStore(state => state.fetchOrganizationById);
+  const currentOrg = useOrganizationStore(state => state.currentOrg);
+  const orgLoading = useOrganizationStore(state => state.loading);
+
   // Load collapsed state from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -521,6 +527,20 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
       }
     }
   }, [onCollapsedChange]);
+
+  // Fetch organization data for organization admins
+  useEffect(() => {
+    const isOrgAdmin = adminStatus?.adminType === "organization_admin";
+    if (isOrgAdmin && adminStatus?.managedIds && adminStatus.managedIds.length > 0) {
+      const orgId = adminStatus.managedIds[0];
+      // Only fetch if we don't have the org data yet
+      if (!currentOrg || currentOrg.id !== orgId) {
+        fetchOrganizationById(orgId).catch((error) => {
+          console.error("Failed to fetch organization:", error);
+        });
+      }
+    }
+  }, [adminStatus, currentOrg, fetchOrganizationById]);
 
   // Toggle collapsed state
   const toggleCollapsed = useCallback(() => {
@@ -671,6 +691,34 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
 
   const roleInfo = getRoleInfo(adminStatus, t);
 
+  // Compute the context name to display in the sidebar header
+  const contextName = useMemo(() => {
+    // For Root Admin, show generic "Admin Panel"
+    if (isRoot) {
+      return t("sidebar.title");
+    }
+
+    // For Organization Admin, show organization name or loading state
+    if (isOrgAdmin) {
+      if (orgLoading && !currentOrg) {
+        return t("sidebar.title"); // Show generic title while loading
+      }
+      if (currentOrg?.name) {
+        return currentOrg.name;
+      }
+      // If we have an org ID but no name yet, show generic title
+      return t("sidebar.title");
+    }
+
+    // For Club Admin, show club name
+    if (isClubAdmin && adminStatus?.assignedClub?.name) {
+      return adminStatus.assignedClub.name;
+    }
+
+    // Fallback to generic title
+    return t("sidebar.title");
+  }, [isRoot, isOrgAdmin, isClubAdmin, currentOrg, orgLoading, adminStatus, t]);
+
   // Don't render while loading user data
   if (isLoading) {
     return null;
@@ -719,7 +767,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
           </div>
           {!isCollapsed && (
             <div className="im-sidebar-header-text">
-              <div className="im-sidebar-title">{t("sidebar.title")}</div>
+              <div className="im-sidebar-title">{contextName}</div>
               {roleInfo && (
                 <span
                   className={roleInfo.className}
