@@ -63,6 +63,15 @@ export function OperationsClubSelector({
 
   const [hasInitialized, setHasInitialized] = useState(false);
   const latestSelectionRef = useRef<string>("");
+  const isMountedRef = useRef<boolean>(true);
+
+  // Track component mount/unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Fetch clubs on mount
   useEffect(() => {
@@ -97,14 +106,19 @@ export function OperationsClubSelector({
     return [];
   }, [clubs, adminStatus, user]);
 
+  // Memoize filtered club IDs for O(1) lookup performance
+  const filteredClubIds = useMemo(() => {
+    return new Set(filteredClubs.map(c => c.id));
+  }, [filteredClubs]);
+
   // Pre-select currentClub from store if available and not disabled
   // This takes priority over auto-selection logic below
   useEffect(() => {
-    if (currentClub && !value && !disabled && filteredClubs.some(c => c.id === currentClub.id)) {
+    if (currentClub && !value && !disabled && filteredClubIds.has(currentClub.id)) {
       // If there's a currentClub in the store and no selection yet, use it
       onChange(currentClub.id);
     }
-  }, [currentClub, value, disabled, filteredClubs, onChange]);
+  }, [currentClub, value, disabled, filteredClubIds, onChange]);
 
   // Auto-select if Org Admin has only one club
   // Note: Club Admins are handled in the Operations page itself (auto-select on mount)
@@ -147,8 +161,8 @@ export function OperationsClubSelector({
       // Fetch full club detail first, then set as current
       try {
         const clubDetail = await ensureClubById(clubId);
-        // Only set if this is still the latest selection (user didn't change again)
-        if (latestSelectionRef.current === clubId) {
+        // Only set if component is still mounted and this is still the latest selection
+        if (isMountedRef.current && latestSelectionRef.current === clubId) {
           setCurrentClub(clubDetail);
         }
       } catch (error) {
@@ -156,7 +170,9 @@ export function OperationsClubSelector({
         // Still allow selection even if detail fetch fails
       }
     } else {
-      setCurrentClub(null);
+      if (isMountedRef.current) {
+        setCurrentClub(null);
+      }
     }
   };
 
