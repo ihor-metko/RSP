@@ -93,6 +93,19 @@ export function OperationsClubSelector({
     return [];
   }, [clubs, adminStatus, user]);
 
+  // Auto-select if user has only one club (for Org Admin)
+  useEffect(() => {
+    if (
+      adminStatus?.adminType === "organization_admin" &&
+      filteredClubs.length === 1 &&
+      !value &&
+      !disabled
+    ) {
+      // Auto-select the only available club
+      onChange(filteredClubs[0].id);
+    }
+  }, [adminStatus, filteredClubs, value, onChange, disabled]);
+
   // Convert clubs to select options
   const options: SelectOption[] = [
     { value: "", label: placeholder },

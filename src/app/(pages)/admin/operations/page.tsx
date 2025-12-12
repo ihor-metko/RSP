@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, Input } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
@@ -38,11 +38,13 @@ import "./page.css";
 export default function OperationsPage() {
   const t = useTranslations();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // User store
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingUser = useUserStore((state) => state.isLoading);
+  const user = useUserStore((state) => state.user);
 
   // Club and courts stores
   const { clubsById, ensureClubById, loading: loadingClub } = useClubStore();
@@ -88,13 +90,33 @@ export default function OperationsPage() {
       return;
     }
 
+    // Check for clubId in URL query params
+    const urlClubId = searchParams.get("clubId");
+
     // Auto-select club for Club Admins (fast-path)
     if (adminStatus.adminType === "club_admin" && adminStatus.assignedClub) {
+      // For Club Admin, validate URL clubId matches their assigned club
+      if (urlClubId && urlClubId !== adminStatus.assignedClub.id) {
+        // URL clubId doesn't match - redirect to 403 or ignore
+        console.warn("Club Admin attempted to access unauthorized club");
+        // Use their assigned club instead
+      }
       setSelectedClubId(adminStatus.assignedClub.id);
+    } else if (urlClubId) {
+      // For Org Admin or Root Admin, validate they have access to the URL clubId
+      // We'll validate access when the club is loaded
+      // Root admins have access to all clubs
+      if (user?.isRoot) {
+        setSelectedClubId(urlClubId);
+      } else if (adminStatus.adminType === "organization_admin") {
+        // For Org Admin, we'll validate after clubs are loaded
+        // For now, set it and let the selector handle validation
+        setSelectedClubId(urlClubId);
+      }
     }
-    // For Organization Admin and Root Admin: do NOT auto-select
+    // For Organization Admin and Root Admin without URL clubId: do NOT auto-select
     // They must explicitly choose a club via the selector
-  }, [isLoadingUser, isLoggedIn, adminStatus, router]);
+  }, [isLoadingUser, isLoggedIn, adminStatus, router, searchParams, user]);
 
   // Load club data only when a club is selected
   useEffect(() => {
