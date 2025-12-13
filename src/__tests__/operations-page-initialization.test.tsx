@@ -116,6 +116,7 @@ jest.mock("@/components/ui", () => ({
 
 jest.mock("@/components/ui/skeletons", () => ({
   TableSkeleton: () => <div data-testid="skeleton">Loading...</div>,
+  CardListSkeleton: () => <div data-testid="card-skeleton">Loading cards...</div>,
 }));
 
 jest.mock("@/components/club-operations", () => ({
@@ -123,18 +124,12 @@ jest.mock("@/components/club-operations", () => ({
   TodayBookingsList: () => <div data-testid="today-bookings">Today's Bookings</div>,
   QuickCreateModal: () => null,
   BookingDetailModal: () => null,
-  OperationsClubSelector: ({ value, onChange, disabled }: { value: string; onChange: (v: string) => void; disabled?: boolean }) => (
-    <div data-testid="club-selector">
-      <select
-        data-testid="club-select"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-      >
-        <option value="">Select a club</option>
-        <option value="club-1">Club 1</option>
-        <option value="club-2">Club 2</option>
-      </select>
+}));
+
+jest.mock("@/components/admin/OperationsClubCard", () => ({
+  OperationsClubCard: ({ club }: { club: { id: string; name: string } }) => (
+    <div data-testid={`club-card-${club.id}`} onClick={() => {/* mock onClick */}}>
+      {club.name}
     </div>
   ),
 }));
@@ -224,36 +219,7 @@ describe("OperationsPage - Initialization", () => {
       expect(mockBookingStore.fetchBookingsForDay).toHaveBeenCalled();
     });
 
-    it("should show disabled club selector for Club Admin", async () => {
-      mockUserStore.isLoggedIn = true;
-      mockUserStore.isLoading = false;
-      mockUserStore.adminStatus = {
-        isAdmin: true,
-        adminType: "club_admin",
-        managedIds: ["club-1"],
-        assignedClub: {
-          id: "club-1",
-          name: "Test Club",
-        },
-      };
 
-      mockClubStore.clubsById = {
-        "club-1": {
-          id: "club-1",
-          name: "Test Club",
-          location: "Test Location",
-          status: "active",
-          createdAt: new Date().toISOString(),
-        } as any,
-      };
-
-      render(<OperationsPage />);
-
-      await waitFor(() => {
-        const selector = screen.getByTestId("club-select");
-        expect(selector).toBeDisabled();
-      });
-    });
 
     it("should show error when Club Admin has no assigned club", () => {
       mockUserStore.isLoggedIn = true;
@@ -272,7 +238,7 @@ describe("OperationsPage - Initialization", () => {
   });
 
   describe("Organization Admin Role", () => {
-    it("should show club selector for Organization Admin", () => {
+    it("should show club cards for Organization Admin", () => {
       mockUserStore.isLoggedIn = true;
       mockUserStore.isLoading = false;
       mockUserStore.adminStatus = {
@@ -281,10 +247,24 @@ describe("OperationsPage - Initialization", () => {
         managedIds: ["org-1"],
       };
 
+      mockClubStore.clubs = [
+        {
+          id: "club-1",
+          name: "Club 1",
+          organizationId: "org-1",
+        } as any,
+        {
+          id: "club-2",
+          name: "Club 2",
+          organizationId: "org-1",
+        } as any,
+      ];
+
       render(<OperationsPage />);
 
-      // Should show the instruction and club selector
-      expect(screen.getByTestId("club-selector")).toBeInTheDocument();
+      // Should show club cards
+      expect(screen.getByTestId("club-card-club-1")).toBeInTheDocument();
+      expect(screen.getByTestId("club-card-club-2")).toBeInTheDocument();
       expect(screen.getByText("operations.selectClubInstruction")).toBeInTheDocument();
     });
 
@@ -322,6 +302,14 @@ describe("OperationsPage - Initialization", () => {
         managedIds: ["org-1"],
       };
 
+      mockClubStore.clubs = [
+        {
+          id: "club-1",
+          name: "Club 1",
+          organizationId: "org-1",
+        } as any,
+      ];
+
       render(<OperationsPage />);
 
       // Should not show calendar or bookings list
@@ -331,7 +319,7 @@ describe("OperationsPage - Initialization", () => {
   });
 
   describe("Root Admin Role", () => {
-    it("should show club selector for Root Admin", () => {
+    it("should show club cards for Root Admin", () => {
       mockUserStore.isLoggedIn = true;
       mockUserStore.isLoading = false;
       mockUserStore.user = {
@@ -346,10 +334,18 @@ describe("OperationsPage - Initialization", () => {
         managedIds: [],
       };
 
+      mockClubStore.clubs = [
+        {
+          id: "club-1",
+          name: "Club 1",
+          organizationId: "org-1",
+        } as any,
+      ];
+
       render(<OperationsPage />);
 
-      // Should show the club selector
-      expect(screen.getByTestId("club-selector")).toBeInTheDocument();
+      // Should show club cards
+      expect(screen.getByTestId("club-card-club-1")).toBeInTheDocument();
     });
 
     it("should NOT auto-select club for Root Admin", () => {
