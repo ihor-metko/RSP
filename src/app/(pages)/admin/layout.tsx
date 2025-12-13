@@ -30,7 +30,7 @@ export default function AdminLayout({
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen overflow-auto">
       <Header />
 
       {/* Sidebar - renders based on admin role */}
@@ -38,7 +38,7 @@ export default function AdminLayout({
 
       {/* Main content area with sidebar offset on large screens */}
       <div 
-        className={`flex-1 overflow-auto flex flex-col w-full transition-[padding-left] duration-300 ease-in-out ${
+        className={`flex-1 flex flex-col w-full transition-[padding-left] duration-300 ease-in-out ${
           isCollapsed ? "lg:pl-16" : "lg:pl-60"
         }`}
       >
