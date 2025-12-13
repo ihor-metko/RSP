@@ -29,6 +29,7 @@ interface Court {
   type: string | null;
   surface: string | null;
   indoor: boolean;
+  /** Sport type (e.g., padel, tennis, squash) - used for filtering courts by sport */
   sportType: string | null;
   isActive: boolean;
   defaultPriceCents: number;
@@ -365,7 +366,7 @@ export default function AdminCourtsPage() {
     },
   ];
 
-  if (loading && isLoadingStore) {
+  if (loading || isLoadingStore) {
     return (
       <main className="rsp-container p-8">
         <PageHeader

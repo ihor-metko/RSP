@@ -627,6 +627,7 @@ export default function AdminCourtsPage() {
   const router = useRouter();
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({ total: 0, totalPages: 0 });
   const adminStatus = useUserStore((state) => state.adminStatus);
   
   // Initialize list controller
@@ -641,6 +642,7 @@ export default function AdminCourtsPage() {
     },
     defaultSortBy: "name",
     defaultSortOrder: "asc",
+    defaultPage: 1,
     defaultPageSize: 25,
   });
 
@@ -662,6 +664,7 @@ export default function AdminCourtsPage() {
     const response = await fetch(`/api/admin/courts?${params}`);
     const data = await response.json();
     setCourts(data.courts);
+    setPagination(data.pagination);
     setLoading(false);
   }, [controller.filters, controller.sortBy, controller.sortOrder, controller.page, controller.pageSize]);
 
@@ -741,7 +744,7 @@ export default function AdminCourtsPage() {
 
           {/* Pagination */}
           {!loading && courts.length > 0 && (
-            <PaginationControls totalCount={100} totalPages={4} showPageSize />
+            <PaginationControls totalCount={pagination.total} totalPages={pagination.totalPages} showPageSize />
           )}
         </section>
       </main>
