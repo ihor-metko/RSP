@@ -6,6 +6,9 @@ import React, { useState } from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { Select, type SelectOption } from "@/components/ui/Select";
 
+// Mock scrollIntoView which is not available in jsdom
+Element.prototype.scrollIntoView = jest.fn();
+
 // Mock Portal component
 jest.mock("@/components/ui/Portal", () => ({
   Portal: ({ children }: { children: React.ReactNode }) => <>{children}</>,

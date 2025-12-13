@@ -430,16 +430,14 @@ export default function ClubAdminsTable({
           <Select
             label={t("clubAdmins.selectClub")}
             value={selectedClubId}
-            onChange={(e) => setSelectedClubId(e.target.value)}
+            onChange={(value) => setSelectedClubId(value)}
+            options={clubs.map((club) => ({
+              value: club.id,
+              label: club.name,
+            }))}
+            placeholder={t("clubAdmins.selectClubPlaceholder")}
             required
-          >
-            <option value="">{t("clubAdmins.selectClubPlaceholder")}</option>
-            {clubs.map((club) => (
-              <option key={club.id} value={club.id}>
-                {club.name}
-              </option>
-            ))}
-          </Select>
+          />
 
           <div className="flex justify-end gap-2 mt-4">
             <Button
@@ -487,36 +485,32 @@ export default function ClubAdminsTable({
             <Select
               label={t("clubAdmins.selectMembership")}
               value={selectedMembershipId}
-              onChange={(e) => {
-                setSelectedMembershipId(e.target.value);
+              onChange={(value) => {
+                setSelectedMembershipId(value);
                 const club = adminToEdit.clubs.find(
-                  (c) => c.membershipId === e.target.value
+                  (c) => c.membershipId === value
                 );
                 if (club) setEditClubId(club.id);
               }}
+              options={adminToEdit.clubs.map((club) => ({
+                value: club.membershipId,
+                label: club.name,
+              }))}
               required
-            >
-              {adminToEdit.clubs.map((club) => (
-                <option key={club.membershipId} value={club.membershipId}>
-                  {club.name}
-                </option>
-              ))}
-            </Select>
+            />
           )}
 
           <Select
             label={t("clubAdmins.reassignToClub")}
             value={editClubId}
-            onChange={(e) => setEditClubId(e.target.value)}
+            onChange={(value) => setEditClubId(value)}
+            options={clubs.map((club) => ({
+              value: club.id,
+              label: club.name,
+            }))}
+            placeholder={t("clubAdmins.selectClubPlaceholder")}
             required
-          >
-            <option value="">{t("clubAdmins.selectClubPlaceholder")}</option>
-            {clubs.map((club) => (
-              <option key={club.id} value={club.id}>
-                {club.name}
-              </option>
-            ))}
-          </Select>
+          />
 
           <div className="flex justify-end gap-2 mt-4">
             <Button
