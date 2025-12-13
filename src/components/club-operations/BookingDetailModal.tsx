@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Modal, Button } from "@/components/ui";
+import { Modal, Button, Badge, Card } from "@/components/ui";
 import { useBookingStore } from "@/stores/useBookingStore";
 import { formatPrice } from "@/utils/price";
 import { showToast } from "@/lib/toast";
@@ -21,6 +21,7 @@ interface BookingDetailModalProps {
  * 
  * Displays detailed information about a booking.
  * Allows cancellation of non-cancelled bookings.
+ * Redesigned with improved clarity, usability, and dark theme support.
  */
 export function BookingDetailModal({
   isOpen,
@@ -70,133 +71,190 @@ export function BookingDetailModal({
     });
   };
 
+  const formatDate = (isoString: string) => {
+    return new Date(isoString).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatTime = (isoString: string) => {
+    return new Date(isoString).toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const calculateDuration = () => {
     const start = new Date(booking.start).getTime();
     const end = new Date(booking.end).getTime();
     return Math.round((end - start) / (1000 * 60));
   };
 
-  const statusClass = `im-booking-detail-status--${booking.status}`;
+  // Map status to badge variant
+  const getStatusVariant = (status: string): "success" | "warning" | "error" | "info" | "default" => {
+    switch (status) {
+      case "paid":
+        return "success";
+      case "pending":
+        return "warning";
+      case "cancelled":
+        return "default";
+      case "reserved":
+        return "info";
+      default:
+        return "default";
+    }
+  };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={t("operations.bookingDetails") || "Booking Details"}
+      title=""
     >
       <div className="im-booking-detail">
-        {/* User Information */}
-        <div className="im-booking-detail-section">
-          <h4 className="im-booking-detail-section-title">
-            {t("operations.userInfo") || "User Information"}
-          </h4>
-          <div className="im-booking-detail-grid">
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("common.name") || "Name"}
+        {/* Header with court name, time, and status */}
+        <div className="im-booking-detail-header">
+          <div className="im-booking-detail-header-content">
+            <h3 className="im-booking-detail-title">{booking.courtName}</h3>
+            <div className="im-booking-detail-header-meta">
+              <span className="im-booking-detail-time">
+                {formatTime(booking.start)} - {formatTime(booking.end)}
               </span>
-              <span className="im-booking-detail-value">
-                {booking.userName || "—"}
-              </span>
-            </div>
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("common.email") || "Email"}
-              </span>
-              <span className="im-booking-detail-value">{booking.userEmail}</span>
+              <span className="im-booking-detail-separator">•</span>
+              <span className="im-booking-detail-date">{formatDate(booking.start)}</span>
             </div>
           </div>
+          <Badge variant={getStatusVariant(booking.status)} size="medium">
+            {booking.status}
+          </Badge>
         </div>
 
-        {/* Court Information */}
-        <div className="im-booking-detail-section">
-          <h4 className="im-booking-detail-section-title">
-            {t("operations.courtInfo") || "Court Information"}
-          </h4>
-          <div className="im-booking-detail-grid">
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("operations.court") || "Court"}
-              </span>
-              <span className="im-booking-detail-value">{booking.courtName}</span>
-            </div>
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("operations.sportType") || "Sport Type"}
-              </span>
-              <span className="im-booking-detail-value">{booking.sportType}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Booking Details */}
-        <div className="im-booking-detail-section">
-          <h4 className="im-booking-detail-section-title">
-            {t("operations.bookingInfo") || "Booking Information"}
-          </h4>
-          <div className="im-booking-detail-grid">
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("operations.startTime") || "Start Time"}
-              </span>
-              <span className="im-booking-detail-value">
-                {formatDateTime(booking.start)}
-              </span>
-            </div>
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("operations.endTime") || "End Time"}
-              </span>
-              <span className="im-booking-detail-value">
-                {formatDateTime(booking.end)}
-              </span>
-            </div>
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("common.duration") || "Duration"}
-              </span>
-              <span className="im-booking-detail-value">
-                {calculateDuration()} {t("common.minutes") || "minutes"}
-              </span>
-            </div>
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("common.status") || "Status"}
-              </span>
-              <span className={`im-booking-detail-status ${statusClass}`}>
-                {booking.status}
-              </span>
-            </div>
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("common.price") || "Price"}
-              </span>
-              <span className="im-booking-detail-value">
-                {formatPrice(booking.price)}
-              </span>
-            </div>
-            {booking.coachName && (
-              <div className="im-booking-detail-item">
-                <span className="im-booking-detail-label">
-                  {t("operations.coach") || "Coach"}
-                </span>
-                <span className="im-booking-detail-value">{booking.coachName}</span>
+        {/* Body sections */}
+        <div className="im-booking-detail-body">
+          {/* Player Details */}
+          <Card className="im-booking-detail-card">
+            <div className="im-booking-detail-section">
+              <h4 className="im-booking-detail-section-title">
+                {t("operations.playerDetails") || "Player Details"}
+              </h4>
+              <div className="im-booking-detail-grid">
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("common.name") || "Name"}
+                  </span>
+                  <span className="im-booking-detail-value">
+                    {booking.userName || "—"}
+                  </span>
+                </div>
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("common.email") || "Email"}
+                  </span>
+                  <span className="im-booking-detail-value">{booking.userEmail}</span>
+                </div>
               </div>
-            )}
-            <div className="im-booking-detail-item">
-              <span className="im-booking-detail-label">
-                {t("operations.createdAt") || "Created At"}
-              </span>
-              <span className="im-booking-detail-value">
-                {formatDateTime(booking.createdAt)}
-              </span>
             </div>
-          </div>
+          </Card>
+
+          {/* Booking Details */}
+          <Card className="im-booking-detail-card">
+            <div className="im-booking-detail-section">
+              <h4 className="im-booking-detail-section-title">
+                {t("operations.bookingInfo") || "Booking Details"}
+              </h4>
+              <div className="im-booking-detail-grid">
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("operations.bookingDate") || "Date"}
+                  </span>
+                  <span className="im-booking-detail-value">
+                    {formatDate(booking.start)}
+                  </span>
+                </div>
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("operations.bookingTime") || "Time"}
+                  </span>
+                  <span className="im-booking-detail-value">
+                    {formatTime(booking.start)} - {formatTime(booking.end)}
+                  </span>
+                </div>
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("common.duration") || "Duration"}
+                  </span>
+                  <span className="im-booking-detail-value">
+                    {calculateDuration()} {t("common.minutes") || "minutes"}
+                  </span>
+                </div>
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("operations.court") || "Court"}
+                  </span>
+                  <span className="im-booking-detail-value">{booking.courtName}</span>
+                </div>
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("operations.sportType") || "Sport Type"}
+                  </span>
+                  <span className="im-booking-detail-value">{booking.sportType}</span>
+                </div>
+                {booking.coachName && (
+                  <div className="im-booking-detail-item">
+                    <span className="im-booking-detail-label">
+                      {t("operations.coach") || "Coach"}
+                    </span>
+                    <span className="im-booking-detail-value">{booking.coachName}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Payment Information */}
+          <Card className="im-booking-detail-card">
+            <div className="im-booking-detail-section">
+              <h4 className="im-booking-detail-section-title">
+                {t("operations.paymentInfo") || "Payment Information"}
+              </h4>
+              <div className="im-booking-detail-grid">
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("common.price") || "Price"}
+                  </span>
+                  <span className="im-booking-detail-value im-booking-detail-price">
+                    {formatPrice(booking.price)}
+                  </span>
+                </div>
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("operations.paymentStatus") || "Payment Status"}
+                  </span>
+                  <span className="im-booking-detail-value">
+                    <Badge variant={getStatusVariant(booking.status)} size="small">
+                      {booking.status}
+                    </Badge>
+                  </span>
+                </div>
+                <div className="im-booking-detail-item">
+                  <span className="im-booking-detail-label">
+                    {t("operations.createdAt") || "Created At"}
+                  </span>
+                  <span className="im-booking-detail-value">
+                    {formatDateTime(booking.createdAt)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Actions */}
         <div className="im-booking-detail-actions">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isCancelling}>
             {t("common.close") || "Close"}
           </Button>
           {booking.status !== "cancelled" && (

@@ -1037,7 +1037,34 @@
     "noClubAssignedDescription": "У вас ще немає призначеного клубу. Будь ласка, зверніться до адміністратора.",
     "goToDashboard": "Перейти до панелі керування",
     "clubNotFound": "Клуб не знайдено",
-    "selectAnotherClub": "Вибрати інший клуб"
+    "selectAnotherClub": "Вибрати інший клуб",
+    "bookingDetails": "Деталі бронювання",
+    "userInfo": "Інформація про користувача",
+    "playerDetails": "Деталі гравця",
+    "courtInfo": "Інформація про корт",
+    "bookingInfo": "Інформація про бронювання",
+    "startTime": "Час початку",
+    "endTime": "Час завершення",
+    "court": "Корт",
+    "sportType": "Тип спорту",
+    "coach": "Тренер",
+    "createdAt": "Створено",
+    "cancelBooking": "Скасувати бронювання",
+    "cancelling": "Скасування...",
+    "bookingCancelled": "Бронювання успішно скасовано",
+    "confirmCancel": "Ви впевнені, що хочете скасувати це бронювання?",
+    "paymentInfo": "Інформація про оплату",
+    "paymentStatus": "Статус оплати",
+    "paymentMethod": "Спосіб оплати",
+    "contactInfo": "Контактна інформація",
+    "bookingDate": "Дата бронювання",
+    "bookingTime": "Час бронювання",
+    "numberOfPlayers": "Кількість гравців",
+    "bookingNotes": "Примітки",
+    "editBooking": "Редагувати бронювання",
+    "noPaymentInfo": "Інформація про оплату відсутня",
+    "noCoachAssigned": "Тренер не призначений",
+    "noNotes": "Немає приміток"
   },
   "users": {
     "title": "Управління користувачами",
@@ -1067,10 +1094,11 @@
       "lastLogin": "Останній вхід"
     },
     "roles": {
-      "rootAdmin": "Головний адмін",
-      "organizationAdmin": "Адмін організації",
-      "clubAdmin": "Адмін клубу",
-      "user": "Користувач"
+      "rootAdmin": "Головний адміністратор",
+      "organizationAdmin": "Адміністратор організації",
+      "clubAdmin": "Адміністратор клубу",
+      "user": "Користувач",
+      "member": "Учасник"
     },
     "roleDescriptions": {
       "organizationAdmin": "Може керувати організацією та її клубами",
@@ -1125,14 +1153,7 @@
     "deleteWarning": "Цю дію неможливо скасувати!",
     "deleteConfirmMessage": "Ви впевнені, що хочете видалити {name}? Всі дані будуть видалені назавжди.",
     "userDeleted": "Користувача успішно видалено",
-    "failedToDeleteUser": "Не вдалося видалити користувача",
-    "roles": {
-      "rootAdmin": "Головний адміністратор",
-      "organizationAdmin": "Адміністратор організації",
-      "clubAdmin": "Адміністратор клубу",
-      "user": "Користувач",
-      "member": "Учасник"
-    }
+    "failedToDeleteUser": "Не вдалося видалити користувача"
   },
   "userDetail": {
     "breadcrumb": "Деталі користувача",
