@@ -76,11 +76,11 @@ export function DateRangeFilter<TFilters = Record<string, unknown>>({
   const toValue = String(controller.filters[toKey] || "");
 
   const handleFromChange = (date: string) => {
-    controller.setFilter(fromKey, (date || "") as TFilters[keyof TFilters]);
+    controller.setFilter(fromKey, date as TFilters[keyof TFilters]);
   };
 
   const handleToChange = (date: string) => {
-    controller.setFilter(toKey, (date || "") as TFilters[keyof TFilters]);
+    controller.setFilter(toKey, date as TFilters[keyof TFilters]);
   };
 
   return (

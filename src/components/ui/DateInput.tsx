@@ -166,7 +166,6 @@ export function DateInput({
           type="text"
           className="im-date-input"
           value={displayValue}
-          onChange={() => {}} // No-op for readOnly input to satisfy React controlled component
           placeholder={placeholder}
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
