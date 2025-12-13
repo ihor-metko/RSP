@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, Input } from "@/components/ui";
@@ -13,10 +13,10 @@ import {
   TodayBookingsList,
   QuickCreateModal,
   BookingDetailModal,
-  OperationsClubSelector,
 } from "@/components/club-operations";
+import { OperationsClubCard } from "@/components/admin/OperationsClubCard";
 import type { OperationsBooking } from "@/types/booking";
-import { TableSkeleton } from "@/components/ui/skeletons";
+import { TableSkeleton, CardListSkeleton } from "@/components/ui/skeletons";
 import "./page.css";
 
 /**
@@ -47,7 +47,7 @@ export default function OperationsPage() {
   const user = useUserStore((state) => state.user);
 
   // Club and courts stores
-  const { clubsById, clubs, ensureClubById, loading: loadingClub } = useClubStore();
+  const { clubsById, clubs, ensureClubById, loading: loadingClub, fetchClubsIfNeeded, loadingClubs } = useClubStore();
   const { courts, fetchCourtsIfNeeded, loading: loadingCourts } = useCourtStore();
 
   // Booking store
@@ -75,6 +75,36 @@ export default function OperationsPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const club = selectedClubId ? clubsById[selectedClubId] : null;
+
+  // Fetch clubs list for card display (only for Org Admins and Root Admins)
+  useEffect(() => {
+    if (adminStatus?.isAdmin && adminStatus.adminType !== "club_admin") {
+      fetchClubsIfNeeded().catch(console.error);
+    }
+  }, [adminStatus, fetchClubsIfNeeded]);
+
+  // Filter clubs based on user role (same logic as OperationsClubSelector)
+  const filteredClubs = useMemo(() => {
+    // Root admins see all clubs
+    if (user?.isRoot) {
+      return clubs;
+    }
+
+    // Organization admins see only clubs in their managed organizations
+    if (adminStatus?.adminType === "organization_admin") {
+      const managedOrgIds = new Set(adminStatus.managedIds);
+      return clubs.filter((club) => managedOrgIds.has(club.organizationId));
+    }
+
+    // Club admins should only see their assigned club(s)
+    if (adminStatus?.adminType === "club_admin") {
+      const managedClubIds = new Set(adminStatus.managedIds);
+      return clubs.filter((club) => managedClubIds.has(club.id));
+    }
+
+    // Default: no clubs (user is not an admin)
+    return [];
+  }, [clubs, adminStatus, user]);
 
   // Check access permissions and set default club
   useEffect(() => {
@@ -199,11 +229,6 @@ export default function OperationsPage() {
     setSelectedDate(today.toISOString().split("T")[0]);
   };
 
-  // Handle club selection change
-  const handleClubChange = (clubId: string) => {
-    setSelectedClubId(clubId);
-  };
-
   // Loading state
   if (isLoadingUser || loadingClub) {
     return (
@@ -236,29 +261,35 @@ export default function OperationsPage() {
     );
   }
 
-  // No club selected (for Org Admins and Root Admins)
+  // No club selected (for Org Admins and Root Admins) - Show club cards grid
   if (!selectedClubId && !isClubAdmin) {
     return (
       <main className="im-club-operations-page">
         <PageHeader
           title={t("operations.title") || "Operations"}
-          description={t("operations.description") || "Manage club operations"}
+          description={t("operations.selectClubInstruction") || "Please select a club to view its operations."}
         />
         
-        {/* Club selector - required before operations UI loads */}
-        <div className="im-club-operations-controls">
-          <div className="im-club-operations-club-selector">
-            <p className="im-club-operations-instruction">
-              {t("operations.selectClubInstruction") || "Please select a club to view its operations."}
-            </p>
-            <OperationsClubSelector
-              value={selectedClubId}
-              onChange={handleClubChange}
-              label={t("operations.club") || "Club"}
-              placeholder={t("operations.selectClub") || "Select a club"}
-            />
-          </div>
-        </div>
+        <section className="rsp-content">
+          {loadingClubs ? (
+            <CardListSkeleton count={12} variant="default" />
+          ) : filteredClubs.length === 0 ? (
+            <div className="im-admin-clubs-empty">
+              <p className="im-admin-clubs-empty-text">
+                {t("admin.clubs.noClubs")}
+              </p>
+            </div>
+          ) : (
+            <section className="im-admin-clubs-grid">
+              {filteredClubs.map((club) => (
+                <OperationsClubCard
+                  key={club.id}
+                  club={club}
+                />
+              ))}
+            </section>
+          )}
+        </section>
       </main>
     );
   }
@@ -283,25 +314,21 @@ export default function OperationsPage() {
         title={t("operations.title") || "Operations"}
         description={club?.name || "Loading..."}
         actions={
-          <Button onClick={handleToday} variant="outline">
-            {t("operations.today") || "Today"}
-          </Button>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            {!isClubAdmin && (
+              <Button onClick={() => setSelectedClubId("")} variant="outline">
+                {t("operations.changeClub") || "Change Club"}
+              </Button>
+            )}
+            <Button onClick={handleToday} variant="outline">
+              {t("operations.today") || "Today"}
+            </Button>
+          </div>
         }
       />
 
-      {/* Controls - Club selector and date picker */}
+      {/* Controls - Date picker */}
       <div className="im-club-operations-controls">
-        {/* Club selector */}
-        <div className="im-club-operations-club-selector">
-          <OperationsClubSelector
-            value={selectedClubId}
-            onChange={handleClubChange}
-            label={t("operations.club") || "Club"}
-            placeholder={t("operations.selectClub") || "Select a club"}
-            disabled={isClubAdmin}
-          />
-        </div>
-
         {/* Date picker */}
         <div className="im-club-operations-date-picker">
           <label htmlFor="date" className="im-club-operations-date-label">
