@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui";
 import type { OperationsBooking } from "@/types/booking";
 import { formatPrice } from "@/utils/price";
+import { getStatusLabel } from "@/utils/bookingStatus";
 import "./TodayBookingsList.css";
 
 interface TodayBookingsListProps {
@@ -94,7 +95,7 @@ export function TodayBookingsList({
               </div>
               <div className="im-today-booking-details">
                 <span className={getStatusClass(booking.status)}>
-                  {booking.status}
+                  {getStatusLabel(booking.status)}
                 </span>
                 <span className="im-today-booking-price">
                   {formatPrice(booking.price)}
@@ -108,7 +109,9 @@ export function TodayBookingsList({
                 >
                   {t("common.view") || "View"}
                 </Button>
-                {booking.status !== "cancelled" && (
+                {booking.status !== "cancelled" && 
+                 booking.status !== "completed" && 
+                 booking.status !== "no-show" && (
                   <Button
                     variant="danger"
                     size="small"

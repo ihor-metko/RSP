@@ -5,6 +5,7 @@ import type { Prisma } from "@prisma/client";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetBookings } from "@/services/mockApiHandlers";
+import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 
 /**
  * Booking status type
@@ -218,27 +219,39 @@ export async function GET(
       },
     });
 
-    // Transform bookings to response format
-    const bookingResponses: AdminBookingResponse[] = bookings.map((booking) => ({
-      id: booking.id,
-      userId: booking.userId,
-      userName: booking.user.name,
-      userEmail: booking.user.email,
-      courtId: booking.courtId,
-      courtName: booking.court.name,
-      clubId: booking.court.clubId,
-      clubName: booking.court.club.name,
-      organizationId: booking.court.club.organizationId,
-      organizationName: booking.court.club.organization?.name ?? null,
-      start: booking.start.toISOString(),
-      end: booking.end.toISOString(),
-      status: booking.status,
-      price: booking.price,
-      sportType: booking.sportType || "PADEL",
-      coachId: booking.coachId,
-      coachName: booking.coach?.user.name ?? null,
-      createdAt: booking.createdAt.toISOString(),
-    }));
+    // Transform bookings to response format with dynamic status calculation
+    const bookingResponses: AdminBookingResponse[] = bookings.map((booking) => {
+      const startISO = booking.start.toISOString();
+      const endISO = booking.end.toISOString();
+      
+      // Calculate the display status based on time and persistent status
+      const displayStatus = calculateBookingStatus(
+        startISO,
+        endISO,
+        toBookingStatus(booking.status)
+      );
+
+      return {
+        id: booking.id,
+        userId: booking.userId,
+        userName: booking.user.name,
+        userEmail: booking.user.email,
+        courtId: booking.courtId,
+        courtName: booking.court.name,
+        clubId: booking.court.clubId,
+        clubName: booking.court.club.name,
+        organizationId: booking.court.club.organizationId,
+        organizationName: booking.court.club.organization?.name ?? null,
+        start: startISO,
+        end: endISO,
+        status: displayStatus,
+        price: booking.price,
+        sportType: booking.sportType || "PADEL",
+        coachId: booking.coachId,
+        coachName: booking.coach?.user.name ?? null,
+        createdAt: booking.createdAt.toISOString(),
+      };
+    });
 
     const response: AdminBookingsListResponse = {
       bookings: bookingResponses,

@@ -165,8 +165,23 @@
 }
 
 .im-booking-status--cancelled {
-  background-color: var(--color-muted-bg, #f3f4f6);
-  color: var(--color-muted-text, #6b7280);
+  background-color: var(--color-danger-bg, #fee2e2);
+  color: var(--color-danger-text, #991b1b);
+}
+
+.im-booking-status--ongoing {
+  background-color: var(--color-active-bg, #dcfce7);
+  color: var(--color-active-text, #166534);
+}
+
+.im-booking-status--completed {
+  background-color: var(--color-neutral-bg, #f3f4f6);
+  color: var(--color-neutral-text, #6b7280);
+}
+
+.im-booking-status--no-show {
+  background-color: var(--color-danger-bg, #fee2e2);
+  color: var(--color-danger-text, #991b1b);
 }
 
 /* Actions */
@@ -229,6 +244,21 @@
 }
 
 :root[data-theme="dark"] .im-booking-status--cancelled {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+:root[data-theme="dark"] .im-booking-status--ongoing {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+
+:root[data-theme="dark"] .im-booking-status--completed {
   background-color: rgba(156, 163, 175, 0.1);
   color: #9ca3af;
+}
+
+:root[data-theme="dark"] .im-booking-status--no-show {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
 }

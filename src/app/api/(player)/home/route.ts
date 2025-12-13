@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 
 /**
  * GET /api/home
@@ -83,26 +84,36 @@ export async function GET() {
       },
     });
 
-    // Format the response
-    const formattedBookings = upcomingBookings.map((booking) => ({
-      id: booking.id,
-      startTime: booking.start.toISOString(),
-      endTime: booking.end.toISOString(),
-      status: booking.status,
-      priceCents: booking.price,
-      court: {
-        id: booking.court.id,
-        name: booking.court.name,
-      },
-      club: booking.court.club ? {
-        id: booking.court.club.id,
-        name: booking.court.club.name,
-      } : null,
-      coach: booking.coach ? {
-        id: booking.coach.id,
-        name: booking.coach.user?.name || null,
-      } : null,
-    }));
+    // Format the response with dynamic status calculation
+    const formattedBookings = upcomingBookings.map((booking) => {
+      const startISO = booking.start.toISOString();
+      const endISO = booking.end.toISOString();
+      const displayStatus = calculateBookingStatus(
+        startISO,
+        endISO,
+        toBookingStatus(booking.status)
+      );
+
+      return {
+        id: booking.id,
+        startTime: startISO,
+        endTime: endISO,
+        status: displayStatus,
+        priceCents: booking.price,
+        court: {
+          id: booking.court.id,
+          name: booking.court.name,
+        },
+        club: booking.court.club ? {
+          id: booking.court.club.id,
+          name: booking.court.club.name,
+        } : null,
+        coach: booking.coach ? {
+          id: booking.coach.id,
+          name: booking.coach.user?.name || null,
+        } : null,
+      };
+    });
 
     const formattedNotifications = notifications.map((notification) => ({
       id: notification.id,

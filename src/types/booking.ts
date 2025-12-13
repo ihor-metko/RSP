@@ -1,9 +1,22 @@
 import { SportType } from "@/constants/sports";
 
 /**
- * Booking status types
+ * Persistent booking status types (stored in database)
  */
-export type BookingStatus = "pending" | "paid" | "cancelled" | "reserved";
+export type PersistentBookingStatus = "pending" | "paid" | "cancelled" | "reserved" | "no-show" | "completed";
+
+/**
+ * Dynamic booking status types (calculated on the fly)
+ * - reserved: booking exists but now < startAt
+ * - ongoing: startAt <= now < endAt
+ * - completed: now >= endAt
+ */
+export type DynamicBookingStatus = "reserved" | "ongoing" | "completed";
+
+/**
+ * Combined booking status for display
+ */
+export type BookingStatus = PersistentBookingStatus;
 
 /**
  * Basic booking type

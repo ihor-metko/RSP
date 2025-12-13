@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireClubAdmin, requireOrganizationAdmin } from "@/lib/requireRole";
 import type { OperationsBooking } from "@/types/booking";
+import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 
 /**
  * GET /api/clubs/[clubId]/operations/bookings
@@ -113,23 +114,35 @@ export async function GET(
       },
     });
 
-    // Transform to response format
-    const operationsBookings: OperationsBooking[] = bookings.map((booking) => ({
-      id: booking.id,
-      userId: booking.userId,
-      userName: booking.user.name,
-      userEmail: booking.user.email,
-      courtId: booking.courtId,
-      courtName: booking.court.name,
-      start: booking.start.toISOString(),
-      end: booking.end.toISOString(),
-      status: booking.status as OperationsBooking["status"],
-      price: booking.price,
-      sportType: booking.sportType,
-      coachId: booking.coachId,
-      coachName: booking.coach?.user.name ?? null,
-      createdAt: booking.createdAt.toISOString(),
-    }));
+    // Transform to response format with dynamic status calculation
+    const operationsBookings: OperationsBooking[] = bookings.map((booking) => {
+      const startISO = booking.start.toISOString();
+      const endISO = booking.end.toISOString();
+      
+      // Calculate the display status based on time and persistent status
+      const displayStatus = calculateBookingStatus(
+        startISO,
+        endISO,
+        toBookingStatus(booking.status)
+      );
+
+      return {
+        id: booking.id,
+        userId: booking.userId,
+        userName: booking.user.name,
+        userEmail: booking.user.email,
+        courtId: booking.courtId,
+        courtName: booking.court.name,
+        start: startISO,
+        end: endISO,
+        status: displayStatus,
+        price: booking.price,
+        sportType: booking.sportType,
+        coachId: booking.coachId,
+        coachName: booking.coach?.user.name ?? null,
+        createdAt: booking.createdAt.toISOString(),
+      };
+    });
 
     return NextResponse.json(operationsBookings);
   } catch (error) {
