@@ -20,6 +20,23 @@ export function parseTags(tags: string | null | undefined): string[] {
   return tags.split(",").map((t) => t.trim()).filter(Boolean);
 }
 
+/**
+ * Formats the address for display as "City, Street Address"
+ * Returns the full location if city is not available
+ * @param city - The city name
+ * @param location - The full location/address string
+ * @returns Formatted address string
+ */
+export function formatAddress(city: string | null | undefined, location: string): string {
+  if (city && location) {
+    if (location.toLowerCase().startsWith(city.toLowerCase())) {
+      return location;
+    }
+    return `${city}, ${location}`;
+  }
+  return location;
+}
+
 interface CourtWithPrice {
   defaultPriceCents: number;
 }

@@ -1,25 +1,24 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { IMLink } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { parseTags, formatAddress } from "@/utils/club";
 import { getSportName } from "@/constants/sports";
 import type { ClubWithCounts } from "@/types/club";
 import "./AdminClubCard.css";
 
-export interface AdminClubCardProps {
+export interface OperationsClubCardProps {
   club: ClubWithCounts;
-  /** Whether to show organization info (typically for root admins) */
-  showOrganization?: boolean;
 }
 
 /**
- * Admin Club Card component - Card-based display for club management
- * Displays key club information with admin actions (view, edit, delete, courts)
+ * Operations Club Card - Clickable card for selecting a club in Operations page
+ * On click, navigates to the operations page with the selected club
  */
-export function AdminClubCard({ club, showOrganization }: AdminClubCardProps) {
+export function OperationsClubCard({ club }: OperationsClubCardProps) {
   const t = useTranslations();
+  const router = useRouter();
 
   // Convert stored paths to full Supabase Storage URLs
   const heroImageUrl = getSupabaseStorageUrl(club.heroImage);
@@ -31,8 +30,27 @@ export function AdminClubCard({ club, showOrganization }: AdminClubCardProps) {
   const formattedAddress = formatAddress(club.city, club.location);
   const clubTags = parseTags(club.tags);
 
+  const handleClick = () => {
+    router.push(`/admin/operations?clubId=${club.id}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
-    <article className="im-admin-club-card" aria-labelledby={`admin-club-name-${club.id}`}>
+    <article
+      className="im-admin-club-card"
+      aria-labelledby={`operations-club-name-${club.id}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      style={{ cursor: "pointer" }}
+    >
       {/* Main Image Section */}
       <div className="im-admin-club-card-image">
         {mainImage ? (
@@ -68,7 +86,7 @@ export function AdminClubCard({ club, showOrganization }: AdminClubCardProps) {
       {/* Content Section */}
       <div className="im-admin-club-card-content">
         {/* Title */}
-        <h2 id={`admin-club-name-${club.id}`} className="im-admin-club-name">
+        <h2 id={`operations-club-name-${club.id}`} className="im-admin-club-name">
           {club.name}
         </h2>
 
@@ -99,30 +117,6 @@ export function AdminClubCard({ club, showOrganization }: AdminClubCardProps) {
             <circle cx="12" cy="10" r="3" />
           </svg>
           <span className="im-admin-club-address-text">{formattedAddress}</span>
-        </div>
-
-        {/* Organization and Stats */}
-        <div className="im-admin-club-stats">
-          {showOrganization && club.organization && (
-            <div className="im-admin-club-org">
-              <svg
-                className="im-admin-club-org-icon"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-              <span className="im-admin-club-org-text">{club.organization.name}</span>
-            </div>
-          )}
         </div>
 
         {/* Badges Section */}
@@ -176,13 +170,6 @@ export function AdminClubCard({ club, showOrganization }: AdminClubCardProps) {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="im-admin-club-card-actions">
-        <IMLink asButton href={`/admin/clubs/${club.id}`} variant="outline" className="w-full">
-          {t("clubs.viewClub")}
-        </IMLink>
       </div>
     </article>
   );
