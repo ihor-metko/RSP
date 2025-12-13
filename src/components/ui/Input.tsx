@@ -11,13 +11,13 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export function Input({ label, className = "", id, type, showPasswordToggle = false, ...props }: InputProps) {
   const [showPassword, setShowPassword] = useState(false);
   const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
-  
+
   const isPasswordType = type === "password";
   const shouldShowToggle = isPasswordType && showPasswordToggle;
   const actualType = isPasswordType && showPassword ? "text" : type;
 
   return (
-    <div className="rsp-input-wrapper">
+    <div className={`rsp-input-wrapper ${className}`.trim()}>
       {label && (
         <label
           htmlFor={inputId}
@@ -27,11 +27,11 @@ export function Input({ label, className = "", id, type, showPasswordToggle = fa
         </label>
       )}
       <div className={shouldShowToggle ? "rsp-input-password-wrapper" : "rsp-input-field-wrapper"}>
-        <input 
-          id={inputId} 
+        <input
+          id={inputId}
           type={actualType}
-          className={`rsp-input ${shouldShowToggle ? "rsp-input--with-toggle" : ""} ${className}`.trim()} 
-          {...props} 
+          className={`rsp-input ${shouldShowToggle ? "rsp-input--with-toggle" : ""} ${className}`.trim()}
+          {...props}
         />
         {shouldShowToggle && (
           <button

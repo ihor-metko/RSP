@@ -57,13 +57,6 @@
   flex-shrink: 0;
 }
 
-/* Search input gets more space */
-.im-list-toolbar-content>*:first-child {
-  min-width: 200px;
-  flex-grow: 1;
-  max-width: 400px;
-}
-
 /* Date range filter needs more width */
 .im-list-toolbar-content>.im-date-range-filter {
   min-width: 320px;
@@ -116,11 +109,6 @@
   .im-list-toolbar-content>* {
     /* Maintain min-widths but allow flexibility */
     min-width: 140px;
-  }
-
-  .im-list-toolbar-content>*:first-child {
-    min-width: 160px;
-    max-width: 300px;
   }
 
   .im-list-toolbar-content>.im-date-range-filter {

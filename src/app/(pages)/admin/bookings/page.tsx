@@ -83,7 +83,7 @@ function calculateDuration(start: string, end: string): number {
 function StatusBadge({ status }: { status: string }) {
   const t = useTranslations();
   const statusClass = `im-booking-status im-booking-status--${status}`;
-  
+
   // Map status to translation key
   const statusLabels: Record<string, string> = {
     pending: t("adminBookings.statusPending"),
@@ -91,10 +91,10 @@ function StatusBadge({ status }: { status: string }) {
     reserved: t("adminBookings.statusReserved"),
     cancelled: t("adminBookings.statusCancelled"),
   };
-  
+
   // Get translated label or use a capitalized version of status as last resort
   const displayText = statusLabels[status] || status.charAt(0).toUpperCase() + status.slice(1);
-  
+
   return <span className={statusClass}>{displayText}</span>;
 }
 
@@ -414,7 +414,7 @@ export default function AdminBookingsPage() {
         />
 
         {/* List Controls Toolbar with consolidated filters */}
-        <ListToolbar 
+        <ListToolbar
           showReset
           actionButton={
             <Button onClick={handleOpenBookingWizard} variant="primary" aria-label={t("adminWizard.title")}>
@@ -422,50 +422,61 @@ export default function AdminBookingsPage() {
             </Button>
           }
         >
-          <ListSearch
-            placeholder={t("adminBookings.searchPlaceholder")}
-            filterKey="searchQuery"
-          />
-
-          <QuickPresets presets={getQuickPresets()} />
-
-          {adminStatus?.adminType === "root_admin" && (
-            <OrgSelector
-              filterKey="organizationFilter"
-              label={t("adminBookings.organization")}
-              placeholder={t("adminBookings.allOrganizations")}
+          <div className="full-row flex w-full gap-4">
+            <ListSearch
+              className="flex-1"
+              placeholder={t("adminBookings.searchPlaceholder")}
+              filterKey="searchQuery"
             />
-          )}
 
-          {adminStatus?.adminType !== "club_admin" && (
-            <ClubSelector
-              filterKey="clubFilter"
-              orgFilterKey="organizationFilter"
-              label={t("adminBookings.club")}
-              placeholder={t("adminBookings.allClubs")}
+            <QuickPresets
+              className="flex-1"
+              presets={getQuickPresets()} />
+          </div>
+
+          <div className="full-row flex w-full gap-4">
+            {adminStatus?.adminType === "root_admin" && (
+              <OrgSelector
+                filterKey="organizationFilter"
+                label={t("adminBookings.organization")}
+                placeholder={t("adminBookings.allOrganizations")}
+              />
+            )}
+
+            {adminStatus?.adminType !== "club_admin" && (
+              <ClubSelector
+                filterKey="clubFilter"
+                orgFilterKey="organizationFilter"
+                label={t("adminBookings.club")}
+                placeholder={t("adminBookings.allClubs")}
+              />
+            )}
+
+            <StatusFilter
+              statuses={statusOptions}
+              filterKey="statusFilter"
+              label={t("common.status")}
+              placeholder={t("common.allStatuses")}
             />
-          )}
+          </div>
 
-          <StatusFilter
-            statuses={statusOptions}
-            filterKey="statusFilter"
-            label={t("common.status")}
-            placeholder={t("common.allStatuses")}
-          />
+          <div className="full-row flex w-full gap-4 items-end">
+            <SortSelect
+              className="flex-1"
+              options={sortOptions}
+              label={t("adminBookings.sortBy")}
+            />
 
-          <DateRangeFilter
-            field="startAt"
-            label={t("adminBookings.dateRange")}
-            fromKey="dateFrom"
-            toKey="dateTo"
-            fromLabel={t("adminBookings.from")}
-            toLabel={t("adminBookings.to")}
-          />
-
-          <SortSelect
-            options={sortOptions}
-            label={t("adminBookings.sortBy")}
-          />
+            <DateRangeFilter
+              className="flex-1"
+              field="startAt"
+              label={t("adminBookings.dateRange")}
+              fromKey="dateFrom"
+              toKey="dateTo"
+              fromLabel={t("adminBookings.from")}
+              toLabel={t("adminBookings.to")}
+            />
+          </div>
         </ListToolbar>
 
         {/* Error message */}
