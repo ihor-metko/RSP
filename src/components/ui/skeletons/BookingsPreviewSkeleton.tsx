@@ -45,9 +45,9 @@ export default function BookingsPreviewSkeleton({
       {/* Bookings Summary */}
       <div className="im-bookings-summary-skeleton">
         {[1, 2, 3].map((index) => (
-          <div key={`summary-skeleton-${index}`} className="im-skeleton im-bookings-summary-skeleton-item">
-            <div className="h-8 w-16 rounded mb-2" />
-            <div className="h-4 w-28 rounded" />
+          <div key={`summary-skeleton-${index}`} className="im-bookings-summary-skeleton-item">
+            <div className="im-skeleton h-8 w-16 rounded mb-2" />
+            <div className="im-skeleton h-4 w-28 rounded" />
           </div>
         ))}
       </div>
@@ -56,16 +56,16 @@ export default function BookingsPreviewSkeleton({
       <div className="im-bookings-preview-skeleton-list">
         <div className="im-skeleton h-5 w-40 rounded mb-4" />
         {Array.from({ length: count }).map((_, index) => (
-          <div key={`booking-skeleton-${index}`} className="im-skeleton im-booking-preview-skeleton-item">
+          <div key={`booking-skeleton-${index}`} className="im-booking-preview-skeleton-item">
             <div className="im-booking-preview-skeleton-info">
-              <div className="h-5 w-56 rounded mb-2" />
-              <div className="h-4 w-40 rounded" />
+              <div className="im-skeleton h-5 w-56 rounded mb-2" />
+              <div className="im-skeleton h-4 w-40 rounded" />
             </div>
             <div className="im-booking-preview-skeleton-time">
-              <div className="h-4 w-24 rounded mb-1" />
-              <div className="h-4 w-32 rounded" />
+              <div className="im-skeleton h-4 w-24 rounded mb-1" />
+              <div className="im-skeleton h-4 w-32 rounded" />
             </div>
-            <div className="h-6 w-20 rounded-full" />
+            <div className="im-skeleton h-6 w-20 rounded-full" />
           </div>
         ))}
       </div>

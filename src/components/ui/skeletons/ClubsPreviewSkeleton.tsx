@@ -42,12 +42,12 @@ export default function ClubsPreviewSkeleton({
       {/* Clubs List */}
       <div className="im-clubs-preview-skeleton-list">
         {Array.from({ length: count }).map((_, index) => (
-          <div key={`club-skeleton-${index}`} className="im-skeleton im-club-preview-skeleton-item">
+          <div key={`club-skeleton-${index}`} className="im-club-preview-skeleton-item">
             <div className="im-club-preview-skeleton-info">
-              <div className="h-5 w-48 rounded mb-2" />
-              <div className="h-4 w-32 rounded" />
+              <div className="im-skeleton h-5 w-48 rounded mb-2" />
+              <div className="im-skeleton h-4 w-32 rounded" />
             </div>
-            <div className="h-6 w-20 rounded-full" />
+            <div className="im-skeleton h-6 w-20 rounded-full" />
           </div>
         ))}
       </div>
