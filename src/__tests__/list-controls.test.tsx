@@ -52,6 +52,26 @@ jest.mock("@/components/ui", () => ({
   },
 }));
 
+// Mock DateInput component for tests
+jest.mock("@/components/ui/DateInput", () => ({
+  DateInput: ({ value, onChange, label, placeholder, "aria-label": ariaLabel, className }: any) => {
+    const inputId = label?.toLowerCase().replace(/\s+/g, "-");
+    return (
+      <div className={className}>
+        {label && <label htmlFor={inputId}>{label}</label>}
+        <input
+          id={inputId}
+          type="date"
+          value={value || ""}
+          onChange={(e) => onChange?.(e.target.value)}
+          placeholder={placeholder}
+          aria-label={ariaLabel || label}
+        />
+      </div>
+    );
+  },
+}));
+
 import {
   ListControllerProvider,
   useListControllerContext,

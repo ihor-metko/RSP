@@ -1,0 +1,211 @@
+@import 'tailwindcss';
+
+/* Custom Calendar - Dark theme compatible with im-* classes */
+.im-calendar {
+  width: 100%;
+  max-width: 320px;
+  padding: 1rem;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Calendar Header */
+.im-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--im-border);
+}
+
+.im-calendar-month-year {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--im-text-primary);
+  text-align: center;
+  flex: 1;
+}
+
+.im-calendar-nav-button {
+  padding: 0.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  color: var(--im-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.im-calendar-nav-button:hover {
+  background-color: var(--im-bg-tertiary);
+  color: var(--im-primary);
+}
+
+.im-calendar-nav-button:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+.im-calendar-nav-button:active {
+  transform: scale(0.95);
+}
+
+/* Week Days */
+.im-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.im-calendar-weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--im-text-secondary);
+  padding: 0.5rem 0;
+}
+
+/* Calendar Days Grid */
+.im-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.im-calendar-day-empty {
+  padding: 0.5rem;
+}
+
+/* Individual Day Button */
+.im-calendar-day {
+  position: relative;
+  padding: 0.5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.375rem;
+  color: var(--im-text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  aspect-ratio: 1;
+}
+
+.im-calendar-day:hover:not(:disabled) {
+  background-color: var(--im-bg-tertiary);
+  border-color: var(--im-border-hover);
+  color: var(--im-primary);
+  transform: scale(1.05);
+}
+
+.im-calendar-day:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+/* Today */
+.im-calendar-day--today {
+  font-weight: 700;
+  border-color: var(--im-primary);
+}
+
+/* Selected Date */
+.im-calendar-day--selected {
+  background-color: var(--im-primary);
+  color: #ffffff;
+  font-weight: 600;
+  border-color: var(--im-primary);
+}
+
+.im-calendar-day--selected:hover {
+  background-color: var(--im-primary-hover);
+  color: #ffffff;
+  border-color: var(--im-primary-hover);
+}
+
+/* Range Boundary (start/end of range) */
+.im-calendar-day--range-boundary {
+  background-color: var(--im-primary);
+  color: #ffffff;
+  font-weight: 600;
+  border-color: var(--im-primary);
+}
+
+.im-calendar-day--range-boundary:hover {
+  background-color: var(--im-primary-hover);
+  color: #ffffff;
+}
+
+/* Date in Range */
+.im-calendar-day--in-range {
+  background-color: rgba(108, 99, 255, 0.1);
+  border-color: transparent;
+}
+
+.dark .im-calendar-day--in-range {
+  background-color: rgba(108, 99, 255, 0.2);
+}
+
+.im-calendar-day--in-range:hover {
+  background-color: rgba(108, 99, 255, 0.2);
+}
+
+.dark .im-calendar-day--in-range:hover {
+  background-color: rgba(108, 99, 255, 0.3);
+}
+
+/* Disabled Date */
+.im-calendar-day--disabled {
+  color: var(--im-text-secondary);
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Dark theme specific adjustments */
+.dark .im-calendar {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .im-calendar {
+    max-width: 100%;
+  }
+  
+  .im-calendar-day {
+    font-size: 0.813rem;
+    min-height: 2.25rem;
+  }
+  
+  .im-calendar-weekday {
+    font-size: 0.688rem;
+  }
+}
+
+/* Animation for month transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.im-calendar-days {
+  animation: fadeIn 0.2s ease-in-out;
+}

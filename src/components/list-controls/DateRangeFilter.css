@@ -26,28 +26,10 @@
   min-width: 0; /* Prevent overflow */
 }
 
-/* Ensure date inputs have consistent styling */
-.im-date-range-inputs input[type="date"] {
-  width: 100%;
-  color: var(--im-text-primary);
-  background-color: var(--im-card-bg);
-  border-color: var(--im-border);
-}
-
-.im-date-range-inputs input[type="date"]:hover {
-  border-color: var(--im-border-hover);
-}
-
-.im-date-range-inputs input[type="date"]:focus {
-  border-color: var(--im-primary);
-  /* Use outline for focus ring to adapt to primary color */
-  outline: 2px solid var(--im-primary);
-  outline-offset: -2px;
-  opacity: 0.8;
-}
-
-.dark .im-date-range-inputs input[type="date"]:focus {
-  opacity: 1;
+/* Date input styling is handled by DateInput.css */
+.im-date-range-inputs .im-date-input-wrapper {
+  flex: 1;
+  min-width: 0;
 }
 
 /* When in toolbar - more compact layout */

@@ -1,0 +1,115 @@
+@import 'tailwindcss';
+
+/* Date Input Wrapper */
+.im-date-input-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.im-date-input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--im-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+/* Date Input Container */
+.im-date-input-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Date Input Field */
+.im-date-input {
+  width: 100%;
+  padding: 0.5rem 2.5rem 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--im-text-primary);
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.im-date-input::placeholder {
+  color: var(--im-text-secondary);
+  opacity: 0.6;
+}
+
+.im-date-input:hover {
+  border-color: var(--im-border-hover);
+}
+
+.im-date-input:focus {
+  outline: none;
+  border-color: var(--im-primary);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+}
+
+.dark .im-date-input:focus {
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+}
+
+/* Calendar Icon */
+.im-date-input-icon {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  color: var(--im-text-secondary);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+}
+
+.im-date-input-icon:hover {
+  color: var(--im-primary);
+  background-color: var(--im-bg-tertiary);
+}
+
+.im-date-input-icon:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+/* Calendar Popup */
+.im-date-input-popup {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 1000;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure popup doesn't get cut off on small screens */
+@media (max-width: 640px) {
+  .im-date-input-popup {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* When used in forms or grids */
+.im-date-input-wrapper + .im-date-input-wrapper {
+  margin-top: 0;
+}

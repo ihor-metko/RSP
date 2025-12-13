@@ -1,6 +1,6 @@
 "use client";
 
-import { Input } from "@/components/ui";
+import { DateInput } from "@/components/ui/DateInput";
 import type { UseListControllerReturn } from "@/hooks/useListController";
 import { useControllerOrContext } from "./ListControllerContext";
 import "./DateRangeFilter.css";
@@ -75,12 +75,12 @@ export function DateRangeFilter<TFilters = Record<string, unknown>>({
   const fromValue = (controller.filters[fromKey] as string) || "";
   const toValue = (controller.filters[toKey] as string) || "";
 
-  const handleFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    controller.setFilter(fromKey, e.target.value as TFilters[keyof TFilters]);
+  const handleFromChange = (date: string) => {
+    controller.setFilter(fromKey, date as TFilters[keyof TFilters]);
   };
 
-  const handleToChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    controller.setFilter(toKey, e.target.value as TFilters[keyof TFilters]);
+  const handleToChange = (date: string) => {
+    controller.setFilter(toKey, date as TFilters[keyof TFilters]);
   };
 
   return (
@@ -89,20 +89,26 @@ export function DateRangeFilter<TFilters = Record<string, unknown>>({
         <span className="im-date-range-label">{label}</span>
       )}
       <div className="im-date-range-inputs">
-        <Input
-          type="date"
+        <DateInput
           value={fromValue}
           onChange={handleFromChange}
           label={fromLabel}
           placeholder={fromLabel}
+          maxDate={toValue || undefined}
+          rangeStart={fromValue}
+          rangeEnd={toValue}
+          isRangeStart={true}
           aria-label={`${field} ${fromLabel}`}
         />
-        <Input
-          type="date"
+        <DateInput
           value={toValue}
           onChange={handleToChange}
           label={toLabel}
           placeholder={toLabel}
+          minDate={fromValue || undefined}
+          rangeStart={fromValue}
+          rangeEnd={toValue}
+          isRangeStart={false}
           aria-label={`${field} ${toLabel}`}
         />
       </div>
