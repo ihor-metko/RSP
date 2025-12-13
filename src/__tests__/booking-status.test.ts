@@ -4,6 +4,8 @@ import {
   shouldMarkAsCompleted,
   getStatusLabel,
   getStatusColorClass,
+  isTerminalStatus,
+  toBookingStatus,
 } from "@/utils/bookingStatus";
 import type { BookingStatus } from "@/types/booking";
 
@@ -234,6 +236,37 @@ describe("Booking Status Utilities", () => {
       expect(getStatusColorClass("completed")).toBe("neutral");
       expect(getStatusColorClass("cancelled")).toBe("danger");
       expect(getStatusColorClass("no-show")).toBe("danger");
+    });
+  });
+
+  describe("isTerminalStatus", () => {
+    it("should return true for terminal statuses", () => {
+      expect(isTerminalStatus("cancelled")).toBe(true);
+      expect(isTerminalStatus("no-show")).toBe(true);
+      expect(isTerminalStatus("completed")).toBe(true);
+    });
+
+    it("should return false for non-terminal statuses", () => {
+      expect(isTerminalStatus("pending")).toBe(false);
+      expect(isTerminalStatus("paid")).toBe(false);
+      expect(isTerminalStatus("reserved")).toBe(false);
+    });
+  });
+
+  describe("toBookingStatus", () => {
+    it("should convert valid status strings to BookingStatus", () => {
+      expect(toBookingStatus("pending")).toBe("pending");
+      expect(toBookingStatus("paid")).toBe("paid");
+      expect(toBookingStatus("reserved")).toBe("reserved");
+      expect(toBookingStatus("cancelled")).toBe("cancelled");
+      expect(toBookingStatus("no-show")).toBe("no-show");
+      expect(toBookingStatus("completed")).toBe("completed");
+    });
+
+    it("should default to 'reserved' for invalid status strings", () => {
+      expect(toBookingStatus("invalid")).toBe("reserved");
+      expect(toBookingStatus("unknown")).toBe("reserved");
+      expect(toBookingStatus("")).toBe("reserved");
     });
   });
 });

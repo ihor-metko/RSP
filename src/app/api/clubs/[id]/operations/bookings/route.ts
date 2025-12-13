@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireClubAdmin, requireOrganizationAdmin } from "@/lib/requireRole";
 import type { OperationsBooking } from "@/types/booking";
-import { calculateBookingStatus } from "@/utils/bookingStatus";
+import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 
 /**
  * GET /api/clubs/[clubId]/operations/bookings
@@ -118,13 +118,12 @@ export async function GET(
     const operationsBookings: OperationsBooking[] = bookings.map((booking) => {
       const startISO = booking.start.toISOString();
       const endISO = booking.end.toISOString();
-      const persistentStatus = booking.status as OperationsBooking["status"];
       
       // Calculate the display status based on time and persistent status
       const displayStatus = calculateBookingStatus(
         startISO,
         endISO,
-        persistentStatus
+        toBookingStatus(booking.status)
       );
 
       return {

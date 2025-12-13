@@ -22,12 +22,7 @@ export function calculateBookingStatus(
   now: Date = new Date()
 ): BookingStatus {
   // If booking has a persistent terminal status, return it
-  if (persistentStatus === "cancelled" || persistentStatus === "no-show") {
-    return persistentStatus;
-  }
-
-  // If booking is marked as completed in DB, return it
-  if (persistentStatus === "completed") {
+  if (isTerminalStatus(persistentStatus)) {
     return persistentStatus;
   }
 
@@ -76,6 +71,16 @@ export function getDynamicStatus(
 }
 
 /**
+ * Check if a status is terminal (cannot be changed by time-based logic)
+ * 
+ * @param status - Booking status to check
+ * @returns true if status is terminal
+ */
+export function isTerminalStatus(status: BookingStatus): boolean {
+  return status === "cancelled" || status === "no-show" || status === "completed";
+}
+
+/**
  * Check if a booking should be marked as completed (for batch processing)
  * Returns true if the booking has ended and is not already in a terminal state
  * 
@@ -95,12 +100,7 @@ export function shouldMarkAsCompleted(
   // Only mark as completed if:
   // 1. The booking has ended
   // 2. It's not already in a terminal state
-  return (
-    currentTime >= endTime &&
-    persistentStatus !== "cancelled" &&
-    persistentStatus !== "no-show" &&
-    persistentStatus !== "completed"
-  );
+  return currentTime >= endTime && !isTerminalStatus(persistentStatus);
 }
 
 /**
@@ -139,4 +139,28 @@ export function getStatusColorClass(status: BookingStatus): string {
     "no-show": "danger",
   };
   return colorMap[status] || "neutral";
+}
+
+/**
+ * Type guard to safely cast string to BookingStatus
+ * 
+ * @param status - Status string from database
+ * @returns The status as BookingStatus type
+ */
+export function toBookingStatus(status: string): BookingStatus {
+  const validStatuses: BookingStatus[] = [
+    "pending",
+    "paid",
+    "reserved",
+    "cancelled",
+    "no-show",
+    "completed",
+  ];
+  
+  if (validStatuses.includes(status as BookingStatus)) {
+    return status as BookingStatus;
+  }
+  
+  // Default to reserved for unknown statuses
+  return "reserved";
 }

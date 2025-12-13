@@ -4,7 +4,7 @@ import {
   requireUserViewPermission,
   UserViewPermission,
 } from "@/lib/userPermissions";
-import { calculateBookingStatus } from "@/utils/bookingStatus";
+import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 
 interface RouteParams {
   params: Promise<{ userId: string }>;
@@ -144,7 +144,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       const displayStatus = calculateBookingStatus(
         booking.start,
         booking.end,
-        booking.status as any
+        toBookingStatus(booking.status)
       );
 
       return {

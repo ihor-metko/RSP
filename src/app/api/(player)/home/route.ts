@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { calculateBookingStatus } from "@/utils/bookingStatus";
+import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 
 /**
  * GET /api/home
@@ -91,7 +91,7 @@ export async function GET() {
       const displayStatus = calculateBookingStatus(
         startISO,
         endISO,
-        booking.status as any
+        toBookingStatus(booking.status)
       );
 
       return {

@@ -3,6 +3,32 @@ import { prisma } from "@/lib/prisma";
 import { shouldMarkAsCompleted } from "@/utils/bookingStatus";
 
 /**
+ * Validate cron authentication
+ * 
+ * @param request - The incoming request
+ * @returns true if authenticated, false otherwise
+ */
+function validateCronAuth(request: Request): boolean {
+  const cronSecret = process.env.CRON_SECRET;
+  
+  // If no secret is configured, allow access (development mode)
+  if (!cronSecret) {
+    return true;
+  }
+
+  // Validate secret format
+  if (cronSecret.length < 32) {
+    console.error("[Cron] CRON_SECRET is too short. Minimum length is 32 characters.");
+    return false;
+  }
+
+  const authHeader = request.headers.get("authorization");
+  const providedSecret = authHeader?.replace("Bearer ", "");
+
+  return providedSecret === cronSecret;
+}
+
+/**
  * POST /api/cron/update-booking-statuses
  * 
  * Cron job endpoint to update persistent booking statuses.
@@ -17,18 +43,12 @@ import { shouldMarkAsCompleted } from "@/utils/bookingStatus";
  */
 export async function POST(request: Request) {
   try {
-    // Verify cron secret if configured
-    const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret) {
-      const authHeader = request.headers.get("authorization");
-      const providedSecret = authHeader?.replace("Bearer ", "");
-      
-      if (providedSecret !== cronSecret) {
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        );
-      }
+    // Verify cron authentication
+    if (!validateCronAuth(request)) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
     const now = new Date();
@@ -106,18 +126,12 @@ export async function POST(request: Request) {
  */
 export async function GET(request: Request) {
   try {
-    // Verify cron secret if configured
-    const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret) {
-      const authHeader = request.headers.get("authorization");
-      const providedSecret = authHeader?.replace("Bearer ", "");
-      
-      if (providedSecret !== cronSecret) {
-        return NextResponse.json(
-          { error: "Unauthorized" },
-          { status: 401 }
-        );
-      }
+    // Verify cron authentication
+    if (!validateCronAuth(request)) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
     const now = new Date();

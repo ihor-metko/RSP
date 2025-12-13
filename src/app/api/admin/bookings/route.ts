@@ -5,7 +5,7 @@ import type { Prisma } from "@prisma/client";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetBookings } from "@/services/mockApiHandlers";
-import { calculateBookingStatus } from "@/utils/bookingStatus";
+import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 
 /**
  * Booking status type
@@ -228,7 +228,7 @@ export async function GET(
       const displayStatus = calculateBookingStatus(
         startISO,
         endISO,
-        booking.status as AdminBookingResponse["status"]
+        toBookingStatus(booking.status)
       );
 
       return {
