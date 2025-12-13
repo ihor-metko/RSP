@@ -447,6 +447,65 @@
   @apply h-5 w-96 rounded;
 }
 
+/* ===== OrgInfoCardSkeleton Styles ===== */
+.im-org-info-skeleton-grid {
+  @apply grid gap-4 mt-4;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.im-org-info-skeleton-item {
+  @apply space-y-2;
+}
+
+.im-skeleton-icon--round {
+  @apply rounded-full;
+}
+
+/* ===== ClubsPreviewSkeleton Styles ===== */
+.im-clubs-preview-skeleton-list {
+  @apply space-y-3 mt-4;
+}
+
+.im-club-preview-skeleton-item {
+  @apply flex items-center justify-between p-4 rounded-lg;
+  background-color: var(--im-skeleton-base-color);
+  opacity: 0.5;
+}
+
+.im-club-preview-skeleton-info {
+  @apply flex-1;
+}
+
+/* ===== BookingsPreviewSkeleton Styles ===== */
+.im-bookings-summary-skeleton {
+  @apply grid gap-4 mt-4;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.im-bookings-summary-skeleton-item {
+  @apply text-center p-4 rounded-lg;
+  background-color: var(--im-skeleton-base-color);
+  opacity: 0.3;
+}
+
+.im-bookings-preview-skeleton-list {
+  @apply space-y-3 mt-6;
+}
+
+.im-booking-preview-skeleton-item {
+  @apply flex items-center gap-4 p-4 rounded-lg;
+  background-color: var(--im-skeleton-base-color);
+  opacity: 0.5;
+}
+
+.im-booking-preview-skeleton-info {
+  @apply flex-1;
+}
+
+.im-booking-preview-skeleton-time {
+  @apply text-right;
+}
+
 /* ===== Responsive Adjustments ===== */
 @media (max-width: 767px) {
   .im-metric-card-skeleton {
@@ -476,5 +535,17 @@
 
   .im-table-skeleton-cell-content {
     max-width: 150px;
+  }
+
+  .im-org-info-skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .im-booking-preview-skeleton-item {
+    @apply flex-col items-start;
+  }
+
+  .im-booking-preview-skeleton-time {
+    @apply text-left w-full;
   }
 }
