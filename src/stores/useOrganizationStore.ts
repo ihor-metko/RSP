@@ -6,6 +6,29 @@ import type {
 } from "@/types/organization";
 
 /**
+ * Admin management payloads
+ */
+export interface AddAdminPayload {
+  organizationId: string;
+  createNew: boolean;
+  userId?: string;
+  name?: string;
+  email?: string;
+  password?: string;
+  setAsPrimaryOwner?: boolean;
+}
+
+export interface RemoveAdminPayload {
+  organizationId: string;
+  userId: string;
+}
+
+export interface ChangeOwnerPayload {
+  organizationId: string;
+  userId: string;
+}
+
+/**
  * Organization store state
  */
 interface OrganizationState {
@@ -27,6 +50,11 @@ interface OrganizationState {
   updateOrganization: (id: string, payload: UpdateOrganizationPayload) => Promise<Organization>;
   deleteOrganization: (id: string, confirmOrgSlug?: string) => Promise<void>;
   refetch: () => Promise<void>;
+
+  // Admin management actions
+  addAdmin: (payload: AddAdminPayload) => Promise<void>;
+  removeAdmin: (payload: RemoveAdminPayload) => Promise<void>;
+  changeOwner: (payload: ChangeOwnerPayload) => Promise<void>;
 
   // Selectors
   getOrganizationById: (id: string) => Organization | undefined;
@@ -226,6 +254,75 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   refetch: async () => {
     const { fetchOrganizations } = get();
     await fetchOrganizations(true);
+  },
+
+  // Add an admin to an organization
+  addAdmin: async (payload: AddAdminPayload) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch("/api/admin/organizations/assign-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Failed to add admin" }));
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      set({ loading: false });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to add admin";
+      set({ error: errorMessage, loading: false });
+      throw error;
+    }
+  },
+
+  // Remove an admin from an organization
+  removeAdmin: async (payload: RemoveAdminPayload) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch("/api/admin/organizations/remove-admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Failed to remove admin" }));
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      set({ loading: false });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to remove admin";
+      set({ error: errorMessage, loading: false });
+      throw error;
+    }
+  },
+
+  // Change the primary owner of an organization
+  changeOwner: async (payload: ChangeOwnerPayload) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch("/api/admin/organizations/set-owner", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Failed to change owner" }));
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      set({ loading: false });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to change owner";
+      set({ error: errorMessage, loading: false });
+      throw error;
+    }
   },
 
   // Selector: Get organization by ID from the store

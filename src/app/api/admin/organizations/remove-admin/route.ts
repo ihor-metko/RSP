@@ -101,6 +101,14 @@ export async function POST(request: Request) {
 
     // Check if this is the primary owner
     if (targetMembership.isPrimaryOwner) {
+      // Only root admin can remove the primary owner
+      if (!isRoot) {
+        return NextResponse.json(
+          { error: "Only root admin can remove the organization owner" },
+          { status: 403 }
+        );
+      }
+
       // Count remaining admins
       const adminCount = await prisma.membership.count({
         where: {
@@ -116,7 +124,7 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
-      // If only one admin remains (the owner), they can be removed
+      // If only one admin remains (the owner), they can be removed by root admin
     }
 
     // Delete the membership

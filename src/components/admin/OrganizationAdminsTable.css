@@ -1,0 +1,116 @@
+/* Organization Admins Table - Redesigned Styles */
+
+.im-org-admins-section {
+  @apply mb-0;
+}
+
+/* Admin List - Modern Card-based Layout */
+.im-admins-list {
+  @apply flex flex-col gap-3;
+}
+
+/* Admin Row - Card Style */
+.im-admin-row {
+  @apply flex items-center gap-4 p-4 rounded-lg;
+  background-color: var(--im-background);
+  border: 1px solid var(--im-border);
+  transition: all 0.2s ease;
+}
+
+.im-admin-row:hover {
+  border-color: var(--im-primary);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dark .im-admin-row:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Avatar */
+.im-admin-avatar {
+  @apply flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 text-sm font-bold;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  transition: transform 0.2s ease;
+}
+
+.im-admin-row:hover .im-admin-avatar {
+  transform: scale(1.1);
+}
+
+/* Admin Info */
+.im-admin-info {
+  @apply flex flex-col flex-1 min-w-0;
+  gap: 0.25rem;
+}
+
+.im-admin-name-row {
+  @apply flex items-center gap-2 flex-wrap;
+}
+
+.im-admin-name {
+  @apply font-semibold text-base truncate;
+  color: var(--im-foreground);
+}
+
+.im-admin-email {
+  @apply text-sm truncate;
+  color: var(--im-muted);
+}
+
+.im-admin-meta {
+  @apply text-xs;
+  color: var(--im-muted);
+}
+
+/* Admin Actions */
+.im-admin-actions {
+  @apply flex gap-2 flex-shrink-0;
+}
+
+/* Empty State */
+.im-empty-state {
+  @apply py-12 text-center;
+  color: var(--im-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .im-admin-row {
+    @apply flex-col items-start gap-3;
+  }
+
+  .im-admin-avatar {
+    @apply w-10 h-10 text-xs;
+  }
+
+  .im-admin-info {
+    @apply w-full;
+  }
+
+  .im-admin-actions {
+    @apply w-full flex-col;
+  }
+
+  .im-admin-actions button {
+    @apply w-full;
+  }
+}
+
+/* Modal Styles */
+.im-modal-description {
+  @apply text-sm mb-4;
+  color: var(--im-muted);
+}
+
+/* User Name Display in List */
+.im-user-name {
+  @apply font-medium;
+  color: var(--im-foreground);
+}
+
+.im-user-email {
+  @apply text-sm;
+  color: var(--im-muted);
+}

@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Modal, Input } from "@/components/ui";
+import { Button, Modal, Input, Badge, Tooltip } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { UserProfileModal } from "./UserProfileModal";
+import "./OrganizationAdminsTable.css";
 
 interface OrgAdmin {
   id: string;
@@ -32,6 +34,9 @@ export default function OrganizationAdminsTable({
   const t = useTranslations();
   const user = useUserStore((state) => state.user);
   const isRoot = user?.isRoot ?? false;
+  const addAdmin = useOrganizationStore((state) => state.addAdmin);
+  const removeAdmin = useOrganizationStore((state) => state.removeAdmin);
+  const changeOwner = useOrganizationStore((state) => state.changeOwner);
 
   // Add admin modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -106,16 +111,7 @@ export default function OrganizationAdminsTable({
               userId: selectedUserId,
             };
 
-      const response = await fetch("/api/admin/organizations/assign-admin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to assign admin");
-      }
+      await addAdmin(payload);
 
       showToast(t("orgAdmins.adminAdded"), "success");
       setIsAddModalOpen(false);
@@ -140,19 +136,10 @@ export default function OrganizationAdminsTable({
     setChangingOwner(true);
 
     try {
-      const response = await fetch("/api/admin/organizations/set-owner", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationId: orgId,
-          userId: selectedOwnerId,
-        }),
+      await changeOwner({
+        organizationId: orgId,
+        userId: selectedOwnerId,
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to change owner");
-      }
 
       showToast(t("orgAdmins.ownerChanged"), "success");
       setIsChangeOwnerModalOpen(false);
@@ -180,19 +167,10 @@ export default function OrganizationAdminsTable({
     setRemoving(true);
 
     try {
-      const response = await fetch("/api/admin/organizations/remove-admin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationId: orgId,
-          userId: adminToRemove.userId,
-        }),
+      await removeAdmin({
+        organizationId: orgId,
+        userId: adminToRemove.userId,
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to remove admin");
-      }
 
       showToast(t("orgAdmins.adminRemoved"), "success");
       setIsRemoveModalOpen(false);
@@ -226,10 +204,39 @@ export default function OrganizationAdminsTable({
   const isOwner = primaryOwner?.userId === user?.id;
   const canManageAdmins = isRoot || isOwner;
 
+  // Check if user can modify a specific admin
+  const canModifyAdmin = (admin: OrgAdmin) => {
+    // Root Admin can modify anyone
+    if (isRoot) return true;
+    
+    // Owner cannot be modified by non-root users (including by owner themselves in some cases)
+    if (admin.isPrimaryOwner) {
+      // Owner can only remove themselves if they want to transfer ownership first
+      return false;
+    }
+    
+    // Organization Owner can modify other admins
+    if (isOwner) return true;
+    
+    return false;
+  };
+
   // Handle view profile
   const handleViewProfile = (userId: string) => {
     setSelectedAdminUserId(userId);
     setIsViewProfileModalOpen(true);
+  };
+
+  // Get initials for avatar
+  const getInitials = (name: string | null, email: string) => {
+    if (name) {
+      const parts = name.split(" ");
+      if (parts.length >= 2) {
+        return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+      }
+      return name.substring(0, 2).toUpperCase();
+    }
+    return email.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -239,6 +246,14 @@ export default function OrganizationAdminsTable({
       )}
 
       <div className="im-section-header">
+        <div className="im-section-icon im-section-icon--admins">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+        </div>
         <h3 className="im-section-title">{t("orgAdmins.title")}</h3>
         <div className="im-section-actions">
           {canManageAdmins && (
@@ -263,62 +278,70 @@ export default function OrganizationAdminsTable({
       {admins.length === 0 ? (
         <p className="im-empty-state">{t("orgAdmins.noAdmins")}</p>
       ) : (
-        <div className="im-table-container">
-          <table className="im-table">
-            <thead>
-              <tr>
-                <th>{t("common.name")}</th>
-                <th>{t("common.email")}</th>
-                <th>{t("orgAdmins.role")}</th>
-                <th>{t("orgAdmins.lastLogin")}</th>
-                <th>{t("common.actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {admins.map((admin) => (
-                <tr key={admin.id}>
-                  <td>{admin.userName || admin.userEmail}</td>
-                  <td>{admin.userEmail}</td>
-                  <td>
-                    {admin.isPrimaryOwner ? (
-                      <span className="im-badge im-badge--primary">
+        <div className="im-admins-list">
+          {admins.map((admin) => {
+            const canModify = canModifyAdmin(admin);
+            const tooltipMessage = !canModify && admin.isPrimaryOwner
+              ? t("orgAdmins.ownerProtectionTooltip")
+              : "";
+
+            return (
+              <div key={admin.id} className="im-admin-row">
+                <div className="im-admin-avatar">
+                  {getInitials(admin.userName, admin.userEmail)}
+                </div>
+                <div className="im-admin-info">
+                  <div className="im-admin-name-row">
+                    <span className="im-admin-name">
+                      {admin.userName || admin.userEmail}
+                    </span>
+                    {admin.isPrimaryOwner && (
+                      <Badge variant="success" size="small">
                         {t("orgAdmins.owner")}
-                      </span>
-                    ) : (
-                      <span className="im-badge im-badge--secondary">
-                        {t("orgAdmins.orgAdmin")}
-                      </span>
+                      </Badge>
                     )}
-                  </td>
-                  <td>
+                  </div>
+                  <span className="im-admin-email">{admin.userEmail}</span>
+                  <span className="im-admin-meta">
+                    {t("orgAdmins.lastLogin")}:{" "}
                     {admin.lastLoginAt
                       ? new Date(admin.lastLoginAt).toLocaleDateString()
                       : t("common.never")}
-                  </td>
-                  <td>
-                    <div className="flex gap-2">
-                      <Button
-                        size="small"
-                        variant="outline"
-                        onClick={() => handleViewProfile(admin.userId)}
-                      >
-                        {t("common.viewProfile")}
-                      </Button>
-                      {canManageAdmins && (
+                  </span>
+                </div>
+                <div className="im-admin-actions">
+                  <Button
+                    size="small"
+                    variant="outline"
+                    onClick={() => handleViewProfile(admin.userId)}
+                  >
+                    {t("common.viewProfile")}
+                  </Button>
+                  {canModify ? (
+                    <Button
+                      size="small"
+                      variant="danger"
+                      onClick={() => handleOpenRemoveModal(admin)}
+                    >
+                      {t("common.remove")}
+                    </Button>
+                  ) : (
+                    <Tooltip content={tooltipMessage}>
+                      <span>
                         <Button
                           size="small"
                           variant="danger"
-                          onClick={() => handleOpenRemoveModal(admin)}
+                          disabled
                         >
                           {t("common.remove")}
                         </Button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      </span>
+                    </Tooltip>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
