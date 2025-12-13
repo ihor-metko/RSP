@@ -83,11 +83,12 @@
 
 /* Calendar Popup */
 .im-date-input-popup {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 0;
-  z-index: 1000;
   animation: slideDown 0.2s ease-out;
+}
+
+/* Portal-rendered popup */
+.im-date-input-popup-portal {
+  z-index: 9999;
 }
 
 @keyframes slideDown {
@@ -98,14 +99,6 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-/* Ensure popup doesn't get cut off on small screens */
-@media (max-width: 640px) {
-  .im-date-input-popup {
-    left: 50%;
-    transform: translateX(-50%);
   }
 }
 

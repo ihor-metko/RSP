@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, ReactNode, useId } from "react";
+import { Portal } from "./Portal";
+import { useDropdownPosition } from "@/hooks/useDropdownPosition";
 import "./Select.css";
 
 export interface SelectOption {
@@ -40,12 +42,22 @@ export function Select({
   const [open, setOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
   const generatedId = useId();
   const selectId = id || generatedId;
   const listboxId = `${selectId}-listbox`;
 
   const selectedOption = options.find((o) => o.value === value);
+
+  // Calculate dropdown position
+  const dropdownPosition = useDropdownPosition({
+    triggerRef,
+    isOpen: open,
+    offset: 4,
+    maxHeight: 300,
+    matchWidth: true,
+  });
 
   const toggleOpen = useCallback(() => {
     if (!disabled) {
@@ -160,6 +172,7 @@ export function Select({
         </label>
       )}
       <div
+        ref={triggerRef}
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -187,39 +200,48 @@ export function Select({
         </span>
         <span className={`im-arrow ${open ? "im-open" : ""}`} aria-hidden="true" />
       </div>
-      {open && (
-        <ul
-          ref={listboxRef}
-          id={listboxId}
-          role="listbox"
-          aria-labelledby={label ? `${selectId}-label` : undefined}
-          className="im-select-options"
-        >
-          {options.map((option, index) => {
-            const isSelected = value === option.value;
-            const isFocused = index === focusedIndex;
-            
-            return (
-              <li
-                key={option.value}
-                id={`${selectId}-option-${index}`}
-                role="option"
-                aria-selected={isSelected}
-                aria-disabled={option.disabled}
-                className={`im-select-option ${isSelected ? "im-selected" : ""} ${isFocused ? "im-focused" : ""} ${option.disabled ? "im-disabled" : ""}`}
-                onClick={() => !option.disabled && handleSelect(option.value)}
-                onMouseEnter={() => setFocusedIndex(index)}
-              >
-                {option.icon && (
-                  <span className="im-select-option-icon" aria-hidden="true">
-                    {option.icon}
-                  </span>
-                )}
-                <span className="im-select-option-label">{option.label}</span>
-              </li>
-            );
-          })}
-        </ul>
+      {open && dropdownPosition && (
+        <Portal>
+          <ul
+            ref={listboxRef}
+            id={listboxId}
+            role="listbox"
+            aria-labelledby={label ? `${selectId}-label` : undefined}
+            className="im-select-options im-select-options-portal"
+            style={{
+              position: 'fixed',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+              maxHeight: `${dropdownPosition.maxHeight}px`,
+            }}
+          >
+            {options.map((option, index) => {
+              const isSelected = value === option.value;
+              const isFocused = index === focusedIndex;
+              
+              return (
+                <li
+                  key={option.value}
+                  id={`${selectId}-option-${index}`}
+                  role="option"
+                  aria-selected={isSelected}
+                  aria-disabled={option.disabled}
+                  className={`im-select-option ${isSelected ? "im-selected" : ""} ${isFocused ? "im-focused" : ""} ${option.disabled ? "im-disabled" : ""}`}
+                  onClick={() => !option.disabled && handleSelect(option.value)}
+                  onMouseEnter={() => setFocusedIndex(index)}
+                >
+                  {option.icon && (
+                    <span className="im-select-option-icon" aria-hidden="true">
+                      {option.icon}
+                    </span>
+                  )}
+                  <span className="im-select-option-label">{option.label}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </Portal>
       )}
     </div>
   );
