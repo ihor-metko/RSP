@@ -258,7 +258,7 @@ describe("ListToolbar", () => {
     expect(screen.getByText("Clear")).toBeInTheDocument();
   });
 
-  it("should hide reset button when no filters are active", () => {
+  it("should show reset button as disabled when no filters are active", () => {
     const controller = createMockController({
       filters: { search: "" } as any,
     });
@@ -269,7 +269,9 @@ describe("ListToolbar", () => {
       </ListToolbar>
     );
 
-    expect(screen.queryByText("Clear")).not.toBeInTheDocument();
+    const clearButton = screen.getByText("Clear");
+    expect(clearButton).toBeInTheDocument();
+    expect(clearButton).toBeDisabled();
   });
 
   it("should call clearFilters when reset button is clicked", () => {
@@ -285,6 +287,22 @@ describe("ListToolbar", () => {
 
     fireEvent.click(screen.getByText("Clear Filters"));
     expect(controller.clearFilters).toHaveBeenCalled();
+  });
+
+  it("should not call clearFilters when disabled reset button is clicked", () => {
+    const controller = createMockController({
+      filters: { search: "" } as any,
+    });
+
+    render(
+      <ListToolbar controller={controller} showReset>
+        <div>Filters</div>
+      </ListToolbar>
+    );
+
+    const clearButton = screen.getByText("Clear Filters");
+    fireEvent.click(clearButton);
+    expect(controller.clearFilters).not.toHaveBeenCalled();
   });
 
   it("should call custom onReset when provided", () => {
@@ -326,14 +344,15 @@ describe("ListToolbar", () => {
 
     const searchInput = screen.getByPlaceholderText("Search...");
     const presetButton = screen.getByText("Active Last 30 Days");
-    const clearButton = screen.queryByText("Clear Filters");
+    const clearButton = screen.getByText("Clear Filters");
 
     // Elements should be focusable
     expect(searchInput).not.toBeDisabled();
     expect(presetButton).not.toBeDisabled();
     
-    // Clear button should not be present when no filters are active
-    expect(clearButton).not.toBeInTheDocument();
+    // Clear button should be present but disabled when no filters are active
+    expect(clearButton).toBeInTheDocument();
+    expect(clearButton).toBeDisabled();
   });
 
   it("should render action button when provided", () => {
@@ -418,8 +437,10 @@ describe("ListToolbar", () => {
 
     // Action button should be present
     expect(screen.getByText("Create")).toBeInTheDocument();
-    // Reset button should not be present (no active filters)
-    expect(screen.queryByText("Clear Filters")).not.toBeInTheDocument();
+    // Reset button should be present but disabled (no active filters)
+    const clearButton = screen.getByText("Clear Filters");
+    expect(clearButton).toBeInTheDocument();
+    expect(clearButton).toBeDisabled();
   });
 
   it("should work without action button (backwards compatible)", () => {

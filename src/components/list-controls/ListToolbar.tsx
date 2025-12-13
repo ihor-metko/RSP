@@ -43,13 +43,14 @@ function XIcon() {
  *
  * Features:
  * - Consistent horizontal layout for filters
- * - Automatic reset/clear filters button when filters are active
+ * - Reset/clear filters button (always visible when enabled, disabled when no filters active)
  * - Detects active filters automatically
  * - Integrates seamlessly with useListController
  * - Responsive layout (stacks on mobile)
  * - Consistent im-* styling for dark theme support
  * - Compact mode for tighter layouts
  * - Proper spacing and alignment for all child controls
+ * - Vertical stacked layout for action buttons (prevents layout shifting)
  *
  * Usage:
  * Wrap all your filter components (ListSearch, Select, DateRangeFilter, etc.)
@@ -131,10 +132,15 @@ export function ListToolbar<TFilters = Record<string, unknown>>({
         {children}
       </div>
 
-      {((showReset && hasActiveFilters) || actionButton) && (
+      {(showReset || actionButton) && (
         <div className="im-list-toolbar-actions">
-          {showReset && hasActiveFilters && (
-            <Button variant="outline" size="small" onClick={handleReset}>
+          {showReset && (
+            <Button 
+              variant="outline" 
+              size="small" 
+              onClick={handleReset}
+              disabled={!hasActiveFilters}
+            >
               <XIcon />
               {resetLabel}
             </Button>
