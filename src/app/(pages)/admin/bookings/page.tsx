@@ -429,20 +429,6 @@ export default function AdminBookingsPage() {
 
           <QuickPresets presets={getQuickPresets()} />
 
-          <DateRangeFilter
-            field="startAt"
-            label={t("adminBookings.dateRange")}
-            fromKey="dateFrom"
-            toKey="dateTo"
-            fromLabel={t("adminBookings.from")}
-            toLabel={t("adminBookings.to")}
-          />
-
-          <SortSelect
-            options={sortOptions}
-            label={t("adminBookings.sortBy")}
-          />
-
           {adminStatus?.adminType === "root_admin" && (
             <OrgSelector
               filterKey="organizationFilter"
@@ -465,6 +451,20 @@ export default function AdminBookingsPage() {
             filterKey="statusFilter"
             label={t("common.status")}
             placeholder={t("common.allStatuses")}
+          />
+
+          <DateRangeFilter
+            field="startAt"
+            label={t("adminBookings.dateRange")}
+            fromKey="dateFrom"
+            toKey="dateTo"
+            fromLabel={t("adminBookings.from")}
+            toLabel={t("adminBookings.to")}
+          />
+
+          <SortSelect
+            options={sortOptions}
+            label={t("adminBookings.sortBy")}
           />
         </ListToolbar>
 

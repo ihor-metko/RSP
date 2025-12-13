@@ -342,16 +342,20 @@ export default function AdminUsersPage() {
                 },
               ]}
             />
-
-            <DateRangeFilter
-              field={filters.dateRangeField}
-              label={t("users.dateRange.createdAt")}
-              fromKey="dateFrom"
-              toKey="dateTo"
-              fromLabel={t("users.dateRange.from")}
-              toLabel={t("users.dateRange.to")}
+            
+            <OrgSelector
+              filterKey="organizationFilter"
+              label={t("users.filterByOrganization")}
+              placeholder={t("users.allOrganizations")}
             />
             
+            <ClubSelector
+              filterKey="clubFilter"
+              orgFilterKey="organizationFilter"
+              label={t("users.filterByClub")}
+              placeholder={t("users.allClubs")}
+            />
+
             <RoleFilter
               filterKey="roleFilter"
               label={t("users.filterByRole")}
@@ -374,18 +378,14 @@ export default function AdminUsersPage() {
                 { value: "deleted", label: t("users.status.deleted") },
               ]}
             />
-            
-            <OrgSelector
-              filterKey="organizationFilter"
-              label={t("users.filterByOrganization")}
-              placeholder={t("users.allOrganizations")}
-            />
-            
-            <ClubSelector
-              filterKey="clubFilter"
-              orgFilterKey="organizationFilter"
-              label={t("users.filterByClub")}
-              placeholder={t("users.allClubs")}
+
+            <DateRangeFilter
+              field={filters.dateRangeField}
+              label={t("users.dateRange.createdAt")}
+              fromKey="dateFrom"
+              toKey="dateTo"
+              fromLabel={t("users.dateRange.from")}
+              toLabel={t("users.dateRange.to")}
             />
           </ListToolbar>
         </ListControllerProvider>

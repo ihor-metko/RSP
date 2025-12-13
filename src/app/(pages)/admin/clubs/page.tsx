@@ -185,19 +185,6 @@ export default function AdminClubsPage() {
               />
             )}
 
-            {cities.length > 0 && (
-              <Select
-                label={t("admin.clubs.filterByCity")}
-                options={[
-                  { value: "", label: t("admin.clubs.allCities") },
-                  ...cities.map((city) => ({ value: city, label: city })),
-                ]}
-                value={controller.filters.selectedCity}
-                onChange={(value) => controller.setFilter("selectedCity", value)}
-                aria-label={t("admin.clubs.filterByCity")}
-              />
-            )}
-
             <Select
               label={t("admin.clubs.filterByStatus")}
               options={[
@@ -224,6 +211,19 @@ export default function AdminClubsPage() {
               onChange={(value) => controller.setFilter("selectedSportType", value)}
               aria-label={t("admin.clubs.filterBySport")}
             />
+
+            {cities.length > 0 && (
+              <Select
+                label={t("admin.clubs.filterByCity")}
+                options={[
+                  { value: "", label: t("admin.clubs.allCities") },
+                  ...cities.map((city) => ({ value: city, label: city })),
+                ]}
+                value={controller.filters.selectedCity}
+                onChange={(value) => controller.setFilter("selectedCity", value)}
+                aria-label={t("admin.clubs.filterByCity")}
+              />
+            )}
 
             <SortSelect
               options={sortOptions}
