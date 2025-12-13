@@ -115,11 +115,12 @@ export default function AdminCourtsPage() {
     if (!controller.isLoaded) return;
 
     // Check if filters are already set (from localStorage or user interaction)
+    const filters = controller.filters;
     const hasExistingFilters = 
-      controller.filters.statusFilter !== "" ||
-      controller.filters.surfaceTypeFilter !== "" ||
-      controller.filters.organizationFilter !== "" ||
-      controller.filters.clubFilter !== "";
+      filters.statusFilter !== "" ||
+      filters.surfaceTypeFilter !== "" ||
+      filters.organizationFilter !== "" ||
+      filters.clubFilter !== "";
 
     if (hasExistingFilters) {
       // Mark as applied if filters already exist (from localStorage)
@@ -149,7 +150,7 @@ export default function AdminCourtsPage() {
 
     controller.setFilters(preSelectedFilters);
     preSelectedFiltersAppliedRef.current = true;
-  }, [adminStatus, isLoadingStore, controller]);
+  }, [adminStatus, isLoadingStore, controller.isLoaded, controller.filters, controller.setFilters]);
 
   // Admin status is loaded from store via UserStoreInitializer
   const fetchCourts = useCallback(async () => {
