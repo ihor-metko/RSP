@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { CustomCalendar } from "./CustomCalendar";
+import { Portal } from "./Portal";
+import { useDropdownPosition } from "@/hooks/useDropdownPosition";
 import "./DateInput.css";
 
 interface DateInputProps {
@@ -60,7 +62,17 @@ export function DateInput({
 }: DateInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Calculate dropdown position
+  const dropdownPosition = useDropdownPosition({
+    triggerRef: inputContainerRef,
+    isOpen,
+    offset: 8,
+    maxHeight: 400,
+    matchWidth: false,
+  });
 
   // Format date for display (e.g., "Jan 15, 2024")
   const formatDisplayDate = (dateStr: string): string => {
@@ -143,7 +155,7 @@ export function DateInput({
           {label}
         </label>
       )}
-      <div className="im-date-input-container">
+      <div ref={inputContainerRef} className="im-date-input-container">
         <input
           ref={inputRef}
           id={inputId}
@@ -174,9 +186,20 @@ export function DateInput({
             <line x1="3" y1="10" x2="21" y2="10"></line>
           </svg>
         </button>
+      </div>
         
-        {isOpen && (
-          <div className="im-date-input-popup" id={`${inputId}-calendar`}>
+      {isOpen && dropdownPosition && (
+        <Portal>
+          <div 
+            className="im-date-input-popup im-date-input-popup-portal" 
+            id={`${inputId}-calendar`}
+            style={{
+              position: 'fixed',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 9999,
+            }}
+          >
             <CustomCalendar
               value={value}
               onChange={handleCalendarChange}
@@ -188,8 +211,8 @@ export function DateInput({
               ariaLabel={ariaLabel || label || "Calendar"}
             />
           </div>
-        )}
-      </div>
+        </Portal>
+      )}
     </div>
   );
 }

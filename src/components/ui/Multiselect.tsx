@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { Portal } from "./Portal";
+import { useDropdownPosition } from "@/hooks/useDropdownPosition";
 import "./Multiselect.css";
 
 export interface MultiselectOption {
@@ -37,6 +39,7 @@ export function Multiselect({
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
   const listboxRef = useRef<HTMLDivElement>(null);
   const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
   const listboxId = `${selectId}-listbox`;
@@ -44,6 +47,15 @@ export function Multiselect({
   const selectedLabels = options
     .filter((opt) => value.includes(opt.value))
     .map((opt) => opt.label);
+
+  // Calculate dropdown position
+  const dropdownPosition = useDropdownPosition({
+    triggerRef,
+    isOpen,
+    offset: 4,
+    maxHeight: 240,
+    matchWidth: true,
+  });
 
   const handleToggle = () => {
     if (!disabled) {
@@ -154,6 +166,7 @@ export function Multiselect({
         </label>
       )}
       <div
+        ref={triggerRef}
         role="combobox"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
@@ -189,57 +202,66 @@ export function Multiselect({
         </span>
       </div>
 
-      {isOpen && (
-        <div
-          ref={listboxRef}
-          id={listboxId}
-          role="listbox"
-          aria-multiselectable="true"
-          aria-labelledby={label ? `${selectId}-label` : undefined}
-          className="rsp-multiselect-dropdown"
-        >
-          {options.map((option, index) => {
-            const isSelected = value.includes(option.value);
-            const isFocused = index === focusedIndex;
-            
-            return (
-              <div
-                key={option.value}
-                role="option"
-                aria-selected={isSelected}
-                aria-disabled={option.disabled}
-                tabIndex={-1}
-                className={`rsp-multiselect-option ${isSelected ? "rsp-multiselect-option--selected" : ""} ${isFocused ? "rsp-multiselect-option--focused" : ""} ${option.disabled ? "rsp-multiselect-option--disabled" : ""}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOptionToggle(option.value, option.disabled);
-                }}
-                onMouseEnter={() => setFocusedIndex(index)}
-              >
-                <span className="rsp-multiselect-checkbox" aria-hidden="true">
-                  {isSelected && (
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 10 10"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M1.5 5L4 7.5L8.5 2.5"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  )}
-                </span>
-                <span className="rsp-multiselect-option-label">{option.label}</span>
-              </div>
-            );
-          })}
-        </div>
+      {isOpen && dropdownPosition && (
+        <Portal>
+          <div
+            ref={listboxRef}
+            id={listboxId}
+            role="listbox"
+            aria-multiselectable="true"
+            aria-labelledby={label ? `${selectId}-label` : undefined}
+            className="rsp-multiselect-dropdown rsp-multiselect-dropdown-portal"
+            style={{
+              position: 'fixed',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`,
+              maxHeight: `${dropdownPosition.maxHeight}px`,
+            }}
+          >
+            {options.map((option, index) => {
+              const isSelected = value.includes(option.value);
+              const isFocused = index === focusedIndex;
+              
+              return (
+                <div
+                  key={option.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  aria-disabled={option.disabled}
+                  tabIndex={-1}
+                  className={`rsp-multiselect-option ${isSelected ? "rsp-multiselect-option--selected" : ""} ${isFocused ? "rsp-multiselect-option--focused" : ""} ${option.disabled ? "rsp-multiselect-option--disabled" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOptionToggle(option.value, option.disabled);
+                  }}
+                  onMouseEnter={() => setFocusedIndex(index)}
+                >
+                  <span className="rsp-multiselect-checkbox" aria-hidden="true">
+                    {isSelected && (
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 10 10"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M1.5 5L4 7.5L8.5 2.5"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                  <span className="rsp-multiselect-option-label">{option.label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Portal>
       )}
     </div>
   );

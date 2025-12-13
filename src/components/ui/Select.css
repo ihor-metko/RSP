@@ -83,20 +83,31 @@
 }
 
 .im-select-options {
-  position: absolute;
-  top: calc(100% + 0.25rem);
-  left: 0;
-  width: 100%;
   background-color: var(--rsp-card-bg);
   border: 1px solid var(--rsp-border);
   border-radius: 0.5rem;
-  max-height: 200px;
   overflow-y: auto;
-  z-index: 50;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   list-style: none;
   margin: 0;
   padding: 0.25rem 0;
+}
+
+/* Portal-rendered dropdown with fixed positioning */
+.im-select-options-portal {
+  z-index: 9999;
+  animation: slideDown 0.15s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .im-select-option {

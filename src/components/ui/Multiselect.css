@@ -46,10 +46,26 @@
 }
 
 .rsp-multiselect-dropdown {
-  @apply absolute z-50 w-full mt-1 rounded-md shadow-lg overflow-auto;
-  @apply max-h-60;
+  @apply rounded-md shadow-lg overflow-auto;
   background-color: var(--rsp-background);
   border: 1px solid var(--rsp-border);
+}
+
+/* Portal-rendered dropdown with fixed positioning */
+.rsp-multiselect-dropdown-portal {
+  z-index: 9999;
+  animation: slideDown 0.15s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .rsp-multiselect-option {

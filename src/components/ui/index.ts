@@ -30,3 +30,4 @@ export { EntityBanner } from "./EntityBanner";
 export type { EntityBannerProps } from "./EntityBanner";
 export { DateInput } from "./DateInput";
 export { CustomCalendar } from "./CustomCalendar";
+export { Portal } from "./Portal";
