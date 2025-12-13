@@ -8,7 +8,6 @@ import { Button, Input, Modal, PageHeader, EntityBanner } from "@/components/ui"
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
-import ClubAdminsTable from "@/components/admin/ClubAdminsTable";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
 import "./page.css";
@@ -27,15 +26,6 @@ interface SuperAdmin extends User {
   membershipId: string;
 }
 
-interface ClubAdmin {
-  id: string;
-  userId: string;
-  userName: string | null;
-  userEmail: string;
-  clubId: string;
-  clubName: string;
-}
-
 interface OrgAdmin {
   id: string;
   type: "superadmin";
@@ -44,17 +34,6 @@ interface OrgAdmin {
   userEmail: string;
   isPrimaryOwner: boolean;
   lastLoginAt: Date | null;
-  createdAt: Date;
-}
-
-interface ClubAdminGrouped {
-  id: string;
-  type: "clubadmin";
-  userId: string;
-  userName: string | null;
-  userEmail: string;
-  lastLoginAt: Date | null;
-  clubs: Array<{ id: string; name: string; membershipId: string }>;
   createdAt: Date;
 }
 
@@ -129,7 +108,6 @@ export default function OrganizationDetailPage() {
   const [org, setOrg] = useState<OrgDetail | null>(null);
   const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
   const [orgAdmins, setOrgAdmins] = useState<OrgAdmin[]>([]);
-  const [clubAdmins, setClubAdmins] = useState<ClubAdminGrouped[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -220,7 +198,6 @@ export default function OrganizationDetailPage() {
       if (response.ok) {
         const data = await response.json();
         setOrgAdmins(data.superAdmins || []);
-        setClubAdmins(data.clubAdmins || []);
       }
     } catch {
       // Silent fail - admins section will show empty state
@@ -671,16 +648,6 @@ export default function OrganizationDetailPage() {
           <OrganizationAdminsTable
             orgId={orgId}
             admins={orgAdmins}
-            onRefresh={fetchAdmins}
-          />
-        </div>
-
-        {/* Club Admins Management */}
-        <div className="im-section-card im-org-detail-content--full">
-          <ClubAdminsTable
-            orgId={orgId}
-            admins={clubAdmins}
-            clubs={org.clubsPreview.map(c => ({ id: c.id, name: c.name }))}
             onRefresh={fetchAdmins}
           />
         </div>

@@ -10,6 +10,7 @@ import { ClubHoursView } from "@/components/admin/club/ClubHoursView";
 import { ClubCourtsQuickList } from "@/components/admin/club/ClubCourtsQuickList";
 import { ClubGalleryView } from "@/components/admin/club/ClubGalleryView";
 import { ClubCoachesView } from "@/components/admin/club/ClubCoachesView";
+import { ClubAdminsSection } from "@/components/admin/club/ClubAdminsSection";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { GalleryModal } from "@/components/GalleryModal";
 import { useClubStore } from "@/stores/useClubStore";
@@ -468,6 +469,14 @@ export default function AdminClubDetailPage({
               />
             </div>
           )}
+        </section>
+
+        {/* Club Admins Section */}
+        <section className="im-admin-club-admins-section">
+          <ClubAdminsSection
+            clubId={club.id}
+            onRefresh={fetchClub}
+          />
         </section>
       </div>
 
