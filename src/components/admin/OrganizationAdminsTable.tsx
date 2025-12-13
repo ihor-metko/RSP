@@ -295,9 +295,13 @@ export default function OrganizationAdminsTable({
                     <span className="im-admin-name">
                       {admin.userName || admin.userEmail}
                     </span>
-                    {admin.isPrimaryOwner && (
+                    {admin.isPrimaryOwner ? (
                       <Badge variant="success" size="small">
                         {t("orgAdmins.owner")}
+                      </Badge>
+                    ) : (
+                      <Badge variant="info" size="small">
+                        {t("orgAdmins.orgAdmin")}
                       </Badge>
                     )}
                   </div>
