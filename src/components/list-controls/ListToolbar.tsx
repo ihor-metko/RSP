@@ -21,6 +21,8 @@ interface ListToolbarProps<TFilters = Record<string, unknown>> {
   compact?: boolean;
   /** Additional CSS classes */
   className?: string;
+  /** Custom action button to display at top-right corner */
+  actionButton?: ReactNode;
 }
 
 // Default icon for reset button
@@ -35,10 +37,10 @@ function XIcon() {
 
 /**
  * Toolbar container component for list controls.
- * 
+ *
  * A reusable container that provides a consistent, accessible layout for
  * all list filtering controls (search, selects, date ranges, etc.).
- * 
+ *
  * Features:
  * - Consistent horizontal layout for filters
  * - Automatic reset/clear filters button when filters are active
@@ -48,11 +50,11 @@ function XIcon() {
  * - Consistent im-* styling for dark theme support
  * - Compact mode for tighter layouts
  * - Proper spacing and alignment for all child controls
- * 
+ *
  * Usage:
  * Wrap all your filter components (ListSearch, Select, DateRangeFilter, etc.)
  * inside ListToolbar to get consistent styling and layout.
- * 
+ *
  * @example
  * ```tsx
  * // Basic usage with reset button
@@ -61,14 +63,27 @@ function XIcon() {
  *   <SortSelect options={sortOptions} />
  *   <Select label="Status" options={statusOptions} />
  * </ListToolbar>
- * 
+ *
+ * // With action button
+ * <ListToolbar
+ *   controller={controller}
+ *   showReset
+ *   actionButton={
+ *     <Button onClick={handleCreate} variant="primary">
+ *       Create New
+ *     </Button>
+ *   }
+ * >
+ *   <ListSearch placeholder="Search..." />
+ * </ListToolbar>
+ *
  * // Compact mode
  * <ListToolbar controller={controller} compact>
  *   <ListSearch placeholder="Search..." />
  * </ListToolbar>
- * 
+ *
  * // Custom reset handler
- * <ListToolbar 
+ * <ListToolbar
  *   controller={controller}
  *   showReset
  *   resetLabel="Clear All"
@@ -89,6 +104,7 @@ export function ListToolbar<TFilters = Record<string, unknown>>({
   onReset,
   compact = false,
   className = "",
+  actionButton,
 }: ListToolbarProps<TFilters>) {
   // Use helper hook that handles both prop and context
   const controller = useControllerOrContext(controllerProp);
@@ -110,17 +126,20 @@ export function ListToolbar<TFilters = Record<string, unknown>>({
   };
 
   return (
-    <Card className={`im-list-toolbar ${compact ? "im-list-toolbar--compact" : ""} ${className}`.trim()}>
+    <Card className={`im-list-toolbar ${compact ? "im-list-toolbar--compact" : ""} ${className}`.trim()} cardBodyClassName="im-list-toolbar-body">
       <div className="im-list-toolbar-content">
         {children}
       </div>
-      
-      {showReset && hasActiveFilters && (
+
+      {((showReset && hasActiveFilters) || actionButton) && (
         <div className="im-list-toolbar-actions">
-          <Button variant="outline" size="small" onClick={handleReset}>
-            <XIcon />
-            {resetLabel}
-          </Button>
+          {showReset && hasActiveFilters && (
+            <Button variant="outline" size="small" onClick={handleReset}>
+              <XIcon />
+              {resetLabel}
+            </Button>
+          )}
+          {actionButton}
         </div>
       )}
     </Card>

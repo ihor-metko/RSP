@@ -101,6 +101,11 @@ Container component for filter controls with optional reset button. Renders filt
   showReset={true}
   resetLabel="Clear Filters"
   compact={false}
+  actionButton={
+    <Button onClick={handleAction} variant="primary">
+      Create New
+    </Button>
+  }
 >
   <ListSearch placeholder="Search..." />
   <QuickPresets presets={presets} />
@@ -116,6 +121,7 @@ Container component for filter controls with optional reset button. Renders filt
 - `onReset?` - Custom reset handler
 - `compact?` - Compact layout mode
 - `className?` - Additional CSS classes
+- `actionButton?` - Custom action button to display at top-right corner (ReactNode)
 
 **Layout Features:**
 - **Horizontal single-row layout** - All filters render in one row
@@ -123,7 +129,24 @@ Container component for filter controls with optional reset button. Renders filt
 - **Min-widths** - Each filter has sensible minimum widths (160px default, 320px for DateRangeFilter)
 - **Responsive** - Maintains horizontal scroll on mobile while adjusting min-widths
 - **Flexible** - Search input can grow up to 400px
+- **Action Button** - Optional action button displayed at top-right corner
 - QuickPresets and DateRangeFilter can be placed directly inside the toolbar
+
+**Action Button Example:**
+```typescript
+// Pass a custom action button to the toolbar
+<ListToolbar 
+  showReset
+  actionButton={
+    <Button onClick={handleCreateBooking} variant="primary" aria-label="Create Booking">
+      Create Booking
+    </Button>
+  }
+>
+  <ListSearch placeholder="Search bookings..." />
+  <StatusFilter statuses={statusOptions} />
+</ListToolbar>
+```
 
 ### ListSearch
 

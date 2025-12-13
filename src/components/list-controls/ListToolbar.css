@@ -11,6 +11,12 @@
   gap: 1rem;
 }
 
+.im-list-toolbar-body {
+  @apply flex w-full;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
 .im-list-toolbar--compact {
   @apply gap-2 p-3;
 }

@@ -411,15 +411,17 @@ export default function AdminBookingsPage() {
         <PageHeader
           title={t("adminBookings.title")}
           description={t("adminBookings.subtitle")}
-          actions={
-            <Button onClick={handleOpenBookingWizard} variant="primary">
-              {t("adminWizard.title")}
-            </Button>
-          }
         />
 
         {/* List Controls Toolbar with consolidated filters */}
-        <ListToolbar showReset>
+        <ListToolbar 
+          showReset
+          actionButton={
+            <Button onClick={handleOpenBookingWizard} variant="primary" aria-label={t("adminWizard.title")}>
+              {t("adminWizard.title")}
+            </Button>
+          }
+        >
           <ListSearch
             placeholder={t("adminBookings.searchPlaceholder")}
             filterKey="searchQuery"

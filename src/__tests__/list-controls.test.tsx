@@ -335,6 +335,107 @@ describe("ListToolbar", () => {
     // Clear button should not be present when no filters are active
     expect(clearButton).not.toBeInTheDocument();
   });
+
+  it("should render action button when provided", () => {
+    const controller = createMockController({
+      filters: { search: "" } as any,
+    });
+
+    const handleAction = jest.fn();
+
+    render(
+      <ListToolbar 
+        controller={controller} 
+        actionButton={
+          <button onClick={handleAction} aria-label="Create New">
+            Create New
+          </button>
+        }
+      >
+        <div>Filters</div>
+      </ListToolbar>
+    );
+
+    expect(screen.getByText("Create New")).toBeInTheDocument();
+    expect(screen.getByLabelText("Create New")).toBeInTheDocument();
+  });
+
+  it("should call action button onClick handler", () => {
+    const controller = createMockController({
+      filters: { search: "" } as any,
+    });
+
+    const handleAction = jest.fn();
+
+    render(
+      <ListToolbar 
+        controller={controller}
+        actionButton={
+          <button onClick={handleAction}>Create</button>
+        }
+      >
+        <div>Filters</div>
+      </ListToolbar>
+    );
+
+    fireEvent.click(screen.getByText("Create"));
+    expect(handleAction).toHaveBeenCalled();
+  });
+
+  it("should render action button and reset button together", () => {
+    const controller = createMockController({
+      filters: { search: "test" } as any,
+    });
+
+    render(
+      <ListToolbar 
+        controller={controller}
+        showReset
+        actionButton={<button>Action</button>}
+      >
+        <div>Filters</div>
+      </ListToolbar>
+    );
+
+    expect(screen.getByText("Action")).toBeInTheDocument();
+    expect(screen.getByText("Clear Filters")).toBeInTheDocument();
+  });
+
+  it("should render action button at top-right even without active filters", () => {
+    const controller = createMockController({
+      filters: { search: "" } as any,
+    });
+
+    render(
+      <ListToolbar 
+        controller={controller}
+        showReset
+        actionButton={<button>Create</button>}
+      >
+        <div>Filters</div>
+      </ListToolbar>
+    );
+
+    // Action button should be present
+    expect(screen.getByText("Create")).toBeInTheDocument();
+    // Reset button should not be present (no active filters)
+    expect(screen.queryByText("Clear Filters")).not.toBeInTheDocument();
+  });
+
+  it("should work without action button (backwards compatible)", () => {
+    const controller = createMockController({
+      filters: { search: "" } as any,
+    });
+
+    const { container } = render(
+      <ListToolbar controller={controller}>
+        <div>Filters</div>
+      </ListToolbar>
+    );
+
+    // Should render without errors
+    expect(container.querySelector(".im-list-toolbar")).toBeInTheDocument();
+  });
 });
 
 describe("ListSearch", () => {
