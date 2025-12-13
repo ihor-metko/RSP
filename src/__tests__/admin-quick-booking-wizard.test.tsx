@@ -232,19 +232,12 @@ describe("AdminQuickBookingWizard - Club Admin", () => {
   });
 
   it("skips organization and club selection for club admin", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve([
-        { id: "user-1", name: "Test User", email: "test@example.com" },
-      ]),
-    });
-
     await act(async () => {
       render(<AdminQuickBookingWizard {...clubAdminProps} />);
     });
 
     await waitFor(() => {
-      expect(screen.getByText("Select User")).toBeInTheDocument();
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
     });
 
     expect(screen.queryByText("Select Organization")).not.toBeInTheDocument();
@@ -261,6 +254,10 @@ describe("AdminQuickBookingWizard - User Selection", () => {
     managedIds: ["org-1"],
     predefinedData: {
       clubId: "club-1",
+      date: "2024-01-15",
+      startTime: "10:00",
+      duration: 60,
+      courtId: "court-1",
     },
   };
 

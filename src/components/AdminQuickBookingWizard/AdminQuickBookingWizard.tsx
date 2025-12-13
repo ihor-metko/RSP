@@ -254,7 +254,6 @@ export function AdminQuickBookingWizard({
   // Fetch users (Step 5)
   const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
   const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
-  const usersLoading = useAdminUsersStore((state) => state.loading);
   
   useEffect(() => {
     const fetchUsers = async () => {
