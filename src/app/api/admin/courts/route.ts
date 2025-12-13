@@ -18,7 +18,10 @@ import { mockGetCourts } from "@/services/mockApiHandlers";
  * - search: Search by court name
  * - clubId: Filter by club ID
  * - status: Filter by status (active/inactive/all)
- * - sortBy: Sort field (name/bookings)
+ * - sportType: Filter by sport type (PADEL/TENNIS/SQUASH/etc)
+ * - surfaceType: Filter by surface type (Hard/Clay/Grass/etc)
+ * - indoor: Filter by location (indoor/outdoor/all)
+ * - sortBy: Sort field (name/bookings/createdAt)
  * - sortOrder: Sort order (asc/desc)
  * - page: Page number (default: 1)
  * - limit: Items per page (default: 20)
@@ -37,6 +40,8 @@ export async function GET(request: Request) {
     const clubId = searchParams.get("clubId") || "";
     const status = searchParams.get("status") || "all";
     const sportType = searchParams.get("sportType") || "";
+    const surfaceType = searchParams.get("surfaceType") || "";
+    const indoorFilter = searchParams.get("indoor") || "all";
     const sortBy = searchParams.get("sortBy") || "name";
     const sortOrder = searchParams.get("sortOrder") || "asc";
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -53,6 +58,8 @@ export async function GET(request: Request) {
             clubId,
             status,
             sportType,
+            surfaceType,
+            indoor: indoorFilter,
             sortBy,
             sortOrder,
             page,
@@ -109,6 +116,22 @@ export async function GET(request: Request) {
     if (sportType) {
       whereClause.sportType = sportType;
     }
+
+    // Add surface type filter
+    if (surfaceType) {
+      whereClause.surface = {
+        contains: surfaceType,
+        mode: "insensitive",
+      };
+    }
+
+    // Add indoor/outdoor filter
+    if (indoorFilter === "indoor") {
+      whereClause.indoor = true;
+    } else if (indoorFilter === "outdoor") {
+      whereClause.indoor = false;
+    }
+    // "all" shows both indoor and outdoor
 
     // Build orderBy clause
     let orderBy: Prisma.CourtOrderByWithRelationInput | Prisma.CourtOrderByWithRelationInput[] = { createdAt: "desc" };

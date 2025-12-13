@@ -452,6 +452,11 @@
       "sport": "Спорт",
       "allSports": "Усі види спорту",
       "filterBySport": "Фільтр за видом спорту",
+      "allSurfaces": "Усі покриття",
+      "filterBySurface": "Фільтр за покриттям",
+      "courtLocation": "Розташування",
+      "allLocations": "Усі розташування",
+      "filterByLocation": "Фільтр за розташуванням",
       "loadMore": "Завантажити ще",
       "loading": "Завантаження...",
       "new": {

@@ -471,6 +471,11 @@
       "sport": "Sport",
       "allSports": "All Sports",
       "filterBySport": "Filter by sport",
+      "allSurfaces": "All Surfaces",
+      "filterBySurface": "Filter by surface",
+      "courtLocation": "Location",
+      "allLocations": "All Locations",
+      "filterByLocation": "Filter by location",
       "loadMore": "Load More",
       "loading": "Loading...",
       "new": {

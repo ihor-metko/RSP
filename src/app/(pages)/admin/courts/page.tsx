@@ -61,6 +61,8 @@ interface CourtFilters {
   clubFilter: string;
   statusFilter: string;
   sportTypeFilter: string;
+  surfaceTypeFilter: string;
+  indoorFilter: string;
 }
 
 export default function AdminCourtsPage() {
@@ -94,6 +96,8 @@ export default function AdminCourtsPage() {
       clubFilter: "",
       statusFilter: "",
       sportTypeFilter: "",
+      surfaceTypeFilter: "",
+      indoorFilter: "",
     },
     defaultSortBy: "name",
     defaultSortOrder: "asc",
@@ -116,6 +120,8 @@ export default function AdminCourtsPage() {
       if (controller.filters.clubFilter) params.append("clubId", controller.filters.clubFilter);
       if (controller.filters.statusFilter) params.append("status", controller.filters.statusFilter);
       if (controller.filters.sportTypeFilter) params.append("sportType", controller.filters.sportTypeFilter);
+      if (controller.filters.surfaceTypeFilter) params.append("surfaceType", controller.filters.surfaceTypeFilter);
+      if (controller.filters.indoorFilter) params.append("indoor", controller.filters.indoorFilter);
       params.append("sortBy", controller.sortBy);
       params.append("sortOrder", controller.sortOrder);
 
@@ -266,6 +272,21 @@ export default function AdminCourtsPage() {
     value: sport.value,
     label: sport.label,
   }));
+
+  // Define surface type options for filter
+  const surfaceTypeOptions = [
+    { value: 'Hard', label: t('admin.courts.new.surfaces.hard') },
+    { value: 'Clay', label: t('admin.courts.new.surfaces.clay') },
+    { value: 'Grass', label: t('admin.courts.new.surfaces.grass') },
+    { value: 'Artificial Grass', label: t('admin.courts.new.surfaces.artificialGrass') },
+    { value: 'Carpet', label: t('admin.courts.new.surfaces.carpet') },
+  ];
+
+  // Define indoor/outdoor options for filter
+  const indoorOptions = [
+    { value: 'indoor', label: t('admin.courts.indoor') },
+    { value: 'outdoor', label: t('admin.courts.outdoor') },
+  ];
 
   // Define table columns
   const columns: TableColumn<Court>[] = [
@@ -435,6 +456,20 @@ export default function AdminCourtsPage() {
               label={t("admin.courts.sport")}
               placeholder={t("admin.courts.allSports")}
               statuses={sportTypeOptions}
+            />
+
+            <StatusFilter
+              filterKey="surfaceTypeFilter"
+              label={t("admin.courts.surface")}
+              placeholder={t("admin.courts.allSurfaces")}
+              statuses={surfaceTypeOptions}
+            />
+
+            <StatusFilter
+              filterKey="indoorFilter"
+              label={t("admin.courts.courtLocation")}
+              placeholder={t("admin.courts.allLocations")}
+              statuses={indoorOptions}
             />
 
             <SortSelect
