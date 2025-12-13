@@ -9,9 +9,9 @@ import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { toOrganizationOption } from "@/utils/organization";
 import { Step1Organization } from "./Step1Organization";
 import { Step2Club } from "./Step2Club";
-import { Step3User } from "./Step3User";
-import { Step4DateTime } from "./Step4DateTime";
-import { Step5Courts } from "./Step5Courts";
+import { Step3DateTime } from "./Step3DateTime";
+import { Step4Courts } from "./Step4Courts";
+import { Step5User } from "./Step5User";
 import { Step6Confirmation } from "./Step6Confirmation";
 import {
   AdminQuickBookingWizardProps,
@@ -64,6 +64,8 @@ export function AdminQuickBookingWizard({
         isCreatingNewUser: false,
         newUserName: "",
         newUserEmail: "",
+        isGuestBooking: false,
+        guestName: "",
       },
       stepDateTime: {
         date: predefinedData?.date || getTodayDateString(),
@@ -117,6 +119,8 @@ export function AdminQuickBookingWizard({
           isCreatingNewUser: false,
           newUserName: "",
           newUserEmail: "",
+          isGuestBooking: false,
+          guestName: "",
         },
         stepDateTime: {
           date: predefinedData?.date || getTodayDateString(),
@@ -247,14 +251,14 @@ export function AdminQuickBookingWizard({
     t,
   ]);
 
-  // Fetch users (Step 3)
+  // Fetch users (Step 5)
   const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
   const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
   const usersLoading = useAdminUsersStore((state) => state.loading);
   
   useEffect(() => {
     const fetchUsers = async () => {
-      if (!isOpen || state.currentStep !== 3) {
+      if (!isOpen || state.currentStep !== 5) {
         return;
       }
 
@@ -427,8 +431,22 @@ export function AdminQuickBookingWizard({
       stepUser: {
         ...prev.stepUser,
         isCreatingNewUser: !prev.stepUser.isCreatingNewUser,
+        isGuestBooking: false,
         selectedUserId: prev.stepUser.isCreatingNewUser ? prev.stepUser.selectedUserId : null,
         selectedUser: prev.stepUser.isCreatingNewUser ? prev.stepUser.selectedUser : null,
+      },
+    }));
+  }, []);
+
+  const handleToggleGuest = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      stepUser: {
+        ...prev.stepUser,
+        isGuestBooking: !prev.stepUser.isGuestBooking,
+        isCreatingNewUser: false,
+        selectedUserId: prev.stepUser.isGuestBooking ? prev.stepUser.selectedUserId : null,
+        selectedUser: prev.stepUser.isGuestBooking ? prev.stepUser.selectedUser : null,
       },
     }));
   }, []);
@@ -445,6 +463,16 @@ export function AdminQuickBookingWizard({
     },
     []
   );
+
+  const handleGuestNameChange = useCallback((name: string) => {
+    setState((prev) => ({
+      ...prev,
+      stepUser: {
+        ...prev.stepUser,
+        guestName: name,
+      },
+    }));
+  }, []);
 
   const [isCreatingUser, setIsCreatingUser] = useState(false);
 
@@ -524,13 +552,51 @@ export function AdminQuickBookingWizard({
   const handleSubmit = useCallback(async () => {
     const { stepUser, stepCourt, stepDateTime } = state;
 
-    if (!stepUser.selectedUser || !stepCourt.selectedCourt) {
+    if ((!stepUser.selectedUser && !stepUser.isGuestBooking) || !stepCourt.selectedCourt) {
       return;
     }
 
     setState((prev) => ({ ...prev, isSubmitting: true, submitError: null }));
 
     try {
+      // If guest booking, create a minimal user account first
+      let userId = stepUser.selectedUser?.id;
+      
+      if (stepUser.isGuestBooking && stepUser.guestName) {
+        // Create a guest user with a generated email
+        const guestEmail = `guest-${Date.now()}-${Math.random().toString(36).substring(7)}@guest.arenaone.local`;
+        const createUserResponse = await fetch("/api/admin/users/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: stepUser.guestName,
+            email: guestEmail,
+          }),
+        });
+
+        if (!createUserResponse.ok) {
+          const errorData = await createUserResponse.json();
+          setState((prev) => ({
+            ...prev,
+            isSubmitting: false,
+            submitError: errorData.error || t("auth.errorOccurred"),
+          }));
+          return;
+        }
+
+        const guestUser = await createUserResponse.json();
+        userId = guestUser.id;
+      }
+
+      if (!userId) {
+        setState((prev) => ({
+          ...prev,
+          isSubmitting: false,
+          submitError: t("auth.errorOccurred"),
+        }));
+        return;
+      }
+
       const startDateTime = `${stepDateTime.date}T${stepDateTime.startTime}:00.000Z`;
       const endTime = calculateEndTime(stepDateTime.startTime, stepDateTime.duration);
       const endDateTime = `${stepDateTime.date}T${endTime}:00.000Z`;
@@ -541,7 +607,7 @@ export function AdminQuickBookingWizard({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: stepUser.selectedUser.id,
+          userId,
           courtId: stepCourt.selectedCourt.id,
           startTime: startDateTime,
           endTime: endDateTime,
@@ -610,8 +676,8 @@ export function AdminQuickBookingWizard({
       return;
     }
 
-    // Fetch courts when moving to step 5
-    if (nextStepId === 5) {
+    // Fetch courts when moving to step 4
+    if (nextStepId === 4) {
       setState((prev) => ({ ...prev, currentStep: nextStepId }));
       await fetchAvailableCourts();
     } else {
@@ -642,16 +708,16 @@ export function AdminQuickBookingWizard({
         return !!state.stepOrganization.selectedOrganizationId;
       case 2: // Club
         return !!state.stepClub.selectedClubId;
-      case 3: // User
-        return !!state.stepUser.selectedUserId;
-      case 4: // DateTime
+      case 3: // DateTime
         return (
           !!state.stepDateTime.date &&
           !!state.stepDateTime.startTime &&
           state.stepDateTime.duration > 0
         );
-      case 5: // Court
+      case 4: // Court
         return !!state.stepCourt.selectedCourtId;
+      case 5: // User
+        return !!state.stepUser.selectedUserId || (state.stepUser.isGuestBooking && !!state.stepUser.guestName);
       case 6: // Confirmation
         return !state.isSubmitting;
       default:
@@ -758,29 +824,15 @@ export function AdminQuickBookingWizard({
           )}
 
           {state.currentStep === 3 && (
-            <Step3User
-              data={state.stepUser}
-              users={state.availableUsers}
-              isLoading={state.isLoadingUsers}
-              error={state.usersError}
-              onSelect={handleSelectUser}
-              onToggleCreateNew={handleToggleCreateNewUser}
-              onNewUserChange={handleNewUserChange}
-              onCreateUser={handleCreateUser}
-              isCreatingUser={isCreatingUser}
-            />
-          )}
-
-          {state.currentStep === 4 && (
-            <Step4DateTime
+            <Step3DateTime
               data={state.stepDateTime}
               onChange={handleDateTimeChange}
               isLoading={false}
             />
           )}
 
-          {state.currentStep === 5 && (
-            <Step5Courts
+          {state.currentStep === 4 && (
+            <Step4Courts
               courts={state.availableCourts}
               selectedCourtId={state.stepCourt.selectedCourtId}
               onSelectCourt={handleSelectCourt}
@@ -789,11 +841,28 @@ export function AdminQuickBookingWizard({
             />
           )}
 
+          {state.currentStep === 5 && (
+            <Step5User
+              data={state.stepUser}
+              users={state.availableUsers}
+              isLoading={state.isLoadingUsers}
+              error={state.usersError}
+              onSelect={handleSelectUser}
+              onToggleCreateNew={handleToggleCreateNewUser}
+              onToggleGuest={handleToggleGuest}
+              onNewUserChange={handleNewUserChange}
+              onGuestNameChange={handleGuestNameChange}
+              onCreateUser={handleCreateUser}
+              isCreatingUser={isCreatingUser}
+            />
+          )}
+
           {state.currentStep === 6 && (
             <Step6Confirmation
               organization={state.stepOrganization.selectedOrganization}
               club={state.stepClub.selectedClub}
               user={state.stepUser.selectedUser}
+              guestName={state.stepUser.isGuestBooking ? state.stepUser.guestName : null}
               dateTime={state.stepDateTime}
               court={state.stepCourt.selectedCourt}
               submitError={state.submitError}

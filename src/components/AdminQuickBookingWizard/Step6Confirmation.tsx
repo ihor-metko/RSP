@@ -19,6 +19,7 @@ interface Step6ConfirmationProps {
   organization: WizardOrganization | null;
   club: WizardClub | null;
   user: WizardUser | null;
+  guestName: string | null;
   dateTime: WizardStepDateTime;
   court: WizardCourt | null;
   submitError: string | null;
@@ -31,6 +32,7 @@ export function Step6Confirmation({
   organization,
   club,
   user,
+  guestName,
   dateTime,
   court,
   submitError,
@@ -118,14 +120,14 @@ export function Step6Confirmation({
             </div>
           )}
 
-          {/* User */}
-          {user && (
+          {/* User or Guest */}
+          {(user || guestName) && (
             <div className="rsp-admin-wizard-summary-item">
               <span className="rsp-admin-wizard-summary-label">
                 {t("adminWizard.bookingFor")}
               </span>
               <span className="rsp-admin-wizard-summary-value">
-                {user.name ? `${user.name} (${user.email})` : user.email}
+                {user ? (user.name ? `${user.name} (${user.email})` : user.email) : guestName}
               </span>
             </div>
           )}

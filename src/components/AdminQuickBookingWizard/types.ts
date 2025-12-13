@@ -55,6 +55,8 @@ export interface WizardStepUser {
   isCreatingNewUser: boolean;
   newUserName: string;
   newUserEmail: string;
+  isGuestBooking: boolean;
+  guestName: string;
 }
 
 export interface WizardStepDateTime {
@@ -156,19 +158,19 @@ export const ADMIN_WIZARD_STEPS: WizardStepConfig[] = [
   },
   {
     id: 3,
-    label: "user",
-    shouldShow: (_, predefinedData) => !predefinedData?.userId,
-  },
-  {
-    id: 4,
     label: "dateTime",
     shouldShow: (_, predefinedData) => 
       !predefinedData?.date || !predefinedData?.startTime || !predefinedData?.duration,
   },
   {
-    id: 5,
+    id: 4,
     label: "selectCourt",
     shouldShow: (_, predefinedData) => !predefinedData?.courtId,
+  },
+  {
+    id: 5,
+    label: "user",
+    shouldShow: (_, predefinedData) => !predefinedData?.userId,
   },
   {
     id: 6,
