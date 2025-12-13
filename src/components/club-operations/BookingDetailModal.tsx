@@ -112,9 +112,9 @@ export function BookingDetailModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title=""
+      title={undefined}
     >
-      <div className="im-booking-detail">
+      <div className="im-booking-detail im-booking-detail-modal">
         {/* Header with court name, time, and status */}
         <div className="im-booking-detail-header">
           <div className="im-booking-detail-header-content">
