@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { IMLink } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
+import { parseTags, formatAddress } from "@/utils/club";
 import { getSportName } from "@/constants/sports";
 import type { ClubWithCounts } from "@/types/club";
 import "./AdminClubCard.css";
@@ -11,36 +12,6 @@ export interface AdminClubCardProps {
   club: ClubWithCounts;
   /** Whether to show organization info (typically for root admins) */
   showOrganization?: boolean;
-}
-
-/**
- * Formats the address for display as "City, Street Address"
- * Returns the full location if city is not available
- */
-function formatAddress(city: string | null | undefined, location: string): string {
-  if (city && location) {
-    if (location.toLowerCase().startsWith(city.toLowerCase())) {
-      return location;
-    }
-    return `${city}, ${location}`;
-  }
-  return location;
-}
-
-/**
- * Parses tags from JSON string or comma-separated string
- */
-function parseTags(tags: string | null | undefined): string[] {
-  if (!tags) return [];
-  try {
-    const parsed = JSON.parse(tags);
-    if (Array.isArray(parsed)) {
-      return parsed.filter((tag): tag is string => typeof tag === "string");
-    }
-  } catch {
-    // If not valid JSON, fall through to comma-separated parsing
-  }
-  return tags.split(",").map((t) => t.trim()).filter(Boolean);
 }
 
 /**
