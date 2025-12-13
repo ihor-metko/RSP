@@ -21,6 +21,10 @@ interface UseDropdownPositionOptions {
   matchWidth?: boolean;
 }
 
+// Constants for viewport padding and spacing
+const VIEWPORT_PADDING = 8; // Minimum distance from viewport edges
+const SAFE_ZONE_BUFFER = 20; // Extra buffer for available space calculation
+
 /**
  * Hook to calculate optimal positioning for a dropdown in a portal.
  * 
@@ -79,18 +83,18 @@ export function useDropdownPosition({
 
       // Calculate actual max height based on available space
       const availableSpace = placement === "bottom" ? spaceBelow : spaceAbove;
-      const actualMaxHeight = Math.min(maxHeight, availableSpace - 20); // 20px buffer
+      const actualMaxHeight = Math.min(maxHeight, availableSpace - SAFE_ZONE_BUFFER);
 
       // Calculate position
       const top = placement === "bottom"
         ? rect.bottom + offset
         : rect.top - actualMaxHeight - offset;
 
-      const left = Math.max(8, Math.min(rect.left, viewportWidth - rect.width - 8));
-      const width = matchWidth ? rect.width : Math.min(rect.width, viewportWidth - 16);
+      const left = Math.max(VIEWPORT_PADDING, Math.min(rect.left, viewportWidth - rect.width - VIEWPORT_PADDING));
+      const width = matchWidth ? rect.width : Math.min(rect.width, viewportWidth - (VIEWPORT_PADDING * 2));
 
       setPosition({
-        top: Math.max(8, top),
+        top: Math.max(VIEWPORT_PADDING, top),
         left,
         width,
         maxHeight: actualMaxHeight,

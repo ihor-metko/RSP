@@ -33,10 +33,6 @@ export function Portal({ children, container }: PortalProps) {
       defaultContainer.current = document.body;
     }
     setMounted(true);
-
-    return () => {
-      setMounted(false);
-    };
   }, []);
 
   if (!mounted) {
