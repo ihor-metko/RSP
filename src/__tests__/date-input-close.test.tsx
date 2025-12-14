@@ -4,7 +4,7 @@
  */
 
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { DateInput } from "@/components/ui/DateInput";
+import { DateInput, CLOSE_DEBOUNCE_MS } from "@/components/ui/DateInput";
 import { act } from "react";
 
 // Mock Portal to render in the same DOM tree for testing
@@ -114,9 +114,9 @@ describe("DateInput calendar close behavior", () => {
       { timeout: 200 }
     );
 
-    // Wait for the justClosedRef timeout (100ms)
+    // Wait for the justClosedRef timeout plus a small buffer
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, CLOSE_DEBOUNCE_MS + 50));
     });
 
     // Focus the input again (simulating user clicking back on the input)

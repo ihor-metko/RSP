@@ -6,6 +6,9 @@ import { Portal } from "./Portal";
 import { useDropdownPosition } from "@/hooks/useDropdownPosition";
 import "./DateInput.css";
 
+// Debounce time to prevent calendar from reopening after date selection
+export const CLOSE_DEBOUNCE_MS = 100;
+
 interface DateInputProps {
   /** Current date value (ISO format YYYY-MM-DD) */
   value?: string;
@@ -103,7 +106,7 @@ export function DateInput({
     // Use setTimeout to ensure the justClosedRef flag is cleared after focus event
     setTimeout(() => {
       justClosedRef.current = false;
-    }, 100);
+    }, CLOSE_DEBOUNCE_MS);
     inputRef.current?.focus();
   };
 
