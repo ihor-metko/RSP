@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Modal, Button, Badge, Card } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
+import { formatDateTime, calculateDuration } from "@/utils/bookingFormatters";
 import type { AdminBookingDetailResponse } from "@/app/api/admin/bookings/[id]/route";
 import "./BookingDetailsModal.css";
 
@@ -13,29 +14,6 @@ interface BookingDetailsModalProps {
   onClose: () => void;
   bookingId: string | null;
   onBookingCancelled?: () => void;
-}
-
-/**
- * Format date to display format
- */
-function formatDateTime(isoString: string): string {
-  const date = new Date(isoString);
-  return date.toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-/**
- * Calculate duration in minutes
- */
-function calculateDuration(start: string, end: string): number {
-  const startTime = new Date(start).getTime();
-  const endTime = new Date(end).getTime();
-  return Math.round((endTime - startTime) / (1000 * 60));
 }
 
 /**

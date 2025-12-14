@@ -8,6 +8,7 @@ import { TableSkeleton } from "@/components/ui/skeletons";
 import { useUserStore } from "@/stores/useUserStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import { BookingDetailsModal } from "@/components/admin/BookingDetailsModal";
+import { formatDateTime, calculateDuration, getInitials } from "@/utils/bookingFormatters";
 import { useListController } from "@/hooks";
 import {
   ListControllerProvider,
@@ -32,48 +33,6 @@ interface BookingFilters {
   statusFilter: string;
   dateFrom: string;
   dateTo: string;
-}
-
-/**
- * Format date to display format
- */
-function formatDateTime(isoString: string): string {
-  const date = new Date(isoString);
-  return date.toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-/**
- * Get user initials from name for avatar
- */
-function getInitials(name: string | null | undefined, email: string | null): string {
-  const getEmailInitial = () => {
-    return email && email.length > 0 ? email.charAt(0).toUpperCase() : "?";
-  };
-
-  if (!name) {
-    return getEmailInitial();
-  }
-  const parts = name.split(" ").filter(Boolean);
-  if (parts.length === 0) {
-    return getEmailInitial();
-  }
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-}
-
-/**
- * Calculate duration in minutes
- */
-function calculateDuration(start: string, end: string): number {
-  const startTime = new Date(start).getTime();
-  const endTime = new Date(end).getTime();
-  return Math.round((endTime - startTime) / (1000 * 60));
 }
 
 /**
