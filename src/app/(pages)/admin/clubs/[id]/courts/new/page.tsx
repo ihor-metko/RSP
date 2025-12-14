@@ -111,8 +111,8 @@ export default function CreateCourtPage({
   const adminStatus = useUserStore(state => state.adminStatus);
   
   // Organization and Club stores
-  const { organizations, fetchOrganizationsIfNeeded, loading: orgsLoading } = useOrganizationStore();
-  const { clubs, fetchClubsIfNeeded, loading: clubsLoading } = useClubStore();
+  const { organizations, fetchOrganizations, loading: orgsLoading } = useOrganizationStore();
+  const { clubs, fetchClubsIfNeeded, loadingClubs: clubsLoading } = useClubStore();
   
   const [clubIdFromUrl, setClubIdFromUrl] = useState<string | null>(null);
   const [club, setClub] = useState<Club | null>(null);
@@ -243,12 +243,12 @@ export default function CreateCourtPage({
   // Load organizations and clubs data for selection
   useEffect(() => {
     if (isRootAdmin && !clubIdFromUrl) {
-      fetchOrganizationsIfNeeded();
+      fetchOrganizations();
     }
     if ((isRootAdmin || isOrgAdmin) && !clubIdFromUrl) {
       fetchClubsIfNeeded();
     }
-  }, [isRootAdmin, isOrgAdmin, clubIdFromUrl, fetchOrganizationsIfNeeded, fetchClubsIfNeeded]);
+  }, [isRootAdmin, isOrgAdmin, clubIdFromUrl, fetchOrganizations, fetchClubsIfNeeded]);
 
   // Auto-populate org/club for org admins and club admins
   useEffect(() => {
