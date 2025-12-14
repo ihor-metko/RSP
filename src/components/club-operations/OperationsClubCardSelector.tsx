@@ -131,7 +131,14 @@ export function OperationsClubCardSelector({
               aria-pressed={isSelected}
               aria-label={`${t("operations.selectClub") || "Select club"}: ${club.name}${isSelected ? ` (${t("common.selected") || "selected"})` : ""}`}
             >
-              <AdminClubCard club={club} showOrganization={showOrganization} />
+              <AdminClubCard 
+                club={club} 
+                showOrganization={showOrganization}
+                actionButton={{
+                  label: t("operations.selectClub") || "Select Club",
+                  onClick: () => handleCardClick(club.id)
+                }}
+              />
             </div>
           );
         })}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { IMLink } from "@/components/ui";
+import { IMLink, Button } from "@/components/ui";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { getSportName } from "@/constants/sports";
 import type { ClubWithCounts } from "@/types/club";
@@ -11,6 +11,15 @@ export interface AdminClubCardProps {
   club: ClubWithCounts;
   /** Whether to show organization info (typically for root admins) */
   showOrganization?: boolean;
+  /** Custom action button configuration */
+  actionButton?: {
+    /** Button label text */
+    label: string;
+    /** Click handler for custom behavior */
+    onClick?: () => void;
+    /** Optional href for navigation (if no onClick provided) */
+    href?: string;
+  };
 }
 
 /**
@@ -47,7 +56,7 @@ function parseTags(tags: string | null | undefined): string[] {
  * Admin Club Card component - Card-based display for club management
  * Displays key club information with admin actions (view, edit, delete, courts)
  */
-export function AdminClubCard({ club, showOrganization }: AdminClubCardProps) {
+export function AdminClubCard({ club, showOrganization, actionButton }: AdminClubCardProps) {
   const t = useTranslations();
 
   // Convert stored paths to full Supabase Storage URLs
@@ -209,9 +218,30 @@ export function AdminClubCard({ club, showOrganization }: AdminClubCardProps) {
 
       {/* Action Buttons */}
       <div className="im-admin-club-card-actions">
-        <IMLink asButton href={`/admin/clubs/${club.id}`} variant="outline" className="w-full">
-          {t("clubs.viewClub")}
-        </IMLink>
+        {actionButton ? (
+          actionButton.onClick ? (
+            <Button 
+              onClick={actionButton.onClick} 
+              variant="outline" 
+              className="w-full"
+            >
+              {actionButton.label}
+            </Button>
+          ) : (
+            <IMLink 
+              asButton 
+              href={actionButton.href || `/admin/clubs/${club.id}`} 
+              variant="outline" 
+              className="w-full"
+            >
+              {actionButton.label}
+            </IMLink>
+          )
+        ) : (
+          <IMLink asButton href={`/admin/clubs/${club.id}`} variant="outline" className="w-full">
+            {t("clubs.viewClub")}
+          </IMLink>
+        )}
       </div>
     </article>
   );
