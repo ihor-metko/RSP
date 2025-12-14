@@ -51,6 +51,7 @@ export function Multiselect({
   // Calculate dropdown position
   const dropdownPosition = useDropdownPosition({
     triggerRef,
+    listboxRef,
     isOpen,
     offset: 4,
     maxHeight: 240,

@@ -53,6 +53,7 @@ export function Select({
   // Calculate dropdown position
   const dropdownPosition = useDropdownPosition({
     triggerRef,
+    listboxRef,
     isOpen: open,
     offset: 4,
     maxHeight: 300,

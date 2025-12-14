@@ -73,6 +73,7 @@ export function DateInput({
   // Calculate dropdown position
   const dropdownPosition = useDropdownPosition({
     triggerRef: inputContainerRef,
+    listboxRef: calendarPopupRef,
     isOpen,
     offset: 8,
     maxHeight: 400,

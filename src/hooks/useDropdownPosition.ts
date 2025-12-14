@@ -11,6 +11,8 @@ export interface DropdownPosition {
 interface UseDropdownPositionOptions {
   /** Reference to the trigger element */
   triggerRef: RefObject<HTMLElement>;
+  /** Reference to the dropdown list element (for measuring actual height) */
+  listboxRef?: RefObject<HTMLElement>;
   /** Whether the dropdown is open */
   isOpen: boolean;
   /** Offset from trigger element in pixels */
@@ -35,15 +37,23 @@ const SAFE_ZONE_BUFFER = 20; // Extra buffer for available space calculation
  * @example
  * ```tsx
  * const triggerRef = useRef<HTMLDivElement>(null);
- * const position = useDropdownPosition({ triggerRef, isOpen: true });
+ * const listboxRef = useRef<HTMLUListElement>(null);
+ * const position = useDropdownPosition({ 
+ *   triggerRef, 
+ *   listboxRef, 
+ *   isOpen: true 
+ * });
  * 
  * <Portal>
- *   <div style={{ 
- *     position: 'fixed',
- *     top: `${position.top}px`,
- *     left: `${position.left}px`,
- *     width: `${position.width}px`
- *   }}>
+ *   <div 
+ *     ref={listboxRef}
+ *     style={{ 
+ *       position: 'fixed',
+ *       top: `${position.top}px`,
+ *       left: `${position.left}px`,
+ *       width: `${position.width}px`
+ *     }}
+ *   >
  *     Dropdown content
  *   </div>
  * </Portal>
@@ -51,6 +61,7 @@ const SAFE_ZONE_BUFFER = 20; // Extra buffer for available space calculation
  */
 export function useDropdownPosition({
   triggerRef,
+  listboxRef,
   isOpen,
   offset = 4,
   maxHeight = 300,
@@ -85,10 +96,18 @@ export function useDropdownPosition({
       const availableSpace = placement === "bottom" ? spaceBelow : spaceAbove;
       const actualMaxHeight = Math.min(maxHeight, availableSpace - SAFE_ZONE_BUFFER);
 
+      // Get actual dropdown height if listboxRef is available
+      let dropdownHeight = actualMaxHeight;
+      if (listboxRef?.current) {
+        const listboxRect = listboxRef.current.getBoundingClientRect();
+        // Use the actual rendered height, but cap it at actualMaxHeight
+        dropdownHeight = Math.min(listboxRect.height, actualMaxHeight);
+      }
+
       // Calculate position
       const top = placement === "bottom"
         ? rect.bottom + offset
-        : rect.top - actualMaxHeight - offset;
+        : rect.top - dropdownHeight - offset;
 
       const left = Math.max(VIEWPORT_PADDING, Math.min(rect.left, viewportWidth - rect.width - VIEWPORT_PADDING));
       const width = matchWidth ? rect.width : Math.min(rect.width, viewportWidth - (VIEWPORT_PADDING * 2));
@@ -117,7 +136,7 @@ export function useDropdownPosition({
       window.removeEventListener("scroll", handleUpdate, true);
       window.removeEventListener("resize", handleUpdate);
     };
-  }, [isOpen, triggerRef, offset, maxHeight, matchWidth]);
+  }, [isOpen, triggerRef, listboxRef, offset, maxHeight, matchWidth]);
 
   return position;
 }
