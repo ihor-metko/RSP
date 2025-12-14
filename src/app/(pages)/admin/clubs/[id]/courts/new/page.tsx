@@ -146,8 +146,8 @@ export default function CreateCourtPage({
       steps.push({ id: "organization", label: t("admin.courts.new.steps.organization"), number: stepNumber++ });
     }
     
-    // Step 2: Club Selection (Root Admin and Org Admin, not Club Admin)
-    if ((isRootAdmin || isOrgAdmin) && !clubIdFromUrl) {
+    // Step 2: Club Selection (Root Admin and Org Admin only, not Club Admin)
+    if ((isRootAdmin || isOrgAdmin) && !isClubAdmin && !clubIdFromUrl) {
       steps.push({ id: "club", label: t("admin.courts.new.steps.club"), number: stepNumber++ });
     }
     
@@ -214,8 +214,8 @@ export default function CreateCourtPage({
       return clubs.filter(club => club.organization?.id === selectedOrgId);
     }
     if (isOrgAdmin && adminStatus?.managedIds) {
-      // Org admin sees clubs within their organizations
-      return clubs.filter(club => club.organization && adminStatus.managedIds.includes(club.organization.id));
+      // Org admin sees clubs within their organizations (supports multiple orgs)
+      return clubs.filter(club => club.organization?.id && adminStatus.managedIds.includes(club.organization.id));
     }
     return clubs;
   }, [clubs, selectedOrgId, isRootAdmin, isOrgAdmin, adminStatus]);
@@ -258,7 +258,8 @@ export default function CreateCourtPage({
   // Auto-populate org/club for org admins and club admins
   useEffect(() => {
     if (isOrgAdmin && adminStatus?.managedIds && adminStatus.managedIds.length > 0) {
-      // For org admin, pre-select their organization
+      // For org admin, pre-select their first organization (most admins manage one org)
+      // If admin manages multiple orgs, they can change it via the club selection
       const orgId = adminStatus.managedIds[0];
       setValue("organizationId", orgId);
     }
@@ -706,8 +707,9 @@ export default function CreateCourtPage({
 
   // Club Selection Step
   const renderClubStep = () => {
-    // Club selection is disabled for org/club admins (pre-selected) and during submission
-    const isDisabled = isOrgAdmin || isClubAdmin || isSubmitting || clubsLoading;
+    // Club selection is only disabled during submission or loading
+    // Org admins can select clubs; club admins shouldn't see this step at all
+    const isDisabled = isSubmitting || clubsLoading;
     
     return (
       <div className="im-create-court-step-content">
@@ -735,9 +737,6 @@ export default function CreateCourtPage({
             </select>
             {isOrgAdmin && (
               <span className="im-create-court-hint">{t("admin.courts.new.clubStep.orgAdminHint")}</span>
-            )}
-            {isClubAdmin && (
-              <span className="im-create-court-hint">{t("admin.courts.new.clubStep.clubAdminHint")}</span>
             )}
             {errors.clubId && (
               <span className="im-create-court-error">{errors.clubId.message}</span>
