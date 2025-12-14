@@ -189,9 +189,6 @@ export default function AdminClubsPage() {
         />
 
         <section className="rsp-content">
-          {/* Quick Filters */}
-          <QuickPresets presets={quickFilterPresets} />
-
           {/* List Controls Toolbar with consolidated filters */}
           <ListToolbar
             showReset
@@ -201,63 +198,74 @@ export default function AdminClubsPage() {
               </IMLink>
             }
           >
-            <ListSearch
-              placeholder={t("common.search")}
-              filterKey="searchQuery"
-            />
-
-            {showOrganizationFilter && (
-              <OrgSelector
-                filterKey="organizationFilter"
-                label={t("admin.clubs.filterByOrganization")}
-                placeholder={t("admin.clubs.allOrganizations")}
+            <div className="full-row flex w-full gap-4">
+              <ListSearch
+                className="flex-1"
+                placeholder={t("common.search")}
+                filterKey="searchQuery"
               />
-            )}
 
-            <Select
-              label={t("admin.clubs.filterByStatus")}
-              options={[
-                { value: "", label: t("admin.clubs.allStatuses") },
-                { value: "active", label: t("admin.clubs.statusActive") },
-                { value: "draft", label: t("admin.clubs.statusDraft") },
-                { value: "suspended", label: t("admin.clubs.statusSuspended") },
-              ]}
-              value={controller.filters.selectedStatus}
-              onChange={(value) => controller.setFilter("selectedStatus", value)}
-              aria-label={t("admin.clubs.filterByStatus")}
-            />
+              <QuickPresets
+                className="flex-1"
+                presets={quickFilterPresets} />
+            </div>
 
-            <Select
-              label={t("admin.clubs.filterBySport")}
-              options={[
-                { value: "", label: t("admin.clubs.allSports") },
-                ...SPORT_TYPE_OPTIONS.map((sport) => ({
-                  value: sport.value,
-                  label: sport.label,
-                })),
-              ]}
-              value={controller.filters.selectedSportType}
-              onChange={(value) => controller.setFilter("selectedSportType", value)}
-              aria-label={t("admin.clubs.filterBySport")}
-            />
+            <div className="full-row flex w-full gap-4">
+              {showOrganizationFilter && (
+                <OrgSelector
+                  filterKey="organizationFilter"
+                  label={t("admin.clubs.filterByOrganization")}
+                  placeholder={t("admin.clubs.allOrganizations")}
+                />
+              )}
 
-            {cities.length > 0 && (
               <Select
-                label={t("admin.clubs.filterByCity")}
+                label={t("admin.clubs.filterByStatus")}
                 options={[
-                  { value: "", label: t("admin.clubs.allCities") },
-                  ...cities.map((city) => ({ value: city, label: city })),
+                  { value: "", label: t("admin.clubs.allStatuses") },
+                  { value: "active", label: t("admin.clubs.statusActive") },
+                  { value: "draft", label: t("admin.clubs.statusDraft") },
+                  { value: "suspended", label: t("admin.clubs.statusSuspended") },
                 ]}
-                value={controller.filters.selectedCity}
-                onChange={(value) => controller.setFilter("selectedCity", value)}
-                aria-label={t("admin.clubs.filterByCity")}
+                value={controller.filters.selectedStatus}
+                onChange={(value) => controller.setFilter("selectedStatus", value)}
+                aria-label={t("admin.clubs.filterByStatus")}
               />
-            )}
 
-            <SortSelect
-              options={sortOptions}
-              label={t("admin.clubs.sortBy")}
-            />
+              <Select
+                label={t("admin.clubs.filterBySport")}
+                options={[
+                  { value: "", label: t("admin.clubs.allSports") },
+                  ...SPORT_TYPE_OPTIONS.map((sport) => ({
+                    value: sport.value,
+                    label: sport.label,
+                  })),
+                ]}
+                value={controller.filters.selectedSportType}
+                onChange={(value) => controller.setFilter("selectedSportType", value)}
+                aria-label={t("admin.clubs.filterBySport")}
+              />
+            </div>
+
+            <div className="full-row flex w-full gap-4">
+              {cities.length > 0 && (
+                <Select
+                  label={t("admin.clubs.filterByCity")}
+                  options={[
+                    { value: "", label: t("admin.clubs.allCities") },
+                    ...cities.map((city) => ({ value: city, label: city })),
+                  ]}
+                  value={controller.filters.selectedCity}
+                  onChange={(value) => controller.setFilter("selectedCity", value)}
+                  aria-label={t("admin.clubs.filterByCity")}
+                />
+              )}
+
+              <SortSelect
+                options={sortOptions}
+                label={t("admin.clubs.sortBy")}
+              />
+            </div>
           </ListToolbar>
 
           {error && (
