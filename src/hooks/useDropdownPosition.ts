@@ -6,6 +6,8 @@ export interface DropdownPosition {
   width: number;
   maxHeight: number;
   placement: "bottom" | "top";
+  /** For CSS bottom property calculation when placement is "top" */
+  bottom?: number;
 }
 
 interface UseDropdownPositionOptions {
@@ -90,7 +92,7 @@ export function useDropdownPosition({
 
       // Calculate actual max height based on available space
       const availableSpace = placement === "bottom" ? spaceBelow : spaceAbove;
-      const actualMaxHeight = Math.min(maxHeight, availableSpace - SAFE_ZONE_BUFFER);
+      const actualMaxHeight = Math.min(maxHeight, Math.max(0, availableSpace - SAFE_ZONE_BUFFER));
 
       // Calculate position
       // For bottom placement: top is where the dropdown top edge should be (below trigger)
@@ -108,12 +110,18 @@ export function useDropdownPosition({
         ? Math.max(VIEWPORT_PADDING, top)
         : top;
 
+      // Calculate bottom property for top placement to avoid repeated window.innerHeight lookups
+      const bottom = placement === "top"
+        ? viewportHeight - constrainedTop
+        : undefined;
+
       setPosition({
         top: constrainedTop,
         left,
         width,
         maxHeight: actualMaxHeight,
         placement,
+        bottom,
       });
     };
 

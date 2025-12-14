@@ -217,7 +217,7 @@ export function Multiselect({
               position: 'fixed',
               ...(dropdownPosition.placement === "bottom"
                 ? { top: `${dropdownPosition.top}px` }
-                : { bottom: `${window.innerHeight - dropdownPosition.top}px` }
+                : { bottom: `${dropdownPosition.bottom}px` }
               ),
               left: `${dropdownPosition.left}px`,
               width: `${dropdownPosition.width}px`,

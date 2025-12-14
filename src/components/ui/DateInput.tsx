@@ -223,7 +223,7 @@ export function DateInput({
               position: 'fixed',
               ...(dropdownPosition.placement === "bottom"
                 ? { top: `${dropdownPosition.top}px` }
-                : { bottom: `${window.innerHeight - dropdownPosition.top}px` }
+                : { bottom: `${dropdownPosition.bottom}px` }
               ),
               left: `${dropdownPosition.left}px`,
               zIndex: 9999,
