@@ -101,6 +101,8 @@ export default function ClubOperationsPage() {
     }
 
     // For Club Admin, verify they have access to this specific club
+    // Note: We check managedIds (which contains all club IDs they can manage)
+    // rather than assignedClub, which is only the first club for navigation
     if (adminStatus.adminType === "club_admin") {
       const hasAccess = adminStatus.managedIds.includes(clubId);
       if (!hasAccess) {

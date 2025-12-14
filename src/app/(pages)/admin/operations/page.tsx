@@ -109,6 +109,7 @@ export default function OperationsListPage() {
         <p className="im-club-operations-instruction">
           {t("operations.selectClubInstruction") || "Please select a club to view its operations."}
         </p>
+        {/* value is intentionally empty string - this is the list page, no club is pre-selected */}
         <OperationsClubCardSelector
           value=""
           onChange={handleClubSelect}
