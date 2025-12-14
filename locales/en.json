@@ -483,6 +483,9 @@
       "courtLocation": "Location",
       "allLocations": "All Locations",
       "filterByLocation": "Filter by location",
+      "presetActiveCourts": "Active Courts",
+      "presetMaintenanceCourts": "Maintenance Courts",
+      "presetPrimeTime": "Prime Time",
       "loadMore": "Load More",
       "loading": "Loading...",
       "new": {

@@ -464,6 +464,9 @@
       "courtLocation": "Розташування",
       "allLocations": "Усі розташування",
       "filterByLocation": "Фільтр за розташуванням",
+      "presetActiveCourts": "Активні корти",
+      "presetMaintenanceCourts": "Корти на обслуговуванні",
+      "presetPrimeTime": "Найбільш затребувані",
       "loadMore": "Завантажити ще",
       "loading": "Завантаження...",
       "new": {

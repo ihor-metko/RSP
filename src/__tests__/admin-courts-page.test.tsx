@@ -82,6 +82,13 @@ jest.mock("@/components/list-controls", () => ({
   StatusFilter: ({ label }: any) => <select data-testid="status-filter" aria-label={label}><option>All</option></select>,
   SortSelect: () => <select data-testid="sort-select"><option>Sort</option></select>,
   PaginationControls: () => <div data-testid="pagination-controls">Pagination</div>,
+  QuickPresets: ({ presets }: any) => (
+    <div data-testid="quick-presets">
+      {presets.map((preset: any) => (
+        <button key={preset.id} data-testid={`preset-${preset.id}`}>{preset.label}</button>
+      ))}
+    </div>
+  ),
 }));
 
 jest.mock("@/constants/sports", () => ({
@@ -99,6 +106,9 @@ describe("Admin Courts Page - List Controls Integration", () => {
       clubFilter: "",
       statusFilter: "",
       sportTypeFilter: "",
+      surfaceTypeFilter: "",
+      indoorFilter: "",
+      primeTimeFilter: "",
     },
     sortBy: "name",
     sortOrder: "asc" as const,
@@ -213,5 +223,24 @@ describe("Admin Courts Page - List Controls Integration", () => {
     // The controller should use "filters_courts" as the localStorage key
     expect(controller).toBeDefined();
     expect(controller.filters).toBeDefined();
+  });
+
+  it("should include primeTimeFilter in default filters", () => {
+    const controller = useListController({
+      entityKey: "courts",
+      defaultFilters: {
+        searchQuery: "",
+        organizationFilter: "",
+        clubFilter: "",
+        statusFilter: "",
+        sportTypeFilter: "",
+        surfaceTypeFilter: "",
+        indoorFilter: "",
+        primeTimeFilter: "",
+      },
+    });
+
+    expect(controller.filters).toHaveProperty("primeTimeFilter");
+    expect(controller.filters.primeTimeFilter).toBe("");
   });
 });
