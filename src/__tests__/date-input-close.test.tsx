@@ -7,6 +7,9 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { DateInput, CLOSE_DEBOUNCE_MS } from "@/components/ui/DateInput";
 import { act } from "react";
 
+// Buffer time added to debounce for test timing safety
+const TEST_BUFFER_MS = 50;
+
 // Mock Portal to render in the same DOM tree for testing
 jest.mock("@/components/ui/Portal", () => ({
   Portal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -116,7 +119,7 @@ describe("DateInput calendar close behavior", () => {
 
     // Wait for the justClosedRef timeout plus a small buffer
     await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, CLOSE_DEBOUNCE_MS + 50));
+      await new Promise((resolve) => setTimeout(resolve, CLOSE_DEBOUNCE_MS + TEST_BUFFER_MS));
     });
 
     // Focus the input again (simulating user clicking back on the input)
