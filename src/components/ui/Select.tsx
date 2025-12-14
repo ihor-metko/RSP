@@ -209,6 +209,9 @@ export function Select({
         <Portal>
           <ul
             ref={(node) => {
+              // Both refs point to the same element but serve different purposes:
+              // - listboxRef: Used for scrolling focused options into view
+              // - portalRef: Used for outside-click detection to prevent dropdown closure
               listboxRef.current = node;
               portalRef.current = node;
             }}
