@@ -32,13 +32,49 @@ jest.mock("@/constants/sports", () => ({
 
 // Mock UI components
 jest.mock("@/components/ui", () => ({
-  IMLink: ({ children, onClick, href }: { children: React.ReactNode; onClick?: () => void; href?: string }) => (
-    <a href={href} onClick={onClick} data-testid="im-link">
+  IMLink: ({ 
+    children, 
+    onClick, 
+    href, 
+    asButton, 
+    variant, 
+    className 
+  }: { 
+    children: React.ReactNode; 
+    onClick?: () => void; 
+    href?: string;
+    asButton?: boolean;
+    variant?: string;
+    className?: string;
+  }) => (
+    <a 
+      href={href} 
+      onClick={onClick} 
+      data-testid="im-link"
+      data-as-button={asButton}
+      data-variant={variant}
+      className={className}
+    >
       {children}
     </a>
   ),
-  Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <button onClick={onClick} data-testid="button">
+  Button: ({ 
+    children, 
+    onClick, 
+    variant, 
+    className 
+  }: { 
+    children: React.ReactNode; 
+    onClick?: () => void;
+    variant?: string;
+    className?: string;
+  }) => (
+    <button 
+      onClick={onClick} 
+      data-testid="button"
+      data-variant={variant}
+      className={className}
+    >
       {children}
     </button>
   ),

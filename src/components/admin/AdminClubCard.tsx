@@ -54,6 +54,11 @@ function parseTags(tags: string | null | undefined): string[] {
 
 /**
  * Renders the action button for the club card
+ * 
+ * @param actionButton - Optional custom action button configuration
+ * @param clubId - ID of the club (used for default href)
+ * @param t - Translation function from next-intl
+ * @returns JSX element for the action button
  */
 function renderActionButton(
   actionButton: AdminClubCardProps['actionButton'],
