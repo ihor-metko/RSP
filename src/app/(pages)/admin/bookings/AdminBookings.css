@@ -1,3 +1,5 @@
+@reference "tailwindcss";
+
 .im-admin-bookings-page {
   padding: 1.5rem 2rem;
 }
@@ -213,57 +215,101 @@
   color: var(--im-text-primary);
 }
 
-/* Modal content */
-.im-booking-detail-modal {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+/* ===== Booking Detail Modal ===== */
+.im-booking-modal {
+  @apply flex flex-col gap-6;
 }
 
-.im-booking-detail-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+/* Status Badge at Top */
+.im-booking-modal-status {
+  @apply flex justify-center pb-2;
 }
 
-.im-booking-detail-section-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--im-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--im-border-color);
-  padding-bottom: 0.5rem;
+/* Card Styling */
+.im-booking-modal-card {
+  background: var(--im-bg-secondary);
+  border: 1px solid var(--im-border-color);
+  transition: border-color 0.2s ease;
 }
 
-.im-booking-detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+.im-booking-modal-card:hover {
+  border-color: var(--im-primary);
 }
 
-.im-booking-detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
+/* Card Header with Icon */
+.im-booking-modal-card-header {
+  @apply flex items-center gap-3 mb-4;
 }
 
-.im-booking-detail-label {
-  font-size: 0.75rem;
-  color: var(--im-text-muted);
+.im-booking-modal-icon {
+  @apply w-5 h-5 flex-shrink-0;
+  color: var(--im-primary);
 }
 
-.im-booking-detail-value {
-  font-size: 0.875rem;
+.im-booking-modal-section-title {
+  @apply text-base font-semibold;
   color: var(--im-text-primary);
 }
 
-.im-booking-detail-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding-top: 1rem;
+/* Field Grid */
+.im-booking-modal-grid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+@media (min-width: 640px) {
+  .im-booking-modal-grid {
+    @apply grid-cols-2;
+  }
+}
+
+/* Individual Field */
+.im-booking-modal-field {
+  @apply flex flex-col gap-1;
+}
+
+.im-booking-modal-field-wide {
+  @apply col-span-full;
+}
+
+.im-booking-modal-label {
+  @apply text-xs font-medium uppercase tracking-wide;
+  color: var(--im-text-secondary);
+}
+
+.im-booking-modal-value {
+  @apply text-sm font-medium;
+  color: var(--im-text-primary);
+}
+
+.im-booking-modal-value-time {
+  @apply text-base;
+  color: var(--im-primary);
+}
+
+.im-booking-modal-value-price {
+  @apply text-lg font-semibold;
+  color: var(--im-primary);
+}
+
+.im-booking-modal-value-muted {
+  color: var(--im-text-secondary);
+}
+
+/* Modal Actions */
+.im-booking-modal-actions {
+  @apply flex justify-end gap-3 pt-4;
   border-top: 1px solid var(--im-border-color);
+}
+
+/* Modal Loading State */
+.im-booking-modal-loading {
+  @apply flex justify-center items-center py-12 gap-3;
+}
+
+.im-booking-modal-spinner {
+  @apply w-6 h-6 border-2 border-transparent rounded-full animate-spin;
+  border-top-color: var(--im-primary);
+  border-right-color: var(--im-primary);
 }
 
 /* Responsive adjustments */
@@ -290,7 +336,4 @@
     padding: 0.5rem 0.75rem;
   }
 
-  .im-booking-detail-grid {
-    grid-template-columns: 1fr;
-  }
 }
