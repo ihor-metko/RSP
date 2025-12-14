@@ -322,7 +322,7 @@ export default function AdminCourtsPage() {
     {
       id: "prime_time",
       label: t("admin.courts.presetPrimeTime"),
-      filters: { 
+      filters: {
         statusFilter: "active",
         primeTimeFilter: "true", // Flag to trigger sort by bookings
       },
@@ -454,10 +454,8 @@ export default function AdminCourtsPage() {
             resetLabel={t("common.clearFilters")}
             actionButton={
               canCreate(adminStatus?.adminType) ? (
-                <IMLink href="/admin/clubs">
-                  <Button variant="primary">
-                    {t("admin.courts.createCourt")}
-                  </Button>
+                <IMLink href="/admin/courts/new" asButton variant="primary">
+                  {t("admin.courts.createCourt")}
                 </IMLink>
               ) : undefined
             }

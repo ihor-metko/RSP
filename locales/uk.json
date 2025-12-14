@@ -472,11 +472,27 @@
       "new": {
         "title": "Новий корт",
         "steps": {
+          "organization": "Організація",
+          "club": "Клуб",
           "basic": "Основне",
           "pricing": "Ціни",
           "schedule": "Розклад",
           "media": "Медіа",
           "meta": "Додатково"
+        },
+        "organizationStep": {
+          "title": "Оберіть організацію",
+          "description": "Виберіть організацію, до якої належатиме цей корт.",
+          "organization": "Організація",
+          "selectOrganization": "Оберіть організацію..."
+        },
+        "clubStep": {
+          "title": "Оберіть клуб",
+          "description": "Виберіть клуб, де буде розташований цей корт.",
+          "club": "Клуб",
+          "selectClub": "Оберіть клуб...",
+          "orgAdminHint": "Клуб вашої організації вже обрано",
+          "clubAdminHint": "Ваш клуб вже обрано"
         },
         "basicStep": {
           "title": "Основна інформація",
@@ -554,6 +570,8 @@
           "priceNegative": "Ціна не може бути від'ємною",
           "maxPlayersMin": "Має бути мінімум 1",
           "maxPlayersMax": "Не може перевищувати 20",
+          "organizationRequired": "Будь ласка, оберіть організацію",
+          "clubRequired": "Будь ласка, оберіть клуб",
           "clubNotFound": "Клуб не знайдено",
           "failedToLoadClub": "Не вдалося завантажити клуб",
           "failedToCreateCourt": "Не вдалося створити корт",

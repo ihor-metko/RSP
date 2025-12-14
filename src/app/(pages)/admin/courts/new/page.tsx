@@ -9,6 +9,9 @@ import Link from "next/link";
 import { Button, Card, Breadcrumbs } from "@/components/ui";
 import { FormSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { formatPrice, dollarsToCents } from "@/utils/price";
+import { useUserStore } from "@/stores/useUserStore";
+import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { useClubStore } from "@/stores/useClubStore";
 
 import "./page.css";
 
@@ -23,6 +26,9 @@ interface GalleryImage {
 }
 
 interface CourtFormData {
+  // Organization & Club Selection Steps
+  organizationId: string;
+  clubId: string;
   // Basic Step
   name: string;
   slug: string;
@@ -50,6 +56,11 @@ interface CourtFormData {
 interface Club {
   id: string;
   name: string;
+  organizationId?: string;
+  organization?: {
+    id: string;
+    name: string;
+  } | null;
   defaultCurrency?: string;
   businessHours?: Array<{
     dayOfWeek: number;
@@ -60,6 +71,8 @@ interface Club {
 }
 
 const defaultFormValues: CourtFormData = {
+  organizationId: "",
+  clubId: "",
   name: "",
   slug: "",
   type: "",
@@ -96,11 +109,20 @@ export default function CreateCourtPage({
   const t = useTranslations();
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [clubId, setClubId] = useState<string | null>(null);
+  
+  // User store for role checks
+  const hasRole = useUserStore(state => state.hasRole);
+  const hasAnyRole = useUserStore(state => state.hasAnyRole);
+  const adminStatus = useUserStore(state => state.adminStatus);
+  
+  // Organization and Club stores
+  const { organizations, fetchOrganizations, loading: orgsLoading } = useOrganizationStore();
+  const { clubs, fetchClubsIfNeeded, loadingClubs: clubsLoading } = useClubStore();
+  
+  const [clubIdFromUrl, setClubIdFromUrl] = useState<string | null>(null);
   const [club, setClub] = useState<Club | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentStep, setCurrentStep] = useState("basic");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [previewCollapsed, setPreviewCollapsed] = useState(true);
@@ -109,14 +131,37 @@ export default function CreateCourtPage({
   const mainImageInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
-  // Constants with translations
-  const STEPS = [
-    { id: "basic", label: t("admin.courts.new.steps.basic"), number: 1 },
-    { id: "pricing", label: t("admin.courts.new.steps.pricing"), number: 2 },
-    { id: "schedule", label: t("admin.courts.new.steps.schedule"), number: 3 },
-    { id: "media", label: t("admin.courts.new.steps.media"), number: 4 },
-    { id: "meta", label: t("admin.courts.new.steps.meta"), number: 5 },
-  ];
+  // Determine which steps to show based on user role
+  const isRootAdmin = hasRole("ROOT_ADMIN");
+  const isOrgAdmin = hasRole("ORGANIZATION_ADMIN");
+  const isClubAdmin = hasRole("CLUB_ADMIN");
+  
+  // Build steps array based on role
+  const ALL_STEPS = useMemo(() => {
+    const steps = [];
+    let stepNumber = 1;
+    
+    // Step 1: Organization Selection (Root Admin only)
+    if (isRootAdmin && !clubIdFromUrl) {
+      steps.push({ id: "organization", label: t("admin.courts.new.steps.organization"), number: stepNumber++ });
+    }
+    
+    // Step 2: Club Selection (Root Admin and Org Admin only, not Club Admin)
+    if ((isRootAdmin || isOrgAdmin) && !isClubAdmin && !clubIdFromUrl) {
+      steps.push({ id: "club", label: t("admin.courts.new.steps.club"), number: stepNumber++ });
+    }
+    
+    // Existing steps
+    steps.push({ id: "basic", label: t("admin.courts.new.steps.basic"), number: stepNumber++ });
+    steps.push({ id: "pricing", label: t("admin.courts.new.steps.pricing"), number: stepNumber++ });
+    steps.push({ id: "schedule", label: t("admin.courts.new.steps.schedule"), number: stepNumber++ });
+    steps.push({ id: "media", label: t("admin.courts.new.steps.media"), number: stepNumber++ });
+    steps.push({ id: "meta", label: t("admin.courts.new.steps.meta"), number: stepNumber++ });
+    
+    return steps;
+  }, [isRootAdmin, isOrgAdmin, isClubAdmin, clubIdFromUrl, t]);
+  
+  const [currentStep, setCurrentStep] = useState(ALL_STEPS[0]?.id || "basic");
 
   const COURT_TYPES = [
     { value: "padel", label: t("admin.courts.new.types.padel") },
@@ -158,9 +203,22 @@ export default function CreateCourtPage({
 
   // Watch all values for preview
   const watchedValues = watch();
+  const selectedOrgId = watch("organizationId");
 
   // Debounced preview values
   const [previewData, setPreviewData] = useState<CourtFormData>(defaultFormValues);
+  
+  // Filter clubs by selected organization (for club selection step)
+  const filteredClubs = useMemo(() => {
+    if (isRootAdmin && selectedOrgId) {
+      return clubs.filter(club => club.organization?.id === selectedOrgId);
+    }
+    if (isOrgAdmin && adminStatus?.managedIds) {
+      // Org admin sees clubs within their organizations (supports multiple orgs)
+      return clubs.filter(club => club.organization?.id && adminStatus.managedIds.includes(club.organization.id));
+    }
+    return clubs;
+  }, [clubs, selectedOrgId, isRootAdmin, isOrgAdmin, adminStatus]);
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -177,21 +235,55 @@ export default function CreateCourtPage({
     };
   }, [watchedValues]);
 
-  // Initialize clubId from params
+  // Initialize clubId from params (if accessing from club context)
   useEffect(() => {
     params.then((resolvedParams) => {
-      setClubId(resolvedParams.id);
+      setClubIdFromUrl(resolvedParams.id);
+      if (resolvedParams.id) {
+        setValue("clubId", resolvedParams.id);
+      }
     });
-  }, [params]);
+  }, [params, setValue]);
 
-  // Fetch club data
+  // Load organizations and clubs data for selection
   useEffect(() => {
-    if (!clubId) return;
+    if (isRootAdmin && !clubIdFromUrl) {
+      fetchOrganizations();
+    }
+    if ((isRootAdmin || isOrgAdmin) && !clubIdFromUrl) {
+      fetchClubsIfNeeded();
+    }
+  }, [isRootAdmin, isOrgAdmin, clubIdFromUrl, fetchOrganizations, fetchClubsIfNeeded]);
+
+  // Auto-populate org/club for org admins and club admins
+  useEffect(() => {
+    if (isOrgAdmin && adminStatus?.managedIds && adminStatus.managedIds.length > 0) {
+      // For org admin, pre-select their first organization (most admins manage one org)
+      // If admin manages multiple orgs, they can change it via the club selection
+      const orgId = adminStatus.managedIds[0];
+      setValue("organizationId", orgId);
+    }
+    
+    if (isClubAdmin && adminStatus?.managedIds && adminStatus.managedIds.length > 0) {
+      // For club admin, pre-select their club (organizationId will be populated when club data loads)
+      const clubId = adminStatus.managedIds[0];
+      setValue("clubId", clubId);
+    }
+  }, [isOrgAdmin, isClubAdmin, adminStatus, setValue]);
+
+  // Fetch club data when clubId is set
+  const selectedClubId = watch("clubId") || clubIdFromUrl;
+  
+  useEffect(() => {
+    if (!selectedClubId) {
+      setLoading(false);
+      return;
+    }
 
     const fetchClub = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/clubs/${clubId}`);
+        const response = await fetch(`/api/clubs/${selectedClubId}`);
         if (!response.ok) {
           if (response.status === 404) {
             setError(t("admin.courts.new.errors.clubNotFound"));
@@ -206,6 +298,11 @@ export default function CreateCourtPage({
         if (data.defaultCurrency) {
           setValue("currency", data.defaultCurrency);
         }
+        
+        // Set organization ID from club if not already set
+        if (data.organizationId && !getValues("organizationId")) {
+          setValue("organizationId", data.organizationId);
+        }
       } catch (err) {
         console.error("Failed to load club:", err);
         setError(t("admin.courts.new.errors.failedToLoadClub"));
@@ -215,16 +312,16 @@ export default function CreateCourtPage({
     };
 
     fetchClub();
-  }, [clubId, setValue, t]);
+  }, [selectedClubId, setValue, getValues, t]);
 
-  // Auth check
+  // Auth check - allow any admin
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || !session.user.isRoot) {
+    if (!session?.user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"])) {
       router.push("/auth/sign-in");
     }
-  }, [session, status, router]);
+  }, [session, status, hasAnyRole, router]);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -434,6 +531,12 @@ export default function CreateCourtPage({
       let fieldsToValidate: (keyof CourtFormData)[] = [];
 
       switch (stepId) {
+        case "organization":
+          fieldsToValidate = ["organizationId"];
+          break;
+        case "club":
+          fieldsToValidate = ["clubId"];
+          break;
         case "basic":
           fieldsToValidate = ["name", "slug"];
           break;
@@ -466,11 +569,16 @@ export default function CreateCourtPage({
 
   // Submit handler
   const onSubmit = async (data: CourtFormData, visibility: "draft" | "published") => {
-    if (!clubId) return;
+    const targetClubId = data.clubId || clubIdFromUrl;
+    
+    if (!targetClubId) {
+      showToast("error", "Please select a club");
+      return;
+    }
 
     // Validate all steps
     let allValid = true;
-    for (const step of STEPS) {
+    for (const step of ALL_STEPS) {
       const valid = await validateStep(step.id);
       if (!valid) allValid = false;
     }
@@ -506,7 +614,7 @@ export default function CreateCourtPage({
         notes: data.notes || null,
       };
 
-      const response = await fetch(`/api/clubs/${clubId}/courts`, {
+      const response = await fetch(`/api/clubs/${targetClubId}/courts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -529,7 +637,7 @@ export default function CreateCourtPage({
       
       // Redirect to courts list page
       setTimeout(() => {
-        router.push(`/admin/clubs/${clubId}/courts`);
+        router.push(`/admin/clubs/${targetClubId}/courts`);
       }, 1500);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create court";
@@ -543,6 +651,10 @@ export default function CreateCourtPage({
   // Render step content
   const renderStepContent = () => {
     switch (currentStep) {
+      case "organization":
+        return renderOrganizationStep();
+      case "club":
+        return renderClubStep();
       case "basic":
         return renderBasicStep();
       case "pricing":
@@ -556,6 +668,83 @@ export default function CreateCourtPage({
       default:
         return null;
     }
+  };
+
+  // Organization Selection Step
+  const renderOrganizationStep = () => {
+    return (
+      <div className="im-create-court-step-content">
+        <h2 className="im-create-court-step-title">{t("admin.courts.new.organizationStep.title")}</h2>
+        <p className="im-create-court-step-description">
+          {t("admin.courts.new.organizationStep.description")}
+        </p>
+
+        <div className="im-create-court-row">
+          <div className="im-create-court-field im-create-court-field--full">
+            <label className="im-create-court-label">{t("admin.courts.new.organizationStep.organization")} *</label>
+            <select
+              {...register("organizationId", {
+                required: t("admin.courts.new.errors.organizationRequired"),
+              })}
+              className={`im-create-court-select ${errors.organizationId ? "im-create-court-input--error" : ""}`}
+              disabled={isSubmitting || orgsLoading}
+            >
+              <option value="">{t("admin.courts.new.organizationStep.selectOrganization")}</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+            {errors.organizationId && (
+              <span className="im-create-court-error">{errors.organizationId.message}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Club Selection Step
+  const renderClubStep = () => {
+    // Club selection is only disabled during submission or loading
+    // Org admins can select clubs; club admins shouldn't see this step at all
+    const isDisabled = isSubmitting || clubsLoading;
+    
+    return (
+      <div className="im-create-court-step-content">
+        <h2 className="im-create-court-step-title">{t("admin.courts.new.clubStep.title")}</h2>
+        <p className="im-create-court-step-description">
+          {t("admin.courts.new.clubStep.description")}
+        </p>
+
+        <div className="im-create-court-row">
+          <div className="im-create-court-field im-create-court-field--full">
+            <label className="im-create-court-label">{t("admin.courts.new.clubStep.club")} *</label>
+            <select
+              {...register("clubId", {
+                required: t("admin.courts.new.errors.clubRequired"),
+              })}
+              className={`im-create-court-select ${errors.clubId ? "im-create-court-input--error" : ""}`}
+              disabled={isDisabled}
+            >
+              <option value="">{t("admin.courts.new.clubStep.selectClub")}</option>
+              {filteredClubs.map((club) => (
+                <option key={club.id} value={club.id}>
+                  {club.name}
+                </option>
+              ))}
+            </select>
+            {isOrgAdmin && (
+              <span className="im-create-court-hint">{t("admin.courts.new.clubStep.orgAdminHint")}</span>
+            )}
+            {errors.clubId && (
+              <span className="im-create-court-error">{errors.clubId.message}</span>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   // Basic Step
@@ -1073,13 +1262,21 @@ export default function CreateCourtPage({
       <header className="im-create-court-header">
         <div className="im-create-court-header-content">
           <Breadcrumbs
-            items={[
-              { label: t("breadcrumbs.admin"), href: "/admin/clubs" },
-              { label: t("breadcrumbs.clubs"), href: "/admin/clubs" },
-              { label: club?.name || t("breadcrumbs.club"), href: `/admin/clubs/${clubId}` },
-              { label: t("breadcrumbs.courts"), href: `/admin/clubs/${clubId}/courts` },
-              { label: t("admin.courts.new.title") },
-            ]}
+            items={
+              clubIdFromUrl
+                ? [
+                    { label: t("breadcrumbs.admin"), href: "/admin/clubs" },
+                    { label: t("breadcrumbs.clubs"), href: "/admin/clubs" },
+                    { label: club?.name || t("breadcrumbs.club"), href: `/admin/clubs/${clubIdFromUrl}` },
+                    { label: t("breadcrumbs.courts"), href: `/admin/clubs/${clubIdFromUrl}/courts` },
+                    { label: t("admin.courts.new.title") },
+                  ]
+                : [
+                    { label: t("breadcrumbs.admin"), href: "/admin/dashboard" },
+                    { label: t("breadcrumbs.courts"), href: "/admin/courts" },
+                    { label: t("admin.courts.new.title") },
+                  ]
+            }
             separator="/"
           />
 
@@ -1119,7 +1316,7 @@ export default function CreateCourtPage({
         <div className="im-create-court-wizard">
           {/* Step Navigation */}
           <nav className="im-create-court-steps-nav" aria-label="Form steps">
-            {STEPS.map((step) => {
+            {ALL_STEPS.map((step) => {
               const isActive = currentStep === step.id;
               const hasError = stepErrors[step.id];
 

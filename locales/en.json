@@ -491,11 +491,27 @@
       "new": {
         "title": "New Court",
         "steps": {
+          "organization": "Organization",
+          "club": "Club",
           "basic": "Basic",
           "pricing": "Pricing",
           "schedule": "Schedule",
           "media": "Media",
           "meta": "Meta"
+        },
+        "organizationStep": {
+          "title": "Select Organization",
+          "description": "Choose the organization to which this court will belong.",
+          "organization": "Organization",
+          "selectOrganization": "Select an organization..."
+        },
+        "clubStep": {
+          "title": "Select Club",
+          "description": "Choose the club where this court will be located.",
+          "club": "Club",
+          "selectClub": "Select a club...",
+          "orgAdminHint": "Your organization's club is pre-selected",
+          "clubAdminHint": "Your club is pre-selected"
         },
         "basicStep": {
           "title": "Basic Information",
@@ -573,6 +589,8 @@
           "priceNegative": "Price cannot be negative",
           "maxPlayersMin": "Must be at least 1",
           "maxPlayersMax": "Cannot exceed 20",
+          "organizationRequired": "Please select an organization",
+          "clubRequired": "Please select a club",
           "clubNotFound": "Club not found",
           "failedToLoadClub": "Failed to load club",
           "failedToCreateCourt": "Failed to create court",
