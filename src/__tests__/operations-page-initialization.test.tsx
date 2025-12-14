@@ -137,6 +137,11 @@ jest.mock("@/components/club-operations", () => ({
       </select>
     </div>
   ),
+  OperationsClubCardSelector: ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+    <div data-testid="club-selector">
+      <div data-testid="club-card-selector">Club Card Selector</div>
+    </div>
+  ),
 }));
 
 import OperationsPage from "@/app/(pages)/admin/operations/page";
