@@ -10,7 +10,7 @@ export function Textarea({ label, className = "", id, ...props }: TextareaProps)
   const textareaId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
   return (
-    <div className={`rsp-textarea-wrapper ${className}`.trim()}>
+    <div className="rsp-textarea-wrapper">
       {label && (
         <label
           htmlFor={textareaId}
