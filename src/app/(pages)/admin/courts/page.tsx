@@ -357,7 +357,7 @@ export default function AdminCourtsPage() {
             variant="outline"
             size="sm"
             onClick={() => router.push(`/admin/clubs/${court.club.id}/courts/${court.id}`)}
-            aria-label={`View ${court.name}`}
+            aria-label={t('common.view')}
           >
             {t('common.view')}
           </Button>
@@ -366,7 +366,7 @@ export default function AdminCourtsPage() {
               variant="outline"
               size="sm"
               onClick={() => handleOpenEditModal(court)}
-              aria-label={`Edit ${court.name}`}
+              aria-label={t('common.edit')}
             >
               {t('common.edit')}
             </Button>
@@ -376,7 +376,7 @@ export default function AdminCourtsPage() {
               variant="outline"
               size="sm"
               onClick={() => handleOpenDeleteModal(court)}
-              aria-label={`Delete ${court.name}`}
+              aria-label={t('common.delete')}
               className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
             >
               {t('common.delete')}

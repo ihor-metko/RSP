@@ -59,6 +59,9 @@
     "slide": "Слайд",
     "slideOf": "Слайд {current} з {total}",
     "clearFilters": "Очистити фільтри",
+    "club": "Клуб",
+    "organization": "Організація",
+    "created": "Створено",
     "allStatuses": "Всі статуси",
     "view": "Переглянути",
     "viewProfile": "Переглянути профіль"
