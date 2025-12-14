@@ -14,6 +14,7 @@ import {
   QuickCreateModal,
   BookingDetailModal,
   OperationsClubSelector,
+  OperationsClubCardSelector,
 } from "@/components/club-operations";
 import type { OperationsBooking } from "@/types/booking";
 import { TableSkeleton } from "@/components/ui/skeletons";
@@ -245,19 +246,15 @@ export default function OperationsPage() {
           description={t("operations.description") || "Manage club operations"}
         />
         
-        {/* Club selector - required before operations UI loads */}
-        <div className="im-club-operations-controls">
-          <div className="im-club-operations-club-selector">
-            <p className="im-club-operations-instruction">
-              {t("operations.selectClubInstruction") || "Please select a club to view its operations."}
-            </p>
-            <OperationsClubSelector
-              value={selectedClubId}
-              onChange={handleClubChange}
-              label={t("operations.club") || "Club"}
-              placeholder={t("operations.selectClub") || "Select a club"}
-            />
-          </div>
+        {/* Club card selector - required before operations UI loads */}
+        <div className="im-club-operations-club-selection-container">
+          <p className="im-club-operations-instruction">
+            {t("operations.selectClubInstruction") || "Please select a club to view its operations."}
+          </p>
+          <OperationsClubCardSelector
+            value={selectedClubId}
+            onChange={handleClubChange}
+          />
         </div>
       </main>
     );
