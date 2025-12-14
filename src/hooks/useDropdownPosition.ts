@@ -32,6 +32,10 @@ const SAFE_ZONE_BUFFER = 20; // Extra buffer for available space calculation
  * Automatically flips dropdown above trigger if not enough space below.
  * Recalculates on window resize and scroll.
  * 
+ * When placement is "top", the returned `top` value represents where the dropdown's
+ * BOTTOM edge should be positioned. Components should use CSS `bottom` property
+ * calculated as `window.innerHeight - position.top`.
+ * 
  * @example
  * ```tsx
  * const triggerRef = useRef<HTMLDivElement>(null);
@@ -40,7 +44,10 @@ const SAFE_ZONE_BUFFER = 20; // Extra buffer for available space calculation
  * <Portal>
  *   <div style={{ 
  *     position: 'fixed',
- *     top: `${position.top}px`,
+ *     ...(position.placement === 'bottom'
+ *       ? { top: `${position.top}px` }
+ *       : { bottom: `${window.innerHeight - position.top}px` }
+ *     ),
  *     left: `${position.left}px`,
  *     width: `${position.width}px`
  *   }}>
@@ -86,9 +93,11 @@ export function useDropdownPosition({
       const actualMaxHeight = Math.min(maxHeight, availableSpace - SAFE_ZONE_BUFFER);
 
       // Calculate position
+      // For bottom placement: top is where the dropdown top edge should be (below trigger)
+      // For top placement: top is where the dropdown bottom edge should be (at trigger top)
       const top = placement === "bottom"
         ? rect.bottom + offset
-        : rect.top - actualMaxHeight - offset;
+        : rect.top - offset;
 
       const left = Math.max(VIEWPORT_PADDING, Math.min(rect.left, viewportWidth - rect.width - VIEWPORT_PADDING));
       const width = matchWidth ? rect.width : Math.min(rect.width, viewportWidth - (VIEWPORT_PADDING * 2));
