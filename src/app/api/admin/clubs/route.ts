@@ -228,6 +228,14 @@ export async function GET(request: Request) {
       const minCount = courtCountMin ? parseInt(courtCountMin, 10) : 0;
       const maxCount = courtCountMax ? parseInt(courtCountMax, 10) : Infinity;
       
+      // Validate parsed values
+      if ((courtCountMin && isNaN(minCount)) || (courtCountMax && isNaN(maxCount))) {
+        return NextResponse.json(
+          { error: "Invalid court count filter values" },
+          { status: 400 }
+        );
+      }
+      
       clubsWithCounts = clubsWithCounts.filter((club) => {
         return club.courtCount >= minCount && club.courtCount <= maxCount;
       });

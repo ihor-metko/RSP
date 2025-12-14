@@ -352,6 +352,26 @@ describe("Admin Clubs API", () => {
       expect(dataLarge.clubs[0].name).toBe("Large Club");
       expect(dataLarge.clubs[0].courtCount).toBe(5);
     });
+
+    it("should return 400 for invalid courtCount filter values", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      (prisma.club.count as jest.Mock).mockResolvedValue(0);
+      (prisma.club.findMany as jest.Mock).mockResolvedValue([]);
+
+      // Test with invalid courtCountMin
+      const requestInvalid = new Request("http://localhost:3000/api/admin/clubs?courtCountMin=invalid", {
+        method: "GET",
+      });
+
+      const responseInvalid = await GET(requestInvalid);
+      const dataInvalid = await responseInvalid.json();
+
+      expect(responseInvalid.status).toBe(400);
+      expect(dataInvalid.error).toBe("Invalid court count filter values");
+    });
   });
 
   describe("POST /api/admin/clubs (deprecated)", () => {

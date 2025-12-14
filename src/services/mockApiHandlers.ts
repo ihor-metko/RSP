@@ -403,9 +403,12 @@ export async function mockGetClubs(params: {
     const minCount = courtCountMin ? parseInt(courtCountMin, 10) : 0;
     const maxCount = courtCountMax ? parseInt(courtCountMax, 10) : Infinity;
     
-    clubsWithCounts = clubsWithCounts.filter((club) => {
-      return club.courtCount >= minCount && club.courtCount <= maxCount;
-    });
+    // Validate parsed values (silently ignore invalid values in mock mode)
+    if ((courtCountMin && !isNaN(minCount)) || (courtCountMax && !isNaN(maxCount))) {
+      clubsWithCounts = clubsWithCounts.filter((club) => {
+        return club.courtCount >= minCount && club.courtCount <= maxCount;
+      });
+    }
   }
 
   // Apply sorting
