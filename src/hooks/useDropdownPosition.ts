@@ -74,7 +74,7 @@ export function useDropdownPosition({
 
       // Calculate available space above and below
       const spaceBelow = viewportHeight - rect.bottom - offset;
-      const spaceAbove = rect.top - offset;
+      const spaceAbove = rect.top - offset - VIEWPORT_PADDING;
 
       // Determine placement
       const placement: "bottom" | "top" = spaceBelow >= maxHeight || spaceBelow > spaceAbove
@@ -83,18 +83,24 @@ export function useDropdownPosition({
 
       // Calculate actual max height based on available space
       const availableSpace = placement === "bottom" ? spaceBelow : spaceAbove;
-      const actualMaxHeight = Math.min(maxHeight, availableSpace - SAFE_ZONE_BUFFER);
+      const actualMaxHeight = Math.min(maxHeight, Math.max(0, availableSpace - SAFE_ZONE_BUFFER));
 
       // Calculate position
-      const top = placement === "bottom"
-        ? rect.bottom + offset
-        : rect.top - actualMaxHeight - offset;
+      let top: number;
+      if (placement === "bottom") {
+        top = rect.bottom + offset;
+      } else {
+        // For top placement, position dropdown directly above trigger
+        top = rect.top - actualMaxHeight - offset;
+        // Ensure we don't go above viewport padding
+        top = Math.max(VIEWPORT_PADDING, top);
+      }
 
       const left = Math.max(VIEWPORT_PADDING, Math.min(rect.left, viewportWidth - rect.width - VIEWPORT_PADDING));
       const width = matchWidth ? rect.width : Math.min(rect.width, viewportWidth - (VIEWPORT_PADDING * 2));
 
       setPosition({
-        top: Math.max(VIEWPORT_PADDING, top),
+        top,
         left,
         width,
         maxHeight: actualMaxHeight,
