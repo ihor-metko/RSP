@@ -269,6 +269,89 @@ describe("Admin Clubs API", () => {
       expect(response.status).toBe(500);
       expect(data.error).toBe("Internal server error");
     });
+
+    it("should filter clubs by courtCountMin and courtCountMax", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      const mockClubs = [
+        {
+          id: "club-1",
+          name: "Small Club",
+          shortDescription: null,
+          location: "Location A",
+          city: null,
+          contactInfo: null,
+          openingHours: null,
+          logo: null,
+          heroImage: null,
+          tags: null,
+          isPublic: true,
+          createdAt: new Date().toISOString(),
+          organizationId: null,
+          organization: null,
+          courts: [
+            { id: "court-1", indoor: true, bookings: [] },
+            { id: "court-2", indoor: false, bookings: [] },
+          ],
+          clubMemberships: [],
+        },
+        {
+          id: "club-2",
+          name: "Large Club",
+          shortDescription: null,
+          location: "Location B",
+          city: null,
+          contactInfo: null,
+          openingHours: null,
+          logo: null,
+          heroImage: null,
+          tags: null,
+          isPublic: true,
+          createdAt: new Date().toISOString(),
+          organizationId: null,
+          organization: null,
+          courts: [
+            { id: "court-3", indoor: true, bookings: [] },
+            { id: "court-4", indoor: true, bookings: [] },
+            { id: "court-5", indoor: false, bookings: [] },
+            { id: "court-6", indoor: false, bookings: [] },
+            { id: "court-7", indoor: true, bookings: [] },
+          ],
+          clubMemberships: [],
+        },
+      ];
+
+      (prisma.club.count as jest.Mock).mockResolvedValue(2);
+      (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
+
+      // Test filtering for small clubs (< 3 courts)
+      const requestSmall = new Request("http://localhost:3000/api/admin/clubs?courtCountMax=2", {
+        method: "GET",
+      });
+
+      const responseSmall = await GET(requestSmall);
+      const dataSmall = await responseSmall.json();
+
+      expect(responseSmall.status).toBe(200);
+      expect(dataSmall.clubs).toHaveLength(1);
+      expect(dataSmall.clubs[0].name).toBe("Small Club");
+      expect(dataSmall.clubs[0].courtCount).toBe(2);
+
+      // Test filtering for large clubs (>= 5 courts)
+      const requestLarge = new Request("http://localhost:3000/api/admin/clubs?courtCountMin=5", {
+        method: "GET",
+      });
+
+      const responseLarge = await GET(requestLarge);
+      const dataLarge = await responseLarge.json();
+
+      expect(responseLarge.status).toBe(200);
+      expect(dataLarge.clubs).toHaveLength(1);
+      expect(dataLarge.clubs[0].name).toBe("Large Club");
+      expect(dataLarge.clubs[0].courtCount).toBe(5);
+    });
   });
 
   describe("POST /api/admin/clubs (deprecated)", () => {

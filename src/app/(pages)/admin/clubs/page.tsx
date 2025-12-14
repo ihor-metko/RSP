@@ -146,7 +146,6 @@ export default function AdminClubsPage() {
   }, [clubs]);
 
   // Determine permissions based on admin type
-  const canCreate = adminStatus?.adminType === "root_admin" || adminStatus?.adminType === "organization_admin";
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
 
   // Show skeleton loaders instead of blocking spinner
