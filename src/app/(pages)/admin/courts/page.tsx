@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal, IMLink, PageHeader, Table } from "@/components/ui";
@@ -64,7 +64,7 @@ interface CourtFilters {
   sportTypeFilter: string;
   surfaceTypeFilter: string;
   indoorFilter: string;
-  primeTimeFilter: string; // Special flag for Prime Time preset
+  primeTimeFilter: string; // String to match filter pattern; "true" when Prime Time preset active
 }
 
 export default function AdminCourtsPage() {
@@ -158,7 +158,7 @@ export default function AdminCourtsPage() {
         controller.setSortOrder("desc");
       }
     }
-  }, [controller.filters.primeTimeFilter, controller]);
+  }, [controller.filters.primeTimeFilter, controller.sortBy, controller.sortOrder, controller.setSortBy, controller.setSortOrder]);
 
   useEffect(() => {
     if (isLoadingStore) return;
@@ -304,28 +304,30 @@ export default function AdminCourtsPage() {
   ];
 
   // Quick presets for common court filters
-  const getQuickPresets = () => {
-    return [
-      {
-        id: "active_courts",
-        label: t("admin.courts.presetActiveCourts"),
-        filters: { statusFilter: "active" },
+  const quickPresets = useMemo<Array<{
+    id: string;
+    label: string;
+    filters: Partial<CourtFilters>;
+  }>>(() => [
+    {
+      id: "active_courts",
+      label: t("admin.courts.presetActiveCourts"),
+      filters: { statusFilter: "active" },
+    },
+    {
+      id: "maintenance_courts",
+      label: t("admin.courts.presetMaintenanceCourts"),
+      filters: { statusFilter: "inactive" },
+    },
+    {
+      id: "prime_time",
+      label: t("admin.courts.presetPrimeTime"),
+      filters: { 
+        statusFilter: "active",
+        primeTimeFilter: "true", // Flag to trigger sort by bookings
       },
-      {
-        id: "maintenance_courts",
-        label: t("admin.courts.presetMaintenanceCourts"),
-        filters: { statusFilter: "inactive" },
-      },
-      {
-        id: "prime_time",
-        label: t("admin.courts.presetPrimeTime"),
-        filters: { 
-          statusFilter: "active",
-          primeTimeFilter: "true", // Flag to trigger sort by bookings
-        },
-      },
-    ];
-  };
+    },
+  ], [t]);
 
   // Define table columns
   const columns: TableColumn<Court>[] = [
@@ -469,7 +471,7 @@ export default function AdminCourtsPage() {
 
               <QuickPresets
                 className="flex-1"
-                presets={getQuickPresets()}
+                presets={quickPresets}
               />
             </div>
 
