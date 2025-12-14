@@ -1,0 +1,121 @@
+@reference "tailwindcss";
+
+/* ===== Operations Club Card Selector ===== */
+.im-operations-club-selector {
+  @apply w-full;
+}
+
+/* Card Grid Layout */
+.im-operations-club-cards-grid {
+  @apply grid gap-6;
+}
+
+/* Responsive grid - adapt to screen sizes */
+@media (min-width: 640px) {
+  .im-operations-club-cards-grid {
+    @apply grid-cols-2;
+  }
+}
+
+@media (min-width: 1024px) {
+  .im-operations-club-cards-grid {
+    @apply grid-cols-3;
+  }
+}
+
+@media (min-width: 1280px) {
+  .im-operations-club-cards-grid {
+    @apply grid-cols-4;
+  }
+}
+
+/* Card Wrapper - makes card clickable and adds selection state */
+.im-operations-club-card-wrapper {
+  @apply relative cursor-pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.im-operations-club-card-wrapper:focus {
+  @apply outline-none;
+  /* Add focus ring using box-shadow for better visibility */
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  border-radius: 12px;
+}
+
+.im-operations-club-card-wrapper:focus-visible {
+  @apply outline-none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  border-radius: 12px;
+}
+
+/* Selected state styling */
+.im-operations-club-card-selected {
+  position: relative;
+}
+
+.im-operations-club-card-selected::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 14px;
+  border: 3px solid var(--entity-color-club);
+  z-index: 1;
+  pointer-events: none;
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.01);
+  }
+}
+
+/* Add checkmark icon for selected card */
+.im-operations-club-card-selected::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 32px;
+  height: 32px;
+  background-color: var(--entity-color-club);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dark .im-operations-club-card-selected::after {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Enhance hover effect for clickable cards */
+.im-operations-club-card-wrapper:hover {
+  transform: translateY(-2px);
+}
+
+/* Empty state */
+.im-operations-club-selector-empty {
+  @apply text-center py-12;
+}
+
+.im-operations-club-selector-empty p {
+  @apply text-lg;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
+}
+
+.dark .im-operations-club-selector-empty p {
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
