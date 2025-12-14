@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader, Button, Modal, type TableColumn } from "@/components/ui";
+import { PageHeader, Button, Modal, Card, Badge, type TableColumn } from "@/components/ui";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { formatPrice } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
@@ -569,95 +569,134 @@ export default function AdminBookingsPage() {
           title={t("adminBookings.bookingDetails")}
         >
           {isLoadingDetail ? (
-            <div className="im-admin-bookings-loading">
-              <div className="im-admin-bookings-loading-spinner" />
+            <div className="im-booking-modal-loading">
+              <div className="im-booking-modal-spinner" />
               <span>{t("common.loading")}</span>
             </div>
           ) : selectedBooking ? (
-            <div className="im-booking-detail-modal">
-              {/* User Information */}
-              <div className="im-booking-detail-section">
-                <h4 className="im-booking-detail-section-title">{t("adminBookings.userInfo")}</h4>
-                <div className="im-booking-detail-grid">
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("common.name")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.userName || "—"}</span>
-                  </div>
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("common.email")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.userEmail}</span>
-                  </div>
-                </div>
+            <div className="im-booking-modal">
+              {/* Status Badge Header */}
+              <div className="im-booking-modal-status">
+                <Badge
+                  variant={
+                    selectedBooking.status === "paid" || selectedBooking.status === "confirmed"
+                      ? "success"
+                      : selectedBooking.status === "cancelled"
+                      ? "error"
+                      : "warning"
+                  }
+                  size="medium"
+                >
+                  {selectedBooking.status === "pending"
+                    ? t("adminBookings.statusPending")
+                    : selectedBooking.status === "paid"
+                    ? t("adminBookings.statusPaid")
+                    : selectedBooking.status === "reserved"
+                    ? t("adminBookings.statusReserved")
+                    : t("adminBookings.statusCancelled")}
+                </Badge>
               </div>
 
-              {/* Court Information */}
-              <div className="im-booking-detail-section">
-                <h4 className="im-booking-detail-section-title">{t("adminBookings.courtInfo")}</h4>
-                <div className="im-booking-detail-grid">
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("adminBookings.court")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.courtName}</span>
+              {/* User Information Card */}
+              <Card className="im-booking-modal-card">
+                <div className="im-booking-modal-card-header">
+                  <svg className="im-booking-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <h4 className="im-booking-modal-section-title">{t("adminBookings.userInfo")}</h4>
+                </div>
+                <div className="im-booking-modal-grid">
+                  <div className="im-booking-modal-field">
+                    <span className="im-booking-modal-label">{t("common.name")}</span>
+                    <span className="im-booking-modal-value">{selectedBooking.userName || "—"}</span>
                   </div>
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("adminBookings.club")}</span>
-                    <span className="im-booking-detail-value">{selectedBooking.clubName}</span>
+                  <div className="im-booking-modal-field">
+                    <span className="im-booking-modal-label">{t("common.email")}</span>
+                    <span className="im-booking-modal-value">{selectedBooking.userEmail}</span>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Court Information Card */}
+              <Card className="im-booking-modal-card">
+                <div className="im-booking-modal-card-header">
+                  <svg className="im-booking-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <line x1="3" y1="9" x2="21" y2="9" />
+                    <line x1="9" y1="21" x2="9" y2="9" />
+                  </svg>
+                  <h4 className="im-booking-modal-section-title">{t("adminBookings.courtInfo")}</h4>
+                </div>
+                <div className="im-booking-modal-grid">
+                  <div className="im-booking-modal-field">
+                    <span className="im-booking-modal-label">{t("adminBookings.court")}</span>
+                    <span className="im-booking-modal-value">{selectedBooking.courtName}</span>
+                  </div>
+                  <div className="im-booking-modal-field">
+                    <span className="im-booking-modal-label">{t("adminBookings.club")}</span>
+                    <span className="im-booking-modal-value">{selectedBooking.clubName}</span>
                   </div>
                   {selectedBooking.courtType && (
-                    <div className="im-booking-detail-item">
-                      <span className="im-booking-detail-label">{t("admin.courts.type")}</span>
-                      <span className="im-booking-detail-value">{selectedBooking.courtType}</span>
+                    <div className="im-booking-modal-field">
+                      <span className="im-booking-modal-label">{t("admin.courts.type")}</span>
+                      <span className="im-booking-modal-value">{selectedBooking.courtType}</span>
                     </div>
                   )}
                   {selectedBooking.courtSurface && (
-                    <div className="im-booking-detail-item">
-                      <span className="im-booking-detail-label">{t("admin.courts.surface")}</span>
-                      <span className="im-booking-detail-value">{selectedBooking.courtSurface}</span>
+                    <div className="im-booking-modal-field">
+                      <span className="im-booking-modal-label">{t("admin.courts.surface")}</span>
+                      <span className="im-booking-modal-value">{selectedBooking.courtSurface}</span>
                     </div>
                   )}
                 </div>
-              </div>
+              </Card>
 
-              {/* Booking Details */}
-              <div className="im-booking-detail-section">
-                <h4 className="im-booking-detail-section-title">{t("adminBookings.bookingInfo")}</h4>
-                <div className="im-booking-detail-grid">
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("adminBookings.dateTime")}</span>
-                    <span className="im-booking-detail-value">
+              {/* Booking Details Card */}
+              <Card className="im-booking-modal-card">
+                <div className="im-booking-modal-card-header">
+                  <svg className="im-booking-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                    <rect x="3" y="4" width="18" height="18" rx="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                  <h4 className="im-booking-modal-section-title">{t("adminBookings.bookingInfo")}</h4>
+                </div>
+                <div className="im-booking-modal-grid">
+                  <div className="im-booking-modal-field im-booking-modal-field-wide">
+                    <span className="im-booking-modal-label">{t("adminBookings.dateTime")}</span>
+                    <span className="im-booking-modal-value im-booking-modal-value-time">
                       {formatDateTime(selectedBooking.start)} — {formatDateTime(selectedBooking.end)}
                     </span>
                   </div>
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("common.duration")}</span>
-                    <span className="im-booking-detail-value">
+                  <div className="im-booking-modal-field">
+                    <span className="im-booking-modal-label">{t("common.duration")}</span>
+                    <span className="im-booking-modal-value">
                       {calculateDuration(selectedBooking.start, selectedBooking.end)} {t("common.minutes")}
                     </span>
                   </div>
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("common.status")}</span>
-                    <span className="im-booking-detail-value">
-                      <StatusBadge status={selectedBooking.status} />
-                    </span>
-                  </div>
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("common.price")}</span>
-                    <span className="im-booking-detail-value">{formatPrice(selectedBooking.price)}</span>
+                  <div className="im-booking-modal-field">
+                    <span className="im-booking-modal-label">{t("common.price")}</span>
+                    <span className="im-booking-modal-value im-booking-modal-value-price">{formatPrice(selectedBooking.price)}</span>
                   </div>
                   {selectedBooking.coachName && (
-                    <div className="im-booking-detail-item">
-                      <span className="im-booking-detail-label">{t("adminBookings.coach")}</span>
-                      <span className="im-booking-detail-value">{selectedBooking.coachName}</span>
+                    <div className="im-booking-modal-field im-booking-modal-field-wide">
+                      <span className="im-booking-modal-label">{t("adminBookings.coach")}</span>
+                      <span className="im-booking-modal-value">{selectedBooking.coachName}</span>
                     </div>
                   )}
-                  <div className="im-booking-detail-item">
-                    <span className="im-booking-detail-label">{t("adminBookings.createdAt")}</span>
-                    <span className="im-booking-detail-value">{formatDateTime(selectedBooking.createdAt)}</span>
+                  <div className="im-booking-modal-field">
+                    <span className="im-booking-modal-label">{t("adminBookings.createdAt")}</span>
+                    <span className="im-booking-modal-value im-booking-modal-value-muted">
+                      {formatDateTime(selectedBooking.createdAt)}
+                    </span>
                   </div>
                 </div>
-              </div>
+              </Card>
 
               {/* Actions */}
-              <div className="im-booking-detail-actions">
+              <div className="im-booking-modal-actions">
                 <Button variant="outline" onClick={handleCloseModal}>
                   {t("common.close")}
                 </Button>
