@@ -14,6 +14,7 @@ import {
   OrgSelector,
   SortSelect,
   PaginationControls,
+  QuickPresets,
 } from "@/components/list-controls";
 import type { ClubWithCounts } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
@@ -27,6 +28,8 @@ interface ClubFilters {
   selectedCity: string;
   selectedStatus: string;
   selectedSportType: string;
+  courtCountMin: string;
+  courtCountMax: string;
 }
 
 /**
@@ -59,6 +62,8 @@ export default function AdminClubsPage() {
       selectedCity: "",
       selectedStatus: "",
       selectedSportType: "",
+      courtCountMin: "",
+      courtCountMax: "",
     },
     defaultSortBy: "name",
     defaultSortOrder: "asc",
@@ -81,6 +86,8 @@ export default function AdminClubsPage() {
       if (controller.filters.selectedStatus) params.append("status", controller.filters.selectedStatus);
       if (controller.filters.organizationFilter) params.append("organizationId", controller.filters.organizationFilter);
       if (controller.filters.selectedSportType) params.append("sportType", controller.filters.selectedSportType);
+      if (controller.filters.courtCountMin) params.append("courtCountMin", controller.filters.courtCountMin);
+      if (controller.filters.courtCountMax) params.append("courtCountMax", controller.filters.courtCountMax);
       params.append("sortBy", controller.sortBy);
       params.append("sortOrder", controller.sortOrder);
       params.append("page", controller.page.toString());
@@ -139,7 +146,6 @@ export default function AdminClubsPage() {
   }, [clubs]);
 
   // Determine permissions based on admin type
-  const canCreate = adminStatus?.adminType === "root_admin" || adminStatus?.adminType === "organization_admin";
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
 
   // Show skeleton loaders instead of blocking spinner
@@ -152,6 +158,26 @@ export default function AdminClubsPage() {
     { key: "createdAt", label: t("admin.clubs.sortNewest"), direction: "desc" as const },
     { key: "createdAt", label: t("admin.clubs.sortOldest"), direction: "asc" as const },
     { key: "bookingCount", label: t("admin.clubs.sortBookings"), direction: "desc" as const },
+  ];
+
+  // Quick filter presets for court count
+  const quickFilterPresets = [
+    {
+      id: "small_clubs",
+      label: t("admin.clubs.smallClubs"),
+      filters: {
+        courtCountMin: "",
+        courtCountMax: "2",
+      },
+    },
+    {
+      id: "large_clubs",
+      label: t("admin.clubs.largeClubs"),
+      filters: {
+        courtCountMin: "5",
+        courtCountMax: "",
+      },
+    },
   ];
 
   return (
@@ -172,63 +198,74 @@ export default function AdminClubsPage() {
               </IMLink>
             }
           >
-            <ListSearch
-              placeholder={t("common.search")}
-              filterKey="searchQuery"
-            />
-
-            {showOrganizationFilter && (
-              <OrgSelector
-                filterKey="organizationFilter"
-                label={t("admin.clubs.filterByOrganization")}
-                placeholder={t("admin.clubs.allOrganizations")}
+            <div className="full-row flex w-full gap-4">
+              <ListSearch
+                className="flex-1"
+                placeholder={t("common.search")}
+                filterKey="searchQuery"
               />
-            )}
 
-            <Select
-              label={t("admin.clubs.filterByStatus")}
-              options={[
-                { value: "", label: t("admin.clubs.allStatuses") },
-                { value: "active", label: t("admin.clubs.statusActive") },
-                { value: "draft", label: t("admin.clubs.statusDraft") },
-                { value: "suspended", label: t("admin.clubs.statusSuspended") },
-              ]}
-              value={controller.filters.selectedStatus}
-              onChange={(value) => controller.setFilter("selectedStatus", value)}
-              aria-label={t("admin.clubs.filterByStatus")}
-            />
+              <QuickPresets
+                className="flex-1"
+                presets={quickFilterPresets} />
+            </div>
 
-            <Select
-              label={t("admin.clubs.filterBySport")}
-              options={[
-                { value: "", label: t("admin.clubs.allSports") },
-                ...SPORT_TYPE_OPTIONS.map((sport) => ({
-                  value: sport.value,
-                  label: sport.label,
-                })),
-              ]}
-              value={controller.filters.selectedSportType}
-              onChange={(value) => controller.setFilter("selectedSportType", value)}
-              aria-label={t("admin.clubs.filterBySport")}
-            />
+            <div className="full-row flex w-full gap-4">
+              {showOrganizationFilter && (
+                <OrgSelector
+                  filterKey="organizationFilter"
+                  label={t("admin.clubs.filterByOrganization")}
+                  placeholder={t("admin.clubs.allOrganizations")}
+                />
+              )}
 
-            {cities.length > 0 && (
               <Select
-                label={t("admin.clubs.filterByCity")}
+                label={t("admin.clubs.filterByStatus")}
                 options={[
-                  { value: "", label: t("admin.clubs.allCities") },
-                  ...cities.map((city) => ({ value: city, label: city })),
+                  { value: "", label: t("admin.clubs.allStatuses") },
+                  { value: "active", label: t("admin.clubs.statusActive") },
+                  { value: "draft", label: t("admin.clubs.statusDraft") },
+                  { value: "suspended", label: t("admin.clubs.statusSuspended") },
                 ]}
-                value={controller.filters.selectedCity}
-                onChange={(value) => controller.setFilter("selectedCity", value)}
-                aria-label={t("admin.clubs.filterByCity")}
+                value={controller.filters.selectedStatus}
+                onChange={(value) => controller.setFilter("selectedStatus", value)}
+                aria-label={t("admin.clubs.filterByStatus")}
               />
-            )}
 
-            <SortSelect
-              options={sortOptions}
-              label={t("admin.clubs.sortBy")}
-            />
+              <Select
+                label={t("admin.clubs.filterBySport")}
+                options={[
+                  { value: "", label: t("admin.clubs.allSports") },
+                  ...SPORT_TYPE_OPTIONS.map((sport) => ({
+                    value: sport.value,
+                    label: sport.label,
+                  })),
+                ]}
+                value={controller.filters.selectedSportType}
+                onChange={(value) => controller.setFilter("selectedSportType", value)}
+                aria-label={t("admin.clubs.filterBySport")}
+              />
+            </div>
+
+            <div className="full-row flex w-full gap-4">
+              {cities.length > 0 && (
+                <Select
+                  label={t("admin.clubs.filterByCity")}
+                  options={[
+                    { value: "", label: t("admin.clubs.allCities") },
+                    ...cities.map((city) => ({ value: city, label: city })),
+                  ]}
+                  value={controller.filters.selectedCity}
+                  onChange={(value) => controller.setFilter("selectedCity", value)}
+                  aria-label={t("admin.clubs.filterByCity")}
+                />
+              )}
+
+              <SortSelect
+                options={sortOptions}
+                label={t("admin.clubs.sortBy")}
+              />
+            </div>
           </ListToolbar>
 
           {error && (

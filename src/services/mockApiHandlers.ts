@@ -303,10 +303,12 @@ export async function mockGetClubs(params: {
   city?: string;
   status?: string;
   organizationId?: string;
+  courtCountMin?: string;
+  courtCountMax?: string;
   sortBy?: string;
   sortOrder?: string;
 }) {
-  const { adminType, managedIds, search, city, status, organizationId, sortBy = "createdAt", sortOrder = "desc" } = params;
+  const { adminType, managedIds, search, city, status, organizationId, courtCountMin, courtCountMax, sortBy = "createdAt", sortOrder = "desc" } = params;
   let clubs = getMockClubs();
   const courts = getMockCourts();
   const bookings = getMockBookings();
@@ -347,7 +349,7 @@ export async function mockGetClubs(params: {
   }
 
   // Transform to response format
-  const clubsWithCounts = clubs.map((club) => {
+  let clubsWithCounts = clubs.map((club) => {
     const clubCourts = courts.filter((c) => c.clubId === club.id);
     const clubBookings = bookings.filter((b) => {
       const court = courts.find((c) => c.id === b.courtId);
@@ -395,6 +397,22 @@ export async function mockGetClubs(params: {
       admins,
     };
   });
+
+  // Apply court count filter if specified
+  if (courtCountMin || courtCountMax) {
+    const minCount = courtCountMin ? parseInt(courtCountMin, 10) : 0;
+    const maxCount = courtCountMax ? parseInt(courtCountMax, 10) : Infinity;
+    
+    // Validate parsed values - skip filter if values are invalid
+    const isMinValid = !courtCountMin || !isNaN(minCount);
+    const isMaxValid = !courtCountMax || !isNaN(maxCount);
+    
+    if (isMinValid && isMaxValid) {
+      clubsWithCounts = clubsWithCounts.filter((club) => {
+        return club.courtCount >= minCount && club.courtCount <= maxCount;
+      });
+    }
+  }
 
   // Apply sorting
   clubsWithCounts.sort((a, b) => {

@@ -22,6 +22,8 @@ export async function GET(request: Request) {
     const status = searchParams.get("status") || "";
     const organizationId = searchParams.get("organizationId") || "";
     const sportType = searchParams.get("sportType") || "";
+    const courtCountMin = searchParams.get("courtCountMin") || "";
+    const courtCountMax = searchParams.get("courtCountMax") || "";
     const sortBy = searchParams.get("sortBy") || "createdAt";
     const sortOrder = searchParams.get("sortOrder") || "desc";
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -37,6 +39,8 @@ export async function GET(request: Request) {
         status,
         organizationId,
         sportType,
+        courtCountMin,
+        courtCountMax,
         sortBy,
         sortOrder,
       });
@@ -114,14 +118,21 @@ export async function GET(request: Request) {
     const skip = (page - 1) * pageSize;
     const take = pageSize;
 
-    // Get total count for pagination
-    const totalCount = await prisma.club.count({ where: whereClause });
+    // Get total count for pagination (before court count filter)
+    const totalCountBeforeCourtFilter = await prisma.club.count({ where: whereClause });
+
+    // If court count filter is specified, we need to fetch all clubs first then filter
+    // Otherwise use standard pagination
+    const needsPostFilterPagination = courtCountMin || courtCountMax;
+    
+    // For post-filtering, limit to a reasonable maximum to prevent memory issues
+    const MAX_CLUBS_FOR_POST_FILTER = 1000;
 
     const clubs = await prisma.club.findMany({
       where: whereClause,
       orderBy,
-      skip,
-      take,
+      skip: needsPostFilterPagination ? undefined : skip,
+      take: needsPostFilterPagination ? MAX_CLUBS_FOR_POST_FILTER : take,
       select: {
         id: true,
         name: true,
@@ -173,7 +184,7 @@ export async function GET(request: Request) {
     });
 
     // Process clubs to add counts and transform data
-    const clubsWithCounts = clubs.map((club) => {
+    let clubsWithCounts = clubs.map((club) => {
       const { indoorCount, outdoorCount, bookingCount } = club.courts.reduce(
         (acc, court) => {
           if (court.indoor) {
@@ -214,6 +225,34 @@ export async function GET(request: Request) {
         })),
       };
     });
+
+    // Apply court count filter if specified
+    if (courtCountMin || courtCountMax) {
+      const minCount = courtCountMin ? parseInt(courtCountMin, 10) : 0;
+      const maxCount = courtCountMax ? parseInt(courtCountMax, 10) : Infinity;
+      
+      // Validate parsed values
+      if ((courtCountMin && isNaN(minCount)) || (courtCountMax && isNaN(maxCount))) {
+        return NextResponse.json(
+          { error: "Invalid court count filter values" },
+          { status: 400 }
+        );
+      }
+      
+      clubsWithCounts = clubsWithCounts.filter((club) => {
+        return club.courtCount >= minCount && club.courtCount <= maxCount;
+      });
+    }
+
+    // Calculate total count before pagination
+    const totalCount = needsPostFilterPagination ? clubsWithCounts.length : totalCountBeforeCourtFilter;
+    
+    // Apply pagination if we did post-filtering
+    if (needsPostFilterPagination) {
+      const startIndex = skip;
+      const endIndex = skip + take;
+      clubsWithCounts = clubsWithCounts.slice(startIndex, endIndex);
+    }
 
     return NextResponse.json({
       clubs: clubsWithCounts,
