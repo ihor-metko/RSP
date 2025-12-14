@@ -1,5 +1,7 @@
 export { Button } from "./Button";
 export { Input } from "./Input";
+export { Textarea } from "./Textarea";
+export { Checkbox } from "./Checkbox";
 export { Modal } from "./Modal";
 export { Card } from "./Card";
 export { DarkModeToggle } from "./DarkModeToggle";

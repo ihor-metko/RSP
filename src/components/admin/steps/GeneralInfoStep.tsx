@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
-import { Input } from "@/components/ui";
+import { Input, Select, Textarea, Checkbox } from "@/components/ui";
+import type { SelectOption } from "@/components/ui";
 
-const CLUB_TYPES = [{ value: "padel", label: "Padel" }];
+const CLUB_TYPES: SelectOption[] = [{ value: "padel", label: "Padel" }];
 
 export interface OrganizationOption {
   id: string;
@@ -237,33 +238,25 @@ export function GeneralInfoStep({
           )}
         </div>
         <div className="im-stepper-field">
-          <label className="im-stepper-label">Club Type</label>
-          <select
-            name="clubType"
+          <Select
+            label="Club Type"
+            options={CLUB_TYPES}
+            placeholder="Select type..."
             value={data.clubType}
-            onChange={handleInputChange}
-            className="im-stepper-select"
+            onChange={(value) => onChange({ clubType: value })}
             disabled={disabled}
-          >
-            <option value="">Select type...</option>
-            {CLUB_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       </div>
 
       <div className="im-stepper-row">
         <div className="im-stepper-field im-stepper-field--full">
-          <label className="im-stepper-label">Short Description</label>
-          <textarea
+          <Textarea
+            label="Short Description"
             name="shortDescription"
             value={data.shortDescription}
             onChange={handleInputChange}
             placeholder="Brief description of the club..."
-            className="im-stepper-textarea"
             rows={3}
             disabled={disabled}
           />
@@ -273,19 +266,13 @@ export function GeneralInfoStep({
       {showPublicToggle && (
         <div className="im-stepper-row">
           <div className="im-stepper-field im-stepper-field--full">
-            <label className="im-stepper-checkbox-wrapper">
-              <input
-                type="checkbox"
-                name="isPublic"
-                checked={data.isPublic || false}
-                onChange={handleInputChange}
-                disabled={disabled}
-                className="im-stepper-checkbox"
-              />
-              <span className="im-stepper-checkbox-label">
-                Publish club (visible to public)
-              </span>
-            </label>
+            <Checkbox
+              name="isPublic"
+              label="Publish club (visible to public)"
+              checked={data.isPublic || false}
+              onChange={handleInputChange}
+              disabled={disabled}
+            />
           </div>
         </div>
       )}

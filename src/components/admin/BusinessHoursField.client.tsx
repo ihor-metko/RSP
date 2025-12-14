@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { Checkbox } from "@/components/ui";
 import "./BusinessHoursField.css";
 
 interface BusinessHour {
@@ -90,16 +91,14 @@ export function BusinessHoursField({ value, onChange, disabled }: BusinessHoursF
               )}
             </div>
 
-            <label className="im-business-hours-toggle">
-              <input
-                type="checkbox"
+            <div className="im-business-hours-toggle">
+              <Checkbox
+                label="Closed"
                 checked={hour.isClosed}
                 onChange={() => handleClosedToggle(hour.dayOfWeek)}
                 disabled={disabled}
-                className="im-business-hours-checkbox"
               />
-              <span className="im-business-hours-toggle-label">Closed</span>
-            </label>
+            </div>
           </div>
         ))}
       </div>

@@ -1,0 +1,28 @@
+@reference "tailwindcss";
+
+.rsp-textarea-wrapper {
+  @apply block;
+}
+
+.rsp-textarea {
+  @apply w-full rounded-md px-3 py-2 text-sm transition-colors;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  @apply resize-y;
+  background-color: var(--rsp-background);
+  color: var(--rsp-foreground);
+  border: 1px solid var(--rsp-border);
+  min-height: 80px;
+}
+
+.rsp-textarea:focus {
+  border-color: var(--rsp-primary);
+  box-shadow: none;
+}
+
+.rsp-textarea::placeholder {
+  @apply opacity-60;
+}
+
+.rsp-textarea:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}

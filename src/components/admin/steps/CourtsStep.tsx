@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Checkbox } from "@/components/ui";
 import type { InlineCourt } from "@/types/admin";
 
 export type { InlineCourt };
@@ -138,18 +138,14 @@ export function CourtsStep({
                 </div>
 
                 <div className="im-inline-courts-field im-inline-courts-checkbox-field">
-                  <label className="im-inline-courts-checkbox-wrapper">
-                    <input
-                      type="checkbox"
-                      checked={court.indoor}
-                      onChange={(e) =>
-                        handleCourtChange(court.id, "indoor", e.target.checked)
-                      }
-                      disabled={disabled}
-                      className="im-inline-courts-checkbox"
-                    />
-                    <span className="im-inline-courts-checkbox-label">Indoor</span>
-                  </label>
+                  <Checkbox
+                    label="Indoor"
+                    checked={court.indoor}
+                    onChange={(e) =>
+                      handleCourtChange(court.id, "indoor", e.target.checked)
+                    }
+                    disabled={disabled}
+                  />
                 </div>
               </div>
             </div>

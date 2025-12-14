@@ -1,0 +1,55 @@
+@reference "tailwindcss";
+
+.rsp-checkbox-wrapper {
+  @apply block;
+}
+
+.rsp-checkbox-label {
+  @apply flex items-center gap-2 cursor-pointer;
+}
+
+.rsp-checkbox {
+  @apply w-5 h-5 rounded cursor-pointer;
+  @apply transition-all duration-200;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  background-color: var(--rsp-background);
+  border: 2px solid var(--rsp-border);
+  appearance: none;
+  position: relative;
+}
+
+.rsp-checkbox:checked {
+  background-color: var(--rsp-primary);
+  border-color: var(--rsp-primary);
+}
+
+.rsp-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3E%3Cpath d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.rsp-checkbox:focus {
+  border-color: var(--rsp-primary);
+}
+
+.rsp-checkbox:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.rsp-checkbox-text {
+  @apply text-sm select-none;
+  color: var(--rsp-foreground);
+}
+
+.rsp-checkbox:disabled + .rsp-checkbox-text {
+  @apply opacity-50;
+}
