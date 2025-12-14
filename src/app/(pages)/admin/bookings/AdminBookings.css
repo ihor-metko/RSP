@@ -229,11 +229,6 @@
 .im-booking-modal-card {
   background: var(--im-bg-secondary);
   border: 1px solid var(--im-border-color);
-  transition: border-color 0.2s ease;
-}
-
-.im-booking-modal-card:hover {
-  border-color: var(--im-primary);
 }
 
 /* Card Header with Icon */
