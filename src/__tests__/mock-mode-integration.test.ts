@@ -149,12 +149,12 @@ describe("Mock Mode Integration Tests", () => {
     it("should return clubs in managed organizations for org admin", async () => {
       const clubs = await mockGetClubs({
         adminType: "organization_admin",
-        managedIds: ["org-1"],
+        managedIds: ["64f3b281-c4cf-4fba-82a5-f4d20b0c7c29"],
       });
 
-      // org-1 has club-1, club-2, and club-4
+      // org-1 (64f3b281-c4cf-4fba-82a5-f4d20b0c7c29) has club-1, club-2, and club-4
       expect(clubs.length).toBe(3);
-      expect(clubs.every((c) => c.organization?.id === "org-1")).toBe(true);
+      expect(clubs.every((c) => c.organization?.id === "64f3b281-c4cf-4fba-82a5-f4d20b0c7c29")).toBe(true);
     });
 
     it("should include court counts in club data", async () => {
@@ -257,7 +257,7 @@ describe("Mock Mode Integration Tests", () => {
   describe("Available Courts", () => {
     it("should identify available courts correctly", async () => {
       // This test simulates the available courts logic
-      const courts = getMockCourts().filter((c) => c.clubId === "club-1");
+      const courts = getMockCourts().filter((c) => c.clubId === "6d47229c-280f-475e-bb81-2a0d47d36771");
       expect(courts.length).toBeGreaterThan(0);
 
       // Check that courts have the necessary properties
