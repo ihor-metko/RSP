@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { PageHeader, Breadcrumbs, Badge, Card, Tooltip } from "@/components/ui";
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
-import { useListController } from "@/hooks";
+import { useListController, useDeferredLoading } from "@/hooks";
 import { 
   ListControllerProvider,
   ListToolbar,
@@ -161,6 +161,9 @@ export default function AdminUsersPage() {
   const error = useAdminUsersStore((state) => state.error);
   const fetchUsersFromStore = useAdminUsersStore((state) => state.fetchUsers);
 
+  // Use deferred loading to prevent flicker on fast responses
+  const deferredLoading = useDeferredLoading(loading);
+
   const totalCount = pagination?.totalCount || 0;
   const totalPages = pagination?.totalPages || 0;
 
@@ -287,7 +290,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const isLoadingData = !isHydrated || status === "loading" || loading;
+  const isLoadingData = !isHydrated || status === "loading" || deferredLoading;
 
   return (
     <main className="im-admin-users-page">

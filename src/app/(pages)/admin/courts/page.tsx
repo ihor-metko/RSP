@@ -10,7 +10,7 @@ import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import type { AdminType } from "@/app/api/me/admin-status/route";
 import { useUserStore } from "@/stores/useUserStore";
 import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
-import { useListController } from "@/hooks";
+import { useListController, useDeferredLoading } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -73,6 +73,10 @@ export default function AdminCourtsPage() {
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Use deferred loading to prevent flicker on fast responses
+  const deferredLoading = useDeferredLoading(loading);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [editingCourt, setEditingCourt] = useState<Court | null>(null);
@@ -429,7 +433,7 @@ export default function AdminCourtsPage() {
     },
   ];
 
-  if (loading || isLoadingStore || !isHydrated) {
+  if (deferredLoading || isLoadingStore || !isHydrated) {
     return (
       <main className="rsp-container p-8">
         <PageHeader
@@ -539,7 +543,7 @@ export default function AdminCourtsPage() {
           )}
 
           {/* Courts Table */}
-          {loading ? (
+          {deferredLoading ? (
             <TableSkeleton columns={8} rows={10} />
           ) : courts.length === 0 ? (
             <Card>
@@ -563,7 +567,7 @@ export default function AdminCourtsPage() {
           )}
 
           {/* Pagination */}
-          {!loading && courts.length > 0 && (
+          {!deferredLoading && courts.length > 0 && (
             <PaginationControls
               totalCount={pagination.total}
               totalPages={pagination.totalPages}
