@@ -219,7 +219,6 @@ export function Select({
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
               width: `${dropdownPosition.width}px`,
-              maxHeight: `${dropdownPosition.maxHeight}px`,
             }}
           >
             {options.map((option, index) => {
