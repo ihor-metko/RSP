@@ -124,6 +124,35 @@
   font-size: 1rem;
 }
 
+/* Table link styles */
+.im-table-link {
+  background: none;
+  border: none;
+  color: var(--im-accent, #6366f1);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  font-size: inherit;
+  transition: color 0.15s ease;
+}
+
+.im-table-link:hover {
+  color: var(--im-accent-dark, #4f46e5);
+  text-decoration: underline;
+}
+
+.im-table-admins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.im-table-admin-name {
+  font-size: 0.875rem;
+  color: var(--im-text-primary, #111827);
+}
+
 /* Table styles */
 .im-admin-organizations-table-wrapper {
   overflow-x: auto;
