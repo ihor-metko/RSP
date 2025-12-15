@@ -7,6 +7,7 @@ import { IMLink, PageHeader } from "@/components/ui";
 import { CardListSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
+import { useDeferredLoading } from "@/hooks";
 import "@/components/ClubsList.css";
 
 /**
@@ -64,6 +65,9 @@ export default function ClubsPage() {
     indoor: urlIndoor,
   });
 
+  // Use deferred loading to prevent flicker on fast responses
+  const deferredLoading = useDeferredLoading(loading);
+
   // Update URL when search params change
   const updateUrl = useCallback((params: SearchParams) => {
     const urlParams = new URLSearchParams();
@@ -112,7 +116,7 @@ export default function ClubsPage() {
     fetchClubs(params);
   }, [updateUrl, fetchClubs]);
 
-  const isInitialLoading = loading && clubs.length === 0;
+  const isInitialLoading = deferredLoading && clubs.length === 0;
 
   if (error && clubs.length === 0) {
     return (

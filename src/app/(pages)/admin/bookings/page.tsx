@@ -9,7 +9,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import { BookingDetailsModal } from "@/components/admin/BookingDetailsModal";
 import { formatDateTime, calculateDuration, getInitials } from "@/utils/bookingFormatters";
-import { useListController } from "@/hooks";
+import { useListController, useDeferredLoading } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -57,6 +57,9 @@ export default function AdminBookingsPage() {
   const [bookingsData, setBookingsData] = useState<AdminBookingsListResponse | null>(null);
   const [isLoadingBookings, setIsLoadingBookings] = useState(true);
   const [error, setError] = useState("");
+
+  // Use deferred loading to prevent flicker on fast responses
+  const deferredLoadingBookings = useDeferredLoading(isLoadingBookings);
 
   // Use list controller hook for persistent filters
   const controller = useListController<BookingFilters>({
@@ -393,7 +396,7 @@ export default function AdminBookingsPage() {
         )}
 
         {/* Bookings table with loading and empty states */}
-        {isLoadingBookings ? (
+        {deferredLoadingBookings ? (
           <TableSkeleton rows={Math.min(controller.pageSize, 20)} columns={columns.length} showHeader />
         ) : !bookingsData || bookingsData.bookings.length === 0 ? (
           <div className="im-admin-bookings-table-container">

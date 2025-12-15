@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { IMLink, PageHeader, Select } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import { CardListSkeleton } from "@/components/ui/skeletons";
-import { useListController } from "@/hooks";
+import { useListController, useDeferredLoading } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -47,6 +47,9 @@ export default function AdminClubsPage() {
   const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Use deferred loading to prevent flicker on fast responses
+  const deferredLoading = useDeferredLoading(loading);
 
   // Get admin status from user store
   const adminStatus = useUserStore((state) => state.adminStatus);
@@ -151,7 +154,7 @@ export default function AdminClubsPage() {
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
 
   // Show skeleton loaders instead of blocking spinner (include hydration state)
-  const isLoading = !isHydrated || isLoadingStore || loading;
+  const isLoading = !isHydrated || isLoadingStore || deferredLoading;
 
   // Sort options for SortSelect component
   const sortOptions = [
