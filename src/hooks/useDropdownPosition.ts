@@ -96,22 +96,32 @@ export function useDropdownPosition({
     whileElementsMounted: autoUpdate,
   });
 
-  // Set refs from props to Floating UI refs in useEffect to avoid render-phase side effects
+  // Set refs from props to Floating UI refs
+  // Do this for both isOpen and !isOpen to ensure refs are set before dropdown opens
   useEffect(() => {
-    if (isOpen && triggerRef.current) {
+    if (triggerRef.current) {
       refs.setReference(triggerRef.current);
-      if (listboxRef?.current) {
-        refs.setFloating(listboxRef.current);
-      }
     }
-  }, [isOpen, refs, triggerRef, listboxRef]);
+  }, [refs, triggerRef]);
+
+  useEffect(() => {
+    if (listboxRef?.current) {
+      refs.setFloating(listboxRef.current);
+    }
+  }, [refs, listboxRef]);
 
   if (!isOpen) {
     return null;
   }
 
+  // Check if trigger ref is available
+  if (!triggerRef.current) {
+    return null;
+  }
+
   // Return null if coordinates are not yet available
-  if (x === null || y === null) {
+  // This can happen before Floating UI has calculated positions
+  if (x === null || y === null || typeof x === 'undefined' || typeof y === 'undefined') {
     return null;
   }
 
