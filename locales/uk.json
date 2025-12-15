@@ -487,9 +487,9 @@
       "courtLocation": "Розташування",
       "allLocations": "Усі розташування",
       "filterByLocation": "Фільтр за розташуванням",
-      "presetActiveCourts": "Активні корти",
-      "presetMaintenanceCourts": "Корти на обслуговуванні",
-      "presetPrimeTime": "Найбільш затребувані",
+      "presetActiveCourts": "Активні",
+      "presetMaintenanceCourts": "На обслуговуванні",
+      "presetPrimeTime": "Найпопулярніші",
       "loadMore": "Завантажити ще",
       "loading": "Завантаження...",
       "new": {
@@ -1073,7 +1073,17 @@
     "multipleAdmins": "{count} адмінів",
     "noResults": "Організації за вашим запитом не знайдено",
     "clearSearch": "Очистити пошук",
-    "itemsPerPage": "Елементів на сторінці"
+    "itemsPerPage": "Елементів на сторінці",
+    "active": "Активні",
+    "inactive": "Неактивні",
+    "status": "Статус",
+    "allStatuses": "Всі статуси",
+    "clubCount": "Кількість клубів",
+    "allRanges": "Всі",
+    "createdDate": "Дата створення",
+    "filterBySport": "Вид спорту",
+    "allSports": "Всі види спорту",
+    "searchByAdmin": "Пошук за адміном/власником..."
   },
   "operations": {
     "title": "Операції",

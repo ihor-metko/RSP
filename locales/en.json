@@ -1146,7 +1146,15 @@
     "multipleAdmins": "{count} admins",
     "noResults": "No organizations match your search",
     "clearSearch": "Clear search",
-    "itemsPerPage": "Items per page"
+    "itemsPerPage": "Items per page",
+    "status": "Status",
+    "allStatuses": "All Statuses",
+    "clubCount": "Number of Clubs",
+    "allRanges": "All",
+    "createdDate": "Created Date",
+    "filterBySport": "Sport Type",
+    "allSports": "All Sports",
+    "searchByAdmin": "Search by admin/owner..."
   },
   "operations": {
     "title": "Operations",
