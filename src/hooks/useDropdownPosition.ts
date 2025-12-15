@@ -104,7 +104,7 @@ export function useDropdownPosition({
         refs.setFloating(listboxRef.current);
       }
     }
-  }, [isOpen, triggerRef, listboxRef, refs]);
+  }, [isOpen, refs, triggerRef, listboxRef]);
 
   if (!isOpen) {
     return null;
