@@ -590,22 +590,8 @@ export default function AdminOrganizationsPage() {
 
 
 
-  // Combined loading state for consistent loading UI
+  // Combined loading state for consistent loading UI (includes hydration state)
   const isLoading = !isHydrated || status === "loading" || loading;
-
-  if (!isHydrated || status === "loading") {
-    return (
-      <main className="im-admin-organizations-page">
-        <PageHeader
-          title={t("organizations.title")}
-          description={t("organizations.subtitle")}
-        />
-        <section className="rsp-content">
-          <CardListSkeleton count={6} variant="default" />
-        </section>
-      </main>
-    );
-  }
 
   return (
     <ListControllerProvider controller={controller}>
