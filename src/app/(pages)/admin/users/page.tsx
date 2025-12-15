@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { PageHeader, Badge, Card, Tooltip } from "@/components/ui";
+import { PageHeader, Badge, Card, Tooltip, Button, Modal } from "@/components/ui";
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { useListController, useDeferredLoading } from "@/hooks";
 import {
@@ -98,6 +98,17 @@ function MailIcon() {
   );
 }
 
+function UserPlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <line x1="19" y1="8" x2="19" y2="14" />
+      <line x1="22" y1="11" x2="16" y2="11" />
+    </svg>
+  );
+}
+
 // Define filters interface
 interface UserFilters {
   searchQuery: string;
@@ -168,7 +179,8 @@ export default function AdminUsersPage() {
   const totalCount = pagination?.totalCount || 0;
   const totalPages = pagination?.totalPages || 0;
 
-  // No modals needed anymore since we only have View action which navigates to detail page
+  // State for Create User modal
+  const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
 
   // Error key for translated messages
   const [errorKey, setErrorKey] = useState<string>("");
@@ -235,7 +247,13 @@ export default function AdminUsersPage() {
     }
   };
 
-  // All user action handlers removed since we only have View action which navigates to detail page
+  const handleOpenCreateUserModal = () => {
+    setIsCreateUserModalOpen(true);
+  };
+
+  const handleCloseCreateUserModal = () => {
+    setIsCreateUserModalOpen(false);
+  };
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
@@ -311,7 +329,18 @@ export default function AdminUsersPage() {
         {/* Filters using list-controls components - consolidated toolbar */}
         {!isLoadingData && (
           <ListControllerProvider controller={controller} className="mb-4">
-            <ListToolbar showReset resetLabel={t("users.clearFilters")}>
+            <ListToolbar 
+              showReset 
+              resetLabel={t("users.clearFilters")}
+              actionButton={
+                hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN"]) && (
+                  <Button onClick={handleOpenCreateUserModal} variant="primary" aria-label={t("users.createUser")}>
+                    <UserPlusIcon />
+                    {t("users.createUser")}
+                  </Button>
+                )
+              }
+            >
               <div className="full-row flex w-full gap-4">
                 <ListSearch
                   className="flex-1"
@@ -608,7 +637,17 @@ export default function AdminUsersPage() {
         )}
       </section>
 
-      {/* No modals needed - View action navigates to /admin/users/[id] detail page */}
+      {/* Create User Modal - Implementation of form will be done in a separate task */}
+      <Modal
+        isOpen={isCreateUserModalOpen}
+        onClose={handleCloseCreateUserModal}
+        title={t("users.createUser")}
+      >
+        <div className="im-modal-placeholder">
+          <p>{t("users.createUser")} form will be implemented here.</p>
+          <p>This is a placeholder for the user creation form.</p>
+        </div>
+      </Modal>
     </main>
   );
 }

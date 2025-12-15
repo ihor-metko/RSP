@@ -1181,6 +1181,7 @@
     "title": "User Management",
     "subtitle": "Manage all platform users",
     "breadcrumb": "Users",
+    "createUser": "Create User",
     "failedToLoad": "Failed to load users. Please try again later.",
     "failedToLoadDetails": "Failed to load user details",
     "noUsers": "No users found",
