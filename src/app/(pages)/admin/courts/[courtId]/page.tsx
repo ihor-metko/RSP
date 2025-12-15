@@ -14,7 +14,7 @@ import {
 import { useCourtStore } from "@/stores/useCourtStore";
 import type { CourtDetail as StoreCourtDetail } from "@/types/court";
 
-import "../../../clubs/[id]/courts/[courtId]/page.css";
+import "./page.css";
 
 export default function CourtDetailPage({
   params,
