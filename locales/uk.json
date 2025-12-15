@@ -1026,6 +1026,7 @@
     "superAdmins": "СуперАдміни",
     "createdAt": "Створено",
     "notAssigned": "Не призначено",
+    "noDescription": "Без опису",
     "assignAdmin": "Призначити адміна",
     "changeAdmin": "Змінити адміна",
     "addAdmin": "Додати адміна",

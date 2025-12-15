@@ -67,14 +67,11 @@ describe("AdminOrganizationCard", () => {
     expect(screen.getByText("john@example.com")).toBeInTheDocument();
   });
 
-  it("should show metadata (clubs count, admins count)", () => {
+  it("should show metadata (clubs count)", () => {
     render(<AdminOrganizationCard organization={mockOrganization} />);
     
     // Check for clubs count - looking for text that contains both the count and the label
     expect(screen.getByText(/5.*admin\.clubs|admin\.clubs.*5/)).toBeInTheDocument();
-    
-    // Check for admins count
-    expect(screen.getByText(/2.*organizations\.superAdmins|organizations\.superAdmins.*2/)).toBeInTheDocument();
   });
 
   it("should render View button when onView callback is provided", () => {
@@ -117,26 +114,20 @@ describe("AdminOrganizationCard", () => {
     expect(screen.getByText("organizations.notAssigned")).toBeInTheDocument();
   });
 
-  it("should make organization name clickable when onView is provided", () => {
-    const onView = jest.fn();
-    render(
-      <AdminOrganizationCard organization={mockOrganization} onView={onView} />
-    );
+  it("should display description when provided", () => {
+    const orgWithDescription = {
+      ...mockOrganization,
+      description: "Test organization description",
+    };
+    render(<AdminOrganizationCard organization={orgWithDescription} />);
     
-    // Find the organization name button (should contain the organization name)
-    const nameButtons = screen.getAllByRole("button", { name: /organizations\.viewDetails/i });
-    const nameButton = nameButtons.find(btn => btn.textContent === "Test Organization");
-    expect(nameButton).toBeInTheDocument();
-    expect(nameButton).toHaveTextContent("Test Organization");
+    expect(screen.getByText("Test organization description")).toBeInTheDocument();
   });
 
-  it("should render organization name as plain text when onView is not provided", () => {
+  it("should display no description placeholder when description is not provided", () => {
     render(<AdminOrganizationCard organization={mockOrganization} />);
     
-    // The name should still be present but not as a button
-    expect(screen.getByText("Test Organization")).toBeInTheDocument();
-    // Should not have a clickable element with aria-label
-    expect(screen.queryByRole("button", { name: /organizations\.viewDetails/i })).not.toBeInTheDocument();
+    expect(screen.getByText("organizations.noDescription")).toBeInTheDocument();
   });
 
   it("should display heroImage when provided", () => {

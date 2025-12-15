@@ -103,6 +103,18 @@
   opacity: 0.7;
 }
 
+/* Description Section */
+.im-admin-org-description {
+  @apply text-sm mb-3 line-clamp-2;
+  color: var(--rsp-foreground);
+  opacity: 0.8;
+}
+
+.im-admin-org-description--empty {
+  @apply italic;
+  opacity: 0.5;
+}
+
 /* Owner Section */
 .im-admin-org-owner {
   @apply flex flex-col gap-1.5;

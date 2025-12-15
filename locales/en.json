@@ -1099,6 +1099,7 @@
     "superAdmins": "SuperAdmins",
     "createdAt": "Created",
     "notAssigned": "Not assigned",
+    "noDescription": "No description",
     "assignAdmin": "Assign Admin",
     "changeAdmin": "Change Admin",
     "addAdmin": "Add Admin",

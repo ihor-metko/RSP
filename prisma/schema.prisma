@@ -57,6 +57,7 @@ model Organization {
   id          String       @id @default(uuid())
   name        String
   slug        String       @unique
+  description String?      // Short description of the organization
   contactEmail String?
   contactPhone String?
   website     String?
