@@ -161,17 +161,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if phone is already in use (if your schema supports this)
-    // For now, we'll skip phone uniqueness check as it's not in the schema
-    // but you can add this later if needed
+    // Note: Phone uniqueness check is not implemented as the User model
+    // doesn't have a phone field in the current schema. Phone data is collected
+    // for future use but not currently stored in the database.
+    // TODO: Add phone field to User model and implement uniqueness validation
 
     // Create user
     const newUser = await prisma.user.create({
       data: {
         email: email.toLowerCase().trim(),
         name: name.trim(),
-        // Store phone in a custom field if available in your schema
-        // For now, we'll skip it as it's not in the User model
+        // TODO: Store phone when User model is updated to include phone field
       },
     });
 
