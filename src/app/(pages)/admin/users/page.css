@@ -165,7 +165,7 @@
 
 .im-empty-state-icon {
   @apply w-16 h-16 flex items-center justify-center rounded-full mb-6;
-  background-color: var(--rsp-border);
+  background-color: var(--im-border);
 }
 
 .im-empty-state-icon svg {
@@ -175,7 +175,7 @@
 
 .im-empty-state-title {
   @apply text-xl font-semibold mb-2;
-  color: var(--rsp-foreground);
+  color: var(--im-foreground);
 }
 
 .im-empty-state-description {
