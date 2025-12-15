@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Modal, Button } from "@/components/ui";
+import { Modal, Button, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui";
 import { useBookingStore } from "@/stores/useBookingStore";
 import { formatPrice } from "@/utils/price";
 import { showToast } from "@/lib/toast";
+import { canCancelBooking } from "@/utils/bookingStatus";
 import type { OperationsBooking } from "@/types/booking";
 import "./BookingDetailModal.css";
 
@@ -75,8 +76,6 @@ export function BookingDetailModal({
     const end = new Date(booking.end).getTime();
     return Math.round((end - start) / (1000 * 60));
   };
-
-  const statusClass = `im-booking-detail-status--${booking.status}`;
 
   return (
     <Modal
@@ -161,10 +160,18 @@ export function BookingDetailModal({
             </div>
             <div className="im-booking-detail-item">
               <span className="im-booking-detail-label">
-                {t("common.status") || "Status"}
+                {t("adminBookings.bookingStatus") || "Booking Status"}
               </span>
-              <span className={`im-booking-detail-status ${statusClass}`}>
-                {booking.status}
+              <span className="im-booking-detail-value">
+                <BookingStatusBadge status={booking.bookingStatus} />
+              </span>
+            </div>
+            <div className="im-booking-detail-item">
+              <span className="im-booking-detail-label">
+                {t("adminBookings.paymentStatus") || "Payment Status"}
+              </span>
+              <span className="im-booking-detail-value">
+                <PaymentStatusBadge status={booking.paymentStatus} />
               </span>
             </div>
             <div className="im-booking-detail-item">
@@ -199,7 +206,7 @@ export function BookingDetailModal({
           <Button variant="outline" onClick={onClose}>
             {t("common.close") || "Close"}
           </Button>
-          {booking.status !== "cancelled" && (
+          {canCancelBooking(booking.bookingStatus) && (
             <Button
               variant="danger"
               onClick={handleCancel}

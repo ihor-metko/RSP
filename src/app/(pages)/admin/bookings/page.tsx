@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader, Button, type TableColumn } from "@/components/ui";
+import { PageHeader, Button, type TableColumn, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { useUserStore } from "@/stores/useUserStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
@@ -33,63 +33,6 @@ interface BookingFilters {
   statusFilter: string;
   dateFrom: string;
   dateTo: string;
-}
-
-/**
- * Helper function to normalize status for CSS class names
- */
-function normalizeStatus(status: string): string {
-  return status.toLowerCase().replace(/\s+/g, "-");
-}
-
-/**
- * Booking status badge component with translations
- */
-function BookingStatusBadge({ status }: { status: string }) {
-  const t = useTranslations();
-  const normalizedStatus = normalizeStatus(status);
-  const statusClass = `im-booking-status im-booking-status--${normalizedStatus}`;
-
-  // Map status to translation key
-  const statusLabels: Record<string, string> = {
-    active: t("adminBookings.bookingStatusActive"),
-    cancelled: t("adminBookings.bookingStatusCancelled"),
-    completed: t("adminBookings.bookingStatusCompleted"),
-    "no-show": t("adminBookings.bookingStatusNoShow"),
-    pending: t("adminBookings.bookingStatusPending"),
-    // Legacy statuses for backward compatibility
-    paid: t("adminBookings.statusPaid"),
-    reserved: t("adminBookings.statusReserved"),
-    ongoing: t("adminBookings.statusOngoing"),
-  };
-
-  // Get translated label or use the status as is
-  const displayText = statusLabels[normalizedStatus] || status;
-
-  return <span className={statusClass}>{displayText}</span>;
-}
-
-/**
- * Payment status badge component with translations
- */
-function PaymentStatusBadge({ status }: { status: string }) {
-  const t = useTranslations();
-  const normalizedStatus = normalizeStatus(status);
-  const statusClass = `im-payment-status im-payment-status--${normalizedStatus}`;
-
-  // Map status to translation key
-  const statusLabels: Record<string, string> = {
-    paid: t("adminBookings.paymentStatusPaid"),
-    unpaid: t("adminBookings.paymentStatusUnpaid"),
-    refunded: t("adminBookings.paymentStatusRefunded"),
-    partiallyrefunded: t("adminBookings.paymentStatusPartiallyRefunded"),
-    paymentpending: t("adminBookings.paymentStatusPaymentPending"),
-  };
-
-  // Get translated label or use the status as is
-  const displayText = statusLabels[normalizedStatus] || status;
-
-  return <span className={statusClass}>{displayText}</span>;
 }
 
 /**

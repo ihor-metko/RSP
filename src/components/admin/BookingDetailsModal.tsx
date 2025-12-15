@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Modal, Button, Badge, Card } from "@/components/ui";
+import { Modal, Button, Card, BookingStatusBadge } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
-import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 import { formatDateTime, calculateDuration } from "@/utils/bookingFormatters";
 import type { AdminBookingDetailResponse } from "@/app/api/admin/bookings/[id]/route";
 import "./BookingDetailsModal.css";
@@ -112,58 +111,18 @@ export function BookingDetailsModal({
     }
   };
 
-  // Calculate the display status using the correct logic
-  const getDisplayStatus = () => {
-    if (!booking) return "reserved";
-    
-    // Calculate dynamic status based on booking time and persistent status
-    const displayStatus = calculateBookingStatus(
-      booking.start,
-      booking.end,
-      toBookingStatus(booking.status)
-    );
-    
-    return displayStatus;
-  };
-
-  // Get translated status label
-  const getStatusLabel = (status: string) => {
-    const statusLabels: Record<string, string> = {
-      pending: t("adminBookings.statusPending"),
-      paid: t("adminBookings.statusPaid"),
-      reserved: t("adminBookings.statusReserved"),
-      cancelled: t("adminBookings.statusCancelled"),
-      ongoing: t("adminBookings.statusOngoing"),
-      completed: t("adminBookings.statusCompleted"),
-      "no-show": t("adminBookings.statusNoShow"),
-    };
-    return statusLabels[status] || status.charAt(0).toUpperCase() + status.slice(1);
-  };
-
-  // Get badge variant for status
-  const getStatusBadgeVariant = (status: string): "success" | "error" | "warning" | "default" => {
-    switch (status) {
-      case "paid":
-      case "confirmed":
-        return "success";
-      case "cancelled":
-      case "no-show":
-        return "error";
-      case "ongoing":
-        return "warning";
-      default:
-        return "default";
-    }
-  };
-
-  // Check if booking can be cancelled
-  const canCancelBooking = () => {
+  // For legacy bookings, we may only have 'status', so we'll display that
+  // For new bookings with dual-status, we'd need to update the API to return both fields
+  // For now, display the status as-is using the legacy format
+  
+  // Check if booking can be cancelled based on the status
+  const canCancelCurrentBooking = () => {
     if (!booking) return false;
     
-    const displayStatus = getDisplayStatus();
-    
+    // Legacy: Check the status field
     // Can't cancel if already cancelled or completed or no-show
-    if (displayStatus === "cancelled" || displayStatus === "completed" || displayStatus === "no-show") {
+    const status = booking.status.toLowerCase();
+    if (status === "cancelled" || status === "completed" || status === "no-show") {
       return false;
     }
     
@@ -258,14 +217,9 @@ export function BookingDetailsModal({
             </div>
             <div className="im-booking-modal-grid">
               <div className="im-booking-modal-field">
-                <span className="im-booking-modal-label">{t("common.status")}</span>
+                <span className="im-booking-modal-label">{t("adminBookings.bookingStatus")}</span>
                 <span className="im-booking-modal-value">
-                  <Badge
-                    variant={getStatusBadgeVariant(getDisplayStatus())}
-                    size="small"
-                  >
-                    {getStatusLabel(getDisplayStatus())}
-                  </Badge>
+                  <BookingStatusBadge status={booking.status} />
                 </span>
               </div>
               <div className="im-booking-modal-field">
@@ -304,7 +258,7 @@ export function BookingDetailsModal({
             <Button variant="outline" onClick={onClose}>
               {t("common.close")}
             </Button>
-            {canCancelBooking() && (
+            {canCancelCurrentBooking() && (
               <Button
                 variant="danger"
                 onClick={handleCancelBooking}

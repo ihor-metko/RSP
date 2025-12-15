@@ -1,0 +1,202 @@
+@reference "tailwindcss";
+
+/* ===== Status Badge Components ===== */
+/* Centralized CSS for BookingStatusBadge and PaymentStatusBadge components */
+/* These styles ensure consistent status display across the entire application */
+
+/* Base status badge styles - shared between booking and payment status */
+.im-booking-status,
+.im-payment-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* ===== Color Classes (used by utility functions) ===== */
+
+/* Success - Green (Active, Paid) */
+.im-status-success {
+  background: rgba(34, 197, 94, 0.15);
+  color: rgb(34, 197, 94);
+}
+
+.dark .im-status-success {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(74, 222, 128);
+}
+
+/* Warning - Yellow/Amber (Pending, Unpaid, PaymentPending) */
+.im-status-warning {
+  background: rgba(234, 179, 8, 0.15);
+  color: rgb(234, 179, 8);
+}
+
+.dark .im-status-warning {
+  background: rgba(234, 179, 8, 0.2);
+  color: rgb(250, 204, 21);
+}
+
+/* Danger - Red (Cancelled, No-show) */
+.im-status-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: rgb(239, 68, 68);
+}
+
+.dark .im-status-danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgb(248, 113, 113);
+}
+
+/* Info - Blue (Refunded, PartiallyRefunded) */
+.im-status-info {
+  background: rgba(59, 130, 246, 0.15);
+  color: rgb(59, 130, 246);
+}
+
+.dark .im-status-info {
+  background: rgba(59, 130, 246, 0.2);
+  color: rgb(96, 165, 250);
+}
+
+/* Neutral - Gray (Completed) */
+.im-status-neutral {
+  background: rgba(107, 114, 128, 0.15);
+  color: rgb(107, 114, 128);
+}
+
+.dark .im-status-neutral {
+  background: rgba(107, 114, 128, 0.2);
+  color: rgb(156, 163, 175);
+}
+
+/* Active - Teal (Ongoing - legacy) */
+.im-status-active {
+  background: rgba(20, 184, 166, 0.15);
+  color: rgb(20, 184, 166);
+}
+
+.dark .im-status-active {
+  background: rgba(20, 184, 166, 0.2);
+  color: rgb(45, 212, 191);
+}
+
+/* ===== Legacy Booking Status Classes (for backward compatibility) ===== */
+/* These maintain compatibility with any old code that uses specific status classes */
+
+.im-booking-status--active {
+  background: rgba(34, 197, 94, 0.15);
+  color: rgb(34, 197, 94);
+}
+
+.im-booking-status--pending {
+  background: rgba(234, 179, 8, 0.15);
+  color: rgb(234, 179, 8);
+}
+
+.im-booking-status--completed {
+  background: rgba(107, 114, 128, 0.15);
+  color: rgb(107, 114, 128);
+}
+
+.im-booking-status--cancelled,
+.im-booking-status--no-show {
+  background: rgba(239, 68, 68, 0.15);
+  color: rgb(239, 68, 68);
+}
+
+.im-booking-status--paid,
+.im-booking-status--confirmed {
+  background: rgba(34, 197, 94, 0.15);
+  color: rgb(34, 197, 94);
+}
+
+.im-booking-status--reserved {
+  background: rgba(234, 179, 8, 0.15);
+  color: rgb(234, 179, 8);
+}
+
+.im-booking-status--ongoing {
+  background: rgba(20, 184, 166, 0.15);
+  color: rgb(20, 184, 166);
+}
+
+/* Dark mode for legacy classes */
+.dark .im-booking-status--active,
+.dark .im-booking-status--paid,
+.dark .im-booking-status--confirmed {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(74, 222, 128);
+}
+
+.dark .im-booking-status--pending,
+.dark .im-booking-status--reserved {
+  background: rgba(234, 179, 8, 0.2);
+  color: rgb(250, 204, 21);
+}
+
+.dark .im-booking-status--completed {
+  background: rgba(107, 114, 128, 0.2);
+  color: rgb(156, 163, 175);
+}
+
+.dark .im-booking-status--cancelled,
+.dark .im-booking-status--no-show {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgb(248, 113, 113);
+}
+
+.dark .im-booking-status--ongoing {
+  background: rgba(20, 184, 166, 0.2);
+  color: rgb(45, 212, 191);
+}
+
+/* ===== Payment Status Classes ===== */
+
+.im-payment-status--paid {
+  background: rgba(34, 197, 94, 0.15);
+  color: rgb(34, 197, 94);
+}
+
+.im-payment-status--unpaid {
+  background: rgba(234, 179, 8, 0.15);
+  color: rgb(234, 179, 8);
+}
+
+.im-payment-status--refunded,
+.im-payment-status--partiallyrefunded {
+  background: rgba(59, 130, 246, 0.15);
+  color: rgb(59, 130, 246);
+}
+
+.im-payment-status--paymentpending {
+  background: rgba(249, 115, 22, 0.15);
+  color: rgb(249, 115, 22);
+}
+
+/* Dark mode for payment status classes */
+.dark .im-payment-status--paid {
+  background: rgba(34, 197, 94, 0.2);
+  color: rgb(74, 222, 128);
+}
+
+.dark .im-payment-status--unpaid {
+  background: rgba(234, 179, 8, 0.2);
+  color: rgb(250, 204, 21);
+}
+
+.dark .im-payment-status--refunded,
+.dark .im-payment-status--partiallyrefunded {
+  background: rgba(59, 130, 246, 0.2);
+  color: rgb(96, 165, 250);
+}
+
+.dark .im-payment-status--paymentpending {
+  background: rgba(249, 115, 22, 0.2);
+  color: rgb(251, 146, 60);
+}
