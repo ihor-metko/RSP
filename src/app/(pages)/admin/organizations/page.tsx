@@ -642,7 +642,7 @@ export default function AdminOrganizationsPage() {
           )}
 
           {isLoading ? (
-            <CardListSkeleton count={controller.pageSize > MAX_SKELETON_COUNT ? MAX_SKELETON_COUNT : controller.pageSize} variant="default" />
+            <CardListSkeleton count={Math.min(controller.pageSize, MAX_SKELETON_COUNT)} variant="default" />
           ) : organizations.length === 0 ? (
             <div className="im-admin-organizations-empty">
               <p className="im-admin-organizations-empty-text">
