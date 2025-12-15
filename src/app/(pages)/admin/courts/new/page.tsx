@@ -635,9 +635,9 @@ export default function CreateCourtPage({
 
       showToast("success", "Court created successfully!");
       
-      // Redirect to courts list page
+      // Redirect to admin courts list page
       setTimeout(() => {
-        router.push(`/admin/clubs/${targetClubId}/courts`);
+        router.push("/admin/courts");
       }, 1500);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create court";

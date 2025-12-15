@@ -71,7 +71,7 @@ export function AdminCourtDetails({
       {/* Admin Actions */}
       <div className="flex flex-wrap gap-2">
         <IMLink
-          href={`/admin/clubs/${clubId}/courts/${courtId}/price-rules`}
+          href={`/admin/courts/${courtId}/price-rules`}
           className="flex-1"
         >
           <Button variant="outline" className="w-full">

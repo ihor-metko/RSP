@@ -7,7 +7,7 @@ import "./CourtPricingBlock.css";
 
 interface CourtPricingBlockProps {
   court: CourtDetail;
-  clubId: string;
+  clubId?: string; // Optional for backward compatibility
 }
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -44,7 +44,7 @@ export function CourtPricingBlock({ court, clubId }: CourtPricingBlockProps) {
           Pricing Rules
         </h2>
         <IMLink
-          href={`/admin/clubs/${clubId}/courts/${court.id}/price-rules`}
+          href={`/admin/courts/${court.id}/price-rules`}
           className="im-edit-btn"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -117,7 +117,7 @@ export function CourtPricingBlock({ court, clubId }: CourtPricingBlockProps) {
               No custom pricing rules defined. The default price will apply to all time slots.
             </p>
             <IMLink
-              href={`/admin/clubs/${clubId}/courts/${court.id}/price-rules`}
+              href={`/admin/courts/${court.id}/price-rules`}
               className="im-pricing-add-btn"
             >
               + Add Pricing Rule

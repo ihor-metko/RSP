@@ -118,7 +118,7 @@ export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
                 </div>
                 <div className="im-courts-quick-item-actions">
                   <IMLink
-                    href={`/admin/clubs/${club.id}/courts/${court.id}/price-rules`}
+                    href={`/admin/courts/${court.id}/price-rules`}
                     className="im-courts-quick-btn"
                   >
                     Pricing
