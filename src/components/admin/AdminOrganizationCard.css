@@ -186,7 +186,7 @@
 
 /* ===== Organizations Grid ===== */
 .im-admin-orgs-grid {
-  @apply grid gap-6;
+  @apply grid gap-6 mt-4;
 }
 
 /* Responsive grid columns */
