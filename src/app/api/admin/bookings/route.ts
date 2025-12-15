@@ -5,12 +5,8 @@ import type { Prisma } from "@prisma/client";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetBookings } from "@/services/mockApiHandlers";
-import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
-
-/**
- * Booking status type
- */
-export type BookingStatus = "pending" | "paid" | "cancelled" | "reserved";
+import { toNewBookingStatus, toPaymentStatus } from "@/utils/bookingStatus";
+import type { BookingStatus, PaymentStatus } from "@/types/booking";
 
 /**
  * Booking response type for the admin API
@@ -28,7 +24,8 @@ export interface AdminBookingResponse {
   organizationName: string | null;
   start: string;
   end: string;
-  status: string;
+  bookingStatus: BookingStatus;
+  paymentStatus: PaymentStatus;
   price: number;
   sportType: string;
   coachId: string | null;
@@ -219,17 +216,14 @@ export async function GET(
       },
     });
 
-    // Transform bookings to response format with dynamic status calculation
+    // Transform bookings to response format with dual-status system
     const bookingResponses: AdminBookingResponse[] = bookings.map((booking) => {
       const startISO = booking.start.toISOString();
       const endISO = booking.end.toISOString();
       
-      // Calculate the display status based on time and persistent status
-      const displayStatus = calculateBookingStatus(
-        startISO,
-        endISO,
-        toBookingStatus(booking.status)
-      );
+      // Get booking and payment statuses from database
+      const bookingStatus = toNewBookingStatus(booking.bookingStatus);
+      const paymentStatus = toPaymentStatus(booking.paymentStatus);
 
       return {
         id: booking.id,
@@ -244,7 +238,8 @@ export async function GET(
         organizationName: booking.court.club.organization?.name ?? null,
         start: startISO,
         end: endISO,
-        status: displayStatus,
+        bookingStatus,
+        paymentStatus,
         price: booking.price,
         sportType: booking.sportType || "PADEL",
         coachId: booking.coachId,

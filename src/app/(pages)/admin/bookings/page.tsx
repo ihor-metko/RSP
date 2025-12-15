@@ -36,25 +36,51 @@ interface BookingFilters {
 }
 
 /**
- * Status badge component with translations
+ * Booking status badge component with translations
  */
-function StatusBadge({ status }: { status: string }) {
+function BookingStatusBadge({ status }: { status: string }) {
   const t = useTranslations();
-  const statusClass = `im-booking-status im-booking-status--${status}`;
+  const normalizedStatus = status.toLowerCase().replace(/\s+/g, "-");
+  const statusClass = `im-booking-status im-booking-status--${normalizedStatus}`;
 
   // Map status to translation key
   const statusLabels: Record<string, string> = {
-    pending: t("adminBookings.statusPending"),
+    active: t("adminBookings.bookingStatusActive"),
+    cancelled: t("adminBookings.bookingStatusCancelled"),
+    completed: t("adminBookings.bookingStatusCompleted"),
+    "no-show": t("adminBookings.bookingStatusNoShow"),
+    pending: t("adminBookings.bookingStatusPending"),
+    // Legacy statuses for backward compatibility
     paid: t("adminBookings.statusPaid"),
     reserved: t("adminBookings.statusReserved"),
-    cancelled: t("adminBookings.statusCancelled"),
     ongoing: t("adminBookings.statusOngoing"),
-    completed: t("adminBookings.statusCompleted"),
-    "no-show": t("adminBookings.statusNoShow"),
   };
 
-  // Get translated label or use a capitalized version of status as last resort
-  const displayText = statusLabels[status] || status.charAt(0).toUpperCase() + status.slice(1);
+  // Get translated label or use the status as is
+  const displayText = statusLabels[normalizedStatus] || status;
+
+  return <span className={statusClass}>{displayText}</span>;
+}
+
+/**
+ * Payment status badge component with translations
+ */
+function PaymentStatusBadge({ status }: { status: string }) {
+  const t = useTranslations();
+  const normalizedStatus = status.toLowerCase().replace(/\s+/g, "-");
+  const statusClass = `im-payment-status im-payment-status--${normalizedStatus}`;
+
+  // Map status to translation key
+  const statusLabels: Record<string, string> = {
+    paid: t("adminBookings.paymentStatusPaid"),
+    unpaid: t("adminBookings.paymentStatusUnpaid"),
+    refunded: t("adminBookings.paymentStatusRefunded"),
+    partiallyrefunded: t("adminBookings.paymentStatusPartiallyRefunded"),
+    paymentpending: t("adminBookings.paymentStatusPaymentPending"),
+  };
+
+  // Get translated label or use the status as is
+  const displayText = statusLabels[normalizedStatus] || status;
 
   return <span className={statusClass}>{displayText}</span>;
 }
@@ -307,9 +333,14 @@ export default function AdminBookingsPage() {
       render: (booking) => `${calculateDuration(booking.start, booking.end)} ${t("common.minutes")}`,
     },
     {
-      key: "status",
-      header: t("common.status"),
-      render: (booking) => <StatusBadge status={booking.status} />,
+      key: "bookingStatus",
+      header: t("adminBookings.bookingStatus"),
+      render: (booking) => <BookingStatusBadge status={booking.bookingStatus} />,
+    },
+    {
+      key: "paymentStatus",
+      header: t("adminBookings.paymentStatus"),
+      render: (booking) => <PaymentStatusBadge status={booking.paymentStatus} />,
     },
     {
       key: "actions",
@@ -443,7 +474,8 @@ export default function AdminBookingsPage() {
                     <th>{t("adminBookings.court")}</th>
                     <th>{t("adminBookings.dateTime")}</th>
                     <th>{t("common.duration")}</th>
-                    <th>{t("common.status")}</th>
+                    <th>{t("adminBookings.bookingStatus")}</th>
+                    <th>{t("adminBookings.paymentStatus")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -468,7 +500,8 @@ export default function AdminBookingsPage() {
                       <td>{booking.courtName}</td>
                       <td>{formatDateTime(booking.start)}</td>
                       <td>{calculateDuration(booking.start, booking.end)} {t("common.minutes")}</td>
-                      <td><StatusBadge status={booking.status} /></td>
+                      <td><BookingStatusBadge status={booking.bookingStatus} /></td>
+                      <td><PaymentStatusBadge status={booking.paymentStatus} /></td>
                     </tr>
                   ))}
                 </tbody>

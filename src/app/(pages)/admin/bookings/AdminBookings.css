@@ -87,8 +87,9 @@
   border-bottom: none;
 }
 
-/* Status badges */
-.im-booking-status {
+/* Status badges - shared base styles */
+.im-booking-status,
+.im-payment-status {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.5rem;
@@ -96,23 +97,18 @@
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
-.im-booking-status--paid,
-.im-booking-status--confirmed {
+/* Booking Status badges */
+.im-booking-status--active {
   background: rgba(34, 197, 94, 0.15);
   color: rgb(34, 197, 94);
 }
 
-.im-booking-status--pending,
-.im-booking-status--reserved {
+.im-booking-status--pending {
   background: rgba(234, 179, 8, 0.15);
   color: rgb(234, 179, 8);
-}
-
-.im-booking-status--ongoing {
-  background: rgba(59, 130, 246, 0.15);
-  color: rgb(59, 130, 246);
 }
 
 .im-booking-status--completed {
@@ -124,6 +120,45 @@
 .im-booking-status--no-show {
   background: rgba(239, 68, 68, 0.15);
   color: rgb(239, 68, 68);
+}
+
+/* Legacy booking status classes (for backward compatibility) */
+.im-booking-status--paid,
+.im-booking-status--confirmed {
+  background: rgba(34, 197, 94, 0.15);
+  color: rgb(34, 197, 94);
+}
+
+.im-booking-status--reserved {
+  background: rgba(234, 179, 8, 0.15);
+  color: rgb(234, 179, 8);
+}
+
+.im-booking-status--ongoing {
+  background: rgba(59, 130, 246, 0.15);
+  color: rgb(59, 130, 246);
+}
+
+/* Payment Status badges */
+.im-payment-status--paid {
+  background: rgba(34, 197, 94, 0.15);
+  color: rgb(34, 197, 94);
+}
+
+.im-payment-status--unpaid {
+  background: rgba(234, 179, 8, 0.15);
+  color: rgb(234, 179, 8);
+}
+
+.im-payment-status--refunded,
+.im-payment-status--partiallyrefunded {
+  background: rgba(59, 130, 246, 0.15);
+  color: rgb(59, 130, 246);
+}
+
+.im-payment-status--paymentpending {
+  background: rgba(249, 115, 22, 0.15);
+  color: rgb(249, 115, 22);
 }
 
 /* Pagination */
