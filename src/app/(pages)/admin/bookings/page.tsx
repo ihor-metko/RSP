@@ -36,11 +36,18 @@ interface BookingFilters {
 }
 
 /**
+ * Helper function to normalize status for CSS class names
+ */
+function normalizeStatus(status: string): string {
+  return status.toLowerCase().replace(/\s+/g, "-");
+}
+
+/**
  * Booking status badge component with translations
  */
 function BookingStatusBadge({ status }: { status: string }) {
   const t = useTranslations();
-  const normalizedStatus = status.toLowerCase().replace(/\s+/g, "-");
+  const normalizedStatus = normalizeStatus(status);
   const statusClass = `im-booking-status im-booking-status--${normalizedStatus}`;
 
   // Map status to translation key
@@ -67,7 +74,7 @@ function BookingStatusBadge({ status }: { status: string }) {
  */
 function PaymentStatusBadge({ status }: { status: string }) {
   const t = useTranslations();
-  const normalizedStatus = status.toLowerCase().replace(/\s+/g, "-");
+  const normalizedStatus = normalizeStatus(status);
   const statusClass = `im-payment-status im-payment-status--${normalizedStatus}`;
 
   // Map status to translation key

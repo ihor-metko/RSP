@@ -1160,10 +1160,13 @@ export function createMockBooking(data: {
   price: number;
   status: string;
   coachId?: string | null;
-  sportType?: string;
+  sportType?: "PADEL" | "TENNIS" | "PICKLEBALL" | "SQUASH" | "BADMINTON";
   bookingStatus?: string;
   paymentStatus?: string;
 }): Booking {
+  // Determine the sport type with proper typing
+  const validSportType = data.sportType || "PADEL";
+  
   const booking: Booking = {
     id: generateMockId("booking"),
     courtId: data.courtId,
@@ -1172,7 +1175,7 @@ export function createMockBooking(data: {
     start: data.start,
     end: data.end,
     price: data.price,
-    sportType: (data.sportType as any) || "PADEL",
+    sportType: validSportType,
     status: data.status || "pending",
     bookingStatus: data.bookingStatus || "Pending",
     paymentStatus: data.paymentStatus || "Unpaid",

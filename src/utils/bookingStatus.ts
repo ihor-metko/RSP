@@ -142,10 +142,11 @@ export function getStatusColorClass(status: BookingStatus): string {
 }
 
 /**
- * Type guard to safely cast string to BookingStatus (legacy version)
+ * Type guard to safely cast string to LegacyBookingStatus
+ * This is for backward compatibility with the old single-status system.
  * 
  * @param status - Status string from database
- * @returns The status as BookingStatus type
+ * @returns The status as LegacyBookingStatus type
  */
 export function toBookingStatus(status: string): LegacyBookingStatus {
   const validStatuses: LegacyBookingStatus[] = [
