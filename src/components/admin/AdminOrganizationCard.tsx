@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui";
 import { getSportName, SportType } from "@/constants/sports";
+import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 
 export interface AdminOrganizationCardProps {
   organization: {
@@ -12,6 +13,8 @@ export interface AdminOrganizationCardProps {
     createdAt: string;
     clubCount?: number;
     supportedSports?: SportType[];
+    logo?: string | null;
+    heroImage?: string | null;
     createdBy?: {
       id: string;
       name: string | null;
@@ -50,30 +53,43 @@ export function AdminOrganizationCard({
   // Format date for display
   const formattedDate = new Date(organization.createdAt).toLocaleDateString();
 
+  // Convert stored paths to full Supabase Storage URLs
+  const heroImageUrl = getSupabaseStorageUrl(organization.heroImage);
+  const logoUrl = getSupabaseStorageUrl(organization.logo);
+
+  // Determine the main image: heroImage first, then logo as fallback
+  const mainImage = isValidImageUrl(heroImageUrl) ? heroImageUrl : null;
+  const hasLogo = isValidImageUrl(logoUrl);
+
   return (
     <article
       className="im-admin-org-card"
       aria-labelledby={`admin-org-name-${organization.id}`}
     >
-      {/* Card Header */}
-      <div className="im-admin-org-card-header">
-        <div className="im-admin-org-card-header-content">
-          <h2 id={`admin-org-name-${organization.id}`} className="im-admin-org-name">
-            {onView ? (
-              <button
-                onClick={() => onView(organization.id)}
-                className="im-admin-org-name-link"
-                aria-label={t("organizations.viewDetails")}
-              >
-                {organization.name}
-              </button>
-            ) : (
-              organization.name
-            )}
-          </h2>
-          <p className="im-admin-org-slug">{organization.slug}</p>
-        </div>
-        
+      {/* Main Image Section */}
+      <div className="im-admin-org-card-image">
+        {mainImage ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={mainImage}
+            alt={`Hero image for ${organization.name}`}
+            className="im-admin-org-hero-image"
+          />
+        ) : hasLogo ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={logoUrl as string}
+            alt={`Logo for ${organization.name}`}
+            className="im-admin-org-hero-image im-admin-org-hero-image--logo"
+          />
+        ) : (
+          <div className="im-admin-org-image-placeholder" aria-hidden="true">
+            <span className="im-admin-org-image-placeholder-text">
+              {organization.name.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+
         {/* Status badge based on club count */}
         <div className="im-admin-org-status">
           <span
@@ -90,8 +106,26 @@ export function AdminOrganizationCard({
         </div>
       </div>
 
-      {/* Card Content */}
+      {/* Content Section */}
       <div className="im-admin-org-card-content">
+        {/* Title */}
+        <h2 id={`admin-org-name-${organization.id}`} className="im-admin-org-name">
+          {onView ? (
+            <button
+              onClick={() => onView(organization.id)}
+              className="im-admin-org-name-link"
+              aria-label={t("organizations.viewDetails")}
+            >
+              {organization.name}
+            </button>
+          ) : (
+            organization.name
+          )}
+        </h2>
+
+        {/* Slug */}
+        <p className="im-admin-org-slug">{organization.slug}</p>
+
         {/* Owner Information */}
         {ownerInfo ? (
           <div className="im-admin-org-owner">

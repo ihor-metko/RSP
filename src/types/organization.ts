@@ -21,6 +21,8 @@ export interface Organization {
   metadata?: Record<string, unknown> | null;
   supportedSports?: SportType[];
   clubCount?: number;
+  logo?: string | null;
+  heroImage?: string | null;
   createdBy?: {
     id: string;
     name: string | null;

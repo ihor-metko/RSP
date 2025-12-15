@@ -6,7 +6,6 @@
   background-color: var(--rsp-card-bg);
   border: 1px solid var(--rsp-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  min-height: 280px;
 }
 
 .im-admin-org-card:hover {
@@ -19,51 +18,38 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
 }
 
-/* Card Header Section */
-.im-admin-org-card-header {
-  @apply relative p-4 pb-3 border-b;
-  background: linear-gradient(135deg, var(--entity-color-organization) 0%, var(--entity-color-organization) 100%);
-  border-bottom-color: var(--rsp-border);
+/* Card Image Section */
+.im-admin-org-card-image {
+  @apply relative w-full overflow-hidden;
+  aspect-ratio: 16 / 9;
+  background-color: var(--rsp-border);
 }
 
-.im-admin-org-card-header-content {
-  @apply pr-20;
+.im-admin-org-hero-image {
+  @apply w-full h-full object-cover transition-transform duration-300;
 }
 
-.im-admin-org-name {
-  @apply text-xl font-bold leading-tight mb-1;
-  color: #ffffff;
+.im-admin-org-card:hover .im-admin-org-hero-image {
+  transform: scale(1.05);
 }
 
-.im-admin-org-name-link {
-  @apply w-full text-left transition-opacity duration-200;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  color: inherit;
-  font: inherit;
+.im-admin-org-hero-image--logo {
+  @apply object-contain;
+  background-color: var(--rsp-card-bg);
 }
 
-.im-admin-org-name-link:hover {
-  opacity: 0.85;
-  text-decoration: underline;
+.im-admin-org-image-placeholder {
+  @apply w-full h-full flex items-center justify-center;
+  background-color: var(--entity-color-organization);
 }
 
-.im-admin-org-name-link:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-.im-admin-org-slug {
-  @apply text-sm font-mono;
-  color: rgba(255, 255, 255, 0.8);
+.im-admin-org-image-placeholder-text {
+  @apply text-4xl font-bold text-white;
 }
 
 /* Status Badge */
 .im-admin-org-status {
-  @apply absolute top-3 right-3;
+  @apply absolute top-2 right-2;
 }
 
 .im-admin-org-status-badge {
@@ -82,7 +68,39 @@
 
 /* Card Content Section */
 .im-admin-org-card-content {
-  @apply flex flex-col flex-grow p-4 gap-3;
+  @apply flex flex-col flex-grow p-4;
+}
+
+.im-admin-org-name {
+  @apply text-lg font-semibold leading-tight mb-2;
+  color: var(--rsp-foreground);
+}
+
+.im-admin-org-name-link {
+  @apply w-full text-left transition-opacity duration-200;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.im-admin-org-name-link:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.im-admin-org-name-link:focus {
+  outline: 2px solid var(--rsp-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.im-admin-org-slug {
+  @apply text-sm font-mono mb-3;
+  color: var(--rsp-foreground);
+  opacity: 0.7;
 }
 
 /* Owner Section */
@@ -259,12 +277,8 @@
 
 /* Responsive adjustments for cards */
 @media (max-width: 640px) {
-  .im-admin-org-card-header {
-    @apply p-3 pb-2;
-  }
-
   .im-admin-org-name {
-    @apply text-lg;
+    @apply text-base;
   }
 
   .im-admin-org-card-content {

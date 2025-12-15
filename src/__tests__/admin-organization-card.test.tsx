@@ -11,6 +11,12 @@ jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => key,
 }));
 
+// Mock image utilities
+jest.mock("@/utils/image", () => ({
+  isValidImageUrl: jest.fn((url) => url && url.startsWith("http")),
+  getSupabaseStorageUrl: jest.fn((path) => path ? `https://example.supabase.co/storage/v1/object/public/uploads/${path}` : null),
+}));
+
 describe("AdminOrganizationCard", () => {
   const mockOrganization = {
     id: "org-1",
@@ -131,5 +137,51 @@ describe("AdminOrganizationCard", () => {
     expect(screen.getByText("Test Organization")).toBeInTheDocument();
     // Should not have a clickable element with aria-label
     expect(screen.queryByRole("button", { name: /organizations\.viewDetails/i })).not.toBeInTheDocument();
+  });
+
+  it("should display heroImage when provided", () => {
+    const orgWithHeroImage = {
+      ...mockOrganization,
+      heroImage: "organizations/org-hero.jpg",
+    };
+    render(<AdminOrganizationCard organization={orgWithHeroImage} />);
+    
+    const image = screen.getByAltText("Hero image for Test Organization");
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute("src", expect.stringContaining("organizations/org-hero.jpg"));
+  });
+
+  it("should display logo when heroImage is not provided", () => {
+    const orgWithLogo = {
+      ...mockOrganization,
+      logo: "organizations/org-logo.png",
+    };
+    render(<AdminOrganizationCard organization={orgWithLogo} />);
+    
+    const image = screen.getByAltText("Logo for Test Organization");
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute("src", expect.stringContaining("organizations/org-logo.png"));
+  });
+
+  it("should display placeholder with first letter when no images provided", () => {
+    render(<AdminOrganizationCard organization={mockOrganization} />);
+    
+    const placeholder = screen.getByText("T");
+    expect(placeholder).toBeInTheDocument();
+    expect(placeholder).toHaveClass("im-admin-org-image-placeholder-text");
+  });
+
+  it("should prefer heroImage over logo when both are provided", () => {
+    const orgWithBothImages = {
+      ...mockOrganization,
+      heroImage: "organizations/org-hero.jpg",
+      logo: "organizations/org-logo.png",
+    };
+    render(<AdminOrganizationCard organization={orgWithBothImages} />);
+    
+    const image = screen.getByAltText("Hero image for Test Organization");
+    expect(image).toBeInTheDocument();
+    expect(image).toHaveAttribute("src", expect.stringContaining("organizations/org-hero.jpg"));
+    expect(screen.queryByAltText("Logo for Test Organization")).not.toBeInTheDocument();
   });
 });
