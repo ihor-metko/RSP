@@ -5,6 +5,11 @@ import { useSession } from "next-auth/react";
 import { useUserStore } from "@/stores/useUserStore";
 
 /**
+ * Time to wait for Zustand persist to restore from localStorage
+ */
+const HYDRATION_TIMEOUT_MS = 100;
+
+/**
  * Client component to initialize the user store on app start.
  * This component loads user data when the session becomes available.
  * It waits for hydration to complete before loading fresh data.
@@ -24,7 +29,7 @@ export function UserStoreInitializer() {
     if (!isHydrated) {
       const timer = setTimeout(() => {
         setHydrated(true);
-      }, 100);
+      }, HYDRATION_TIMEOUT_MS);
       return () => clearTimeout(timer);
     }
   }, [isHydrated, setHydrated]);

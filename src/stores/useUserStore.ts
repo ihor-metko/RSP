@@ -333,11 +333,19 @@ export const useUserStore = create<UserState>()(
     {
       name: "user-store",
       storage: createJSONStorage(() => localStorage),
-      onRehydrateStorage: () => (state) => {
-        // Mark as hydrated after rehydration completes
-        if (state) {
-          state.isHydrated = true;
-        }
+      onRehydrateStorage: () => {
+        // Return a callback that will be called after rehydration completes
+        return (state, error) => {
+          // Mark as hydrated after rehydration completes
+          // This is called after state is restored from localStorage
+          if (!error && state) {
+            // Use the store's setHydrated action for consistency
+            useUserStore.getState().setHydrated(true);
+          } else {
+            // Even on error, mark as hydrated to allow the app to continue
+            useUserStore.getState().setHydrated(true);
+          }
+        };
       },
     }
   )
