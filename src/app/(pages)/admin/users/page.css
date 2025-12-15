@@ -4,8 +4,8 @@
 .im-admin-users-page {
   width: 100%;
   @apply p-6 md:p-8 max-w-7xl mx-auto;
-  background-color: var(--rsp-background);
-  color: var(--rsp-foreground);
+  background-color: var(--im-background);
+  color: var(--im-foreground);
 }
 
 /* ===== Loading State ===== */
@@ -16,8 +16,8 @@
 .im-admin-users-loading-spinner,
 .im-loading-spinner {
   @apply w-10 h-10 border-4 rounded-full animate-spin;
-  border-color: var(--rsp-border);
-  border-top-color: var(--rsp-primary);
+  border-color: var(--im-border);
+  border-top-color: var(--im-primary);
 }
 
 .im-admin-users-loading-text {
@@ -84,7 +84,7 @@
 
 .im-filters-title {
   @apply flex items-center gap-2 text-lg font-semibold;
-  color: var(--rsp-foreground);
+  color: var(--im-foreground);
 }
 
 .im-filters-title svg {
