@@ -190,16 +190,6 @@ export function BookingDetailsModal({
         </div>
       ) : booking ? (
         <div className="im-booking-modal">
-          {/* Status Badge Header */}
-          <div className="im-booking-modal-status">
-            <Badge
-              variant={getStatusBadgeVariant(getDisplayStatus())}
-              size="medium"
-            >
-              {getStatusLabel(getDisplayStatus())}
-            </Badge>
-          </div>
-
           {/* User Information Card */}
           <Card className="im-booking-modal-card">
             <div className="im-booking-modal-card-header">
@@ -267,16 +257,27 @@ export function BookingDetailsModal({
               <h4 className="im-booking-modal-section-title">{t("adminBookings.bookingInfo")}</h4>
             </div>
             <div className="im-booking-modal-grid">
-              <div className="im-booking-modal-field im-booking-modal-field-wide">
-                <span className="im-booking-modal-label">{t("adminBookings.dateTime")}</span>
-                <span className="im-booking-modal-value im-booking-modal-value-time">
-                  {formatDateTime(booking.start)} — {formatDateTime(booking.end)}
+              <div className="im-booking-modal-field">
+                <span className="im-booking-modal-label">{t("common.status")}</span>
+                <span className="im-booking-modal-value">
+                  <Badge
+                    variant={getStatusBadgeVariant(getDisplayStatus())}
+                    size="small"
+                  >
+                    {getStatusLabel(getDisplayStatus())}
+                  </Badge>
                 </span>
               </div>
               <div className="im-booking-modal-field">
                 <span className="im-booking-modal-label">{t("common.duration")}</span>
                 <span className="im-booking-modal-value">
                   {calculateDuration(booking.start, booking.end)} {t("common.minutes")}
+                </span>
+              </div>
+              <div className="im-booking-modal-field im-booking-modal-field-wide">
+                <span className="im-booking-modal-label">{t("adminBookings.dateTime")}</span>
+                <span className="im-booking-modal-value im-booking-modal-value-time">
+                  {formatDateTime(booking.start)} — {formatDateTime(booking.end)}
                 </span>
               </div>
               <div className="im-booking-modal-field">

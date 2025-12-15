@@ -231,11 +231,6 @@
   @apply flex flex-col gap-6;
 }
 
-/* Status Badge at Top */
-.im-booking-modal-status {
-  @apply flex justify-center pb-2;
-}
-
 /* Card Styling */
 .im-booking-modal-card {
   background: var(--im-bg-secondary);
