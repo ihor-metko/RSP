@@ -10,6 +10,7 @@ import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard"
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import { useUserStore } from "@/stores/useUserStore";
 import type { Organization } from "@/types/organization";
 import { SportType, SPORT_TYPE_OPTIONS } from "@/constants/sports";
 import "@/components/admin/AdminOrganizationCard.css";
@@ -39,8 +40,10 @@ const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 
 export default function AdminOrganizationsPage() {
   const t = useTranslations();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
+  const user = useUserStore((state) => state.user);
+  const isHydrated = useUserStore((state) => state.isHydrated);
 
   // Use Zustand store for organizations with auto-fetch
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
@@ -224,9 +227,12 @@ export default function AdminOrganizationsPage() {
   }, [fetchSimpleUsers]);
 
   useEffect(() => {
+    // Wait for hydration before checking auth
+    if (!isHydrated) return;
+    
     if (status === "loading") return;
 
-    if (!session?.user || !session.user.isRoot) {
+    if (!user || !user.isRoot) {
       router.push("/auth/sign-in");
       return;
     }
@@ -236,7 +242,7 @@ export default function AdminOrganizationsPage() {
     if (storeError && (storeError.includes("401") || storeError.includes("403"))) {
       router.push("/auth/sign-in");
     }
-  }, [session, status, router, storeError]);
+  }, [user, status, router, storeError, isHydrated]);
 
   // Debounced user search
   useEffect(() => {
@@ -569,7 +575,7 @@ export default function AdminOrganizationsPage() {
 
 
 
-  if (status === "loading" || loading) {
+  if (!isHydrated || status === "loading" || loading) {
     return (
       <main className="im-admin-organizations-page">
         <PageHeader

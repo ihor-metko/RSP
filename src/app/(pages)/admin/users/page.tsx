@@ -21,6 +21,7 @@ import {
   PaginationControls,
 } from "@/components/list-controls";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import { useUserStore } from "@/stores/useUserStore";
 
 import "./page.css";
 
@@ -115,8 +116,10 @@ interface UserFilters {
 
 export default function AdminUsersPage() {
   const t = useTranslations();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
+  const user = useUserStore((state) => state.user);
+  const isHydrated = useUserStore((state) => state.isHydrated);
 
   // Use list controller hook for persistent filters
   const controller = useListController<UserFilters>({
@@ -199,21 +202,24 @@ export default function AdminUsersPage() {
   }, [page, pageSize, sortBy, sortOrder, filters, fetchUsersFromStore]);
 
   useEffect(() => {
+    // Wait for hydration before checking auth
+    if (!isHydrated) return;
+    
     if (status === "loading") return;
 
-    if (!session?.user || !session.user.isRoot) {
+    if (!user || !user.isRoot) {
       router.push("/auth/sign-in");
       return;
     }
 
     fetchUsers();
-  }, [session, status, router, fetchUsers]);
+  }, [user, status, router, fetchUsers, isHydrated]);
 
   // Fetch users when dependencies change (filters already handle debouncing via useListController)
   useEffect(() => {
-    if (status === "loading" || !session?.user || !session.user.isRoot) return;
+    if (!isHydrated || status === "loading" || !user || !user.isRoot) return;
     fetchUsers();
-  }, [status, session, fetchUsers]);
+  }, [status, user, fetchUsers, isHydrated]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -281,7 +287,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const isLoadingData = status === "loading" || loading;
+  const isLoadingData = !isHydrated || status === "loading" || loading;
 
   return (
     <main className="im-admin-users-page">

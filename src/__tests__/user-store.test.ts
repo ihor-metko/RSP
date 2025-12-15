@@ -25,6 +25,7 @@ describe("useUserStore", () => {
       expect(state.roles).toEqual([]);
       expect(state.isLoggedIn).toBe(false);
       expect(state.isLoading).toBe(false);
+      expect(state.isHydrated).toBe(false);
     });
   });
 
@@ -124,6 +125,7 @@ describe("useUserStore", () => {
       expect(state.roles).toEqual([]);
       expect(state.isLoggedIn).toBe(false);
       expect(state.isLoading).toBe(false);
+      expect(state.isHydrated).toBe(true);
     });
   });
 
@@ -163,6 +165,7 @@ describe("useUserStore", () => {
         expect(state.roles).toEqual(["ROOT_ADMIN"]);
         expect(state.isLoggedIn).toBe(true);
         expect(state.isLoading).toBe(false);
+        expect(state.isHydrated).toBe(true);
         expect(state.adminStatus).toEqual({
           isAdmin: true,
           adminType: "root_admin",
@@ -271,6 +274,7 @@ describe("useUserStore", () => {
         expect(state.roles).toEqual([]);
         expect(state.isLoggedIn).toBe(false);
         expect(state.isLoading).toBe(false);
+        expect(state.isHydrated).toBe(true);
       });
     });
 
@@ -287,6 +291,7 @@ describe("useUserStore", () => {
         expect(state.roles).toEqual([]);
         expect(state.isLoggedIn).toBe(false);
         expect(state.isLoading).toBe(false);
+        expect(state.isHydrated).toBe(true);
       });
     });
   });
