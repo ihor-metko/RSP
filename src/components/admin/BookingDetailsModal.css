@@ -101,3 +101,22 @@
 .im-booking-modal-error p {
   @apply text-center;
 }
+
+/* Cancel Confirmation Details */
+.im-booking-modal-cancel-details {
+  @apply flex flex-col gap-2;
+}
+
+.im-booking-modal-cancel-details .im-booking-modal-field {
+  @apply flex flex-row justify-between items-center gap-2;
+}
+
+.im-booking-modal-cancel-details .im-booking-modal-label {
+  @apply text-xs font-medium;
+  color: var(--im-text-secondary);
+}
+
+.im-booking-modal-cancel-details .im-booking-modal-value {
+  @apply text-sm font-medium;
+  color: var(--im-text-primary);
+}

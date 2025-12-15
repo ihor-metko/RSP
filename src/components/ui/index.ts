@@ -3,6 +3,7 @@ export { Input } from "./Input";
 export { Textarea } from "./Textarea";
 export { Checkbox } from "./Checkbox";
 export { Modal } from "./Modal";
+export { ConfirmationModal } from "./ConfirmationModal";
 export { Card } from "./Card";
 export { DarkModeToggle } from "./DarkModeToggle";
 export { Select } from "./Select";

@@ -1,0 +1,21 @@
+@reference "tailwindcss";
+
+.im-confirmation-modal {
+  @apply flex flex-col gap-4;
+}
+
+.im-confirmation-modal-message {
+  @apply text-base;
+  color: var(--rsp-foreground);
+  line-height: 1.5;
+}
+
+.im-confirmation-modal-content {
+  @apply rounded-md p-4;
+  background-color: var(--rsp-input-bg);
+  border: 1px solid var(--rsp-border);
+}
+
+.im-confirmation-modal-actions {
+  @apply flex justify-end gap-3 mt-2;
+}

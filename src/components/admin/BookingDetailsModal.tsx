@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Modal, Button, Badge, Card } from "@/components/ui";
+import { Modal, Button, Badge, Card, ConfirmationModal } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
 import { formatDateTime, calculateDuration } from "@/utils/bookingFormatters";
@@ -43,6 +43,7 @@ export function BookingDetailsModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [error, setError] = useState("");
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Fetch booking details when modal opens or booking ID changes
   useEffect(() => {
@@ -79,13 +80,18 @@ export function BookingDetailsModal({
     fetchBookingDetails();
   }, [isOpen, bookingId, t]);
 
+  // Show cancel confirmation modal
+  const handleCancelClick = () => {
+    setShowCancelConfirm(true);
+  };
+
   // Handle booking cancellation
-  const handleCancelBooking = async () => {
+  const handleConfirmCancel = async () => {
     if (!booking) return;
-    if (!confirm(t("adminBookings.confirmCancel"))) return;
 
     setIsCancelling(true);
     setError("");
+    setShowCancelConfirm(false);
 
     try {
       const response = await fetch(`/api/admin/bookings/${booking.id}`, {
@@ -307,7 +313,7 @@ export function BookingDetailsModal({
             {canCancelBooking() && (
               <Button
                 variant="danger"
-                onClick={handleCancelBooking}
+                onClick={handleCancelClick}
                 disabled={isCancelling}
               >
                 {isCancelling ? t("adminBookings.cancelling") : t("adminBookings.cancelBooking")}
@@ -316,6 +322,35 @@ export function BookingDetailsModal({
           </div>
         </div>
       ) : null}
+
+      {/* Confirmation Modal for Cancellation */}
+      <ConfirmationModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleConfirmCancel}
+        title={t("adminBookings.cancelBooking")}
+        message={t("adminBookings.confirmCancel")}
+        confirmText={t("adminBookings.cancelBooking")}
+        variant="danger"
+        isProcessing={isCancelling}
+      >
+        {booking && (
+          <div className="im-booking-modal-cancel-details">
+            <div className="im-booking-modal-field">
+              <span className="im-booking-modal-label">{t("adminBookings.user")}</span>
+              <span className="im-booking-modal-value">{booking.userName || booking.userEmail}</span>
+            </div>
+            <div className="im-booking-modal-field">
+              <span className="im-booking-modal-label">{t("adminBookings.court")}</span>
+              <span className="im-booking-modal-value">{booking.courtName}</span>
+            </div>
+            <div className="im-booking-modal-field">
+              <span className="im-booking-modal-label">{t("adminBookings.dateTime")}</span>
+              <span className="im-booking-modal-value">{formatDateTime(booking.start)}</span>
+            </div>
+          </div>
+        )}
+      </ConfirmationModal>
     </Modal>
   );
 }

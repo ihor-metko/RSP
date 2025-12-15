@@ -1565,5 +1565,9 @@
     "removeConfirm": "Are you sure you want to remove {name} as an Organization Admin?",
     "changeOwnerDescription": "Select a new primary owner for this organization. The current owner will become a regular organization admin.",
     "ownerProtectionTooltip": "Only root admin can modify the organization owner"
+  },
+  "confirmation": {
+    "title": "Confirm Action",
+    "confirm": "Confirm"
   }
 }
