@@ -21,6 +21,8 @@ import {
   SortSelect,
   StatusFilter,
   PaginationControls,
+  DateRangeFilter,
+  RangeFilter,
 } from "@/components/list-controls";
 import "@/components/admin/AdminOrganizationCard.css";
 import "./page.css";
@@ -42,8 +44,13 @@ interface ClubAdmin {
   createdAt: string;
 }
 
+interface SimpleUser {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
 type SortField = "name" | "createdAt" | "clubCount" | "adminCount";
-type SortDirection = "asc" | "desc";
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 const MAX_SKELETON_COUNT = 10; // Maximum number of skeletons to show during loading
@@ -52,6 +59,11 @@ const MAX_SKELETON_COUNT = 10; // Maximum number of skeletons to show during loa
 interface OrganizationFilters {
   searchQuery: string;
   sportTypeFilter: string;
+  statusFilter: string;
+  clubCountRange: string;
+  dateFrom: string;
+  dateTo: string;
+  adminSearch: string;
 }
 
 export default function AdminOrganizationsPage() {
@@ -77,6 +89,11 @@ export default function AdminOrganizationsPage() {
     defaultFilters: {
       searchQuery: "",
       sportTypeFilter: "",
+      statusFilter: "",
+      clubCountRange: "",
+      dateFrom: "",
+      dateTo: "",
+      adminSearch: "",
     },
     defaultSortBy: "createdAt",
     defaultSortOrder: "desc",
@@ -118,7 +135,7 @@ export default function AdminOrganizationsPage() {
   // State for add club admin modal
   const [isAddClubAdminModalOpen, setIsAddClubAdminModalOpen] = useState(false);
   const [clubAdminUserSearch, setClubAdminUserSearch] = useState("");
-  const [clubAdminUsers, setClubAdminUsers] = useState<any[]>([]);
+  const [clubAdminUsers, setClubAdminUsers] = useState<SimpleUser[]>([]);
   const [selectedClubAdminUserId, setSelectedClubAdminUserId] = useState("");
   const [selectedClubId, setSelectedClubId] = useState("");
   const [clubAdminAssignMode, setClubAdminAssignMode] = useState<"existing" | "new">("existing");
@@ -152,7 +169,7 @@ export default function AdminOrganizationsPage() {
   const filteredAndSortedOrganizations = useMemo(() => {
     let result = [...organizations];
 
-    // Filter by search query
+    // Filter by search query (name or slug)
     if (controller.filters.searchQuery.trim()) {
       const query = controller.filters.searchQuery.toLowerCase();
       result = result.filter(
@@ -167,6 +184,53 @@ export default function AdminOrganizationsPage() {
       result = result.filter(
         (org) => org.supportedSports?.includes(controller.filters.sportTypeFilter as SportType)
       );
+    }
+
+    // Filter by status (Active/Inactive based on archivedAt)
+    if (controller.filters.statusFilter) {
+      if (controller.filters.statusFilter === "active") {
+        result = result.filter((org) => !org.archivedAt);
+      } else if (controller.filters.statusFilter === "inactive") {
+        result = result.filter((org) => org.archivedAt);
+      }
+    }
+
+    // Filter by club count range
+    if (controller.filters.clubCountRange) {
+      const range = controller.filters.clubCountRange;
+      result = result.filter((org) => {
+        const count = org.clubCount || 0;
+        if (range === "1-5") return count >= 1 && count <= 5;
+        if (range === "6-10") return count >= 6 && count <= 10;
+        if (range === "10+") return count > 10;
+        return true;
+      });
+    }
+
+    // Filter by creation date range
+    if (controller.filters.dateFrom || controller.filters.dateTo) {
+      result = result.filter((org) => {
+        const orgDate = new Date(org.createdAt);
+        const fromDate = controller.filters.dateFrom ? new Date(controller.filters.dateFrom) : null;
+        const toDate = controller.filters.dateTo ? new Date(controller.filters.dateTo) : null;
+
+        if (fromDate && orgDate < fromDate) return false;
+        if (toDate && orgDate > toDate) return false;
+        return true;
+      });
+    }
+
+    // Filter by admin/owner search
+    if (controller.filters.adminSearch.trim()) {
+      const adminQuery = controller.filters.adminSearch.toLowerCase();
+      result = result.filter((org) => {
+        if (!org.superAdmins || org.superAdmins.length === 0) return false;
+        return org.superAdmins.some(
+          (admin) =>
+            admin.name?.toLowerCase().includes(adminQuery) ||
+            admin.email.toLowerCase().includes(adminQuery)
+        );
+      });
     }
 
     // Sort
@@ -190,7 +254,18 @@ export default function AdminOrganizationsPage() {
     });
 
     return result;
-  }, [organizations, controller.filters.searchQuery, controller.filters.sportTypeFilter, controller.sortBy, controller.sortOrder]);
+  }, [
+    organizations,
+    controller.filters.searchQuery,
+    controller.filters.sportTypeFilter,
+    controller.filters.statusFilter,
+    controller.filters.clubCountRange,
+    controller.filters.dateFrom,
+    controller.filters.dateTo,
+    controller.filters.adminSearch,
+    controller.sortBy,
+    controller.sortOrder,
+  ]);
 
   // Paginated organizations
   const paginatedOrganizations = useMemo(() => {
@@ -623,11 +698,44 @@ export default function AdminOrganizationsPage() {
               placeholder={t("organizations.searchOrganizations")}
               filterKey="searchQuery"
             />
+            <Input
+              placeholder={t("organizations.searchByAdmin")}
+              value={controller.filters.adminSearch}
+              onChange={(e) => controller.setFilter("adminSearch", e.target.value)}
+              aria-label={t("organizations.searchByAdmin")}
+            />
+            <StatusFilter
+              filterKey="statusFilter"
+              statuses={[
+                { value: "active", label: t("organizations.active") },
+                { value: "inactive", label: t("organizations.inactive") },
+              ]}
+              label={t("organizations.status")}
+              placeholder={t("organizations.allStatuses")}
+            />
+            <RangeFilter
+              filterKey="clubCountRange"
+              ranges={[
+                { value: "1-5", label: "1-5" },
+                { value: "6-10", label: "6-10" },
+                { value: "10+", label: "10+" },
+              ]}
+              label={t("organizations.clubCount")}
+              placeholder={t("organizations.allRanges")}
+            />
             <StatusFilter
               filterKey="sportTypeFilter"
               statuses={sportTypeOptions}
               label={t("organizations.filterBySport")}
               placeholder={t("organizations.allSports")}
+            />
+            <DateRangeFilter
+              field="createdAt"
+              label={t("organizations.createdDate")}
+              fromKey="dateFrom"
+              toKey="dateTo"
+              fromLabel={t("common.from")}
+              toLabel={t("common.to")}
             />
             <SortSelect
               options={sortOptions}

@@ -16,3 +16,4 @@ export { RoleFilter } from "./RoleFilter";
 export { StatusFilter } from "./StatusFilter";
 export { DateRangeFilter } from "./DateRangeFilter";
 export { QuickPresets } from "./QuickPresets";
+export { RangeFilter } from "./RangeFilter";
