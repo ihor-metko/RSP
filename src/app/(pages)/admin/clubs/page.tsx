@@ -52,6 +52,7 @@ export default function AdminClubsPage() {
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
+  const isHydrated = useUserStore((state) => state.isHydrated);
 
   // Use list controller hook for persistent filters
   const controller = useListController<ClubFilters>({
@@ -116,7 +117,8 @@ export default function AdminClubsPage() {
   }, [router, t, controller.filters, controller.sortBy, controller.sortOrder, controller.page, controller.pageSize]);
 
   useEffect(() => {
-    if (isLoadingStore) return;
+    // Wait for hydration before checking auth
+    if (!isHydrated || isLoadingStore) return;
 
     if (!isLoggedIn) {
       router.push("/auth/sign-in");
@@ -130,7 +132,7 @@ export default function AdminClubsPage() {
       // User is not an admin, redirect
       router.push("/auth/sign-in");
     }
-  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchClubs]);
+  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchClubs, isHydrated]);
 
   // Extract unique cities for filters (client-side for now)
   const cities = useMemo(() => {
@@ -148,8 +150,8 @@ export default function AdminClubsPage() {
   // Determine permissions based on admin type
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
 
-  // Show skeleton loaders instead of blocking spinner
-  const isLoading = isLoadingStore || loading;
+  // Show skeleton loaders instead of blocking spinner (include hydration state)
+  const isLoading = !isHydrated || isLoadingStore || loading;
 
   // Sort options for SortSelect component
   const sortOptions = [

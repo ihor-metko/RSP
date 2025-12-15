@@ -11,6 +11,7 @@ import DashboardGraphs from "@/components/admin/DashboardGraphs";
 import DashboardShell from "@/components/admin/DashboardShell";
 import type { UnifiedDashboardResponse } from "@/app/api/admin/unified-dashboard/route";
 import { fetchUnifiedDashboard } from "@/services/dashboard";
+import { useUserStore } from "@/stores/useUserStore";
 import "./RootDashboard.css";
 
 /**
@@ -111,6 +112,7 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<UnifiedDashboardResponse | null>(null);
   const [error, setError] = useState("");
+  const isHydrated = useUserStore((state) => state.isHydrated);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -126,6 +128,9 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   useEffect(() => {
+    // Wait for hydration before checking auth
+    if (!isHydrated) return;
+    
     if (status === "loading") return;
 
     if (!session?.user) {
@@ -147,7 +152,7 @@ export default function AdminDashboardPage() {
     };
 
     initializeDashboard();
-  }, [session, status, router, fetchDashboard, t]);
+  }, [session, status, router, fetchDashboard, t, isHydrated]);
 
   // Helper to get dashboard title based on admin type
   const getDashboardTitle = () => {
@@ -176,6 +181,18 @@ export default function AdminDashboardPage() {
     }
     return t("admin.dashboard.subtitle");
   };
+
+  // Show loading state while hydrating
+  if (!isHydrated || status === "loading") {
+    return (
+      <main className="im-root-dashboard-page">
+        <div className="im-admin-bookings-loading">
+          <div className="im-admin-bookings-loading-spinner" />
+          <span>{t("common.loading")}</span>
+        </div>
+      </main>
+    );
+  }
 
   if (error) {
     return (

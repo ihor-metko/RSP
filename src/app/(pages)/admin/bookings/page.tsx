@@ -75,6 +75,7 @@ export default function AdminBookingsPage() {
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoading = useUserStore((state) => state.isLoading);
+  const isHydrated = useUserStore((state) => state.isHydrated);
 
   // Bookings data
   const [bookingsData, setBookingsData] = useState<AdminBookingsListResponse | null>(null);
@@ -231,8 +232,8 @@ export default function AdminBookingsPage() {
     ];
   };
 
-  // Show loading state while user store is loading
-  if (isLoading) {
+  // Show loading state while hydrating or while user store is loading
+  if (!isHydrated || isLoading) {
     return (
       <main className="im-admin-bookings-page">
         <div className="im-admin-bookings-loading">
@@ -243,6 +244,7 @@ export default function AdminBookingsPage() {
     );
   }
 
+  // Only redirect after hydration is complete
   if (!isLoggedIn || !adminStatus?.isAdmin) {
     router.push("/auth/sign-in");
     return null;
