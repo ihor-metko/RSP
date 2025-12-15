@@ -1409,6 +1409,34 @@ export function createMockAuditLog(data: {
   return auditLog;
 }
 
+export function createMockCourt(data: {
+  clubId: string;
+  name: string;
+  slug?: string | null;
+  type?: string | null;
+  surface?: string | null;
+  indoor?: boolean;
+  sportType?: string;
+  defaultPriceCents?: number;
+}): Court {
+  const court: Court = {
+    id: generateMockId("court"),
+    clubId: data.clubId,
+    name: data.name,
+    slug: data.slug || null,
+    type: data.type || null,
+    surface: data.surface || null,
+    indoor: data.indoor ?? false,
+    sportType: (data.sportType || "PADEL") as any, // Default to PADEL
+    isActive: true,
+    defaultPriceCents: data.defaultPriceCents ?? 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  mockCourts.push(court);
+  return court;
+}
+
 export function updateMockCourt(id: string, data: Partial<Court>): Court | null {
   const index = mockCourts.findIndex((c) => c.id === id);
   if (index === -1) return null;

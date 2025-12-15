@@ -29,6 +29,7 @@ import {
   createMockClub,
   createMockOrganization,
   createMockUser,
+  createMockCourt,
   updateMockCourt,
   deleteMockCourt,
   updateMockNotification,
@@ -927,6 +928,53 @@ export async function mockUpdateCourtDetail(
 
   // Return the full court detail
   return mockGetCourtDetailById(courtId);
+}
+
+export async function mockCreateCourtForClub(
+  clubId: string,
+  data: {
+    name: string;
+    slug?: string | null;
+    type?: string | null;
+    surface?: string | null;
+    indoor?: boolean;
+    sportType?: string;
+    defaultPriceCents?: number;
+  }
+) {
+  // Verify club exists
+  const club = findClubById(clubId);
+  if (!club) {
+    throw new Error("Club not found");
+  }
+
+  // Create the court
+  const court = createMockCourt({
+    clubId,
+    name: data.name,
+    slug: data.slug,
+    type: data.type,
+    surface: data.surface,
+    indoor: data.indoor,
+    sportType: data.sportType,
+    defaultPriceCents: data.defaultPriceCents,
+  });
+
+  // Return the court with basic fields
+  return {
+    id: court.id,
+    clubId: court.clubId,
+    name: court.name,
+    slug: court.slug,
+    type: court.type,
+    surface: court.surface,
+    indoor: court.indoor,
+    sportType: court.sportType,
+    isActive: court.isActive,
+    defaultPriceCents: court.defaultPriceCents,
+    createdAt: court.createdAt.toISOString(),
+    updatedAt: court.updatedAt.toISOString(),
+  };
 }
 
 export async function mockDeleteCourtDetail(courtId: string, clubId: string) {
