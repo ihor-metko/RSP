@@ -252,10 +252,7 @@ export default function AdminCourtsPage() {
 
   // Handle court card interactions
   const handleViewDetails = (courtId: string) => {
-    const court = courts.find((c) => c.id === courtId);
-    if (court) {
-      router.push(`/admin/clubs/${court.club.id}/courts/${courtId}`);
-    }
+    router.push(`/admin/courts/${courtId}`);
   };
 
   if (deferredLoading || isLoadingStore || !isHydrated) {

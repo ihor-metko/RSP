@@ -377,9 +377,9 @@ export function CourtCard({
         )}
         
         {/* Admin Actions */}
-        {showAdminInfo && club && (
+        {showAdminInfo && (
           <IMLink
-            href={`/admin/clubs/${club.id}/courts/${court.id}`}
+            href={`/admin/courts/${court.id}`}
             className="flex-1"
             onClick={(e) => e.stopPropagation()}
           >

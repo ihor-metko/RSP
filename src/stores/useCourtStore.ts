@@ -193,11 +193,18 @@ export const useCourtStore = create<CourtState>((set, get) => ({
       set({ loadingCourts: true, courtsError: null });
       try {
         // Try multiple endpoints based on what's available
+        // Prefer the new admin endpoint, fallback to club-based or player endpoint
         let response;
         if (clubId) {
           response = await fetch(`/api/admin/clubs/${clubId}/courts/${courtId}`);
         } else {
-          response = await fetch(`/api/courts/${courtId}`);
+          // Try the new admin endpoint first
+          response = await fetch(`/api/admin/courts/${courtId}`);
+          
+          // If not found, try player endpoint as fallback
+          if (!response.ok && response.status === 404) {
+            response = await fetch(`/api/courts/${courtId}`);
+          }
         }
         
         if (!response.ok) {
