@@ -120,7 +120,6 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const isHydrated = useUserStore((state) => state.isHydrated);
-  const hasRole = useUserStore((state) => state.hasRole);
   const hasAnyRole = useUserStore((state) => state.hasAnyRole);
 
   // Use list controller hook for persistent filters
