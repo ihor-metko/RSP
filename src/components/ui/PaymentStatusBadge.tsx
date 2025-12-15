@@ -37,7 +37,8 @@ export function PaymentStatusBadge({
 }: PaymentStatusBadgeProps) {
   const t = useTranslations();
   
-  // Normalize status for CSS class names (convert to lowercase and replace spaces)
+  // Normalize status for CSS class names (convert to lowercase and remove spaces)
+  // Note: PaymentStatus uses compound words (PartiallyRefunded, PaymentPending), so we remove spaces
   const normalizedStatus = status.toLowerCase().replace(/\s+/g, "");
   
   // Get the color variant from the utility function

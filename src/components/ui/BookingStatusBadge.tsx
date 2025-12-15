@@ -37,7 +37,8 @@ export function BookingStatusBadge({
 }: BookingStatusBadgeProps) {
   const t = useTranslations();
   
-  // Normalize status for CSS class names (convert to lowercase and replace spaces)
+  // Normalize status for CSS class names (convert to lowercase and replace spaces with hyphens)
+  // Note: BookingStatus can contain "No-show" which has a hyphen, so we normalize spaces to hyphens
   const normalizedStatus = status.toLowerCase().replace(/\s+/g, "-");
   
   // Get the color variant from the utility function
