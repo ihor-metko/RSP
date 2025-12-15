@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     return authResult.response;
   }
 
-  const { userId, isRoot, userRole } = authResult;
+  const { userId, isRoot, adminType, managedIds } = authResult;
 
   try {
     const body = await request.json();
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     }
 
     // Authorization check: Club admins cannot create admins
-    if (userRole === ClubMembershipRole.CLUB_ADMIN) {
+    if (adminType === "club_admin") {
       return NextResponse.json(
         { error: "Club admins cannot create other admins" },
         { status: 403 }
@@ -93,17 +93,8 @@ export async function POST(request: Request) {
     }
 
     // Authorization check: Organization admins can only create admins for their organization
-    if (userRole === MembershipRole.ORGANIZATION_ADMIN && !isRoot) {
-      // Get the org admin's organizations
-      const adminMemberships = await prisma.membership.findMany({
-        where: {
-          userId: userId,
-          role: MembershipRole.ORGANIZATION_ADMIN,
-        },
-        select: { organizationId: true },
-      });
-
-      const managedOrgIds = adminMemberships.map(m => m.organizationId);
+    if (adminType === "organization_admin" && !isRoot) {
+      const managedOrgIds = managedIds;
 
       // Check if trying to create admin for their organization
       if (role === "ORGANIZATION_ADMIN") {
