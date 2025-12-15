@@ -276,7 +276,7 @@ export default function OrgDashboardPage() {
             onSuccess: () => {
               fetchDashboard();
             },
-          } as CreateAdminWizardConfig}
+          }}
         />
       )}
     </main>
