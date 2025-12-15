@@ -16,6 +16,7 @@ import {
   findClubById,
   isMockMode,
 } from "@/services/mockDb";
+import { SportType } from "@/constants/sports";
 
 describe("Mock Data Mode", () => {
   beforeEach(() => {
@@ -196,7 +197,7 @@ describe("Mock Data Mode", () => {
         type: "padel",
         surface: "artificial_grass",
         indoor: true,
-        sportType: "PADEL",
+        sportType: SportType.PADEL,
         defaultPriceCents: 5000,
       });
 
@@ -205,6 +206,7 @@ describe("Mock Data Mode", () => {
       expect(newCourt.clubId).toBe(clubs[0].id);
       expect(newCourt.name).toBe("Test Court");
       expect(newCourt.indoor).toBe(true);
+      expect(newCourt.sportType).toBe(SportType.PADEL);
 
       const updatedCourts = getMockCourts();
       expect(updatedCourts.length).toBe(initialCourts.length + 1);

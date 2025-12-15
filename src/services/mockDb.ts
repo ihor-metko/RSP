@@ -3,6 +3,7 @@
 // See TODO_MOCK_CLEANUP.md for removal instructions.
 
 import type { User, Organization, Club, Court, Booking, Membership, ClubMembership, ClubBusinessHours, CourtPriceRule, Coach, ClubGallery, AuditLog, AdminNotification, Payment } from "@prisma/client";
+import { SportType } from "@/constants/sports";
 
 // ============================================================================
 // Mock Data State (mutable at runtime for testing flows)
@@ -1416,7 +1417,7 @@ export function createMockCourt(data: {
   type?: string | null;
   surface?: string | null;
   indoor?: boolean;
-  sportType?: string;
+  sportType?: SportType;
   defaultPriceCents?: number;
 }): Court {
   const court: Court = {
@@ -1427,7 +1428,7 @@ export function createMockCourt(data: {
     type: data.type || null,
     surface: data.surface || null,
     indoor: data.indoor ?? false,
-    sportType: (data.sportType || "PADEL") as any, // Default to PADEL
+    sportType: data.sportType || SportType.PADEL,
     isActive: true,
     defaultPriceCents: data.defaultPriceCents ?? 0,
     createdAt: new Date(),

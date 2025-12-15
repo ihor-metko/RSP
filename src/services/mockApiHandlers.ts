@@ -938,7 +938,7 @@ export async function mockCreateCourtForClub(
     type?: string | null;
     surface?: string | null;
     indoor?: boolean;
-    sportType?: string;
+    sportType?: string; // Accepts string from API, will validate
     defaultPriceCents?: number;
   }
 ) {
@@ -948,6 +948,14 @@ export async function mockCreateCourtForClub(
     throw new Error("Club not found");
   }
 
+  // Import SportType for validation
+  const { SportType, isSupportedSport } = await import("@/constants/sports");
+  
+  // Validate and convert sportType
+  const validatedSportType = data.sportType && isSupportedSport(data.sportType) 
+    ? data.sportType as typeof SportType[keyof typeof SportType]
+    : SportType.PADEL;
+
   // Create the court
   const court = createMockCourt({
     clubId,
@@ -956,7 +964,7 @@ export async function mockCreateCourtForClub(
     type: data.type,
     surface: data.surface,
     indoor: data.indoor,
-    sportType: data.sportType,
+    sportType: validatedSportType,
     defaultPriceCents: data.defaultPriceCents,
   });
 
