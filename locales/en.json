@@ -1202,7 +1202,10 @@
       "status": "Status",
       "registeredAt": "Registered",
       "lastActivity": "Last Activity",
-      "lastLogin": "Last Login"
+      "lastActive": "Last Active",
+      "lastLogin": "Last Login",
+      "totalBookings": "Total Bookings",
+      "createdAt": "Created"
     },
     "roles": {
       "rootAdmin": "Root Admin",
@@ -1218,7 +1221,10 @@
     },
     "status": {
       "active": "Active",
-      "blocked": "Blocked"
+      "blocked": "Blocked",
+      "suspended": "Suspended",
+      "invited": "Invited",
+      "deleted": "Deleted"
     },
     "actions": {
       "view": "View",
@@ -1246,8 +1252,13 @@
     "noDetailsAvailable": "No details available",
     "noUsersDescription": "Try adjusting your filters or search criteria",
     "neverLoggedIn": "Never logged in",
+    "neverActive": "Never active",
+    "never": "Never",
     "unnamed": "Unnamed User",
     "tableLabel": "Users table",
+    "org": "Org",
+    "club": "Club",
+    "inLast30d": "in last 30d",
     "filters": "Filters",
     "editRole": "Edit User Role",
     "editRoleFor": "Changing role for",
@@ -1264,7 +1275,19 @@
     "deleteWarning": "This action cannot be undone!",
     "deleteConfirmMessage": "Are you sure you want to delete {name}? All their data will be permanently removed.",
     "userDeleted": "User deleted successfully",
-    "failedToDeleteUser": "Failed to delete user"
+    "failedToDeleteUser": "Failed to delete user",
+    "quickFilters": {
+      "activeLast30d": "Active (Last 30d)",
+      "neverBooked": "Never Booked",
+      "showOnlyAdmins": "Show Only Admins",
+      "showOnlyUsers": "Show Only Users"
+    },
+    "dateRange": {
+      "createdAt": "Created Date",
+      "lastActive": "Last Active",
+      "from": "From",
+      "to": "To"
+    }
   },
   "userDetail": {
     "breadcrumb": "User Details",

@@ -120,6 +120,8 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const user = useUserStore((state) => state.user);
   const isHydrated = useUserStore((state) => state.isHydrated);
+  const hasRole = useUserStore((state) => state.hasRole);
+  const hasAnyRole = useUserStore((state) => state.hasAnyRole);
 
   // Use list controller hook for persistent filters
   const controller = useListController<UserFilters>({
@@ -210,19 +212,20 @@ export default function AdminUsersPage() {
     
     if (status === "loading") return;
 
-    if (!user || !user.isRoot) {
+    // Check if user has any admin role (ROOT_ADMIN, ORGANIZATION_ADMIN, or CLUB_ADMIN)
+    if (!user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"])) {
       router.push("/auth/sign-in");
       return;
     }
 
     fetchUsers();
-  }, [user, status, router, fetchUsers, isHydrated]);
+  }, [user, status, router, fetchUsers, isHydrated, hasAnyRole]);
 
   // Fetch users when dependencies change (filters already handle debouncing via useListController)
   useEffect(() => {
-    if (!isHydrated || status === "loading" || !user || !user.isRoot) return;
+    if (!isHydrated || status === "loading" || !user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"])) return;
     fetchUsers();
-  }, [status, user, fetchUsers, isHydrated]);
+  }, [status, user, fetchUsers, isHydrated, hasAnyRole]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -563,10 +566,10 @@ export default function AdminUsersPage() {
                       </td>
                       {/* Created at */}
                       <td className="im-td-date">
-                        <Tooltip content={user.lastActivity ? formatDateTime(user.lastActivity) : t("users.neverLoggedIn")}>
+                        <Tooltip content={user.createdAt ? formatDateTime(user.createdAt) : t("users.neverLoggedIn")}>
                           <div className="im-date-display">
                             <CalendarIcon />
-                            <span>{formatDate(user.lastActivity)}</span>
+                            <span>{formatDate(user.createdAt)}</span>
                           </div>
                         </Tooltip>
                       </td>

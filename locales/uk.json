@@ -1131,7 +1131,10 @@
       "status": "Статус",
       "registeredAt": "Дата реєстрації",
       "lastActivity": "Остання активність",
-      "lastLogin": "Останній вхід"
+      "lastActive": "Остання активність",
+      "lastLogin": "Останній вхід",
+      "totalBookings": "Всього бронювань",
+      "createdAt": "Створено"
     },
     "roles": {
       "rootAdmin": "Головний адмін",
@@ -1146,7 +1149,10 @@
     },
     "status": {
       "active": "Активний",
-      "blocked": "Заблокований"
+      "blocked": "Заблокований",
+      "suspended": "Призупинено",
+      "invited": "Запрошений",
+      "deleted": "Видалений"
     },
     "actions": {
       "view": "Переглянути",
@@ -1174,8 +1180,13 @@
     "noDetailsAvailable": "Деталі недоступні",
     "noUsersDescription": "Спробуйте змінити фільтри або критерії пошуку",
     "neverLoggedIn": "Ніколи не входив",
+    "neverActive": "Ніколи не активний",
+    "never": "Ніколи",
     "unnamed": "Безіменний користувач",
     "tableLabel": "Таблиця користувачів",
+    "org": "Орг",
+    "club": "Клуб",
+    "inLast30d": "за останні 30д",
     "filters": "Фільтри",
     "editRole": "Редагувати роль користувача",
     "editRoleFor": "Зміна ролі для",
@@ -1199,6 +1210,18 @@
       "clubAdmin": "Адміністратор клубу",
       "user": "Користувач",
       "member": "Учасник"
+    },
+    "quickFilters": {
+      "activeLast30d": "Активні (Останні 30д)",
+      "neverBooked": "Ніколи не бронювали",
+      "showOnlyAdmins": "Показати тільки адмінів",
+      "showOnlyUsers": "Показати тільки користувачів"
+    },
+    "dateRange": {
+      "createdAt": "Дата створення",
+      "lastActive": "Остання активність",
+      "from": "Від",
+      "to": "До"
     }
   },
   "userDetail": {

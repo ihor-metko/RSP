@@ -321,6 +321,17 @@
   @apply font-medium;
 }
 
+.im-user-name-link {
+  @apply font-medium transition-colors;
+  color: var(--rsp-foreground);
+  text-decoration: none;
+}
+
+.im-user-name-link:hover {
+  color: var(--rsp-primary);
+  text-decoration: underline;
+}
+
 /* Email Cell */
 .im-td-email {
   @apply min-w-[200px];
@@ -335,6 +346,20 @@
   @apply w-4 h-4 flex-shrink-0;
 }
 
+.im-email-link {
+  @apply inline-flex items-center gap-2 text-sm transition-colors;
+  color: var(--im-muted);
+  text-decoration: none;
+}
+
+.im-email-link:hover {
+  color: var(--rsp-primary);
+}
+
+.im-email-link svg {
+  @apply w-4 h-4 flex-shrink-0;
+}
+
 /* Role Cell */
 .im-td-role .im-badge {
   @apply whitespace-nowrap;
@@ -342,6 +367,15 @@
 
 .im-td-role .im-badge svg {
   @apply w-3.5 h-3.5;
+}
+
+.im-role-cell {
+  @apply flex flex-col gap-1;
+}
+
+.im-role-context {
+  @apply text-xs;
+  color: var(--im-muted);
 }
 
 /* Organization & Club Cells */
@@ -394,6 +428,25 @@
 
 .im-date-display svg {
   @apply w-4 h-4;
+}
+
+/* Bookings Cell */
+.im-td-bookings {
+  @apply min-w-[120px];
+}
+
+.im-bookings-cell {
+  @apply flex flex-col gap-1;
+}
+
+.im-bookings-total {
+  @apply text-sm font-semibold;
+  color: var(--rsp-foreground);
+}
+
+.im-bookings-recent {
+  @apply text-xs;
+  color: var(--im-muted);
 }
 
 /* Actions Cell */
