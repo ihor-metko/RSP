@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, Button, Select } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
 import { useControllerOrContext } from "./ListControllerContext";
@@ -18,8 +19,6 @@ interface PaginationControlsProps<TFilters = Record<string, unknown>> {
   pageSizeOptions?: number[];
   /** Additional CSS classes */
   className?: string;
-  /** Translation function (optional) */
-  t?: (key: string, params?: Record<string, unknown>) => string;
 }
 
 // Default icons
@@ -121,18 +120,10 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
   showPageSize = true,
   pageSizeOptions = [10, 25, 50, 100],
   className = "",
-  t = (key: string, params?: Record<string, unknown>) => {
-    // Default English translations
-    const translations: Record<string, string> = {
-      "pagination.showing": `Showing ${params?.start} to ${params?.end} of ${params?.total}`,
-      "pagination.previous": "Previous",
-      "pagination.next": "Next",
-      "pagination.pageSize": "Items per page",
-      "pagination.page": "Page",
-    };
-    return translations[key] || key;
-  },
 }: PaginationControlsProps<TFilters>) {
+  // Get translations from next-intl using the pagination namespace
+  const t = useTranslations("pagination");
+  
   // Use helper hook that handles both prop and context
   const controller = useControllerOrContext(controllerProp);
 
@@ -151,10 +142,10 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
     <Card className={`im-pagination-card ${className}`.trim()} cardBodyClassName="flex w-full justify-between">
       <div className="im-pagination-info">
         <span className="im-pagination-text">
-          {t("pagination.showing", {
-            start: startItem,
-            end: endItem,
-            total: totalCount,
+          {t("showing", {
+            start: startItem.toString(),
+            end: endItem.toString(),
+            total: totalCount.toString(),
           })}
         </span>
       </div>
@@ -165,11 +156,11 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
           size="small"
           onClick={() => setPage(page - 1)}
           disabled={page <= 1}
-          aria-label={t("pagination.previous")}
+          aria-label={t("previous")}
           className="im-pagination-btn"
         >
           <ChevronLeftIcon />
-          <span className="im-pagination-btn-text">{t("pagination.previous")}</span>
+          <span className="im-pagination-btn-text">{t("previous")}</span>
         </Button>
 
         <div className="im-pagination-pages">
@@ -179,7 +170,7 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
                 key={pageNum}
                 className={`im-pagination-page ${page === pageNum ? "im-pagination-page--active" : ""}`}
                 onClick={() => setPage(pageNum)}
-                aria-label={`${t("pagination.page")} ${pageNum}`}
+                aria-label={`${t("page")} ${pageNum}`}
                 aria-current={page === pageNum ? "page" : undefined}
               >
                 {pageNum}
@@ -193,10 +184,10 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
           size="small"
           onClick={() => setPage(page + 1)}
           disabled={page >= totalPages}
-          aria-label={t("pagination.next")}
+          aria-label={t("next")}
           className="im-pagination-btn"
         >
-          <span className="im-pagination-btn-text">{t("pagination.next")}</span>
+          <span className="im-pagination-btn-text">{t("next")}</span>
           <ChevronRightIcon />
         </Button>
       </div>
@@ -204,7 +195,7 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
       {showPageSize && (
         <div className="im-pagination-size">
           <Select
-            label={t("pagination.pageSize")}
+            label={t("pageSize")}
             options={pageSizeOptions.map((size) => ({
               value: size.toString(),
               label: size.toString(),

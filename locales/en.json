@@ -75,6 +75,13 @@
     "never": "Never",
     "viewProfile": "View Profile"
   },
+  "pagination": {
+    "showing": "Showing {start} to {end} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "pageSize": "Items per page",
+    "page": "Page"
+  },
   "home": {
     "title": "ArenaOne",
     "welcomeTitle": "Welcome to ArenaOne",

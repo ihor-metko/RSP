@@ -75,6 +75,13 @@
     "previous": "Попередня",
     "next": "Наступна"
   },
+  "pagination": {
+    "showing": "Показано з {start} по {end} із {total}",
+    "previous": "Попередня",
+    "next": "Наступна",
+    "pageSize": "Елементів на сторінці",
+    "page": "Сторінка"
+  },
   "home": {
     "title": "Падел Клуб MVP",
     "welcomeTitle": "Ласкаво просимо до Падел Клубу",

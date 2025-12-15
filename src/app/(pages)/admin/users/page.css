@@ -35,6 +35,7 @@
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -546,7 +547,6 @@
 .im-pagination-size-select {
   @apply px-3 py-2 rounded-lg text-sm;
   background-color: var(--rsp-card-bg);
-  border: 1px solid var(--rsp-border);
   color: var(--rsp-foreground);
 }
 
