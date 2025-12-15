@@ -126,40 +126,38 @@ export function AdminOrganizationCard({
         )}
 
         {/* Owner Information */}
-        {ownerInfo ? (
-          <div className="im-admin-org-owner">
-            <div className="im-admin-org-owner-label">
-              <svg
-                className="im-admin-org-icon"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              <span className="im-admin-org-label-text">
-                {t("organizations.owner")}:
-              </span>
-            </div>
-            <div className="im-admin-org-owner-info">
-              <span className="im-admin-org-owner-name">
-                {ownerInfo.name || ownerInfo.email}
-              </span>
-              <span className="im-admin-org-owner-email">{ownerInfo.email}</span>
-            </div>
-          </div>
-        ) : (
-          <div className="im-admin-org-owner">
-            <span className="im-admin-org-no-owner">
-              {t("organizations.notAssigned")}
+        <div className="im-admin-org-owner">
+          <svg
+            className="im-admin-org-icon"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <div className="im-admin-org-owner-content">
+            <span className="im-admin-org-owner-label">
+              {t("organizations.owner")}
             </span>
+            {ownerInfo ? (
+              <div className="im-admin-org-owner-info">
+                <span className="im-admin-org-owner-name">
+                  {ownerInfo.name || ownerInfo.email}
+                </span>
+                <span className="im-admin-org-owner-email">{ownerInfo.email}</span>
+              </div>
+            ) : (
+              <span className="im-admin-org-no-owner">
+                {t("organizations.notAssigned")}
+              </span>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Metadata Row */}
         <div className="im-admin-org-meta">

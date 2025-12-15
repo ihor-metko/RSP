@@ -117,22 +117,23 @@
 
 /* Owner Section */
 .im-admin-org-owner {
-  @apply flex flex-col gap-1.5;
-}
-
-.im-admin-org-owner-label {
-  @apply flex items-center gap-1.5 text-xs font-medium uppercase;
-  color: var(--rsp-foreground);
-  opacity: 0.6;
+  @apply flex items-start gap-2 mb-3;
 }
 
 .im-admin-org-icon {
   @apply flex-shrink-0;
   opacity: 0.7;
+  color: var(--rsp-foreground);
 }
 
-.im-admin-org-label-text {
-  @apply truncate;
+.im-admin-org-owner-content {
+  @apply flex flex-col gap-1 flex-1 min-w-0;
+}
+
+.im-admin-org-owner-label {
+  @apply text-xs font-medium uppercase;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
 }
 
 .im-admin-org-owner-info {

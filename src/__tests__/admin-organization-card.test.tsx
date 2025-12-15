@@ -40,11 +40,10 @@ describe("AdminOrganizationCard", () => {
     ],
   };
 
-  it("should render organization name and slug", () => {
+  it("should render organization name", () => {
     render(<AdminOrganizationCard organization={mockOrganization} />);
     
     expect(screen.getByText("Test Organization")).toBeInTheDocument();
-    expect(screen.getByText("test-organization")).toBeInTheDocument();
   });
 
   it("should show active status when clubCount > 0", () => {

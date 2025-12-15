@@ -282,6 +282,7 @@
       "statusSuspended": "Suspended",
       "allSports": "All Sports",
       "filterBySport": "Filter by sport",
+      "supportedSports": "Supported Sports",
       "smallClubs": "Small Clubs (< 3 courts)",
       "largeClubs": "Large Clubs (≥ 5 courts)",
       "page": "Page",
@@ -1155,7 +1156,8 @@
     "createdDate": "Created Date",
     "filterBySport": "Sport Type",
     "allSports": "All Sports",
-    "searchByAdmin": "Search by admin/owner..."
+    "searchByAdmin": "Search by admin/owner...",
+    "supportedSports": "Supported Sports"
   },
   "operations": {
     "title": "Operations",
