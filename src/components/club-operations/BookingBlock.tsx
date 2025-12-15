@@ -1,5 +1,6 @@
 "use client";
 
+import { getBookingStatusColorClass } from "@/utils/bookingStatus";
 import type { OperationsBooking } from "@/types/booking";
 import "./BookingBlock.css";
 
@@ -57,7 +58,9 @@ export function BookingBlock({
     });
   };
 
-  const statusClass = `im-booking-block--${booking.status}`;
+  // Use centralized color mapping for consistency
+  const colorClass = getBookingStatusColorClass(booking.bookingStatus);
+  const statusClass = `im-booking-block--${colorClass}`;
 
   return (
     <div
@@ -85,7 +88,7 @@ export function BookingBlock({
           {booking.userName || booking.userEmail}
         </div>
         <div className="im-booking-block-status-badge">
-          {booking.status}
+          {booking.bookingStatus}
         </div>
       </div>
     </div>

@@ -75,6 +75,13 @@
     "never": "Never",
     "viewProfile": "View Profile"
   },
+  "pagination": {
+    "showing": "Showing {start} to {end} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "pageSize": "Items per page",
+    "page": "Page"
+  },
   "home": {
     "title": "ArenaOne",
     "welcomeTitle": "Welcome to ArenaOne",
@@ -1487,7 +1494,19 @@
     "statusOngoing": "Ongoing",
     "statusCompleted": "Completed",
     "statusNoShow": "No-show",
-    "bookingNotFound": "Booking not found"
+    "bookingNotFound": "Booking not found",
+    "bookingStatus": "Booking Status",
+    "paymentStatus": "Payment Status",
+    "bookingStatusActive": "Active",
+    "bookingStatusCancelled": "Cancelled",
+    "bookingStatusCompleted": "Completed",
+    "bookingStatusNoShow": "No-show",
+    "bookingStatusPending": "Pending",
+    "paymentStatusPaid": "Paid",
+    "paymentStatusUnpaid": "Unpaid",
+    "paymentStatusRefunded": "Refunded",
+    "paymentStatusPartiallyRefunded": "Partially Refunded",
+    "paymentStatusPaymentPending": "Payment Pending"
   },
   "bookingsOverview": {
     "title": "Bookings Overview",

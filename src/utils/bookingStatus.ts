@@ -1,4 +1,4 @@
-import type { BookingStatus, DynamicBookingStatus } from "@/types/booking";
+import type { BookingStatus, PaymentStatus, LegacyBookingStatus, DynamicBookingStatus } from "@/types/booking";
 
 /**
  * Calculate the dynamic status of a booking based on current time
@@ -142,13 +142,14 @@ export function getStatusColorClass(status: BookingStatus): string {
 }
 
 /**
- * Type guard to safely cast string to BookingStatus
+ * Type guard to safely cast string to LegacyBookingStatus
+ * This is for backward compatibility with the old single-status system.
  * 
  * @param status - Status string from database
- * @returns The status as BookingStatus type
+ * @returns The status as LegacyBookingStatus type
  */
-export function toBookingStatus(status: string): BookingStatus {
-  const validStatuses: BookingStatus[] = [
+export function toBookingStatus(status: string): LegacyBookingStatus {
+  const validStatuses: LegacyBookingStatus[] = [
     "pending",
     "paid",
     "reserved",
@@ -158,10 +159,161 @@ export function toBookingStatus(status: string): BookingStatus {
     "completed",
   ];
   
-  if (validStatuses.includes(status as BookingStatus)) {
-    return status as BookingStatus;
+  if (validStatuses.includes(status as LegacyBookingStatus)) {
+    return status as LegacyBookingStatus;
   }
   
   // Default to reserved for unknown statuses
   return "reserved";
+}
+
+// ============================================================================
+// NEW DUAL-STATUS SYSTEM UTILITIES
+// ============================================================================
+
+/**
+ * Type guard to safely cast string to new BookingStatus
+ * 
+ * @param status - Status string from database
+ * @returns The status as BookingStatus type
+ */
+export function toNewBookingStatus(status: string): BookingStatus {
+  const validStatuses: BookingStatus[] = [
+    "Active",
+    "Cancelled",
+    "Completed",
+    "No-show",
+    "Pending",
+  ];
+  
+  if (validStatuses.includes(status as BookingStatus)) {
+    return status as BookingStatus;
+  }
+  
+  // Default to Pending for unknown statuses
+  return "Pending";
+}
+
+/**
+ * Type guard to safely cast string to PaymentStatus
+ * 
+ * @param status - Status string from database
+ * @returns The status as PaymentStatus type
+ */
+export function toPaymentStatus(status: string): PaymentStatus {
+  const validStatuses: PaymentStatus[] = [
+    "Paid",
+    "Unpaid",
+    "Refunded",
+    "PartiallyRefunded",
+    "PaymentPending",
+  ];
+  
+  if (validStatuses.includes(status as PaymentStatus)) {
+    return status as PaymentStatus;
+  }
+  
+  // Default to Unpaid for unknown statuses
+  return "Unpaid";
+}
+
+/**
+ * Get human-readable label for new BookingStatus
+ * 
+ * @param status - Booking status
+ * @returns Human-readable label
+ */
+export function getBookingStatusLabel(status: BookingStatus): string {
+  const labels: Record<BookingStatus, string> = {
+    Active: "Active",
+    Cancelled: "Cancelled",
+    Completed: "Completed",
+    "No-show": "No-show",
+    Pending: "Pending",
+  };
+  return labels[status] || status;
+}
+
+/**
+ * Get human-readable label for PaymentStatus
+ * 
+ * @param status - Payment status
+ * @returns Human-readable label
+ */
+export function getPaymentStatusLabel(status: PaymentStatus): string {
+  const labels: Record<PaymentStatus, string> = {
+    Paid: "Paid",
+    Unpaid: "Unpaid",
+    Refunded: "Refunded",
+    PartiallyRefunded: "Partially Refunded",
+    PaymentPending: "Payment Pending",
+  };
+  return labels[status] || status;
+}
+
+/**
+ * Get status color class for new BookingStatus
+ * 
+ * @param status - Booking status
+ * @returns CSS class suffix for status styling
+ */
+export function getBookingStatusColorClass(status: BookingStatus): string {
+  const colorMap: Record<BookingStatus, string> = {
+    Active: "success",
+    Cancelled: "danger",
+    Completed: "neutral",
+    "No-show": "danger",
+    Pending: "warning",
+  };
+  return colorMap[status] || "neutral";
+}
+
+/**
+ * Get status color class for PaymentStatus
+ * 
+ * @param status - Payment status
+ * @returns CSS class suffix for status styling
+ */
+export function getPaymentStatusColorClass(status: PaymentStatus): string {
+  const colorMap: Record<PaymentStatus, string> = {
+    Paid: "success",
+    Unpaid: "warning",
+    Refunded: "info",
+    PartiallyRefunded: "info",
+    PaymentPending: "warning",
+  };
+  return colorMap[status] || "neutral";
+}
+
+/**
+ * Check if a booking status allows cancellation
+ * 
+ * @param status - Booking status to check
+ * @returns true if booking can be cancelled
+ */
+export function canCancelBooking(status: BookingStatus): boolean {
+  return status === "Active" || status === "Pending";
+}
+
+/**
+ * Migrate legacy status to new dual-status system
+ * 
+ * @param legacyStatus - Old status string
+ * @returns Object with bookingStatus and paymentStatus
+ */
+export function migrateLegacyStatus(legacyStatus: string): {
+  bookingStatus: BookingStatus;
+  paymentStatus: PaymentStatus;
+} {
+  const mappings: Record<string, { bookingStatus: BookingStatus; paymentStatus: PaymentStatus }> = {
+    paid: { bookingStatus: "Active", paymentStatus: "Paid" },
+    pending: { bookingStatus: "Pending", paymentStatus: "Unpaid" },
+    cancelled: { bookingStatus: "Cancelled", paymentStatus: "Unpaid" },
+    reserved: { bookingStatus: "Active", paymentStatus: "Unpaid" },
+    completed: { bookingStatus: "Completed", paymentStatus: "Paid" },
+    "no-show": { bookingStatus: "No-show", paymentStatus: "Unpaid" },
+    ongoing: { bookingStatus: "Active", paymentStatus: "Paid" },
+  };
+
+  return mappings[legacyStatus] || { bookingStatus: "Pending", paymentStatus: "Unpaid" };
 }

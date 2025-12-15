@@ -528,7 +528,10 @@ export function initializeMockData() {
       start: yesterday,
       end: new Date(yesterday.getTime() + 60 * 60 * 1000),
       price: 5000,
+      sportType: "PADEL",
       status: "paid",
+      bookingStatus: "Active",
+      paymentStatus: "Paid",
       paymentId: "payment-1",
       createdAt: new Date(yesterday.getTime() - 24 * 60 * 60 * 1000),
     },
@@ -540,7 +543,10 @@ export function initializeMockData() {
       start: tomorrow,
       end: new Date(tomorrow.getTime() + 90 * 60 * 1000),
       price: 5000,
+      sportType: "PADEL",
       status: "pending",
+      bookingStatus: "Pending",
+      paymentStatus: "Unpaid",
       paymentId: null,
       createdAt: now,
     },
@@ -552,7 +558,10 @@ export function initializeMockData() {
       start: nextWeek,
       end: new Date(nextWeek.getTime() + 60 * 60 * 1000),
       price: 4000,
+      sportType: "PADEL",
       status: "paid",
+      bookingStatus: "Active",
+      paymentStatus: "Paid",
       paymentId: "payment-2",
       createdAt: now,
     },
@@ -564,7 +573,10 @@ export function initializeMockData() {
       start: new Date(nextWeek.getTime() + 2 * 60 * 60 * 1000),
       end: new Date(nextWeek.getTime() + 3 * 60 * 60 * 1000),
       price: 3500,
+      sportType: "PADEL",
       status: "paid",
+      bookingStatus: "Active",
+      paymentStatus: "Paid",
       paymentId: "payment-3",
       createdAt: now,
     },
@@ -576,7 +588,10 @@ export function initializeMockData() {
       start: yesterday,
       end: new Date(yesterday.getTime() + 60 * 60 * 1000),
       price: 8000,
+      sportType: "PADEL",
       status: "cancelled",
+      bookingStatus: "Cancelled",
+      paymentStatus: "Unpaid",
       paymentId: null,
       createdAt: new Date(yesterday.getTime() - 48 * 60 * 60 * 1000),
     },
@@ -588,7 +603,10 @@ export function initializeMockData() {
       start: nextWeek,
       end: new Date(nextWeek.getTime() + 90 * 60 * 1000),
       price: 10000,
+      sportType: "PADEL",
       status: "paid",
+      bookingStatus: "Active",
+      paymentStatus: "Paid",
       paymentId: "payment-4",
       createdAt: now,
     },
@@ -600,7 +618,10 @@ export function initializeMockData() {
       start: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
       end: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000),
       price: 6000,
+      sportType: "PADEL",
       status: "reserved",
+      bookingStatus: "Active",
+      paymentStatus: "Unpaid",
       paymentId: null,
       createdAt: now,
     },
@@ -1139,7 +1160,13 @@ export function createMockBooking(data: {
   price: number;
   status: string;
   coachId?: string | null;
+  sportType?: "PADEL" | "TENNIS" | "PICKLEBALL" | "SQUASH" | "BADMINTON";
+  bookingStatus?: string;
+  paymentStatus?: string;
 }): Booking {
+  // Determine the sport type with proper typing
+  const validSportType = data.sportType || "PADEL";
+  
   const booking: Booking = {
     id: generateMockId("booking"),
     courtId: data.courtId,
@@ -1148,8 +1175,11 @@ export function createMockBooking(data: {
     start: data.start,
     end: data.end,
     price: data.price,
-    status: data.status,
-    paymentId: data.status === "paid" ? `payment-${Date.now()}` : null,
+    sportType: validSportType,
+    status: data.status || "pending",
+    bookingStatus: data.bookingStatus || "Pending",
+    paymentStatus: data.paymentStatus || "Unpaid",
+    paymentId: data.status === "paid" || data.paymentStatus === "Paid" ? `payment-${Date.now()}` : null,
     createdAt: new Date(),
   };
   mockBookings.push(booking);

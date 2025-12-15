@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { Card, Button } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
 import { useControllerOrContext } from "./ListControllerContext";
@@ -13,8 +14,6 @@ interface ListToolbarProps<TFilters = Record<string, unknown>> {
   children?: ReactNode;
   /** Show reset/clear filters button */
   showReset?: boolean;
-  /** Custom reset button label */
-  resetLabel?: string;
   /** Custom reset handler (if not provided, uses controller.clearFilters) */
   onReset?: () => void;
   /** Compact layout mode */
@@ -101,12 +100,14 @@ export function ListToolbar<TFilters = Record<string, unknown>>({
   controller: controllerProp,
   children,
   showReset = true,
-  resetLabel = "Clear Filters",
   onReset,
   compact = false,
   className = "",
   actionButton,
 }: ListToolbarProps<TFilters>) {
+  // Get translations from next-intl
+  const t = useTranslations("common");
+  
   // Use helper hook that handles both prop and context
   const controller = useControllerOrContext(controllerProp);
 
@@ -142,7 +143,7 @@ export function ListToolbar<TFilters = Record<string, unknown>>({
               disabled={!hasActiveFilters}
             >
               <XIcon />
-              {resetLabel}
+              {t("clearFilters")}
             </Button>
           )}
           {actionButton}

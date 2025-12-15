@@ -1,9 +1,29 @@
 import { SportType } from "@/constants/sports";
 
 /**
- * Persistent booking status types (stored in database)
+ * Booking status - represents the state of the reservation
+ * - Active: Booking is active and confirmed
+ * - Cancelled: Booking has been cancelled
+ * - Completed: Booking has been completed
+ * - No-show: User did not show up for the booking
+ * - Pending: Booking is awaiting confirmation
  */
-export type PersistentBookingStatus = "pending" | "paid" | "cancelled" | "reserved" | "no-show" | "completed";
+export type BookingStatus = "Active" | "Cancelled" | "Completed" | "No-show" | "Pending";
+
+/**
+ * Payment status - represents the financial state of the booking
+ * - Paid: Payment has been completed
+ * - Unpaid: Payment has not been made
+ * - Refunded: Payment has been fully refunded
+ * - PartiallyRefunded: Payment has been partially refunded
+ * - PaymentPending: Payment is being processed
+ */
+export type PaymentStatus = "Paid" | "Unpaid" | "Refunded" | "PartiallyRefunded" | "PaymentPending";
+
+/**
+ * Legacy status types (for backward compatibility during migration)
+ */
+export type LegacyBookingStatus = "pending" | "paid" | "cancelled" | "reserved" | "no-show" | "completed" | "ongoing";
 
 /**
  * Dynamic booking status types (calculated on the fly)
@@ -12,11 +32,6 @@ export type PersistentBookingStatus = "pending" | "paid" | "cancelled" | "reserv
  * - completed: now >= endAt
  */
 export type DynamicBookingStatus = "reserved" | "ongoing" | "completed";
-
-/**
- * Combined booking status for display
- */
-export type BookingStatus = PersistentBookingStatus;
 
 /**
  * Basic booking type
@@ -30,7 +45,8 @@ export interface Booking {
   end: string;
   price: number;
   sportType: SportType;
-  status: BookingStatus;
+  bookingStatus: BookingStatus;
+  paymentStatus: PaymentStatus;
   paymentId: string | null;
   createdAt: string;
 }
@@ -58,7 +74,8 @@ export interface OperationsBooking {
   courtName: string;
   start: string;
   end: string;
-  status: BookingStatus;
+  bookingStatus: BookingStatus;
+  paymentStatus: PaymentStatus;
   price: number;
   sportType: SportType;
   coachId: string | null;
@@ -91,12 +108,14 @@ export interface CreateBookingResponse {
   startTime: string;
   endTime: string;
   price: number;
-  status: BookingStatus;
+  bookingStatus: BookingStatus;
+  paymentStatus: PaymentStatus;
 }
 
 /**
  * Request payload for updating a booking
  */
 export interface UpdateBookingPayload {
-  status?: BookingStatus;
+  bookingStatus?: BookingStatus;
+  paymentStatus?: PaymentStatus;
 }

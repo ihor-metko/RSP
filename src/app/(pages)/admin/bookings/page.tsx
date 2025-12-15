@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader, Button, type TableColumn } from "@/components/ui";
+import { PageHeader, Button, type TableColumn, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { useUserStore } from "@/stores/useUserStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
@@ -33,30 +33,6 @@ interface BookingFilters {
   statusFilter: string;
   dateFrom: string;
   dateTo: string;
-}
-
-/**
- * Status badge component with translations
- */
-function StatusBadge({ status }: { status: string }) {
-  const t = useTranslations();
-  const statusClass = `im-booking-status im-booking-status--${status}`;
-
-  // Map status to translation key
-  const statusLabels: Record<string, string> = {
-    pending: t("adminBookings.statusPending"),
-    paid: t("adminBookings.statusPaid"),
-    reserved: t("adminBookings.statusReserved"),
-    cancelled: t("adminBookings.statusCancelled"),
-    ongoing: t("adminBookings.statusOngoing"),
-    completed: t("adminBookings.statusCompleted"),
-    "no-show": t("adminBookings.statusNoShow"),
-  };
-
-  // Get translated label or use a capitalized version of status as last resort
-  const displayText = statusLabels[status] || status.charAt(0).toUpperCase() + status.slice(1);
-
-  return <span className={statusClass}>{displayText}</span>;
 }
 
 /**
@@ -309,9 +285,14 @@ export default function AdminBookingsPage() {
       render: (booking) => `${calculateDuration(booking.start, booking.end)} ${t("common.minutes")}`,
     },
     {
-      key: "status",
-      header: t("common.status"),
-      render: (booking) => <StatusBadge status={booking.status} />,
+      key: "bookingStatus",
+      header: t("adminBookings.bookingStatus"),
+      render: (booking) => <BookingStatusBadge status={booking.bookingStatus} />,
+    },
+    {
+      key: "paymentStatus",
+      header: t("adminBookings.paymentStatus"),
+      render: (booking) => <PaymentStatusBadge status={booking.paymentStatus} />,
     },
     {
       key: "actions",
@@ -445,7 +426,8 @@ export default function AdminBookingsPage() {
                     <th>{t("adminBookings.court")}</th>
                     <th>{t("adminBookings.dateTime")}</th>
                     <th>{t("common.duration")}</th>
-                    <th>{t("common.status")}</th>
+                    <th>{t("adminBookings.bookingStatus")}</th>
+                    <th>{t("adminBookings.paymentStatus")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -470,7 +452,8 @@ export default function AdminBookingsPage() {
                       <td>{booking.courtName}</td>
                       <td>{formatDateTime(booking.start)}</td>
                       <td>{calculateDuration(booking.start, booking.end)} {t("common.minutes")}</td>
-                      <td><StatusBadge status={booking.status} /></td>
+                      <td><BookingStatusBadge status={booking.bookingStatus} /></td>
+                      <td><PaymentStatusBadge status={booking.paymentStatus} /></td>
                     </tr>
                   ))}
                 </tbody>

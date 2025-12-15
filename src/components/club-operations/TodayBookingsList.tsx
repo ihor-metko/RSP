@@ -1,10 +1,10 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui";
+import { Button, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui";
 import type { OperationsBooking } from "@/types/booking";
 import { formatPrice } from "@/utils/price";
-import { getStatusLabel } from "@/utils/bookingStatus";
+import { canCancelBooking } from "@/utils/bookingStatus";
 import "./TodayBookingsList.css";
 
 interface TodayBookingsListProps {
@@ -41,11 +41,6 @@ export function TodayBookingsList({
       minute: "2-digit",
       hour12: false,
     });
-  };
-
-  // Get status badge class
-  const getStatusClass = (status: string) => {
-    return `im-booking-status im-booking-status--${status}`;
   };
 
   return (
@@ -94,9 +89,10 @@ export function TodayBookingsList({
                 {booking.userName || booking.userEmail}
               </div>
               <div className="im-today-booking-details">
-                <span className={getStatusClass(booking.status)}>
-                  {getStatusLabel(booking.status)}
-                </span>
+                <div className="im-today-booking-statuses">
+                  <BookingStatusBadge status={booking.bookingStatus} />
+                  <PaymentStatusBadge status={booking.paymentStatus} />
+                </div>
                 <span className="im-today-booking-price">
                   {formatPrice(booking.price)}
                 </span>
@@ -109,9 +105,7 @@ export function TodayBookingsList({
                 >
                   {t("common.view") || "View"}
                 </Button>
-                {booking.status !== "cancelled" && 
-                 booking.status !== "completed" && 
-                 booking.status !== "no-show" && (
+                {canCancelBooking(booking.bookingStatus) && (
                   <Button
                     variant="danger"
                     size="small"

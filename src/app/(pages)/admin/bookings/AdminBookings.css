@@ -87,44 +87,8 @@
   border-bottom: none;
 }
 
-/* Status badges */
-.im-booking-status {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.im-booking-status--paid,
-.im-booking-status--confirmed {
-  background: rgba(34, 197, 94, 0.15);
-  color: rgb(34, 197, 94);
-}
-
-.im-booking-status--pending,
-.im-booking-status--reserved {
-  background: rgba(234, 179, 8, 0.15);
-  color: rgb(234, 179, 8);
-}
-
-.im-booking-status--ongoing {
-  background: rgba(59, 130, 246, 0.15);
-  color: rgb(59, 130, 246);
-}
-
-.im-booking-status--completed {
-  background: rgba(107, 114, 128, 0.15);
-  color: rgb(107, 114, 128);
-}
-
-.im-booking-status--cancelled,
-.im-booking-status--no-show {
-  background: rgba(239, 68, 68, 0.15);
-  color: rgb(239, 68, 68);
-}
+/* Status badges are now imported from centralized StatusBadges.css */
+/* See src/components/ui/StatusBadges.css for all status badge styles */
 
 /* Pagination */
 .im-admin-bookings-pagination {

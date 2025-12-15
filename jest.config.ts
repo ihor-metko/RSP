@@ -12,6 +12,9 @@ const config: Config = {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
   testMatch: ["**/__tests__/**/*.test.ts", "**/__tests__/**/*.test.tsx"],
+  transformIgnorePatterns: [
+    "node_modules/(?!(next-intl)/)",
+  ],
 };
 
 export default createJestConfig(config);

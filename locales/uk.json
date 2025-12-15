@@ -75,6 +75,13 @@
     "previous": "Попередня",
     "next": "Наступна"
   },
+  "pagination": {
+    "showing": "Показано з {start} по {end} із {total}",
+    "previous": "Попередня",
+    "next": "Наступна",
+    "pageSize": "Елементів на сторінці",
+    "page": "Сторінка"
+  },
   "home": {
     "title": "Падел Клуб MVP",
     "welcomeTitle": "Ласкаво просимо до Падел Клубу",
@@ -1407,7 +1414,19 @@
     "statusOngoing": "В процесі",
     "statusCompleted": "Завершено",
     "statusNoShow": "Не з'явився",
-    "bookingNotFound": "Бронювання не знайдено"
+    "bookingNotFound": "Бронювання не знайдено",
+    "bookingStatus": "Статус",
+    "paymentStatus": "Оплата",
+    "bookingStatusActive": "Активний",
+    "bookingStatusCancelled": "Скасовано",
+    "bookingStatusCompleted": "Завершено",
+    "bookingStatusNoShow": "Не з'явився",
+    "bookingStatusPending": "Очікує",
+    "paymentStatusPaid": "Оплачено",
+    "paymentStatusUnpaid": "Не оплачено",
+    "paymentStatusRefunded": "Повернено",
+    "paymentStatusPartiallyRefunded": "Частково повернено",
+    "paymentStatusPaymentPending": "Очікується оплата"
   },
   "adminWizard": {
     "title": "Створити бронювання",
