@@ -67,17 +67,6 @@ function HomeIcon() {
   );
 }
 
-function EyeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-
-
 function CalendarIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -509,7 +498,6 @@ export default function AdminUsersPage() {
                         </span>
                       </span>
                     </th>
-                    <th className="im-th-actions">{t("common.actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="im-users-table-body">
@@ -592,16 +580,6 @@ export default function AdminUsersPage() {
                             <span>{formatDate(user.createdAt)}</span>
                           </div>
                         </Tooltip>
-                      </td>
-                      {/* Actions (View only) */}
-                      <td className="im-td-actions" onClick={(e) => e.stopPropagation()}>
-                        <div className="im-actions-group">
-                          <Tooltip content={t("users.actions.viewDetails")}>
-                            <Link href={`/admin/users/${user.id}`} className="im-icon-btn im-icon-btn--view">
-                              <EyeIcon />
-                            </Link>
-                          </Tooltip>
-                        </div>
                       </td>
                     </tr>
                   ))}

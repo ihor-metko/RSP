@@ -4,8 +4,8 @@
 .im-admin-users-page {
   width: 100%;
   @apply p-6 md:p-8 max-w-7xl mx-auto;
-  background-color: var(--rsp-background);
-  color: var(--rsp-foreground);
+  background-color: var(--im-background);
+  color: var(--im-foreground);
 }
 
 /* ===== Loading State ===== */
@@ -16,8 +16,8 @@
 .im-admin-users-loading-spinner,
 .im-loading-spinner {
   @apply w-10 h-10 border-4 rounded-full animate-spin;
-  border-color: var(--rsp-border);
-  border-top-color: var(--rsp-primary);
+  border-color: var(--im-border);
+  border-top-color: var(--im-primary);
 }
 
 .im-admin-users-loading-text {
@@ -84,7 +84,7 @@
 
 .im-filters-title {
   @apply flex items-center gap-2 text-lg font-semibold;
-  color: var(--rsp-foreground);
+  color: var(--im-foreground);
 }
 
 .im-filters-title svg {
@@ -165,7 +165,7 @@
 
 .im-empty-state-icon {
   @apply w-16 h-16 flex items-center justify-center rounded-full mb-6;
-  background-color: var(--rsp-border);
+  background-color: var(--im-border);
 }
 
 .im-empty-state-icon svg {
@@ -175,7 +175,7 @@
 
 .im-empty-state-title {
   @apply text-xl font-semibold mb-2;
-  color: var(--rsp-foreground);
+  color: var(--im-foreground);
 }
 
 .im-empty-state-description {
@@ -185,9 +185,9 @@
 
 /* ===== Users Table ===== */
 .im-users-table-container {
-  @apply overflow-x-auto rounded-xl mb-6;
-  background-color: var(--rsp-card-bg);
-  border: 1px solid var(--rsp-border);
+  @apply overflow-x-auto rounded-xl mb-6 mt-6;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
 }
 
 .im-users-table {
@@ -197,17 +197,18 @@
 }
 
 .im-users-table-head {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--im-bg-secondary);
+  border-bottom: 1px solid var(--im-border);
 }
 
 .dark .im-users-table-head {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .im-users-table-head th {
   @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider;
   color: var(--im-muted);
-  border-bottom: 1px solid var(--rsp-border);
+  border-bottom: 1px solid var(--im-border);
 }
 
 .im-th-sortable {
@@ -217,22 +218,22 @@
 
 .im-th-sortable:hover,
 .im-th-sortable:focus {
-  color: var(--rsp-foreground);
-  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--im-foreground);
+  background-color: var(--im-bg-tertiary);
 }
 
 .dark .im-th-sortable:hover,
 .dark .im-th-sortable:focus {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.06);
 }
 
 .im-th-sortable:focus {
   @apply outline-none ring-2 ring-inset;
-  ring-color: var(--rsp-primary);
+  ring-color: var(--im-primary);
 }
 
 .im-th-sorted {
-  color: var(--rsp-foreground);
+  color: var(--im-foreground);
 }
 
 .im-th-content {
@@ -249,14 +250,10 @@
   @apply opacity-100;
 }
 
-.im-th-actions {
-  @apply text-right;
-}
-
 /* Table Body */
 .im-users-table-body {
   @apply divide-y;
-  divide-color: var(--rsp-border);
+  divide-color: var(--im-border);
 }
 
 .im-user-row {
@@ -264,11 +261,11 @@
 }
 
 .im-user-row:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--im-bg-secondary);
 }
 
 .dark .im-user-row:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 /* Clickable Row Styles */
@@ -278,25 +275,25 @@
 }
 
 .im-user-row--clickable:hover {
-  background-color: rgba(0, 0, 0, 0.04);
+  background-color: var(--im-bg-tertiary);
 }
 
 .dark .im-user-row--clickable:hover {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: rgba(255, 255, 255, 0.06);
 }
 
 .im-user-row--clickable:active {
-  transform: scale(0.995);
+  transform: scale(0.998);
 }
 
 .im-user-row--clickable:focus {
   @apply outline-none ring-2 ring-inset;
-  ring-color: var(--rsp-primary);
+  ring-color: var(--im-primary);
 }
 
 .im-users-table-body td {
   @apply px-4 py-4 text-sm;
-  color: var(--rsp-foreground);
+  color: var(--im-foreground);
 }
 
 /* User Info Cell */
@@ -310,7 +307,7 @@
 
 .im-user-avatar {
   @apply flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full text-sm font-semibold;
-  background-color: var(--rsp-primary);
+  background-color: var(--im-primary);
   color: white;
 }
 
@@ -324,12 +321,12 @@
 
 .im-user-name-link {
   @apply font-medium transition-colors;
-  color: var(--rsp-foreground);
+  color: var(--im-foreground);
   text-decoration: none;
 }
 
 .im-user-name-link:hover {
-  color: var(--rsp-primary);
+  color: var(--im-primary);
   text-decoration: underline;
 }
 
@@ -354,7 +351,7 @@
 }
 
 .im-email-link:hover {
-  color: var(--rsp-primary);
+  color: var(--im-primary);
 }
 
 .im-email-link svg {
@@ -387,7 +384,7 @@
 
 .im-link {
   @apply inline-flex items-center gap-1.5 text-sm font-medium transition-colors;
-  color: var(--rsp-primary);
+  color: var(--im-primary);
   text-decoration: none;
 }
 
@@ -442,81 +439,12 @@
 
 .im-bookings-total {
   @apply text-sm font-semibold;
-  color: var(--rsp-foreground);
+  color: var(--im-foreground);
 }
 
 .im-bookings-recent {
   @apply text-xs;
   color: var(--im-muted);
-}
-
-/* Actions Cell */
-.im-td-actions {
-  @apply text-right;
-}
-
-.im-actions-group {
-  @apply inline-flex items-center gap-1;
-}
-
-.im-icon-btn {
-  @apply p-2 rounded-lg transition-all;
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.im-icon-btn svg {
-  @apply w-4 h-4;
-}
-
-.im-icon-btn:disabled {
-  @apply opacity-50 cursor-not-allowed;
-}
-
-.im-icon-btn--view {
-  color: var(--im-muted);
-}
-
-.im-icon-btn--view:hover:not(:disabled) {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
-
-.im-icon-btn--edit {
-  color: var(--im-muted);
-}
-
-.im-icon-btn--edit:hover:not(:disabled) {
-  background-color: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-}
-
-.im-icon-btn--block {
-  color: var(--im-muted);
-}
-
-.im-icon-btn--block:hover:not(:disabled) {
-  background-color: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
-}
-
-.im-icon-btn--unblock {
-  color: var(--im-muted);
-}
-
-.im-icon-btn--unblock:hover:not(:disabled) {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: #10b981;
-}
-
-.im-icon-btn--delete {
-  color: var(--im-muted);
-}
-
-.im-icon-btn--delete:hover:not(:disabled) {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
 }
 
 /* ===== Pagination ===== */
@@ -924,9 +852,5 @@
 
   .im-user-avatar {
     @apply w-8 h-8 text-xs;
-  }
-
-  .im-actions-group {
-    @apply flex-col;
   }
 }
