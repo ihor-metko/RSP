@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRootAdmin } from "@/lib/requireRole";
+import { requireAnyAdmin } from "@/lib/requireRole";
 import { Prisma } from "@prisma/client";
+import { MembershipRole } from "@/constants/roles";
 
 /**
  * Supported user roles for filtering.
@@ -14,7 +15,12 @@ type UserRole = "root_admin" | "organization_admin" | "club_admin" | "user";
 
 /**
  * GET /api/admin/users/list
- * Returns paginated list of users with filtering and sorting for Root Admin
+ * Returns paginated list of users with filtering and sorting
+ * 
+ * Access control:
+ * - Root Admin: Returns all users
+ * - Organization Admin: Returns only users from clubs in their organization(s)
+ * - Club Admin: Returns only users from their specific club(s)
  * 
  * Query parameters:
  * - page: Page number (default: 1)
@@ -35,11 +41,13 @@ type UserRole = "root_admin" | "organization_admin" | "club_admin" | "user";
  * - showOnlyUsers: Show only regular users
  */
 export async function GET(request: Request) {
-  const authResult = await requireRootAdmin(request);
+  const authResult = await requireAnyAdmin(request);
 
   if (!authResult.authorized) {
     return authResult.response;
   }
+
+  const { userId, isRoot, adminType, managedIds } = authResult;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -205,6 +213,32 @@ export async function GET(request: Request) {
           some: { clubId },
         },
       });
+    }
+    
+    // Apply role-based access control scope filtering
+    if (!isRoot) {
+      if (adminType === "organization_admin") {
+        // Organization admins can only see users from clubs in their organization(s)
+        // Use a nested query to filter by organization without a separate database call
+        whereConditions.push({
+          clubMemberships: {
+            some: {
+              club: {
+                organizationId: { in: managedIds },
+              },
+            },
+          },
+        });
+      } else if (adminType === "club_admin") {
+        // Club admins can only see users from their specific club(s)
+        whereConditions.push({
+          clubMemberships: {
+            some: {
+              clubId: { in: managedIds },
+            },
+          },
+        });
+      }
     }
     
     const where: Prisma.UserWhereInput = whereConditions.length > 0
