@@ -1,5 +1,5 @@
 import { useFloating, offset as floatingOffset, flip, shift, size, autoUpdate } from "@floating-ui/react";
-import { RefObject } from "react";
+import { RefObject, useEffect } from "react";
 
 export interface DropdownPosition {
   top: number;
@@ -96,14 +96,15 @@ export function useDropdownPosition({
     whileElementsMounted: autoUpdate,
   });
 
-  // Set refs from props to Floating UI refs
-  // This must happen during render to ensure refs are set before Floating UI calculates position
-  if (isOpen && triggerRef.current) {
-    refs.setReference(triggerRef.current);
-    if (listboxRef?.current) {
-      refs.setFloating(listboxRef.current);
+  // Set refs from props to Floating UI refs in useEffect to avoid render-phase side effects
+  useEffect(() => {
+    if (isOpen && triggerRef.current) {
+      refs.setReference(triggerRef.current);
+      if (listboxRef?.current) {
+        refs.setFloating(listboxRef.current);
+      }
     }
-  }
+  }, [isOpen, refs, triggerRef, listboxRef]);
 
   if (!isOpen) {
     return null;
