@@ -896,6 +896,21 @@
   border-color: var(--im-primary-hover);
 }
 
+/* ===== Create User Button Icon Styles ===== */
+.im-create-user-btn svg {
+  @apply w-5 h-5 mr-2;
+}
+
+/* ===== Modal Placeholder Styles ===== */
+.im-modal-placeholder {
+  @apply p-6 text-center;
+}
+
+.im-modal-placeholder p {
+  @apply mb-2;
+  color: var(--im-muted);
+}
+
 /* ===== Responsive Adjustments ===== */
 @media (max-width: 768px) {
   .im-admin-users-page {
