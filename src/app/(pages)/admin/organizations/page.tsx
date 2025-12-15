@@ -13,6 +13,15 @@ import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { useUserStore } from "@/stores/useUserStore";
 import type { Organization } from "@/types/organization";
 import { SportType, SPORT_TYPE_OPTIONS } from "@/constants/sports";
+import { useListController, useDeferredLoading } from "@/hooks";
+import {
+  ListControllerProvider,
+  ListToolbar,
+  ListSearch,
+  SortSelect,
+  StatusFilter,
+  PaginationControls,
+} from "@/components/list-controls";
 import "@/components/admin/AdminOrganizationCard.css";
 import "./page.css";
 
@@ -38,6 +47,12 @@ type SortDirection = "asc" | "desc";
 
 const ITEMS_PER_PAGE_OPTIONS = [5, 10, 25, 50];
 
+// Define filters interface for list controller
+interface OrganizationFilters {
+  searchQuery: string;
+  sportTypeFilter: string;
+}
+
 export default function AdminOrganizationsPage() {
   const t = useTranslations();
   const { status } = useSession();
@@ -55,13 +70,21 @@ export default function AdminOrganizationsPage() {
   // Local error state for specific operations
   const [error, setError] = useState("");
 
-  // State for search, sort, and pagination
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSportType, setSelectedSportType] = useState<string>("");
-  const [sortField, setSortField] = useState<SortField>("createdAt");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  // Use list controller hook for persistent filters, sort, and pagination
+  const controller = useListController<OrganizationFilters>({
+    entityKey: "organizations",
+    defaultFilters: {
+      searchQuery: "",
+      sportTypeFilter: "",
+    },
+    defaultSortBy: "createdAt",
+    defaultSortOrder: "desc",
+    defaultPage: 1,
+    defaultPageSize: 10,
+  });
+
+  // Use deferred loading to prevent flicker on fast responses
+  const deferredLoading = useDeferredLoading(loading);
 
   // State for create organization modal
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -132,8 +155,8 @@ export default function AdminOrganizationsPage() {
     let result = [...organizations];
 
     // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
+    if (controller.filters.searchQuery.trim()) {
+      const query = controller.filters.searchQuery.toLowerCase();
       result = result.filter(
         (org) =>
           org.name.toLowerCase().includes(query) ||
@@ -142,16 +165,16 @@ export default function AdminOrganizationsPage() {
     }
 
     // Filter by sport type
-    if (selectedSportType) {
+    if (controller.filters.sportTypeFilter) {
       result = result.filter(
-        (org) => org.supportedSports?.includes(selectedSportType as SportType)
+        (org) => org.supportedSports?.includes(controller.filters.sportTypeFilter as SportType)
       );
     }
 
     // Sort
     result.sort((a, b) => {
       let comparison = 0;
-      switch (sortField) {
+      switch (controller.sortBy as SortField) {
         case "name":
           comparison = a.name.localeCompare(b.name);
           break;
@@ -165,43 +188,38 @@ export default function AdminOrganizationsPage() {
           comparison = (a.superAdmins?.length || 0) - (b.superAdmins?.length || 0);
           break;
       }
-      return sortDirection === "asc" ? comparison : -comparison;
+      return controller.sortOrder === "asc" ? comparison : -comparison;
     });
 
     return result;
-  }, [organizations, searchQuery, selectedSportType, sortField, sortDirection]);
+  }, [organizations, controller.filters.searchQuery, controller.filters.sportTypeFilter, controller.sortBy, controller.sortOrder]);
 
   // Paginated organizations
   const paginatedOrganizations = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredAndSortedOrganizations.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredAndSortedOrganizations, currentPage, itemsPerPage]);
+    const startIndex = (controller.page - 1) * controller.pageSize;
+    return filteredAndSortedOrganizations.slice(startIndex, startIndex + controller.pageSize);
+  }, [filteredAndSortedOrganizations, controller.page, controller.pageSize]);
 
   // Total pages
-  const totalPages = Math.ceil(filteredAndSortedOrganizations.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredAndSortedOrganizations.length / controller.pageSize);
 
-  // Reset to first page when search, sport filter, or items per page changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedSportType, itemsPerPage]);
-
-  // Sort options for the select component
+  // Sort options for SortSelect component
   const sortOptions = [
-    { value: "name", label: t("organizations.sortName") },
-    { value: "createdAt", label: t("organizations.sortDate") },
-    { value: "clubCount", label: t("organizations.sortClubs") },
-    { value: "adminCount", label: t("organizations.sortAdmins") },
+    { key: "name", label: t("organizations.sortName") + " (A-Z)", direction: "asc" as const },
+    { key: "name", label: t("organizations.sortName") + " (Z-A)", direction: "desc" as const },
+    { key: "createdAt", label: t("organizations.sortDate") + " (Newest)", direction: "desc" as const },
+    { key: "createdAt", label: t("organizations.sortDate") + " (Oldest)", direction: "asc" as const },
+    { key: "clubCount", label: t("organizations.sortClubs") + " (Most)", direction: "desc" as const },
+    { key: "clubCount", label: t("organizations.sortClubs") + " (Least)", direction: "asc" as const },
+    { key: "adminCount", label: t("organizations.sortAdmins") + " (Most)", direction: "desc" as const },
+    { key: "adminCount", label: t("organizations.sortAdmins") + " (Least)", direction: "asc" as const },
   ];
 
-  const directionOptions = [
-    { value: "asc", label: t("organizations.ascending") },
-    { value: "desc", label: t("organizations.descending") },
+  // Sport type filter options for StatusFilter component
+  const sportTypeOptions = [
+    { value: "", label: t("organizations.allSports") },
+    ...SPORT_TYPE_OPTIONS
   ];
-
-  const itemsPerPageOptions = ITEMS_PER_PAGE_OPTIONS.map((n) => ({
-    value: String(n),
-    label: String(n),
-  }));
 
   const loadOrganizations = useCallback(async () => {
     try {
@@ -592,167 +610,94 @@ export default function AdminOrganizationsPage() {
   }
 
   return (
-    <main className="im-admin-organizations-page">
-      <PageHeader
-        title={t("organizations.title")}
-        description={t("organizations.subtitle")}
-      />
+    <ListControllerProvider controller={controller}>
+      <main className="im-admin-organizations-page">
+        <PageHeader
+          title={t("organizations.title")}
+          description={t("organizations.subtitle")}
+        />
 
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`im-toast im-toast--${toast.type}`}>
-          {toast.message}
-        </div>
-      )}
+        {/* Toast Notification */}
+        {toast && (
+          <div className={`im-toast im-toast--${toast.type}`}>
+            {toast.message}
+          </div>
+        )}
 
-      <section className="rsp-content">
-        <div className="im-admin-organizations-toolbar">
-          <div className="im-admin-organizations-search">
-            <Input
+        <section className="rsp-content">
+          {/* List Controls Toolbar */}
+          <ListToolbar
+            showReset
+            actionButton={
+              <Button onClick={() => router.push("/admin/organizations/new")}>
+                {t("organizations.createOrganization")}
+              </Button>
+            }
+          >
+            <ListSearch 
               placeholder={t("organizations.searchOrganizations")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="im-search-input"
+              filterKey="searchQuery"
             />
-            {searchQuery && (
-              <button
-                className="im-search-clear"
-                onClick={() => setSearchQuery("")}
-                aria-label={t("organizations.clearSearch")}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-          <div className="im-admin-organizations-filters">
-            <Select
-              options={[
-                { value: "", label: t("organizations.allSports") },
-                ...SPORT_TYPE_OPTIONS
-              ]}
-              value={selectedSportType}
-              onChange={(value) => setSelectedSportType(value)}
-              aria-label={t("organizations.filterBySport")}
+            <StatusFilter
+              filterKey="sportTypeFilter"
+              statuses={sportTypeOptions}
+              label={t("organizations.filterBySport")}
+              placeholder={t("organizations.allSports")}
             />
-          </div>
-          <div className="im-admin-organizations-sort">
-            <Select
+            <SortSelect
               options={sortOptions}
-              value={sortField}
-              onChange={(value) => setSortField(value as SortField)}
-              aria-label={t("organizations.sortBy")}
+              label={t("organizations.sortBy")}
             />
-            <Select
-              options={directionOptions}
-              value={sortDirection}
-              onChange={(value) => setSortDirection(value as SortDirection)}
-              aria-label={t("organizations.sortBy")}
-            />
-          </div>
-          <div className="im-admin-organizations-actions">
-            <Button onClick={() => router.push("/admin/organizations/new")}>
-              {t("organizations.createOrganization")}
-            </Button>
-          </div>
-        </div>
+          </ListToolbar>
 
-        {(error || storeError) && (
-          <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-            {error || storeError}
-          </div>
-        )}
-
-        {isLoadingData ? (
-          <CardListSkeleton count={itemsPerPage > 10 ? 10 : itemsPerPage} variant="default" />
-        ) : organizations.length === 0 ? (
-          <div className="im-admin-organizations-empty">
-            <p className="im-admin-organizations-empty-text">
-              {t("organizations.noOrganizations")}
-            </p>
-          </div>
-        ) : filteredAndSortedOrganizations.length === 0 ? (
-          <div className="im-admin-organizations-empty">
-            <p className="im-admin-organizations-empty-text">
-              {t("organizations.noResults")}
-            </p>
-            <Button variant="outline" onClick={() => setSearchQuery("")}>
-              {t("organizations.clearSearch")}
-            </Button>
-          </div>
-        ) : (
-          <>
-            {/* Card Grid Layout */}
-            <div className="im-admin-orgs-grid">
-              {paginatedOrganizations.map((org) => (
-                <AdminOrganizationCard
-                  key={org.id}
-                  organization={org}
-                  onView={(orgId) => router.push(`/admin/organizations/${orgId}`)}
-                />
-              ))}
+          {(error || storeError) && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
+              {error || storeError}
             </div>
+          )}
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="im-admin-organizations-pagination">
-                <div className="im-pagination-info">
-                  <span>{t("organizations.page")} {currentPage} {t("organizations.of")} {totalPages}</span>
-                </div>
-                <div className="im-pagination-controls">
-                  <Button
-                    variant="outline"
-                    size="small"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    {t("organizations.previous")}
-                  </Button>
-                  <div className="im-pagination-pages">
-                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                      let pageNum: number;
-                      if (totalPages <= 5) {
-                        pageNum = i + 1;
-                      } else if (currentPage <= 3) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 2) {
-                        pageNum = totalPages - 4 + i;
-                      } else {
-                        pageNum = currentPage - 2 + i;
-                      }
-                      return (
-                        <button
-                          key={pageNum}
-                          className={`im-pagination-page ${currentPage === pageNum ? "im-pagination-page--active" : ""}`}
-                          onClick={() => setCurrentPage(pageNum)}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="small"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    {t("organizations.next")}
-                  </Button>
-                </div>
-                <div className="im-pagination-per-page">
-                  <span>{t("organizations.itemsPerPage")}:</span>
-                  <Select
-                    options={itemsPerPageOptions}
-                    value={String(itemsPerPage)}
-                    onChange={(value) => setItemsPerPage(Number(value))}
-                    aria-label={t("organizations.itemsPerPage")}
+          {deferredLoading ? (
+            <CardListSkeleton count={controller.pageSize > 10 ? 10 : controller.pageSize} variant="default" />
+          ) : organizations.length === 0 ? (
+            <div className="im-admin-organizations-empty">
+              <p className="im-admin-organizations-empty-text">
+                {t("organizations.noOrganizations")}
+              </p>
+            </div>
+          ) : filteredAndSortedOrganizations.length === 0 ? (
+            <div className="im-admin-organizations-empty">
+              <p className="im-admin-organizations-empty-text">
+                {t("organizations.noResults")}
+              </p>
+              <Button variant="outline" onClick={() => controller.clearFilters()}>
+                {t("organizations.clearSearch")}
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Card Grid Layout */}
+              <div className="im-admin-orgs-grid">
+                {paginatedOrganizations.map((org) => (
+                  <AdminOrganizationCard
+                    key={org.id}
+                    organization={org}
+                    onView={(orgId) => router.push(`/admin/organizations/${orgId}`)}
                   />
-                </div>
+                ))}
               </div>
-            )}
-          </>
-        )}
-      </section>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <PaginationControls
+                  totalCount={filteredAndSortedOrganizations.length}
+                  totalPages={totalPages}
+                  showPageSize
+                  pageSizeOptions={ITEMS_PER_PAGE_OPTIONS}
+                />
+              )}
+            </>
+          )}
+        </section>
 
       {/* Create Organization Modal */}
       <Modal
@@ -1209,5 +1154,6 @@ export default function AdminOrganizationsPage() {
         </div>
       </Modal>
     </main>
+    </ListControllerProvider>
   );
 }
