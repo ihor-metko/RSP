@@ -219,29 +219,16 @@ export async function GET(request: Request) {
     if (!isRoot) {
       if (adminType === "organization_admin") {
         // Organization admins can only see users from clubs in their organization(s)
-        // Get all clubs that belong to the organizations they manage
-        const clubs = await prisma.club.findMany({
-          where: {
-            organizationId: { in: managedIds },
-          },
-          select: { id: true },
-        });
-        
-        const clubIds = clubs.map(club => club.id);
-        
-        if (clubIds.length === 0) {
-          // If organization has no clubs, return empty result
-          whereConditions.push({ id: { in: [] } });
-        } else {
-          // Filter to users who have club membership in any of these clubs
-          whereConditions.push({
-            clubMemberships: {
-              some: {
-                clubId: { in: clubIds },
+        // Use a nested query to filter by organization without a separate database call
+        whereConditions.push({
+          clubMemberships: {
+            some: {
+              club: {
+                organizationId: { in: managedIds },
               },
             },
-          });
-        }
+          },
+        });
       } else if (adminType === "club_admin") {
         // Club admins can only see users from their specific club(s)
         whereConditions.push({

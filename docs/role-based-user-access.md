@@ -45,30 +45,31 @@ December 2025
 ```typescript
 if (!isRoot) {
   if (adminType === "organization_admin") {
-    // Get all clubs in the organization(s) the admin manages
-    const clubs = await prisma.club.findMany({
-      where: { organizationId: { in: managedIds } },
-      select: { id: true },
-    });
-    
-    const clubIds = clubs.map(club => club.id);
-    
-    // Filter to users with club membership in these clubs
+    // Organization admins: use nested query to filter by organization
+    // This avoids a separate database call for clubs lookup
     whereConditions.push({
       clubMemberships: {
-        some: { clubId: { in: clubIds } }
+        some: {
+          club: {
+            organizationId: { in: managedIds }
+          }
+        }
       }
     });
   } else if (adminType === "club_admin") {
-    // Filter to users with club membership in the admin's clubs
+    // Club admins: filter directly by club IDs
     whereConditions.push({
       clubMemberships: {
-        some: { clubId: { in: managedIds } }
+        some: {
+          clubId: { in: managedIds }
+        }
       }
     });
   }
 }
 ```
+
+**Performance Optimization**: The organization admin filter uses a nested Prisma query instead of a separate database call to fetch clubs. This reduces the number of database round trips from 2 to 1.
 
 ### Frontend Changes
 
@@ -120,11 +121,10 @@ Authorization: Bearer <org_admin_token>
 
 **Backend Processing**:
 1. `requireAnyAdmin` verifies user is an organization admin for "Org A"
-2. Query finds all clubs in "Org A": ["Club 1", "Club 2"]
-3. Filter users who have club membership in ["Club 1", "Club 2"]
-4. Return filtered user list
+2. Apply nested filter: users who have club membership in clubs where `organizationId` is in ["Org A"]
+3. Return filtered user list
 
-**Result**: Only users who are members of Club 1 or Club 2 are returned
+**Result**: Only users who are members of clubs belonging to "Org A" are returned (e.g., Club 1 or Club 2)
 
 ### Example 2: Club Admin Access
 
@@ -228,9 +228,10 @@ To manually test the implementation:
 4. **Cross-Organization Views**: Allow root admins to view users by organization filter
 
 ### Performance Considerations
-- For organizations with many clubs, the initial club lookup query may take time
-- Consider adding database indexes on `Club.organizationId` and `ClubMembership.clubId` if not present
-- Monitor query performance for organizations with 100+ clubs
+- The implementation uses a single database query with nested filters (no separate club lookup)
+- Database indexes on `Club.organizationId` and `ClubMembership.clubId` are essential for performance
+- The nested query approach scales well even for organizations with 100+ clubs
+- For extremely large datasets, consider adding a composite index on `(ClubMembership.clubId, ClubMembership.userId)`
 
 ## Related Files
 

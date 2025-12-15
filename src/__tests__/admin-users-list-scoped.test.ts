@@ -103,14 +103,7 @@ describe("Admin Users List API - Role-Based Access", () => {
       (prisma.membership.findMany as jest.Mock).mockResolvedValue(mockOrgMemberships);
       (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
 
-      // Mock clubs in the organization
-      const mockClubs = [
-        { id: "club-1" },
-        { id: "club-2" },
-      ];
-      (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
-
-      // Mock users who are members of these clubs
+      // Mock users who are members of clubs in the organization
       const mockUsers = [
         {
           id: "user-1",
@@ -141,11 +134,21 @@ describe("Admin Users List API - Role-Based Access", () => {
       expect(response.status).toBe(200);
       expect(data.users).toHaveLength(1);
       
-      // Verify that clubs were queried with the correct organization ID
-      expect(prisma.club.findMany).toHaveBeenCalledWith(
+      // Verify that the scope filter was applied via nested clubMemberships query
+      expect(prisma.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            organizationId: expect.objectContaining({ in: ["org-1"] }),
+            AND: expect.arrayContaining([
+              expect.objectContaining({
+                clubMemberships: expect.objectContaining({
+                  some: expect.objectContaining({
+                    club: expect.objectContaining({
+                      organizationId: expect.objectContaining({ in: ["org-1"] }),
+                    }),
+                  }),
+                }),
+              }),
+            ]),
           }),
         })
       );
@@ -162,9 +165,7 @@ describe("Admin Users List API - Role-Based Access", () => {
       (prisma.membership.findMany as jest.Mock).mockResolvedValue(mockOrgMemberships);
       (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
 
-      // Organization has no clubs
-      (prisma.club.findMany as jest.Mock).mockResolvedValue([]);
-
+      // Organization has no clubs, so the nested query will find no users
       (prisma.user.count as jest.Mock).mockResolvedValue(0);
       (prisma.user.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.booking.groupBy as jest.Mock).mockResolvedValue([]);
@@ -191,9 +192,6 @@ describe("Admin Users List API - Role-Based Access", () => {
       (prisma.membership.findMany as jest.Mock).mockResolvedValue(mockOrgMemberships);
       (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
 
-      const mockClubs = [{ id: "club-1" }];
-      (prisma.club.findMany as jest.Mock).mockResolvedValue(mockClubs);
-
       (prisma.user.count as jest.Mock).mockResolvedValue(0);
       (prisma.user.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.booking.groupBy as jest.Mock).mockResolvedValue([]);
@@ -217,6 +215,11 @@ describe("Admin Users List API - Role-Based Access", () => {
                   expect.objectContaining({ name: expect.objectContaining({ contains: "john" }) }),
                   expect.objectContaining({ email: expect.objectContaining({ contains: "john" }) }),
                 ]),
+              }),
+              expect.objectContaining({
+                clubMemberships: expect.objectContaining({
+                  some: expect.anything(),
+                }),
               }),
             ]),
           }),
