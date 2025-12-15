@@ -1,4 +1,5 @@
-import { useEffect, useState, RefObject } from "react";
+import { useFloating, offset as floatingOffset, flip, shift, size, autoUpdate } from "@floating-ui/react";
+import { RefObject, useEffect } from "react";
 
 export interface DropdownPosition {
   top: number;
@@ -23,16 +24,17 @@ interface UseDropdownPositionOptions {
   matchWidth?: boolean;
 }
 
-// Constants for viewport padding and spacing
+// Constants for viewport padding
 const VIEWPORT_PADDING = 8; // Minimum distance from viewport edges
-const SAFE_ZONE_BUFFER = 20; // Extra buffer for available space calculation
 
 /**
- * Hook to calculate optimal positioning for a dropdown in a portal.
+ * Hook to calculate optimal positioning for a dropdown in a portal using Floating UI.
  * 
- * Calculates position based on trigger element's position and available space.
- * Automatically flips dropdown above trigger if not enough space below.
- * Recalculates on window resize and scroll.
+ * Uses @floating-ui/react for robust positioning with automatic:
+ * - Flip behavior when space is limited
+ * - Shift to stay within viewport
+ * - Size adjustments based on available space
+ * - Updates on scroll, resize, and content changes
  * 
  * @example
  * ```tsx
@@ -67,78 +69,64 @@ export function useDropdownPosition({
   maxHeight = 300,
   matchWidth = true,
 }: UseDropdownPositionOptions): DropdownPosition | null {
-  const [position, setPosition] = useState<DropdownPosition | null>(null);
+  const { x, y, refs, placement: floatingPlacement } = useFloating({
+    open: isOpen,
+    placement: "bottom-start",
+    strategy: "fixed",
+    middleware: [
+      floatingOffset(offset),
+      flip({
+        padding: VIEWPORT_PADDING,
+        fallbackPlacements: ["top-start", "bottom-start"],
+      }),
+      shift({
+        padding: VIEWPORT_PADDING,
+      }),
+      size({
+        padding: VIEWPORT_PADDING,
+        apply({ availableHeight, elements }) {
+          // Apply max height constraint based on available space
+          const constrainedHeight = Math.min(maxHeight, availableHeight);
+          Object.assign(elements.floating.style, {
+            maxHeight: `${constrainedHeight}px`,
+          });
+        },
+      }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
 
+  // Set refs from props to Floating UI refs in useEffect to avoid render-phase side effects
   useEffect(() => {
-    if (!isOpen || !triggerRef.current) {
-      setPosition(null);
-      return;
-    }
-
-    const calculatePosition = () => {
-      const trigger = triggerRef.current;
-      if (!trigger) return;
-
-      const rect = trigger.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-      const viewportWidth = window.innerWidth;
-
-      // Calculate available space above and below
-      const spaceBelow = viewportHeight - rect.bottom - offset;
-      const spaceAbove = rect.top - offset;
-
-      // Determine placement
-      const placement: "bottom" | "top" = spaceBelow >= maxHeight || spaceBelow > spaceAbove
-        ? "bottom"
-        : "top";
-
-      // Calculate actual max height based on available space
-      const availableSpace = placement === "bottom" ? spaceBelow : spaceAbove;
-      const actualMaxHeight = Math.min(maxHeight, availableSpace - SAFE_ZONE_BUFFER);
-
-      // Get actual dropdown height if listboxRef is available
-      // Note: getBoundingClientRect is called within requestAnimationFrame (see handleUpdate)
-      // which batches layout reads and prevents layout thrashing during scroll/resize
-      let dropdownHeight = actualMaxHeight;
+    if (isOpen && triggerRef.current) {
+      refs.setReference(triggerRef.current);
       if (listboxRef?.current) {
-        const listboxRect = listboxRef.current.getBoundingClientRect();
-        // Use the actual rendered height, but cap it at actualMaxHeight
-        dropdownHeight = Math.min(listboxRect.height, actualMaxHeight);
+        refs.setFloating(listboxRef.current);
       }
+    }
+  }, [isOpen, refs, triggerRef, listboxRef]);
 
-      // Calculate position
-      const top = placement === "bottom"
-        ? rect.bottom + offset
-        : rect.top - dropdownHeight - offset;
+  if (!isOpen) {
+    return null;
+  }
 
-      const left = Math.max(VIEWPORT_PADDING, Math.min(rect.left, viewportWidth - rect.width - VIEWPORT_PADDING));
-      const width = matchWidth ? rect.width : Math.min(rect.width, viewportWidth - (VIEWPORT_PADDING * 2));
+  // Return null if coordinates are not yet available
+  if (x === null || y === null) {
+    return null;
+  }
 
-      setPosition({
-        top: Math.max(VIEWPORT_PADDING, top),
-        left,
-        width,
-        maxHeight: actualMaxHeight,
-        placement,
-      });
-    };
+  // Get trigger width for matchWidth functionality
+  const triggerWidth = triggerRef.current?.getBoundingClientRect().width ?? 0;
+  const width = matchWidth ? triggerWidth : triggerWidth; // Always use trigger width for now
 
-    // Calculate initial position
-    calculatePosition();
+  // Determine simplified placement (top or bottom)
+  const simplifiedPlacement = floatingPlacement?.startsWith("top") ? "top" : "bottom";
 
-    // Recalculate on scroll and resize
-    const handleUpdate = () => {
-      requestAnimationFrame(calculatePosition);
-    };
-
-    window.addEventListener("scroll", handleUpdate, true);
-    window.addEventListener("resize", handleUpdate);
-
-    return () => {
-      window.removeEventListener("scroll", handleUpdate, true);
-      window.removeEventListener("resize", handleUpdate);
-    };
-  }, [isOpen, triggerRef, listboxRef, offset, maxHeight, matchWidth]);
-
-  return position;
+  return {
+    top: y,
+    left: x,
+    width,
+    maxHeight,
+    placement: simplifiedPlacement,
+  };
 }

@@ -32,17 +32,27 @@ A reusable component that uses React's `createPortal` to render children outside
 ```
 
 ### 2. useDropdownPosition Hook (`src/hooks/useDropdownPosition.ts`)
-A custom hook that calculates optimal positioning for portal-rendered dropdowns.
+A custom hook that calculates optimal positioning for portal-rendered dropdowns using **@floating-ui/react**.
 
 **Features:**
-- Calculates position based on trigger element's bounding rect
-- Automatically flips dropdown above trigger if not enough space below
-- Recalculates position on scroll and resize
+- Uses Floating UI's `useFloating` for robust position calculation
+- Automatically flips dropdown above trigger if not enough space below (via `flip` middleware)
+- Shifts dropdown to stay within viewport boundaries (via `shift` middleware)
+- Dynamically adjusts maxHeight based on available space (via `size` middleware)
+- Auto-updates position on scroll, resize, and content changes (via `autoUpdate`)
 - Returns `null` when dropdown is closed (no unnecessary calculations)
 - Configurable offset, max height, and width matching
 
+**Middlewares Used:**
+- `offset`: Adds spacing between trigger and dropdown
+- `flip`: Automatically flips to opposite side when space is limited
+- `shift`: Prevents overflow outside viewport boundaries
+- `size`: Constrains dropdown height based on available space
+- `autoUpdate`: Keeps position synced with DOM changes
+
 **Parameters:**
 - `triggerRef`: Reference to the trigger element
+- `listboxRef`: Reference to the dropdown element (for Floating UI to track)
 - `isOpen`: Whether the dropdown is open
 - `offset`: Spacing between trigger and dropdown (default: 4px)
 - `maxHeight`: Maximum dropdown height (default: 300px)
@@ -54,7 +64,7 @@ A custom hook that calculates optimal positioning for portal-rendered dropdowns.
   top: number;        // Fixed position from top of viewport
   left: number;       // Fixed position from left of viewport
   width: number;      // Calculated width
-  maxHeight: number;  // Actual max height based on available space
+  maxHeight: number;  // Maximum height (actual constraint applied via size middleware)
   placement: "bottom" | "top";  // Where dropdown appears
 }
 ```
@@ -165,14 +175,18 @@ A custom hook that calculates optimal positioning for portal-rendered dropdowns.
 
 ## Benefits
 
-1. **No Internal Scrolling**: Dropdowns render outside scrollable containers, preventing internal scrolling
-2. **True Overlay Behavior**: Dropdowns appear above all content with `z-index: 9999`
-3. **No Clipping**: Dropdowns are never clipped by `overflow: hidden` containers
-4. **Smart Positioning**: Automatically flips above trigger when space is limited below
-5. **Responsive**: Recalculates position on scroll and resize
-6. **Consistent UX**: Behaves like modal/popover components
-7. **Dark Theme Support**: All existing dark theme styles preserved
-8. **Accessibility**: All ARIA attributes and keyboard interactions maintained
+1. **Industry-Standard Positioning**: Uses @floating-ui/react, the same library used by major UI frameworks
+2. **No Internal Scrolling**: Dropdowns render outside scrollable containers, preventing internal scrolling
+3. **True Overlay Behavior**: Dropdowns appear above all content with `z-index: 9999`
+4. **No Clipping**: Dropdowns are never clipped by `overflow: hidden` containers
+5. **Smart Positioning**: Automatically flips above trigger when space is limited below
+6. **Viewport Awareness**: Shifts to stay within viewport boundaries (no overflow)
+7. **Dynamic Height**: Automatically adjusts maxHeight based on available space
+8. **Responsive**: Auto-updates position on scroll, resize, and content changes
+9. **Consistent UX**: Behaves like modal/popover components
+10. **Dark Theme Support**: All existing dark theme styles preserved
+11. **Accessibility**: All ARIA attributes and keyboard interactions maintained
+12. **Performance**: Optimized position calculations with requestAnimationFrame
 
 ## Interaction Model
 All existing interactions remain unchanged:
@@ -196,20 +210,54 @@ All existing interactions remain unchanged:
 ## Implementation Notes
 
 - All components check `dropdownPosition` is not `null` before rendering portal
-- Position calculations use `requestAnimationFrame` for smooth updates
-- Event listeners are properly cleaned up when dropdown closes
+- Position calculations use Floating UI's internal optimization (requestAnimationFrame)
+- Event listeners are properly cleaned up when dropdown closes via `autoUpdate`
 - Portal mount/unmount is handled automatically by React
 - Existing click-outside detection still works with portal rendering
+- Floating UI middlewares are applied in order: offset → flip → shift → size
+- The `size` middleware dynamically sets maxHeight inline, so CSS maxHeight is not needed
 
 ## Migration Guide
 
 No migration needed! The changes are backward compatible. All existing usages of Select, DateInput, and Multiselect components work without modification.
 
+## Floating UI Integration
+
+This implementation uses **@floating-ui/react** (v0.27.16) for positioning.
+
+### Why Floating UI?
+- **Industry Standard**: Used by popular libraries like Headless UI, Radix UI, and Mantine
+- **Battle-Tested**: Handles complex edge cases automatically
+- **Maintainable**: Updates and improvements handled by the Floating UI team
+- **Feature-Rich**: Extensive middleware system for customization
+- **Performance**: Optimized for minimal recalculations
+
+### Configuration
+The current setup uses these middlewares:
+```typescript
+middleware: [
+  offset(4),                    // 4px gap from trigger
+  flip({                        // Flip when space is limited
+    padding: 8,
+    fallbackPlacements: ["top-start", "bottom-start"],
+  }),
+  shift({ padding: 8 }),       // Stay within viewport
+  size({                        // Adjust height to fit
+    padding: 8,
+    apply({ availableHeight, elements }) {
+      const constrainedHeight = Math.min(maxHeight, availableHeight);
+      elements.floating.style.maxHeight = `${constrainedHeight}px`;
+    },
+  }),
+]
+```
+
 ## Future Enhancements
 
 Potential improvements for future iterations:
-1. Add animation for position changes (smooth transition when flipping)
+1. Add animation for position changes (smooth transition when flipping) - use Floating UI's transition styles
 2. Support for custom z-index override
-3. Boundary element support (constrain dropdown within specific container)
+3. Boundary element support (constrain dropdown within specific container) - use `boundary` option in shift/flip
 4. Collision detection with other overlays
 5. Touch device optimizations
+6. Add `hide` middleware to detect when trigger is scrolled out of view
