@@ -56,6 +56,11 @@
   --im-muted: #6b7280;
   --im-icon-color: #374151;
   
+  /* Scrollbar colors */
+  --im-scrollbar-track: transparent;
+  --im-scrollbar-thumb: #d1d5db;
+  --im-scrollbar-thumb-hover: #9ca3af;
+  
   /* Text colors */
   --im-text-primary: #0A0A0A;
   --im-text-secondary: #6b7280;
@@ -198,6 +203,11 @@
   --im-bg-secondary: #121212;
   --im-bg-tertiary: #1A1A1A;
   
+  /* Scrollbar colors (dark theme) */
+  --im-scrollbar-track: transparent;
+  --im-scrollbar-thumb: #2d2d2d;
+  --im-scrollbar-thumb-hover: #3d3d3d;
+  
   /* Chart colors (dark theme) */
   --im-success: #22c55e;
   --im-warning: #f59e0b;
@@ -253,6 +263,38 @@
   
   --entity-color-booking-light: var(--entity-color-booking-dark);
   --entity-color-booking-text: var(--entity-color-booking-text-dark);
+}
+
+/* ===== Global Scrollbar Styles ===== */
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--im-scrollbar-thumb) var(--im-scrollbar-track);
+}
+
+/* Webkit (Chrome, Safari, Edge) scrollbar styling */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--im-scrollbar-track);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--im-scrollbar-thumb);
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--im-scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--im-scrollbar-track);
 }
 
 html,
