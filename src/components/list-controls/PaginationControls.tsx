@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, Button, Select } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
 import { useControllerOrContext } from "./ListControllerContext";
@@ -18,8 +19,6 @@ interface PaginationControlsProps<TFilters = Record<string, unknown>> {
   pageSizeOptions?: number[];
   /** Additional CSS classes */
   className?: string;
-  /** Translation function (optional) */
-  t?: (key: string, params?: Record<string, unknown>) => string;
 }
 
 // Default icons
@@ -121,18 +120,10 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
   showPageSize = true,
   pageSizeOptions = [10, 25, 50, 100],
   className = "",
-  t = (key: string, params?: Record<string, unknown>) => {
-    // Default English translations
-    const translations: Record<string, string> = {
-      "pagination.showing": `Showing ${params?.start} to ${params?.end} of ${params?.total}`,
-      "pagination.previous": "Previous",
-      "pagination.next": "Next",
-      "pagination.pageSize": "Items per page",
-      "pagination.page": "Page",
-    };
-    return translations[key] || key;
-  },
 }: PaginationControlsProps<TFilters>) {
+  // Get translations from next-intl
+  const t = useTranslations();
+  
   // Use helper hook that handles both prop and context
   const controller = useControllerOrContext(controllerProp);
 
@@ -152,9 +143,9 @@ export function PaginationControls<TFilters = Record<string, unknown>>({
       <div className="im-pagination-info">
         <span className="im-pagination-text">
           {t("pagination.showing", {
-            start: startItem,
-            end: endItem,
-            total: totalCount,
+            start: startItem.toString(),
+            end: endItem.toString(),
+            total: totalCount.toString(),
           })}
         </span>
       </div>
