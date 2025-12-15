@@ -71,14 +71,16 @@ export function SortSelect<TFilters = Record<string, unknown>>({
   };
 
   return (
-    <Select
-      label={label}
-      options={selectOptions}
-      value={currentValue}
-      onChange={handleChange}
-      placeholder={placeholder}
-      className={className}
-      aria-label={label || "Sort options"}
-    />
+    <div style={{ transition: 'opacity 0.15s ease-in-out' }}>
+      <Select
+        label={label}
+        options={selectOptions}
+        value={currentValue}
+        onChange={handleChange}
+        placeholder={placeholder}
+        className={className}
+        aria-label={label || "Sort options"}
+      />
+    </div>
   );
 }

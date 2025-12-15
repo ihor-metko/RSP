@@ -84,7 +84,7 @@ export function DateRangeFilter<TFilters = Record<string, unknown>>({
   };
 
   return (
-    <div className={`im-date-range-filter ${className}`.trim()}>
+    <div className={`im-date-range-filter ${className}`.trim()} style={{ transition: 'opacity 0.15s ease-in-out' }}>
       {label && (
         <span className="im-date-range-label">{label}</span>
       )}

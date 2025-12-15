@@ -111,7 +111,7 @@ export function QuickPresets<TFilters = Record<string, unknown>>({
   };
 
   return (
-    <div className={`im-quick-presets ${className}`.trim()}>
+    <div className={`im-quick-presets ${className}`.trim()} style={{ transition: 'opacity 0.15s ease-in-out' }}>
       {presets.map((preset) => (
         <Button
           key={preset.id}

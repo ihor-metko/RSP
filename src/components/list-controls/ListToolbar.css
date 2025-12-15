@@ -9,6 +9,8 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  /* Smooth transition for opacity changes to prevent flickering */
+  transition: opacity 0.2s ease-in-out;
 }
 
 .im-list-toolbar-body {
@@ -31,6 +33,14 @@
   /* Show scrollbar on overflow */
   scrollbar-width: thin;
   scrollbar-color: var(--im-border-hover) transparent;
+  /* Smooth transition for content changes */
+  transition: opacity 0.15s ease-in-out;
+}
+
+/* Loading state for toolbar content - prevents flickering */
+.im-list-toolbar-content.im-loading {
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 /* Webkit scrollbar styling */

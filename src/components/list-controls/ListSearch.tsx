@@ -136,14 +136,16 @@ export function ListSearch<TFilters = Record<string, unknown>>({
   }, []);
 
   return (
-    <Input
-      value={localValue}
-      onChange={handleChange}
-      onKeyDown={handleKeyDown}
-      placeholder={placeholder}
-      aria-label={placeholder}
-      className={className}
-      type="text"
-    />
+    <div style={{ transition: 'opacity 0.15s ease-in-out' }}>
+      <Input
+        value={localValue}
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        aria-label={placeholder}
+        className={className}
+        type="text"
+      />
+    </div>
   );
 }

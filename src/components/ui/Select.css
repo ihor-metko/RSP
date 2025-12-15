@@ -3,6 +3,10 @@
   width: 100%;
   font-family: inherit;
   font-size: 0.875rem;
+  /* Prevent layout shift during option updates */
+  min-height: 38px;
+  /* Smooth transition to prevent flickering */
+  transition: opacity 0.15s ease-in-out;
 }
 
 .im-label {
@@ -19,8 +23,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.15s ease-in-out;
   min-height: 38px;
+  /* Stable width to prevent layout shifts */
+  width: 100%;
 }
 
 .im-select-display:hover {

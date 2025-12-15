@@ -57,13 +57,21 @@ export function OrgSelector<TFilters = Record<string, unknown>>({
   const loading = useOrganizationStore((state) => state.loading);
 
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Fetch organizations on mount
   useEffect(() => {
     if (!hasInitialized) {
-      fetchOrganizations().catch((error) => {
-        console.error("Failed to fetch organizations:", error);
-      });
+      setIsInitialLoading(true);
+      fetchOrganizations()
+        .then(() => {
+          // Add a small delay to ensure smooth transition
+          setTimeout(() => setIsInitialLoading(false), 100);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch organizations:", error);
+          setIsInitialLoading(false);
+        });
       setHasInitialized(true);
     }
   }, [hasInitialized, fetchOrganizations]);
@@ -96,15 +104,17 @@ export function OrgSelector<TFilters = Record<string, unknown>>({
   }
 
   return (
-    <Select
-      label={label}
-      options={options}
-      value={currentValue}
-      onChange={handleChange}
-      placeholder={placeholder}
-      disabled={loading}
-      className={className}
-      aria-label={label}
-    />
+    <div style={{ opacity: isInitialLoading ? 0.7 : 1, transition: 'opacity 0.2s ease-in-out' }}>
+      <Select
+        label={label}
+        options={options}
+        value={currentValue}
+        onChange={handleChange}
+        placeholder={placeholder}
+        disabled={loading}
+        className={className}
+        aria-label={label}
+      />
+    </div>
   );
 }

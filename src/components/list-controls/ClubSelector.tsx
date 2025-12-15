@@ -58,13 +58,21 @@ export function ClubSelector<TFilters = Record<string, unknown>>({
   const loading = useClubStore((state) => state.loading);
 
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Fetch clubs on mount
   useEffect(() => {
     if (!hasInitialized) {
-      fetchClubsIfNeeded().catch((error) => {
-        console.error("Failed to fetch clubs:", error);
-      });
+      setIsInitialLoading(true);
+      fetchClubsIfNeeded()
+        .then(() => {
+          // Add a small delay to ensure smooth transition
+          setTimeout(() => setIsInitialLoading(false), 100);
+        })
+        .catch((error) => {
+          console.error("Failed to fetch clubs:", error);
+          setIsInitialLoading(false);
+        });
       setHasInitialized(true);
     }
   }, [hasInitialized, fetchClubsIfNeeded]);
@@ -104,15 +112,17 @@ export function ClubSelector<TFilters = Record<string, unknown>>({
   };
 
   return (
-    <Select
-      label={label}
-      options={options}
-      value={currentValue}
-      onChange={handleChange}
-      placeholder={placeholder}
-      disabled={loading || (selectedOrgId !== "" && filteredClubs.length === 0)}
-      className={className}
-      aria-label={label}
-    />
+    <div style={{ opacity: isInitialLoading ? 0.7 : 1, transition: 'opacity 0.2s ease-in-out' }}>
+      <Select
+        label={label}
+        options={options}
+        value={currentValue}
+        onChange={handleChange}
+        placeholder={placeholder}
+        disabled={loading || (selectedOrgId !== "" && filteredClubs.length === 0)}
+        className={className}
+        aria-label={label}
+      />
+    </div>
   );
 }

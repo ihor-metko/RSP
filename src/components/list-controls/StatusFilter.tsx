@@ -69,14 +69,16 @@ export function StatusFilter<TFilters = Record<string, unknown>>({
   };
 
   return (
-    <Select
-      label={label}
-      options={options}
-      value={currentValue}
-      onChange={handleChange}
-      placeholder={placeholder}
-      className={className}
-      aria-label={label}
-    />
+    <div style={{ transition: 'opacity 0.15s ease-in-out' }}>
+      <Select
+        label={label}
+        options={options}
+        value={currentValue}
+        onChange={handleChange}
+        placeholder={placeholder}
+        className={className}
+        aria-label={label}
+      />
+    </div>
   );
 }
