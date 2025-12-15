@@ -8,6 +8,7 @@ import Link from "next/link";
 import OrgHeader from "@/components/admin/OrgHeader";
 import KeyMetrics from "@/components/admin/KeyMetrics";
 import { Button } from "@/components/ui";
+import { MetricCardSkeleton } from "@/components/ui/skeletons";
 import type { OrgDashboardResponse } from "@/app/api/orgs/[orgId]/dashboard/route";
 import "./OrgDashboard.css";
 
@@ -153,22 +154,26 @@ export default function OrgDashboardPage() {
   
   // Note: setCurrentOrg removed because dashboard doesn't provide complete org data
 
-  if (status === "loading" || loading) {
-    return (
-      <main className="im-org-dashboard-page">
-        <div className="im-org-dashboard-loading">
-          <div className="im-org-dashboard-loading-spinner" />
-          <span className="im-org-dashboard-loading-text">
-            {t("orgDashboard.loading")}
-          </span>
-        </div>
-      </main>
-    );
-  }
+  const isLoadingState = status === "loading" || loading;
+  const { metrics, org } = dashboardData || {};
 
-  if (error) {
-    return (
-      <main className="im-org-dashboard-page">
+  return (
+    <main className="im-org-dashboard-page">
+      {isLoadingState ? (
+        <>
+          <div className="im-org-dashboard-header-skeleton">
+            <div className="im-skeleton h-16 w-full rounded-lg mb-4" />
+          </div>
+          <section className="im-org-dashboard-content">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <MetricCardSkeleton size="md" variant="stat" />
+              <MetricCardSkeleton size="md" variant="stat" />
+              <MetricCardSkeleton size="md" variant="stat" />
+              <MetricCardSkeleton size="md" variant="stat" />
+            </div>
+          </section>
+        </>
+      ) : error ? (
         <div className="im-org-dashboard-error">
           <p>{error}</p>
           <Button
@@ -178,36 +183,26 @@ export default function OrgDashboardPage() {
             {t("common.backToDashboard")}
           </Button>
         </div>
-      </main>
-    );
-  }
+      ) : !dashboardData ? null : (
+        <>
+          {/* Organization Header */}
+          <OrgHeader
+            orgName={org.name}
+            orgSlug={org.slug}
+            orgId={org.id}
+            userName={session?.user?.name || undefined}
+            userEmail={session?.user?.email || undefined}
+          />
 
-  if (!dashboardData) {
-    return null;
-  }
-
-  const { metrics, org } = dashboardData;
-
-  return (
-    <main className="im-org-dashboard-page">
-      {/* Organization Header */}
-      <OrgHeader
-        orgName={org.name}
-        orgSlug={org.slug}
-        orgId={org.id}
-        userName={session?.user?.name || undefined}
-        userEmail={session?.user?.email || undefined}
-      />
-
-      <section className="im-org-dashboard-content">
-        {/* Key Metrics */}
-        <KeyMetrics
-          clubsCount={metrics.clubsCount}
-          courtsCount={metrics.courtsCount}
-          bookingsToday={metrics.bookingsToday}
-          clubAdminsCount={metrics.clubAdminsCount}
-          loading={false}
-        />
+          <section className="im-org-dashboard-content">
+            {/* Key Metrics */}
+            <KeyMetrics
+              clubsCount={metrics.clubsCount}
+              courtsCount={metrics.courtsCount}
+              bookingsToday={metrics.bookingsToday}
+              clubAdminsCount={metrics.clubAdminsCount}
+              loading={false}
+            />
 
         {/* Quick Actions */}
         <div className="im-quick-actions-section">
@@ -263,6 +258,8 @@ export default function OrgDashboardPage() {
           </nav>
         </div>
       </section>
+        </>
+      )}
     </main>
   );
 }

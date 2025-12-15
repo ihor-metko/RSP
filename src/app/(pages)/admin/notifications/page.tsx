@@ -21,17 +21,8 @@ export default function AdminNotificationsPage() {
     }
   }, [session, status, router]);
 
-  if (status === "loading") {
-    return (
-      <main className="rsp-container p-8">
-        <div className="rsp-loading text-center">{t("admin.notifications.loading")}</div>
-      </main>
-    );
-  }
-
-  if (!session?.user || !session.user.isRoot) {
-    return null;
-  }
+  const isLoadingState = status === "loading";
+  const shouldShowContent = session?.user && session.user.isRoot;
 
   return (
     <main className="rsp-container p-8">
@@ -44,15 +35,21 @@ export default function AdminNotificationsPage() {
         </div>
       </header>
 
-      <section className="rsp-content">
-        <div className="flex justify-between items-center mb-6">
-          <IMLink href="/">
-            {t("common.backToHome")}
-          </IMLink>
-        </div>
+      {isLoadingState ? (
+        <section className="rsp-content">
+          <div className="rsp-loading text-center">{t("admin.notifications.loading")}</div>
+        </section>
+      ) : !shouldShowContent ? null : (
+        <section className="rsp-content">
+          <div className="flex justify-between items-center mb-6">
+            <IMLink href="/">
+              {t("common.backToHome")}
+            </IMLink>
+          </div>
 
-        <AdminNotificationsPanel pollInterval={30000} />
-      </section>
+          <AdminNotificationsPanel pollInterval={30000} />
+        </section>
+      )}
     </main>
   );
 }

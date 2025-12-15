@@ -427,36 +427,21 @@ export default function OrganizationDetailPage() {
 
 
   // Show loading spinner while checking authentication
-  if (status === "loading") {
-    return (
-      <main className="im-org-detail-page">
-        <div className="im-org-detail-loading">
-          <div className="im-org-detail-loading-spinner" />
-          <span className="im-org-detail-loading-text">{t("common.loading")}</span>
-        </div>
-      </main>
-    );
-  }
+  const isLoadingState = status === "loading" || loadingOrg;
 
-  if (error && !org) {
-    return (
-      <main className="im-org-detail-page">
+  return (
+    <main className="im-org-detail-page">
+      {/* Organization Banner */}
+      {isLoadingState ? (
+        <div className="im-section-card">
+          <div className="im-skeleton h-32 w-full rounded-lg" />
+        </div>
+      ) : error && !org ? (
         <div className="im-org-detail-error">
           <p>{error || t("orgDetail.notFound")}</p>
           <Button onClick={() => router.push("/admin/organizations")}>
             {t("common.backToDashboard")}
           </Button>
-        </div>
-      </main>
-    );
-  }
-
-  return (
-    <main className="im-org-detail-page">
-      {/* Organization Banner */}
-      {loadingOrg ? (
-        <div className="im-section-card">
-          <div className="im-skeleton h-32 w-full rounded-lg" />
         </div>
       ) : org && (
         <EntityBanner
