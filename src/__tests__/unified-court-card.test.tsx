@@ -18,9 +18,7 @@ jest.mock("next-intl", () => ({
       "admin.courts.status": "Status",
       "admin.courts.active": "Active",
       "admin.courts.inactive": "Inactive",
-      "admin.courts.pricing": "Pricing",
-      "common.edit": "Edit",
-      "common.delete": "Delete",
+      "common.view": "View",
     };
     return translations[key] || key;
   },
@@ -119,9 +117,7 @@ describe("Unified CourtCard Component", () => {
       expect(screen.queryByText("Status:")).not.toBeInTheDocument();
       
       // Admin actions should NOT be visible
-      expect(screen.queryByText("Edit")).not.toBeInTheDocument();
-      expect(screen.queryByText("Delete")).not.toBeInTheDocument();
-      expect(screen.queryByText("Pricing")).not.toBeInTheDocument();
+      expect(screen.queryByText("View")).not.toBeInTheDocument();
     });
   });
 
@@ -171,27 +167,25 @@ describe("Unified CourtCard Component", () => {
       expect(screen.getByText("Inactive")).toBeInTheDocument();
     });
 
-    it("renders admin actions when callbacks are provided", () => {
-      const mockEdit = jest.fn();
-      const mockDelete = jest.fn();
-
+    it("renders View action button for admin", () => {
       render(
         <CourtCard
           court={mockCourt}
           club={mockClub}
           organization={mockOrganization}
-          onEdit={mockEdit}
-          onDelete={mockDelete}
           showBookButton={false}
           showViewSchedule={false}
           showDetailedAvailability={false}
         />
       );
 
-      // Admin action buttons should be visible
-      expect(screen.getByText("Pricing")).toBeInTheDocument();
-      expect(screen.getByText("Edit")).toBeInTheDocument();
-      expect(screen.getByText("Delete")).toBeInTheDocument();
+      // Admin View button should be visible
+      expect(screen.getByText("View")).toBeInTheDocument();
+      
+      // Old action buttons should NOT be visible
+      expect(screen.queryByText("Pricing")).not.toBeInTheDocument();
+      expect(screen.queryByText("Edit")).not.toBeInTheDocument();
+      expect(screen.queryByText("Delete")).not.toBeInTheDocument();
     });
 
     it("does not render organization info when not provided", () => {

@@ -3,10 +3,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Modal, IMLink, PageHeader } from "@/components/ui";
+import { IMLink, PageHeader } from "@/components/ui";
 import { CardListSkeleton } from "@/components/ui/skeletons";
 import { CourtCard } from "@/components/courts/CourtCard";
-import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import type { AdminType } from "@/app/api/me/admin-status/route";
 import { useUserStore } from "@/stores/useUserStore";
 import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
@@ -77,11 +76,6 @@ export default function AdminCourtsPage() {
   // Use deferred loading to prevent flicker on fast responses
   const deferredLoading = useDeferredLoading(loading);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [editingCourt, setEditingCourt] = useState<Court | null>(null);
-  const [deletingCourt, setDeletingCourt] = useState<Court | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
@@ -188,88 +182,10 @@ export default function AdminCourtsPage() {
   const canCreate = (adminType: AdminType | undefined): boolean =>
     adminType === "root_admin" || adminType === "club_admin";
 
-  const canEdit = (adminType: AdminType | undefined): boolean =>
-    adminType === "root_admin" || adminType === "organization_admin" || adminType === "club_admin";
-
-  const canDelete = (adminType: AdminType | undefined): boolean =>
-    adminType === "root_admin" || adminType === "organization_admin";
-
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
   const showClubFilter =
     adminStatus?.adminType === "root_admin" ||
     adminStatus?.adminType === "organization_admin";
-
-  const handleOpenEditModal = (court: Court) => {
-    setEditingCourt(court);
-    setIsModalOpen(true);
-  };
-
-  const handleOpenDeleteModal = (court: Court) => {
-    setDeletingCourt(court);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingCourt(null);
-  };
-
-  const handleCloseDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setDeletingCourt(null);
-  };
-
-  const handleSubmit = async (formData: CourtFormData) => {
-    if (!editingCourt) return;
-
-    setSubmitting(true);
-    try {
-      const response = await fetch(
-        `/api/clubs/${editingCourt.club.id}/courts/${editingCourt.id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to update court");
-      }
-
-      handleCloseModal();
-      fetchCourts();
-    } catch (err) {
-      throw err;
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deletingCourt) return;
-
-    setSubmitting(true);
-    try {
-      const response = await fetch(
-        `/api/clubs/${deletingCourt.club.id}/courts/${deletingCourt.id}`,
-        { method: "DELETE" }
-      );
-
-      if (!response.ok && response.status !== 204) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete court");
-      }
-
-      handleCloseDeleteModal();
-      fetchCourts();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete court");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
   // Define sort options
   const sortOptions = [
@@ -340,20 +256,6 @@ export default function AdminCourtsPage() {
     const court = courts.find((c) => c.id === courtId);
     if (court) {
       router.push(`/admin/clubs/${court.club.id}/courts/${courtId}`);
-    }
-  };
-
-  const handleEditCourt = (courtId: string) => {
-    const court = courts.find((c) => c.id === courtId);
-    if (court) {
-      handleOpenEditModal(court);
-    }
-  };
-
-  const handleDeleteCourt = (courtId: string) => {
-    const court = courts.find((c) => c.id === courtId);
-    if (court) {
-      handleOpenDeleteModal(court);
     }
   };
 
@@ -493,8 +395,6 @@ export default function AdminCourtsPage() {
                   showDetailedAvailability={false}
                   showLegend={false}
                   onCardClick={handleViewDetails}
-                  onEdit={canEdit(adminStatus?.adminType) ? handleEditCourt : undefined}
-                  onDelete={canDelete(adminStatus?.adminType) ? handleDeleteCourt : undefined}
                 />
               ))}
             </div>
@@ -509,54 +409,6 @@ export default function AdminCourtsPage() {
             />
           )}
         </section>
-
-        {/* Edit Modal */}
-        <Modal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          title={t("admin.courts.editCourt")}
-        >
-          <CourtForm
-            initialValues={
-              editingCourt
-                ? {
-                  name: editingCourt.name,
-                  slug: editingCourt.slug || "",
-                  type: editingCourt.type || "",
-                  surface: editingCourt.surface || "",
-                  indoor: editingCourt.indoor,
-                  defaultPriceCents: editingCourt.defaultPriceCents,
-                }
-                : undefined
-            }
-            onSubmit={handleSubmit}
-            onCancel={handleCloseModal}
-            isSubmitting={submitting}
-          />
-        </Modal>
-
-        {/* Delete Confirmation Modal */}
-        <Modal
-          isOpen={isDeleteModalOpen}
-          onClose={handleCloseDeleteModal}
-          title={t("admin.courts.deleteCourt")}
-        >
-          <p className="mb-4">
-            {t("admin.courts.deleteConfirm", { name: deletingCourt?.name || "" })}
-          </p>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleCloseDeleteModal}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              onClick={handleDelete}
-              disabled={submitting}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              {submitting ? t("common.processing") : t("common.delete")}
-            </Button>
-          </div>
-        </Modal>
       </main>
     </ListControllerProvider>
   );

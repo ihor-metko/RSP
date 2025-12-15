@@ -38,8 +38,6 @@ interface CourtCardProps {
   club?: Club; // Only id and name are used. Club link navigates to /admin/clubs/{id}
   organization?: Organization; // Only name is used for display
   isActive?: boolean;
-  onEdit?: (courtId: string) => void;
-  onDelete?: (courtId: string) => void;
 }
 
 export function CourtCard({
@@ -62,8 +60,6 @@ export function CourtCard({
   club,
   organization,
   isActive = true,
-  onEdit,
-  onDelete,
 }: CourtCardProps) {
   const t = useTranslations();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -383,38 +379,14 @@ export function CourtCard({
         {/* Admin Actions */}
         {showAdminInfo && club && (
           <IMLink
-            href={`/admin/clubs/${club.id}/courts/${court.id}/price-rules`}
+            href={`/admin/clubs/${club.id}/courts/${court.id}`}
             className="flex-1"
             onClick={(e) => e.stopPropagation()}
           >
             <Button variant="outline" className="w-full">
-              {t("admin.courts.pricing")}
+              {t("common.view")}
             </Button>
           </IMLink>
-        )}
-        {onEdit && (
-          <Button
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(court.id);
-            }}
-            className="flex-1"
-          >
-            {t("common.edit")}
-          </Button>
-        )}
-        {onDelete && (
-          <Button
-            variant="outline"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(court.id);
-            }}
-            className="text-red-500 hover:text-red-700 flex-1"
-          >
-            {t("common.delete")}
-          </Button>
         )}
       </div>
     </article>
