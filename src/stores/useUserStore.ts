@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { MeResponse, AdminStatus, MembershipInfo, ClubMembershipInfo } from "@/app/api/me/route";
 
 /**
@@ -39,6 +40,7 @@ interface UserState {
   roles: string[];
   isLoggedIn: boolean;
   isLoading: boolean;
+  isHydrated: boolean;
   adminStatus: AdminStatus | null;
   memberships: MembershipInfo[];
   clubMemberships: ClubMembershipInfo[];
@@ -49,6 +51,7 @@ interface UserState {
   loadUser: () => Promise<void>;
   reloadUser: () => Promise<void>;
   clearUser: () => void;
+  setHydrated: (hydrated: boolean) => void;
   
   // Role checks
   hasRole: (role: string) => boolean;
@@ -92,15 +95,25 @@ interface UserState {
  *   loadUser();
  * }, []);
  */
-export const useUserStore = create<UserState>((set, get) => ({
-  // Initial state
-  user: null,
-  roles: [],
-  isLoggedIn: false,
-  isLoading: false,
-  adminStatus: null,
-  memberships: [],
-  clubMemberships: [],
+export const useUserStore = create<UserState>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      user: null,
+      roles: [],
+      isLoggedIn: false,
+      isLoading: false,
+      isHydrated: false,
+      adminStatus: null,
+      memberships: [],
+      clubMemberships: [],
+
+  /**
+   * Set hydration status
+   */
+  setHydrated: (hydrated: boolean) => {
+    set({ isHydrated: hydrated });
+  },
 
   /**
    * Set the current user and update isLoggedIn status
@@ -136,6 +149,7 @@ export const useUserStore = create<UserState>((set, get) => ({
           roles: [],
           isLoggedIn: false,
           isLoading: false,
+          isHydrated: true,
           adminStatus: null,
           memberships: [],
           clubMemberships: [],
@@ -171,6 +185,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         roles,
         isLoggedIn: true,
         isLoading: false,
+        isHydrated: true,
         adminStatus: meData.adminStatus,
         memberships: meData.memberships,
         clubMemberships: meData.clubMemberships,
@@ -182,6 +197,7 @@ export const useUserStore = create<UserState>((set, get) => ({
         roles: [],
         isLoggedIn: false,
         isLoading: false,
+        isHydrated: true,
         adminStatus: null,
         memberships: [],
         clubMemberships: [],
@@ -206,6 +222,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       roles: [],
       isLoggedIn: false,
       isLoading: false,
+      isHydrated: true,
       adminStatus: null,
       memberships: [],
       clubMemberships: [],
@@ -312,7 +329,20 @@ export const useUserStore = create<UserState>((set, get) => ({
     // Check if user manages the specific club
     return adminStatus.managedIds.includes(clubId);
   },
-}));
+    }),
+    {
+      name: "user-store",
+      storage: createJSONStorage(() => localStorage),
+      partialPersist: true,
+      onRehydrateStorage: () => (state) => {
+        // Mark as hydrated after rehydration completes
+        if (state) {
+          state.isHydrated = true;
+        }
+      },
+    }
+  )
+);
 
 /**
  * Convenience hook to check if user is logged in

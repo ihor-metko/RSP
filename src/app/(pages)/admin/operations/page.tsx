@@ -25,13 +25,15 @@ export default function OperationsListPage() {
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingUser = useUserStore((state) => state.isLoading);
+  const isHydrated = useUserStore((state) => state.isHydrated);
 
   // Club store
   const { fetchClubsIfNeeded, loading: loadingClubs } = useClubStore();
 
   // Check access permissions and redirect Club Admins
   useEffect(() => {
-    if (isLoadingUser) return;
+    // Wait for hydration before checking auth
+    if (!isHydrated || isLoadingUser) return;
 
     if (!isLoggedIn) {
       router.push("/auth/sign-in");
@@ -53,15 +55,15 @@ export default function OperationsListPage() {
     if (adminStatus.adminType === "organization_admin" || adminStatus.adminType === "root_admin") {
       fetchClubsIfNeeded().catch(console.error);
     }
-  }, [isLoadingUser, isLoggedIn, adminStatus, router, fetchClubsIfNeeded]);
+  }, [isLoadingUser, isLoggedIn, adminStatus, router, fetchClubsIfNeeded, isHydrated]);
 
   // Handle club selection
   const handleClubSelect = (clubId: string) => {
     router.push(`/admin/operations/${clubId}`);
   };
 
-  // Loading state
-  if (isLoadingUser || loadingClubs) {
+  // Loading state (include hydration)
+  if (!isHydrated || isLoadingUser || loadingClubs) {
     return (
       <main className="im-club-operations-page">
         <PageHeader

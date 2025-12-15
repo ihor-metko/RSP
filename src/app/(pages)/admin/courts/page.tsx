@@ -81,6 +81,7 @@ export default function AdminCourtsPage() {
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
+  const isHydrated = useUserStore((state) => state.isHydrated);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
     limit: 25,
@@ -161,7 +162,8 @@ export default function AdminCourtsPage() {
   }, [controller.filters.primeTimeFilter, controller.sortBy, controller.sortOrder, controller.setSortBy, controller.setSortOrder]);
 
   useEffect(() => {
-    if (isLoadingStore) return;
+    // Wait for hydration before checking auth
+    if (!isHydrated || isLoadingStore) return;
 
     if (!isLoggedIn) {
       router.push("/auth/sign-in");
@@ -176,7 +178,7 @@ export default function AdminCourtsPage() {
       router.push("/auth/sign-in");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchCourts]);
+  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchCourts, isHydrated]);
 
   // Determine permissions based on admin type
   const canCreate = (adminType: AdminType | undefined): boolean =>
@@ -427,7 +429,7 @@ export default function AdminCourtsPage() {
     },
   ];
 
-  if (loading || isLoadingStore) {
+  if (loading || isLoadingStore || !isHydrated) {
     return (
       <main className="rsp-container p-8">
         <PageHeader
