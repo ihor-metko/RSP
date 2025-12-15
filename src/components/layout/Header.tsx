@@ -11,8 +11,6 @@ import UserMenu from "./UserMenu";
 import "./Header.css";
 
 export interface HeaderProps {
-  /** Optional page title to display */
-  title?: string;
   /** Optionally show a compact search input */
   showSearch?: boolean;
   /** Hide profile controls (useful for public landing) */
@@ -173,7 +171,7 @@ const primaryNavItems: NavItem[] = [
  * - All colors use global CSS variables (--im-*)
  * - Header height: 56px desktop, 48px mobile
  */
-export default function Header({ title, showSearch = false, hideProfile = false }: HeaderProps) {
+export default function Header({ showSearch = false, hideProfile = false }: HeaderProps) {
   const { data: session, status } = useSession();
   const t = useTranslations();
   const currentLocale = useCurrentLocale();

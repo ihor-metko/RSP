@@ -389,9 +389,9 @@ describe("Header Component", () => {
       });
     });
 
-    it("renders the logo regardless of custom title", () => {
-      render(<Header title="Custom Title" />);
-      // Logo is always "ArenaOne" regardless of title prop
+    it("always renders the ArenaOne logo", () => {
+      render(<Header />);
+      // Logo is always "ArenaOne"
       expect(screen.getByText("Arena")).toBeInTheDocument();
       expect(screen.getByText("One")).toBeInTheDocument();
     });
