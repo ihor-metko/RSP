@@ -76,7 +76,7 @@
     "next": "Наступна"
   },
   "pagination": {
-    "showing": "Показано {start} до {end} з {total}",
+    "showing": "Показано з {start} по {end} із {total}",
     "previous": "Попередня",
     "next": "Наступна",
     "pageSize": "Елементів на сторінці",

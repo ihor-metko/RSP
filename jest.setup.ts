@@ -2,19 +2,24 @@ import "@testing-library/jest-dom";
 
 // Mock next-intl
 jest.mock("next-intl", () => ({
-  useTranslations: () => (key: string, params?: Record<string, string>) => {
-    // Translations map
-    const translations: Record<string, string> = {
-      clearFilters: "Clear filters",
-      "pagination.showing": "Showing {start} to {end} of {total}",
-      "pagination.previous": "Previous",
-      "pagination.next": "Next",
-      "pagination.pageSize": "Items per page",
-      "pagination.page": "Page",
+  useTranslations: (namespace?: string) => (key: string, params?: Record<string, string>) => {
+    // Translations map organized by namespace
+    const translations: Record<string, Record<string, string>> = {
+      common: {
+        clearFilters: "Clear filters",
+      },
+      pagination: {
+        showing: "Showing {start} to {end} of {total}",
+        previous: "Previous",
+        next: "Next",
+        pageSize: "Items per page",
+        page: "Page",
+      },
     };
     
-    // Get the translation template
-    let result = translations[key] || key;
+    // Get the translation template from the appropriate namespace
+    const nsTranslations = namespace ? translations[namespace] : {};
+    let result = nsTranslations?.[key] || key;
     
     // Replace placeholders if params are provided
     if (params) {
