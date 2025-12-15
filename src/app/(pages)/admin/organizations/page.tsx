@@ -320,7 +320,7 @@ export default function AdminOrganizationsPage() {
   useEffect(() => {
     // Wait for hydration before checking auth
     if (!isHydrated) return;
-    
+
     if (status === "loading") return;
 
     if (!user || !user.isRoot) {
@@ -694,53 +694,68 @@ export default function AdminOrganizationsPage() {
               </Button>
             }
           >
-            <ListSearch 
-              placeholder={t("organizations.searchOrganizations")}
-              filterKey="searchQuery"
-            />
-            <Input
-              placeholder={t("organizations.searchByAdmin")}
-              value={controller.filters.adminSearch}
-              onChange={(e) => controller.setFilter("adminSearch", e.target.value)}
-              aria-label={t("organizations.searchByAdmin")}
-            />
-            <StatusFilter
-              filterKey="statusFilter"
-              statuses={[
-                { value: "active", label: t("organizations.active") },
-                { value: "inactive", label: t("organizations.inactive") },
-              ]}
-              label={t("organizations.status")}
-              placeholder={t("organizations.allStatuses")}
-            />
-            <RangeFilter
-              filterKey="clubCountRange"
-              ranges={[
-                { value: "1-5", label: "1-5" },
-                { value: "6-10", label: "6-10" },
-                { value: "10+", label: "10+" },
-              ]}
-              label={t("organizations.clubCount")}
-              placeholder={t("organizations.allRanges")}
-            />
-            <StatusFilter
-              filterKey="sportTypeFilter"
-              statuses={sportTypeOptions}
-              label={t("organizations.filterBySport")}
-              placeholder={t("organizations.allSports")}
-            />
-            <DateRangeFilter
-              field="createdAt"
-              label={t("organizations.createdDate")}
-              fromKey="dateFrom"
-              toKey="dateTo"
-              fromLabel={t("common.from")}
-              toLabel={t("common.to")}
-            />
-            <SortSelect
-              options={sortOptions}
-              label={t("organizations.sortBy")}
-            />
+            <div className="full-row flex w-full gap-4">
+              <ListSearch
+                className="flex-1"
+                placeholder={t("organizations.searchOrganizations")}
+                filterKey="searchQuery"
+              />
+
+              <Input
+                className="flex-1"
+                placeholder={t("organizations.searchByAdmin")}
+                value={controller.filters.adminSearch}
+                onChange={(e) => controller.setFilter("adminSearch", e.target.value)}
+                aria-label={t("organizations.searchByAdmin")}
+              />
+            </div>
+
+            <div className="full-row flex w-full gap-4">
+              <StatusFilter
+                filterKey="statusFilter"
+                statuses={[
+                  { value: "active", label: t("organizations.active") },
+                  { value: "inactive", label: t("organizations.inactive") },
+                ]}
+                label={t("organizations.status")}
+                placeholder={t("organizations.allStatuses")}
+              />
+
+              <RangeFilter
+                filterKey="clubCountRange"
+                ranges={[
+                  { value: "1-5", label: "1-5" },
+                  { value: "6-10", label: "6-10" },
+                  { value: "10+", label: "10+" },
+                ]}
+                label={t("organizations.clubCount")}
+                placeholder={t("organizations.allRanges")}
+              />
+
+              <StatusFilter
+                filterKey="sportTypeFilter"
+                statuses={sportTypeOptions}
+                label={t("organizations.filterBySport")}
+                placeholder={t("organizations.allSports")}
+              />
+            </div>
+
+            <div className="full-row flex w-full gap-4">
+              <SortSelect
+                className="flex-1"
+                options={sortOptions}
+                label={t("organizations.sortBy")}
+              />
+
+              <DateRangeFilter
+                field="createdAt"
+                label={t("organizations.createdDate")}
+                fromKey="dateFrom"
+                toKey="dateTo"
+                fromLabel={t("common.from")}
+                toLabel={t("common.to")}
+              />
+            </div>
           </ListToolbar>
 
           {(error || storeError) && (
@@ -792,461 +807,461 @@ export default function AdminOrganizationsPage() {
           )}
         </section>
 
-      {/* Create Organization Modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title={t("organizations.createOrganization")}
-      >
-        <form onSubmit={handleCreateOrganization} className="space-y-4">
-          {createError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {createError}
-            </div>
-          )}
-          <Input
-            label={t("organizations.orgName")}
-            value={newOrgName}
-            onChange={(e) => setNewOrgName(e.target.value)}
-            placeholder={t("organizations.orgNamePlaceholder")}
-            required
-          />
-          <Input
-            label={t("organizations.orgSlug")}
-            value={newOrgSlug}
-            onChange={(e) => setNewOrgSlug(e.target.value)}
-            placeholder={t("organizations.orgSlugPlaceholder")}
-          />
-          <p className="im-form-hint">{t("organizations.slugHint")}</p>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsCreateModalOpen(false)}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={creating}>
-              {creating ? t("common.processing") : t("common.create")}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Assign SuperAdmin Modal */}
-      <Modal
-        isOpen={isAssignModalOpen}
-        onClose={handleCloseAssignModal}
-        title={t("organizations.addSuperAdmin")}
-      >
-        <form onSubmit={handleAssignAdmin} className="space-y-4">
-          {assignError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {assignError}
-            </div>
-          )}
-
-          <p className="im-assign-org-name">
-            {t("organizations.assigningTo")}: <strong>{selectedOrg?.name}</strong>
-          </p>
-
-          <div className="im-assign-mode-tabs">
-            <button
-              type="button"
-              className={`im-assign-mode-tab ${assignMode === "existing" ? "im-assign-mode-tab--active" : ""}`}
-              onClick={() => setAssignMode("existing")}
-            >
-              {t("organizations.existingUser")}
-            </button>
-            <button
-              type="button"
-              className={`im-assign-mode-tab ${assignMode === "new" ? "im-assign-mode-tab--active" : ""}`}
-              onClick={() => setAssignMode("new")}
-            >
-              {t("organizations.newUser")}
-            </button>
-          </div>
-
-          {assignMode === "existing" ? (
-            <>
-              <Input
-                label={t("organizations.searchUsers")}
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                placeholder={t("organizations.searchUsersPlaceholder")}
-              />
-              <div className="im-user-list">
-                {simpleUsers.length === 0 ? (
-                  <p className="im-user-list-empty">{t("organizations.noUsersFound")}</p>
-                ) : (
-                  simpleUsers.map((user) => {
-                    // Check if user is already an admin of the selected org
-                    const isAlreadyAdminOfThisOrg = selectedOrg?.superAdmins?.some(
-                      (admin) => admin.id === user.id
-                    );
-
-                    return (
-                      <label
-                        key={user.id}
-                        className={`im-user-option ${isAlreadyAdminOfThisOrg ? "im-user-option--disabled" : ""} ${selectedUserId === user.id ? "im-user-option--selected" : ""}`}
-                      >
-                        <input
-                          type="radio"
-                          name="userId"
-                          value={user.id}
-                          checked={selectedUserId === user.id}
-                          onChange={(e) => setSelectedUserId(e.target.value)}
-                          disabled={isAlreadyAdminOfThisOrg}
-                        />
-                        <span className="im-user-info">
-                          <span className="im-user-name">{user.name || user.email}</span>
-                          <span className="im-user-email">{user.email}</span>
-                          {isAlreadyAdminOfThisOrg && (
-                            <span className="im-user-badge">
-                              {t("organizations.alreadyAdminOfThisOrg")}
-                            </span>
-                          )}
-                        </span>
-                      </label>
-                    );
-                  })
-                )}
+        {/* Create Organization Modal */}
+        <Modal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          title={t("organizations.createOrganization")}
+        >
+          <form onSubmit={handleCreateOrganization} className="space-y-4">
+            {createError && (
+              <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+                {createError}
               </div>
-            </>
-          ) : (
-            <>
-              <Input
-                label={t("common.name")}
-                value={newAdminName}
-                onChange={(e) => setNewAdminName(e.target.value)}
-                placeholder={t("auth.enterName")}
-                required
-              />
-              <Input
-                label={t("common.email")}
-                type="email"
-                value={newAdminEmail}
-                onChange={(e) => setNewAdminEmail(e.target.value)}
-                placeholder={t("auth.enterEmail")}
-                required
-              />
-              <Input
-                label={t("common.password")}
-                type="password"
-                value={newAdminPassword}
-                onChange={(e) => setNewAdminPassword(e.target.value)}
-                placeholder={t("auth.createPassword")}
-                required
-                showPasswordToggle
-              />
-            </>
-          )}
-
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="outline" onClick={handleCloseAssignModal}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={
-                assigning ||
-                (assignMode === "existing" && !selectedUserId) ||
-                (assignMode === "new" && (!newAdminName || !newAdminEmail || !newAdminPassword))
-              }
-            >
-              {assigning ? t("common.processing") : t("organizations.addAdmin")}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Club Admins Management Modal */}
-      <Modal
-        isOpen={isClubAdminsModalOpen}
-        onClose={handleCloseClubAdminsModal}
-        title={t("clubAdmins.title")}
-      >
-        <div className="space-y-4">
-          {clubAdminsError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {clubAdminsError}
-            </div>
-          )}
-
-          <p className="im-assign-org-name">
-            {t("clubAdmins.subtitle")}: <strong>{clubAdminsOrg?.name}</strong>
-          </p>
-
-          {clubAdminsLoading ? (
-            <div className="im-admin-organizations-loading">
-              <div className="im-admin-organizations-loading-spinner" />
-              <span className="im-admin-organizations-loading-text">{t("common.loading")}</span>
-            </div>
-          ) : orgClubs.length === 0 ? (
-            <div className="im-admin-organizations-empty">
-              <p className="im-admin-organizations-empty-text">
-                {t("clubAdmins.noClubs")}
-              </p>
-            </div>
-          ) : clubAdmins.length === 0 ? (
-            <div className="im-admin-organizations-empty">
-              <p className="im-admin-organizations-empty-text">
-                {t("clubAdmins.noClubAdmins")}
-              </p>
-            </div>
-          ) : (
-            <div className="im-manage-admins-list">
-              {clubAdmins.map((clubAdmin) => (
-                <div key={clubAdmin.id} className="im-manage-admin-item">
-                  <div className="im-manage-admin-info">
-                    <span className="im-manage-admin-name">{clubAdmin.userName || clubAdmin.userEmail}</span>
-                    <span className="im-manage-admin-email">{clubAdmin.userEmail}</span>
-                    <span className="im-manage-admin-club-badge">{clubAdmin.clubName}</span>
-                  </div>
-                  <div className="im-manage-admin-actions">
-                    <Button
-                      variant="outline"
-                      size="small"
-                      onClick={() => handleOpenEditClubAdminModal(clubAdmin)}
-                    >
-                      {t("common.edit")}
-                    </Button>
-                    <Button
-                      variant="danger"
-                      size="small"
-                      onClick={() => handleOpenRemoveClubAdminModal(clubAdmin)}
-                    >
-                      {t("organizations.remove")}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={handleCloseClubAdminsModal}>
-              {t("common.close")}
-            </Button>
-            {orgClubs.length > 0 && (
-              <Button onClick={handleOpenAddClubAdminModal}>
-                {t("clubAdmins.addClubAdmin")}
-              </Button>
             )}
-          </div>
-        </div>
-      </Modal>
-
-      {/* Add Club Admin Modal */}
-      <Modal
-        isOpen={isAddClubAdminModalOpen}
-        onClose={handleCloseAddClubAdminModal}
-        title={t("clubAdmins.addClubAdmin")}
-      >
-        <form onSubmit={handleAddClubAdmin} className="space-y-4">
-          {addClubAdminError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {addClubAdminError}
+            <Input
+              label={t("organizations.orgName")}
+              value={newOrgName}
+              onChange={(e) => setNewOrgName(e.target.value)}
+              placeholder={t("organizations.orgNamePlaceholder")}
+              required
+            />
+            <Input
+              label={t("organizations.orgSlug")}
+              value={newOrgSlug}
+              onChange={(e) => setNewOrgSlug(e.target.value)}
+              placeholder={t("organizations.orgSlugPlaceholder")}
+            />
+            <p className="im-form-hint">{t("organizations.slugHint")}</p>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCreateModalOpen(false)}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button type="submit" disabled={creating}>
+                {creating ? t("common.processing") : t("common.create")}
+              </Button>
             </div>
-          )}
+          </form>
+        </Modal>
 
-          <p className="im-assign-org-name">
-            {t("clubAdmins.assigningTo")}: <strong>{clubAdminsOrg?.name}</strong>
-          </p>
-
-          {/* Club Selection */}
-          <Select
-            options={[
-              { value: "", label: t("clubAdmins.selectClubPlaceholder") },
-              ...orgClubs.map((club) => ({ value: club.id, label: club.name })),
-            ]}
-            value={selectedClubId}
-            onChange={(value) => setSelectedClubId(value)}
-            aria-label={t("clubAdmins.selectClub")}
-          />
-
-          {/* User Selection Mode Tabs */}
-          <div className="im-assign-mode-tabs">
-            <button
-              type="button"
-              className={`im-assign-mode-tab ${clubAdminAssignMode === "existing" ? "im-assign-mode-tab--active" : ""}`}
-              onClick={() => setClubAdminAssignMode("existing")}
-            >
-              {t("clubAdmins.existingUser")}
-            </button>
-            <button
-              type="button"
-              className={`im-assign-mode-tab ${clubAdminAssignMode === "new" ? "im-assign-mode-tab--active" : ""}`}
-              onClick={() => setClubAdminAssignMode("new")}
-            >
-              {t("clubAdmins.newUser")}
-            </button>
-          </div>
-
-          {clubAdminAssignMode === "existing" ? (
-            <>
-              <Input
-                label={t("clubAdmins.searchUsers")}
-                value={clubAdminUserSearch}
-                onChange={(e) => setClubAdminUserSearch(e.target.value)}
-                placeholder={t("clubAdmins.searchUsersPlaceholder")}
-              />
-              <div className="im-user-list">
-                {clubAdminUsers.length === 0 ? (
-                  <p className="im-user-list-empty">{t("clubAdmins.noUsersFound")}</p>
-                ) : (
-                  clubAdminUsers.map((user) => {
-                    const isAlreadyClubAdmin = clubAdmins.some(
-                      (ca) => ca.userId === user.id && ca.clubId === selectedClubId
-                    );
-
-                    return (
-                      <label
-                        key={user.id}
-                        className={`im-user-option ${isAlreadyClubAdmin ? "im-user-option--disabled" : ""} ${selectedClubAdminUserId === user.id ? "im-user-option--selected" : ""}`}
-                      >
-                        <input
-                          type="radio"
-                          name="clubAdminUserId"
-                          value={user.id}
-                          checked={selectedClubAdminUserId === user.id}
-                          onChange={(e) => setSelectedClubAdminUserId(e.target.value)}
-                          disabled={isAlreadyClubAdmin}
-                        />
-                        <span className="im-user-info">
-                          <span className="im-user-name">{user.name || user.email}</span>
-                          <span className="im-user-email">{user.email}</span>
-                          {isAlreadyClubAdmin && (
-                            <span className="im-user-badge">
-                              {t("clubAdmins.alreadyClubAdmin")}
-                            </span>
-                          )}
-                        </span>
-                      </label>
-                    );
-                  })
-                )}
+        {/* Assign SuperAdmin Modal */}
+        <Modal
+          isOpen={isAssignModalOpen}
+          onClose={handleCloseAssignModal}
+          title={t("organizations.addSuperAdmin")}
+        >
+          <form onSubmit={handleAssignAdmin} className="space-y-4">
+            {assignError && (
+              <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+                {assignError}
               </div>
-            </>
-          ) : (
-            <>
-              <Input
-                label={t("common.name")}
-                value={newClubAdminName}
-                onChange={(e) => setNewClubAdminName(e.target.value)}
-                placeholder={t("auth.enterName")}
-                required
-              />
-              <Input
-                label={t("common.email")}
-                type="email"
-                value={newClubAdminEmail}
-                onChange={(e) => setNewClubAdminEmail(e.target.value)}
-                placeholder={t("auth.enterEmail")}
-                required
-              />
-            </>
-          )}
+            )}
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="outline" onClick={handleCloseAddClubAdminModal}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={
-                addingClubAdmin ||
-                !selectedClubId ||
-                (clubAdminAssignMode === "existing" && !selectedClubAdminUserId) ||
-                (clubAdminAssignMode === "new" && (!newClubAdminName || !newClubAdminEmail))
-              }
-            >
-              {addingClubAdmin ? t("common.processing") : t("clubAdmins.assign")}
-            </Button>
-          </div>
-        </form>
-      </Modal>
+            <p className="im-assign-org-name">
+              {t("organizations.assigningTo")}: <strong>{selectedOrg?.name}</strong>
+            </p>
 
-      {/* Edit Club Admin Modal */}
-      <Modal
-        isOpen={isEditClubAdminModalOpen}
-        onClose={handleCloseEditClubAdminModal}
-        title={t("clubAdmins.editClubAdmin")}
-      >
-        <form onSubmit={handleEditClubAdmin} className="space-y-4">
-          {editClubAdminError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {editClubAdminError}
+            <div className="im-assign-mode-tabs">
+              <button
+                type="button"
+                className={`im-assign-mode-tab ${assignMode === "existing" ? "im-assign-mode-tab--active" : ""}`}
+                onClick={() => setAssignMode("existing")}
+              >
+                {t("organizations.existingUser")}
+              </button>
+              <button
+                type="button"
+                className={`im-assign-mode-tab ${assignMode === "new" ? "im-assign-mode-tab--active" : ""}`}
+                onClick={() => setAssignMode("new")}
+              >
+                {t("organizations.newUser")}
+              </button>
             </div>
-          )}
 
-          <p className="im-assign-org-name">
-            {t("clubAdmins.reassigningTo")}: <strong>{editingClubAdmin?.userName || editingClubAdmin?.userEmail}</strong>
-          </p>
+            {assignMode === "existing" ? (
+              <>
+                <Input
+                  label={t("organizations.searchUsers")}
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  placeholder={t("organizations.searchUsersPlaceholder")}
+                />
+                <div className="im-user-list">
+                  {simpleUsers.length === 0 ? (
+                    <p className="im-user-list-empty">{t("organizations.noUsersFound")}</p>
+                  ) : (
+                    simpleUsers.map((user) => {
+                      // Check if user is already an admin of the selected org
+                      const isAlreadyAdminOfThisOrg = selectedOrg?.superAdmins?.some(
+                        (admin) => admin.id === user.id
+                      );
 
-          <Select
-            options={orgClubs.map((club) => ({ value: club.id, label: club.name }))}
-            value={editClubAdminClubId}
-            onChange={(value) => setEditClubAdminClubId(value)}
-            aria-label={t("clubAdmins.selectClub")}
-          />
+                      return (
+                        <label
+                          key={user.id}
+                          className={`im-user-option ${isAlreadyAdminOfThisOrg ? "im-user-option--disabled" : ""} ${selectedUserId === user.id ? "im-user-option--selected" : ""}`}
+                        >
+                          <input
+                            type="radio"
+                            name="userId"
+                            value={user.id}
+                            checked={selectedUserId === user.id}
+                            onChange={(e) => setSelectedUserId(e.target.value)}
+                            disabled={isAlreadyAdminOfThisOrg}
+                          />
+                          <span className="im-user-info">
+                            <span className="im-user-name">{user.name || user.email}</span>
+                            <span className="im-user-email">{user.email}</span>
+                            {isAlreadyAdminOfThisOrg && (
+                              <span className="im-user-badge">
+                                {t("organizations.alreadyAdminOfThisOrg")}
+                              </span>
+                            )}
+                          </span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Input
+                  label={t("common.name")}
+                  value={newAdminName}
+                  onChange={(e) => setNewAdminName(e.target.value)}
+                  placeholder={t("auth.enterName")}
+                  required
+                />
+                <Input
+                  label={t("common.email")}
+                  type="email"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  placeholder={t("auth.enterEmail")}
+                  required
+                />
+                <Input
+                  label={t("common.password")}
+                  type="password"
+                  value={newAdminPassword}
+                  onChange={(e) => setNewAdminPassword(e.target.value)}
+                  placeholder={t("auth.createPassword")}
+                  required
+                  showPasswordToggle
+                />
+              </>
+            )}
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="outline" onClick={handleCloseEditClubAdminModal}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={editingClubAdminSubmitting || !editClubAdminClubId}
-            >
-              {editingClubAdminSubmitting ? t("common.processing") : t("common.save")}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Remove Club Admin Confirmation Modal */}
-      <Modal
-        isOpen={isRemoveClubAdminModalOpen}
-        onClose={handleCloseRemoveClubAdminModal}
-        title={t("clubAdmins.removeClubAdmin")}
-      >
-        <div className="space-y-4">
-          {removeClubAdminError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {removeClubAdminError}
+            <div className="flex justify-end gap-2 mt-4">
+              <Button type="button" variant="outline" onClick={handleCloseAssignModal}>
+                {t("common.cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  assigning ||
+                  (assignMode === "existing" && !selectedUserId) ||
+                  (assignMode === "new" && (!newAdminName || !newAdminEmail || !newAdminPassword))
+                }
+              >
+                {assigning ? t("common.processing") : t("organizations.addAdmin")}
+              </Button>
             </div>
-          )}
+          </form>
+        </Modal>
 
-          <p className="im-delete-confirm-text">
-            {t("clubAdmins.removeConfirm", {
-              name: removingClubAdmin?.userName || removingClubAdmin?.userEmail || "",
-              club: removingClubAdmin?.clubName || ""
-            })}
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            {t("clubAdmins.cannotUndoRemoval")}
-          </p>
+        {/* Club Admins Management Modal */}
+        <Modal
+          isOpen={isClubAdminsModalOpen}
+          onClose={handleCloseClubAdminsModal}
+          title={t("clubAdmins.title")}
+        >
+          <div className="space-y-4">
+            {clubAdminsError && (
+              <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+                {clubAdminsError}
+              </div>
+            )}
 
-          <div className="flex justify-end gap-2 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCloseRemoveClubAdminModal}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              onClick={handleRemoveClubAdmin}
-              disabled={removingClubAdminSubmitting}
-            >
-              {removingClubAdminSubmitting ? t("common.processing") : t("organizations.remove")}
-            </Button>
+            <p className="im-assign-org-name">
+              {t("clubAdmins.subtitle")}: <strong>{clubAdminsOrg?.name}</strong>
+            </p>
+
+            {clubAdminsLoading ? (
+              <div className="im-admin-organizations-loading">
+                <div className="im-admin-organizations-loading-spinner" />
+                <span className="im-admin-organizations-loading-text">{t("common.loading")}</span>
+              </div>
+            ) : orgClubs.length === 0 ? (
+              <div className="im-admin-organizations-empty">
+                <p className="im-admin-organizations-empty-text">
+                  {t("clubAdmins.noClubs")}
+                </p>
+              </div>
+            ) : clubAdmins.length === 0 ? (
+              <div className="im-admin-organizations-empty">
+                <p className="im-admin-organizations-empty-text">
+                  {t("clubAdmins.noClubAdmins")}
+                </p>
+              </div>
+            ) : (
+              <div className="im-manage-admins-list">
+                {clubAdmins.map((clubAdmin) => (
+                  <div key={clubAdmin.id} className="im-manage-admin-item">
+                    <div className="im-manage-admin-info">
+                      <span className="im-manage-admin-name">{clubAdmin.userName || clubAdmin.userEmail}</span>
+                      <span className="im-manage-admin-email">{clubAdmin.userEmail}</span>
+                      <span className="im-manage-admin-club-badge">{clubAdmin.clubName}</span>
+                    </div>
+                    <div className="im-manage-admin-actions">
+                      <Button
+                        variant="outline"
+                        size="small"
+                        onClick={() => handleOpenEditClubAdminModal(clubAdmin)}
+                      >
+                        {t("common.edit")}
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="small"
+                        onClick={() => handleOpenRemoveClubAdminModal(clubAdmin)}
+                      >
+                        {t("organizations.remove")}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={handleCloseClubAdminsModal}>
+                {t("common.close")}
+              </Button>
+              {orgClubs.length > 0 && (
+                <Button onClick={handleOpenAddClubAdminModal}>
+                  {t("clubAdmins.addClubAdmin")}
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      </Modal>
-    </main>
+        </Modal>
+
+        {/* Add Club Admin Modal */}
+        <Modal
+          isOpen={isAddClubAdminModalOpen}
+          onClose={handleCloseAddClubAdminModal}
+          title={t("clubAdmins.addClubAdmin")}
+        >
+          <form onSubmit={handleAddClubAdmin} className="space-y-4">
+            {addClubAdminError && (
+              <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+                {addClubAdminError}
+              </div>
+            )}
+
+            <p className="im-assign-org-name">
+              {t("clubAdmins.assigningTo")}: <strong>{clubAdminsOrg?.name}</strong>
+            </p>
+
+            {/* Club Selection */}
+            <Select
+              options={[
+                { value: "", label: t("clubAdmins.selectClubPlaceholder") },
+                ...orgClubs.map((club) => ({ value: club.id, label: club.name })),
+              ]}
+              value={selectedClubId}
+              onChange={(value) => setSelectedClubId(value)}
+              aria-label={t("clubAdmins.selectClub")}
+            />
+
+            {/* User Selection Mode Tabs */}
+            <div className="im-assign-mode-tabs">
+              <button
+                type="button"
+                className={`im-assign-mode-tab ${clubAdminAssignMode === "existing" ? "im-assign-mode-tab--active" : ""}`}
+                onClick={() => setClubAdminAssignMode("existing")}
+              >
+                {t("clubAdmins.existingUser")}
+              </button>
+              <button
+                type="button"
+                className={`im-assign-mode-tab ${clubAdminAssignMode === "new" ? "im-assign-mode-tab--active" : ""}`}
+                onClick={() => setClubAdminAssignMode("new")}
+              >
+                {t("clubAdmins.newUser")}
+              </button>
+            </div>
+
+            {clubAdminAssignMode === "existing" ? (
+              <>
+                <Input
+                  label={t("clubAdmins.searchUsers")}
+                  value={clubAdminUserSearch}
+                  onChange={(e) => setClubAdminUserSearch(e.target.value)}
+                  placeholder={t("clubAdmins.searchUsersPlaceholder")}
+                />
+                <div className="im-user-list">
+                  {clubAdminUsers.length === 0 ? (
+                    <p className="im-user-list-empty">{t("clubAdmins.noUsersFound")}</p>
+                  ) : (
+                    clubAdminUsers.map((user) => {
+                      const isAlreadyClubAdmin = clubAdmins.some(
+                        (ca) => ca.userId === user.id && ca.clubId === selectedClubId
+                      );
+
+                      return (
+                        <label
+                          key={user.id}
+                          className={`im-user-option ${isAlreadyClubAdmin ? "im-user-option--disabled" : ""} ${selectedClubAdminUserId === user.id ? "im-user-option--selected" : ""}`}
+                        >
+                          <input
+                            type="radio"
+                            name="clubAdminUserId"
+                            value={user.id}
+                            checked={selectedClubAdminUserId === user.id}
+                            onChange={(e) => setSelectedClubAdminUserId(e.target.value)}
+                            disabled={isAlreadyClubAdmin}
+                          />
+                          <span className="im-user-info">
+                            <span className="im-user-name">{user.name || user.email}</span>
+                            <span className="im-user-email">{user.email}</span>
+                            {isAlreadyClubAdmin && (
+                              <span className="im-user-badge">
+                                {t("clubAdmins.alreadyClubAdmin")}
+                              </span>
+                            )}
+                          </span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <Input
+                  label={t("common.name")}
+                  value={newClubAdminName}
+                  onChange={(e) => setNewClubAdminName(e.target.value)}
+                  placeholder={t("auth.enterName")}
+                  required
+                />
+                <Input
+                  label={t("common.email")}
+                  type="email"
+                  value={newClubAdminEmail}
+                  onChange={(e) => setNewClubAdminEmail(e.target.value)}
+                  placeholder={t("auth.enterEmail")}
+                  required
+                />
+              </>
+            )}
+
+            <div className="flex justify-end gap-2 mt-4">
+              <Button type="button" variant="outline" onClick={handleCloseAddClubAdminModal}>
+                {t("common.cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={
+                  addingClubAdmin ||
+                  !selectedClubId ||
+                  (clubAdminAssignMode === "existing" && !selectedClubAdminUserId) ||
+                  (clubAdminAssignMode === "new" && (!newClubAdminName || !newClubAdminEmail))
+                }
+              >
+                {addingClubAdmin ? t("common.processing") : t("clubAdmins.assign")}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Edit Club Admin Modal */}
+        <Modal
+          isOpen={isEditClubAdminModalOpen}
+          onClose={handleCloseEditClubAdminModal}
+          title={t("clubAdmins.editClubAdmin")}
+        >
+          <form onSubmit={handleEditClubAdmin} className="space-y-4">
+            {editClubAdminError && (
+              <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+                {editClubAdminError}
+              </div>
+            )}
+
+            <p className="im-assign-org-name">
+              {t("clubAdmins.reassigningTo")}: <strong>{editingClubAdmin?.userName || editingClubAdmin?.userEmail}</strong>
+            </p>
+
+            <Select
+              options={orgClubs.map((club) => ({ value: club.id, label: club.name }))}
+              value={editClubAdminClubId}
+              onChange={(value) => setEditClubAdminClubId(value)}
+              aria-label={t("clubAdmins.selectClub")}
+            />
+
+            <div className="flex justify-end gap-2 mt-4">
+              <Button type="button" variant="outline" onClick={handleCloseEditClubAdminModal}>
+                {t("common.cancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={editingClubAdminSubmitting || !editClubAdminClubId}
+              >
+                {editingClubAdminSubmitting ? t("common.processing") : t("common.save")}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+
+        {/* Remove Club Admin Confirmation Modal */}
+        <Modal
+          isOpen={isRemoveClubAdminModalOpen}
+          onClose={handleCloseRemoveClubAdminModal}
+          title={t("clubAdmins.removeClubAdmin")}
+        >
+          <div className="space-y-4">
+            {removeClubAdminError && (
+              <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
+                {removeClubAdminError}
+              </div>
+            )}
+
+            <p className="im-delete-confirm-text">
+              {t("clubAdmins.removeConfirm", {
+                name: removingClubAdmin?.userName || removingClubAdmin?.userEmail || "",
+                club: removingClubAdmin?.clubName || ""
+              })}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t("clubAdmins.cannotUndoRemoval")}
+            </p>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCloseRemoveClubAdminModal}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleRemoveClubAdmin}
+                disabled={removingClubAdminSubmitting}
+              >
+                {removingClubAdminSubmitting ? t("common.processing") : t("organizations.remove")}
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      </main>
     </ListControllerProvider>
   );
 }
