@@ -113,6 +113,12 @@ export default function OperationsListPage() {
         <p className="im-club-operations-instruction">
           {t("operations.selectClubInstruction") || "Please select a club to view its operations."}
         </p>
+        
+        {/* Context block explaining what happens after selection */}
+        <div className="im-club-operations-context">
+          {t("operations.selectionContext") || "After selecting a club, you will be able to view the calendar, manage bookings, check court availability, and perform other operational actions."}
+        </div>
+        
         {/* value is intentionally empty string - this is the list page, no club is pre-selected */}
         <OperationsClubCardSelector
           value=""

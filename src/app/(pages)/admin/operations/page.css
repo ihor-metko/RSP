@@ -39,6 +39,19 @@
   text-align: center;
 }
 
+.im-club-operations-context {
+  padding: 16px 20px;
+  background-color: var(--rsp-card-bg);
+  border-left: 3px solid var(--color-primary, #3b82f6);
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary, #6b7280);
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
 .im-club-operations-date-picker {
   display: flex;
   align-items: center;
@@ -159,6 +172,12 @@
 
 :root[data-theme="dark"] .im-club-operations-instruction {
   color: var(--color-text-primary, #f9fafb);
+}
+
+:root[data-theme="dark"] .im-club-operations-context {
+  background-color: var(--color-bg-tertiary, #1f2937);
+  border-left-color: var(--color-primary, #3b82f6);
+  color: var(--color-text-secondary, #9ca3af);
 }
 
 /* Responsive adjustments */
