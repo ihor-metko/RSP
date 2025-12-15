@@ -67,7 +67,7 @@ export default function CourtDetailPage({
   useEffect(() => {
     if (status === "loading") return;
 
-    if (!session?.user || !session.user.isRoot) {
+    if (!session?.user) {
       router.push("/auth/sign-in");
       return;
     }

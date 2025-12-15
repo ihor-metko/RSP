@@ -149,6 +149,24 @@ export async function PATCH(
       }
 
       try {
+        const court = await mockGetCourtDetailById(courtId);
+        if (!court) {
+          return NextResponse.json({ error: "Court not found" }, { status: 404 });
+        }
+
+        // Check if admin has permission to access this court
+        // This check is consistent with the non-mock code path below
+        if (authResult.adminType === "organization_admin") {
+          // For mock mode, we need to determine organizationId from the court
+          // In a real implementation, this would come from the court's club relationship
+          // For now, we'll skip this check in mock mode but add a TODO
+          // TODO: Add proper organization check in mock mode when mock data supports it
+        } else if (authResult.adminType === "club_admin") {
+          if (!authResult.managedIds.includes(court.clubId)) {
+            return NextResponse.json({ error: "Court not found" }, { status: 404 });
+          }
+        }
+
         const { mockUpdateCourtDetail } = await import("@/services/mockApiHandlers");
         const updateData: Record<string, unknown> = {};
         if (name !== undefined) updateData.name = name.trim();
@@ -159,11 +177,6 @@ export async function PATCH(
         if (sportType !== undefined) updateData.sportType = sportType;
         if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
         if (isActive !== undefined) updateData.isActive = isActive;
-
-        const court = await mockGetCourtDetailById(courtId);
-        if (!court) {
-          return NextResponse.json({ error: "Court not found" }, { status: 404 });
-        }
 
         const updatedCourt = await mockUpdateCourtDetail(courtId, court.clubId, updateData);
         return NextResponse.json(updatedCourt);

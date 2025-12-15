@@ -7,7 +7,6 @@ import "./CourtPricingBlock.css";
 
 interface CourtPricingBlockProps {
   court: CourtDetail;
-  clubId?: string; // Optional for backward compatibility
 }
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
