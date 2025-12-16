@@ -314,6 +314,11 @@ export default function AdminClubDetailPage({
             />
           </div>
           <div className="im-admin-club-actions">
+            <IMLink href={`/admin/clubs/${club.id}/payment-accounts`}>
+              <Button variant="outline">
+                Payment Accounts
+              </Button>
+            </IMLink>
             <Button
               variant="outline"
               onClick={handleTogglePublish}
