@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireClubOwner } from "@/lib/requireRole";
-import { logAudit } from "@/lib/auditLog";
+import { auditLog } from "@/lib/auditLog";
 import {
   createPaymentAccount,
   listClubPaymentAccounts,
@@ -116,17 +116,17 @@ export async function POST(
     const paymentAccount = await createPaymentAccount(credentials, authResult.userId);
 
     // Log audit event
-    await logAudit({
-      actorId: authResult.userId,
-      action: "payment_account.create",
-      targetType: "club",
-      targetId: clubId,
-      detail: JSON.stringify({
+    await auditLog(
+      authResult.userId,
+      "payment_account.create",
+      "club",
+      clubId,
+      {
         paymentAccountId: paymentAccount.id,
         provider,
         scope: PaymentAccountScope.CLUB,
-      }),
-    });
+      }
+    );
 
     return NextResponse.json({
       message: "Payment account created successfully",

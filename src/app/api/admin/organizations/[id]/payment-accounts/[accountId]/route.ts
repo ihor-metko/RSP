@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireOrganizationAdmin } from "@/lib/requireRole";
-import { logAudit } from "@/lib/auditLog";
+import { auditLog } from "@/lib/auditLog";
 import {
   getMaskedPaymentAccount,
   updatePaymentAccount,
@@ -126,16 +126,16 @@ export async function PUT(
     );
 
     // Log audit event
-    await logAudit({
-      actorId: authResult.userId,
-      action: "payment_account.update",
-      targetType: "organization",
-      targetId: organizationId,
-      detail: JSON.stringify({
+    await auditLog(
+      authResult.userId,
+      "payment_account.update",
+      "organization",
+      organizationId,
+      {
         paymentAccountId: accountId,
         fieldsUpdated: Object.keys(credentials),
-      }),
-    });
+      }
+    );
 
     return NextResponse.json({
       message: "Payment account updated successfully",
@@ -208,16 +208,16 @@ export async function DELETE(
     await deletePaymentAccount(accountId);
 
     // Log audit event
-    await logAudit({
-      actorId: authResult.userId,
-      action: "payment_account.delete",
-      targetType: "organization",
-      targetId: organizationId,
-      detail: JSON.stringify({
+    await auditLog(
+      authResult.userId,
+      "payment_account.delete",
+      "organization",
+      organizationId,
+      {
         paymentAccountId: accountId,
         provider: existingAccount.provider,
-      }),
-    });
+      }
+    );
 
     return NextResponse.json({
       message: "Payment account deleted successfully",
