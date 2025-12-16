@@ -105,6 +105,24 @@ jest.mock("@/components/admin/KeyMetrics", () => {
   return MockKeyMetrics;
 });
 
+// Mock CreateAdminModal
+jest.mock("@/components/admin/admin-wizard", () => ({
+  CreateAdminModal: ({ isOpen }: { isOpen: boolean }) => {
+    if (!isOpen) return null;
+    return <div data-testid="create-admin-modal">Create Admin Modal</div>;
+  },
+}));
+
+// Mock skeletons
+jest.mock("@/components/ui/skeletons", () => ({
+  PageHeaderSkeleton: ({ showDescription }: { showDescription?: boolean }) => (
+    <div data-testid="page-header-skeleton">
+      {showDescription && "Loading dashboard..."}
+    </div>
+  ),
+  MetricCardSkeleton: () => <div data-testid="metric-card-skeleton">Loading metric...</div>,
+}));
+
 const mockUseSession = useSession as jest.Mock;
 const mockUseRouter = useRouter as jest.Mock;
 const mockUseParams = useParams as jest.Mock;
@@ -128,7 +146,9 @@ describe("OrgDashboardPage", () => {
 
     render(<OrgDashboardPage />);
 
-    expect(screen.getByText("Loading dashboard...")).toBeInTheDocument();
+    // Check for skeleton loaders
+    const skeletons = screen.getAllByTestId("metric-card-skeleton");
+    expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("should redirect to sign-in when not authenticated", async () => {
@@ -198,7 +218,7 @@ describe("OrgDashboardPage", () => {
       org: { id: mockOrgId, name: "Test Org", slug: "test-org" },
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: async () => mockDashboardData,
     });
@@ -212,12 +232,13 @@ describe("OrgDashboardPage", () => {
     expect(screen.getByText("Create Club")).toBeInTheDocument();
     expect(screen.getByText("Invite Club Admin")).toBeInTheDocument();
 
-    // Check links point to correct URLs
+    // Check create club link points to correct URL
     const createClubLink = screen.getByText("Create Club").closest("a");
     expect(createClubLink).toHaveAttribute("href", `/admin/orgs/${mockOrgId}/clubs/new`);
 
-    const inviteAdminLink = screen.getByText("Invite Club Admin").closest("a");
-    expect(inviteAdminLink).toHaveAttribute("href", `/admin/orgs/${mockOrgId}/admins/invite`);
+    // Check invite admin is a button (modal trigger, not a link)
+    const inviteAdminButton = screen.getByText("Invite Club Admin").closest("button");
+    expect(inviteAdminButton).toBeInTheDocument();
   });
 
   it("should display navigation links to management pages", async () => {

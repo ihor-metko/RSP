@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { PageHeader, Badge, Card, Tooltip, Button, Modal } from "@/components/ui";
+import { PageHeader, Badge, Card, Tooltip, Button } from "@/components/ui";
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { useListController, useDeferredLoading } from "@/hooks";
 import {
@@ -22,6 +22,8 @@ import {
 } from "@/components/list-controls";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { CreateAdminModal } from "@/components/admin/admin-wizard";
+import type { CreateAdminWizardConfig } from "@/types/adminWizard";
 
 import "./page.css";
 
@@ -168,8 +170,8 @@ export default function AdminUsersPage() {
   const totalCount = pagination?.totalCount || 0;
   const totalPages = pagination?.totalPages || 0;
 
-  // State for Create User modal
-  const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
+  // State for Create Admin modal
+  const [isCreateAdminModalOpen, setIsCreateAdminModalOpen] = useState(false);
 
   // Error key for translated messages
   const [errorKey, setErrorKey] = useState<string>("");
@@ -236,13 +238,51 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleOpenCreateUserModal = () => {
-    setIsCreateUserModalOpen(true);
+  const handleOpenCreateAdminModal = () => {
+    setIsCreateAdminModalOpen(true);
   };
 
-  const handleCloseCreateUserModal = () => {
-    setIsCreateUserModalOpen(false);
+  const handleCloseCreateAdminModal = () => {
+    setIsCreateAdminModalOpen(false);
   };
+
+  // Get wizard configuration based on user role
+  const getWizardConfig = useCallback((): CreateAdminWizardConfig => {
+    const adminStatus = useUserStore.getState().adminStatus;
+
+    if (adminStatus?.adminType === "root_admin") {
+      // Root admin can create both org and club admins
+      return {
+        context: "root",
+        allowedRoles: ["ORGANIZATION_ADMIN", "CLUB_ADMIN"],
+        onSuccess: (userId) => {
+          // Refresh users list after successful creation
+          fetchUsers();
+          router.push(`/admin/users/${userId}`);
+        },
+      };
+    } else if (adminStatus?.adminType === "organization_admin" && adminStatus.managedIds.length > 0) {
+      // Organization admin can create admins for their organization
+      return {
+        context: "organization",
+        defaultOrgId: adminStatus.managedIds[0],
+        allowedRoles: ["ORGANIZATION_ADMIN", "CLUB_ADMIN"],
+        onSuccess: () => {
+          // Refresh users list after successful creation
+          fetchUsers();
+        },
+      };
+    }
+
+    // Fallback (shouldn't reach here due to auth check)
+    return {
+      context: "root",
+      allowedRoles: ["ORGANIZATION_ADMIN"],
+      onSuccess: () => {
+        fetchUsers();
+      },
+    };
+  }, [fetchUsers, router]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
@@ -323,7 +363,7 @@ export default function AdminUsersPage() {
               resetLabel={t("users.clearFilters")}
               actionButton={
                 hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN"]) && (
-                  <Button onClick={handleOpenCreateUserModal} variant="primary" aria-label={t("users.createUser")} className="im-create-user-btn">
+                  <Button onClick={handleOpenCreateAdminModal} variant="primary" aria-label={t("users.createUser")} className="im-create-user-btn">
                     <UserPlusIcon />
                     {t("users.createUser")}
                   </Button>
@@ -616,17 +656,12 @@ export default function AdminUsersPage() {
         )}
       </section>
 
-      {/* Create User Modal - Implementation of form will be done in a separate task */}
-      <Modal
-        isOpen={isCreateUserModalOpen}
-        onClose={handleCloseCreateUserModal}
-        title={t("users.createUser")}
-      >
-        <div className="im-modal-placeholder">
-          <p>{t("users.createUserPlaceholder")}</p>
-          <p>{t("users.createUserNote")}</p>
-        </div>
-      </Modal>
+      {/* Create Admin Modal */}
+      <CreateAdminModal
+        isOpen={isCreateAdminModalOpen}
+        onClose={handleCloseCreateAdminModal}
+        config={getWizardConfig()}
+      />
     </main>
   );
 }
