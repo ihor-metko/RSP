@@ -49,6 +49,7 @@ export interface Organization {
 export interface CreateOrganizationPayload {
   name: string;
   slug?: string;
+  description?: string;
   contactEmail?: string;
   contactPhone?: string;
   website?: string;
