@@ -35,10 +35,10 @@ export function PaymentAccountForm({
   const t = useTranslations("paymentAccount");
   const [formData, setFormData] = useState<PaymentAccountFormData>({
     provider: PaymentProvider.WAYFORPAY,
-    merchantId: "",
-    secretKey: "",
-    merchantPassword: "",
-    displayName: "",
+    merchantId: "www_arena_one_io",
+    secretKey: "92fe0e1960981cc798a08cb05304738e0feb2c5c",
+    merchantPassword: "744a754a403ec67ce0cc2fe40ced364f",
+    displayName: "Test Account",
     isActive: true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,7 +83,7 @@ export function PaymentAccountForm({
       setError(t("errors.secretKeyRequired"));
       return;
     }
-    
+
     // WayForPay specific validation
     if (formData.provider === PaymentProvider.WAYFORPAY && !formData.merchantPassword?.trim()) {
       setError(t("errors.merchantPasswordRequired"));
