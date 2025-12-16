@@ -32,6 +32,7 @@ import {
   requireRootAdmin, 
   requireAuth,
   requireOrganizationAdmin,
+  requireClubOwner,
   requireClubAdmin,
   requireAnyAdmin
 } from "@/lib/requireRole";
@@ -488,6 +489,40 @@ describe("requireRole universal role-based access control", () => {
     });
   });
 
+  describe("requireClubOwner helper", () => {
+    it("should check club owner role by default", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-123", isRoot: false },
+      });
+      mockClubMembershipFindUnique.mockResolvedValue({
+        role: ClubMembershipRole.CLUB_OWNER,
+      });
+
+      const result = await requireClubOwner("club-123");
+
+      expect(result.authorized).toBe(true);
+      if (result.authorized) {
+        expect(result.userRole).toBe(ClubMembershipRole.CLUB_OWNER);
+      }
+    });
+
+    it("should support custom allowed roles", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-123", isRoot: false },
+      });
+      mockClubMembershipFindUnique.mockResolvedValue({
+        role: ClubMembershipRole.CLUB_OWNER,
+      });
+
+      const result = await requireClubOwner("club-123", [
+        ClubMembershipRole.CLUB_OWNER,
+        ClubMembershipRole.CLUB_ADMIN,
+      ]);
+
+      expect(result.authorized).toBe(true);
+    });
+  });
+
   describe("requireAnyAdmin", () => {
     it("should return 401 when no session exists", async () => {
       mockAuth.mockResolvedValue(null);
@@ -558,9 +593,13 @@ describe("requireRole universal role-based access control", () => {
         user: { id: "club-admin-123", isRoot: false },
       });
       mockMembershipFindMany.mockResolvedValue([]);
-      mockClubMembershipFindMany.mockResolvedValue([
-        { clubId: "club-1" },
-      ] as never[]);
+      // First call checks for CLUB_OWNER (should return empty)
+      // Second call checks for CLUB_ADMIN (should return data)
+      mockClubMembershipFindMany
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          { clubId: "club-1" },
+        ] as never[]);
 
       const request = new Request("http://localhost:3000/api/admin/dashboard", {
         method: "GET",
@@ -573,6 +612,31 @@ describe("requireRole universal role-based access control", () => {
         expect(result.userId).toBe("club-admin-123");
         expect(result.isRoot).toBe(false);
         expect(result.adminType).toBe("club_admin");
+        expect(result.managedIds).toEqual(["club-1"]);
+      }
+    });
+
+    it("should authorize club owners", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "club-owner-123", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      // First call checks for CLUB_OWNER (should return data)
+      mockClubMembershipFindMany.mockResolvedValueOnce([
+        { clubId: "club-1" },
+      ] as never[]);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      const result = await requireAnyAdmin(request);
+
+      expect(result.authorized).toBe(true);
+      if (result.authorized) {
+        expect(result.userId).toBe("club-owner-123");
+        expect(result.isRoot).toBe(false);
+        expect(result.adminType).toBe("club_owner");
         expect(result.managedIds).toEqual(["club-1"]);
       }
     });
@@ -649,7 +713,7 @@ describe("requireRole universal role-based access control", () => {
       });
     });
 
-    it("should query for CLUB_ADMIN role when not an organization admin", async () => {
+    it("should query for CLUB_OWNER then CLUB_ADMIN role when not an organization admin", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "user-123", isRoot: false },
       });
@@ -662,7 +726,19 @@ describe("requireRole universal role-based access control", () => {
 
       await requireAnyAdmin(request);
 
-      expect(mockClubMembershipFindMany).toHaveBeenCalledWith({
+      // Should check for CLUB_OWNER first
+      expect(mockClubMembershipFindMany).toHaveBeenNthCalledWith(1, {
+        where: {
+          userId: "user-123",
+          role: ClubMembershipRole.CLUB_OWNER,
+        },
+        select: {
+          clubId: true,
+        },
+      });
+
+      // Then check for CLUB_ADMIN
+      expect(mockClubMembershipFindMany).toHaveBeenNthCalledWith(2, {
         where: {
           userId: "user-123",
           role: ClubMembershipRole.CLUB_ADMIN,
@@ -671,6 +747,32 @@ describe("requireRole universal role-based access control", () => {
           clubId: true,
         },
       });
+    });
+
+    it("should prioritize club owner over club admin", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "dual-club-admin-123", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      // First call checks for CLUB_OWNER (should return data)
+      // Second call should not be made since club owner is found
+      mockClubMembershipFindMany.mockResolvedValueOnce([
+        { clubId: "club-1" },
+      ] as never[]);
+
+      const request = new Request("http://localhost:3000/api/admin/dashboard", {
+        method: "GET",
+      });
+
+      const result = await requireAnyAdmin(request);
+
+      expect(result.authorized).toBe(true);
+      if (result.authorized) {
+        expect(result.adminType).toBe("club_owner");
+        expect(result.managedIds).toEqual(["club-1"]);
+      }
+      // Should only be called once for CLUB_OWNER, not twice
+      expect(mockClubMembershipFindMany).toHaveBeenCalledTimes(1);
     });
   });
 });
