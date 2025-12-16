@@ -2,11 +2,13 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { OrganizationCreationStepper } from "@/components/admin/OrganizationCreationStepper.client";
 import { useUserStore } from "@/stores/useUserStore";
 
 export default function NewOrganizationPage() {
   const router = useRouter();
+  const t = useTranslations("common");
   
   // Get admin status from user store
   const adminStatus = useUserStore((state) => state.adminStatus);
@@ -33,7 +35,7 @@ export default function NewOrganizationPage() {
   if (isLoadingStore) {
     return (
       <main className="rsp-container p-8">
-        <div className="rsp-loading text-center">Loading...</div>
+        <div className="rsp-loading text-center">{t("loading")}</div>
       </main>
     );
   }

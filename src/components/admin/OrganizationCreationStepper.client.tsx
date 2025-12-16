@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button, Card, Input, Textarea } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { UploadField } from "./UploadField.client";
@@ -71,16 +72,9 @@ const initialFormData: StepperFormData = {
   newOwnerPassword: "",
 };
 
-const STEPS = [
-  { id: 1, label: "Basic Info" },
-  { id: 2, label: "Address" },
-  { id: 3, label: "Contacts" },
-  { id: 4, label: "Images" },
-  { id: 5, label: "Owner" },
-];
-
 export function OrganizationCreationStepper() {
   const router = useRouter();
+  const t = useTranslations("organizations.stepper");
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<StepperFormData>(initialFormData);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -89,6 +83,14 @@ export function OrganizationCreationStepper() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const createOrganization = useOrganizationStore((state) => state.createOrganization);
+
+  const STEPS = [
+    { id: 1, label: t("stepBasicInfo") },
+    { id: 2, label: t("stepAddress") },
+    { id: 3, label: t("stepContacts") },
+    { id: 4, label: t("stepImages") },
+    { id: 5, label: t("stepOwner") },
+  ];
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -119,42 +121,42 @@ export function OrganizationCreationStepper() {
     if (step === 1) {
       // Step 1: Basic Information & Description (mandatory)
       if (!formData.name.trim()) {
-        errors.name = "Organization name is required";
+        errors.name = t("validation.nameRequired");
       }
       if (!formData.description.trim()) {
-        errors.description = "Description is required";
+        errors.description = t("validation.descriptionRequired");
       }
     }
 
     if (step === 2) {
       // Step 2: Organization Address (mandatory with map)
       if (!formData.country.trim()) {
-        errors.country = "Country is required";
+        errors.country = t("validation.countryRequired");
       }
       if (!formData.city.trim()) {
-        errors.city = "City is required";
+        errors.city = t("validation.cityRequired");
       }
       if (!formData.street.trim()) {
-        errors.street = "Street is required";
+        errors.street = t("validation.streetRequired");
       }
       if (!formData.latitude.trim()) {
-        errors.latitude = "Latitude is required for map location";
+        errors.latitude = t("validation.latitudeRequired");
       } else if (isNaN(parseFloat(formData.latitude))) {
-        errors.latitude = "Latitude must be a valid number";
+        errors.latitude = t("validation.latitudeInvalid");
       } else {
         const lat = parseFloat(formData.latitude);
         if (lat < -90 || lat > 90) {
-          errors.latitude = "Latitude must be between -90 and 90";
+          errors.latitude = t("validation.latitudeRange");
         }
       }
       if (!formData.longitude.trim()) {
-        errors.longitude = "Longitude is required for map location";
+        errors.longitude = t("validation.longitudeRequired");
       } else if (isNaN(parseFloat(formData.longitude))) {
-        errors.longitude = "Longitude must be a valid number";
+        errors.longitude = t("validation.longitudeInvalid");
       } else {
         const lng = parseFloat(formData.longitude);
         if (lng < -180 || lng > 180) {
-          errors.longitude = "Longitude must be between -180 and 180";
+          errors.longitude = t("validation.longitudeRange");
         }
       }
     }
@@ -162,42 +164,42 @@ export function OrganizationCreationStepper() {
     // Step 3: Contacts & Website / Social Media (optional)
     if (step === 3) {
       if (formData.contactEmail && !formData.contactEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-        errors.contactEmail = "Invalid email format";
+        errors.contactEmail = t("validation.emailInvalid");
       }
     }
 
     // Step 4: Images & Logo (heroImage mandatory, logo optional)
     if (step === 4) {
       if (!formData.heroImage) {
-        errors.heroImage = "Background image is required";
+        errors.heroImage = t("validation.backgroundRequired");
       }
     }
 
     // Step 5: Owner assignment (optional, but if choosing to assign, validate fields)
     if (step === 5 && formData.assignOwner) {
       if (formData.ownerType === "existing" && !formData.existingUserId) {
-        errors.existingUserId = "Please select a user";
+        errors.existingUserId = t("validation.userRequired");
       }
       if (formData.ownerType === "new") {
         if (!formData.newOwnerName.trim()) {
-          errors.newOwnerName = "Name is required";
+          errors.newOwnerName = t("validation.nameFieldRequired");
         }
         if (!formData.newOwnerEmail.trim()) {
-          errors.newOwnerEmail = "Email is required";
+          errors.newOwnerEmail = t("validation.emailFieldRequired");
         } else if (!formData.newOwnerEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-          errors.newOwnerEmail = "Invalid email format";
+          errors.newOwnerEmail = t("validation.emailInvalid");
         }
         if (!formData.newOwnerPassword.trim()) {
-          errors.newOwnerPassword = "Password is required";
+          errors.newOwnerPassword = t("validation.passwordRequired");
         } else if (formData.newOwnerPassword.length < 8) {
-          errors.newOwnerPassword = "Password must be at least 8 characters";
+          errors.newOwnerPassword = t("validation.passwordMinLength");
         }
       }
     }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [formData]);
+  }, [formData, t]);
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
@@ -229,20 +231,20 @@ export function OrganizationCreationStepper() {
 
     // Final validation - check all required steps
     if (!formData.name.trim() || !formData.description.trim()) {
-      setError("Basic information is required");
+      setError(t("errors.basicInfoRequired"));
       setCurrentStep(1);
       return;
     }
 
     if (!formData.country.trim() || !formData.city.trim() || !formData.street.trim() || 
         !formData.latitude.trim() || !formData.longitude.trim()) {
-      setError("Address and location are required");
+      setError(t("errors.addressRequired"));
       setCurrentStep(2);
       return;
     }
 
     if (!formData.heroImage) {
-      setError("Background image is required");
+      setError(t("validation.backgroundRequired"));
       setCurrentStep(4);
       return;
     }
@@ -326,14 +328,14 @@ export function OrganizationCreationStepper() {
 
           if (!assignResponse.ok) {
             const errorData = await assignResponse.json();
-            throw new Error(errorData.error || "Failed to assign owner");
+            throw new Error(errorData.error || t("errors.assignOwnerFailed"));
           }
 
-          showToast("success", "Organization created and owner assigned successfully!");
+          showToast("success", t("success.createdWithOwner"));
         } catch (ownerErr) {
           // Organization was created, but owner assignment failed
-          const ownerMessage = ownerErr instanceof Error ? ownerErr.message : "Failed to assign owner";
-          showToast("error", `Organization created, but owner assignment failed: ${ownerMessage}`);
+          const ownerMessage = ownerErr instanceof Error ? ownerErr.message : t("errors.assignOwnerFailed");
+          showToast("error", t("success.createdOwnerFailed", { message: ownerMessage }));
           
           // Still redirect to the organization page
           setTimeout(() => {
@@ -342,7 +344,7 @@ export function OrganizationCreationStepper() {
           return;
         }
       } else {
-        showToast("success", "Organization created successfully!");
+        showToast("success", t("success.created"));
       }
 
       // Redirect to the organization detail page
@@ -350,13 +352,13 @@ export function OrganizationCreationStepper() {
         router.push(`/admin/organizations/${organization.id}`);
       }, 1500);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create organization";
+      const message = err instanceof Error ? err.message : t("errors.createFailed");
       
       // Check for slug conflict
       if (message.includes("slug")) {
-        setFieldErrors({ slug: "This slug is already in use" });
+        setFieldErrors({ slug: t("errors.slugInUse") });
         setCurrentStep(1);
-        setError("Slug conflict: Please choose a different slug");
+        setError(t("errors.slugConflict"));
       } else {
         setError(message);
       }
@@ -432,19 +434,19 @@ export function OrganizationCreationStepper() {
         // Step 1: Basic Information & Description
         return (
           <Card className="im-stepper-section">
-            <h2 className="im-stepper-section-title">Basic Information & Description</h2>
+            <h2 className="im-stepper-section-title">{t("basicInfoTitle")}</h2>
             <p className="im-stepper-section-description">
-              Enter the organization name and a short description or bio. This step is mandatory.
+              {t("basicInfoDescription")}
             </p>
             <div className="im-step-content">
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <Input
-                    label="Organization Name *"
+                    label={t("organizationName")}
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="Enter organization name"
+                    placeholder={t("organizationNamePlaceholder")}
                     disabled={isSubmitting}
                   />
                   {fieldErrors.name && (
@@ -456,15 +458,15 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <Input
-                    label="Slug (optional)"
+                    label={t("slugOptional")}
                     name="slug"
                     value={formData.slug}
                     onChange={handleInputChange}
-                    placeholder="organization-slug"
+                    placeholder={t("slugPlaceholder")}
                     disabled={isSubmitting}
                   />
                   <span className="im-stepper-field-hint">
-                    Auto-generated from name if empty
+                    {t("slugHintAuto")}
                   </span>
                   {fieldErrors.slug && (
                     <span className="im-stepper-field-error">{fieldErrors.slug}</span>
@@ -475,11 +477,11 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <Textarea
-                    label="Short Description / Bio *"
+                    label={t("shortDescription")}
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
-                    placeholder="Describe the organization..."
+                    placeholder={t("descriptionPlaceholder")}
                     disabled={isSubmitting}
                     rows={4}
                   />
@@ -496,19 +498,19 @@ export function OrganizationCreationStepper() {
         // Step 2: Organization Address
         return (
           <Card className="im-stepper-section">
-            <h2 className="im-stepper-section-title">Organization Address</h2>
+            <h2 className="im-stepper-section-title">{t("addressTitle")}</h2>
             <p className="im-stepper-section-description">
-              Provide the organization&apos;s address with map coordinates for accurate location. All fields are mandatory.
+              {t("addressDescription")}
             </p>
             <div className="im-step-content">
               <div className="im-stepper-row im-stepper-row--two">
                 <div className="im-stepper-field">
                   <Input
-                    label="Country *"
+                    label={t("country")}
                     name="country"
                     value={formData.country}
                     onChange={handleInputChange}
-                    placeholder="Country"
+                    placeholder={t("countryPlaceholder")}
                     disabled={isSubmitting}
                   />
                   {fieldErrors.country && (
@@ -517,11 +519,11 @@ export function OrganizationCreationStepper() {
                 </div>
                 <div className="im-stepper-field">
                   <Input
-                    label="City *"
+                    label={t("city")}
                     name="city"
                     value={formData.city}
                     onChange={handleInputChange}
-                    placeholder="City"
+                    placeholder={t("cityPlaceholder")}
                     disabled={isSubmitting}
                   />
                   {fieldErrors.city && (
@@ -533,11 +535,11 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row im-stepper-row--two">
                 <div className="im-stepper-field">
                   <Input
-                    label="Street *"
+                    label={t("street")}
                     name="street"
                     value={formData.street}
                     onChange={handleInputChange}
-                    placeholder="Street address"
+                    placeholder={t("streetPlaceholder")}
                     disabled={isSubmitting}
                   />
                   {fieldErrors.street && (
@@ -546,11 +548,11 @@ export function OrganizationCreationStepper() {
                 </div>
                 <div className="im-stepper-field">
                   <Input
-                    label="Postal Code"
+                    label={t("postalCode")}
                     name="postalCode"
                     value={formData.postalCode}
                     onChange={handleInputChange}
-                    placeholder="Postal code"
+                    placeholder={t("postalCodePlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -559,11 +561,11 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row im-stepper-row--two">
                 <div className="im-stepper-field">
                   <Input
-                    label="Latitude *"
+                    label={t("latitude")}
                     name="latitude"
                     value={formData.latitude}
                     onChange={handleInputChange}
-                    placeholder="50.4501"
+                    placeholder={t("latitudePlaceholder")}
                     disabled={isSubmitting}
                     type="number"
                     step="any"
@@ -574,11 +576,11 @@ export function OrganizationCreationStepper() {
                 </div>
                 <div className="im-stepper-field">
                   <Input
-                    label="Longitude *"
+                    label={t("longitude")}
                     name="longitude"
                     value={formData.longitude}
                     onChange={handleInputChange}
-                    placeholder="30.5234"
+                    placeholder={t("longitudePlaceholder")}
                     disabled={isSubmitting}
                     type="number"
                     step="any"
@@ -591,7 +593,7 @@ export function OrganizationCreationStepper() {
 
               <div className="im-stepper-row">
                 <span className="im-stepper-field-hint">
-                  💡 Tip: Use a map service like Google Maps to find the exact latitude and longitude coordinates for accurate location.
+                  {t("mapTip")}
                 </span>
               </div>
             </div>
@@ -602,20 +604,20 @@ export function OrganizationCreationStepper() {
         // Step 3: Contacts & Website / Social Media
         return (
           <Card className="im-stepper-section">
-            <h2 className="im-stepper-section-title">Contacts & Website / Social Media</h2>
+            <h2 className="im-stepper-section-title">{t("contactsTitle")}</h2>
             <p className="im-stepper-section-description">
-              Add contact information, website, and social media links. All fields are optional.
+              {t("contactsDescription")}
             </p>
             <div className="im-step-content">
               <div className="im-stepper-row im-stepper-row--two">
                 <div className="im-stepper-field">
                   <Input
-                    label="Organization Email"
+                    label={t("organizationEmail")}
                     name="contactEmail"
                     type="email"
                     value={formData.contactEmail}
                     onChange={handleInputChange}
-                    placeholder="contact@organization.com"
+                    placeholder={t("organizationEmailPlaceholder")}
                     disabled={isSubmitting}
                   />
                   {fieldErrors.contactEmail && (
@@ -624,11 +626,11 @@ export function OrganizationCreationStepper() {
                 </div>
                 <div className="im-stepper-field">
                   <Input
-                    label="Phone Number"
+                    label={t("phoneNumber")}
                     name="contactPhone"
                     value={formData.contactPhone}
                     onChange={handleInputChange}
-                    placeholder="+1 234 567 8900"
+                    placeholder={t("phoneNumberPlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -637,11 +639,11 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <Input
-                    label="Website"
+                    label={t("website")}
                     name="website"
                     value={formData.website}
                     onChange={handleInputChange}
-                    placeholder="https://www.organization.com"
+                    placeholder={t("websitePlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -650,11 +652,11 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <Input
-                    label="Facebook"
+                    label={t("facebook")}
                     name="facebook"
                     value={formData.facebook}
                     onChange={handleInputChange}
-                    placeholder="https://facebook.com/yourorganization"
+                    placeholder={t("facebookPlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -663,11 +665,11 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <Input
-                    label="Instagram"
+                    label={t("instagram")}
                     name="instagram"
                     value={formData.instagram}
                     onChange={handleInputChange}
-                    placeholder="https://instagram.com/yourorganization"
+                    placeholder={t("instagramPlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -676,11 +678,11 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <Input
-                    label="LinkedIn"
+                    label={t("linkedin")}
                     name="linkedin"
                     value={formData.linkedin}
                     onChange={handleInputChange}
-                    placeholder="https://linkedin.com/company/yourorganization"
+                    placeholder={t("linkedinPlaceholder")}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -693,19 +695,19 @@ export function OrganizationCreationStepper() {
         // Step 4: Images & Logo
         return (
           <Card className="im-stepper-section">
-            <h2 className="im-stepper-section-title">Images & Logo</h2>
+            <h2 className="im-stepper-section-title">{t("imagesTitle")}</h2>
             <p className="im-stepper-section-description">
-              Upload the organization logo and background image. Background image is mandatory.
+              {t("imagesDescription")}
             </p>
             <div className="im-step-content">
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <UploadField
-                    label="Organization Logo"
+                    label={t("organizationLogo")}
                     value={formData.logo}
                     onChange={(file) => setFormData((prev) => ({ ...prev, logo: file }))}
                     aspectRatio="square"
-                    helperText="Square image recommended for best display"
+                    helperText={t("logoHelperText")}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -714,12 +716,12 @@ export function OrganizationCreationStepper() {
               <div className="im-stepper-row">
                 <div className="im-stepper-field im-stepper-field--full">
                   <UploadField
-                    label="Background Image / Banner"
+                    label={t("backgroundImage")}
                     value={formData.heroImage}
                     onChange={(file) => setFormData((prev) => ({ ...prev, heroImage: file }))}
                     aspectRatio="wide"
                     required
-                    helperText="Wide image recommended for banner display"
+                    helperText={t("backgroundHelperText")}
                     disabled={isSubmitting}
                   />
                   {fieldErrors.heroImage && (
@@ -735,9 +737,9 @@ export function OrganizationCreationStepper() {
         // Step 5: Assign Owner / SuperAdmin
         return (
           <Card className="im-stepper-section">
-            <h2 className="im-stepper-section-title">Assign Owner / SuperAdmin</h2>
+            <h2 className="im-stepper-section-title">{t("ownerTitle")}</h2>
             <p className="im-stepper-section-description">
-              Choose an existing user or create a new one to be the organization owner. You can skip this step if the owner is not yet determined.
+              {t("ownerDescription")}
             </p>
             <div className="im-step-content">
               <div className="im-stepper-row">
@@ -750,7 +752,7 @@ export function OrganizationCreationStepper() {
                       disabled={isSubmitting}
                       style={{ marginRight: "0.5rem" }}
                     />
-                    Assign an owner to this organization
+                    {t("assignOwnerCheckbox")}
                   </label>
                 </div>
               </div>
@@ -759,7 +761,7 @@ export function OrganizationCreationStepper() {
                 <>
                   <div className="im-stepper-row">
                     <div className="im-stepper-field im-stepper-field--full">
-                      <label className="im-stepper-label">Owner Type</label>
+                      <label className="im-stepper-label">{t("ownerType")}</label>
                       <div style={{ display: "flex", gap: "1rem", marginTop: "0.5rem" }}>
                         <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                           <input
@@ -770,7 +772,7 @@ export function OrganizationCreationStepper() {
                             onChange={(e) => setFormData((prev) => ({ ...prev, ownerType: e.target.value as "existing" | "new" }))}
                             disabled={isSubmitting}
                           />
-                          Existing User
+                          {t("existingUserOption")}
                         </label>
                         <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                           <input
@@ -781,7 +783,7 @@ export function OrganizationCreationStepper() {
                             onChange={(e) => setFormData((prev) => ({ ...prev, ownerType: e.target.value as "existing" | "new" }))}
                             disabled={isSubmitting}
                           />
-                          Create New User
+                          {t("newUserOption")}
                         </label>
                       </div>
                     </div>
@@ -791,14 +793,14 @@ export function OrganizationCreationStepper() {
                     <div className="im-stepper-row">
                       <div className="im-stepper-field im-stepper-field--full">
                         <Input
-                          label="Search User *"
+                          label={t("searchUser")}
                           value={userSearchQuery}
                           onChange={(e) => handleUserSearchChange(e.target.value)}
-                          placeholder="Type name or email to search..."
+                          placeholder={t("searchUserPlaceholder")}
                           disabled={isSubmitting}
                         />
                         {isSearchingUsers && (
-                          <span className="im-stepper-field-hint">Searching...</span>
+                          <span className="im-stepper-field-hint">{t("searching")}</span>
                         )}
                         {userSearchResults.length > 0 && (
                           <div style={{ 
@@ -824,7 +826,7 @@ export function OrganizationCreationStepper() {
                                   color: formData.existingUserId === user.id ? "white" : "inherit"
                                 }}
                               >
-                                <div style={{ fontWeight: 500 }}>{user.name || "No name"}</div>
+                                <div style={{ fontWeight: 500 }}>{user.name || t("noNameUser")}</div>
                                 <div style={{ fontSize: "0.875rem", opacity: 0.8 }}>{user.email}</div>
                               </div>
                             ))}
@@ -840,11 +842,11 @@ export function OrganizationCreationStepper() {
                       <div className="im-stepper-row">
                         <div className="im-stepper-field im-stepper-field--full">
                           <Input
-                            label="Full Name *"
+                            label={t("fullName")}
                             name="newOwnerName"
                             value={formData.newOwnerName}
                             onChange={handleInputChange}
-                            placeholder="John Doe"
+                            placeholder={t("fullNamePlaceholder")}
                             disabled={isSubmitting}
                           />
                           {fieldErrors.newOwnerName && (
@@ -856,12 +858,12 @@ export function OrganizationCreationStepper() {
                       <div className="im-stepper-row">
                         <div className="im-stepper-field im-stepper-field--full">
                           <Input
-                            label="Email *"
+                            label={t("emailField")}
                             name="newOwnerEmail"
                             type="email"
                             value={formData.newOwnerEmail}
                             onChange={handleInputChange}
-                            placeholder="john@example.com"
+                            placeholder={t("emailPlaceholder")}
                             disabled={isSubmitting}
                           />
                           {fieldErrors.newOwnerEmail && (
@@ -873,12 +875,12 @@ export function OrganizationCreationStepper() {
                       <div className="im-stepper-row">
                         <div className="im-stepper-field im-stepper-field--full">
                           <Input
-                            label="Password *"
+                            label={t("passwordField")}
                             name="newOwnerPassword"
                             type="password"
                             value={formData.newOwnerPassword}
                             onChange={handleInputChange}
-                            placeholder="Minimum 8 characters"
+                            placeholder={t("passwordPlaceholder")}
                             disabled={isSubmitting}
                           />
                           {fieldErrors.newOwnerPassword && (
@@ -926,7 +928,7 @@ export function OrganizationCreationStepper() {
 
       {/* Progress Text */}
       <p className="im-stepper-progress">
-        Step {currentStep} of {STEPS.length}
+        {t("stepProgress", { current: currentStep, total: STEPS.length })}
       </p>
 
       {/* Error Alert */}
@@ -950,7 +952,7 @@ export function OrganizationCreationStepper() {
             onClick={handleCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
         <div className="im-stepper-navigation-right">
@@ -961,7 +963,7 @@ export function OrganizationCreationStepper() {
               onClick={handleBack}
               disabled={isSubmitting}
             >
-              Back
+              {t("back")}
             </Button>
           )}
           {currentStep < STEPS.length ? (
@@ -970,7 +972,7 @@ export function OrganizationCreationStepper() {
               onClick={handleNext}
               disabled={isSubmitting}
             >
-              Next
+              {t("next")}
             </Button>
           ) : (
             <Button
@@ -978,7 +980,7 @@ export function OrganizationCreationStepper() {
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Creating..." : "Create Organization"}
+              {isSubmitting ? t("creating") : t("createOrganizationButton")}
             </Button>
           )}
         </div>
