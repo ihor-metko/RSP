@@ -10,7 +10,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
 import type { MaskedPaymentAccount } from "@/types/paymentAccount";
-import { PaymentProvider, PaymentAccountStatus } from "@/types/paymentAccount";
+import { PaymentProvider, PaymentAccountStatus, PaymentAccountVerificationLevel } from "@/types/paymentAccount";
 import "./page.css";
 
 interface ClubWithAccounts {
@@ -385,6 +385,45 @@ export default function UnifiedPaymentAccountsPage() {
     }
   };
 
+  const handleVerifyReal = async (account: MaskedPaymentAccount, clubId?: string) => {
+    if (!user) return;
+
+    try {
+      let url: string;
+      if (account.scope === "ORGANIZATION" && orgId) {
+        url = `/api/admin/organizations/${orgId}/payment-accounts/${account.id}/verify-real`;
+      } else if (account.scope === "CLUB" && (clubId || selectedClubId)) {
+        const targetClubId = clubId || selectedClubId;
+        url = `/api/admin/clubs/${targetClubId}/payment-accounts/${account.id}/verify-real`;
+      } else {
+        throw new Error("Invalid scope or missing ID");
+      }
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to initiate verification payment");
+      }
+
+      const data = await response.json();
+      
+      // Show success message
+      showToast(t("paymentAccount.messages.verificationInitiated"), "success");
+      
+      // Redirect to WayForPay checkout
+      if (data.verificationPayment?.checkoutUrl) {
+        window.location.href = data.verificationPayment.checkoutUrl;
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to initiate real payment verification";
+      showToast(errorMessage, "error");
+    }
+  };
+
   const toggleClubExpanded = (clubId: string) => {
     setClubAccounts(prev =>
       prev.map(club =>
@@ -460,7 +499,9 @@ export default function UnifiedPaymentAccountsPage() {
             onEdit={(account) => handleEditAccount(account)}
             onDisable={(account) => handleDisableAccount(account)}
             onRetry={(account) => handleRetryVerification(account)}
+            onVerifyReal={(account) => handleVerifyReal(account)}
             canRetry={isOrgOwner}
+            canVerifyReal={isOrgOwner}
             scope="ORGANIZATION"
             showScopeInfo={false}
           />
@@ -502,7 +543,9 @@ export default function UnifiedPaymentAccountsPage() {
                     onEdit={(account) => handleEditAccount(account, clubData.clubId)}
                     onDisable={(account) => handleDisableAccount(account, clubData.clubId)}
                     onRetry={(account) => handleRetryVerification(account, clubData.clubId)}
+                    onVerifyReal={(account) => handleVerifyReal(account, clubData.clubId)}
                     canRetry={true}
+                    canVerifyReal={true}
                     scope="CLUB"
                     showScopeInfo
                   />

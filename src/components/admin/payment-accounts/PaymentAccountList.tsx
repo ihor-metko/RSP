@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Button, Table, Badge } from "@/components/ui";
 import type { TableColumn } from "@/components/ui/Table";
-import { MaskedPaymentAccount, PaymentAccountStatus } from "@/types/paymentAccount";
+import { MaskedPaymentAccount, PaymentAccountStatus, PaymentAccountVerificationLevel } from "@/types/paymentAccount";
 import "./PaymentAccountList.css";
 
 interface PaymentAccountListProps {
@@ -13,9 +13,11 @@ interface PaymentAccountListProps {
   onEdit: (account: MaskedPaymentAccount) => void;
   onDisable: (account: MaskedPaymentAccount) => void;
   onRetry?: (account: MaskedPaymentAccount) => void;
+  onVerifyReal?: (account: MaskedPaymentAccount) => void; // Initiate real payment verification
   scope: "ORGANIZATION" | "CLUB";
   showScopeInfo?: boolean;
   canRetry?: boolean; // Whether user has permission to retry verification
+  canVerifyReal?: boolean; // Whether user can initiate real payment verification
 }
 
 export function PaymentAccountList({
@@ -25,16 +27,20 @@ export function PaymentAccountList({
   onEdit,
   onDisable,
   onRetry,
+  onVerifyReal,
   scope,
   showScopeInfo = false,
   canRetry = false,
+  canVerifyReal = false,
 }: PaymentAccountListProps) {
   const t = useTranslations("paymentAccount");
 
-  // Helper to get badge variant based on verification status
+  // Helper to get badge variant based on technical verification status
   const getStatusVariant = (status: PaymentAccountStatus): "success" | "warning" | "danger" | "default" => {
     switch (status) {
-      case PaymentAccountStatus.ACTIVE:
+      case PaymentAccountStatus.VERIFIED:
+        return "success";
+      case PaymentAccountStatus.TECHNICAL_OK:
         return "success";
       case PaymentAccountStatus.PENDING:
         return "warning";
@@ -50,8 +56,10 @@ export function PaymentAccountList({
   // Helper to get status display text
   const getStatusText = (status: PaymentAccountStatus): string => {
     switch (status) {
-      case PaymentAccountStatus.ACTIVE:
-        return t("verificationStatus.active");
+      case PaymentAccountStatus.VERIFIED:
+        return t("verificationStatus.verified");
+      case PaymentAccountStatus.TECHNICAL_OK:
+        return t("verificationStatus.technicalOk");
       case PaymentAccountStatus.PENDING:
         return t("verificationStatus.pending");
       case PaymentAccountStatus.INVALID:
@@ -61,6 +69,18 @@ export function PaymentAccountList({
       default:
         return status;
     }
+  };
+
+  // Helper to get verification level badge variant
+  const getVerificationLevelVariant = (level: PaymentAccountVerificationLevel): "success" | "warning" => {
+    return level === PaymentAccountVerificationLevel.VERIFIED ? "success" : "warning";
+  };
+
+  // Helper to get verification level display text
+  const getVerificationLevelText = (level: PaymentAccountVerificationLevel): string => {
+    return level === PaymentAccountVerificationLevel.VERIFIED
+      ? t("verificationLevel.verified")
+      : t("verificationLevel.notVerified");
   };
 
   const columns: TableColumn<MaskedPaymentAccount>[] = [
@@ -88,7 +108,7 @@ export function PaymentAccountList({
     },
     {
       key: "status",
-      header: t("table.verificationStatus"),
+      header: t("table.technicalStatus"),
       render: (account) => (
         <div className="im-status-cell">
           <Badge variant={getStatusVariant(account.status)}>
@@ -97,6 +117,23 @@ export function PaymentAccountList({
           {account.status === PaymentAccountStatus.INVALID && account.verificationError && (
             <span className="im-error-hint" title={account.verificationError}>
               ⚠️
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "verificationLevel",
+      header: t("table.verificationLevel"),
+      render: (account) => (
+        <div className="im-verification-level-cell">
+          <Badge variant={getVerificationLevelVariant(account.verificationLevel)}>
+            {account.verificationLevel === PaymentAccountVerificationLevel.VERIFIED ? "🟢" : "🟡"}{" "}
+            {getVerificationLevelText(account.verificationLevel)}
+          </Badge>
+          {account.verificationLevel === PaymentAccountVerificationLevel.NOT_VERIFIED && (
+            <span className="im-helper-text" title={t("verificationLevel.helpText")}>
+              ℹ️
             </span>
           )}
         </div>
@@ -115,12 +152,23 @@ export function PaymentAccountList({
           <Button size="small" variant="outline" onClick={() => onEdit(account)}>
             {t("actions.edit")}
           </Button>
+          {/* Show "Verify Payment Account" button if not verified and technically OK or pending */}
+          {account.verificationLevel === PaymentAccountVerificationLevel.NOT_VERIFIED &&
+            (account.status === PaymentAccountStatus.TECHNICAL_OK || account.status === PaymentAccountStatus.PENDING) &&
+            canVerifyReal &&
+            onVerifyReal && (
+              <Button size="small" variant="primary" onClick={() => onVerifyReal(account)}>
+                {t("actions.verifyReal")}
+              </Button>
+            )}
+          {/* Show "Retry Technical Verification" button if invalid */}
           {account.status === PaymentAccountStatus.INVALID && canRetry && onRetry && (
             <Button size="small" variant="primary" onClick={() => onRetry(account)}>
               {t("actions.retryVerification")}
             </Button>
           )}
-          {account.status === PaymentAccountStatus.ACTIVE && (
+          {/* Show disable button only for verified accounts */}
+          {account.verificationLevel === PaymentAccountVerificationLevel.VERIFIED && (
             <Button size="small" variant="danger" onClick={() => onDisable(account)}>
               {t("actions.disable")}
             </Button>

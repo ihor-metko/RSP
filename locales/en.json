@@ -1697,7 +1697,9 @@
       "displayName": "Name",
       "scope": "Level",
       "status": "Status",
+      "technicalStatus": "Technical Status",
       "verificationStatus": "Verification Status",
+      "verificationLevel": "Real Verification",
       "lastUpdated": "Last Updated",
       "actions": "Actions"
     },
@@ -1718,16 +1720,23 @@
       "notConfigured": "No payment account configured for this club"
     },
     "verificationStatus": {
-      "active": "Active",
+      "verified": "Verified",
+      "technicalOk": "Technical OK",
       "pending": "Verifying...",
       "invalid": "Invalid credentials",
       "disabled": "Disabled"
+    },
+    "verificationLevel": {
+      "verified": "Verified",
+      "notVerified": "Pending verification",
+      "helpText": "Real payment verification required. Verification will perform a minimal test payment (1 UAH). Funds go directly to your account."
     },
     "actions": {
       "add": "Add Payment Account",
       "edit": "Edit",
       "disable": "Disable",
-      "retryVerification": "Retry Verification"
+      "retryVerification": "Retry Technical Verification",
+      "verifyReal": "Verify Payment Account"
     },
     "priorityInfo": {
       "title": "Payment Account Priority",
@@ -1744,7 +1753,10 @@
       "addSuccess": "Payment account added successfully",
       "updateSuccess": "Payment account updated successfully",
       "disableSuccess": "Payment account disabled successfully",
-      "verificationStarted": "Verification started. Please wait..."
+      "verificationStarted": "Verification started. Please wait...",
+      "verificationInitiated": "Payment verification initiated. Redirecting to payment page...",
+      "verificationComplete": "Payment account verified successfully!",
+      "verificationFailed": "Verification failed. Please try again."
     }
   }
 }
