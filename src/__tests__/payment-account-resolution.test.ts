@@ -12,7 +12,7 @@ import {
   resolvePaymentAccountForBooking,
   getPaymentAccountStatus,
 } from "@/services/paymentAccountService";
-import { PaymentProvider, PaymentAccountScope } from "@/types/paymentAccount";
+import { PaymentProvider, PaymentAccountScope, PaymentAccountStatus } from "@/types/paymentAccount";
 import { encrypt } from "@/lib/encryption";
 
 // Mock prisma
@@ -48,8 +48,11 @@ describe("Payment Account Resolution", () => {
         merchantId: encrypt(mockMerchantId),
         secretKey: encrypt(mockSecretKey),
         providerConfig: null,
+        status: PaymentAccountStatus.ACTIVE,
         isActive: true,
         displayName: "Club Payment",
+        lastVerifiedAt: new Date(),
+        verificationError: null,
         createdById: "user-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -81,8 +84,11 @@ describe("Payment Account Resolution", () => {
         merchantId: encrypt(mockMerchantId),
         secretKey: encrypt(mockSecretKey),
         providerConfig: null,
+        status: PaymentAccountStatus.ACTIVE,
         isActive: true,
         displayName: "Org Payment",
+        lastVerifiedAt: new Date(),
+        verificationError: null,
         createdById: "user-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -156,8 +162,11 @@ describe("Payment Account Resolution", () => {
         merchantId: encrypt(mockMerchantId),
         secretKey: encrypt(mockSecretKey),
         providerConfig: null,
+        status: PaymentAccountStatus.ACTIVE,
         isActive: true,
         displayName: "Club Payment",
+        lastVerifiedAt: new Date(),
+        verificationError: null,
         createdById: "user-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -192,8 +201,11 @@ describe("Payment Account Resolution", () => {
         merchantId: encrypt("club-merchant"),
         secretKey: encrypt("club-secret"),
         providerConfig: null,
+        status: PaymentAccountStatus.ACTIVE,
         isActive: true,
         displayName: "Club Payment",
+        lastVerifiedAt: new Date(),
+        verificationError: null,
         createdById: "user-1",
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -215,19 +227,37 @@ describe("Payment Account Resolution", () => {
   });
 
   describe("getPaymentAccountStatus", () => {
-    it("should return configured status with club-level account", async () => {
+    it("should return configured and available status with active club-level account", async () => {
       (prisma.paymentAccount.findFirst as jest.Mock).mockResolvedValueOnce({
         provider: PaymentProvider.WAYFORPAY,
         scope: PaymentAccountScope.CLUB,
+        status: PaymentAccountStatus.ACTIVE,
         displayName: "Club Payment",
       });
 
       const status = await getPaymentAccountStatus(mockClubId);
 
       expect(status.isConfigured).toBe(true);
+      expect(status.isAvailable).toBe(true);
       expect(status.provider).toBe(PaymentProvider.WAYFORPAY);
       expect(status.scope).toBe(PaymentAccountScope.CLUB);
+      expect(status.status).toBe(PaymentAccountStatus.ACTIVE);
       expect(status.displayName).toBe("Club Payment");
+    });
+
+    it("should return configured but not available when account is pending", async () => {
+      (prisma.paymentAccount.findFirst as jest.Mock).mockResolvedValueOnce({
+        provider: PaymentProvider.WAYFORPAY,
+        scope: PaymentAccountScope.CLUB,
+        status: PaymentAccountStatus.PENDING,
+        displayName: "Club Payment",
+      });
+
+      const status = await getPaymentAccountStatus(mockClubId);
+
+      expect(status.isConfigured).toBe(true);
+      expect(status.isAvailable).toBe(false);
+      expect(status.status).toBe(PaymentAccountStatus.PENDING);
     });
 
     it("should return configured status with org-level account", async () => {
@@ -237,6 +267,7 @@ describe("Payment Account Resolution", () => {
         .mockResolvedValueOnce({
           provider: PaymentProvider.LIQPAY,
           scope: PaymentAccountScope.ORGANIZATION,
+          status: PaymentAccountStatus.ACTIVE,
           displayName: "Org Payment",
         });
 
@@ -247,8 +278,10 @@ describe("Payment Account Resolution", () => {
       const status = await getPaymentAccountStatus(mockClubId);
 
       expect(status.isConfigured).toBe(true);
+      expect(status.isAvailable).toBe(true);
       expect(status.provider).toBe(PaymentProvider.LIQPAY);
       expect(status.scope).toBe(PaymentAccountScope.ORGANIZATION);
+      expect(status.status).toBe(PaymentAccountStatus.ACTIVE);
     });
 
     it("should return not configured when no account exists", async () => {
@@ -260,8 +293,10 @@ describe("Payment Account Resolution", () => {
       const status = await getPaymentAccountStatus(mockClubId);
 
       expect(status.isConfigured).toBe(false);
+      expect(status.isAvailable).toBe(false);
       expect(status.provider).toBeNull();
       expect(status.scope).toBeNull();
+      expect(status.status).toBeNull();
       expect(status.displayName).toBeNull();
     });
   });
