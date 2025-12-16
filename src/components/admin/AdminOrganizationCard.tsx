@@ -177,7 +177,7 @@ export function AdminOrganizationCard({
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
             <span className="im-admin-org-meta-value">
-              {organization.clubCount || 0} {(organization.clubCount || 0) === 1 ? t("admin.club") : t("admin.clubs")}
+              {organization.clubCount || 0} {(organization.clubCount || 0) === 1 ? t("admin.club") : t("admin.clubsPlural")}
             </span>
           </div>
 

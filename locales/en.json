@@ -73,7 +73,9 @@
     "totalPrice": "Total Price",
     "remove": "Remove",
     "never": "Never",
-    "viewProfile": "View Profile"
+    "viewProfile": "View Profile",
+    "from": "From",
+    "to": "To"
   },
   "pagination": {
     "showing": "Showing {start} to {end} of {total}",
@@ -240,6 +242,7 @@
   },
   "admin": {
     "club": "Club",
+    "clubsPlural": "Clubs",
     "clubs": {
       "title": "Admin - Clubs",
       "subtitle": "Manage all padel clubs",

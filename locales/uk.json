@@ -73,7 +73,9 @@
     "remove": "Видалити",
     "never": "Ніколи",
     "previous": "Попередня",
-    "next": "Наступна"
+    "next": "Наступна",
+    "from": "Від",
+    "to": "До"
   },
   "pagination": {
     "showing": "Показано з {start} по {end} із {total}",
@@ -240,6 +242,7 @@
   },
   "admin": {
     "club": "Клуб",
+    "clubsPlural": "Клуби",
     "dashboard": {
       "title": "Панель адміністратора",
       "subtitle": "Керування платформою",
