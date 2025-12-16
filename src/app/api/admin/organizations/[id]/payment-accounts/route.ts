@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireOrganizationAdmin, requireRootAdmin } from "@/lib/requireRole";
+import { requireOrganizationAdmin } from "@/lib/requireRole";
 import { auditLog } from "@/lib/auditLog";
 import {
   createPaymentAccount,

@@ -1631,5 +1631,92 @@
   "confirmation": {
     "title": "Confirm Action",
     "confirm": "Confirm"
+  },
+  "paymentAccount": {
+    "breadcrumb": "Payment Accounts",
+    "pageTitle": {
+      "organization": "Organization Payment Accounts",
+      "club": "Club Payment Accounts"
+    },
+    "form": {
+      "addTitle": "Add Payment Account",
+      "editTitle": "Edit Payment Account",
+      "provider": "Payment Provider",
+      "merchantId": "Merchant ID",
+      "secretKey": "Secret Key",
+      "displayName": "Display Name (Optional)",
+      "displayNamePlaceholder": "e.g., Main Account",
+      "isActive": "Active",
+      "isActiveHint": "Only active accounts are used for processing payments",
+      "merchantIdPlaceholder": "Enter merchant ID",
+      "merchantIdPlaceholderEdit": "Enter new merchant ID to update",
+      "secretKeyPlaceholder": "Enter secret key",
+      "secretKeyPlaceholderEdit": "Enter new secret key to update",
+      "providerCannotChange": "Provider cannot be changed after creation",
+      "credentialsEditHint": "Leave blank to keep current credentials. Enter new values to update.",
+      "hintClub": "This payment account will be used for all bookings in this club. Club-level accounts have priority over organization-level accounts.",
+      "hintOrganization": "This payment account will be used as a fallback for clubs that don't have their own payment account configured.",
+      "cancel": "Cancel",
+      "save": "Save",
+      "add": "Add Account",
+      "saving": "Saving..."
+    },
+    "errors": {
+      "merchantIdRequired": "Merchant ID is required",
+      "secretKeyRequired": "Secret Key is required",
+      "submitFailed": "Failed to submit form"
+    },
+    "list": {
+      "title": "Payment Accounts",
+      "account": "account",
+      "accounts": "accounts",
+      "empty": "No payment accounts configured yet",
+      "ariaLabel": "Payment accounts table"
+    },
+    "table": {
+      "provider": "Provider",
+      "displayName": "Name",
+      "scope": "Level",
+      "status": "Status",
+      "lastUpdated": "Last Updated",
+      "actions": "Actions"
+    },
+    "scope": {
+      "club": "Club Level",
+      "organization": "Organization Level"
+    },
+    "status": {
+      "active": "Active",
+      "disabled": "Disabled",
+      "title": "Active Payment Configuration",
+      "provider": "Provider",
+      "source": "Source",
+      "displayName": "Account Name",
+      "clubLevel": "Club Level (Priority)",
+      "organizationLevel": "Organization Level (Fallback)",
+      "fallbackHint": "This club is using the organization-level payment account. Add a club-level account to override this.",
+      "notConfigured": "No payment account configured for this club"
+    },
+    "actions": {
+      "add": "Add Payment Account",
+      "edit": "Edit",
+      "disable": "Disable"
+    },
+    "priorityInfo": {
+      "title": "Payment Account Priority",
+      "clubPriority": "Club-level payment accounts have priority. If no club-level account is active, the organization-level account will be used as a fallback.",
+      "organizationFallback": "Organization-level payment accounts are used as a fallback for clubs that don't have their own payment account configured."
+    },
+    "disableModal": {
+      "title": "Disable Payment Account",
+      "message": "Are you sure you want to disable this payment account? It will no longer be used for processing payments.",
+      "confirm": "Disable",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "addSuccess": "Payment account added successfully",
+      "updateSuccess": "Payment account updated successfully",
+      "disableSuccess": "Payment account disabled successfully"
+    }
   }
 }

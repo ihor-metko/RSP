@@ -54,7 +54,7 @@ export interface PaymentAccount {
  * Masked payment account for frontend display
  * Contains no sensitive information
  */
-export interface MaskedPaymentAccount {
+export interface MaskedPaymentAccount extends Record<string, unknown> {
   id: string;
   provider: PaymentProvider;
   scope: PaymentAccountScope;

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, PageHeader, EntityBanner, MetricCardSkeleton, OrgInfoCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton } from "@/components/ui";
+import { Button, Input, Modal, PageHeader, EntityBanner, MetricCardSkeleton, OrgInfoCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton, IMLink } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
@@ -483,6 +483,11 @@ export default function OrganizationDetailPage() {
             }
             actions={
               <div className="im-org-detail-header-actions">
+                <IMLink href={`/admin/organizations/${orgId}/payment-accounts`}>
+                  <Button variant="outline" disabled={!!org.archivedAt}>
+                    Payment Accounts
+                  </Button>
+                </IMLink>
                 <Button variant="outline" onClick={handleOpenEditModal} disabled={!!org.archivedAt}>
                   {t("common.edit")}
                 </Button>

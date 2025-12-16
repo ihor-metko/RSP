@@ -1,0 +1,116 @@
+.payment-account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.im-form-section {
+  margin-bottom: 1rem;
+}
+
+.im-form-hint {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--im-text-secondary);
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--im-bg-secondary);
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--im-accent);
+}
+
+.im-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.im-form-group--checkbox {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.im-label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--im-text-primary);
+  display: block;
+}
+
+.im-required {
+  color: var(--im-danger);
+  margin-left: 0.25rem;
+}
+
+.im-field-hint {
+  font-size: 0.8125rem;
+  color: var(--im-text-tertiary);
+  font-style: italic;
+}
+
+.im-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  color: var(--im-text-primary);
+}
+
+.im-checkbox-label input[type="checkbox"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  accent-color: var(--im-accent);
+}
+
+.im-error-message {
+  padding: 0.75rem;
+  background: var(--im-danger-bg);
+  color: var(--im-danger);
+  border: 1px solid var(--im-danger);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.im-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--im-border);
+}
+
+.im-form-actions button {
+  min-width: 100px;
+}
+
+.im-select-native {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: var(--im-bg-secondary);
+  border: 1px solid var(--im-border);
+  border-radius: 0.5rem;
+  color: var(--im-text-primary);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.im-select-native:hover:not(:disabled) {
+  border-color: var(--im-accent);
+}
+
+.im-select-native:focus {
+  outline: none;
+  border-color: var(--im-accent);
+  box-shadow: 0 0 0 3px rgba(var(--im-accent-rgb), 0.1);
+}
+
+.im-select-native:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--im-bg-tertiary);
+}

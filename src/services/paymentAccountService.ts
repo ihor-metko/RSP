@@ -357,15 +357,16 @@ export async function deletePaymentAccount(id: string): Promise<void> {
  * @param account - Encrypted payment account from database
  * @returns Resolved payment account with decrypted credentials
  */
-function decryptPaymentAccount(account: PaymentAccount): ResolvedPaymentAccount {
+function decryptPaymentAccount(account: unknown): ResolvedPaymentAccount {
+  const acc = account as PaymentAccount;
   return {
-    id: account.id,
-    provider: account.provider as PaymentProvider,
-    scope: account.scope as PaymentAccountScope,
-    merchantId: decrypt(account.merchantId),
-    secretKey: decrypt(account.secretKey),
-    providerConfig: account.providerConfig ? decryptJSON(account.providerConfig) : null,
-    displayName: account.displayName,
+    id: acc.id,
+    provider: acc.provider as PaymentProvider,
+    scope: acc.scope as PaymentAccountScope,
+    merchantId: decrypt(acc.merchantId),
+    secretKey: decrypt(acc.secretKey),
+    providerConfig: acc.providerConfig ? decryptJSON(acc.providerConfig) : null,
+    displayName: acc.displayName,
   };
 }
 
@@ -375,16 +376,17 @@ function decryptPaymentAccount(account: PaymentAccount): ResolvedPaymentAccount 
  * @param account - Payment account from database
  * @returns Masked payment account safe for frontend
  */
-function maskPaymentAccount(account: PaymentAccount): MaskedPaymentAccount {
+function maskPaymentAccount(account: unknown): MaskedPaymentAccount {
+  const acc = account as PaymentAccount;
   return {
-    id: account.id,
-    provider: account.provider as PaymentProvider,
-    scope: account.scope as PaymentAccountScope,
-    organizationId: account.organizationId,
-    clubId: account.clubId,
-    isActive: account.isActive,
-    displayName: account.displayName,
+    id: acc.id,
+    provider: acc.provider as PaymentProvider,
+    scope: acc.scope as PaymentAccountScope,
+    organizationId: acc.organizationId,
+    clubId: acc.clubId,
+    isActive: acc.isActive,
+    displayName: acc.displayName,
     isConfigured: true,
-    lastUpdated: account.updatedAt,
+    lastUpdated: acc.updatedAt,
   };
 }

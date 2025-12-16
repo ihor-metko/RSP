@@ -4,12 +4,10 @@ import { auditLog } from "@/lib/auditLog";
 import {
   getMaskedPaymentAccount,
   updatePaymentAccount,
-  deactivatePaymentAccount,
   deletePaymentAccount,
 } from "@/services/paymentAccountService";
 import {
   PaymentAccountCredentials,
-  isPaymentProvider,
 } from "@/types/paymentAccount";
 
 /**
