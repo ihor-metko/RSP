@@ -13,12 +13,15 @@ import { encrypt, decrypt, encryptJSON, decryptJSON } from "@/lib/encryption";
 import {
   PaymentProvider,
   PaymentAccountScope,
+  PaymentAccountStatus,
   PaymentAccount,
   MaskedPaymentAccount,
   PaymentAccountCredentials,
-  PaymentAccountStatus,
+  PaymentAccountAvailability,
   ResolvedPaymentAccount,
+  VerificationResult,
 } from "@/types/paymentAccount";
+import { getPaymentProviderVerifier } from "./paymentProviders";
 
 /**
  * Resolve payment account for a booking
@@ -37,12 +40,12 @@ export async function resolvePaymentAccountForBooking(
   clubId: string,
   provider?: PaymentProvider
 ): Promise<ResolvedPaymentAccount | null> {
-  // Step 1: Try to find active club-level payment account
+  // Step 1: Try to find active club-level payment account with ACTIVE status
   const clubPaymentAccount = await prisma.paymentAccount.findFirst({
     where: {
       clubId,
       scope: PaymentAccountScope.CLUB,
-      isActive: true,
+      status: PaymentAccountStatus.ACTIVE, // Only allow ACTIVE accounts
       ...(provider && { provider }),
     },
     orderBy: {
@@ -69,7 +72,7 @@ export async function resolvePaymentAccountForBooking(
     where: {
       organizationId: club.organizationId,
       scope: PaymentAccountScope.ORGANIZATION,
-      isActive: true,
+      status: PaymentAccountStatus.ACTIVE, // Only allow ACTIVE accounts
       ...(provider && { provider }),
     },
     orderBy: {
@@ -86,32 +89,37 @@ export async function resolvePaymentAccountForBooking(
 }
 
 /**
- * Get payment account status for a club (masked, no sensitive data)
+ * Get payment account availability for a club (masked, no sensitive data)
  * Returns whether payment processing is configured and available
  * 
  * @param clubId - The club ID to check
- * @returns Payment account status
+ * @returns Payment account availability
  */
-export async function getPaymentAccountStatus(clubId: string): Promise<PaymentAccountStatus> {
+export async function getPaymentAccountStatus(clubId: string): Promise<PaymentAccountAvailability> {
   // Check club-level first
   const clubAccount = await prisma.paymentAccount.findFirst({
     where: {
       clubId,
       scope: PaymentAccountScope.CLUB,
-      isActive: true,
     },
     select: {
       provider: true,
       scope: true,
+      status: true,
       displayName: true,
+    },
+    orderBy: {
+      updatedAt: "desc",
     },
   });
 
   if (clubAccount) {
     return {
       isConfigured: true,
+      isAvailable: clubAccount.status === PaymentAccountStatus.ACTIVE,
       provider: clubAccount.provider as PaymentProvider,
       scope: clubAccount.scope as PaymentAccountScope,
+      status: clubAccount.status as PaymentAccountStatus,
       displayName: clubAccount.displayName,
     };
   }
@@ -127,20 +135,25 @@ export async function getPaymentAccountStatus(clubId: string): Promise<PaymentAc
       where: {
         organizationId: club.organizationId,
         scope: PaymentAccountScope.ORGANIZATION,
-        isActive: true,
       },
       select: {
         provider: true,
         scope: true,
+        status: true,
         displayName: true,
+      },
+      orderBy: {
+        updatedAt: "desc",
       },
     });
 
     if (orgAccount) {
       return {
         isConfigured: true,
+        isAvailable: orgAccount.status === PaymentAccountStatus.ACTIVE,
         provider: orgAccount.provider as PaymentProvider,
         scope: orgAccount.scope as PaymentAccountScope,
+        status: orgAccount.status as PaymentAccountStatus,
         displayName: orgAccount.displayName,
       };
     }
@@ -148,8 +161,10 @@ export async function getPaymentAccountStatus(clubId: string): Promise<PaymentAc
 
   return {
     isConfigured: false,
+    isAvailable: false,
     provider: null,
     scope: null,
+    status: null,
     displayName: null,
   };
 }
@@ -211,7 +226,7 @@ export async function createPaymentAccount(
     );
   }
 
-  // Create the payment account
+  // Create the payment account with PENDING status
   const paymentAccount = await prisma.paymentAccount.create({
     data: {
       provider: credentials.provider,
@@ -221,11 +236,17 @@ export async function createPaymentAccount(
       merchantId: encryptedMerchantId,
       secretKey: encryptedSecretKey,
       providerConfig: encryptedProviderConfig,
+      status: PaymentAccountStatus.PENDING, // Always start as PENDING
       isActive: credentials.isActive !== undefined ? credentials.isActive : true,
       displayName: credentials.displayName || null,
       createdById,
       lastUpdatedBy: createdById,
     },
+  });
+
+  // Trigger verification asynchronously (don't wait for it)
+  verifyPaymentAccountAsync(paymentAccount.id).catch((error) => {
+    console.error(`[PaymentAccountService] Failed to verify account ${paymentAccount.id}:`, error);
   });
 
   return maskPaymentAccount(paymentAccount);
@@ -249,18 +270,23 @@ export async function updatePaymentAccount(
     updatedAt: new Date(),
   };
 
+  // Track if credentials were changed
+  let credentialsChanged = false;
+
   // Encrypt new credentials if provided
   if (credentials.merchantId !== undefined) {
     if (typeof credentials.merchantId !== "string" || credentials.merchantId.trim() === "") {
       throw new Error("merchantId must be a non-empty string");
     }
     updateData.merchantId = encrypt(credentials.merchantId);
+    credentialsChanged = true;
   }
   if (credentials.secretKey !== undefined) {
     if (typeof credentials.secretKey !== "string" || credentials.secretKey.trim() === "") {
       throw new Error("secretKey must be a non-empty string");
     }
     updateData.secretKey = encrypt(credentials.secretKey);
+    credentialsChanged = true;
   }
   if (credentials.providerConfig) {
     // Validate that providerConfig is a valid object before encrypting
@@ -268,7 +294,15 @@ export async function updatePaymentAccount(
       throw new Error("providerConfig must be a non-null object");
     }
     updateData.providerConfig = encryptJSON(credentials.providerConfig);
+    credentialsChanged = true;
   }
+
+  // If credentials changed, reset status to PENDING
+  if (credentialsChanged) {
+    updateData.status = PaymentAccountStatus.PENDING;
+    updateData.verificationError = undefined; // Clear previous error
+  }
+
   if (credentials.displayName !== undefined) {
     updateData.displayName = credentials.displayName;
   }
@@ -280,6 +314,13 @@ export async function updatePaymentAccount(
     where: { id },
     data: updateData,
   });
+
+  // If credentials changed, trigger verification asynchronously
+  if (credentialsChanged) {
+    verifyPaymentAccountAsync(id).catch((error) => {
+      console.error(`[PaymentAccountService] Failed to verify account ${id}:`, error);
+    });
+  }
 
   return maskPaymentAccount(paymentAccount);
 }
@@ -407,9 +448,86 @@ function maskPaymentAccount(account: unknown): MaskedPaymentAccount {
     scope: acc.scope as PaymentAccountScope,
     organizationId: acc.organizationId,
     clubId: acc.clubId,
+    status: acc.status as PaymentAccountStatus,
     isActive: acc.isActive,
     displayName: acc.displayName,
     isConfigured: true,
     lastUpdated: acc.updatedAt,
+    lastVerifiedAt: acc.lastVerifiedAt,
+    verificationError: acc.verificationError,
   };
+}
+
+/**
+ * Verify payment account credentials
+ * 
+ * Performs provider-specific verification and updates account status
+ * 
+ * @param id - Payment account ID
+ * @returns Verification result
+ */
+export async function verifyPaymentAccount(id: string): Promise<VerificationResult> {
+  // Get the payment account
+  const account = await prisma.paymentAccount.findUnique({
+    where: { id },
+  });
+
+  if (!account) {
+    throw new Error("Payment account not found");
+  }
+
+  // Decrypt credentials
+  const decrypted = decryptPaymentAccount(account);
+
+  // Get the appropriate verifier
+  const verifier = getPaymentProviderVerifier(decrypted.provider);
+
+  // Perform verification
+  const result = await verifier.verify(
+    decrypted.merchantId,
+    decrypted.secretKey,
+    decrypted.providerConfig
+  );
+
+  // Update account based on result
+  const updateData: Record<string, unknown> = {
+    updatedAt: new Date(),
+  };
+
+  if (result.success) {
+    updateData.status = PaymentAccountStatus.ACTIVE;
+    updateData.lastVerifiedAt = result.timestamp;
+    updateData.verificationError = undefined;
+    
+    console.log(`[PaymentAccountService] Account ${id} verified successfully`);
+  } else {
+    updateData.status = PaymentAccountStatus.INVALID;
+    updateData.verificationError = result.error || "Verification failed";
+    
+    console.error(`[PaymentAccountService] Account ${id} verification failed:`, result.error);
+  }
+
+  await prisma.paymentAccount.update({
+    where: { id },
+    data: updateData,
+  });
+
+  return {
+    success: result.success,
+    error: result.error,
+    timestamp: result.timestamp,
+  };
+}
+
+/**
+ * Verify payment account asynchronously (fire and forget)
+ * 
+ * @param id - Payment account ID
+ */
+async function verifyPaymentAccountAsync(id: string): Promise<void> {
+  try {
+    await verifyPaymentAccount(id);
+  } catch (error) {
+    console.error(`[PaymentAccountService] Async verification failed for account ${id}:`, error);
+  }
 }

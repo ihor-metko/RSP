@@ -44,6 +44,14 @@ enum PaymentAccountScope {
   CLUB          // Payment account belongs to specific club
 }
 
+// Payment account status - represents verification state
+enum PaymentAccountStatus {
+  PENDING   // Credentials saved but not yet verified
+  ACTIVE    // Credentials verified and payments allowed
+  INVALID   // Credentials failed verification
+  DISABLED  // Manually disabled by owner
+}
+
 model User {
   id              String           @id @default(uuid())
   name            String?
@@ -448,8 +456,13 @@ model PaymentAccount {
   providerConfig String?               @db.Text
   
   // Status and metadata
-  isActive       Boolean               @default(true)
+  status         PaymentAccountStatus  @default(PENDING) // Verification status
+  isActive       Boolean               @default(true)    // Manual enable/disable (deprecated in favor of status)
   displayName    String?               // Optional friendly name for UI
+  
+  // Verification tracking
+  lastVerifiedAt DateTime?             // Last successful verification timestamp
+  verificationError String?            // Last verification error message (if any)
   
   // Audit fields
   createdById    String                // User who created this payment account
@@ -465,5 +478,6 @@ model PaymentAccount {
   @@index([organizationId])
   @@index([clubId])
   @@index([provider, scope])
+  @@index([status])
   @@index([isActive])
 }

@@ -22,6 +22,16 @@ export enum PaymentAccountScope {
 }
 
 /**
+ * Payment account status - represents verification state
+ */
+export enum PaymentAccountStatus {
+  PENDING = "PENDING",    // Credentials saved but not yet verified
+  ACTIVE = "ACTIVE",      // Credentials verified and payments allowed
+  INVALID = "INVALID",    // Credentials failed verification
+  DISABLED = "DISABLED",  // Manually disabled by owner
+}
+
+/**
  * Core PaymentAccount entity as stored in the database
  * All sensitive fields (merchantId, secretKey, providerConfig) are encrypted at rest
  */
@@ -40,8 +50,13 @@ export interface PaymentAccount {
   providerConfig: string | null;  // Encrypted JSON for additional provider settings
   
   // Status and metadata
-  isActive: boolean;
-  displayName: string | null;  // Optional friendly name for UI
+  status: PaymentAccountStatus;  // Verification status
+  isActive: boolean;             // Manual enable/disable (deprecated)
+  displayName: string | null;    // Optional friendly name for UI
+  
+  // Verification tracking
+  lastVerifiedAt: Date | null;   // Last successful verification timestamp
+  verificationError: string | null;  // Last verification error message
   
   // Audit fields
   createdById: string;
@@ -60,10 +75,13 @@ export interface MaskedPaymentAccount extends Record<string, unknown> {
   scope: PaymentAccountScope;
   organizationId: string | null;
   clubId: string | null;
-  isActive: boolean;
+  status: PaymentAccountStatus;  // Verification status
+  isActive: boolean;             // Manual enable/disable (deprecated)
   displayName: string | null;
-  isConfigured: boolean;  // Whether credentials are set
+  isConfigured: boolean;         // Whether credentials are set
   lastUpdated: Date;
+  lastVerifiedAt: Date | null;   // Last successful verification
+  verificationError: string | null;  // Last verification error
 }
 
 /**
@@ -83,13 +101,15 @@ export interface PaymentAccountCredentials {
 }
 
 /**
- * Payment account status for a specific context
+ * Payment account availability for a specific context
  * Used to indicate whether payment processing is available
  */
-export interface PaymentAccountStatus {
+export interface PaymentAccountAvailability {
   isConfigured: boolean;
+  isAvailable: boolean;  // True only if status is ACTIVE
   provider: PaymentProvider | null;
   scope: PaymentAccountScope | null;
+  status: PaymentAccountStatus | null;
   displayName: string | null;
 }
 
@@ -119,4 +139,20 @@ export function isPaymentProvider(value: unknown): value is PaymentProvider {
  */
 export function isPaymentAccountScope(value: unknown): value is PaymentAccountScope {
   return typeof value === "string" && Object.values(PaymentAccountScope).includes(value as PaymentAccountScope);
+}
+
+/**
+ * Type guard to check if a value is a valid PaymentAccountStatus
+ */
+export function isPaymentAccountStatus(value: unknown): value is PaymentAccountStatus {
+  return typeof value === "string" && Object.values(PaymentAccountStatus).includes(value as PaymentAccountStatus);
+}
+
+/**
+ * Verification result for a payment account
+ */
+export interface VerificationResult {
+  success: boolean;
+  error?: string;
+  timestamp: Date;
 }
