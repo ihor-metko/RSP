@@ -1637,7 +1637,15 @@
     "breadcrumb": "Payment Accounts",
     "pageTitle": {
       "organization": "Organization Payment Accounts",
-      "club": "Club Payment Accounts"
+      "club": "Club Payment Accounts",
+      "unified": "Payment Accounts"
+    },
+    "sections": {
+      "organizationLevel": "Organization-Level Accounts",
+      "organizationDescription": "These payment accounts are used as a fallback for clubs that don't have their own payment account configured.",
+      "clubLevel": "Club-Level Accounts",
+      "clubDescription": "Club-level accounts have priority and override organization-level accounts for their respective clubs.",
+      "yourClub": "Your Club Payment Accounts"
     },
     "form": {
       "addTitle": "Add Payment Account",

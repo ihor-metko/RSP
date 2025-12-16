@@ -639,14 +639,11 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
       }
     }
 
-    // For Organization Owner (primary owner), add Payment Accounts link
-    // Only for single organization scenario - multi-org owners would need enhanced UI
-    // to select which organization's payment accounts to manage
+    // For Organization Owner (primary owner), add unified Payment Accounts link
     if (isOrgAdmin && adminStatus?.isPrimaryOwner && adminStatus?.managedIds && adminStatus.managedIds.length === 1) {
-      const orgId = adminStatus.managedIds[0];
       const paymentAccountsLink: NavItem = {
-        id: "payment-accounts-org",
-        href: `/admin/organizations/${orgId}/payment-accounts`,
+        id: "payment-accounts",
+        href: `/admin/payment-accounts`,
         labelKey: "sidebar.paymentAccounts",
         icon: <PaymentAccountsIcon />,
       };
@@ -673,13 +670,11 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
       }
     }
 
-    // For Club Admins, add Payment Accounts link
-    // Note: Backend API (requireClubOwner) enforces that only CLUB_OWNER role can manage accounts
-    // Frontend shows link for all club admins with assigned clubs for simpler implementation
+    // For Club Admins, add unified Payment Accounts link
     if (isClubAdmin && adminStatus?.assignedClub) {
       const paymentAccountsLink: NavItem = {
-        id: "payment-accounts-club",
-        href: `/admin/clubs/${adminStatus.assignedClub.id}/payment-accounts`,
+        id: "payment-accounts",
+        href: `/admin/payment-accounts`,
         labelKey: "sidebar.paymentAccounts",
         icon: <PaymentAccountsIcon />,
       };

@@ -483,11 +483,6 @@ export default function OrganizationDetailPage() {
             }
             actions={
               <div className="im-org-detail-header-actions">
-                <IMLink href={`/admin/organizations/${orgId}/payment-accounts`}>
-                  <Button variant="outline" disabled={!!org.archivedAt}>
-                    Payment Accounts
-                  </Button>
-                </IMLink>
                 <Button variant="outline" onClick={handleOpenEditModal} disabled={!!org.archivedAt}>
                   {t("common.edit")}
                 </Button>

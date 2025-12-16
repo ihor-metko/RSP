@@ -1,0 +1,225 @@
+/* Unified Payment Accounts Page Styles */
+
+.payment-accounts-page {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.payment-status-card {
+  margin-bottom: 2rem;
+}
+
+.payment-status-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.payment-status-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.payment-status-item .im-label {
+  font-weight: 600;
+  color: var(--im-text-secondary);
+  min-width: 120px;
+}
+
+.payment-status-item .im-value {
+  color: var(--im-text-primary);
+}
+
+.payment-status-item .im-scope-club {
+  color: var(--im-success);
+  font-weight: 600;
+}
+
+.payment-status-item .im-scope-organization {
+  color: var(--im-warning);
+}
+
+.im-status-hint {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: var(--im-bg-tertiary);
+  border-left: 3px solid var(--im-warning);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: var(--im-text-secondary);
+}
+
+.im-not-configured {
+  color: var(--im-text-muted);
+  font-style: italic;
+}
+
+/* Sections */
+.payment-accounts-section {
+  margin-bottom: 3rem;
+}
+
+.im-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--im-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.im-section-description {
+  font-size: 0.95rem;
+  color: var(--im-text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+/* Club Accounts Container */
+.club-accounts-container {
+  margin-bottom: 2rem;
+  border: 1px solid var(--im-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--im-bg-secondary);
+}
+
+.club-header-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--im-bg-secondary);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.club-header-toggle:hover {
+  background: var(--im-bg-tertiary);
+}
+
+.club-header-toggle:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: -2px;
+}
+
+.club-toggle-icon {
+  font-size: 0.875rem;
+  color: var(--im-text-secondary);
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.club-name {
+  flex: 1;
+  text-align: left;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--im-text-primary);
+  margin: 0;
+}
+
+.club-accounts-count {
+  font-size: 0.875rem;
+  color: var(--im-text-secondary);
+  padding: 0.25rem 0.75rem;
+  background: var(--im-bg-tertiary);
+  border-radius: 12px;
+}
+
+.club-accounts-content {
+  padding: 1.5rem;
+  border-top: 1px solid var(--im-border);
+  background: var(--im-bg-primary);
+}
+
+/* Toast notifications */
+.im-toast {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+  max-width: 400px;
+}
+
+.im-toast--success {
+  background: var(--im-success-bg);
+  border-left: 4px solid var(--im-success);
+  color: var(--im-success-text);
+}
+
+.im-toast--error {
+  background: var(--im-error-bg);
+  border-left: 4px solid var(--im-error);
+  color: var(--im-error-text);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Error banner */
+.im-error-banner {
+  padding: 1rem 1.5rem;
+  background: var(--im-error-bg);
+  border-left: 4px solid var(--im-error);
+  border-radius: 4px;
+  color: var(--im-error-text);
+  margin-bottom: 1.5rem;
+}
+
+/* Loading state */
+.im-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 1.125rem;
+  color: var(--im-text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .payment-accounts-page {
+    padding: 1rem;
+  }
+
+  .im-section-title {
+    font-size: 1.25rem;
+  }
+
+  .club-header-toggle {
+    padding: 1rem;
+  }
+
+  .club-name {
+    font-size: 1rem;
+  }
+
+  .club-accounts-content {
+    padding: 1rem;
+  }
+
+  .im-toast {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+}
