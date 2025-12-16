@@ -114,13 +114,33 @@ Features:
 
 ### WayForPay Verification
 
+**Secure Test Payment Approach** (Updated Implementation)
+
+WayForPay's `CHECK_STATUS` and `TRANSACTION_LIST` APIs are NOT reliable for credential verification as they may return success even with invalid credentials. Therefore, verification uses a **secure test payment request**:
+
 ```typescript
-// Uses CHECK_STATUS API
-// Signature: HMAC-MD5(merchantAccount;orderReference;orderDate)
-// Success: reasonCode 1100 (order not found - expected)
-// Invalid: reasonCode 1001 (invalid signature)
+// Uses PURCHASE API with minimal test payment
+// Request Parameters:
+// - transactionType: "PURCHASE"
+// - amount: "1" (1 UAH - minimal amount)
+// - Test customer data (no real user interaction)
+// - Test order reference: verify_{timestamp}
+
+// Signature: HMAC-MD5(merchantAccount;merchantDomainName;orderReference;orderDate;amount;currency;productName;productCount;productPrice)
+
+// Response Codes:
+// Success: Any response with reasonCode or invoiceUrl (credentials accepted)
+// - reasonCode 1109 = Format error (but signature valid - credentials OK)
+// Invalid: reasonCode 1113 (invalid signature - invalid credentials)
 // Blocked: reasonCode 1101 (merchant not found/inactive)
 ```
+
+**Security Notes:**
+- No real payment is processed (test mode)
+- No real customer data is used
+- No user interaction required
+- Validates signature generation using actual payment flow
+- More reliable than CHECK_STATUS API
 
 ### LiqPay Verification
 
