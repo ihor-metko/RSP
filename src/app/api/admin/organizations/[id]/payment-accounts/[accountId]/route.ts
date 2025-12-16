@@ -106,6 +106,15 @@ export async function PUT(
     }
 
     const body = await request.json();
+    
+    // Validate that body is a valid object
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "Invalid request payload" },
+        { status: 400 }
+      );
+    }
+    
     const { merchantId, secretKey, providerConfig, displayName, isActive } = body;
 
     // Build update credentials
@@ -113,7 +122,18 @@ export async function PUT(
     
     if (merchantId !== undefined) credentials.merchantId = merchantId;
     if (secretKey !== undefined) credentials.secretKey = secretKey;
-    if (providerConfig !== undefined) credentials.providerConfig = providerConfig;
+    
+    // Only include providerConfig if it's a valid object (not null, not undefined, not an array)
+    if (providerConfig !== undefined && providerConfig !== null) {
+      if (typeof providerConfig !== "object" || Array.isArray(providerConfig)) {
+        return NextResponse.json(
+          { error: "Invalid providerConfig: must be an object" },
+          { status: 400 }
+        );
+      }
+      credentials.providerConfig = providerConfig;
+    }
+    
     if (displayName !== undefined) credentials.displayName = displayName;
     if (isActive !== undefined) credentials.isActive = isActive;
 

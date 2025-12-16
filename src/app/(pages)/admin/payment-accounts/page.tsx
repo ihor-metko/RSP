@@ -210,10 +210,10 @@ export default function UnifiedPaymentAccountsPage() {
     if (!user) return;
 
     try {
-      // Prepare provider config for WayForPay
-      const providerConfig = formData.provider === PaymentProvider.WAYFORPAY && formData.merchantPassword
-        ? { merchantPassword: formData.merchantPassword }
-        : undefined;
+      // Validate form data before sending
+      if (!formData.provider || !formData.merchantId || !formData.secretKey) {
+        throw new Error("Missing required fields");
+      }
 
       if (formMode === "add") {
         let url: string;
@@ -225,17 +225,23 @@ export default function UnifiedPaymentAccountsPage() {
           throw new Error("Invalid scope or missing ID");
         }
 
+        // Build payload with only valid, non-null values
+        const payload: Record<string, unknown> = {
+          provider: formData.provider,
+          merchantId: formData.merchantId.trim(),
+          secretKey: formData.secretKey.trim(),
+          isActive: formData.isActive !== undefined ? formData.isActive : true,
+        };
+
+        // Only include displayName if it has a value
+        if (formData.displayName && formData.displayName.trim()) {
+          payload.displayName = formData.displayName.trim();
+        }
+
         const response = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider: formData.provider,
-            merchantId: formData.merchantId,
-            secretKey: formData.secretKey,
-            providerConfig,
-            displayName: formData.displayName || null,
-            isActive: formData.isActive,
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -254,16 +260,22 @@ export default function UnifiedPaymentAccountsPage() {
           throw new Error("Invalid scope or missing ID");
         }
 
+        // Build payload with only valid, non-null values
+        const payload: Record<string, unknown> = {
+          merchantId: formData.merchantId.trim(),
+          secretKey: formData.secretKey.trim(),
+          isActive: formData.isActive !== undefined ? formData.isActive : true,
+        };
+
+        // Only include displayName if it has a value
+        if (formData.displayName && formData.displayName.trim()) {
+          payload.displayName = formData.displayName.trim();
+        }
+
         const response = await fetch(url, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            merchantId: formData.merchantId,
-            secretKey: formData.secretKey,
-            providerConfig,
-            displayName: formData.displayName || null,
-            isActive: formData.isActive,
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {

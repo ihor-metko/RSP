@@ -75,6 +75,10 @@ export function PaymentAccountForm({
     setError(null);
 
     // Validation
+    if (!formData.provider) {
+      setError(t("errors.providerRequired") || "Provider is required");
+      return;
+    }
     if (!formData.merchantId.trim()) {
       setError(t("errors.merchantIdRequired"));
       return;

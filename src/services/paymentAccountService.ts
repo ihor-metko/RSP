@@ -173,12 +173,25 @@ export async function createPaymentAccount(
     throw new Error("clubId is required for CLUB scope");
   }
 
+  // Validate credentials before encryption
+  if (!credentials.merchantId || typeof credentials.merchantId !== "string" || credentials.merchantId.trim() === "") {
+    throw new Error("merchantId must be a non-empty string");
+  }
+  if (!credentials.secretKey || typeof credentials.secretKey !== "string" || credentials.secretKey.trim() === "") {
+    throw new Error("secretKey must be a non-empty string");
+  }
+
   // Encrypt credentials
   const encryptedMerchantId = encrypt(credentials.merchantId);
   const encryptedSecretKey = encrypt(credentials.secretKey);
-  const encryptedProviderConfig = credentials.providerConfig
-    ? encryptJSON(credentials.providerConfig)
-    : null;
+  
+  // Only encrypt providerConfig if it's a valid object
+  const encryptedProviderConfig = 
+    credentials.providerConfig && 
+    typeof credentials.providerConfig === "object" && 
+    !Array.isArray(credentials.providerConfig)
+      ? encryptJSON(credentials.providerConfig)
+      : null;
 
   // Check if an account with this scope already exists
   const existingAccount = await prisma.paymentAccount.findFirst({
@@ -237,13 +250,23 @@ export async function updatePaymentAccount(
   };
 
   // Encrypt new credentials if provided
-  if (credentials.merchantId) {
+  if (credentials.merchantId !== undefined) {
+    if (typeof credentials.merchantId !== "string" || credentials.merchantId.trim() === "") {
+      throw new Error("merchantId must be a non-empty string");
+    }
     updateData.merchantId = encrypt(credentials.merchantId);
   }
-  if (credentials.secretKey) {
+  if (credentials.secretKey !== undefined) {
+    if (typeof credentials.secretKey !== "string" || credentials.secretKey.trim() === "") {
+      throw new Error("secretKey must be a non-empty string");
+    }
     updateData.secretKey = encrypt(credentials.secretKey);
   }
   if (credentials.providerConfig) {
+    // Validate that providerConfig is a valid object before encrypting
+    if (typeof credentials.providerConfig !== "object" || Array.isArray(credentials.providerConfig)) {
+      throw new Error("providerConfig must be a non-null object");
+    }
     updateData.providerConfig = encryptJSON(credentials.providerConfig);
   }
   if (credentials.displayName !== undefined) {

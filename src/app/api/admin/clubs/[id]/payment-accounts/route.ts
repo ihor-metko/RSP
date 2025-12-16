@@ -83,6 +83,15 @@ export async function POST(
 
   try {
     const body = await request.json();
+    
+    // Validate that body is a valid object
+    if (!body || typeof body !== "object") {
+      return NextResponse.json(
+        { error: "Invalid request payload" },
+        { status: 400 }
+      );
+    }
+    
     const { provider, merchantId, secretKey, providerConfig, displayName, isActive } = body;
 
     // Validate required fields
@@ -101,6 +110,17 @@ export async function POST(
       );
     }
 
+    // Validate providerConfig if provided - must be an object or undefined
+    if (providerConfig !== undefined && providerConfig !== null && (typeof providerConfig !== "object" || Array.isArray(providerConfig))) {
+      return NextResponse.json(
+        { error: "Invalid providerConfig: must be an object" },
+        { status: 400 }
+      );
+    }
+
+    // Determine if providerConfig is valid for inclusion
+    const hasValidProviderConfig = providerConfig && typeof providerConfig === "object" && !Array.isArray(providerConfig);
+
     // Create payment account credentials
     const credentials: PaymentAccountCredentials = {
       provider,
@@ -108,7 +128,7 @@ export async function POST(
       clubId,
       merchantId,
       secretKey,
-      providerConfig,
+      ...(hasValidProviderConfig ? { providerConfig } : {}),
       displayName,
       isActive,
     };

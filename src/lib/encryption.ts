@@ -140,8 +140,18 @@ export function decrypt(encryptedData: string): string {
  * 
  * @param data - The data object to encrypt
  * @returns Encrypted string
+ * @throws Error if data is null, undefined, or not an object
  */
 export function encryptJSON(data: Record<string, unknown>): string {
+  // Defensive validation: ensure data is a valid object
+  if (data === null || data === undefined) {
+    throw new Error("Cannot encrypt null or undefined data");
+  }
+  
+  if (typeof data !== "object" || Array.isArray(data)) {
+    throw new Error("Data must be a non-null object");
+  }
+  
   return encrypt(JSON.stringify(data));
 }
 
