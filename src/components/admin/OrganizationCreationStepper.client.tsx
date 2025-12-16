@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Input, Textarea } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
@@ -141,11 +141,21 @@ export function OrganizationCreationStepper() {
         errors.latitude = "Latitude is required for map location";
       } else if (isNaN(parseFloat(formData.latitude))) {
         errors.latitude = "Latitude must be a valid number";
+      } else {
+        const lat = parseFloat(formData.latitude);
+        if (lat < -90 || lat > 90) {
+          errors.latitude = "Latitude must be between -90 and 90";
+        }
       }
       if (!formData.longitude.trim()) {
         errors.longitude = "Longitude is required for map location";
       } else if (isNaN(parseFloat(formData.longitude))) {
         errors.longitude = "Longitude must be a valid number";
+      } else {
+        const lng = parseFloat(formData.longitude);
+        if (lng < -180 || lng > 180) {
+          errors.longitude = "Longitude must be between -180 and 180";
+        }
       }
     }
 
@@ -242,7 +252,13 @@ export function OrganizationCreationStepper() {
 
     try {
       // Build address from components
-      const fullAddress = `${formData.street.trim()}, ${formData.city.trim()}, ${formData.postalCode.trim() || ""} ${formData.country.trim()}`.trim();
+      const addressParts = [
+        formData.street.trim(),
+        formData.city.trim(),
+        formData.postalCode.trim(),
+        formData.country.trim()
+      ].filter(Boolean); // Remove empty strings
+      const fullAddress = addressParts.join(", ");
       
       // Prepare metadata with social links and location
       const metadata: Record<string, unknown> = {
@@ -355,6 +371,15 @@ export function OrganizationCreationStepper() {
     router.push("/admin/organizations");
   };
 
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+      }
+    };
+  }, [searchDebounceTimer]);
+
   // State for user search in step 5
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [userSearchResults, setUserSearchResults] = useState<Array<{ id: string; name: string; email: string }>>([]);
@@ -380,6 +405,25 @@ export function OrganizationCreationStepper() {
       setIsSearchingUsers(false);
     }
   }, []);
+
+  // Debounced search effect
+  const [searchDebounceTimer, setSearchDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
+  const handleUserSearchChange = useCallback((query: string) => {
+    setUserSearchQuery(query);
+    
+    // Clear existing timer
+    if (searchDebounceTimer) {
+      clearTimeout(searchDebounceTimer);
+    }
+    
+    // Set new timer for debounced search
+    const timer = setTimeout(() => {
+      searchUsers(query);
+    }, 300);
+    
+    setSearchDebounceTimer(timer);
+  }, [searchDebounceTimer, searchUsers]);
 
   // Render step content
   const renderStepContent = () => {
@@ -454,7 +498,7 @@ export function OrganizationCreationStepper() {
           <Card className="im-stepper-section">
             <h2 className="im-stepper-section-title">Organization Address</h2>
             <p className="im-stepper-section-description">
-              Provide the organization's address with map coordinates for accurate location. All fields are mandatory.
+              Provide the organization&apos;s address with map coordinates for accurate location. All fields are mandatory.
             </p>
             <div className="im-step-content">
               <div className="im-stepper-row im-stepper-row--two">
@@ -749,10 +793,7 @@ export function OrganizationCreationStepper() {
                         <Input
                           label="Search User *"
                           value={userSearchQuery}
-                          onChange={(e) => {
-                            setUserSearchQuery(e.target.value);
-                            searchUsers(e.target.value);
-                          }}
+                          onChange={(e) => handleUserSearchChange(e.target.value)}
                           placeholder="Type name or email to search..."
                           disabled={isSubmitting}
                         />
