@@ -309,6 +309,27 @@ function OperationsIcon() {
   );
 }
 
+function PaymentAccountsIcon() {
+  return (
+    <svg
+      className="im-sidebar-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {/* Credit card/payment representation */}
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <line x1="2" y1="10" x2="22" y2="10" />
+      <line x1="6" y1="15" x2="6.01" y2="15" />
+      <line x1="10" y1="15" x2="14" y2="15" />
+    </svg>
+  );
+}
+
 /**
  * Get navigation items for root admins
  * All items are visible to root admins
@@ -618,8 +639,64 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
       }
     }
 
+    // For Organization Owner (primary owner), add Payment Accounts link
+    if (isOrgAdmin && adminStatus?.isPrimaryOwner && adminStatus?.managedIds && adminStatus.managedIds.length === 1) {
+      const orgId = adminStatus.managedIds[0];
+      const paymentAccountsLink: NavItem = {
+        id: "payment-accounts-org",
+        href: `/admin/organizations/${orgId}/payment-accounts`,
+        labelKey: "sidebar.paymentAccounts",
+        icon: <PaymentAccountsIcon />,
+      };
+
+      // Insert after organization link or after dashboard
+      const orgIndex = filteredItems.findIndex(item => item.id === "my-organization");
+      if (orgIndex >= 0) {
+        filteredItems = [
+          ...filteredItems.slice(0, orgIndex + 1),
+          paymentAccountsLink,
+          ...filteredItems.slice(orgIndex + 1),
+        ];
+      } else {
+        const dashboardIndex = filteredItems.findIndex(item => item.id === "dashboard");
+        if (dashboardIndex >= 0) {
+          filteredItems = [
+            ...filteredItems.slice(0, dashboardIndex + 1),
+            paymentAccountsLink,
+            ...filteredItems.slice(dashboardIndex + 1),
+          ];
+        } else {
+          filteredItems = [paymentAccountsLink, ...filteredItems];
+        }
+      }
+    }
+
+    // For Club Owner (club membership with CLUB_OWNER role), add Payment Accounts link
+    // Note: The adminStatus doesn't distinguish between CLUB_OWNER and CLUB_ADMIN
+    // We need to check clubMemberships for CLUB_OWNER role
+    // For now, we'll add the link for all club admins who have an assigned club
+    // The backend API will enforce the CLUB_OWNER restriction
+    if (isClubAdmin && adminStatus?.assignedClub) {
+      const paymentAccountsLink: NavItem = {
+        id: "payment-accounts-club",
+        href: `/admin/clubs/${adminStatus.assignedClub.id}/payment-accounts`,
+        labelKey: "sidebar.paymentAccounts",
+        icon: <PaymentAccountsIcon />,
+      };
+
+      // Insert after club link
+      const clubIndex = filteredItems.findIndex(item => item.id === "assigned-club");
+      if (clubIndex >= 0) {
+        filteredItems = [
+          ...filteredItems.slice(0, clubIndex + 1),
+          paymentAccountsLink,
+          ...filteredItems.slice(clubIndex + 1),
+        ];
+      }
+    }
+
     return filteredItems;
-  }, [isRoot, isClubAdmin, isOrgAdmin, adminStatus?.assignedClub, adminStatus?.managedIds]);
+  }, [isRoot, isClubAdmin, isOrgAdmin, adminStatus?.assignedClub, adminStatus?.managedIds, adminStatus?.isPrimaryOwner]);
 
   // Close sidebar when clicking outside on mobile
   const handleClickOutside = useCallback(
