@@ -386,7 +386,6 @@ function getNavItems(): NavItem[] {
       href: "/admin/users",
       labelKey: "sidebar.users",
       icon: <UsersIcon />,
-      rootOnly: true,
     },
     // Notifications
     {
@@ -652,12 +651,12 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
       };
 
       // Insert after organization link or after dashboard
-      const orgIndex = filteredItems.findIndex(item => item.id === "my-organization");
+      const orgIndex = filteredItems.findIndex(item => item.id === "users");
       if (orgIndex >= 0) {
         filteredItems = [
-          ...filteredItems.slice(0, orgIndex + 1),
+          ...filteredItems.slice(0, orgIndex),
           paymentAccountsLink,
-          ...filteredItems.slice(orgIndex + 1),
+          ...filteredItems.slice(orgIndex),
         ];
       } else {
         const dashboardIndex = filteredItems.findIndex(item => item.id === "dashboard");
@@ -685,7 +684,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
       };
 
       // Insert after club link
-      const clubIndex = filteredItems.findIndex(item => item.id === "assigned-club");
+      const clubIndex = filteredItems.findIndex(item => item.id === "users");
       if (clubIndex >= 0) {
         filteredItems = [
           ...filteredItems.slice(0, clubIndex + 1),
