@@ -86,6 +86,26 @@ describe("Encryption Utilities", () => {
   });
 
   describe("encryptJSON and decryptJSON", () => {
+    it("should throw error when encryptJSON receives null", () => {
+      expect(() => encryptJSON(null as unknown as Record<string, unknown>)).toThrow("Cannot encrypt null or undefined data");
+    });
+
+    it("should throw error when encryptJSON receives undefined", () => {
+      expect(() => encryptJSON(undefined as unknown as Record<string, unknown>)).toThrow("Cannot encrypt null or undefined data");
+    });
+
+    it("should throw error when encryptJSON receives an array", () => {
+      expect(() => encryptJSON([] as unknown as Record<string, unknown>)).toThrow("Data must be a non-null object");
+    });
+
+    it("should throw error when encryptJSON receives a string", () => {
+      expect(() => encryptJSON("string" as unknown as Record<string, unknown>)).toThrow("Data must be a non-null object");
+    });
+
+    it("should throw error when encryptJSON receives a number", () => {
+      expect(() => encryptJSON(123 as unknown as Record<string, unknown>)).toThrow("Data must be a non-null object");
+    });
+
     it("should encrypt and decrypt JSON objects", () => {
       const data = {
         merchantId: "merchant-123",
