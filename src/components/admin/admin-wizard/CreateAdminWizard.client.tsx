@@ -44,7 +44,7 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
 
   // Get organizations and clubs from stores
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
-  const clubs = useClubStore((state) => state.getClubsWithAutoFetch());
+  const clubs = useClubStore((state) => state.fetchClubsIfNeeded());
   const isLoadingOrgs = useOrganizationStore((state) => state.loading);
   const isLoadingClubs = useClubStore((state) => state.loading);
 
@@ -304,9 +304,8 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
         {STEPS.map((step, index) => (
           <div key={step.id} className="im-wizard-indicator-step-wrapper">
             <div
-              className={`im-wizard-indicator-step ${
-                currentStep === step.id ? "im-wizard-indicator-step--active" : ""
-              } ${currentStep > step.id ? "im-wizard-indicator-step--completed" : ""}`}
+              className={`im-wizard-indicator-step ${currentStep === step.id ? "im-wizard-indicator-step--active" : ""
+                } ${currentStep > step.id ? "im-wizard-indicator-step--completed" : ""}`}
             >
               <span className="im-wizard-indicator-number">
                 {currentStep > step.id ? "✓" : step.id}
@@ -315,9 +314,8 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
             </div>
             {index < STEPS.length - 1 && (
               <div
-                className={`im-wizard-indicator-line ${
-                  currentStep > step.id ? "im-wizard-indicator-line--completed" : ""
-                }`}
+                className={`im-wizard-indicator-line ${currentStep > step.id ? "im-wizard-indicator-line--completed" : ""
+                  }`}
               />
             )}
           </div>
