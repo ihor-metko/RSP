@@ -19,6 +19,7 @@ export interface PaymentAccountFormData {
   provider: PaymentProvider;
   merchantId: string;
   secretKey: string;
+  merchantPassword?: string; // WayForPay specific field
   displayName: string;
   isActive: boolean;
 }
@@ -34,9 +35,10 @@ export function PaymentAccountForm({
   const t = useTranslations("paymentAccount");
   const [formData, setFormData] = useState<PaymentAccountFormData>({
     provider: PaymentProvider.WAYFORPAY,
-    merchantId: "",
-    secretKey: "",
-    displayName: "",
+    merchantId: "www_arena_one_io",
+    secretKey: "92fe0e1960981cc798a08cb05304738e0feb2c5c",
+    merchantPassword: "744a754a403ec67ce0cc2fe40ced364f",
+    displayName: "Test Account",
     isActive: true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,6 +52,7 @@ export function PaymentAccountForm({
         provider: account.provider,
         merchantId: "",
         secretKey: "",
+        merchantPassword: "",
         displayName: account.displayName || "",
         isActive: account.isActive,
       });
@@ -59,6 +62,7 @@ export function PaymentAccountForm({
         provider: PaymentProvider.WAYFORPAY,
         merchantId: "",
         secretKey: "",
+        merchantPassword: "",
         displayName: "",
         isActive: true,
       });
@@ -81,6 +85,12 @@ export function PaymentAccountForm({
     }
     if (!formData.secretKey.trim()) {
       setError(t("errors.secretKeyRequired"));
+      return;
+    }
+
+    // WayForPay specific validation
+    if (formData.provider === PaymentProvider.WAYFORPAY && !formData.merchantPassword?.trim()) {
+      setError(t("errors.merchantPasswordRequired"));
       return;
     }
 
@@ -162,48 +172,123 @@ export function PaymentAccountForm({
           />
         </div>
 
-        <div className="im-form-group">
-          <label htmlFor="merchantId" className="im-label">
-            {t("form.merchantId")} <span className="im-required">*</span>
-          </label>
-          <Input
-            id="merchantId"
-            name="merchantId"
-            type="text"
-            value={formData.merchantId}
-            onChange={handleInputChange}
-            placeholder={
-              mode === "edit"
-                ? t("form.merchantIdPlaceholderEdit")
-                : t("form.merchantIdPlaceholder")
-            }
-            required
-            autoComplete="off"
-          />
-          {mode === "edit" && (
-            <small className="im-field-hint">{t("form.credentialsEditHint")}</small>
-          )}
-        </div>
+        {/* Provider-specific credential fields */}
+        {formData.provider === PaymentProvider.WAYFORPAY ? (
+          <>
+            {/* WayForPay: Merchant login */}
+            <div className="im-form-group">
+              <label htmlFor="merchantId" className="im-label">
+                {t("form.merchantLogin")} <span className="im-required">*</span>
+              </label>
+              <Input
+                id="merchantId"
+                name="merchantId"
+                type="text"
+                value={formData.merchantId}
+                onChange={handleInputChange}
+                placeholder={
+                  mode === "edit"
+                    ? t("form.merchantLoginPlaceholderEdit")
+                    : t("form.merchantLoginPlaceholder")
+                }
+                required
+                autoComplete="off"
+              />
+              {mode === "edit" && (
+                <small className="im-field-hint">{t("form.credentialsEditHint")}</small>
+              )}
+            </div>
 
-        <div className="im-form-group">
-          <label htmlFor="secretKey" className="im-label">
-            {t("form.secretKey")} <span className="im-required">*</span>
-          </label>
-          <Input
-            id="secretKey"
-            name="secretKey"
-            type="password"
-            value={formData.secretKey}
-            onChange={handleInputChange}
-            placeholder={
-              mode === "edit"
-                ? t("form.secretKeyPlaceholderEdit")
-                : t("form.secretKeyPlaceholder")
-            }
-            required
-            autoComplete="new-password"
-          />
-        </div>
+            {/* WayForPay: Merchant secret key */}
+            <div className="im-form-group">
+              <label htmlFor="secretKey" className="im-label">
+                {t("form.merchantSecretKey")} <span className="im-required">*</span>
+              </label>
+              <Input
+                id="secretKey"
+                name="secretKey"
+                type="password"
+                value={formData.secretKey}
+                onChange={handleInputChange}
+                placeholder={
+                  mode === "edit"
+                    ? t("form.merchantSecretKeyPlaceholderEdit")
+                    : t("form.merchantSecretKeyPlaceholder")
+                }
+                required
+                autoComplete="new-password"
+              />
+            </div>
+
+            {/* WayForPay: Merchant password */}
+            <div className="im-form-group">
+              <label htmlFor="merchantPassword" className="im-label">
+                {t("form.merchantPassword")} <span className="im-required">*</span>
+              </label>
+              <Input
+                id="merchantPassword"
+                name="merchantPassword"
+                type="password"
+                value={formData.merchantPassword || ""}
+                onChange={handleInputChange}
+                placeholder={
+                  mode === "edit"
+                    ? t("form.merchantPasswordPlaceholderEdit")
+                    : t("form.merchantPasswordPlaceholder")
+                }
+                required
+                autoComplete="new-password"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            {/* LiqPay: Merchant ID */}
+            <div className="im-form-group">
+              <label htmlFor="merchantId" className="im-label">
+                {t("form.merchantId")} <span className="im-required">*</span>
+              </label>
+              <Input
+                id="merchantId"
+                name="merchantId"
+                type="text"
+                value={formData.merchantId}
+                onChange={handleInputChange}
+                placeholder={
+                  mode === "edit"
+                    ? t("form.merchantIdPlaceholderEdit")
+                    : t("form.merchantIdPlaceholder")
+                }
+                required
+                autoComplete="off"
+              />
+              {mode === "edit" && (
+                <small className="im-field-hint">{t("form.credentialsEditHint")}</small>
+              )}
+            </div>
+
+            {/* LiqPay: Secret Key */}
+            <div className="im-form-group">
+              <label htmlFor="secretKey" className="im-label">
+                {t("form.secretKey")} <span className="im-required">*</span>
+              </label>
+              <Input
+                id="secretKey"
+                name="secretKey"
+                type="password"
+                value={formData.secretKey}
+                onChange={handleInputChange}
+                placeholder={
+                  mode === "edit"
+                    ? t("form.secretKeyPlaceholderEdit")
+                    : t("form.secretKeyPlaceholder")
+                }
+                required
+                autoComplete="new-password"
+              />
+            </div>
+          </>
+        )}
 
         <div className="im-form-group im-form-group--checkbox">
           <label className="im-checkbox-label">

@@ -10,6 +10,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
 import type { MaskedPaymentAccount } from "@/types/paymentAccount";
+import { PaymentProvider } from "@/types/paymentAccount";
 import "./page.css";
 
 interface ClubWithAccounts {
