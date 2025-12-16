@@ -1076,7 +1076,8 @@
     "collapseSidebar": "Collapse sidebar",
     "expandSidebar": "Expand sidebar",
     "comingSoon": "Coming Soon",
-    "organization": "Organization"
+    "organization": "Organization",
+    "paymentAccounts": "Payment Accounts"
   },
   "organizations": {
     "title": "Organizations",

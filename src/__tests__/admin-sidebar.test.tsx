@@ -41,6 +41,7 @@ jest.mock("next-intl", () => ({
         "sidebar.expandSidebar": "Expand sidebar",
         "sidebar.comingSoon": "Coming Soon",
         "sidebar.organization": "Organization",
+        "sidebar.paymentAccounts": "Payment Accounts",
       };
       return translations[key] || key;
     };
@@ -346,6 +347,22 @@ describe("AdminSidebar Component", () => {
       expect(screen.queryByText("Global Settings")).not.toBeInTheDocument();
     });
 
+    it("does NOT show Payment Accounts link for non-primary owner org admin", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      
+      // Expand sidebar to see labels
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      fireEvent.click(collapseBtn);
+      
+      await waitFor(() => {
+        // Super Admin (non-primary owner) should NOT see Payment Accounts
+        expect(screen.queryByText("Payment Accounts")).not.toBeInTheDocument();
+      });
+    });
+
     it("shows Organization nav item for single org SuperAdmin", async () => {
       render(<AdminSidebar />);
       await waitFor(() => {
@@ -488,6 +505,37 @@ describe("AdminSidebar Component", () => {
         expect(ownerBadge).toHaveClass("im-sidebar-role--owner");
       });
     });
+
+    it("shows Payment Accounts navigation link for organization owner", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      
+      // Expand sidebar to see labels
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      fireEvent.click(collapseBtn);
+      
+      await waitFor(() => {
+        expect(screen.getByText("Payment Accounts")).toBeInTheDocument();
+      });
+    });
+
+    it("Payment Accounts link points to organization payment accounts page", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      
+      // Expand sidebar to see labels
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      fireEvent.click(collapseBtn);
+      
+      await waitFor(() => {
+        const paymentAccountsLink = screen.getByRole("menuitem", { name: /Payment Accounts/i });
+        expect(paymentAccountsLink).toHaveAttribute("href", "/admin/organizations/org-1/payment-accounts");
+      });
+    });
   });
 
   describe("Club Admin", () => {
@@ -577,6 +625,37 @@ describe("AdminSidebar Component", () => {
         expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
       });
       expect(mockOrganizationStore.fetchOrganizationById).not.toHaveBeenCalled();
+    });
+
+    it("shows Payment Accounts navigation link for club admin", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      
+      // Expand sidebar to see labels
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      fireEvent.click(collapseBtn);
+      
+      await waitFor(() => {
+        expect(screen.getByText("Payment Accounts")).toBeInTheDocument();
+      });
+    });
+
+    it("Payment Accounts link points to club payment accounts page", async () => {
+      render(<AdminSidebar />);
+      await waitFor(() => {
+        expect(screen.getByRole("navigation", { name: /admin navigation/i })).toBeInTheDocument();
+      });
+      
+      // Expand sidebar to see labels
+      const collapseBtn = document.querySelector(".im-sidebar-collapse-btn") as HTMLButtonElement;
+      fireEvent.click(collapseBtn);
+      
+      await waitFor(() => {
+        const paymentAccountsLink = screen.getByRole("menuitem", { name: /Payment Accounts/i });
+        expect(paymentAccountsLink).toHaveAttribute("href", "/admin/clubs/club-1/payment-accounts");
+      });
     });
   });
 
