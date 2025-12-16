@@ -10,7 +10,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
 import type { MaskedPaymentAccount } from "@/types/paymentAccount";
-import { PaymentProvider } from "@/types/paymentAccount";
+import { PaymentProvider, PaymentAccountStatus } from "@/types/paymentAccount";
 import "./page.css";
 
 interface ClubWithAccounts {
@@ -175,7 +175,7 @@ export default function UnifiedPaymentAccountsPage() {
   useEffect(() => {
     // Check if there are any pending accounts
     const allAccounts = [...organizationAccounts, ...clubAccounts.flatMap(c => c.accounts)];
-    const hasPendingAccounts = allAccounts.some(account => account.status === "PENDING");
+    const hasPendingAccounts = allAccounts.some(account => account.status === PaymentAccountStatus.PENDING);
 
     if (!hasPendingAccounts) {
       return; // No polling needed

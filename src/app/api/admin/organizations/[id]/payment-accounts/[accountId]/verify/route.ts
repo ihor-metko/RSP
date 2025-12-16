@@ -11,7 +11,7 @@ import {
  * 
  * Manually trigger verification for a payment account.
  * 
- * Access: Organization Owner only (Organization admins are checked for ownership)
+ * Access: Organization Admin (includes owners)
  */
 export async function POST(
   request: Request,
