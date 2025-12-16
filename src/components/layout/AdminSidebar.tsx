@@ -640,6 +640,8 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
     }
 
     // For Organization Owner (primary owner), add Payment Accounts link
+    // Only for single organization scenario - multi-org owners would need enhanced UI
+    // to select which organization's payment accounts to manage
     if (isOrgAdmin && adminStatus?.isPrimaryOwner && adminStatus?.managedIds && adminStatus.managedIds.length === 1) {
       const orgId = adminStatus.managedIds[0];
       const paymentAccountsLink: NavItem = {
@@ -671,11 +673,9 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
       }
     }
 
-    // For Club Owner (club membership with CLUB_OWNER role), add Payment Accounts link
-    // Note: The adminStatus doesn't distinguish between CLUB_OWNER and CLUB_ADMIN
-    // We need to check clubMemberships for CLUB_OWNER role
-    // For now, we'll add the link for all club admins who have an assigned club
-    // The backend API will enforce the CLUB_OWNER restriction
+    // For Club Admins, add Payment Accounts link
+    // Note: Backend API (requireClubOwner) enforces that only CLUB_OWNER role can manage accounts
+    // Frontend shows link for all club admins with assigned clubs for simpler implementation
     if (isClubAdmin && adminStatus?.assignedClub) {
       const paymentAccountsLink: NavItem = {
         id: "payment-accounts-club",
