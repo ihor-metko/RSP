@@ -12,6 +12,8 @@ import {
  * Manually trigger verification for a payment account.
  * 
  * Access: Organization Admin (includes owners)
+ * Note: requireOrganizationAdmin is used intentionally to allow all organization
+ * admins (including owners) to retry verification, as this is a management function.
  */
 export async function POST(
   request: Request,

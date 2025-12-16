@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, ConfirmationModal, Card } from "@/components/ui";
@@ -171,12 +171,14 @@ export default function UnifiedPaymentAccountsPage() {
     }
   }, [orgId, clubId, isLoggedIn, isLoadingStore, fetchAccounts]);
 
+  // Check if there are any pending accounts (memoized to avoid recalculation)
+  const hasPendingAccounts = useMemo(() => {
+    const allAccounts = [...organizationAccounts, ...clubAccounts.flatMap(c => c.accounts)];
+    return allAccounts.some(account => account.status === PaymentAccountStatus.PENDING);
+  }, [organizationAccounts, clubAccounts]);
+
   // Polling for pending accounts
   useEffect(() => {
-    // Check if there are any pending accounts
-    const allAccounts = [...organizationAccounts, ...clubAccounts.flatMap(c => c.accounts)];
-    const hasPendingAccounts = allAccounts.some(account => account.status === PaymentAccountStatus.PENDING);
-
     if (!hasPendingAccounts) {
       return; // No polling needed
     }
@@ -190,7 +192,7 @@ export default function UnifiedPaymentAccountsPage() {
     return () => {
       clearInterval(pollInterval);
     };
-  }, [organizationAccounts, clubAccounts, fetchAccounts]);
+  }, [hasPendingAccounts, fetchAccounts]);
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });

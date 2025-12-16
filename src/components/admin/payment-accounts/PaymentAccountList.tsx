@@ -120,7 +120,7 @@ export function PaymentAccountList({
               {t("actions.retryVerification")}
             </Button>
           )}
-          {account.isActive && account.status === PaymentAccountStatus.ACTIVE && (
+          {account.status === PaymentAccountStatus.ACTIVE && (
             <Button size="small" variant="danger" onClick={() => onDisable(account)}>
               {t("actions.disable")}
             </Button>
