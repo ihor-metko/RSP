@@ -1,33 +1,75 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRootAdmin } from "@/lib/requireRole";
+import { requireAnyAdmin } from "@/lib/requireRole";
+import { Prisma } from "@prisma/client";
 
 /**
  * GET /api/admin/users
- * Returns list of users for admin selection (root admin only)
+ * Returns list of users for admin selection with role-scoped visibility
  * Supports search query via ?q= parameter
+ * 
+ * Access control:
+ * - Root Admin: Can see all users
+ * - Organization Admin: Can see users from clubs in their organizations
+ * - Club Admin: Can see users from their clubs
  */
 export async function GET(request: Request) {
-  const authResult = await requireRootAdmin(request);
+  const authResult = await requireAnyAdmin(request);
 
   if (!authResult.authorized) {
     return authResult.response;
   }
 
+  const { isRoot, adminType, managedIds } = authResult;
+
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q") || "";
 
+    // Build where conditions
+    const whereConditions: Prisma.UserWhereInput[] = [
+      { isRoot: false }, // Exclude root users from results
+    ];
+
+    // Apply search filter if provided
+    if (query) {
+      whereConditions.push({
+        OR: [
+          { name: { contains: query, mode: "insensitive" } },
+          { email: { contains: query, mode: "insensitive" } },
+        ],
+      });
+    }
+
+    // Apply role-based access control scope filtering
+    if (!isRoot) {
+      if (adminType === "organization_admin") {
+        // Organization admins can only see users from clubs in their organization(s)
+        whereConditions.push({
+          clubMemberships: {
+            some: {
+              club: {
+                organizationId: { in: managedIds },
+              },
+            },
+          },
+        });
+      } else if (adminType === "club_admin" || adminType === "club_owner") {
+        // Club admins/owners can only see users from their specific club(s)
+        whereConditions.push({
+          clubMemberships: {
+            some: {
+              clubId: { in: managedIds },
+            },
+          },
+        });
+      }
+    }
+
+    const where: Prisma.UserWhereInput = { AND: whereConditions };
+
     const users = await prisma.user.findMany({
-      where: {
-        isRoot: false, // Exclude root admins
-        ...(query && {
-          OR: [
-            { name: { contains: query, mode: "insensitive" } },
-            { email: { contains: query, mode: "insensitive" } },
-          ],
-        }),
-      },
+      where,
       select: {
         id: true,
         name: true,
