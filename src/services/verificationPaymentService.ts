@@ -1,6 +1,6 @@
 /**
  * Verification Payment Service
- * 
+ *
  * Handles real payment verification for payment accounts.
  * Creates minimal payment intents (1 UAH) to verify merchant credentials
  * through actual payment processing, not sandbox APIs.
@@ -20,10 +20,10 @@ const VERIFICATION_CURRENCY = "UAH";
 
 /**
  * Initiate a real payment verification for a payment account
- * 
+ *
  * Creates a minimal payment intent (1 UAH) and returns a WayForPay checkout URL
  * for the owner to complete the verification payment.
- * 
+ *
  * @param paymentAccountId - Payment account ID to verify
  * @param initiatedBy - User ID who initiated the verification
  * @returns Verification payment intent with checkout URL
@@ -47,7 +47,7 @@ export async function initiateRealPaymentVerification(
 
   // Generate unique order reference
   const orderReference = `verify_${paymentAccountId}_${Date.now()}`;
-  
+
   // Create verification payment record
   const verificationPayment = await prisma.verificationPayment.create({
     data: {
@@ -62,7 +62,7 @@ export async function initiateRealPaymentVerification(
 
   // Generate checkout URL based on provider
   let checkoutUrl: string;
-  
+
   if (account.provider === PaymentProvider.WAYFORPAY) {
     checkoutUrl = await generateWayForPayCheckoutUrl(
       merchantId,
@@ -101,7 +101,7 @@ async function generateWayForPayCheckoutUrl(
 
   // Get base URL for return/callback URLs
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  
+
   // Generate signature for PURCHASE request
   // Signature string: merchantAccount;merchantDomainName;orderReference;orderDate;amount;currency;productName;productCount;productPrice
   const signatureString = [
@@ -135,6 +135,7 @@ async function generateWayForPayCheckoutUrl(
     productCount: [productCount],
     productPrice: [productPrice],
     merchantSignature: signature,
+    apiVersion: 1,
     // Return URLs
     returnUrl: `${baseUrl}/admin/payment-accounts/verification-return?id=${verificationPaymentId}`,
     serviceUrl: `${baseUrl}/api/webhooks/wayforpay/verification`,
@@ -175,16 +176,16 @@ async function generateWayForPayCheckoutUrl(
     reasonCode: data.reasonCode,
     reason: data.reason,
   });
-  
+
   throw new Error(`Failed to generate WayForPay checkout URL. Please check your merchant credentials.`);
 }
 
 /**
  * Handle verification payment callback from WayForPay
- * 
+ *
  * Validates the signature and updates the payment account status
  * based on the callback result.
- * 
+ *
  * @param callbackData - Callback data from WayForPay
  * @returns Processing result
  */
@@ -192,7 +193,7 @@ export async function handleVerificationCallback(
   callbackData: Record<string, unknown>
 ): Promise<{ success: boolean; message: string }> {
   const orderReference = callbackData.orderReference as string;
-  
+
   if (!orderReference) {
     return { success: false, message: "Missing orderReference" };
   }
@@ -234,7 +235,7 @@ export async function handleVerificationCallback(
   // If signature is valid and payment was approved, mark account as verified
   if (isSignatureValid) {
     const transactionStatus = callbackData.transactionStatus as string;
-    
+
     if (transactionStatus === "Approved") {
       await prisma.paymentAccount.update({
         where: { id: verificationPayment.paymentAccountId },
@@ -247,7 +248,7 @@ export async function handleVerificationCallback(
       });
 
       console.log(`[VerificationPaymentService] Payment account ${verificationPayment.paymentAccountId} marked as VERIFIED`);
-      
+
       return { success: true, message: "Payment account verified successfully" };
     } else {
       // Payment was not approved (declined, failed, etc.)
@@ -273,13 +274,13 @@ export async function handleVerificationCallback(
   });
 
   console.error(`[VerificationPaymentService] Invalid callback signature for account ${verificationPayment.paymentAccountId}`);
-  
+
   return { success: false, message: "Invalid signature" };
 }
 
 /**
  * Validate WayForPay callback signature
- * 
+ *
  * @param callbackData - Callback data from WayForPay
  * @param secretKey - Merchant secret key
  * @returns True if signature is valid
@@ -289,7 +290,7 @@ function validateWayForPaySignature(
   secretKey: string
 ): boolean {
   const merchantSignature = callbackData.merchantSignature as string;
-  
+
   if (!merchantSignature) {
     return false;
   }
@@ -308,7 +309,7 @@ function validateWayForPaySignature(
   ];
 
   const signatureString = signatureFields.join(";");
-  
+
   const expectedSignature = crypto
     .createHmac("md5", secretKey)
     .update(signatureString)
@@ -319,7 +320,7 @@ function validateWayForPaySignature(
 
 /**
  * Get verification payment by ID
- * 
+ *
  * @param id - Verification payment ID
  * @returns Verification payment or null
  */
@@ -342,7 +343,7 @@ export async function getVerificationPayment(id: string) {
 
 /**
  * Get verification payments for a payment account
- * 
+ *
  * @param paymentAccountId - Payment account ID
  * @returns List of verification payments
  */
