@@ -229,8 +229,8 @@ export async function GET(request: Request) {
             },
           },
         });
-      } else if (adminType === "club_admin") {
-        // Club admins can only see users from their specific club(s)
+      } else if (adminType === "club_admin" || adminType === "club_owner") {
+        // Club admins/owners can only see users from their specific club(s)
         whereConditions.push({
           clubMemberships: {
             some: {
