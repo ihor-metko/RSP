@@ -1213,12 +1213,14 @@
     "roles": {
       "rootAdmin": "Root Admin",
       "organizationAdmin": "Organization Admin",
+      "clubOwner": "Club Owner",
       "clubAdmin": "Club Admin",
       "user": "User",
       "member": "Member"
     },
     "roleDescriptions": {
       "organizationAdmin": "Can manage organization and its clubs",
+      "clubOwner": "Can manage payment keys and financial analytics for a club",
       "clubAdmin": "Can manage a specific club",
       "user": "Regular user with no admin privileges"
     },

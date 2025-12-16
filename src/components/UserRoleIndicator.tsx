@@ -39,8 +39,26 @@ export function UserRoleIndicator() {
   }
 
   const isRootAdmin = hasRole("ROOT_ADMIN");
-  const roleLabel = isRootAdmin ? t("admin.coaches.roles.rootAdmin") : t("admin.coaches.roles.player");
-  const roleBgColor = isRootAdmin ? "bg-purple-600" : "bg-green-500";
+  const isOrgAdmin = hasRole("ORGANIZATION_ADMIN");
+  const isClubOwner = hasRole("CLUB_OWNER");
+  const isClubAdmin = hasRole("CLUB_ADMIN");
+
+  let roleLabel = t("admin.coaches.roles.player");
+  let roleBgColor = "bg-green-500";
+
+  if (isRootAdmin) {
+    roleLabel = t("admin.coaches.roles.rootAdmin");
+    roleBgColor = "bg-purple-600";
+  } else if (isOrgAdmin) {
+    roleLabel = t("admin.coaches.roles.organizationAdmin");
+    roleBgColor = "bg-blue-600";
+  } else if (isClubOwner) {
+    roleLabel = t("admin.coaches.roles.clubOwner");
+    roleBgColor = "bg-indigo-600";
+  } else if (isClubAdmin) {
+    roleLabel = t("admin.coaches.roles.clubAdmin");
+    roleBgColor = "bg-cyan-600";
+  }
 
   const handleSignOut = () => {
     clearUser();

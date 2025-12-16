@@ -212,8 +212,8 @@ export default function AdminUsersPage() {
 
     if (status === "loading") return;
 
-    // Check if user has any admin role (ROOT_ADMIN, ORGANIZATION_ADMIN, or CLUB_ADMIN)
-    if (!user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"])) {
+    // Check if user has any admin role (ROOT_ADMIN, ORGANIZATION_ADMIN, CLUB_OWNER, or CLUB_ADMIN)
+    if (!user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_OWNER", "CLUB_ADMIN"])) {
       router.push("/auth/sign-in");
       return;
     }
@@ -223,7 +223,7 @@ export default function AdminUsersPage() {
 
   // Fetch users when dependencies change (filters already handle debouncing via useListController)
   useEffect(() => {
-    if (!isHydrated || status === "loading" || !user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"])) return;
+    if (!isHydrated || status === "loading" || !user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_OWNER", "CLUB_ADMIN"])) return;
     fetchUsers();
   }, [status, user, fetchUsers, isHydrated, hasAnyRole]);
 
@@ -379,6 +379,7 @@ export default function AdminUsersPage() {
                   roles={[
                     { value: "root_admin", label: t("users.roles.rootAdmin") },
                     { value: "organization_admin", label: t("users.roles.organizationAdmin") },
+                    { value: "club_owner", label: t("users.roles.clubOwner") },
                     { value: "club_admin", label: t("users.roles.clubAdmin") },
                     { value: "user", label: t("users.roles.user") },
                   ]}
