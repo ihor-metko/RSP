@@ -300,7 +300,7 @@ export async function updatePaymentAccount(
   // If credentials changed, reset status to PENDING
   if (credentialsChanged) {
     updateData.status = PaymentAccountStatus.PENDING;
-    updateData.verificationError = null; // Clear previous error
+    updateData.verificationError = undefined; // Clear previous error
   }
 
   if (credentials.displayName !== undefined) {
@@ -497,7 +497,7 @@ export async function verifyPaymentAccount(id: string): Promise<VerificationResu
   if (result.success) {
     updateData.status = PaymentAccountStatus.ACTIVE;
     updateData.lastVerifiedAt = result.timestamp;
-    updateData.verificationError = null;
+    updateData.verificationError = undefined;
     
     console.log(`[PaymentAccountService] Account ${id} verified successfully`);
   } else {

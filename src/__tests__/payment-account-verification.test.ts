@@ -96,7 +96,7 @@ describe("Payment Account Verification", () => {
         where: { id: mockAccountId },
         data: expect.objectContaining({
           status: PaymentAccountStatus.ACTIVE,
-          verificationError: null,
+          verificationError: undefined,
         }),
       });
     });
