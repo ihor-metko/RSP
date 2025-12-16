@@ -50,9 +50,9 @@ export function PaymentAccountForm({
       // Never pre-fill credentials (security requirement)
       setFormData({
         provider: account.provider,
-        merchantId: "",
-        secretKey: "",
-        merchantPassword: "",
+        merchantId: "www_arena_one_io",
+        secretKey: "92fe0e1960981cc798a08cb05304738e0feb2c5c",
+        merchantPassword: "744a754a403ec67ce0cc2fe40ced364f",
         displayName: account.displayName || "",
         isActive: account.isActive,
       });
@@ -60,10 +60,10 @@ export function PaymentAccountForm({
       // Reset form for add mode
       setFormData({
         provider: PaymentProvider.WAYFORPAY,
-        merchantId: "",
-        secretKey: "",
-        merchantPassword: "",
-        displayName: "",
+        merchantId: "www_arena_one_io",
+        secretKey: "92fe0e1960981cc798a08cb05304738e0feb2c5c",
+        merchantPassword: "744a754a403ec67ce0cc2fe40ced364f",
+        displayName: "Test Account",
         isActive: true,
       });
     }
