@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader, Breadcrumbs, ConfirmationModal, Card } from "@/components/ui";
+import { PageHeader, ConfirmationModal, Card } from "@/components/ui";
 import { PaymentAccountList } from "@/components/admin/payment-accounts/PaymentAccountList";
 import { PaymentAccountForm, PaymentAccountFormData } from "@/components/admin/payment-accounts/PaymentAccountForm";
 import { useUserStore } from "@/stores/useUserStore";
@@ -29,32 +29,32 @@ interface PaymentAccountStatus {
 export default function UnifiedPaymentAccountsPage() {
   const router = useRouter();
   const t = useTranslations();
-  
+
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
   const adminStatus = useUserStore((state) => state.adminStatus);
   const user = useUserStore((state) => state.user);
-  
+
   const organizations = useOrganizationStore((state) => state.organizations);
   const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
   const clubs = useClubStore((state) => state.clubs);
-  const fetchClubsByOrganization = useClubStore((state) => state.fetchClubsByOrganization);
-  
+  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+
   const [organizationAccounts, setOrganizationAccounts] = useState<MaskedPaymentAccount[]>([]);
   const [clubAccounts, setClubAccounts] = useState<ClubWithAccounts[]>([]);
   const [paymentStatus, setPaymentStatus] = useState<PaymentAccountStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<"add" | "edit">("add");
   const [selectedAccount, setSelectedAccount] = useState<MaskedPaymentAccount | null>(null);
   const [selectedScope, setSelectedScope] = useState<"ORGANIZATION" | "CLUB">("ORGANIZATION");
   const [selectedClubId, setSelectedClubId] = useState<string | null>(null);
-  
+
   const [isDisableModalOpen, setIsDisableModalOpen] = useState(false);
   const [accountToDisable, setAccountToDisable] = useState<MaskedPaymentAccount | null>(null);
-  
+
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   // Determine user role
@@ -90,9 +90,9 @@ export default function UnifiedPaymentAccountsPage() {
   // Fetch clubs for org owners
   useEffect(() => {
     if (isOrgOwner && orgId) {
-      fetchClubsByOrganization(orgId);
+      fetchClubsIfNeeded();
     }
-  }, [isOrgOwner, orgId, fetchClubsByOrganization]);
+  }, [isOrgOwner, orgId, fetchClubsIfNeeded]);
 
   const organization = organizations.find((org) => org.id === orgId);
   const assignedClubName = adminStatus?.assignedClub?.name;
@@ -131,7 +131,7 @@ export default function UnifiedPaymentAccountsPage() {
             console.error(`Failed to fetch accounts for club ${club.id}:`, err);
           }
         }
-        
+
         setClubAccounts(clubAccountsData);
       } else if (isClubAdmin && clubId) {
         // Fetch club-level accounts only
@@ -140,7 +140,7 @@ export default function UnifiedPaymentAccountsPage() {
           throw new Error("Failed to load club payment accounts");
         }
         const clubData = await clubResponse.json();
-        
+
         setClubAccounts([{
           clubId: clubId,
           clubName: assignedClubName || t("admin.club"),
@@ -322,15 +322,8 @@ export default function UnifiedPaymentAccountsPage() {
     return <div className="im-loading">{t("common.loading")}</div>;
   }
 
-  const breadcrumbs = [
-    { label: t("admin.dashboard"), href: "/admin/dashboard" },
-    { label: t("paymentAccount.breadcrumb"), href: "#" },
-  ];
-
   return (
     <div className="payment-accounts-page">
-      <Breadcrumbs items={breadcrumbs} />
-      
       <PageHeader
         title={t("paymentAccount.pageTitle.unified")}
         description={isOrgOwner ? organization?.name || "" : adminStatus?.assignedClub?.name || ""}
@@ -406,7 +399,7 @@ export default function UnifiedPaymentAccountsPage() {
           {isOrgOwner && (
             <p className="im-section-description">{t("paymentAccount.sections.clubDescription")}</p>
           )}
-          
+
           {clubAccounts.map((clubData) => (
             <div key={clubData.clubId} className="club-accounts-container">
               {isOrgOwner && (
@@ -422,7 +415,7 @@ export default function UnifiedPaymentAccountsPage() {
                   </span>
                 </button>
               )}
-              
+
               {(clubData.isExpanded || isClubAdmin) && (
                 <div className="club-accounts-content">
                   <PaymentAccountList
