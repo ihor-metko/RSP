@@ -27,6 +27,7 @@ export interface ClubAdminInfo {
 
 /** Extended club info with court counts for card display */
 export interface ClubWithCounts extends Club {
+  organizationId: string;
   shortDescription?: string | null;
   city?: string | null;
   heroImage?: string | null;

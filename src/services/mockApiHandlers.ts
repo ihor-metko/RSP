@@ -381,6 +381,7 @@ export async function mockGetClubs(params: {
     return {
       id: club.id,
       name: club.name,
+      organizationId: club.organizationId,
       shortDescription: club.shortDescription,
       location: club.location,
       city: club.city,

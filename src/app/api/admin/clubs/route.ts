@@ -201,6 +201,7 @@ export async function GET(request: Request) {
       return {
         id: club.id,
         name: club.name,
+        organizationId: club.organizationId,
         shortDescription: club.shortDescription,
         location: club.location,
         city: club.city,

@@ -305,6 +305,7 @@ export const useClubStore = create<ClubState>((set, get) => ({
       const clubWithCounts: ClubWithCounts = {
         id: newClub.id,
         name: newClub.name,
+        organizationId: newClub.organizationId,
         location: newClub.location,
         contactInfo: newClub.contactInfo || null,
         openingHours: newClub.openingHours || null,
