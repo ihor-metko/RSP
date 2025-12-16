@@ -3,7 +3,7 @@ import { requireClubOwner } from "@/lib/requireRole";
 import { auditLog } from "@/lib/auditLog";
 import {
   getMaskedPaymentAccount,
-  verifyPaymentAccount,
+  retryPaymentAccountVerification,
 } from "@/services/paymentAccountService";
 
 /**
@@ -52,8 +52,8 @@ export async function POST(
       );
     }
 
-    // Trigger verification
-    const result = await verifyPaymentAccount(accountId);
+    // Trigger verification (sets status to PENDING and enqueues async verification)
+    const updatedAccount = await retryPaymentAccountVerification(accountId);
 
     // Log audit event
     await auditLog(
@@ -63,20 +63,12 @@ export async function POST(
       clubId,
       {
         paymentAccountId: accountId,
-        success: result.success,
-        error: result.error,
       }
     );
 
     return NextResponse.json({
-      message: result.success 
-        ? "Payment account verified successfully" 
-        : "Payment account verification failed",
-      result: {
-        success: result.success,
-        error: result.error,
-        timestamp: result.timestamp,
-      },
+      message: "Payment account verification started",
+      paymentAccount: updatedAccount,
     });
   } catch (error) {
     console.error("Error verifying payment account:", error);

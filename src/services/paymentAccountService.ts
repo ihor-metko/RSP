@@ -520,6 +520,32 @@ export async function verifyPaymentAccount(id: string): Promise<VerificationResu
 }
 
 /**
+ * Retry verification for a payment account
+ * Sets status to PENDING and then triggers verification
+ * 
+ * @param id - Payment account ID
+ * @returns Verification result (after setting to PENDING)
+ */
+export async function retryPaymentAccountVerification(id: string): Promise<MaskedPaymentAccount> {
+  // First, set status to PENDING
+  const account = await prisma.paymentAccount.update({
+    where: { id },
+    data: {
+      status: PaymentAccountStatus.PENDING,
+      verificationError: null,
+      updatedAt: new Date(),
+    },
+  });
+
+  // Trigger verification asynchronously
+  verifyPaymentAccountAsync(id).catch((error) => {
+    console.error(`[PaymentAccountService] Failed to verify account ${id} after retry:`, error);
+  });
+
+  return maskPaymentAccount(account);
+}
+
+/**
  * Verify payment account asynchronously (fire and forget)
  * 
  * @param id - Payment account ID

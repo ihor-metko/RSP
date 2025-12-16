@@ -171,6 +171,27 @@ export default function UnifiedPaymentAccountsPage() {
     }
   }, [orgId, clubId, isLoggedIn, isLoadingStore, fetchAccounts]);
 
+  // Polling for pending accounts
+  useEffect(() => {
+    // Check if there are any pending accounts
+    const allAccounts = [...organizationAccounts, ...clubAccounts.flatMap(c => c.accounts)];
+    const hasPendingAccounts = allAccounts.some(account => account.status === "PENDING");
+
+    if (!hasPendingAccounts) {
+      return; // No polling needed
+    }
+
+    // Set up polling every 5 seconds
+    const pollInterval = setInterval(() => {
+      fetchAccounts();
+    }, 5000);
+
+    // Cleanup on unmount or when no more pending accounts
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [organizationAccounts, clubAccounts, fetchAccounts]);
+
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
@@ -330,6 +351,38 @@ export default function UnifiedPaymentAccountsPage() {
     }
   };
 
+  const handleRetryVerification = async (account: MaskedPaymentAccount, clubId?: string) => {
+    if (!user) return;
+
+    try {
+      let url: string;
+      if (account.scope === "ORGANIZATION" && orgId) {
+        url = `/api/admin/organizations/${orgId}/payment-accounts/${account.id}/verify`;
+      } else if (account.scope === "CLUB" && (clubId || selectedClubId)) {
+        const targetClubId = clubId || selectedClubId;
+        url = `/api/admin/clubs/${targetClubId}/payment-accounts/${account.id}/verify`;
+      } else {
+        throw new Error("Invalid scope or missing ID");
+      }
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to start verification");
+      }
+
+      showToast(t("paymentAccount.messages.verificationStarted"), "success");
+      await fetchAccounts();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to retry verification";
+      showToast(errorMessage, "error");
+    }
+  };
+
   const toggleClubExpanded = (clubId: string) => {
     setClubAccounts(prev =>
       prev.map(club =>
@@ -404,6 +457,8 @@ export default function UnifiedPaymentAccountsPage() {
             onAdd={handleAddOrgAccount}
             onEdit={(account) => handleEditAccount(account)}
             onDisable={(account) => handleDisableAccount(account)}
+            onRetry={(account) => handleRetryVerification(account)}
+            canRetry={isOrgOwner}
             scope="ORGANIZATION"
             showScopeInfo={false}
           />
@@ -444,6 +499,8 @@ export default function UnifiedPaymentAccountsPage() {
                     onAdd={() => handleAddClubAccount(clubData.clubId)}
                     onEdit={(account) => handleEditAccount(account, clubData.clubId)}
                     onDisable={(account) => handleDisableAccount(account, clubData.clubId)}
+                    onRetry={(account) => handleRetryVerification(account, clubData.clubId)}
+                    canRetry={true}
                     scope="CLUB"
                     showScopeInfo
                   />

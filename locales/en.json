@@ -1697,6 +1697,7 @@
       "displayName": "Name",
       "scope": "Level",
       "status": "Status",
+      "verificationStatus": "Verification Status",
       "lastUpdated": "Last Updated",
       "actions": "Actions"
     },
@@ -1716,10 +1717,17 @@
       "fallbackHint": "This club is using the organization-level payment account. Add a club-level account to override this.",
       "notConfigured": "No payment account configured for this club"
     },
+    "verificationStatus": {
+      "active": "Active",
+      "pending": "Verifying...",
+      "invalid": "Invalid credentials",
+      "disabled": "Disabled"
+    },
     "actions": {
       "add": "Add Payment Account",
       "edit": "Edit",
-      "disable": "Disable"
+      "disable": "Disable",
+      "retryVerification": "Retry Verification"
     },
     "priorityInfo": {
       "title": "Payment Account Priority",
@@ -1735,7 +1743,8 @@
     "messages": {
       "addSuccess": "Payment account added successfully",
       "updateSuccess": "Payment account updated successfully",
-      "disableSuccess": "Payment account disabled successfully"
+      "disableSuccess": "Payment account disabled successfully",
+      "verificationStarted": "Verification started. Please wait..."
     }
   }
 }

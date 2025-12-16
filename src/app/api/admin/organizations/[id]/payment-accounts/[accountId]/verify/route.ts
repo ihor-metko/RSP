@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { requireOrganizationOwner } from "@/lib/requireRole";
+import { requireOrganizationAdmin } from "@/lib/requireRole";
 import { auditLog } from "@/lib/auditLog";
 import {
   getMaskedPaymentAccount,
-  verifyPaymentAccount,
+  retryPaymentAccountVerification,
 } from "@/services/paymentAccountService";
 
 /**
@@ -11,7 +11,7 @@ import {
  * 
  * Manually trigger verification for a payment account.
  * 
- * Access: Organization Owner only
+ * Access: Organization Owner only (Organization admins are checked for ownership)
  */
 export async function POST(
   request: Request,
@@ -20,7 +20,7 @@ export async function POST(
   const resolvedParams = await params;
   const { id: organizationId, accountId } = resolvedParams;
 
-  const authResult = await requireOrganizationOwner(organizationId);
+  const authResult = await requireOrganizationAdmin(organizationId);
 
   if (!authResult.authorized) {
     return authResult.response;
@@ -52,8 +52,8 @@ export async function POST(
       );
     }
 
-    // Trigger verification
-    const result = await verifyPaymentAccount(accountId);
+    // Trigger verification (sets status to PENDING and enqueues async verification)
+    const updatedAccount = await retryPaymentAccountVerification(accountId);
 
     // Log audit event
     await auditLog(
@@ -63,20 +63,12 @@ export async function POST(
       organizationId,
       {
         paymentAccountId: accountId,
-        success: result.success,
-        error: result.error,
       }
     );
 
     return NextResponse.json({
-      message: result.success 
-        ? "Payment account verified successfully" 
-        : "Payment account verification failed",
-      result: {
-        success: result.success,
-        error: result.error,
-        timestamp: result.timestamp,
-      },
+      message: "Payment account verification started",
+      paymentAccount: updatedAccount,
     });
   } catch (error) {
     console.error("Error verifying payment account:", error);

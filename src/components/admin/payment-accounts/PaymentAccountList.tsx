@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Button, Table, Badge } from "@/components/ui";
 import type { TableColumn } from "@/components/ui/Table";
-import { MaskedPaymentAccount } from "@/types/paymentAccount";
+import { MaskedPaymentAccount, PaymentAccountStatus } from "@/types/paymentAccount";
 import "./PaymentAccountList.css";
 
 interface PaymentAccountListProps {
@@ -12,8 +12,10 @@ interface PaymentAccountListProps {
   onAdd: () => void;
   onEdit: (account: MaskedPaymentAccount) => void;
   onDisable: (account: MaskedPaymentAccount) => void;
+  onRetry?: (account: MaskedPaymentAccount) => void;
   scope: "ORGANIZATION" | "CLUB";
   showScopeInfo?: boolean;
+  canRetry?: boolean; // Whether user has permission to retry verification
 }
 
 export function PaymentAccountList({
@@ -22,10 +24,44 @@ export function PaymentAccountList({
   onAdd,
   onEdit,
   onDisable,
+  onRetry,
   scope,
   showScopeInfo = false,
+  canRetry = false,
 }: PaymentAccountListProps) {
   const t = useTranslations("paymentAccount");
+
+  // Helper to get badge variant based on verification status
+  const getStatusVariant = (status: PaymentAccountStatus): "success" | "warning" | "danger" | "default" => {
+    switch (status) {
+      case PaymentAccountStatus.ACTIVE:
+        return "success";
+      case PaymentAccountStatus.PENDING:
+        return "warning";
+      case PaymentAccountStatus.INVALID:
+        return "danger";
+      case PaymentAccountStatus.DISABLED:
+        return "default";
+      default:
+        return "default";
+    }
+  };
+
+  // Helper to get status display text
+  const getStatusText = (status: PaymentAccountStatus): string => {
+    switch (status) {
+      case PaymentAccountStatus.ACTIVE:
+        return t("verificationStatus.active");
+      case PaymentAccountStatus.PENDING:
+        return t("verificationStatus.pending");
+      case PaymentAccountStatus.INVALID:
+        return t("verificationStatus.invalid");
+      case PaymentAccountStatus.DISABLED:
+        return t("verificationStatus.disabled");
+      default:
+        return status;
+    }
+  };
 
   const columns: TableColumn<MaskedPaymentAccount>[] = [
     {
@@ -52,11 +88,18 @@ export function PaymentAccountList({
     },
     {
       key: "status",
-      header: t("table.status"),
+      header: t("table.verificationStatus"),
       render: (account) => (
-        <Badge variant={account.isActive ? "success" : "default"}>
-          {account.isActive ? t("status.active") : t("status.disabled")}
-        </Badge>
+        <div className="im-status-cell">
+          <Badge variant={getStatusVariant(account.status)}>
+            {getStatusText(account.status)}
+          </Badge>
+          {account.status === PaymentAccountStatus.INVALID && account.verificationError && (
+            <span className="im-error-hint" title={account.verificationError}>
+              ⚠️
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -72,7 +115,12 @@ export function PaymentAccountList({
           <Button size="small" variant="outline" onClick={() => onEdit(account)}>
             {t("actions.edit")}
           </Button>
-          {account.isActive && (
+          {account.status === PaymentAccountStatus.INVALID && canRetry && onRetry && (
+            <Button size="small" variant="primary" onClick={() => onRetry(account)}>
+              {t("actions.retryVerification")}
+            </Button>
+          )}
+          {account.isActive && account.status === PaymentAccountStatus.ACTIVE && (
             <Button size="small" variant="danger" onClick={() => onDisable(account)}>
               {t("actions.disable")}
             </Button>

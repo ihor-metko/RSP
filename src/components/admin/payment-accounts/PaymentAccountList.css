@@ -83,6 +83,17 @@
   font-style: italic;
 }
 
+.im-status-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.im-error-hint {
+  cursor: help;
+  font-size: 1rem;
+}
+
 .im-table-actions {
   display: flex;
   gap: 0.5rem;
