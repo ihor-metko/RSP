@@ -1200,7 +1200,16 @@
       "fetchClubAdminsFailed": "Не вдалося завантажити адмінів клубів",
       "assignClubAdminFailed": "Не вдалося призначити адміна клубу",
       "updateClubAdminFailed": "Не вдалося оновити адміна клубу",
-      "removeClubAdminFailed": "Не вдалося видалити адміна клубу"
+      "removeClubAdminFailed": "Не вдалося видалити адміна клубу",
+      "updateFailed": "Не вдалося оновити організацію",
+      "reassignOwnerFailed": "Не вдалося передати власність",
+      "archiveFailed": "Не вдалося архівувати організацію",
+      "deleteFailed": "Не вдалося видалити організацію",
+      "fetchFailed": "Не вдалося завантажити організацію"
+    },
+    "imageAlt": {
+      "heroImage": "Головне зображення для {name}",
+      "logo": "Логотип для {name}"
     }
   },
   "operations": {

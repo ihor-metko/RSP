@@ -1271,7 +1271,16 @@
       "fetchClubAdminsFailed": "Failed to fetch club admins",
       "assignClubAdminFailed": "Failed to assign club admin",
       "updateClubAdminFailed": "Failed to update club admin",
-      "removeClubAdminFailed": "Failed to remove club admin"
+      "removeClubAdminFailed": "Failed to remove club admin",
+      "updateFailed": "Failed to update organization",
+      "reassignOwnerFailed": "Failed to reassign owner",
+      "archiveFailed": "Failed to archive organization",
+      "deleteFailed": "Failed to delete organization",
+      "fetchFailed": "Failed to fetch organization"
+    },
+    "imageAlt": {
+      "heroImage": "Hero image for {name}",
+      "logo": "Logo for {name}"
     }
   },
   "operations": {

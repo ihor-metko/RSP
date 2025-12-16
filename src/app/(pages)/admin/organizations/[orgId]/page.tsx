@@ -176,7 +176,7 @@ export default function OrganizationDetailPage() {
           router.push("/auth/sign-in");
           return;
         }
-        throw new Error("Failed to fetch organization");
+        throw new Error(t("organizations.errors.fetchFailed"));
       }
       const data = await response.json();
       setOrg(data);
@@ -337,7 +337,7 @@ export default function OrganizationDetailPage() {
       setIsEditModalOpen(false);
       fetchOrgDetail();
     } catch (err) {
-      setEditError(err instanceof Error ? err.message : "Failed to update organization");
+      setEditError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
     } finally {
       setEditing(false);
     }
@@ -374,14 +374,14 @@ export default function OrganizationDetailPage() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Failed to reassign owner");
+        throw new Error(data.error || t("organizations.errors.reassignOwnerFailed"));
       }
 
       showToast(t("orgDetail.ownerReassigned"), "success");
       setIsReassignModalOpen(false);
       fetchOrgDetail();
     } catch (err) {
-      setReassignError(err instanceof Error ? err.message : "Failed to reassign owner");
+      setReassignError(err instanceof Error ? err.message : t("organizations.errors.reassignOwnerFailed"));
     } finally {
       setReassigning(false);
     }
@@ -399,14 +399,14 @@ export default function OrganizationDetailPage() {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || "Failed to archive organization");
+        throw new Error(data.error || t("organizations.errors.archiveFailed"));
       }
 
       showToast(t("orgDetail.archiveSuccess"), "success");
       setIsArchiveModalOpen(false);
       fetchOrgDetail();
     } catch (err) {
-      setArchiveError(err instanceof Error ? err.message : "Failed to archive organization");
+      setArchiveError(err instanceof Error ? err.message : t("organizations.errors.archiveFailed"));
     } finally {
       setArchiving(false);
     }
@@ -428,7 +428,7 @@ export default function OrganizationDetailPage() {
       showToast(t("orgDetail.deleteSuccess"), "success");
       router.push("/admin/organizations");
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Failed to delete organization");
+      setDeleteError(err instanceof Error ? err.message : t("organizations.errors.deleteFailed"));
     } finally {
       setDeleting(false);
     }
