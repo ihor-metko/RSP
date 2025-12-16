@@ -311,6 +311,7 @@ export const useClubStore = create<ClubState>((set, get) => ({
         logo: newClub.logo || null,
         status: newClub.status,
         createdAt: newClub.createdAt,
+        organizationId: newClub.organizationId,
         shortDescription: newClub.shortDescription || null,
         city: newClub.city || null,
         heroImage: newClub.heroImage || null,
