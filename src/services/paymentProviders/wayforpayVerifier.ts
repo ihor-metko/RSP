@@ -27,12 +27,13 @@ export class WayForPayVerifier implements PaymentProviderVerifier {
    * 
    * @param merchantId - WayForPay merchant account
    * @param secretKey - WayForPay secret key
-   * @param providerConfig - Optional additional configuration
+   * @param providerConfig - Optional additional configuration (unused for WayForPay)
    * @returns Verification result
    */
   async verify(
     merchantId: string,
     secretKey: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     providerConfig?: Record<string, unknown> | null
   ): Promise<ProviderVerificationResult> {
     const timestamp = new Date();
