@@ -32,6 +32,18 @@ enum SportType {
   BADMINTON
 }
 
+// Payment provider types
+enum PaymentProvider {
+  WAYFORPAY
+  LIQPAY
+}
+
+// Payment account scope - determines ownership level
+enum PaymentAccountScope {
+  ORGANIZATION  // Payment account belongs to entire organization
+  CLUB          // Payment account belongs to specific club
+}
+
 model User {
   id              String           @id @default(uuid())
   name            String?
@@ -72,6 +84,7 @@ model Organization {
   updatedAt   DateTime     @default(now()) @updatedAt
   memberships Membership[]
   clubs       Club[]
+  paymentAccounts PaymentAccount[] // Organization-level payment accounts
 }
 
 model Membership {
@@ -181,6 +194,7 @@ model Club {
   businessHours    ClubBusinessHours[]
   specialHours     ClubSpecialHours[]
   clubMemberships  ClubMembership[]
+  paymentAccounts  PaymentAccount[] // Club-level payment accounts
 
   @@index([organizationId])
 }
@@ -413,4 +427,43 @@ model AuditLog {
   @@index([actorId])
   @@index([targetType, targetId])
   @@index([createdAt])
+}
+
+// Payment Account - represents a merchant account in a payment provider
+// This is the core entity for payment processing in the multi-tenant platform
+model PaymentAccount {
+  id             String                @id @default(uuid())
+  provider       PaymentProvider       // Payment provider (WayForPay, LiqPay)
+  scope          PaymentAccountScope   // ORGANIZATION or CLUB level
+  
+  // Scope identifiers (mutually exclusive based on scope)
+  organizationId String?               // Set when scope = ORGANIZATION
+  clubId         String?               // Set when scope = CLUB
+  
+  // Payment provider credentials (ENCRYPTED)
+  merchantId     String                // Encrypted merchant ID / account ID
+  secretKey      String                // Encrypted secret key
+  
+  // Additional provider-specific configuration (JSON, encrypted if contains secrets)
+  providerConfig String?               @db.Text
+  
+  // Status and metadata
+  isActive       Boolean               @default(true)
+  displayName    String?               // Optional friendly name for UI
+  
+  // Audit fields
+  createdById    String                // User who created this payment account
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  lastUpdatedBy  String?               // User who last updated credentials
+  
+  // Relations
+  organization   Organization?         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  club           Club?                 @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  
+  @@unique([provider, scope, organizationId, clubId])
+  @@index([organizationId])
+  @@index([clubId])
+  @@index([provider, scope])
+  @@index([isActive])
 }
