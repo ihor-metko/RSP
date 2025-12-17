@@ -299,3 +299,47 @@ export function getFirstVisibleStepId(
   const visibleSteps = getVisibleSteps(adminType, predefinedData);
   return visibleSteps[0].id;
 }
+
+/**
+ * Check if a step is pre-filled based on predefined data
+ */
+export function isStepPreFilled(
+  stepId: number,
+  predefinedData?: PredefinedData
+): boolean {
+  if (!predefinedData) return false;
+  
+  switch (stepId) {
+    case 1: // Organization
+      return !!predefinedData.organizationId;
+    case 2: // Club
+      return !!predefinedData.clubId;
+    case 3: // DateTime
+      return !!predefinedData.date && !!predefinedData.startTime && !!predefinedData.duration;
+    case 4: // Court
+      return !!predefinedData.courtId;
+    case 5: // User
+      return !!predefinedData.userId;
+    case 6: // Confirmation
+      return false; // Confirmation step is never pre-filled
+    default:
+      return false;
+  }
+}
+
+/**
+ * Get the first step that needs user input (not pre-filled)
+ * Falls back to first visible step if all are pre-filled
+ */
+export function getFirstUnfilledStepId(
+  adminType: AdminType,
+  predefinedData?: PredefinedData
+): number {
+  const visibleSteps = getVisibleSteps(adminType, predefinedData);
+  
+  // Find first unfilled step
+  const firstUnfilledStep = visibleSteps.find(step => !isStepPreFilled(step.id, predefinedData));
+  
+  // Return first unfilled step, or last visible step (confirmation) if all are filled
+  return firstUnfilledStep ? firstUnfilledStep.id : visibleSteps[visibleSteps.length - 1].id;
+}
