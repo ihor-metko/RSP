@@ -18,6 +18,9 @@ import type { OperationsBooking } from "@/types/booking";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import "../page.css";
 
+// Default booking duration in minutes
+const DEFAULT_BOOKING_DURATION = 60;
+
 /**
  * ClubOperationsPage
  * 
@@ -184,7 +187,7 @@ export default function ClubOperationsPage() {
       courtId,
       date,
       startTime: timeStr,
-      duration: 60, // Default to 60 minutes
+      duration: DEFAULT_BOOKING_DURATION,
     });
     setIsBookingWizardOpen(true);
   }, [clubId, club]);
