@@ -9,6 +9,10 @@ jest.mock("@/utils/image", () => ({
   isValidImageUrl: (url: string | null | undefined): url is string => {
     return typeof url === "string" && url.length > 0 && url.startsWith("http");
   },
+  getSupabaseStorageUrl: (url: string | null | undefined): string | null => {
+    // Pass through URLs for testing - in reality this would convert paths to full URLs
+    return url || null;
+  },
 }));
 
 describe("Organization Detail Page - Banner Component", () => {

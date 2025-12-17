@@ -12,7 +12,7 @@
  */
 
 import React, { useMemo } from "react";
-import { isValidImageUrl } from "@/utils/image";
+import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 
 /**
  * Location pin icon - reusable SVG component
@@ -97,20 +97,24 @@ export function EntityBanner({
   status,
   className = "",
 }: EntityBannerProps) {
+  // Convert stored paths to full Supabase Storage URLs
+  const heroImageFullUrl = useMemo(() => getSupabaseStorageUrl(imageUrl), [imageUrl]);
+  const logoFullUrl = useMemo(() => getSupabaseStorageUrl(logoUrl), [logoUrl]);
+  
   // Memoize validation to avoid unnecessary calls on each render
-  const hasHeroImage = useMemo(() => isValidImageUrl(imageUrl), [imageUrl]);
-  const hasLogo = useMemo(() => isValidImageUrl(logoUrl), [logoUrl]);
+  const hasHeroImage = useMemo(() => isValidImageUrl(heroImageFullUrl), [heroImageFullUrl]);
+  const hasLogo = useMemo(() => isValidImageUrl(logoFullUrl), [logoFullUrl]);
   
   // Generate initials for placeholder if no image
   const placeholderInitial = title ? title.charAt(0).toUpperCase() : "";
 
   return (
     <section className={`rsp-club-hero ${className}`} data-testid="entity-banner">
-      {hasHeroImage ? (
+      {hasHeroImage && heroImageFullUrl ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={imageUrl as string}
+            src={heroImageFullUrl}
             alt={imageAlt || `${title} hero image`}
             className="rsp-club-hero-image"
           />
@@ -124,10 +128,10 @@ export function EntityBanner({
         </div>
       )}
       <div className="rsp-club-hero-content">
-        {hasLogo && (
+        {hasLogo && logoFullUrl && (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={logoUrl as string}
+            src={logoFullUrl}
             alt={logoAlt || `${title} logo`}
             className="rsp-club-hero-logo"
           />
