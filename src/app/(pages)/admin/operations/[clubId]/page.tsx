@@ -206,7 +206,7 @@ export default function ClubOperationsPage() {
   const handleCreateBooking = () => {
     // Open modal with no pre-filled data (user will select court and time)
     const now = new Date();
-    // Round to next half hour
+    // Round UP to next 30-minute slot (e.g., 10:15 -> 10:30, 10:45 -> 11:00)
     if (now.getMinutes() >= 30) {
       now.setHours(now.getHours() + 1);
       now.setMinutes(0, 0, 0);
@@ -289,8 +289,8 @@ export default function ClubOperationsPage() {
       <Card className="im-club-operations-club-block">
         <div className="im-club-operations-club-info">
           <div className="im-club-operations-club-details">
-            <h2 className="im-club-operations-club-label">{t("operations.currentClub")}</h2>
-            <h3 className="im-club-operations-club-name">{club?.name || "Loading..."}</h3>
+            <div className="im-club-operations-club-label">{t("operations.currentClub")}</div>
+            <div className="im-club-operations-club-name">{club?.name || "Loading..."}</div>
           </div>
           <div className="im-club-operations-view-actions">
             {/* View Switcher */}
