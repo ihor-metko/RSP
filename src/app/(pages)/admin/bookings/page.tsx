@@ -251,10 +251,19 @@ export default function AdminBookingsPage() {
           };
         }
       } else if (adminStatus.adminType === "organization_admin" && adminStatus.managedIds.length > 0) {
-        // For Organization Admin: Preselect the first managed organization
+        // For Organization Admin: Preselect the organization
+        const organizationId = adminStatus.managedIds[0];
         predefinedData = {
-          organizationId: adminStatus.managedIds[0],
+          organizationId,
         };
+        
+        // If they manage only one club in this organization, preselect it too
+        await fetchClubsIfNeeded();
+        const managedClubs = clubs.filter(c => c.organizationId === organizationId);
+        
+        if (managedClubs.length === 1) {
+          predefinedData.clubId = managedClubs[0].id;
+        }
       }
       // For root_admin, don't preselect anything (current behavior)
     }
