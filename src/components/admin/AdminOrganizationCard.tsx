@@ -58,9 +58,9 @@ export function AdminOrganizationCard({
   const heroImageUrl = getSupabaseStorageUrl(organization.heroImage);
   const logoUrl = getSupabaseStorageUrl(organization.logo);
 
-  // Validate both images and ensure they're strings (isValidImageUrl checks for null/undefined)
-  const hasHeroImage = isValidImageUrl(heroImageUrl) && heroImageUrl !== null;
-  const hasLogo = isValidImageUrl(logoUrl) && logoUrl !== null;
+  // Validate both images (isValidImageUrl checks for null/undefined/empty and valid URL format)
+  const hasHeroImage = isValidImageUrl(heroImageUrl);
+  const hasLogo = isValidImageUrl(logoUrl);
 
   return (
     <article
