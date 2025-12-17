@@ -280,7 +280,7 @@ export function OrganizationCreationStepper() {
         metadata.socialLinks = socialLinks;
       }
 
-      // Prepare data for submission
+      // Prepare data for submission (without images - they'll be uploaded separately)
       const submitData = {
         name: formData.name.trim(),
         slug: formData.slug.trim() || generateSlug(formData.name),
@@ -289,12 +289,53 @@ export function OrganizationCreationStepper() {
         contactEmail: formData.contactEmail.trim() || undefined,
         contactPhone: formData.contactPhone.trim() || undefined,
         website: formData.website.trim() || undefined,
-        logo: formData.logo ? (formData.logo.url || formData.logo.preview) : undefined,
-        heroImage: formData.heroImage ? (formData.heroImage.url || formData.heroImage.preview) : undefined,
         metadata,
       };
 
       const organization = await createOrganization(submitData);
+
+      // Upload images after organization is created
+      try {
+        // Upload heroImage (required)
+        if (formData.heroImage?.file) {
+          const heroFormData = new FormData();
+          heroFormData.append("file", formData.heroImage.file);
+          heroFormData.append("type", "heroImage");
+
+          const heroResponse = await fetch(`/api/admin/organizations/${organization.id}/images`, {
+            method: "POST",
+            body: heroFormData,
+          });
+
+          if (!heroResponse.ok) {
+            const errorData = await heroResponse.json();
+            throw new Error(errorData.error || t("errors.imageUploadFailed"));
+          }
+        }
+
+        // Upload logo (optional)
+        if (formData.logo?.file) {
+          const logoFormData = new FormData();
+          logoFormData.append("file", formData.logo.file);
+          logoFormData.append("type", "logo");
+
+          const logoResponse = await fetch(`/api/admin/organizations/${organization.id}/images`, {
+            method: "POST",
+            body: logoFormData,
+          });
+
+          if (!logoResponse.ok) {
+            const errorData = await logoResponse.json();
+            throw new Error(errorData.error || t("errors.imageUploadFailed"));
+          }
+        }
+      } catch (imageErr) {
+        // Organization was created, but image upload failed
+        const imageMessage = imageErr instanceof Error ? imageErr.message : t("errors.imageUploadFailed");
+        showToast("error", t("success.createdImageFailed", { message: imageMessage }));
+        
+        // Continue with owner assignment or redirect
+      }
 
       // If owner assignment is requested, assign the owner
       if (formData.assignOwner) {

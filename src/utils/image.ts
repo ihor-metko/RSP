@@ -22,7 +22,7 @@ const STORAGE_BUCKET = "uploads";
 /**
  * Path prefixes that indicate a valid storage path.
  */
-const VALID_PATH_PREFIXES = ["/", "uploads/", "clubs/"] as const;
+const VALID_PATH_PREFIXES = ["/", "uploads/", "clubs/", "organizations/"] as const;
 
 /**
  * Check if a URL is already a full HTTP/HTTPS URL.
