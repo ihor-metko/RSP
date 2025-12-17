@@ -38,6 +38,19 @@
   background-color: var(--rsp-card-bg);
 }
 
+/* Logo overlay on banner */
+.im-admin-org-logo-overlay {
+  @apply absolute bottom-3 left-3 w-16 h-16 rounded-lg object-contain shadow-lg;
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: 0.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .im-admin-org-logo-overlay {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 .im-admin-org-image-placeholder {
   @apply w-full h-full flex items-center justify-center;
   background-color: var(--entity-color-organization);

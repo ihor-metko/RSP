@@ -8,7 +8,16 @@ import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard"
 
 // Mock next-intl
 jest.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
+  useTranslations: () => (key: string, params?: Record<string, string>) => {
+    // Special handling for imageAlt translations with parameters
+    if (key === "organizations.imageAlt.heroImage" && params?.name) {
+      return `Hero image for ${params.name}`;
+    }
+    if (key === "organizations.imageAlt.logo" && params?.name) {
+      return `Logo for ${params.name}`;
+    }
+    return key;
+  },
 }));
 
 // Mock image utilities
@@ -161,7 +170,7 @@ describe("AdminOrganizationCard", () => {
     expect(placeholder).toHaveClass("im-admin-org-image-placeholder-text");
   });
 
-  it("should prefer heroImage over logo when both are provided", () => {
+  it("should display both heroImage and logo when both are provided", () => {
     const orgWithBothImages = {
       ...mockOrganization,
       heroImage: "organizations/org-hero.jpg",
@@ -169,9 +178,26 @@ describe("AdminOrganizationCard", () => {
     };
     render(<AdminOrganizationCard organization={orgWithBothImages} />);
     
-    const image = screen.getByAltText("Hero image for Test Organization");
-    expect(image).toBeInTheDocument();
-    expect(image).toHaveAttribute("src", expect.stringContaining("organizations/org-hero.jpg"));
-    expect(screen.queryByAltText("Logo for Test Organization")).not.toBeInTheDocument();
+    // Both banner and logo should be displayed
+    const heroImage = screen.getByAltText("Hero image for Test Organization");
+    expect(heroImage).toBeInTheDocument();
+    expect(heroImage).toHaveAttribute("src", expect.stringContaining("organizations/org-hero.jpg"));
+    
+    const logoImage = screen.getByAltText("Logo for Test Organization");
+    expect(logoImage).toBeInTheDocument();
+    expect(logoImage).toHaveAttribute("src", expect.stringContaining("organizations/org-logo.png"));
+    expect(logoImage).toHaveClass("im-admin-org-logo-overlay");
+  });
+
+  it("should display logo overlayed on banner with proper styling", () => {
+    const orgWithBothImages = {
+      ...mockOrganization,
+      heroImage: "organizations/org-hero.jpg",
+      logo: "organizations/org-logo.png",
+    };
+    render(<AdminOrganizationCard organization={orgWithBothImages} />);
+    
+    const logoImage = screen.getByAltText("Logo for Test Organization");
+    expect(logoImage).toHaveClass("im-admin-org-logo-overlay");
   });
 });

@@ -58,8 +58,8 @@ export function AdminOrganizationCard({
   const heroImageUrl = getSupabaseStorageUrl(organization.heroImage);
   const logoUrl = getSupabaseStorageUrl(organization.logo);
 
-  // Determine the main image: heroImage first, then logo as fallback
-  const mainImage = isValidImageUrl(heroImageUrl) ? heroImageUrl : null;
+  // Validate both images (isValidImageUrl checks for null/undefined/empty and valid URL format)
+  const hasHeroImage = isValidImageUrl(heroImageUrl);
   const hasLogo = isValidImageUrl(logoUrl);
 
   return (
@@ -69,21 +69,35 @@ export function AdminOrganizationCard({
     >
       {/* Main Image Section */}
       <div className="im-admin-org-card-image">
-        {mainImage ? (
+        {hasHeroImage && heroImageUrl ? (
+          <>
+            {/* Banner/Hero Image */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroImageUrl}
+              alt={t("organizations.imageAlt.heroImage", { name: organization.name })}
+              className="im-admin-org-hero-image"
+            />
+            {/* Logo overlayed on banner */}
+            {hasLogo && logoUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={logoUrl}
+                alt={t("organizations.imageAlt.logo", { name: organization.name })}
+                className="im-admin-org-logo-overlay"
+              />
+            )}
+          </>
+        ) : hasLogo && logoUrl ? (
+          /* Logo as fallback when no banner */
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={mainImage}
-            alt={t("organizations.imageAlt.heroImage", { name: organization.name })}
-            className="im-admin-org-hero-image"
-          />
-        ) : hasLogo ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={logoUrl as string}
+            src={logoUrl}
             alt={t("organizations.imageAlt.logo", { name: organization.name })}
             className="im-admin-org-hero-image im-admin-org-hero-image--logo"
           />
         ) : (
+          /* Placeholder when no images */
           <div className="im-admin-org-image-placeholder" aria-hidden="true">
             <span className="im-admin-org-image-placeholder-text">
               {organization.name.charAt(0).toUpperCase()}
