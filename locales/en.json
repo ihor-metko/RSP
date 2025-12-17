@@ -1674,7 +1674,9 @@
     "publish": "Publish",
     "unpublish": "Unpublish",
     "publishSuccess": "Organization published successfully",
-    "unpublishSuccess": "Organization unpublished successfully"
+    "unpublishSuccess": "Organization unpublished successfully",
+    "editOrganization": "Edit Organization",
+    "imagesAndBranding": "Images & Branding"
   },
   "unifiedDashboard": {
     "organizationTitle": "Organization Dashboard",

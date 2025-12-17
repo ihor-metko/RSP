@@ -1592,7 +1592,9 @@
     "publish": "Опублікувати",
     "unpublish": "Зняти з публікації",
     "publishSuccess": "Організацію успішно опубліковано",
-    "unpublishSuccess": "Організацію успішно знято з публікації"
+    "unpublishSuccess": "Організацію успішно знято з публікації",
+    "editOrganization": "Редагувати організацію",
+    "imagesAndBranding": "Зображення та брендинг"
   },
   "unifiedDashboard": {
     "organizationTitle": "Панель організації",

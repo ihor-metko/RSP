@@ -77,6 +77,11 @@ export interface EntityBannerProps {
   } | null;
   
   /**
+   * Action buttons to display in the top-right corner (optional)
+   */
+  actions?: React.ReactNode;
+  
+  /**
    * Custom CSS class for the banner container
    */
   className?: string;
@@ -95,6 +100,7 @@ export function EntityBanner({
   imageAlt,
   logoAlt,
   status,
+  actions,
   className = "",
 }: EntityBannerProps) {
   // Memoize validation to avoid unnecessary calls on each render
@@ -123,6 +129,11 @@ export function EntityBanner({
           </span>
         </div>
       )}
+      {actions && (
+        <div className="rsp-club-hero-actions">
+          {actions}
+        </div>
+      )}
       <div className="rsp-club-hero-content">
         {hasLogo && (
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -133,6 +144,12 @@ export function EntityBanner({
           />
         )}
         <h1 className="rsp-club-hero-name">{title}</h1>
+        {location && (
+          <p className="rsp-club-hero-location">
+            <LocationIcon />
+            {location}
+          </p>
+        )}
         {status && (
           <span className={`rsp-entity-status-badge rsp-entity-status-badge--${status.variant}`}>
             {status.label}
@@ -140,12 +157,6 @@ export function EntityBanner({
         )}
         {subtitle && (
           <p className="rsp-club-hero-short-desc">{subtitle}</p>
-        )}
-        {location && (
-          <p className="rsp-club-hero-location">
-            <LocationIcon />
-            {location}
-          </p>
         )}
       </div>
     </section>

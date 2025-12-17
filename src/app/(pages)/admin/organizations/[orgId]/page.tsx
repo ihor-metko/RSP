@@ -136,15 +136,37 @@ export default function OrganizationDetailPage() {
     setTimeout(() => setToast(null), 5000);
   };
 
-  // Stepper modal states for editing
-  const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
-  const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [isEditingContacts, setIsEditingContacts] = useState(false);
+  // Comprehensive edit modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editError, setEditError] = useState("");
   const [editing, setEditing] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  // Form data for each section
+  // Stepper modal states for editing (kept for backwards compatibility)
+  const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [isEditingContacts, setIsEditingContacts] = useState(false);
+
+  // Consolidated form data for comprehensive edit modal
+  const [formData, setFormData] = useState({
+    name: "",
+    slug: "",
+    description: "",
+    country: "",
+    city: "",
+    postalCode: "",
+    street: "",
+    latitude: "",
+    longitude: "",
+    contactEmail: "",
+    contactPhone: "",
+    website: "",
+    facebook: "",
+    instagram: "",
+    linkedin: "",
+  });
+
+  // Form data for each section (kept for backwards compatibility)
   const [basicInfoData, setBasicInfoData] = useState({
     name: "",
     slug: "",
@@ -397,6 +419,47 @@ export default function OrganizationDetailPage() {
     setIsEditingContacts(true);
   };
 
+  // Handler for opening comprehensive edit modal
+  const handleOpenEditModal = () => {
+    if (!org) return;
+    const metadata = org.metadata as { 
+      country?: string; 
+      street?: string; 
+      latitude?: number; 
+      longitude?: number;
+      socialLinks?: { facebook?: string; instagram?: string; linkedin?: string };
+    } | null;
+
+    // Parse address to extract components
+    const addressParts = org.address?.split(", ") || [];
+    const street = metadata?.street || addressParts[0] || "";
+    const city = addressParts.length > 1 ? addressParts[1] : "";
+    const postalCode = addressParts.length > 2 ? addressParts[2] : "";
+    const country = metadata?.country || (addressParts.length > 3 ? addressParts[3] : "");
+    const socialLinks = metadata?.socialLinks || {};
+
+    setFormData({
+      name: org.name,
+      slug: org.slug,
+      description: org.description || "",
+      country,
+      city,
+      postalCode,
+      street,
+      latitude: metadata?.latitude?.toString() || "",
+      longitude: metadata?.longitude?.toString() || "",
+      contactEmail: org.contactEmail || "",
+      contactPhone: org.contactPhone || "",
+      website: org.website || "",
+      facebook: socialLinks.facebook || "",
+      instagram: socialLinks.instagram || "",
+      linkedin: socialLinks.linkedin || "",
+    });
+    setFieldErrors({});
+    setEditError("");
+    setIsEditModalOpen(true);
+  };
+
   // Handle form field changes
   const handleBasicInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -425,6 +488,19 @@ export default function OrganizationDetailPage() {
   const handleContactsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setContactsData((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+  };
+
+  // Handler for comprehensive edit modal form changes
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (fieldErrors[name]) {
       setFieldErrors((prev) => {
         const newErrors = { ...prev };
@@ -519,6 +595,55 @@ export default function OrganizationDetailPage() {
 
       showToast(t("orgDetail.updateSuccess"), "success");
       setIsEditingContacts(false);
+      fetchOrgDetail();
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
+    } finally {
+      setEditing(false);
+    }
+  };
+
+  // Save handler for comprehensive edit modal
+  const handleSaveAll = async () => {
+    setEditError("");
+    setEditing(true);
+
+    try {
+      // Build full address from components
+      const addressParts = [
+        formData.street.trim(),
+        formData.city.trim(),
+        formData.postalCode.trim(),
+        formData.country.trim()
+      ].filter(Boolean);
+      const fullAddress = addressParts.join(", ");
+
+      // Build social links
+      const socialLinks: Record<string, string> = {};
+      if (formData.facebook.trim()) socialLinks.facebook = formData.facebook.trim();
+      if (formData.instagram.trim()) socialLinks.instagram = formData.instagram.trim();
+      if (formData.linkedin.trim()) socialLinks.linkedin = formData.linkedin.trim();
+
+      await updateOrganization(orgId, {
+        name: formData.name,
+        slug: formData.slug,
+        description: formData.description || undefined,
+        address: fullAddress,
+        contactEmail: formData.contactEmail.trim() || null,
+        contactPhone: formData.contactPhone.trim() || null,
+        website: formData.website.trim() || null,
+        metadata: {
+          ...(org?.metadata as object || {}),
+          country: formData.country.trim(),
+          street: formData.street.trim(),
+          latitude: formData.latitude ? parseFloat(formData.latitude) : undefined,
+          longitude: formData.longitude ? parseFloat(formData.longitude) : undefined,
+          socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : undefined,
+        },
+      });
+
+      showToast(t("orgDetail.updateSuccess"), "success");
+      setIsEditModalOpen(false);
       fetchOrgDetail();
     } catch (err) {
       setEditError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
@@ -706,55 +831,48 @@ export default function OrganizationDetailPage() {
           </Button>
         </div>
       ) : org && (
-        <>
-          <EntityBanner
-            title={org.name}
-            subtitle={org.description || null}
-            location={org.address}
-            imageUrl={org.heroImage}
-            logoUrl={org.logo}
-            imageAlt={`${org.name} banner`}
-            logoAlt={`${org.name} logo`}
-            status={
-              org.archivedAt
-                ? { label: t("common.archived"), variant: 'archived' }
-                : (org.isPublic ?? true)
-                  ? { label: t("common.published"), variant: 'published' }
-                  : { label: t("common.unpublished"), variant: 'draft' }
-            }
-          />
-          {!org.archivedAt && (
-            <div className="im-banner-actions">
-              <Button
-                variant="outline"
-                size="small"
-                onClick={handleOpenLogoEdit}
-              >
-                {org.logo ? t("orgDetail.updateLogo") : t("orgDetail.addLogo")}
-              </Button>
-              <Button
-                variant="outline"
-                size="small"
-                onClick={handleOpenBannerEdit}
-              >
-                {org.heroImage ? t("orgDetail.updateBanner") : t("orgDetail.addBanner")}
-              </Button>
-              <Button
-                variant={org.isPublic ? "outline" : "primary"}
-                size="small"
-                onClick={handleTogglePublication}
-                disabled={isTogglingPublication}
-              >
-                {isTogglingPublication 
-                  ? t("common.processing") 
-                  : org.isPublic 
-                    ? t("orgDetail.unpublish") 
-                    : t("orgDetail.publish")
-                }
-              </Button>
-            </div>
-          )}
-        </>
+        <EntityBanner
+          title={org.name}
+          subtitle={org.description || null}
+          location={org.address}
+          imageUrl={org.heroImage}
+          logoUrl={org.logo}
+          imageAlt={`${org.name} banner`}
+          logoAlt={`${org.name} logo`}
+          status={
+            org.archivedAt
+              ? { label: t("common.archived"), variant: 'archived' }
+              : (org.isPublic ?? true)
+                ? { label: t("common.published"), variant: 'published' }
+                : { label: t("common.unpublished"), variant: 'draft' }
+          }
+          actions={
+            !org.archivedAt ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="small"
+                  onClick={handleOpenEditModal}
+                >
+                  {t("common.edit")}
+                </Button>
+                <Button
+                  variant={org.isPublic ? "outline" : "primary"}
+                  size="small"
+                  onClick={handleTogglePublication}
+                  disabled={isTogglingPublication}
+                >
+                  {isTogglingPublication 
+                    ? t("common.processing") 
+                    : org.isPublic 
+                      ? t("orgDetail.unpublish") 
+                      : t("orgDetail.publish")
+                  }
+                </Button>
+              </>
+            ) : undefined
+          }
+        />
       )}
 
       <div className="rsp-club-content">
@@ -764,53 +882,6 @@ export default function OrganizationDetailPage() {
         )}
 
         <section className="im-org-detail-content">
-          {/* Organization Overview Block */}
-          {loadingOrg ? (
-            <OrgInfoCardSkeleton items={6} className="im-org-detail-content--full" />
-          ) : org && (
-            <div className="im-section-card im-org-detail-content--full">
-              <div className="im-section-header">
-                <div className="im-section-icon im-section-icon--info">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="16" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12.01" y2="8" />
-                  </svg>
-                </div>
-                <h2 className="im-section-title">{t("orgDetail.overview")}</h2>
-              </div>
-              <div className="im-org-info-grid">
-                {org.description && (
-                  <div className="im-org-info-item im-org-info-item--full">
-                    <span className="im-org-info-label">{t("orgDetail.description")}</span>
-                    <span className="im-org-info-value">{org.description}</span>
-                  </div>
-                )}
-                {org.address && (
-                  <div className="im-org-info-item im-org-info-item--full">
-                    <span className="im-org-info-label">{t("common.address")}</span>
-                    <span className="im-org-info-value">{org.address}</span>
-                  </div>
-                )}
-                <div className="im-org-info-item">
-                  <span className="im-org-info-label">{t("orgDetail.createdAt")}</span>
-                  <span className="im-org-info-value">{new Date(org.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div className="im-org-info-item">
-                  <span className="im-org-info-label">{t("orgDetail.status")}</span>
-                  <span className="im-org-info-value">
-                    {org.archivedAt 
-                      ? t("common.archived") 
-                      : org.isPublic 
-                        ? t("common.published") 
-                        : t("common.unpublished")
-                    }
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Organization Owner Section */}
           {loadingOrg ? (
             <OrgInfoCardSkeleton items={3} className="im-org-detail-content--full" />
@@ -1259,6 +1330,103 @@ export default function OrganizationDetailPage() {
             </div>
           )}
         </section>
+
+        {/* Comprehensive Edit Modal */}
+        <Modal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          title={t("orgDetail.editOrganization")}
+        >
+          {editError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
+              {editError}
+            </div>
+          )}
+          <div className="space-y-6">
+            {/* Basic Information Section */}
+            <div>
+              <h3 className="text-md font-semibold mb-3">{t("orgDetail.basicInformation")}</h3>
+              <BasicInfoStep
+                formData={{
+                  name: formData.name,
+                  slug: formData.slug,
+                  description: formData.description,
+                }}
+                fieldErrors={fieldErrors}
+                isSubmitting={editing}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            {/* Address Section */}
+            <div>
+              <h3 className="text-md font-semibold mb-3">{t("orgDetail.address")}</h3>
+              <AddressStep
+                formData={{
+                  country: formData.country,
+                  city: formData.city,
+                  postalCode: formData.postalCode,
+                  street: formData.street,
+                  latitude: formData.latitude,
+                  longitude: formData.longitude,
+                }}
+                fieldErrors={fieldErrors}
+                isSubmitting={editing}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            {/* Contacts Section */}
+            <div>
+              <h3 className="text-md font-semibold mb-3">{t("orgDetail.contactsAndSocial")}</h3>
+              <ContactsStep
+                formData={{
+                  contactEmail: formData.contactEmail,
+                  contactPhone: formData.contactPhone,
+                  website: formData.website,
+                  facebook: formData.facebook,
+                  instagram: formData.instagram,
+                  linkedin: formData.linkedin,
+                }}
+                fieldErrors={fieldErrors}
+                isSubmitting={editing}
+                onChange={handleFormChange}
+              />
+            </div>
+
+            {/* Logo & Banner Section */}
+            <div>
+              <h3 className="text-md font-semibold mb-3">{t("orgDetail.imagesAndBranding")}</h3>
+              <div className="flex gap-3 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="small"
+                  onClick={handleOpenLogoEdit}
+                  type="button"
+                >
+                  {org?.logo ? t("orgDetail.updateLogo") : t("orgDetail.addLogo")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="small"
+                  onClick={handleOpenBannerEdit}
+                  type="button"
+                >
+                  {org?.heroImage ? t("orgDetail.updateBanner") : t("orgDetail.addBanner")}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button type="button" variant="outline" onClick={() => setIsEditModalOpen(false)} disabled={editing}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={handleSaveAll} disabled={editing}>
+              {editing ? t("common.processing") : t("common.save")}
+            </Button>
+          </div>
+        </Modal>
 
         {/* Basic Info Edit Modal */}
         <Modal

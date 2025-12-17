@@ -19,6 +19,17 @@
   }
 }
 
+/* Hero Actions Container (top-right) */
+.rsp-club-hero-actions {
+  @apply absolute top-4 right-4 z-10 flex items-center gap-3 flex-wrap;
+}
+
+@media (max-width: 768px) {
+  .rsp-club-hero-actions {
+    @apply top-3 right-3 gap-2;
+  }
+}
+
 .rsp-club-hero-image {
   @apply absolute inset-0 w-full h-full object-cover;
 }
