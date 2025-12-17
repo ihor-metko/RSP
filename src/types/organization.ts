@@ -20,7 +20,7 @@ export interface Organization {
   website?: string | null;
   address?: string | null;
   metadata?: Record<string, unknown> | null;
-  isPublic?: boolean;
+  isPublic: boolean;
   supportedSports?: SportType[];
   clubCount?: number;
   logo?: string | null;

@@ -639,7 +639,7 @@ export default function OrganizationDetailPage() {
           status={
             org.archivedAt
               ? { label: t("common.archived"), variant: 'archived' }
-              : org.isPublic
+              : (org.isPublic ?? true)
                 ? { label: t("common.published"), variant: 'published' }
                 : { label: t("common.unpublished"), variant: 'draft' }
           }
