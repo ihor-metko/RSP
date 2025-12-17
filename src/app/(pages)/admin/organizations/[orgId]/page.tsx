@@ -668,9 +668,12 @@ export default function OrganizationDetailPage() {
     return result.url;
   };
 
-  const dataUrlToFile = async (dataUrl: string, filename: string): Promise<File> => {
+  const dataUrlToFile = async (dataUrl: string, mimeType: string = 'image/jpeg'): Promise<File> => {
     const response = await fetch(dataUrl);
     const blob = await response.blob();
+    // Determine file extension from MIME type
+    const extension = mimeType.split('/')[1] || 'jpg';
+    const filename = `image.${extension}`;
     return new File([blob], filename, { type: blob.type });
   };
 
@@ -679,13 +682,18 @@ export default function OrganizationDetailPage() {
     setUploadingImage(true);
 
     try {
-      let logoUrl: string | null = null;
+      let logoUrl: string | null | undefined = undefined;
 
       if (logoPreview && logoPreview !== org?.logo) {
         // New image selected - upload it
         if (logoPreview.startsWith("data:")) {
           // Convert data URL to file and upload
-          const file = await dataUrlToFile(logoPreview, "logo.jpg");
+          // NOTE: This is a temporary workaround. Ideally, ImageUpload should return
+          // both the preview data URL and the original File object to avoid conversion overhead.
+          // Extract MIME type from data URL
+          const mimeMatch = logoPreview.match(/^data:([^;]+);/);
+          const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+          const file = await dataUrlToFile(logoPreview, mimeType);
           logoUrl = await uploadImageFile(file, "logo");
         } else {
           // Existing URL - keep it
@@ -716,13 +724,18 @@ export default function OrganizationDetailPage() {
     setUploadingImage(true);
 
     try {
-      let bannerUrl: string | null = null;
+      let bannerUrl: string | null | undefined = undefined;
 
       if (bannerPreview && bannerPreview !== org?.heroImage) {
         // New image selected - upload it
         if (bannerPreview.startsWith("data:")) {
           // Convert data URL to file and upload
-          const file = await dataUrlToFile(bannerPreview, "banner.jpg");
+          // NOTE: This is a temporary workaround. Ideally, ImageUpload should return
+          // both the preview data URL and the original File object to avoid conversion overhead.
+          // Extract MIME type from data URL
+          const mimeMatch = bannerPreview.match(/^data:([^;]+);/);
+          const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+          const file = await dataUrlToFile(bannerPreview, mimeType);
           bannerUrl = await uploadImageFile(file, "heroImage");
         } else {
           // Existing URL - keep it
