@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
@@ -379,6 +379,101 @@ export function AdminQuickBookingWizard({
       }));
     }
   }, [state.stepClub.selectedClubId, state.stepDateTime, t]);
+
+  // Track if we've loaded skipped steps data to prevent re-loading
+  const hasLoadedSkippedData = useRef(false);
+
+  // Auto-load data for skipped steps with pre-filled IDs
+  useEffect(() => {
+    if (!isOpen) {
+      hasLoadedSkippedData.current = false;
+      return;
+    }
+
+    if (!predefinedData || hasLoadedSkippedData.current) return;
+
+    const loadSkippedStepsData = async () => {
+      hasLoadedSkippedData.current = true;
+      // If club is pre-filled but we're skipping club step, load club details
+      if (predefinedData.clubId && !state.stepClub.selectedClub) {
+        try {
+          await fetchClubsIfNeeded();
+          const storeClubs = useClubStore.getState().clubs;
+          const club = storeClubs.find(c => c.id === predefinedData.clubId);
+          
+          if (club) {
+            setState((prev) => ({
+              ...prev,
+              stepClub: {
+                ...prev.stepClub,
+                selectedClub: {
+                  id: club.id,
+                  name: club.name,
+                  organizationId: club.organization?.id || "",
+                  organizationName: club.organization?.name,
+                },
+              },
+            }));
+          }
+        } catch (error) {
+          console.error("Error loading pre-filled club details:", error);
+        }
+      }
+
+      // If court is pre-filled, load courts and select the right one
+      if (predefinedData.courtId && !state.stepCourt.selectedCourt && 
+          predefinedData.clubId && predefinedData.date && predefinedData.startTime && predefinedData.duration) {
+        // Only fetch courts if we have all required parameters and the court isn't already selected
+        if (state.availableCourts.length === 0) {
+          await fetchAvailableCourts();
+        }
+      }
+
+      // If user is pre-filled, load user details
+      if (predefinedData.userId && !state.stepUser.selectedUser) {
+        try {
+          await fetchSimpleUsers();
+          const user = simpleUsers.find(u => u.id === predefinedData.userId);
+          
+          if (user) {
+            setState((prev) => ({
+              ...prev,
+              stepUser: {
+                ...prev.stepUser,
+                selectedUser: {
+                  id: user.id,
+                  name: user.name,
+                  email: user.email,
+                },
+              },
+            }));
+          }
+        } catch (error) {
+          console.error("Error loading pre-filled user details:", error);
+        }
+      }
+    };
+
+    loadSkippedStepsData();
+  }, [isOpen, predefinedData, fetchClubsIfNeeded, fetchAvailableCourts, fetchSimpleUsers, simpleUsers]);
+
+  // Auto-select court when courts are loaded and court is pre-filled
+  useEffect(() => {
+    if (!predefinedData?.courtId || state.stepCourt.selectedCourt) return;
+    
+    if (state.availableCourts.length > 0) {
+      const court = state.availableCourts.find(c => c.id === predefinedData.courtId);
+      if (court) {
+        setState((prev) => ({
+          ...prev,
+          stepCourt: {
+            selectedCourtId: court.id,
+            selectedCourt: court,
+          },
+        }));
+      }
+    }
+  }, [predefinedData?.courtId, state.availableCourts, state.stepCourt.selectedCourt]);
 
   // Handler functions
   const handleSelectOrganization = useCallback((org: WizardOrganization) => {
