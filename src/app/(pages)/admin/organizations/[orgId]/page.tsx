@@ -451,8 +451,8 @@ export default function OrganizationDetailPage() {
           ...(org?.metadata as object || {}),
           country: addressData.country.trim(),
           street: addressData.street.trim(),
-          latitude: addressData.latitude ? (parseFloat(addressData.latitude) || undefined) : undefined,
-          longitude: addressData.longitude ? (parseFloat(addressData.longitude) || undefined) : undefined,
+          latitude: addressData.latitude ? (() => { const parsed = parseFloat(addressData.latitude); return !isNaN(parsed) ? parsed : undefined; })() : undefined,
+          longitude: addressData.longitude ? (() => { const parsed = parseFloat(addressData.longitude); return !isNaN(parsed) ? parsed : undefined; })() : undefined,
           socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : undefined,
         },
       });
@@ -1060,7 +1060,7 @@ export default function OrganizationDetailPage() {
         <Modal
           isOpen={isEditingDetails}
           onClose={() => setIsEditingDetails(false)}
-          title={t("orgDetail.editDetails")}
+          title={t("common.edit")}
         >
           {editError && (
             <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
