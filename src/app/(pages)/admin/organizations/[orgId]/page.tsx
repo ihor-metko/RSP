@@ -190,8 +190,6 @@ export default function OrganizationDetailPage() {
   // Publication toggle
   const [isTogglingPublication, setIsTogglingPublication] = useState(false);
 
-  const isRoot = session?.user?.isRoot ?? false;
-
   const fetchOrgDetail = useCallback(async () => {
     try {
       setLoadingOrg(true);
@@ -417,6 +415,13 @@ export default function OrganizationDetailPage() {
     }
   };
 
+  // Helper to safely parse coordinate values
+  const parseCoordinate = (value: string): number | undefined => {
+    if (!value || !value.trim()) return undefined;
+    const parsed = parseFloat(value);
+    return !isNaN(parsed) ? parsed : undefined;
+  };
+
   // Unified save handler for all details
   const handleSaveDetails = async () => {
     setEditError("");
@@ -451,8 +456,8 @@ export default function OrganizationDetailPage() {
           ...(org?.metadata as object || {}),
           country: addressData.country.trim(),
           street: addressData.street.trim(),
-          latitude: addressData.latitude ? (() => { const parsed = parseFloat(addressData.latitude); return !isNaN(parsed) ? parsed : undefined; })() : undefined,
-          longitude: addressData.longitude ? (() => { const parsed = parseFloat(addressData.longitude); return !isNaN(parsed) ? parsed : undefined; })() : undefined,
+          latitude: parseCoordinate(addressData.latitude),
+          longitude: parseCoordinate(addressData.longitude),
           socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : undefined,
         },
       });
@@ -1015,45 +1020,7 @@ export default function OrganizationDetailPage() {
             </div>
           )}
 
-          {/* Danger Zone */}
-          {isRoot && !loadingOrg && org && (
-            <div className="im-section-card im-danger-zone-card im-org-detail-content--full">
-              <div className="im-section-header">
-                <div className="im-section-icon im-section-icon--danger">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                </div>
-                <h2 className="im-section-title">{t("orgDetail.dangerZone")}</h2>
-              </div>
-              <div className="im-danger-zone-content">
-                <div className="im-danger-action">
-                  <div>
-                    <h4>{t("orgDetail.archiveOrg")}</h4>
-                    <p>{t("orgDetail.archiveDescription")}</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsArchiveModalOpen(true)}
-                    disabled={!!org.archivedAt}
-                  >
-                    {org.archivedAt ? t("orgDetail.alreadyArchived") : t("orgDetail.archive")}
-                  </Button>
-                </div>
-                <div className="im-danger-action im-danger-action--delete">
-                  <div>
-                    <h4>{t("orgDetail.deleteOrg")}</h4>
-                    <p>{t("orgDetail.deleteDescription")}</p>
-                  </div>
-                  <Button variant="danger" onClick={() => setIsDeleteModalOpen(true)}>
-                    {t("common.delete")}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
+
         </section>
 
         {/* Unified Edit Details Modal */}
