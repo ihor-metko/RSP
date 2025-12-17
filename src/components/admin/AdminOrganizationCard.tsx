@@ -58,9 +58,9 @@ export function AdminOrganizationCard({
   const heroImageUrl = getSupabaseStorageUrl(organization.heroImage);
   const logoUrl = getSupabaseStorageUrl(organization.logo);
 
-  // Validate both images
-  const hasHeroImage = isValidImageUrl(heroImageUrl);
-  const hasLogo = isValidImageUrl(logoUrl);
+  // Validate both images and ensure they're strings (isValidImageUrl checks for null/undefined)
+  const hasHeroImage = isValidImageUrl(heroImageUrl) && heroImageUrl !== null;
+  const hasLogo = isValidImageUrl(logoUrl) && logoUrl !== null;
 
   return (
     <article
@@ -69,30 +69,30 @@ export function AdminOrganizationCard({
     >
       {/* Main Image Section */}
       <div className="im-admin-org-card-image">
-        {hasHeroImage ? (
+        {hasHeroImage && heroImageUrl ? (
           <>
             {/* Banner/Hero Image */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={heroImageUrl as string}
+              src={heroImageUrl}
               alt={t("organizations.imageAlt.heroImage", { name: organization.name })}
               className="im-admin-org-hero-image"
             />
             {/* Logo overlayed on banner */}
-            {hasLogo && (
+            {hasLogo && logoUrl && (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
-                src={logoUrl as string}
+                src={logoUrl}
                 alt={t("organizations.imageAlt.logo", { name: organization.name })}
                 className="im-admin-org-logo-overlay"
               />
             )}
           </>
-        ) : hasLogo ? (
+        ) : hasLogo && logoUrl ? (
           /* Logo as fallback when no banner */
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
-            src={logoUrl as string}
+            src={logoUrl}
             alt={t("organizations.imageAlt.logo", { name: organization.name })}
             className="im-admin-org-hero-image im-admin-org-hero-image--logo"
           />
