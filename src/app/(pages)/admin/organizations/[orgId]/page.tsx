@@ -119,6 +119,8 @@ export default function OrganizationDetailPage() {
   // Use Zustand store
   const updateOrganization = useOrganizationStore((state) => state.updateOrganization);
   const setCurrentOrg = useOrganizationStore((state) => state.setCurrentOrg);
+  // Note: deleteOrganization and archive functionality removed as per requirement to simplify the page
+  // Archive/Delete modals can be re-added later if needed via the Danger Zone section
 
   const [org, setOrg] = useState<OrgDetail | null>(null);
   const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
@@ -449,8 +451,8 @@ export default function OrganizationDetailPage() {
           ...(org?.metadata as object || {}),
           country: addressData.country.trim(),
           street: addressData.street.trim(),
-          latitude: addressData.latitude ? parseFloat(addressData.latitude) : undefined,
-          longitude: addressData.longitude ? parseFloat(addressData.longitude) : undefined,
+          latitude: addressData.latitude ? (parseFloat(addressData.latitude) || undefined) : undefined,
+          longitude: addressData.longitude ? (parseFloat(addressData.longitude) || undefined) : undefined,
           socialLinks: Object.keys(socialLinks).length > 0 ? socialLinks : undefined,
         },
       });

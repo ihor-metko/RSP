@@ -179,7 +179,7 @@ export function EntityBanner({
           <button
             onClick={onEdit}
             className="rsp-entity-banner-edit-btn"
-            aria-label="Edit details"
+            aria-label={`Edit ${title} details`}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
