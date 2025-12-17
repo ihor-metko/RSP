@@ -1570,7 +1570,7 @@ export default function OrganizationDetailPage() {
         </Modal>
 
         {/* Archive Modal */}
-        {/* <Modal
+        <Modal
           isOpen={isArchiveModalOpen}
           onClose={() => setIsArchiveModalOpen(false)}
           title={t("orgDetail.archiveOrg")}
@@ -1581,7 +1581,7 @@ export default function OrganizationDetailPage() {
                 {archiveError}
               </div>
             )}
-            <p>{t("orgDetail.archiveConfirm", { name: org.name })}</p>
+            <p>{org && t("orgDetail.archiveConfirm", { name: org.name })}</p>
             <div className="flex justify-end gap-2 mt-4">
               <Button type="button" variant="outline" onClick={() => setIsArchiveModalOpen(false)}>
                 {t("common.cancel")}
@@ -1591,10 +1591,10 @@ export default function OrganizationDetailPage() {
               </Button>
             </div>
           </div>
-        </Modal> */}
+        </Modal>
 
         {/* Delete Modal */}
-        {/* <Modal
+        <Modal
           isOpen={isDeleteModalOpen}
           onClose={() => setIsDeleteModalOpen(false)}
           title={t("orgDetail.deleteOrg")}
@@ -1605,33 +1605,37 @@ export default function OrganizationDetailPage() {
                 {deleteError}
               </div>
             )}
-            <p className="im-delete-warning">{t("orgDetail.deleteConfirm", { name: org.name })}</p>
-            {org.metrics.totalClubs > 0 && (
-              <div className="rsp-warning bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-sm">
-                {t("orgDetail.deleteWithClubsWarning", { count: org.metrics.totalClubs })}
-              </div>
+            {org && (
+              <>
+                <p className="im-delete-warning">{t("orgDetail.deleteConfirm", { name: org.name })}</p>
+                {org.metrics.totalClubs > 0 && (
+                  <div className="rsp-warning bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 text-yellow-700 dark:text-yellow-400 px-4 py-3 rounded-sm">
+                    {t("orgDetail.deleteWithClubsWarning", { count: org.metrics.totalClubs })}
+                  </div>
+                )}
+                <p className="im-delete-confirm-hint">{t("orgDetail.typeSlugToConfirm")}</p>
+                <Input
+                  label={t("orgDetail.confirmSlug")}
+                  value={deleteConfirmSlug}
+                  onChange={(e) => setDeleteConfirmSlug(e.target.value)}
+                  placeholder={org.slug}
+                />
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button type="button" variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
+                    {t("common.cancel")}
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={handleDelete}
+                    disabled={deleting || deleteConfirmSlug.toLowerCase() !== org.slug.toLowerCase()}
+                  >
+                    {deleting ? t("common.processing") : t("common.delete")}
+                  </Button>
+                </div>
+              </>
             )}
-            <p className="im-delete-confirm-hint">{t("orgDetail.typeSlugToConfirm")}</p>
-            <Input
-              label={t("orgDetail.confirmSlug")}
-              value={deleteConfirmSlug}
-              onChange={(e) => setDeleteConfirmSlug(e.target.value)}
-              placeholder={org.slug}
-            />
-            <div className="flex justify-end gap-2 mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
-                {t("common.cancel")}
-              </Button>
-              <Button
-                variant="danger"
-                onClick={handleDelete}
-                disabled={deleting || deleteConfirmSlug.toLowerCase() !== org.slug.toLowerCase()}
-              >
-                {deleting ? t("common.processing") : t("common.delete")}
-              </Button>
-            </div>
           </div>
-        </Modal> */}
+        </Modal>
 
         {/* Logo Upload Modal */}
         <Modal
