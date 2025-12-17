@@ -1655,7 +1655,21 @@
     "socialLinks": "Social Links",
     "noContactInfo": "No contact information provided",
     "status": "Status",
-    "noName": "No name"
+    "noName": "No name",
+    "editLogo": "Edit Organization Logo",
+    "editBanner": "Edit Organization Banner",
+    "updateLogo": "Update Logo",
+    "addLogo": "Add Logo",
+    "updateBanner": "Update Banner",
+    "addBanner": "Add Banner",
+    "organizationLogo": "Organization Logo",
+    "organizationBanner": "Organization Banner",
+    "logoUpdateSuccess": "Organization logo updated successfully",
+    "bannerUpdateSuccess": "Organization banner updated successfully",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "publishSuccess": "Organization published successfully",
+    "unpublishSuccess": "Organization unpublished successfully"
   },
   "unifiedDashboard": {
     "organizationTitle": "Organization Dashboard",

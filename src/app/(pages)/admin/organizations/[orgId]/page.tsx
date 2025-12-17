@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, EntityBanner, MetricCardSkeleton, OrgInfoCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton } from "@/components/ui";
+import { Button, Input, Modal, EntityBanner, MetricCardSkeleton, OrgInfoCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton, ImageUpload } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
@@ -188,6 +188,17 @@ export default function OrganizationDetailPage() {
   const [deleteConfirmSlug, setDeleteConfirmSlug] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  // Image upload modals
+  const [isEditingLogo, setIsEditingLogo] = useState(false);
+  const [isEditingBanner, setIsEditingBanner] = useState(false);
+  const [logoData, setLogoData] = useState<string | null>(null);
+  const [bannerData, setBannerData] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState("");
+
+  // Publication toggle
+  const [isTogglingPublication, setIsTogglingPublication] = useState(false);
 
   const isRoot = session?.user?.isRoot ?? false;
 
@@ -608,6 +619,73 @@ export default function OrganizationDetailPage() {
     }
   };
 
+  // Image upload handlers
+  const handleOpenLogoEdit = () => {
+    if (!org) return;
+    setLogoData(org.logo || null);
+    setImageUploadError("");
+    setIsEditingLogo(true);
+  };
+
+  const handleOpenBannerEdit = () => {
+    if (!org) return;
+    setBannerData(org.heroImage || null);
+    setImageUploadError("");
+    setIsEditingBanner(true);
+  };
+
+  const handleSaveLogo = async () => {
+    setImageUploadError("");
+    setUploadingImage(true);
+
+    try {
+      await updateOrganization(orgId, { logo: logoData });
+      showToast(t("orgDetail.logoUpdateSuccess"), "success");
+      setIsEditingLogo(false);
+      fetchOrgDetail();
+    } catch (err) {
+      setImageUploadError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleSaveBanner = async () => {
+    setImageUploadError("");
+    setUploadingImage(true);
+
+    try {
+      await updateOrganization(orgId, { heroImage: bannerData });
+      showToast(t("orgDetail.bannerUpdateSuccess"), "success");
+      setIsEditingBanner(false);
+      fetchOrgDetail();
+    } catch (err) {
+      setImageUploadError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Publication toggle handler
+  const handleTogglePublication = async () => {
+    if (!org) return;
+
+    setIsTogglingPublication(true);
+    try {
+      const newPublicStatus = !org.isPublic;
+      await updateOrganization(orgId, { isPublic: newPublicStatus });
+      showToast(
+        newPublicStatus ? t("orgDetail.publishSuccess") : t("orgDetail.unpublishSuccess"),
+        "success"
+      );
+      fetchOrgDetail();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : t("organizations.errors.updateFailed"), "error");
+    } finally {
+      setIsTogglingPublication(false);
+    }
+  };
+
 
 
   // Show loading spinner while checking authentication
@@ -628,22 +706,55 @@ export default function OrganizationDetailPage() {
           </Button>
         </div>
       ) : org && (
-        <EntityBanner
-          title={org.name}
-          subtitle={org.address || (org.website ? `${t("orgDetail.website")}: ${org.website}` : null)}
-          location={org.address}
-          imageUrl={null}
-          logoUrl={null}
-          imageAlt={`${org.name} banner`}
-          logoAlt={`${org.name} logo`}
-          status={
-            org.archivedAt
-              ? { label: t("common.archived"), variant: 'archived' }
-              : (org.isPublic ?? true)
-                ? { label: t("common.published"), variant: 'published' }
-                : { label: t("common.unpublished"), variant: 'draft' }
-          }
-        />
+        <>
+          <EntityBanner
+            title={org.name}
+            subtitle={org.description || null}
+            location={org.address}
+            imageUrl={org.heroImage}
+            logoUrl={org.logo}
+            imageAlt={`${org.name} banner`}
+            logoAlt={`${org.name} logo`}
+            status={
+              org.archivedAt
+                ? { label: t("common.archived"), variant: 'archived' }
+                : (org.isPublic ?? true)
+                  ? { label: t("common.published"), variant: 'published' }
+                  : { label: t("common.unpublished"), variant: 'draft' }
+            }
+          />
+          {!org.archivedAt && (
+            <div className="im-banner-actions">
+              <Button
+                variant="outline"
+                size="small"
+                onClick={handleOpenLogoEdit}
+              >
+                {org.logo ? t("orgDetail.updateLogo") : t("orgDetail.addLogo")}
+              </Button>
+              <Button
+                variant="outline"
+                size="small"
+                onClick={handleOpenBannerEdit}
+              >
+                {org.heroImage ? t("orgDetail.updateBanner") : t("orgDetail.addBanner")}
+              </Button>
+              <Button
+                variant={org.isPublic ? "outline" : "primary"}
+                size="small"
+                onClick={handleTogglePublication}
+                disabled={isTogglingPublication}
+              >
+                {isTogglingPublication 
+                  ? t("common.processing") 
+                  : org.isPublic 
+                    ? t("orgDetail.unpublish") 
+                    : t("orgDetail.publish")
+                }
+              </Button>
+            </div>
+          )}
+        </>
       )}
 
       <div className="rsp-club-content">
@@ -668,42 +779,33 @@ export default function OrganizationDetailPage() {
                 </div>
                 <h2 className="im-section-title">{t("orgDetail.overview")}</h2>
               </div>
-              <div className="im-org-overview-block">
-                {org.logo && (
-                  <div className="im-org-logo">
-                    <img src={org.logo} alt={`${org.name} logo`} />
+              <div className="im-org-info-grid">
+                {org.description && (
+                  <div className="im-org-info-item im-org-info-item--full">
+                    <span className="im-org-info-label">{t("orgDetail.description")}</span>
+                    <span className="im-org-info-value">{org.description}</span>
                   </div>
                 )}
-                <div className="im-org-overview-content">
-                  <h3 className="im-org-overview-name">{org.name}</h3>
-                  {org.description && (
-                    <p className="im-org-overview-description">{org.description}</p>
-                  )}
-                  <div className="im-org-overview-meta">
-                    {org.address && (
-                      <div className="im-org-overview-meta-item">
-                        <svg className="im-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span>{org.address}</span>
-                      </div>
-                    )}
-                    <div className="im-org-overview-meta-item">
-                      <svg className="im-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                      <span>{t("orgDetail.createdAt")}: {new Date(org.createdAt).toLocaleDateString()}</span>
-                    </div>
-                    <div className="im-org-overview-meta-item">
-                      <svg className="im-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 6v6l4 2" />
-                      </svg>
-                      <span>{t("orgDetail.status")}: {org.archivedAt ? t("common.inactive") : t("common.active")}</span>
-                    </div>
+                {org.address && (
+                  <div className="im-org-info-item im-org-info-item--full">
+                    <span className="im-org-info-label">{t("common.address")}</span>
+                    <span className="im-org-info-value">{org.address}</span>
                   </div>
+                )}
+                <div className="im-org-info-item">
+                  <span className="im-org-info-label">{t("orgDetail.createdAt")}</span>
+                  <span className="im-org-info-value">{new Date(org.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div className="im-org-info-item">
+                  <span className="im-org-info-label">{t("orgDetail.status")}</span>
+                  <span className="im-org-info-value">
+                    {org.archivedAt 
+                      ? t("common.archived") 
+                      : org.isPublic 
+                        ? t("common.published") 
+                        : t("common.unpublished")
+                    }
+                  </span>
                 </div>
               </div>
             </div>
@@ -1362,6 +1464,64 @@ export default function OrganizationDetailPage() {
             </div>
           </div>
         </Modal> */}
+
+        {/* Logo Upload Modal */}
+        <Modal
+          isOpen={isEditingLogo}
+          onClose={() => setIsEditingLogo(false)}
+          title={t("orgDetail.editLogo")}
+        >
+          {imageUploadError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
+              {imageUploadError}
+            </div>
+          )}
+          <ImageUpload
+            currentImage={logoData}
+            label={t("orgDetail.organizationLogo")}
+            onChange={setLogoData}
+            isLoading={uploadingImage}
+            aspectRatio="1:1"
+            maxSizeMB={5}
+          />
+          <div className="flex justify-end gap-2 mt-4">
+            <Button type="button" variant="outline" onClick={() => setIsEditingLogo(false)} disabled={uploadingImage}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={handleSaveLogo} disabled={uploadingImage}>
+              {uploadingImage ? t("common.processing") : t("common.save")}
+            </Button>
+          </div>
+        </Modal>
+
+        {/* Banner Upload Modal */}
+        <Modal
+          isOpen={isEditingBanner}
+          onClose={() => setIsEditingBanner(false)}
+          title={t("orgDetail.editBanner")}
+        >
+          {imageUploadError && (
+            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
+              {imageUploadError}
+            </div>
+          )}
+          <ImageUpload
+            currentImage={bannerData}
+            label={t("orgDetail.organizationBanner")}
+            onChange={setBannerData}
+            isLoading={uploadingImage}
+            aspectRatio="16:9"
+            maxSizeMB={5}
+          />
+          <div className="flex justify-end gap-2 mt-4">
+            <Button type="button" variant="outline" onClick={() => setIsEditingBanner(false)} disabled={uploadingImage}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={handleSaveBanner} disabled={uploadingImage}>
+              {uploadingImage ? t("common.processing") : t("common.save")}
+            </Button>
+          </div>
+        </Modal>
       </div>
     </main>
   );

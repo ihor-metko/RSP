@@ -1573,7 +1573,21 @@
     "totalUpcoming": "Всього майбутніх",
     "upcomingBookings": "Наступні 10 бронювань",
     "noBookings": "Немає запланованих бронювань.",
-    "viewAllBookings": "Всі бронювання"
+    "viewAllBookings": "Всі бронювання",
+    "editLogo": "Редагувати логотип організації",
+    "editBanner": "Редагувати банер організації",
+    "updateLogo": "Оновити логотип",
+    "addLogo": "Додати логотип",
+    "updateBanner": "Оновити банер",
+    "addBanner": "Додати банер",
+    "organizationLogo": "Логотип організації",
+    "organizationBanner": "Банер організації",
+    "logoUpdateSuccess": "Логотип організації успішно оновлено",
+    "bannerUpdateSuccess": "Банер організації успішно оновлено",
+    "publish": "Опублікувати",
+    "unpublish": "Зняти з публікації",
+    "publishSuccess": "Організацію успішно опубліковано",
+    "unpublishSuccess": "Організацію успішно знято з публікації"
   },
   "unifiedDashboard": {
     "organizationTitle": "Панель організації",

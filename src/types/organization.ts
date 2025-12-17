@@ -76,4 +76,5 @@ export interface UpdateOrganizationPayload {
   heroImage?: string | null;
   metadata?: Record<string, unknown> | null;
   supportedSports?: SportType[];
+  isPublic?: boolean;
 }

@@ -64,3 +64,5 @@ export type { EntityBannerProps } from "./EntityBanner";
 export { DateInput } from "./DateInput";
 export { CustomCalendar } from "./CustomCalendar";
 export { Portal } from "./Portal";
+export { ImageUpload } from "./ImageUpload";
+export type { ImageUploadProps } from "./ImageUpload";

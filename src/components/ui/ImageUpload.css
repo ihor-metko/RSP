@@ -1,0 +1,170 @@
+/* ImageUpload Component Styles */
+
+.im-image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.im-image-upload-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--im-text-primary, #1f2937);
+}
+
+.dark .im-image-upload-label {
+  color: var(--im-text-primary-dark, #f9fafb);
+}
+
+.im-image-upload-hint {
+  font-size: 0.75rem;
+  color: var(--im-text-secondary, #6b7280);
+  margin: 0;
+}
+
+.dark .im-image-upload-hint {
+  color: var(--im-text-secondary-dark, #9ca3af);
+}
+
+.im-image-upload-area {
+  position: relative;
+  border: 2px dashed var(--im-border-color, #d1d5db);
+  border-radius: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: var(--im-bg-secondary, #f9fafb);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dark .im-image-upload-area {
+  border-color: var(--im-border-color-dark, #374151);
+  background-color: var(--im-bg-secondary-dark, #1f2937);
+}
+
+.im-image-upload-area:hover {
+  border-color: var(--im-primary-color, #3b82f6);
+  background-color: var(--im-bg-hover, #f3f4f6);
+}
+
+.dark .im-image-upload-area:hover {
+  border-color: var(--im-primary-color-dark, #60a5fa);
+  background-color: var(--im-bg-hover-dark, #374151);
+}
+
+.im-image-upload-area--dragging {
+  border-color: var(--im-primary-color, #3b82f6);
+  background-color: var(--im-bg-hover, #eff6ff);
+}
+
+.dark .im-image-upload-area--dragging {
+  border-color: var(--im-primary-color-dark, #60a5fa);
+  background-color: var(--im-bg-hover-dark, #1e3a5f);
+}
+
+.im-image-upload-area--has-image {
+  padding: 0;
+  cursor: default;
+  border-style: solid;
+  min-height: 300px;
+}
+
+.im-image-upload-area--has-image:hover {
+  border-color: var(--im-border-color, #d1d5db);
+  background-color: var(--im-bg-secondary, #f9fafb);
+}
+
+.dark .im-image-upload-area--has-image:hover {
+  border-color: var(--im-border-color-dark, #374151);
+  background-color: var(--im-bg-secondary-dark, #1f2937);
+}
+
+.im-image-upload-input {
+  display: none;
+}
+
+.im-image-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.im-image-upload-icon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--im-text-tertiary, #9ca3af);
+}
+
+.dark .im-image-upload-icon {
+  color: var(--im-text-tertiary-dark, #6b7280);
+}
+
+.im-image-upload-text {
+  font-size: 0.875rem;
+  color: var(--im-text-secondary, #6b7280);
+  margin: 0;
+}
+
+.dark .im-image-upload-text {
+  color: var(--im-text-secondary-dark, #9ca3af);
+}
+
+.im-image-upload-size {
+  font-size: 0.75rem;
+  color: var(--im-text-tertiary, #9ca3af);
+  margin: 0;
+}
+
+.dark .im-image-upload-size {
+  color: var(--im-text-tertiary-dark, #6b7280);
+}
+
+.im-image-upload-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.im-image-upload-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.im-image-upload-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.im-image-upload-preview:hover .im-image-upload-overlay {
+  opacity: 1;
+}
+
+.im-image-upload-error {
+  font-size: 0.875rem;
+  color: var(--im-error-color, #ef4444);
+  margin: 0;
+}
+
+.dark .im-image-upload-error {
+  color: var(--im-error-color-dark, #f87171);
+}

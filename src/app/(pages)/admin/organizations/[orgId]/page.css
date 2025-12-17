@@ -12,6 +12,23 @@
   }
 }
 
+/* ===== Banner Actions ===== */
+.im-banner-actions {
+  @apply flex gap-3 flex-wrap p-4 rounded-lg mt-4;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+}
+
+@media (max-width: 768px) {
+  .im-banner-actions {
+    @apply flex-col;
+  }
+  
+  .im-banner-actions button {
+    @apply w-full;
+  }
+}
+
 /* ===== Loading & Error States ===== */
 .im-org-detail-loading,
 .im-org-detail-error {

@@ -261,7 +261,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, slug, description, contactEmail, contactPhone, website, address, logo, heroImage, metadata } = body;
+    const { name, slug, description, contactEmail, contactPhone, website, address, logo, heroImage, metadata, isPublic } = body;
 
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
@@ -353,6 +353,7 @@ export async function PUT(
       logo?: string | null;
       heroImage?: string | null;
       metadata?: string | null;
+      isPublic?: boolean;
     } = {};
 
     if (name !== undefined) updateData.name = name.trim();
@@ -367,6 +368,7 @@ export async function PUT(
     if (metadata !== undefined) {
       updateData.metadata = metadata ? JSON.stringify(metadata) : null;
     }
+    if (isPublic !== undefined) updateData.isPublic = isPublic;
 
     // Update the organization
     const updatedOrganization = await prisma.organization.update({
