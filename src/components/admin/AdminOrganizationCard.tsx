@@ -73,14 +73,14 @@ export function AdminOrganizationCard({
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={mainImage}
-            alt={`Hero image for ${organization.name}`}
+            alt={t("organizations.imageAlt.heroImage", { name: organization.name })}
             className="im-admin-org-hero-image"
           />
         ) : hasLogo ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             src={logoUrl as string}
-            alt={`Logo for ${organization.name}`}
+            alt={t("organizations.imageAlt.logo", { name: organization.name })}
             className="im-admin-org-hero-image im-admin-org-hero-image--logo"
           />
         ) : (
@@ -177,7 +177,7 @@ export function AdminOrganizationCard({
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
             <span className="im-admin-org-meta-value">
-              {organization.clubCount || 0} {(organization.clubCount || 0) === 1 ? t("admin.club") : t("admin.clubs")}
+              {organization.clubCount || 0} {(organization.clubCount || 0) === 1 ? t("admin.club") : t("admin.clubsPlural")}
             </span>
           </div>
 

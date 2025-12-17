@@ -73,7 +73,9 @@
     "totalPrice": "Total Price",
     "remove": "Remove",
     "never": "Never",
-    "viewProfile": "View Profile"
+    "viewProfile": "View Profile",
+    "from": "From",
+    "to": "To"
   },
   "pagination": {
     "showing": "Showing {start} to {end} of {total}",
@@ -240,6 +242,7 @@
   },
   "admin": {
     "club": "Club",
+    "clubsPlural": "Clubs",
     "clubs": {
       "title": "Admin - Clubs",
       "subtitle": "Manage all padel clubs",
@@ -1271,7 +1274,16 @@
       "fetchClubAdminsFailed": "Failed to fetch club admins",
       "assignClubAdminFailed": "Failed to assign club admin",
       "updateClubAdminFailed": "Failed to update club admin",
-      "removeClubAdminFailed": "Failed to remove club admin"
+      "removeClubAdminFailed": "Failed to remove club admin",
+      "updateFailed": "Failed to update organization",
+      "reassignOwnerFailed": "Failed to reassign owner",
+      "archiveFailed": "Failed to archive organization",
+      "deleteFailed": "Failed to delete organization",
+      "fetchFailed": "Failed to fetch organization"
+    },
+    "imageAlt": {
+      "heroImage": "Hero image for {name}",
+      "logo": "Logo for {name}"
     }
   },
   "operations": {
