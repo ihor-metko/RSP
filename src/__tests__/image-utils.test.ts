@@ -75,6 +75,18 @@ describe("Image Utils", () => {
         const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/clubs/club-id/image.png";
         expect(getSupabaseStorageUrl(path)).toBe(expected);
       });
+
+      it("should convert organizations/... path to Supabase URL", () => {
+        const path = "organizations/org-id/abc123.jpg";
+        const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/organizations/org-id/abc123.jpg";
+        expect(getSupabaseStorageUrl(path)).toBe(expected);
+      });
+
+      it("should convert /uploads/organizations/... path to Supabase URL", () => {
+        const path = "/uploads/organizations/org-id/logo.png";
+        const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/organizations/org-id/logo.png";
+        expect(getSupabaseStorageUrl(path)).toBe(expected);
+      });
     });
   });
 
@@ -128,6 +140,14 @@ describe("Image Utils", () => {
 
       it("should return true for clubs/... paths", () => {
         expect(isValidImageUrl("clubs/image.jpg")).toBe(true);
+      });
+
+      it("should return true for organizations/... paths", () => {
+        expect(isValidImageUrl("organizations/org-id/image.jpg")).toBe(true);
+      });
+
+      it("should return true for /uploads/organizations/... paths", () => {
+        expect(isValidImageUrl("/uploads/organizations/org-id/logo.png")).toBe(true);
       });
     });
   });
