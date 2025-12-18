@@ -51,7 +51,7 @@ export async function GET(): Promise<Response> {
         const mockNotificationInterval = setInterval(() => {
           try {
             // Create a mock notification
-            const notificationTypes = ["REQUESTED", "ACCEPTED", "DECLINED", "CANCELED"];
+            const notificationTypes = ["REQUESTED", "ACCEPTED", "DECLINED", "CANCELED"] as const;
             const randomType = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
             
             const mockNotif = createMockAdminNotification({

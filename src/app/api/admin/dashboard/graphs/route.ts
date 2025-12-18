@@ -99,7 +99,7 @@ export async function GET(request: Request): Promise<NextResponse<DashboardGraph
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
       const mockResult = await mockGetDashboardGraphs({
-        adminType,
+        adminType: adminType === "club_owner" ? "club_admin" : adminType,
         managedIds,
         timeRange,
       });

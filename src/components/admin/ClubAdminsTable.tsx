@@ -430,16 +430,17 @@ export default function ClubAdminsTable({
           <Select
             label={t("clubAdmins.selectClub")}
             value={selectedClubId}
-            onChange={(e) => setSelectedClubId(e.target.value)}
+            onChange={(value) => setSelectedClubId(value)}
+            options={[
+              { value: "", label: t("clubAdmins.selectClubPlaceholder"), disabled: true },
+              ...clubs.map((club) => ({
+                value: club.id,
+                label: club.name,
+              })),
+            ]}
+            placeholder={t("clubAdmins.selectClubPlaceholder")}
             required
-          >
-            <option value="">{t("clubAdmins.selectClubPlaceholder")}</option>
-            {clubs.map((club) => (
-              <option key={club.id} value={club.id}>
-                {club.name}
-              </option>
-            ))}
-          </Select>
+          />
 
           <div className="flex justify-end gap-2 mt-4">
             <Button

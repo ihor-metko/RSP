@@ -79,10 +79,10 @@ export async function GET(
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
       const mockResult = await mockGetUnifiedDashboard({
-        adminType,
+        adminType: adminType === "club_owner" ? "club_admin" : adminType,
         managedIds,
       });
-      return NextResponse.json(mockResult);
+      return NextResponse.json(mockResult as UnifiedDashboardResponse);
     }
 
     if (adminType === "root_admin") {

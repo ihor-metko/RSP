@@ -47,8 +47,8 @@ export async function GET(
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
       const result = await mockGetCourts({
-        adminType: authResult.adminType,
-        managedIds: authResult.managedIds,
+        adminType: authResult.isRoot ? "root_admin" : "club_admin",
+        managedIds: [clubId],
         filters: {
           search,
           clubId,

@@ -3,6 +3,7 @@ import { SportType } from "@/constants/sports";
 export interface Club {
   id: string;
   name: string;
+  slug?: string | null;
   location: string;
   contactInfo: string | null;
   openingHours: string | null;
