@@ -49,7 +49,7 @@ export default function ClubOperationsPage() {
   const user = useUserStore((state) => state.user);
 
   // Club and courts stores
-  const { clubsById, clubs, ensureClubById, loading: loadingClub } = useClubStore();
+  const { clubsById, clubs, ensureClubById, loadingClubs: loadingClub, clubsError } = useClubStore();
   const { courts, fetchCourtsIfNeeded, loading: loadingCourts } = useCourtStore();
 
   // Booking store
@@ -236,8 +236,10 @@ export default function ClubOperationsPage() {
     setIsBookingWizardOpen(true);
   };
 
-  // Loading state
-  if (isLoadingUser || loadingClub) {
+  // Loading state - show skeleton while loading user or club data
+  // Also show skeleton if club hasn't been fetched yet (to avoid showing "not found" during initial load)
+  // But don't show loading if we've already determined access is denied
+  if (!accessDenied && (isLoadingUser || loadingClub || (!club && !clubsError && clubId))) {
     return (
       <main className="im-club-operations-page">
         <div className="im-club-operations-loading">
@@ -267,8 +269,8 @@ export default function ClubOperationsPage() {
     );
   }
 
-  // Club not found
-  if (!club && !loadingClub && clubId) {
+  // Club not found - only show if we've finished loading and got an error
+  if (!club && !loadingClub && clubsError && clubId) {
     return (
       <main className="im-club-operations-page">
         <div className="im-club-operations-error">
