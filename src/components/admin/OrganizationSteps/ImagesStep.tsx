@@ -11,18 +11,22 @@ interface UploadedFile {
   preview?: string;
 }
 
+interface ImagesFormData {
+  logo: UploadedFile | null;
+  heroImage: UploadedFile | null;
+}
+
 interface ImagesStepProps {
-  formData: {
-    logo: UploadedFile | null;
-    heroImage: UploadedFile | null;
-  };
+  formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: (field: 'logo' | 'heroImage', value: UploadedFile | null) => void;
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
 }
 
 export function ImagesStep({ formData, fieldErrors, isSubmitting, onChange }: ImagesStepProps) {
   const t = useTranslations("organizations.stepper");
+  const data = formData as ImagesFormData;
+  const handleChange = onChange as (field: string, value: UploadedFile | null) => void;
 
   return (
     <Card className="im-stepper-section">
@@ -35,8 +39,8 @@ export function ImagesStep({ formData, fieldErrors, isSubmitting, onChange }: Im
           <div className="im-stepper-field im-stepper-field--full">
             <UploadField
               label={t("organizationLogo")}
-              value={formData.logo}
-              onChange={(file) => onChange('logo', file)}
+              value={data.logo}
+              onChange={(file) => handleChange('logo', file)}
               aspectRatio="square"
               helperText={t("logoHelperText")}
               disabled={isSubmitting}
@@ -48,8 +52,8 @@ export function ImagesStep({ formData, fieldErrors, isSubmitting, onChange }: Im
           <div className="im-stepper-field im-stepper-field--full">
             <UploadField
               label={t("backgroundImage")}
-              value={formData.heroImage}
-              onChange={(file) => onChange('heroImage', file)}
+              value={data.heroImage}
+              onChange={(file) => handleChange('heroImage', file)}
               aspectRatio="wide"
               required
               helperText={t("backgroundHelperText")}

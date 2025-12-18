@@ -186,7 +186,7 @@ export default function ClubOperationsPage() {
       duration: DEFAULT_BOOKING_DURATION,
     });
     setIsBookingWizardOpen(true);
-  }, [clubId, club]);
+  }, [clubId]);
 
   // Handle booking click (view details)
   const handleBookingClick = useCallback((booking: OperationsBooking) => {

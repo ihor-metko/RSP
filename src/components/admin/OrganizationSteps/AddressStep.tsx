@@ -3,22 +3,33 @@
 import { Input, Card } from "@/components/ui";
 import { useTranslations } from "next-intl";
 
+interface AddressFormData {
+  country: string;
+  city: string;
+  postalCode: string;
+  street: string;
+  latitude: string;
+  longitude: string;
+}
+
+interface UploadedFile {
+  url: string;
+  key: string;
+  file?: File;
+  preview?: string;
+}
+
 interface AddressStepProps {
-  formData: {
-    country: string;
-    city: string;
-    postalCode: string;
-    street: string;
-    latitude: string;
-    longitude: string;
-  };
+  formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
 }
 
 export function AddressStep({ formData, fieldErrors, isSubmitting, onChange }: AddressStepProps) {
   const t = useTranslations("organizations.stepper");
+  const data = formData as AddressFormData;
+  const handleChange = onChange as (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 
   return (
     <Card className="im-stepper-section">
@@ -32,8 +43,8 @@ export function AddressStep({ formData, fieldErrors, isSubmitting, onChange }: A
             <Input
               label={t("country")}
               name="country"
-              value={formData.country}
-              onChange={onChange}
+              value={data.country}
+              onChange={handleChange}
               placeholder={t("countryPlaceholder")}
               disabled={isSubmitting}
             />
@@ -45,8 +56,8 @@ export function AddressStep({ formData, fieldErrors, isSubmitting, onChange }: A
             <Input
               label={t("city")}
               name="city"
-              value={formData.city}
-              onChange={onChange}
+              value={data.city}
+              onChange={handleChange}
               placeholder={t("cityPlaceholder")}
               disabled={isSubmitting}
             />
@@ -61,8 +72,8 @@ export function AddressStep({ formData, fieldErrors, isSubmitting, onChange }: A
             <Input
               label={t("street")}
               name="street"
-              value={formData.street}
-              onChange={onChange}
+              value={data.street}
+              onChange={handleChange}
               placeholder={t("streetPlaceholder")}
               disabled={isSubmitting}
             />
@@ -74,8 +85,8 @@ export function AddressStep({ formData, fieldErrors, isSubmitting, onChange }: A
             <Input
               label={t("postalCode")}
               name="postalCode"
-              value={formData.postalCode}
-              onChange={onChange}
+              value={data.postalCode}
+              onChange={handleChange}
               placeholder={t("postalCodePlaceholder")}
               disabled={isSubmitting}
             />
@@ -87,8 +98,8 @@ export function AddressStep({ formData, fieldErrors, isSubmitting, onChange }: A
             <Input
               label={t("latitude")}
               name="latitude"
-              value={formData.latitude}
-              onChange={onChange}
+              value={data.latitude}
+              onChange={handleChange}
               placeholder={t("latitudePlaceholder")}
               disabled={isSubmitting}
               type="number"
@@ -102,8 +113,8 @@ export function AddressStep({ formData, fieldErrors, isSubmitting, onChange }: A
             <Input
               label={t("longitude")}
               name="longitude"
-              value={formData.longitude}
-              onChange={onChange}
+              value={data.longitude}
+              onChange={handleChange}
               placeholder={t("longitudePlaceholder")}
               disabled={isSubmitting}
               type="number"

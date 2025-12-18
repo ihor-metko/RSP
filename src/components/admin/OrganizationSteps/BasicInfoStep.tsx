@@ -3,19 +3,30 @@
 import { Input, Textarea, Card } from "@/components/ui";
 import { useTranslations } from "next-intl";
 
+interface BasicInfoFormData {
+  name: string;
+  slug: string;
+  description: string;
+}
+
+interface UploadedFile {
+  url: string;
+  key: string;
+  file?: File;
+  preview?: string;
+}
+
 interface BasicInfoStepProps {
-  formData: {
-    name: string;
-    slug: string;
-    description: string;
-  };
+  formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
 }
 
 export function BasicInfoStep({ formData, fieldErrors, isSubmitting, onChange }: BasicInfoStepProps) {
   const t = useTranslations("organizations.stepper");
+  const data = formData as BasicInfoFormData;
+  const handleChange = onChange as (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 
   return (
     <Card className="im-stepper-section">
@@ -29,8 +40,8 @@ export function BasicInfoStep({ formData, fieldErrors, isSubmitting, onChange }:
             <Input
               label={t("organizationName")}
               name="name"
-              value={formData.name}
-              onChange={onChange}
+              value={data.name}
+              onChange={handleChange}
               placeholder={t("organizationNamePlaceholder")}
               disabled={isSubmitting}
             />
@@ -45,8 +56,8 @@ export function BasicInfoStep({ formData, fieldErrors, isSubmitting, onChange }:
             <Input
               label={t("slugOptional")}
               name="slug"
-              value={formData.slug}
-              onChange={onChange}
+              value={data.slug}
+              onChange={handleChange}
               placeholder={t("slugPlaceholder")}
               disabled={isSubmitting}
             />
@@ -64,8 +75,8 @@ export function BasicInfoStep({ formData, fieldErrors, isSubmitting, onChange }:
             <Textarea
               label={t("shortDescription")}
               name="description"
-              value={formData.description}
-              onChange={onChange}
+              value={data.description}
+              onChange={handleChange}
               placeholder={t("descriptionPlaceholder")}
               disabled={isSubmitting}
               rows={4}

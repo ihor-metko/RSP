@@ -20,7 +20,7 @@ interface ClubWithAccounts {
   isExpanded: boolean;
 }
 
-interface PaymentAccountStatus {
+interface PaymentAccountConfigStatus {
   isConfigured: boolean;
   provider: string | null;
   scope: "ORGANIZATION" | "CLUB" | null;
@@ -43,7 +43,7 @@ export default function UnifiedPaymentAccountsPage() {
 
   const [organizationAccounts, setOrganizationAccounts] = useState<MaskedPaymentAccount[]>([]);
   const [clubAccounts, setClubAccounts] = useState<ClubWithAccounts[]>([]);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentAccountStatus | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentAccountConfigStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
