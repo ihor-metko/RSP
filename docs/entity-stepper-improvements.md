@@ -16,7 +16,7 @@ Updated the EntityEditStepper component to support dynamic step components and f
 ### 2. Modal Padding Issues
 **Issue**: Double padding between modal and stepper content caused content to not fit well, especially on smaller screens.
 
-**Solution**: 
+**Solution**:
 - Removed body padding from Modal component
 - Adjusted stepper padding from 1.5rem to 1.25rem for better fit
 - Increased modal max-width to 900px for larger content display
@@ -30,7 +30,7 @@ Updated the EntityEditStepper component to support dynamic step components and f
 ### 4. Incorrect Action Button Text
 **Issue**: The action button displayed "Create Organization" even in edit mode, which was confusing for users.
 
-**Solution**: 
+**Solution**:
 - Changed button to display "Save Changes" in edit mode
 - Added translation keys for "saveChanges" and "saving" in both English and Ukrainian
 - Updated EntityEditStepper to use these new translation keys
@@ -60,7 +60,7 @@ interface StepComponentProps {
   formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) 
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void)
     | ((field: string, value: UploadedFile | null) => void);
 }
 ```
@@ -140,6 +140,8 @@ const renderStepContent = () => {
 }
 
 .rsp-modal-body {
+  display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   overflow: auto;
@@ -244,9 +246,9 @@ const renderStepContent = () => {
     { id: 4, label: t("courts.stepper.stepImages") },
   ]}
   stepComponents={[
-    CourtBasicInfoStep, 
-    CourtAvailabilityStep, 
-    CourtPricingStep, 
+    CourtBasicInfoStep,
+    CourtAvailabilityStep,
+    CourtPricingStep,
     CourtImagesStep
   ]}
   translationNamespace="courts.stepper"
