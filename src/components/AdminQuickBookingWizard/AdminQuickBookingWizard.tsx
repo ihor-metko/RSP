@@ -99,6 +99,9 @@ export function AdminQuickBookingWizard({
     };
   });
 
+  // Track if we've initialized predefined data to prevent re-initialization
+  const [hasInitializedPredefinedData, setHasInitializedPredefinedData] = useState(false);
+
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
@@ -152,8 +155,108 @@ export function AdminQuickBookingWizard({
         isComplete: false,
         bookingId: null,
       });
+      // Reset initialization flag when modal closes
+      setHasInitializedPredefinedData(false);
     }
   }, [isOpen, adminType, predefinedData]);
+
+  // Initialize predefined organization and club objects when modal opens
+  useEffect(() => {
+    if (!isOpen || hasInitializedPredefinedData) {
+      return;
+    }
+
+    const initializePredefinedData = async () => {
+      let orgToSet: WizardOrganization | null = null;
+      let clubToSet: WizardClub | null = null;
+
+      // Initialize organization if predefined
+      if (predefinedData?.organizationId) {
+        const getOrganizationById = useOrganizationStore.getState().getOrganizationById;
+        const fetchOrganizations = useOrganizationStore.getState().fetchOrganizations;
+
+        // First try to get from current store state
+        let org = getOrganizationById(predefinedData.organizationId);
+        
+        // If not in store, fetch organizations first
+        if (!org) {
+          try {
+            await fetchOrganizations();
+            org = useOrganizationStore.getState().getOrganizationById(predefinedData.organizationId);
+          } catch (error) {
+            // Handle error silently as the organization might not be accessible
+          }
+        }
+
+        if (org) {
+          orgToSet = {
+            id: org.id,
+            name: org.name,
+            slug: org.slug,
+          };
+        }
+      }
+
+      // Initialize club if predefined
+      if (predefinedData?.clubId) {
+        const getClubById = useClubStore.getState().getClubById;
+        const ensureClubById = useClubStore.getState().ensureClubById;
+
+        try {
+          // Try to get from current store state first
+          let club = getClubById(predefinedData.clubId);
+          
+          // If not in store, fetch the specific club
+          if (!club) {
+            const clubDetail = await ensureClubById(predefinedData.clubId);
+            // Convert ClubDetail to ClubWithCounts format
+            club = {
+              id: clubDetail.id,
+              name: clubDetail.name,
+              organizationId: clubDetail.organizationId,
+            } as any; // ClubWithCounts type matches what we need
+          }
+
+          if (club) {
+            clubToSet = {
+              id: club.id,
+              name: club.name,
+              organizationId: club.organizationId,
+              organizationName: (club as any).organization?.name,
+            };
+          }
+        } catch (error) {
+          // Handle error silently as the club might not be accessible
+        }
+      }
+
+      // Update state once with all initialized data
+      if (orgToSet || clubToSet) {
+        setState((prev) => ({
+          ...prev,
+          ...(orgToSet && {
+            stepOrganization: {
+              selectedOrganizationId: orgToSet.id,
+              selectedOrganization: orgToSet,
+            },
+          }),
+          ...(clubToSet && {
+            stepClub: {
+              selectedClubId: clubToSet.id,
+              selectedClub: clubToSet,
+            },
+            // Also add to availableClubs so Step2Club can display it
+            availableClubs: [clubToSet, ...prev.availableClubs.filter(c => c.id !== clubToSet.id)],
+          }),
+        }));
+      }
+
+      // Mark as initialized to prevent re-running
+      setHasInitializedPredefinedData(true);
+    };
+
+    initializePredefinedData();
+  }, [isOpen, hasInitializedPredefinedData, predefinedData?.organizationId, predefinedData?.clubId]);
 
   // Update availableOrganizations and loading state from store (auto-fetch handled by selector)
   useEffect(() => {
