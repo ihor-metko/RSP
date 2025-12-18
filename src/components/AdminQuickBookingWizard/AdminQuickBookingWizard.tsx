@@ -3,16 +3,22 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
-import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { useClubStore } from "@/stores/useClubStore";
-import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
-import { toOrganizationOption } from "@/utils/organization";
 import { Step1Organization } from "./Step1Organization";
 import { Step2Club } from "./Step2Club";
 import { Step3DateTime } from "./Step3DateTime";
 import { Step4Courts } from "./Step4Courts";
 import { Step5User } from "./Step5User";
 import { Step6Confirmation } from "./Step6Confirmation";
+import { WizardStepIndicator, WizardNavigationButtons } from "./components";
+import {
+  useWizardOrganizations,
+  useWizardClubs,
+  useWizardUsers,
+  useWizardCourts,
+  useWizardNavigation,
+  useWizardSubmit,
+  useWizardPredefinedData,
+} from "./hooks";
 import {
   AdminQuickBookingWizardProps,
   WizardState,
@@ -21,16 +27,11 @@ import {
   WizardUser,
   WizardCourt,
   getTodayDateString,
-  getVisibleSteps,
-  getNextStepId,
-  getPreviousStepId,
   getFirstVisibleStepId,
-  calculateEndTime,
 } from "./types";
 import "./AdminQuickBookingWizard.css";
 
 const MINUTES_PER_HOUR = 60;
-const GUEST_EMAIL_DOMAIN = "guest.arenaone.local";
 
 export function AdminQuickBookingWizard({
   isOpen,
@@ -40,11 +41,6 @@ export function AdminQuickBookingWizard({
   adminType,
 }: AdminQuickBookingWizardProps) {
   const t = useTranslations();
-
-  // Use Zustand store for organizations with auto-fetch
-  const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
-  const isLoadingOrgs = useOrganizationStore((state) => state.loading);
-  const orgError = useOrganizationStore((state) => state.error);
 
   const [state, setState] = useState<WizardState>(() => {
     const firstStepId = getFirstVisibleStepId(adminType, predefinedData);
@@ -99,8 +95,58 @@ export function AdminQuickBookingWizard({
     };
   });
 
-  // Track if we've initialized predefined data to prevent re-initialization
-  const [hasInitializedPredefinedData, setHasInitializedPredefinedData] = useState(false);
+  // Use custom hooks for data fetching and state management
+  const { predefinedOrganization, predefinedClub } = useWizardPredefinedData({
+    isOpen,
+    predefinedData,
+  });
+
+  const { organizations, isLoading: isLoadingOrgs, error: orgError } = useWizardOrganizations({
+    isOpen,
+    currentStep: state.currentStep,
+    adminType,
+    predefinedData,
+  });
+
+  const { clubs, isLoading: isLoadingClubs, error: clubsError } = useWizardClubs({
+    isOpen,
+    currentStep: state.currentStep,
+    adminType,
+    selectedOrganizationId: state.stepOrganization.selectedOrganizationId,
+    predefinedData,
+  });
+
+  const { users, isLoading: isLoadingUsers, error: usersError, createUser } = useWizardUsers({
+    isOpen,
+    currentStep: state.currentStep,
+    predefinedData,
+  });
+
+  const { courts, isLoading: isLoadingCourts, error: courtsError, fetchCourts } = useWizardCourts({
+    clubId: state.stepClub.selectedClubId,
+    dateTime: state.stepDateTime,
+  });
+
+  const navigation = useWizardNavigation({
+    currentStep: state.currentStep,
+    adminType,
+    predefinedData,
+    state,
+  });
+
+  const {
+    isSubmitting,
+    submitError,
+    isComplete,
+    bookingId,
+    submitBooking,
+  } = useWizardSubmit({
+    state,
+    onSuccess: (bookingId, courtId, date, startTime, endTime) => {
+      onBookingComplete?.(bookingId, courtId, date, startTime, endTime);
+      onClose();
+    },
+  });
 
   // Reset state when modal closes
   useEffect(() => {
@@ -155,327 +201,82 @@ export function AdminQuickBookingWizard({
         isComplete: false,
         bookingId: null,
       });
-      // Reset initialization flag when modal closes
-      setHasInitializedPredefinedData(false);
     }
   }, [isOpen, adminType, predefinedData]);
 
-  // Initialize predefined organization and club objects when modal opens
+  // Initialize predefined organization and club objects when loaded
   useEffect(() => {
-    if (!isOpen || hasInitializedPredefinedData) {
-      return;
+    if (predefinedOrganization) {
+      setState((prev) => ({
+        ...prev,
+        stepOrganization: {
+          selectedOrganizationId: predefinedOrganization.id,
+          selectedOrganization: predefinedOrganization,
+        },
+      }));
     }
+  }, [predefinedOrganization]);
 
-    const initializePredefinedData = async () => {
-      // Fetch organization and club in parallel for better performance
-      const [orgToSet, clubToSet] = await Promise.all([
-        // Initialize organization if predefined
-        predefinedData?.organizationId
-          ? (async () => {
-            const getOrganizationById = useOrganizationStore.getState().getOrganizationById;
-            const fetchOrganizations = useOrganizationStore.getState().fetchOrganizations;
-
-            // First try to get from current store state
-            let org = getOrganizationById(predefinedData.organizationId!);
-
-            // If not in store, fetch organizations first
-            if (!org) {
-              try {
-                await fetchOrganizations();
-                org = useOrganizationStore.getState().getOrganizationById(predefinedData.organizationId!);
-              } catch (error) {
-                // Handle error silently as the organization might not be accessible
-              }
-            }
-
-            if (org) {
-              return org;
-            }
-            return null;
-          })()
-          : Promise.resolve(null),
-
-        // Initialize club if predefined
-        predefinedData?.clubId
-          ? (async () => {
-            const getClubById = useClubStore.getState().getClubById;
-            const fetchClubsIfNeeded = useClubStore.getState().fetchClubsIfNeeded;
-
-            try {
-              // Try to get from current store state first
-              let club = getClubById(predefinedData.clubId!);
-
-              // If not in store, fetch clubs to populate the store
-              if (!club) {
-                await fetchClubsIfNeeded();
-                club = useClubStore.getState().getClubById(predefinedData.clubId!);
-              }
-
-              // If we found the club, map it to WizardClub format
-              if (club) {
-                return club;
-              }
-              return null;
-            } catch (error) {
-              // Handle error silently as the club might not be accessible
-              return null;
-            }
-          })()
-          : Promise.resolve(null),
-      ]);
-
-      // Update state once with all initialized data
-      if (orgToSet || clubToSet) {
-        setState((prev) => ({
-          ...prev,
-          ...(orgToSet && {
-            stepOrganization: {
-              selectedOrganizationId: orgToSet.id,
-              selectedOrganization: orgToSet,
-            },
-          }),
-          ...(clubToSet && {
-            stepClub: {
-              selectedClubId: clubToSet.id,
-              selectedClub: clubToSet,
-            },
-            // Also add to availableClubs so Step2Club can display it
-            availableClubs: [clubToSet, ...prev.availableClubs.filter(c => c.id !== clubToSet.id)],
-          }),
-        }));
-      }
-
-      // Mark as initialized to prevent re-running
-      setHasInitializedPredefinedData(true);
-    };
-
-    initializePredefinedData();
-  }, [isOpen, hasInitializedPredefinedData, predefinedData?.organizationId, predefinedData?.clubId]);
-
-  // Update availableOrganizations and loading state from store (auto-fetch handled by selector)
   useEffect(() => {
-    if (!isOpen || state.currentStep !== 1 || adminType !== "root_admin") {
-      return;
+    if (predefinedClub) {
+      setState((prev) => ({
+        ...prev,
+        stepClub: {
+          selectedClubId: predefinedClub.id,
+          selectedClub: predefinedClub,
+        },
+        // Also add to availableClubs so Step2Club can display it
+        availableClubs: [predefinedClub, ...prev.availableClubs.filter((c) => c.id !== predefinedClub.id)],
+      }));
     }
+  }, [predefinedClub]);
 
-    if (predefinedData?.organizationId) {
-      return; // Skip if org is predefined
-    }
-
-    // Update loading state from store
+  // Sync hook data to state for display
+  useEffect(() => {
     setState((prev) => ({
       ...prev,
+      availableOrganizations: organizations,
       isLoadingOrganizations: isLoadingOrgs,
       organizationsError: orgError,
     }));
-
-    // Update available organizations when store data changes
-    if (organizations.length > 0) {
-      const orgs: WizardOrganization[] = organizations.map(toOrganizationOption);
-      setState((prev) => ({
-        ...prev,
-        availableOrganizations: orgs,
-      }));
-    }
-  }, [isOpen, state.currentStep, adminType, predefinedData, organizations, isLoadingOrgs, orgError]);
-
-  // Fetch clubs (Step 2) - using store with inflight guard
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+  }, [organizations, isLoadingOrgs, orgError]);
 
   useEffect(() => {
-    const loadClubs = async () => {
-      if (!isOpen || state.currentStep !== 2) {
-        return;
-      }
-
-      if (predefinedData?.clubId) {
-        return; // Skip if club is predefined
-      }
-
-      // For org admin and club admin, clubs are already filtered by managedIds
-      // For root admin, filter by selected org if any
-
-      setState((prev) => ({
-        ...prev,
-        isLoadingClubs: true,
-        clubsError: null,
-      }));
-
-      try {
-        // Use store method with inflight guard to prevent duplicate requests
-        await fetchClubsIfNeeded();
-
-        // Map clubs from store to wizard format
-        const storeClubs = useClubStore.getState().clubs;
-        let clubs: WizardClub[] = storeClubs.map((club) => ({
-          id: club.id,
-          name: club.name,
-          organizationId: club.organization?.id || "",
-          organizationName: club.organization?.name,
-        }));
-
-        // Filter by selected organization for root admin
-        if (
-          adminType === "root_admin" &&
-          state.stepOrganization.selectedOrganizationId
-        ) {
-          clubs = clubs.filter(
-            (c) => c.organizationId === state.stepOrganization.selectedOrganizationId
-          );
-        }
-
-        setState((prev) => ({
-          ...prev,
-          availableClubs: clubs,
-          isLoadingClubs: false,
-        }));
-      } catch (error) {
-        setState((prev) => ({
-          ...prev,
-          isLoadingClubs: false,
-          clubsError: error instanceof Error ? error.message : t("auth.errorOccurred"),
-        }));
-      }
-    };
-
-    loadClubs();
-  }, [
-    isOpen,
-    state.currentStep,
-    state.stepOrganization.selectedOrganizationId,
-    adminType,
-    predefinedData,
-    fetchClubsIfNeeded,
-    t,
-  ]);
-
-  // Fetch users (Step 5)
-  const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
-  const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      if (!isOpen || state.currentStep !== 5) {
-        return;
-      }
-
-      if (predefinedData?.userId) {
-        return; // Skip if user is predefined
-      }
-
-      setState((prev) => ({
-        ...prev,
-        isLoadingUsers: true,
-        usersError: null,
-      }));
-
-      try {
-        await fetchSimpleUsers();
-        const users: WizardUser[] = simpleUsers.map(
-          (user) => ({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-          })
-        );
-        setState((prev) => ({
-          ...prev,
-          availableUsers: users,
-          isLoadingUsers: false,
-        }));
-      } catch {
-        setState((prev) => ({
-          ...prev,
-          isLoadingUsers: false,
-          usersError: t("auth.errorOccurred"),
-        }));
-      }
-    };
-
-    fetchUsers();
-  }, [isOpen, state.currentStep, predefinedData, fetchSimpleUsers, simpleUsers, t]);
-
-  // Fetch courts (Step 5)
-  const fetchAvailableCourts = useCallback(async () => {
-    if (!state.stepClub.selectedClubId) {
-      return;
-    }
-
     setState((prev) => ({
       ...prev,
-      isLoadingCourts: true,
-      courtsError: null,
+      availableClubs: clubs,
+      isLoadingClubs,
+      clubsError,
     }));
+  }, [clubs, isLoadingClubs, clubsError]);
 
-    try {
-      const { date, startTime, duration } = state.stepDateTime;
-      const params = new URLSearchParams({
-        date,
-        start: startTime,
-        duration: duration.toString(),
-      });
+  useEffect(() => {
+    setState((prev) => ({
+      ...prev,
+      availableUsers: users,
+      isLoadingUsers,
+      usersError,
+    }));
+  }, [users, isLoadingUsers, usersError]);
 
-      const response = await fetch(
-        `/api/clubs/${state.stepClub.selectedClubId}/available-courts?${params}`
-      );
+  useEffect(() => {
+    setState((prev) => ({
+      ...prev,
+      availableCourts: courts,
+      isLoadingCourts,
+      courtsError,
+    }));
+  }, [courts, isLoadingCourts, courtsError]);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setState((prev) => ({
-          ...prev,
-          isLoadingCourts: false,
-          courtsError: errorData.error || t("auth.errorOccurred"),
-        }));
-        return;
-      }
-
-      const data = await response.json();
-      const courts: WizardCourt[] = data.availableCourts || [];
-
-      // Fetch price timeline for each court
-      const courtsWithPrices = await Promise.all(
-        courts.map(async (court) => {
-          try {
-            const priceResponse = await fetch(
-              `/api/courts/${court.id}/price-timeline?date=${date}`
-            );
-            if (priceResponse.ok) {
-              const priceData = await priceResponse.json();
-              const segment = priceData.timeline.find(
-                (seg: { start: string; end: string; priceCents: number }) =>
-                  startTime >= seg.start && startTime < seg.end
-              );
-              const priceCents = segment
-                ? Math.round((segment.priceCents / MINUTES_PER_HOUR) * duration)
-                : Math.round((court.defaultPriceCents / MINUTES_PER_HOUR) * duration);
-              return { ...court, priceCents, available: true };
-            }
-          } catch {
-            // Ignore price fetch errors
-          }
-          return {
-            ...court,
-            priceCents: Math.round(
-              (court.defaultPriceCents / MINUTES_PER_HOUR) * duration
-            ),
-            available: true,
-          };
-        })
-      );
-
-      setState((prev) => ({
-        ...prev,
-        availableCourts: courtsWithPrices,
-        isLoadingCourts: false,
-      }));
-    } catch {
-      setState((prev) => ({
-        ...prev,
-        isLoadingCourts: false,
-        courtsError: t("auth.errorOccurred"),
-      }));
-    }
-  }, [state.stepClub.selectedClubId, state.stepDateTime, t]);
+  useEffect(() => {
+    setState((prev) => ({
+      ...prev,
+      isSubmitting,
+      submitError,
+      isComplete,
+      bookingId,
+    }));
+  }, [isSubmitting, submitError, isComplete, bookingId]);
 
   // Handler functions
   const handleSelectOrganization = useCallback((org: WizardOrganization) => {
@@ -575,30 +376,13 @@ export function AdminQuickBookingWizard({
 
   const handleCreateUser = useCallback(async () => {
     setIsCreatingUser(true);
-    setState((prev) => ({ ...prev, usersError: null }));
 
-    try {
-      const response = await fetch("/api/admin/users/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: state.stepUser.newUserName || null,
-          email: state.stepUser.newUserEmail,
-        }),
-      });
+    const newUser = await createUser(
+      state.stepUser.newUserName,
+      state.stepUser.newUserEmail
+    );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setState((prev) => ({
-          ...prev,
-          usersError: errorData.error || t("auth.errorOccurred"),
-        }));
-        setIsCreatingUser(false);
-        return;
-      }
-
-      const newUser: WizardUser = await response.json();
-
+    if (newUser) {
       setState((prev) => ({
         ...prev,
         stepUser: {
@@ -610,18 +394,11 @@ export function AdminQuickBookingWizard({
           isGuestBooking: false,
           guestName: "",
         },
-        availableUsers: [...prev.availableUsers, newUser],
       }));
-      setIsCreatingUser(false);
-    } catch {
-      setState((prev) => ({
-        ...prev,
-        usersError: t("auth.errorOccurred"),
-      }));
-      setIsCreatingUser(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.stepUser.newUserName, state.stepUser.newUserEmail, t]);
+
+    setIsCreatingUser(false);
+  }, [state.stepUser.newUserName, state.stepUser.newUserEmail, createUser]);
 
   const handleDateTimeChange = useCallback(
     (data: Partial<typeof state.stepDateTime>) => {
@@ -647,152 +424,27 @@ export function AdminQuickBookingWizard({
     }));
   }, []);
 
-  // Submit booking
-  const handleSubmit = useCallback(async () => {
-    const { stepUser, stepCourt, stepDateTime } = state;
-
-    if ((!stepUser.selectedUser && !stepUser.isGuestBooking) || !stepCourt.selectedCourt) {
-      return;
-    }
-
-    setState((prev) => ({ ...prev, isSubmitting: true, submitError: null }));
-
-    try {
-      // If guest booking, create a minimal user account first
-      let userId = stepUser.selectedUser?.id;
-
-      if (stepUser.isGuestBooking && stepUser.guestName) {
-        // Create a guest user with a generated email using secure random values
-        const randomValues = new Uint32Array(2);
-        crypto.getRandomValues(randomValues);
-        const randomId = Array.from(randomValues, (num) => num.toString(36)).join('');
-        const guestEmail = `guest-${Date.now()}-${randomId}@${GUEST_EMAIL_DOMAIN}`;
-        const createUserResponse = await fetch("/api/admin/users/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: stepUser.guestName,
-            email: guestEmail,
-          }),
-        });
-
-        if (!createUserResponse.ok) {
-          const errorData = await createUserResponse.json();
-          setState((prev) => ({
-            ...prev,
-            isSubmitting: false,
-            submitError: errorData.error || t("auth.errorOccurred"),
-          }));
-          return;
-        }
-
-        const guestUser = await createUserResponse.json();
-        userId = guestUser.id;
-      }
-
-      if (!userId) {
-        setState((prev) => ({
-          ...prev,
-          isSubmitting: false,
-          submitError: t("auth.errorOccurred"),
-        }));
-        return;
-      }
-
-      const startDateTime = `${stepDateTime.date}T${stepDateTime.startTime}:00.000Z`;
-      const endTime = calculateEndTime(stepDateTime.startTime, stepDateTime.duration);
-      const endDateTime = `${stepDateTime.date}T${endTime}:00.000Z`;
-
-      const response = await fetch("/api/admin/bookings/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          courtId: stepCourt.selectedCourt.id,
-          startTime: startDateTime,
-          endTime: endDateTime,
-          clubId: state.stepClub.selectedClubId,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.status === 409) {
-        setState((prev) => ({
-          ...prev,
-          isSubmitting: false,
-          submitError: t("booking.slotAlreadyBooked"),
-        }));
-        return;
-      }
-
-      if (!response.ok) {
-        setState((prev) => ({
-          ...prev,
-          isSubmitting: false,
-          submitError: data.error || t("auth.errorOccurred"),
-        }));
-        return;
-      }
-
-      setState((prev) => ({
-        ...prev,
-        isSubmitting: false,
-        isComplete: true,
-        bookingId: data.bookingId,
-      }));
-
-      // Notify parent after short delay
-      setTimeout(() => {
-        onBookingComplete?.(
-          data.bookingId,
-          stepCourt.selectedCourt!.id,
-          stepDateTime.date,
-          stepDateTime.startTime,
-          endTime
-        );
-        onClose();
-      }, 2000);
-    } catch {
-      setState((prev) => ({
-        ...prev,
-        isSubmitting: false,
-        submitError: t("auth.errorOccurred"),
-      }));
-    }
-  }, [state, t, onBookingComplete, onClose]);
-
-  // Navigation
+  // Navigation handlers
   const handleNext = useCallback(async () => {
-    const nextStepId = getNextStepId(
-      state.currentStep,
-      adminType,
-      predefinedData
-    );
+    const nextStepId = navigation.getNextStep();
 
     if (nextStepId === null) {
       // Last step - submit
-      await handleSubmit();
+      await submitBooking();
       return;
     }
 
     // Fetch courts when moving to step 4
     if (nextStepId === 4) {
       setState((prev) => ({ ...prev, currentStep: nextStepId }));
-      await fetchAvailableCourts();
+      await fetchCourts();
     } else {
       setState((prev) => ({ ...prev, currentStep: nextStepId }));
     }
-  }, [state.currentStep, adminType, predefinedData, handleSubmit, fetchAvailableCourts]);
+  }, [navigation, submitBooking, fetchCourts]);
 
   const handleBack = useCallback(() => {
-    const prevStepId = getPreviousStepId(
-      state.currentStep,
-      adminType,
-      predefinedData
-    );
+    const prevStepId = navigation.getPreviousStep();
 
     if (prevStepId !== null) {
       setState((prev) => ({
@@ -801,32 +453,9 @@ export function AdminQuickBookingWizard({
         submitError: null,
       }));
     }
-  }, [state.currentStep, adminType, predefinedData]);
+  }, [navigation]);
 
   // Computed values
-  const canProceed = useMemo(() => {
-    switch (state.currentStep) {
-      case 1: // Organization
-        return !!state.stepOrganization.selectedOrganizationId;
-      case 2: // Club
-        return !!state.stepClub.selectedClubId;
-      case 3: // DateTime
-        return (
-          !!state.stepDateTime.date &&
-          !!state.stepDateTime.startTime &&
-          state.stepDateTime.duration > 0
-        );
-      case 4: // Court
-        return !!state.stepCourt.selectedCourtId;
-      case 5: // User
-        return !!state.stepUser.selectedUserId || (state.stepUser.isGuestBooking && !!state.stepUser.guestName);
-      case 6: // Confirmation
-        return !state.isSubmitting;
-      default:
-        return false;
-    }
-  }, [state]);
-
   const totalPrice = useMemo(() => {
     if (state.stepCourt.selectedCourt?.priceCents !== undefined) {
       return state.stepCourt.selectedCourt.priceCents;
@@ -840,13 +469,11 @@ export function AdminQuickBookingWizard({
     return 0;
   }, [state.stepCourt.selectedCourt, state.stepDateTime.duration]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (!state.isSubmitting) {
       onClose();
     }
-  };
-
-  const visibleSteps = getVisibleSteps(adminType, predefinedData);
+  }, [state.isSubmitting, onClose]);
 
   return (
     <Modal
@@ -856,50 +483,10 @@ export function AdminQuickBookingWizard({
     >
       <div className="rsp-admin-wizard-modal">
         {/* Step Indicator */}
-        <nav
-          className="rsp-admin-wizard-steps"
-          aria-label={t("wizard.progress")}
-        >
-          {visibleSteps.map((step, index) => {
-            const isActive = state.currentStep === step.id;
-            const isCompleted = visibleSteps.findIndex(
-              (s) => s.id === state.currentStep
-            ) > index;
-
-            return (
-              <div
-                key={step.id}
-                className={`rsp-admin-wizard-step-indicator ${isActive ? "rsp-admin-wizard-step-indicator--active" : ""
-                  } ${isCompleted ? "rsp-admin-wizard-step-indicator--completed" : ""
-                  }`}
-                aria-current={isActive ? "step" : undefined}
-              >
-                <div
-                  className="rsp-admin-wizard-step-circle"
-                  aria-hidden="true"
-                >
-                  {isCompleted ? (
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                    >
-                      <polyline points="20,6 9,17 4,12" />
-                    </svg>
-                  ) : (
-                    index + 1
-                  )}
-                </div>
-                <span className="rsp-admin-wizard-step-label">
-                  {t(`adminWizard.steps.${step.label}`)}
-                </span>
-              </div>
-            );
-          })}
-        </nav>
+        <WizardStepIndicator
+          steps={navigation.visibleSteps}
+          currentStep={state.currentStep}
+        />
 
         {/* Step Content */}
         <div className="rsp-admin-wizard-content">
@@ -975,74 +562,15 @@ export function AdminQuickBookingWizard({
 
         {/* Navigation Buttons */}
         {!state.isComplete && (
-          <div className="rsp-admin-wizard-nav">
-            <button
-              type="button"
-              className="rsp-admin-wizard-nav-btn rsp-admin-wizard-nav-btn--back"
-              onClick={
-                getPreviousStepId(state.currentStep, adminType, predefinedData) ===
-                  null
-                  ? onClose
-                  : handleBack
-              }
-              disabled={state.isSubmitting}
-            >
-              {getPreviousStepId(
-                state.currentStep,
-                adminType,
-                predefinedData
-              ) === null ? (
-                t("common.cancel")
-              ) : (
-                <>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                  >
-                    <polyline points="15,18 9,12 15,6" />
-                  </svg>
-                  {t("common.back")}
-                </>
-              )}
-            </button>
-
-            <button
-              type="button"
-              className="rsp-admin-wizard-nav-btn rsp-admin-wizard-nav-btn--next"
-              onClick={handleNext}
-              disabled={!canProceed}
-              aria-busy={state.isSubmitting}
-            >
-              {state.isSubmitting ? (
-                <>
-                  <span className="rsp-admin-wizard-spinner" aria-hidden="true" />
-                  {t("common.processing")}
-                </>
-              ) : state.currentStep === 6 ? (
-                t("wizard.confirmBooking")
-              ) : (
-                <>
-                  {t("wizard.continue")}
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                  >
-                    <polyline points="9,18 15,12 9,6" />
-                  </svg>
-                </>
-              )}
-            </button>
-          </div>
+          <WizardNavigationButtons
+            canProceed={navigation.canProceed}
+            isFirstStep={navigation.isFirstStep}
+            isLastStep={navigation.isLastStep}
+            isSubmitting={state.isSubmitting}
+            onBack={handleBack}
+            onNext={handleNext}
+            onCancel={onClose}
+          />
         )}
       </div>
     </Modal>
