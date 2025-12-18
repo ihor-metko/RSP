@@ -137,7 +137,7 @@ export function OperationsClubCardSelector({
                 actionButton={{
                   label: t("operations.selectClub"),
                   onClick: (e) => {
-                    e.stopPropagation();
+                    e?.stopPropagation();
                     handleCardClick(club.id);
                   }
                 }}

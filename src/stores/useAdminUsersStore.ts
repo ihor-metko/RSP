@@ -244,7 +244,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     }
 
     // If there's already an inflight request for this ID, return it
-    if (state._inflightFetchUserById && state._inflightFetchUserById[userId]) {
+    if (state._inflightFetchUserById && userId in state._inflightFetchUserById) {
       return state._inflightFetchUserById[userId];
     }
 

@@ -165,8 +165,8 @@ export const useUserStore = create<UserState>()(
       // Build user object
       const user: User = {
         id: meData.userId,
-        email: meData.email,
-        name: meData.name,
+        email: meData.email ?? null,
+        name: meData.name ?? null,
         isRoot: meData.isRoot,
       };
 
@@ -318,12 +318,12 @@ export const useUserStore = create<UserState>()(
       return true;
     }
 
-    // Check if user has club_owner role
-    if (adminStatus?.adminType !== "club_owner") {
+    // Check if user has club_admin role
+    if (adminStatus?.adminType !== "club_admin") {
       return false;
     }
 
-    // If no specific clubId is provided, just check if user is a club owner
+    // If no specific clubId is provided, just check if user is a club admin
     if (!clubId) {
       return true;
     }

@@ -136,7 +136,6 @@ export function DayCalendar({
                     onClick={onBookingClick}
                     startHour={startHour}
                     endHour={endHour}
-                    slotMinutes={slotMinutes}
                   />
                 ))}
               </div>

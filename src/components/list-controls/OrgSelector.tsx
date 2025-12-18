@@ -86,7 +86,7 @@ export function OrgSelector<TFilters = Record<string, unknown>>({
     
     // Clear dependent club filter if it exists
     const clubFilterKey = "clubFilter" as keyof TFilters;
-    if (clubFilterKey in controller.filters) {
+    if (clubFilterKey in (controller.filters as object)) {
       controller.setFilter(clubFilterKey, "" as TFilters[keyof TFilters]);
     }
   };

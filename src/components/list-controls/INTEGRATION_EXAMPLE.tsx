@@ -36,12 +36,13 @@ import {
 
 // Your existing stores
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import type { UserRole, UserStatus } from "@/types/adminUser";
 
 // Define filters interface matching your existing filters
-interface UserFilters {
+interface UserFilters extends Record<string, unknown> {
   searchQuery: string;
-  roleFilter: string;
-  statusFilter: string;
+  roleFilter: UserRole | "";
+  statusFilter: UserStatus | "";
   organizationFilter: string;
   clubFilter: string;
   dateFrom: string;
@@ -103,12 +104,12 @@ export default function AdminUsersPageExample() {
         pageSize: controller.pageSize,
         filters: {
           search: controller.filters.searchQuery,
-          role: controller.filters.roleFilter || undefined,
-          status: controller.filters.statusFilter || undefined,
+          role: (controller.filters.roleFilter as UserRole | "") || undefined,
+          status: (controller.filters.statusFilter as UserStatus | "") || undefined,
           organizationId: controller.filters.organizationFilter || undefined,
           clubId: controller.filters.clubFilter || undefined,
-          sortBy: controller.sortBy,
-          sortOrder: controller.sortOrder,
+          sortBy: controller.sortBy as "createdAt" | "name" | "email" | "lastLoginAt" | "lastActive" | "totalBookings" | undefined,
+          sortOrder: controller.sortOrder as "asc" | "desc" | undefined,
           dateFrom: controller.filters.dateFrom || undefined,
           dateTo: controller.filters.dateTo || undefined,
           activeLast30d: controller.filters.activeLast30d || undefined,
@@ -211,7 +212,7 @@ export default function AdminUsersPageExample() {
               </ListToolbar>
 
               {/* Quick Presets */}
-              <QuickPresets
+              <QuickPresets<UserFilters>
                 presets={[
                   {
                     id: 'active_30d',
@@ -296,16 +297,6 @@ export default function AdminUsersPageExample() {
                 totalPages={totalPages}
                 showPageSize={true}
                 pageSizeOptions={[10, 25, 50, 100]}
-                t={(key, params) => {
-                  // Pass translation function
-                  const translations: Record<string, string> = {
-                    "pagination.showing": t("users.pagination.showing", params),
-                    "pagination.previous": t("users.pagination.previous"),
-                    "pagination.next": t("users.pagination.next"),
-                    "pagination.pageSize": t("users.pagination.pageSize"),
-                  };
-                  return translations[key] || key;
-                }}
               />
             </>
           )}
