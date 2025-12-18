@@ -167,68 +167,72 @@ export function AdminQuickBookingWizard({
     }
 
     const initializePredefinedData = async () => {
-      let orgToSet: WizardOrganization | null = null;
-      let clubToSet: WizardClub | null = null;
+      // Fetch organization and club in parallel for better performance
+      const [orgToSet, clubToSet] = await Promise.all([
+        // Initialize organization if predefined
+        predefinedData?.organizationId
+          ? (async () => {
+              const getOrganizationById = useOrganizationStore.getState().getOrganizationById;
+              const fetchOrganizations = useOrganizationStore.getState().fetchOrganizations;
 
-      // Initialize organization if predefined
-      if (predefinedData?.organizationId) {
-        const getOrganizationById = useOrganizationStore.getState().getOrganizationById;
-        const fetchOrganizations = useOrganizationStore.getState().fetchOrganizations;
+              // First try to get from current store state
+              let org = getOrganizationById(predefinedData.organizationId);
+              
+              // If not in store, fetch organizations first
+              if (!org) {
+                try {
+                  await fetchOrganizations();
+                  org = useOrganizationStore.getState().getOrganizationById(predefinedData.organizationId);
+                } catch (error) {
+                  // Handle error silently as the organization might not be accessible
+                }
+              }
 
-        // First try to get from current store state
-        let org = getOrganizationById(predefinedData.organizationId);
-        
-        // If not in store, fetch organizations first
-        if (!org) {
-          try {
-            await fetchOrganizations();
-            org = useOrganizationStore.getState().getOrganizationById(predefinedData.organizationId);
-          } catch (error) {
-            // Handle error silently as the organization might not be accessible
-          }
-        }
+              if (org) {
+                return {
+                  id: org.id,
+                  name: org.name,
+                  slug: org.slug,
+                } as WizardOrganization;
+              }
+              return null;
+            })()
+          : Promise.resolve(null),
 
-        if (org) {
-          orgToSet = {
-            id: org.id,
-            name: org.name,
-            slug: org.slug,
-          };
-        }
-      }
+        // Initialize club if predefined
+        predefinedData?.clubId
+          ? (async () => {
+              const getClubById = useClubStore.getState().getClubById;
+              const ensureClubById = useClubStore.getState().ensureClubById;
 
-      // Initialize club if predefined
-      if (predefinedData?.clubId) {
-        const getClubById = useClubStore.getState().getClubById;
-        const ensureClubById = useClubStore.getState().ensureClubById;
+              try {
+                // Try to get from current store state first
+                let club = getClubById(predefinedData.clubId);
+                
+                // If not in store, fetch the specific club
+                if (!club) {
+                  const clubDetail = await ensureClubById(predefinedData.clubId);
+                  // Map ClubDetail to WizardClub format
+                  return {
+                    id: clubDetail.id,
+                    name: clubDetail.name,
+                    organizationId: clubDetail.organizationId,
+                  } as WizardClub;
+                }
 
-        try {
-          // Try to get from current store state first
-          let club = getClubById(predefinedData.clubId);
-          
-          // If not in store, fetch the specific club
-          if (!club) {
-            const clubDetail = await ensureClubById(predefinedData.clubId);
-            // Convert ClubDetail to ClubWithCounts format
-            club = {
-              id: clubDetail.id,
-              name: clubDetail.name,
-              organizationId: clubDetail.organizationId,
-            } as any; // ClubWithCounts type matches what we need
-          }
-
-          if (club) {
-            clubToSet = {
-              id: club.id,
-              name: club.name,
-              organizationId: club.organizationId,
-              organizationName: (club as any).organization?.name,
-            };
-          }
-        } catch (error) {
-          // Handle error silently as the club might not be accessible
-        }
-      }
+                // Map existing club to WizardClub format
+                return {
+                  id: club.id,
+                  name: club.name,
+                  organizationId: club.organizationId,
+                } as WizardClub;
+              } catch (error) {
+                // Handle error silently as the club might not be accessible
+                return null;
+              }
+            })()
+          : Promise.resolve(null),
+      ]);
 
       // Update state once with all initialized data
       if (orgToSet || clubToSet) {
