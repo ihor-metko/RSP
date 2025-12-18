@@ -40,7 +40,7 @@ export function AdminQuickBookingWizard({
   adminType,
 }: AdminQuickBookingWizardProps) {
   const t = useTranslations();
-  
+
   // Use Zustand store for organizations with auto-fetch
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
   const isLoadingOrgs = useOrganizationStore((state) => state.loading);
@@ -99,6 +99,9 @@ export function AdminQuickBookingWizard({
     };
   });
 
+  // Track if we've initialized predefined data to prevent re-initialization
+  const [hasInitializedPredefinedData, setHasInitializedPredefinedData] = useState(false);
+
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
@@ -152,8 +155,102 @@ export function AdminQuickBookingWizard({
         isComplete: false,
         bookingId: null,
       });
+      // Reset initialization flag when modal closes
+      setHasInitializedPredefinedData(false);
     }
   }, [isOpen, adminType, predefinedData]);
+
+  // Initialize predefined organization and club objects when modal opens
+  useEffect(() => {
+    if (!isOpen || hasInitializedPredefinedData) {
+      return;
+    }
+
+    const initializePredefinedData = async () => {
+      // Fetch organization and club in parallel for better performance
+      const [orgToSet, clubToSet] = await Promise.all([
+        // Initialize organization if predefined
+        predefinedData?.organizationId
+          ? (async () => {
+            const getOrganizationById = useOrganizationStore.getState().getOrganizationById;
+            const fetchOrganizations = useOrganizationStore.getState().fetchOrganizations;
+
+            // First try to get from current store state
+            let org = getOrganizationById(predefinedData.organizationId!);
+
+            // If not in store, fetch organizations first
+            if (!org) {
+              try {
+                await fetchOrganizations();
+                org = useOrganizationStore.getState().getOrganizationById(predefinedData.organizationId!);
+              } catch (error) {
+                // Handle error silently as the organization might not be accessible
+              }
+            }
+
+            if (org) {
+              return org;
+            }
+            return null;
+          })()
+          : Promise.resolve(null),
+
+        // Initialize club if predefined
+        predefinedData?.clubId
+          ? (async () => {
+            const getClubById = useClubStore.getState().getClubById;
+            const fetchClubsIfNeeded = useClubStore.getState().fetchClubsIfNeeded;
+
+            try {
+              // Try to get from current store state first
+              let club = getClubById(predefinedData.clubId!);
+
+              // If not in store, fetch clubs to populate the store
+              if (!club) {
+                await fetchClubsIfNeeded();
+                club = useClubStore.getState().getClubById(predefinedData.clubId!);
+              }
+
+              // If we found the club, map it to WizardClub format
+              if (club) {
+                return club;
+              }
+              return null;
+            } catch (error) {
+              // Handle error silently as the club might not be accessible
+              return null;
+            }
+          })()
+          : Promise.resolve(null),
+      ]);
+
+      // Update state once with all initialized data
+      if (orgToSet || clubToSet) {
+        setState((prev) => ({
+          ...prev,
+          ...(orgToSet && {
+            stepOrganization: {
+              selectedOrganizationId: orgToSet.id,
+              selectedOrganization: orgToSet,
+            },
+          }),
+          ...(clubToSet && {
+            stepClub: {
+              selectedClubId: clubToSet.id,
+              selectedClub: clubToSet,
+            },
+            // Also add to availableClubs so Step2Club can display it
+            availableClubs: [clubToSet, ...prev.availableClubs.filter(c => c.id !== clubToSet.id)],
+          }),
+        }));
+      }
+
+      // Mark as initialized to prevent re-running
+      setHasInitializedPredefinedData(true);
+    };
+
+    initializePredefinedData();
+  }, [isOpen, hasInitializedPredefinedData, predefinedData?.organizationId, predefinedData?.clubId]);
 
   // Update availableOrganizations and loading state from store (auto-fetch handled by selector)
   useEffect(() => {
@@ -255,7 +352,7 @@ export function AdminQuickBookingWizard({
   // Fetch users (Step 5)
   const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
   const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
-  
+
   useEffect(() => {
     const fetchUsers = async () => {
       if (!isOpen || state.currentStep !== 5) {
@@ -563,7 +660,7 @@ export function AdminQuickBookingWizard({
     try {
       // If guest booking, create a minimal user account first
       let userId = stepUser.selectedUser?.id;
-      
+
       if (stepUser.isGuestBooking && stepUser.guestName) {
         // Create a guest user with a generated email using secure random values
         const randomValues = new Uint32Array(2);
@@ -737,7 +834,7 @@ export function AdminQuickBookingWizard({
     if (state.stepCourt.selectedCourt) {
       return Math.round(
         (state.stepCourt.selectedCourt.defaultPriceCents / MINUTES_PER_HOUR) *
-          state.stepDateTime.duration
+        state.stepDateTime.duration
       );
     }
     return 0;
@@ -772,11 +869,9 @@ export function AdminQuickBookingWizard({
             return (
               <div
                 key={step.id}
-                className={`rsp-admin-wizard-step-indicator ${
-                  isActive ? "rsp-admin-wizard-step-indicator--active" : ""
-                } ${
-                  isCompleted ? "rsp-admin-wizard-step-indicator--completed" : ""
-                }`}
+                className={`rsp-admin-wizard-step-indicator ${isActive ? "rsp-admin-wizard-step-indicator--active" : ""
+                  } ${isCompleted ? "rsp-admin-wizard-step-indicator--completed" : ""
+                  }`}
                 aria-current={isActive ? "step" : undefined}
               >
                 <div
@@ -886,7 +981,7 @@ export function AdminQuickBookingWizard({
               className="rsp-admin-wizard-nav-btn rsp-admin-wizard-nav-btn--back"
               onClick={
                 getPreviousStepId(state.currentStep, adminType, predefinedData) ===
-                null
+                  null
                   ? onClose
                   : handleBack
               }
