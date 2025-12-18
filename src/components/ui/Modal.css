@@ -6,11 +6,18 @@
 }
 
 .rsp-modal {
-  max-height: 90%;
-  @apply relative w-full max-w-md rounded-lg p-6 shadow-lg;
+  max-height: 90vh;
+  max-width: 95vw;
+  @apply relative rounded-lg shadow-lg;
   background-color: var(--rsp-card-bg);
   display: flex;
   flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .rsp-modal {
+    max-width: 900px;
+  }
 }
 
 .rsp-modal-header {
@@ -18,10 +25,10 @@
 }
 
 .rsp-modal-body {
-  @apply mb-4;
   height: 100%;
   min-height: 0;
   overflow: auto;
+  padding: 0;
 }
 
 .rsp-modal-footer {
@@ -31,6 +38,7 @@
 .rsp-modal-close {
   @apply absolute right-4 top-4 p-1 rounded-md;
   color: var(--rsp-foreground);
+  z-index: 10;
 }
 
 .rsp-modal-close:hover {

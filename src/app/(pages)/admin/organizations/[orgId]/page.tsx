@@ -9,6 +9,7 @@ import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
 import { EntityEditStepper } from "@/components/admin/EntityEditStepper.client";
+import { BasicInfoStep, AddressStep, ImagesStep } from "@/components/admin/OrganizationSteps";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
 import "./page.css";
@@ -908,6 +909,13 @@ export default function OrganizationDetailPage() {
             isOpen={isEditingDetails}
             onClose={() => setIsEditingDetails(false)}
             entityData={org}
+            steps={[
+              { id: 1, label: t("organizations.stepper.stepBasicInfo") },
+              { id: 2, label: t("organizations.stepper.stepAddress") },
+              { id: 3, label: t("organizations.stepper.stepImages") },
+            ]}
+            stepComponents={[BasicInfoStep, AddressStep, ImagesStep]}
+            translationNamespace="organizations.stepper"
             onSave={handleStepperSave}
           />
         )}

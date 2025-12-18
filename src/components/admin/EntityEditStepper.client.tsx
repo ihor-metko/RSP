@@ -3,7 +3,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Modal } from "@/components/ui";
-import { BasicInfoStep, AddressStep, ImagesStep } from "./OrganizationSteps";
 import "./ClubCreationStepper.css";
 
 interface UploadedFile {
@@ -24,10 +23,29 @@ interface EntityData {
   metadata?: Record<string, unknown> | null;
 }
 
+interface StepConfig {
+  id: number;
+  label: string;
+}
+
+// Step component props interface
+// NOTE: formData is typed as `unknown` to support different data structures per step.
+// Individual step components should cast formData to their expected type.
+// For better type safety, consider using generics or union types in future versions.
+interface StepComponentProps {
+  formData: unknown;
+  fieldErrors: Record<string, string>;
+  isSubmitting: boolean;
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
+}
+
 interface EntityEditStepperProps {
   isOpen: boolean;
   onClose: () => void;
   entityData: EntityData;
+  steps: StepConfig[];
+  stepComponents: React.ComponentType<StepComponentProps>[];
+  translationNamespace?: string;
   onSave: (data: {
     name: string;
     slug: string;
@@ -43,9 +61,12 @@ export function EntityEditStepper({
   isOpen,
   onClose,
   entityData,
+  steps,
+  stepComponents,
+  translationNamespace = "organizations.stepper",
   onSave,
 }: EntityEditStepperProps) {
-  const t = useTranslations("organizations.stepper");
+  const t = useTranslations(translationNamespace);
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -74,13 +95,6 @@ export function EntityEditStepper({
     logo: null,
     heroImage: null,
   });
-
-  // Steps configuration - only 3 steps for editing
-  const STEPS = [
-    { id: 1, label: t("stepBasicInfo") },
-    { id: 2, label: t("stepAddress") },
-    { id: 3, label: t("stepImages") },
-  ];
 
   // Initialize form data when modal opens
   useEffect(() => {
@@ -229,11 +243,11 @@ export function EntityEditStepper({
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
-      if (currentStep < STEPS.length) {
+      if (currentStep < steps.length) {
         setCurrentStep((prev) => prev + 1);
       }
     }
-  }, [currentStep, validateStep, STEPS.length]);
+  }, [currentStep, validateStep, steps.length]);
 
   const handleBack = useCallback(() => {
     if (currentStep > 1) {
@@ -292,40 +306,44 @@ export function EntityEditStepper({
   };
 
   const renderStepContent = () => {
+    const StepComponent = stepComponents[currentStep - 1];
+    if (!StepComponent) return null;
+
+    // Determine which form data to pass based on step
+    // NOTE: This assumes a 3-step flow with basic info, address, and images.
+    // For different entity types with different step structures, consider:
+    // 1. Passing a data mapping configuration as a prop
+    // 2. Using a more generic form state management approach
+    // 3. Creating specialized stepper components per entity type
+    let formData: unknown;
+    let onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
+
     switch (currentStep) {
       case 1:
-        return (
-          <BasicInfoStep
-            formData={basicInfoData}
-            fieldErrors={fieldErrors}
-            isSubmitting={isSubmitting}
-            onChange={handleBasicInfoChange}
-          />
-        );
-
+        formData = basicInfoData;
+        onChange = handleBasicInfoChange;
+        break;
       case 2:
-        return (
-          <AddressStep
-            formData={addressData}
-            fieldErrors={fieldErrors}
-            isSubmitting={isSubmitting}
-            onChange={handleAddressChange}
-          />
-        );
-
+        formData = addressData;
+        onChange = handleAddressChange;
+        break;
       case 3:
-        return (
-          <ImagesStep
-            formData={imagesData}
-            fieldErrors={fieldErrors}
-            isSubmitting={isSubmitting}
-            onChange={handleImageChange}
-          />
-        );
-
+        formData = imagesData;
+        onChange = handleImageChange;
+        break;
       default:
-        return null;
+        formData = {};
+        onChange = () => {};
     }
+
+    return (
+      <StepComponent
+        formData={formData}
+        fieldErrors={fieldErrors}
+        isSubmitting={isSubmitting}
+        onChange={onChange}
+      />
+    );
   };
 
   return (
@@ -333,7 +351,7 @@ export function EntityEditStepper({
       <div className="im-stepper">
         {/* Step Indicator */}
         <div className="im-stepper-indicator">
-          {STEPS.map((step, index) => (
+          {steps.map((step, index) => (
             <div key={step.id} className="im-stepper-indicator-step-wrapper" style={{ display: "flex", alignItems: "center" }}>
               <div
                 className={`im-stepper-indicator-step ${currentStep === step.id ? "im-stepper-indicator-step--active" : ""
@@ -344,7 +362,7 @@ export function EntityEditStepper({
                 </span>
                 <span className="im-stepper-indicator-label">{step.label}</span>
               </div>
-              {index < STEPS.length - 1 && (
+              {index < steps.length - 1 && (
                 <div
                   className={`im-stepper-indicator-line ${currentStep > step.id ? "im-stepper-indicator-line--completed" : ""
                     }`}
@@ -356,7 +374,7 @@ export function EntityEditStepper({
 
         {/* Progress Text */}
         <p className="im-stepper-progress">
-          {t("stepProgress", { current: currentStep, total: STEPS.length })}
+          {t("stepProgress", { current: currentStep, total: steps.length })}
         </p>
 
         {/* Error Alert */}
@@ -394,7 +412,7 @@ export function EntityEditStepper({
                 {t("back")}
               </Button>
             )}
-            {currentStep < STEPS.length ? (
+            {currentStep < steps.length ? (
               <Button
                 type="button"
                 onClick={handleNext}
@@ -408,7 +426,7 @@ export function EntityEditStepper({
                 onClick={handleSubmit}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? t("creating") : t("createOrganizationButton")}
+                {isSubmitting ? t("saving") : t("saveChanges")}
               </Button>
             )}
           </div>

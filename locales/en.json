@@ -1271,7 +1271,9 @@
         "createdWithOwner": "Organization created and owner assigned successfully!",
         "createdOwnerFailed": "Organization created, but owner assignment failed: {message}",
         "created": "Organization created successfully!"
-      }
+      },
+      "saveChanges": "Save Changes",
+      "saving": "Saving..."
     },
     "errors": {
       "createFailed": "Failed to create organization",

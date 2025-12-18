@@ -1,7 +1,9 @@
 .im-stepper {
-  max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .im-stepper-header {
@@ -135,11 +137,14 @@
 /* Step content */
 .im-stepper-content {
   margin-bottom: 2rem;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 /* Step section card */
 .im-stepper-section {
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 .im-stepper-section-title {
