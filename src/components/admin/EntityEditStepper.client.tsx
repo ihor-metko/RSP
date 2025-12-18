@@ -32,7 +32,7 @@ interface StepComponentProps {
   formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void | ((field: string, value: UploadedFile | null) => void);
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
 }
 
 interface EntityEditStepperProps {
@@ -307,7 +307,7 @@ export function EntityEditStepper({
 
     // Determine which form data to pass based on step
     let formData: unknown;
-    let onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void | ((field: string, value: UploadedFile | null) => void);
+    let onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
 
     switch (currentStep) {
       case 1:
@@ -320,7 +320,7 @@ export function EntityEditStepper({
         break;
       case 3:
         formData = imagesData;
-        onChange = handleImageChange as (field: string, value: UploadedFile | null) => void;
+        onChange = handleImageChange;
         break;
       default:
         formData = {};
