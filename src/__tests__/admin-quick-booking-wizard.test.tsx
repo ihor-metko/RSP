@@ -743,4 +743,149 @@ describe("AdminQuickBookingWizard - Predefined Court Support", () => {
     expect(screen.getByLabelText("Start Time")).toHaveValue("14:30");
     expect(screen.getByLabelText("Duration")).toHaveValue("90");
   });
+
+  it("shows predefined date/time correctly in confirmation step", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    const mockUser = {
+      id: "user-1",
+      name: "Test User",
+      email: "test@example.com",
+    };
+    
+    const mockClub = {
+      id: "club-1",
+      name: "Test Club",
+      organizationId: "org-1",
+      organization: { id: "org-1", name: "Test Org" },
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+    mockClubStore.getClubById.mockReturnValue(mockClub);
+    mockAdminUsersStore.simpleUsers = [mockUser];
+
+    const propsWithUser = {
+      ...propsWithPredefinedCourt,
+      predefinedData: {
+        ...propsWithPredefinedCourt.predefinedData,
+        userId: "user-1",
+      },
+    };
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithUser} />);
+    });
+
+    // Wait for DateTime step
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // Navigate to confirmation step by clicking Continue
+    await act(async () => {
+      fireEvent.click(screen.getByText("Continue"));
+    });
+
+    // Wait for confirmation step
+    await waitFor(() => {
+      expect(screen.getByText("Review the booking details and confirm")).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Verify date/time are shown in confirmation
+    // The confirmation shows formatted date and time
+    expect(screen.getByText("Monday, January 15, 2024")).toBeInTheDocument();
+    expect(screen.getByText("10:00 - 11:00")).toBeInTheDocument();
+    expect(screen.getByText((content, element) => {
+      return element?.textContent === "60 minutes";
+    })).toBeInTheDocument();
+  });
+
+  it("propagates date/time changes from Step3 to Step6 confirmation", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    const mockUser = {
+      id: "user-1",
+      name: "Test User",
+      email: "test@example.com",
+    };
+    
+    const mockClub = {
+      id: "club-1",
+      name: "Test Club",
+      organizationId: "org-1",
+      organization: { id: "org-1", name: "Test Org" },
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+    mockClubStore.getClubById.mockReturnValue(mockClub);
+    mockAdminUsersStore.simpleUsers = [mockUser];
+
+    const propsWithUser = {
+      ...propsWithPredefinedCourt,
+      predefinedData: {
+        ...propsWithPredefinedCourt.predefinedData,
+        userId: "user-1",
+      },
+    };
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithUser} />);
+    });
+
+    // Wait for DateTime step
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // Change the date
+    const dateInput = screen.getByLabelText("Date");
+    await act(async () => {
+      fireEvent.change(dateInput, { target: { value: "2024-01-20" } });
+    });
+
+    // Change the time
+    const timeSelect = screen.getByLabelText("Start Time");
+    await act(async () => {
+      fireEvent.change(timeSelect, { target: { value: "15:30" } });
+    });
+
+    // Change the duration
+    const durationSelect = screen.getByLabelText("Duration");
+    await act(async () => {
+      fireEvent.change(durationSelect, { target: { value: "90" } });
+    });
+
+    // Navigate to confirmation step
+    await act(async () => {
+      fireEvent.click(screen.getByText("Continue"));
+    });
+
+    // Wait for confirmation step
+    await waitFor(() => {
+      expect(screen.getByText("Review the booking details and confirm")).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Verify updated date/time are shown in confirmation
+    expect(screen.getByText("Saturday, January 20, 2024")).toBeInTheDocument();
+    expect(screen.getByText("15:30 - 17:00")).toBeInTheDocument();
+    expect(screen.getByText((content, element) => {
+      return element?.textContent === "90 minutes";
+    })).toBeInTheDocument();
+  });
 });
