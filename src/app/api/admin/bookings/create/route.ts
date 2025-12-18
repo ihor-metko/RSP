@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
+import { getIO } from "@/lib/socket-instance";
+import type { BookingEventPayload } from "@/lib/websocket";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode, findCourtById, findClubById, findUserById, getMockBookings } from "@/services/mockDb";
 import { mockCreateBooking } from "@/services/mockApiHandlers";
@@ -130,6 +132,22 @@ export async function POST(request: Request) {
         price: priceCents,
         status: "reserved",
       });
+
+      // Emit WebSocket event for real-time updates
+      const io = getIO();
+      if (io) {
+        const eventPayload: BookingEventPayload = {
+          id: booking.id,
+          clubId: club.id,
+          courtId: booking.courtId,
+          userId: booking.userId,
+          start: booking.start.toISOString(),
+          end: booking.end.toISOString(),
+          status: booking.status,
+          price: booking.price,
+        };
+        io.to(`club:${club.id}:bookings`).emit("booking:created", eventPayload);
+      }
 
       return NextResponse.json(
         {
@@ -305,6 +323,7 @@ export async function POST(request: Request) {
             club: {
               select: {
                 name: true,
+                id: true,
               },
             },
           },
@@ -317,6 +336,22 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    // Emit WebSocket event for real-time updates
+    const io = getIO();
+    if (io) {
+      const eventPayload: BookingEventPayload = {
+        id: booking.id,
+        clubId: booking.court.club.id,
+        courtId: booking.courtId,
+        userId: booking.userId,
+        start: booking.start.toISOString(),
+        end: booking.end.toISOString(),
+        status: booking.status,
+        price: booking.price,
+      };
+      io.to(`club:${booking.court.club.id}:bookings`).emit("booking:created", eventPayload);
+    }
 
     return NextResponse.json(
       {

@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node server.js",
+    "dev:next": "next dev",
     "build": "prisma generate && next build",
-    "start": "next start",
+    "start": "NODE_ENV=production node server.js",
+    "start:next": "next start",
     "lint": "next lint",
     "test": "jest",
     "create-root-admin": "ts-node --project tsconfig.scripts.json scripts/createRootAdmin.ts"
@@ -27,6 +29,8 @@
     "react-hook-form": "^7.54.0",
     "react-leaflet": "^4.2.1",
     "recharts": "^3.5.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
