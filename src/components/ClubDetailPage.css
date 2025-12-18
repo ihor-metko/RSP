@@ -40,35 +40,18 @@
 }
 
 .rsp-club-hero-content {
-  @apply absolute bottom-0 left-0 right-0 p-6 md:p-8;
+  @apply absolute bottom-0 left-0 right-0 p-6 md:p-8 flex justify-between items-end gap-4 flex-wrap;
   color: white;
 }
 
-.rsp-club-hero-logo {
-  @apply w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover border-2 border-white shadow-lg mb-3;
-  background-color: var(--rsp-card-bg);
-}
-
-.rsp-club-hero-name {
-  @apply text-2xl md:text-4xl font-bold mb-2;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Short description on hero */
-.rsp-club-hero-short-desc {
-  @apply text-sm md:text-base max-w-2xl mb-3 leading-relaxed;
-  opacity: 0.95;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.rsp-club-hero-location {
-  @apply flex items-center gap-2 text-sm md:text-base opacity-90;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+/* Top-right actions area in banner */
+.rsp-entity-banner-actions {
+  @apply absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-3 z-10;
 }
 
 /* Entity status badge on hero */
 .rsp-entity-status-badge {
-  @apply inline-block px-3 py-1 rounded-full text-xs font-medium mb-2;
+  @apply inline-block px-3 py-1 rounded-full text-xs font-medium;
   text-shadow: none;
 }
 
@@ -84,6 +67,61 @@
 .rsp-entity-status-badge--inactive,
 .rsp-entity-status-badge--archived {
   @apply bg-gray-500/90 text-white;
+}
+
+/* Banner main content layout */
+.rsp-club-hero-main {
+  @apply flex items-start gap-4 mb-0;
+}
+
+.rsp-club-hero-info {
+  @apply flex-1;
+}
+
+.rsp-club-hero-logo {
+  @apply w-16 h-16 md:w-20 md:h-20 rounded-xl object-cover border-2 border-white shadow-lg;
+  background-color: var(--rsp-card-bg);
+  flex-shrink: 0;
+}
+
+.rsp-club-hero-name {
+  @apply text-2xl md:text-4xl font-bold mb-2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.rsp-club-hero-location {
+  @apply flex items-center gap-2 text-sm md:text-base opacity-90 mb-2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.rsp-club-hero-short-desc {
+  @apply text-sm md:text-base max-w-2xl leading-relaxed;
+  opacity: 0.95;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Edit button on banner */
+.rsp-entity-banner-edit-btn {
+  @apply flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium;
+  @apply bg-white/20 hover:bg-white/30 backdrop-blur-sm;
+  @apply border border-white/30 text-white;
+  @apply transition-all duration-200;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  margin-top: 1rem;
+}
+
+.rsp-entity-banner-edit-btn:hover {
+  @apply shadow-lg transform scale-105;
+}
+
+.rsp-entity-banner-edit-btn svg {
+  @apply w-4 h-4;
+}
+
+/* Toggle button in banner actions */
+.rsp-entity-banner-toggle-btn {
+  @apply backdrop-blur-sm;
+  text-shadow: none;
 }
 
 /* ===== Main Content Container ===== */
