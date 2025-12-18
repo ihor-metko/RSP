@@ -1,7 +1,7 @@
 /**
  * Custom hook for initializing wizard with predefined data
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
 import { useCourtStore } from "@/stores/useCourtStore";
@@ -20,17 +20,72 @@ interface UseWizardPredefinedDataReturn {
 }
 
 /**
+ * Helper to synchronously get predefined data from stores
+ * This avoids the async flicker by checking the store immediately
+ */
+function getPredefinedDataFromStores(predefinedData?: PredefinedData): {
+  organization: WizardOrganization | null;
+  club: WizardClub | null;
+  court: WizardCourt | null;
+} {
+  let organization: WizardOrganization | null = null;
+  let club: WizardClub | null = null;
+  let court: WizardCourt | null = null;
+
+  if (predefinedData?.organizationId) {
+    const orgStore = useOrganizationStore.getState();
+    organization = orgStore.getOrganizationById(predefinedData.organizationId) || null;
+  }
+
+  if (predefinedData?.clubId) {
+    const clubStore = useClubStore.getState();
+    club = clubStore.getClubById(predefinedData.clubId) || null;
+  }
+
+  if (predefinedData?.courtId) {
+    const courtStore = useCourtStore.getState();
+    const courtDetail = courtStore.courtsById[predefinedData.courtId];
+    if (courtDetail) {
+      court = {
+        id: courtDetail.id,
+        name: courtDetail.name,
+        slug: courtDetail.slug || null,
+        type: courtDetail.type || null,
+        surface: courtDetail.surface || null,
+        indoor: courtDetail.indoor || false,
+        defaultPriceCents: courtDetail.defaultPriceCents,
+        available: true,
+      } as WizardCourt;
+    }
+  }
+
+  return { organization, club, court };
+}
+
+/**
  * Hook for initializing wizard with predefined organization and club data
  * Fetches and resolves the full objects from stores if IDs are provided
+ * 
+ * Strategy:
+ * 1. First try to get data synchronously from stores (no flicker if data exists)
+ * 2. If data is missing, fetch asynchronously
  */
 export function useWizardPredefinedData({
   isOpen,
   predefinedData,
 }: UseWizardPredefinedDataOptions): UseWizardPredefinedDataReturn {
+  // Try to get data synchronously from stores immediately
+  const initialData = useMemo(() => {
+    if (!isOpen || !predefinedData) {
+      return { organization: null, club: null, court: null };
+    }
+    return getPredefinedDataFromStores(predefinedData);
+  }, [isOpen, predefinedData]);
+
   const [predefinedOrganization, setPredefinedOrganization] = 
-    useState<WizardOrganization | null>(null);
-  const [predefinedClub, setPredefinedClub] = useState<WizardClub | null>(null);
-  const [predefinedCourt, setPredefinedCourt] = useState<WizardCourt | null>(null);
+    useState<WizardOrganization | null>(initialData.organization);
+  const [predefinedClub, setPredefinedClub] = useState<WizardClub | null>(initialData.club);
+  const [predefinedCourt, setPredefinedCourt] = useState<WizardCourt | null>(initialData.court);
   const [isLoading, setIsLoading] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -41,70 +96,65 @@ export function useWizardPredefinedData({
     }
 
     const initializePredefinedData = async () => {
+      // Check if we need to fetch any data
+      const needsFetch = 
+        (predefinedData?.organizationId && !predefinedOrganization) ||
+        (predefinedData?.clubId && !predefinedClub) ||
+        (predefinedData?.courtId && !predefinedCourt);
+
+      if (!needsFetch) {
+        // All data is already available synchronously
+        setHasInitialized(true);
+        return;
+      }
+
       setIsLoading(true);
 
       try {
-        // Fetch organization, club, and court in parallel for better performance
+        // Only fetch data that's missing
         const [orgToSet, clubToSet, courtToSet] = await Promise.all([
-          // Initialize organization if predefined
-          predefinedData?.organizationId
+          // Initialize organization if predefined and not already loaded
+          predefinedData?.organizationId && !predefinedOrganization
             ? (async () => {
                 const organizationId = predefinedData.organizationId;
                 if (!organizationId) return null;
 
                 const orgStore = useOrganizationStore.getState();
-                const getOrganizationById = orgStore.getOrganizationById;
                 const fetchOrganizations = orgStore.fetchOrganizations;
 
-                // First try to get from current store state
-                let org = getOrganizationById(organizationId);
-
-                // If not in store, fetch organizations first
-                if (!org) {
-                  try {
-                    await fetchOrganizations();
-                    org = useOrganizationStore
-                      .getState()
-                      .getOrganizationById(organizationId);
-                  } catch {
-                    // Handle error silently as the organization might not be accessible
-                  }
+                try {
+                  await fetchOrganizations();
+                  return useOrganizationStore
+                    .getState()
+                    .getOrganizationById(organizationId) || null;
+                } catch {
+                  // Handle error silently as the organization might not be accessible
+                  return null;
                 }
-
-                return org || null;
               })()
-            : Promise.resolve(null),
+            : Promise.resolve(predefinedOrganization),
 
-          // Initialize club if predefined
-          predefinedData?.clubId
+          // Initialize club if predefined and not already loaded
+          predefinedData?.clubId && !predefinedClub
             ? (async () => {
                 const clubId = predefinedData.clubId;
                 if (!clubId) return null;
 
                 const clubStore = useClubStore.getState();
-                const getClubById = clubStore.getClubById;
                 const fetchClubsIfNeeded = clubStore.fetchClubsIfNeeded;
 
                 try {
-                  // Try to get from current store state first
-                  let club = getClubById(clubId);
-
-                  // If not in store, fetch clubs to populate the store
-                  if (!club) {
-                    await fetchClubsIfNeeded();
-                    club = useClubStore.getState().getClubById(clubId);
-                  }
-
-                  return club || null;
+                  await fetchClubsIfNeeded();
+                  return useClubStore.getState().getClubById(clubId) || null;
                 } catch {
                   // Handle error silently as the club might not be accessible
                   return null;
                 }
               })()
-            : Promise.resolve(null),
+            : Promise.resolve(predefinedClub),
 
-          // Initialize court if predefined
-          predefinedData?.courtId
+          // Initialize court if predefined and not already loaded
+          predefinedData?.courtId && !predefinedCourt
             ? (async () => {
                 const courtId = predefinedData.courtId;
                 if (!courtId) return null;
@@ -139,18 +189,18 @@ export function useWizardPredefinedData({
                   return null;
                 }
               })()
-            : Promise.resolve(null),
+            : Promise.resolve(predefinedCourt),
         ]);
 
-        if (orgToSet) {
+        if (orgToSet && orgToSet !== predefinedOrganization) {
           setPredefinedOrganization(orgToSet);
         }
 
-        if (clubToSet) {
+        if (clubToSet && clubToSet !== predefinedClub) {
           setPredefinedClub(clubToSet);
         }
 
-        if (courtToSet) {
+        if (courtToSet && courtToSet !== predefinedCourt) {
           setPredefinedCourt(courtToSet);
         }
       } finally {
@@ -160,18 +210,22 @@ export function useWizardPredefinedData({
     };
 
     initializePredefinedData();
-  }, [isOpen, hasInitialized, predefinedData?.organizationId, predefinedData?.clubId, predefinedData?.courtId]);
+  }, [isOpen, hasInitialized, predefinedData?.organizationId, predefinedData?.clubId, predefinedData?.courtId, predefinedOrganization, predefinedClub, predefinedCourt]);
 
   // Reset when modal closes  
   useEffect(() => {
     // Reset initialization state when modal is no longer open
-    if (!isOpen && hasInitialized) {
-      setHasInitialized(false);
-      setPredefinedOrganization(null);
-      setPredefinedClub(null);
-      setPredefinedCourt(null);
+    if (!isOpen) {
+      if (hasInitialized) {
+        setHasInitialized(false);
+      }
+      // Reset to check store again on next open
+      const freshData = getPredefinedDataFromStores(predefinedData);
+      setPredefinedOrganization(freshData.organization);
+      setPredefinedClub(freshData.club);
+      setPredefinedCourt(freshData.court);
     }
-  }, [isOpen, hasInitialized]);
+  }, [isOpen, hasInitialized, predefinedData]);
 
   return {
     predefinedOrganization,

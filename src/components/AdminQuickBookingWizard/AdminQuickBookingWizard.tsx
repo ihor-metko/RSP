@@ -204,7 +204,9 @@ export function AdminQuickBookingWizard({
     }
   }, [isOpen, adminType, predefinedData]);
 
-  // 🔹 Ініціалізація predefinedOrganization, predefinedClub та predefinedCourt з автоматичним переходом на крок
+  // 🔹 Ініціалізація predefinedOrganization, predefinedClub та predefinedCourt
+  // Note: We don't update currentStep here - it's already correct from initial state
+  // This avoids flicker by only updating the data objects, not the step
   useEffect(() => {
     if (predefinedOrganization && predefinedClub && predefinedCourt) {
       setState((prev) => ({
@@ -223,7 +225,6 @@ export function AdminQuickBookingWizard({
         },
         availableClubs: [predefinedClub],
         availableCourts: [predefinedCourt],
-        currentStep: 3, // автоматичний перехід на DateTime (which allows confirmation/adjustment)
       }));
     } else if (predefinedOrganization && predefinedClub) {
       setState((prev) => ({
@@ -237,7 +238,6 @@ export function AdminQuickBookingWizard({
           selectedClub: predefinedClub,
         },
         availableClubs: [predefinedClub],
-        currentStep: 3, // автоматичний перехід на DateTime
       }));
     } else if (predefinedOrganization) {
       setState((prev) => ({
@@ -246,7 +246,6 @@ export function AdminQuickBookingWizard({
           selectedOrganizationId: predefinedOrganization.id,
           selectedOrganization: predefinedOrganization,
         },
-        currentStep: 2, // перехід на Club
       }));
     }
   }, [predefinedOrganization, predefinedClub, predefinedCourt]);
