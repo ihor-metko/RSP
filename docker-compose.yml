@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: arena_one_app
+    env_file:
+      - .env.production
+    restart: always
+    expose:
+      - "3000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: arena_one_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    depends_on:
+      - app
+    restart: always
