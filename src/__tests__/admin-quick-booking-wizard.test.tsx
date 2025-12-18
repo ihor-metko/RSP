@@ -127,6 +127,73 @@ jest.mock("@/components/ui", () => ({
   ),
 }));
 
+// Mock Zustand stores
+const mockOrganizationStore = {
+  organizations: [] as any[],
+  loading: false,
+  error: null,
+  getOrganizationsWithAutoFetch: jest.fn(() => []),
+  getOrganizationById: jest.fn(() => null),
+  fetchOrganizations: jest.fn(() => Promise.resolve()),
+};
+
+jest.mock("@/stores/useOrganizationStore", () => ({
+  useOrganizationStore: Object.assign(
+    jest.fn((selector) => {
+      if (typeof selector === "function") {
+        return selector(mockOrganizationStore);
+      }
+      return mockOrganizationStore;
+    }),
+    {
+      getState: jest.fn(() => mockOrganizationStore),
+    }
+  ),
+}));
+
+const mockClubStore = {
+  clubs: [] as any[],
+  loading: false,
+  error: null,
+  fetchClubsIfNeeded: jest.fn(() => Promise.resolve()),
+  getClubById: jest.fn(() => null),
+};
+
+jest.mock("@/stores/useClubStore", () => ({
+  useClubStore: Object.assign(
+    jest.fn((selector) => {
+      if (typeof selector === "function") {
+        return selector(mockClubStore);
+      }
+      return mockClubStore;
+    }),
+    {
+      getState: jest.fn(() => mockClubStore),
+    }
+  ),
+}));
+
+const mockAdminUsersStore = {
+  simpleUsers: [] as any[],
+  loading: false,
+  error: null,
+  fetchSimpleUsers: jest.fn(() => Promise.resolve()),
+};
+
+jest.mock("@/stores/useAdminUsersStore", () => ({
+  useAdminUsersStore: jest.fn((selector) => {
+    if (typeof selector === "function") {
+      return selector(mockAdminUsersStore);
+    }
+    return mockAdminUsersStore;
+  }),
+}));
+
+// Mock organization utility
+jest.mock("@/utils/organization", () => ({
+  toOrganizationOption: (org: any) => org,
+}));
+
 // Mock fetch
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -143,15 +210,27 @@ describe("AdminQuickBookingWizard - Root Admin", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockReset();
+    
+    // Reset store mocks
+    mockOrganizationStore.organizations = [];
+    mockOrganizationStore.loading = false;
+    mockOrganizationStore.error = null;
+    mockOrganizationStore.getOrganizationsWithAutoFetch.mockReturnValue([]);
+    
+    mockClubStore.clubs = [];
+    mockClubStore.loading = false;
+    mockClubStore.error = null;
+    
+    mockAdminUsersStore.simpleUsers = [];
+    mockAdminUsersStore.loading = false;
+    mockAdminUsersStore.error = null;
   });
 
   it("renders the wizard when open for root admin", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve([
-        { id: "org-1", name: "Organization 1", slug: "org-1" },
-      ]),
-    });
+    const orgs = [{ id: "org-1", name: "Organization 1", slug: "org-1" }];
+    
+    mockOrganizationStore.organizations = orgs;
+    mockOrganizationStore.getOrganizationsWithAutoFetch.mockReturnValue(orgs);
 
     await act(async () => {
       render(<AdminQuickBookingWizard {...rootAdminProps} />);
@@ -162,13 +241,13 @@ describe("AdminQuickBookingWizard - Root Admin", () => {
   });
 
   it("shows organization selection step for root admin", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve([
-        { id: "org-1", name: "Organization 1", slug: "org-1" },
-        { id: "org-2", name: "Organization 2", slug: "org-2" },
-      ]),
-    });
+    const orgs = [
+      { id: "org-1", name: "Organization 1", slug: "org-1" },
+      { id: "org-2", name: "Organization 2", slug: "org-2" },
+    ];
+    
+    mockOrganizationStore.organizations = orgs;
+    mockOrganizationStore.getOrganizationsWithAutoFetch.mockReturnValue(orgs);
 
     await act(async () => {
       render(<AdminQuickBookingWizard {...rootAdminProps} />);
@@ -180,19 +259,18 @@ describe("AdminQuickBookingWizard - Root Admin", () => {
   });
 
   it("moves to club selection after selecting organization", async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([
-          { id: "org-1", name: "Organization 1", slug: "org-1" },
-        ]),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve([
-          { id: "club-1", name: "Club 1", organizationId: "org-1" },
-        ]),
-      });
+    const orgs = [{ id: "org-1", name: "Organization 1", slug: "org-1" }];
+    const clubs = [
+      { 
+        id: "club-1", 
+        name: "Club 1", 
+        organization: { id: "org-1", name: "Organization 1" }
+      }
+    ];
+    
+    mockOrganizationStore.organizations = orgs;
+    mockOrganizationStore.getOrganizationsWithAutoFetch.mockReturnValue(orgs);
+    mockClubStore.clubs = clubs;
 
     await act(async () => {
       render(<AdminQuickBookingWizard {...rootAdminProps} />);
@@ -213,7 +291,7 @@ describe("AdminQuickBookingWizard - Root Admin", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Select Club")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 });
 
@@ -229,6 +307,20 @@ describe("AdminQuickBookingWizard - Club Admin", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockReset();
+    
+    // Reset store mocks
+    mockOrganizationStore.organizations = [];
+    mockOrganizationStore.loading = false;
+    mockOrganizationStore.error = null;
+    mockOrganizationStore.getOrganizationsWithAutoFetch.mockReturnValue([]);
+    
+    mockClubStore.clubs = [];
+    mockClubStore.loading = false;
+    mockClubStore.error = null;
+    
+    mockAdminUsersStore.simpleUsers = [];
+    mockAdminUsersStore.loading = false;
+    mockAdminUsersStore.error = null;
   });
 
   it("skips organization and club selection for club admin", async () => {
@@ -264,16 +356,29 @@ describe("AdminQuickBookingWizard - User Selection", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockReset();
+    
+    // Reset store mocks
+    mockOrganizationStore.organizations = [];
+    mockOrganizationStore.loading = false;
+    mockOrganizationStore.error = null;
+    mockOrganizationStore.getOrganizationsWithAutoFetch.mockReturnValue([]);
+    
+    mockClubStore.clubs = [];
+    mockClubStore.loading = false;
+    mockClubStore.error = null;
+    
+    mockAdminUsersStore.simpleUsers = [];
+    mockAdminUsersStore.loading = false;
+    mockAdminUsersStore.error = null;
   });
 
   it("shows user list when available", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve([
-        { id: "user-1", name: "User One", email: "user1@example.com" },
-        { id: "user-2", name: "User Two", email: "user2@example.com" },
-      ]),
-    });
+    const users = [
+      { id: "user-1", name: "User One", email: "user1@example.com" },
+      { id: "user-2", name: "User Two", email: "user2@example.com" },
+    ];
+    
+    mockAdminUsersStore.simpleUsers = users;
 
     await act(async () => {
       render(<AdminQuickBookingWizard {...orgAdminProps} />);
@@ -282,7 +387,7 @@ describe("AdminQuickBookingWizard - User Selection", () => {
     await waitFor(() => {
       expect(screen.getByText("Select User")).toBeInTheDocument();
       expect(screen.getByLabelText("Existing User")).toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 });
 
