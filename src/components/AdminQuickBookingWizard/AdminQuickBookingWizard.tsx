@@ -42,6 +42,12 @@ export function AdminQuickBookingWizard({
 }: AdminQuickBookingWizardProps) {
   const t = useTranslations();
 
+  const { predefinedOrganization, predefinedClub } = useWizardPredefinedData({
+    isOpen,
+    predefinedData,
+  });
+
+  // Ініціалізація state
   const [state, setState] = useState<WizardState>(() => {
     const firstStepId = getFirstVisibleStepId(adminType, predefinedData);
     return {
@@ -95,12 +101,7 @@ export function AdminQuickBookingWizard({
     };
   });
 
-  // Use custom hooks for data fetching and state management
-  const { predefinedOrganization, predefinedClub } = useWizardPredefinedData({
-    isOpen,
-    predefinedData,
-  });
-
+  // Хуки для даних
   const { organizations, isLoading: isLoadingOrgs, error: orgError } = useWizardOrganizations({
     isOpen,
     currentStep: state.currentStep,
@@ -148,13 +149,13 @@ export function AdminQuickBookingWizard({
     },
   });
 
-  // Reset state when modal closes
+  // 🔹 Скидання state при закритті модалки
   useEffect(() => {
     if (!isOpen) {
       const firstStepId = getFirstVisibleStepId(adminType, predefinedData);
-      setState({
+      setState((prev) => ({
+        ...prev,
         currentStep: firstStepId,
-        adminType,
         stepOrganization: {
           selectedOrganizationId: predefinedData?.organizationId || null,
           selectedOrganization: null,
@@ -181,9 +182,7 @@ export function AdminQuickBookingWizard({
           selectedCourtId: predefinedData?.courtId || null,
           selectedCourt: null,
         },
-        stepConfirmation: {
-          notes: "",
-        },
+        stepConfirmation: { notes: "" },
         availableOrganizations: [],
         availableClubs: [],
         availableUsers: [],
@@ -200,38 +199,39 @@ export function AdminQuickBookingWizard({
         submitError: null,
         isComplete: false,
         bookingId: null,
-      });
+      }));
     }
   }, [isOpen, adminType, predefinedData]);
 
-  // Initialize predefined organization and club objects when loaded
+  // 🔹 Ініціалізація predefinedOrganization та predefinedClub з автоматичним переходом на крок
   useEffect(() => {
-    if (predefinedOrganization) {
+    if (predefinedOrganization && predefinedClub) {
       setState((prev) => ({
         ...prev,
         stepOrganization: {
           selectedOrganizationId: predefinedOrganization.id,
           selectedOrganization: predefinedOrganization,
         },
-      }));
-    }
-  }, [predefinedOrganization]);
-
-  useEffect(() => {
-    if (predefinedClub) {
-      setState((prev) => ({
-        ...prev,
         stepClub: {
           selectedClubId: predefinedClub.id,
           selectedClub: predefinedClub,
         },
-        // Also add to availableClubs so Step2Club can display it
-        availableClubs: [predefinedClub, ...prev.availableClubs.filter((c) => c.id !== predefinedClub.id)],
+        availableClubs: [predefinedClub],
+        currentStep: 3, // автоматичний перехід на DateTime
+      }));
+    } else if (predefinedOrganization) {
+      setState((prev) => ({
+        ...prev,
+        stepOrganization: {
+          selectedOrganizationId: predefinedOrganization.id,
+          selectedOrganization: predefinedOrganization,
+        },
+        currentStep: 2, // перехід на Club
       }));
     }
-  }, [predefinedClub]);
+  }, [predefinedOrganization, predefinedClub]);
 
-  // Sync hook data to state for display
+  // 🔹 Синхронізація даних хуків до state
   useEffect(() => {
     setState((prev) => ({
       ...prev,
@@ -278,7 +278,7 @@ export function AdminQuickBookingWizard({
     }));
   }, [isSubmitting, submitError, isComplete, bookingId]);
 
-  // Handler functions
+  // 🔹 Хендлери для степів
   const handleSelectOrganization = useCallback((org: WizardOrganization) => {
     setState((prev) => ({
       ...prev,
@@ -286,7 +286,6 @@ export function AdminQuickBookingWizard({
         selectedOrganizationId: org.id,
         selectedOrganization: org,
       },
-      // Reset club when org changes
       stepClub: {
         selectedClubId: null,
         selectedClub: null,
@@ -302,7 +301,6 @@ export function AdminQuickBookingWizard({
         selectedClubId: club.id,
         selectedClub: club,
       },
-      // Reset court when club changes
       stepCourt: {
         selectedCourtId: null,
         selectedCourt: null,
@@ -405,12 +403,10 @@ export function AdminQuickBookingWizard({
       setState((prev) => ({
         ...prev,
         stepDateTime: { ...prev.stepDateTime, ...data },
-        // Reset court selection when date/time changes
         stepCourt: { selectedCourtId: null, selectedCourt: null },
         availableCourts: [],
       }));
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -424,17 +420,15 @@ export function AdminQuickBookingWizard({
     }));
   }, []);
 
-  // Navigation handlers
+  // Навігація
   const handleNext = useCallback(async () => {
     const nextStepId = navigation.getNextStep();
 
     if (nextStepId === null) {
-      // Last step - submit
       await submitBooking();
       return;
     }
 
-    // Fetch courts when moving to step 4
     if (nextStepId === 4) {
       setState((prev) => ({ ...prev, currentStep: nextStepId }));
       await fetchCourts();
@@ -455,7 +449,6 @@ export function AdminQuickBookingWizard({
     }
   }, [navigation]);
 
-  // Computed values
   const totalPrice = useMemo(() => {
     if (state.stepCourt.selectedCourt?.priceCents !== undefined) {
       return state.stepCourt.selectedCourt.priceCents;
@@ -482,13 +475,11 @@ export function AdminQuickBookingWizard({
       title={t("adminWizard.title")}
     >
       <div className="rsp-admin-wizard-modal">
-        {/* Step Indicator */}
         <WizardStepIndicator
           steps={navigation.visibleSteps}
           currentStep={state.currentStep}
         />
 
-        {/* Step Content */}
         <div className="rsp-admin-wizard-content">
           {state.currentStep === 1 && (
             <Step1Organization
@@ -560,7 +551,6 @@ export function AdminQuickBookingWizard({
           )}
         </div>
 
-        {/* Navigation Buttons */}
         {!state.isComplete && (
           <WizardNavigationButtons
             canProceed={navigation.canProceed}
