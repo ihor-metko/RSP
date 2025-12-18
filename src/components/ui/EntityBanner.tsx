@@ -69,7 +69,33 @@ export interface EntityBannerProps {
   logoAlt?: string;
   
   /**
+   * Whether the entity is currently published/public (optional)
+   * When provided along with onTogglePublish, EntityBanner will automatically:
+   * - Display "Published" or "Unpublished" status badge
+   * - Show a "Publish" or "Unpublish" button (opposite of current status)
+   */
+  isPublished?: boolean | null;
+  
+  /**
+   * Handler for toggling publish/unpublish status (optional)
+   * Required if isPublished is provided and entity is not archived
+   */
+  onTogglePublish?: () => void | Promise<void>;
+  
+  /**
+   * Whether the publish/unpublish action is currently processing
+   */
+  isTogglingPublish?: boolean;
+  
+  /**
+   * Whether the entity is archived (optional)
+   * When true, disables publish/unpublish functionality
+   */
+  isArchived?: boolean;
+  
+  /**
    * Status badge (optional) - displays a status indicator
+   * If isPublished is provided, this will be auto-generated unless explicitly set
    */
   status?: {
     label: string;
@@ -82,7 +108,8 @@ export interface EntityBannerProps {
   className?: string;
   
   /**
-   * Actions to display in the top-right corner (optional)
+   * Additional actions to display in the top-right corner (optional)
+   * These will be shown alongside the publish/unpublish button if applicable
    */
   actions?: React.ReactNode;
   
@@ -95,6 +122,7 @@ export interface EntityBannerProps {
 /**
  * EntityBanner component
  * Displays a hero/banner section with background image, logo, title, subtitle, and location
+ * Includes built-in publish/unpublish functionality when isPublished prop is provided
  */
 export function EntityBanner({
   title,
@@ -104,6 +132,10 @@ export function EntityBanner({
   logoUrl,
   imageAlt,
   logoAlt,
+  isPublished,
+  onTogglePublish,
+  isTogglingPublish = false,
+  isArchived = false,
   status,
   className = "",
   actions,
@@ -119,6 +151,21 @@ export function EntityBanner({
   
   // Generate initials for placeholder if no image
   const placeholderInitial = title ? title.charAt(0).toUpperCase() : "";
+  
+  // Auto-generate status badge based on isPublished if not explicitly provided
+  const effectiveStatus = useMemo(() => {
+    if (status) return status;
+    if (isArchived) return { label: 'Archived', variant: 'archived' as const };
+    if (isPublished !== null && isPublished !== undefined) {
+      return isPublished 
+        ? { label: 'Published', variant: 'published' as const }
+        : { label: 'Unpublished', variant: 'draft' as const };
+    }
+    return null;
+  }, [status, isArchived, isPublished]);
+  
+  // Determine if we should show the publish/unpublish button
+  const showPublishButton = !isArchived && isPublished !== null && isPublished !== undefined && onTogglePublish;
 
   return (
     <section className={`rsp-club-hero ${className}`} data-testid="entity-banner">
@@ -141,12 +188,22 @@ export function EntityBanner({
       )}
       
       {/* Top-right actions (status and toggle) */}
-      {(actions || status) && (
+      {(actions || effectiveStatus || showPublishButton) && (
         <div className="rsp-entity-banner-actions">
-          {status && (
-            <span className={`rsp-entity-status-badge rsp-entity-status-badge--${status.variant}`}>
-              {status.label}
+          {effectiveStatus && (
+            <span className={`rsp-entity-status-badge rsp-entity-status-badge--${effectiveStatus.variant}`}>
+              {effectiveStatus.label}
             </span>
+          )}
+          {showPublishButton && (
+            <button
+              onClick={onTogglePublish}
+              disabled={isTogglingPublish}
+              className={`rsp-entity-banner-toggle-btn ${isPublished ? 'rsp-entity-banner-toggle-btn--unpublish' : 'rsp-entity-banner-toggle-btn--publish'}`}
+              aria-label={isPublished ? `Unpublish ${title}` : `Publish ${title}`}
+            >
+              {isTogglingPublish ? 'Processing...' : (isPublished ? 'Unpublish' : 'Publish')}
+            </button>
           )}
           {actions}
         </div>

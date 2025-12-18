@@ -712,31 +712,10 @@ export default function OrganizationDetailPage() {
             logoUrl={org.logo}
             imageAlt={`${org.name} banner`}
             logoAlt={`${org.name} logo`}
-            status={
-              org.archivedAt
-                ? { label: t("common.archived"), variant: 'archived' }
-                : (org.isPublic ?? true)
-                  ? { label: t("common.published"), variant: 'published' }
-                  : { label: t("common.unpublished"), variant: 'draft' }
-            }
-            actions={
-              !org.archivedAt ? (
-                <Button
-                  variant={org.isPublic ? "outline" : "primary"}
-                  size="small"
-                  onClick={handleTogglePublication}
-                  disabled={isTogglingPublication}
-                  className="rsp-entity-banner-toggle-btn"
-                >
-                  {isTogglingPublication 
-                    ? t("common.processing") 
-                    : org.isPublic 
-                      ? t("orgDetail.unpublish") 
-                      : t("orgDetail.publish")
-                  }
-                </Button>
-              ) : null
-            }
+            isPublished={org.isPublic ?? true}
+            onTogglePublish={handleTogglePublication}
+            isTogglingPublish={isTogglingPublication}
+            isArchived={!!org.archivedAt}
             onEdit={!org.archivedAt ? handleOpenDetailsEdit : undefined}
           />
           {!org.archivedAt && (

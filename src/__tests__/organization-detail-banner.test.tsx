@@ -285,5 +285,119 @@ describe("Organization Detail Page - Banner Component", () => {
       const statusBadge = container.querySelector(".rsp-entity-status-badge");
       expect(statusBadge).not.toBeInTheDocument();
     });
+
+    it("auto-generates published status badge from isPublished prop", () => {
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={true}
+        />
+      );
+
+      expect(screen.getByText("Published")).toBeInTheDocument();
+      const statusBadge = container.querySelector(".rsp-entity-status-badge--published");
+      expect(statusBadge).toBeInTheDocument();
+    });
+
+    it("auto-generates unpublished status badge from isPublished prop", () => {
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={false}
+        />
+      );
+
+      expect(screen.getByText("Unpublished")).toBeInTheDocument();
+      const statusBadge = container.querySelector(".rsp-entity-status-badge--draft");
+      expect(statusBadge).toBeInTheDocument();
+    });
+
+    it("renders publish button when isPublished is false and onTogglePublish is provided", () => {
+      const handleToggle = jest.fn();
+      render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={false}
+          onTogglePublish={handleToggle}
+        />
+      );
+
+      const publishButton = screen.getByRole("button", { name: /publish test organization/i });
+      expect(publishButton).toBeInTheDocument();
+      expect(publishButton).toHaveTextContent("Publish");
+    });
+
+    it("renders unpublish button when isPublished is true and onTogglePublish is provided", () => {
+      const handleToggle = jest.fn();
+      render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={true}
+          onTogglePublish={handleToggle}
+        />
+      );
+
+      const unpublishButton = screen.getByRole("button", { name: /unpublish test organization/i });
+      expect(unpublishButton).toBeInTheDocument();
+      expect(unpublishButton).toHaveTextContent("Unpublish");
+    });
+
+    it("does not render publish/unpublish button when isArchived is true", () => {
+      const handleToggle = jest.fn();
+      render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={false}
+          onTogglePublish={handleToggle}
+          isArchived={true}
+        />
+      );
+
+      const publishButton = screen.queryByRole("button", { name: /publish/i });
+      expect(publishButton).not.toBeInTheDocument();
+    });
+
+    it("does not render publish/unpublish button when onTogglePublish is not provided", () => {
+      render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={false}
+        />
+      );
+
+      const publishButton = screen.queryByRole("button", { name: /publish/i });
+      expect(publishButton).not.toBeInTheDocument();
+    });
+
+    it("shows processing text when isTogglingPublish is true", () => {
+      const handleToggle = jest.fn();
+      render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={true}
+          onTogglePublish={handleToggle}
+          isTogglingPublish={true}
+        />
+      );
+
+      const button = screen.getByRole("button", { name: /unpublish test organization/i });
+      expect(button).toHaveTextContent("Processing...");
+      expect(button).toBeDisabled();
+    });
+
+    it("prefers explicit status prop over auto-generated status", () => {
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={true}
+          status={{ label: "Custom Status", variant: "active" }}
+        />
+      );
+
+      expect(screen.getByText("Custom Status")).toBeInTheDocument();
+      expect(screen.queryByText("Published")).not.toBeInTheDocument();
+      const statusBadge = container.querySelector(".rsp-entity-status-badge--active");
+      expect(statusBadge).toBeInTheDocument();
+    });
   });
 });

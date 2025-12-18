@@ -120,8 +120,25 @@
 
 /* Toggle button in banner actions */
 .rsp-entity-banner-toggle-btn {
-  @apply backdrop-blur-sm;
+  @apply px-3 py-1.5 rounded-lg text-xs font-medium;
+  @apply backdrop-blur-sm border transition-all duration-200;
   text-shadow: none;
+}
+
+.rsp-entity-banner-toggle-btn--publish {
+  @apply bg-green-500/90 hover:bg-green-600/90 border-green-400/50 text-white;
+}
+
+.rsp-entity-banner-toggle-btn--unpublish {
+  @apply bg-yellow-500/90 hover:bg-yellow-600/90 border-yellow-400/50 text-white;
+}
+
+.rsp-entity-banner-toggle-btn:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.rsp-entity-banner-toggle-btn:not(:disabled):hover {
+  @apply shadow-lg transform scale-105;
 }
 
 /* ===== Main Content Container ===== */
