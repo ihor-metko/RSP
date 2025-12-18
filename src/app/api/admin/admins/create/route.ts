@@ -111,7 +111,7 @@ export async function POST(request: Request) {
           select: { organizationId: true },
         });
 
-        if (!club || !managedOrgIds.includes(club.organizationId)) {
+        if (!club || !club.organizationId || !managedOrgIds.includes(club.organizationId)) {
           return NextResponse.json(
             { error: "You can only create club admins for clubs in your organization" },
             { status: 403 }

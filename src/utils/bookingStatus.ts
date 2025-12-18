@@ -18,11 +18,11 @@ import type { BookingStatus, PaymentStatus, LegacyBookingStatus, DynamicBookingS
 export function calculateBookingStatus(
   start: string | Date,
   end: string | Date,
-  persistentStatus: BookingStatus,
+  persistentStatus: LegacyBookingStatus,
   now: Date = new Date()
-): BookingStatus {
+): LegacyBookingStatus {
   // If booking has a persistent terminal status, return it
-  if (isTerminalStatus(persistentStatus)) {
+  if (isTerminalLegacyStatus(persistentStatus)) {
     return persistentStatus;
   }
 
@@ -71,13 +71,23 @@ export function getDynamicStatus(
 }
 
 /**
+ * Check if a legacy status is terminal (cannot be changed by time-based logic)
+ * 
+ * @param status - Legacy booking status to check
+ * @returns true if status is terminal
+ */
+export function isTerminalLegacyStatus(status: LegacyBookingStatus): boolean {
+  return status === "cancelled" || status === "no-show" || status === "completed";
+}
+
+/**
  * Check if a status is terminal (cannot be changed by time-based logic)
  * 
  * @param status - Booking status to check
  * @returns true if status is terminal
  */
 export function isTerminalStatus(status: BookingStatus): boolean {
-  return status === "cancelled" || status === "no-show" || status === "completed";
+  return status === "Cancelled" || status === "No-show" || status === "Completed";
 }
 
 /**
@@ -85,22 +95,26 @@ export function isTerminalStatus(status: BookingStatus): boolean {
  * Returns true if the booking has ended and is not already in a terminal state
  * 
  * @param end - Booking end time
- * @param persistentStatus - The current status in database
+ * @param persistentStatus - The current status in database (supports both legacy and new statuses)
  * @param now - Current time for comparison
  * @returns true if booking should be marked as completed
  */
 export function shouldMarkAsCompleted(
   end: string | Date,
-  persistentStatus: BookingStatus,
+  persistentStatus: BookingStatus | LegacyBookingStatus | string,
   now: Date = new Date()
 ): boolean {
   const endTime = new Date(end).getTime();
   const currentTime = now.getTime();
 
-  // Only mark as completed if:
-  // 1. The booking has ended
-  // 2. It's not already in a terminal state
-  return currentTime >= endTime && !isTerminalStatus(persistentStatus);
+  // Check if it's a legacy status
+  const legacyStatuses: LegacyBookingStatus[] = ["pending", "paid", "reserved", "ongoing", "cancelled", "no-show", "completed"];
+  if (legacyStatuses.includes(persistentStatus as LegacyBookingStatus)) {
+    return currentTime >= endTime && !isTerminalLegacyStatus(persistentStatus as LegacyBookingStatus);
+  }
+
+  // Otherwise treat as new status
+  return currentTime >= endTime && !isTerminalStatus(persistentStatus as BookingStatus);
 }
 
 /**

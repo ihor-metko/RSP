@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireClubAdmin, requireOrganizationAdmin } from "@/lib/requireRole";
 import type { OperationsBooking } from "@/types/booking";
-import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
+import { migrateLegacyStatus } from "@/utils/bookingStatus";
+import { SportType } from "@/constants/sports";
 
 /**
  * GET /api/clubs/[clubId]/operations/bookings
@@ -55,13 +56,13 @@ export async function GET(
     });
 
     if (!club || !club.organizationId) {
-      return clubAuthResult.response;
+      return clubAuthResult.response as NextResponse<{ error: string }>;
     }
 
     const orgAuthResult = await requireOrganizationAdmin(club.organizationId);
     
     if (!orgAuthResult.authorized) {
-      return orgAuthResult.response;
+      return orgAuthResult.response as NextResponse<{ error: string }>;
     }
   }
 
@@ -114,30 +115,27 @@ export async function GET(
       },
     });
 
-    // Transform to response format with dynamic status calculation
+    // Transform to response format with dual-status system
     const operationsBookings: OperationsBooking[] = bookings.map((booking) => {
       const startISO = booking.start.toISOString();
       const endISO = booking.end.toISOString();
       
-      // Calculate the display status based on time and persistent status
-      const displayStatus = calculateBookingStatus(
-        startISO,
-        endISO,
-        toBookingStatus(booking.status)
-      );
+      // Migrate legacy status to new dual-status system
+      const { bookingStatus, paymentStatus } = migrateLegacyStatus(booking.status);
 
       return {
         id: booking.id,
         userId: booking.userId,
         userName: booking.user.name,
-        userEmail: booking.user.email,
+        userEmail: booking.user.email ?? "",
         courtId: booking.courtId,
         courtName: booking.court.name,
         start: startISO,
         end: endISO,
-        status: displayStatus,
+        bookingStatus,
+        paymentStatus,
         price: booking.price,
-        sportType: booking.sportType,
+        sportType: booking.sportType as SportType,
         coachId: booking.coachId,
         coachName: booking.coach?.user.name ?? null,
         createdAt: booking.createdAt.toISOString(),

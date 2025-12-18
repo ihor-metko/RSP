@@ -89,7 +89,7 @@ export async function GET(
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
       const mockResult = await mockGetBookings({
-        adminType,
+        adminType: adminType === "club_owner" ? "club_admin" : adminType,
         managedIds,
         filters: {
           orgId,

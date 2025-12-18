@@ -24,6 +24,7 @@ import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { CreateAdminModal } from "@/components/admin/admin-wizard";
 import type { CreateAdminWizardConfig } from "@/types/adminWizard";
+import type { UserRole, UserStatus } from "@/types/adminUser";
 
 import "./page.css";
 
@@ -185,12 +186,12 @@ export default function AdminUsersPage() {
         pageSize,
         filters: {
           search: filters.searchQuery,
-          role: filters.roleFilter || undefined,
-          status: filters.statusFilter || undefined,
+          role: (filters.roleFilter as UserRole) || undefined,
+          status: (filters.statusFilter as UserStatus) || undefined,
           organizationId: filters.organizationFilter || undefined,
           clubId: filters.clubFilter || undefined,
-          sortBy: sortBy,
-          sortOrder: sortOrder,
+          sortBy: sortBy as "name" | "email" | "createdAt" | "lastLoginAt" | "lastActive" | "totalBookings",
+          sortOrder: sortOrder as "asc" | "desc",
           dateRangeField: filters.dateRangeField,
           dateFrom: filters.dateFrom || undefined,
           dateTo: filters.dateTo || undefined,
@@ -284,9 +285,10 @@ export default function AdminUsersPage() {
     };
   }, [fetchUsers, router]);
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("uk-UA", {
+  const formatDate = (dateInput: string | Date | null) => {
+    if (!dateInput) return "-";
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    return date.toLocaleDateString("uk-UA", {
       timeZone: "Europe/Kyiv",
       year: "numeric",
       month: "2-digit",
@@ -294,9 +296,10 @@ export default function AdminUsersPage() {
     });
   };
 
-  const formatDateTime = (dateString: string | null) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleString("uk-UA", {
+  const formatDateTime = (dateInput: string | Date | null) => {
+    if (!dateInput) return "-";
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    return date.toLocaleString("uk-UA", {
       timeZone: "Europe/Kyiv",
       year: "numeric",
       month: "2-digit",
@@ -357,7 +360,8 @@ export default function AdminUsersPage() {
       <section className="rsp-content">
         {/* Filters using list-controls components - consolidated toolbar */}
         {!isLoadingData && (
-          <ListControllerProvider controller={controller} className="mb-4">
+          <div className="mb-4">
+          <ListControllerProvider controller={controller}>
             <ListToolbar 
               showReset 
               actionButton={
@@ -376,7 +380,7 @@ export default function AdminUsersPage() {
                   filterKey="searchQuery"
                 />
 
-                <QuickPresets
+                <QuickPresets<UserFilters>
                   className="flex-1"
                   presets={[
                     {
@@ -450,6 +454,7 @@ export default function AdminUsersPage() {
               </div>
             </ListToolbar>
           </ListControllerProvider>
+          </div>
         )}
 
         {(error || errorKey) && (
@@ -554,7 +559,7 @@ export default function AdminUsersPage() {
                           router.push(`/admin/users/${user.id}`);
                         }
                       }}
-                      aria-label={t("users.actions.viewUserDetail", { name: user.name || user.email })}
+                      aria-label={t("users.actions.viewUserDetail", { name: user.name || user.email || "" })}
                     >
                       <td className="im-td-user">
                         <div className="im-user-info">
@@ -634,21 +639,6 @@ export default function AdminUsersPage() {
                 totalPages={totalPages}
                 showPageSize={true}
                 pageSizeOptions={[10, 25, 50, 100]}
-                t={(key, params) => {
-                  if (key === "pagination.showing") {
-                    return t("users.pagination.showing", params);
-                  }
-                  if (key === "pagination.previous") {
-                    return t("users.pagination.previous");
-                  }
-                  if (key === "pagination.next") {
-                    return t("users.pagination.next");
-                  }
-                  if (key === "pagination.pageSize") {
-                    return t("users.pagination.pageSize");
-                  }
-                  return key;
-                }}
               />
             </ListControllerProvider>
           </>

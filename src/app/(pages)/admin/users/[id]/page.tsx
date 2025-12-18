@@ -653,10 +653,10 @@ export default function UserDetailPage() {
               <Input
                 value={confirmEmail}
                 onChange={(e) => setConfirmEmail(e.target.value)}
-                placeholder={user.email}
+                placeholder={user.email ?? undefined}
               />
               <p className="im-confirm-input-hint">
-                {t("userDetail.blockModal.confirmHint", { email: user.email })}
+                {t("userDetail.blockModal.confirmHint", { email: user.email ?? "" })}
               </p>
             </div>
           )}

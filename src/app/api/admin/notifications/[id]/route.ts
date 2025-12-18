@@ -35,6 +35,12 @@ export async function PATCH(
     if (isMockMode()) {
       try {
         const updated = await mockUpdateAdminNotification(notificationId, { read: body.read });
+        if (!updated) {
+          return NextResponse.json(
+            { error: "Notification not found" },
+            { status: 404 }
+          );
+        }
         return NextResponse.json({
           id: updated.id,
           read: updated.read,

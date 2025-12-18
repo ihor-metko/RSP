@@ -129,7 +129,7 @@ export async function GET(
     });
 
     // Check if club exists and is visible (club must be public AND organization must be public)
-    if (!club || !club.isPublic || !club.organization.isPublic) {
+    if (!club || !club.isPublic || !club.organization?.isPublic) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 

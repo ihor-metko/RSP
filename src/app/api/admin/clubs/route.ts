@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { ClubMembershipRole } from "@/constants/roles";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, SportType } from "@prisma/client";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetClubs } from "@/services/mockApiHandlers";
@@ -32,13 +32,12 @@ export async function GET(request: Request) {
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
       const clubs = await mockGetClubs({
-        adminType: authResult.adminType,
+        adminType: authResult.adminType === "club_owner" ? "club_admin" : authResult.adminType,
         managedIds: authResult.managedIds,
         search,
         city,
         status,
         organizationId,
-        sportType,
         courtCountMin,
         courtCountMax,
         sortBy,
@@ -99,7 +98,7 @@ export async function GET(request: Request) {
       whereClause = {
         ...whereClause,
         supportedSports: {
-          has: sportType,
+          has: sportType as SportType,
         },
       };
     }

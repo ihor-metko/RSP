@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
-import type { Prisma } from "@prisma/client";
+import type { Prisma, SportType } from "@prisma/client";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetCourts } from "@/services/mockApiHandlers";
@@ -51,15 +51,12 @@ export async function GET(request: Request) {
     if (isMockMode()) {
       return NextResponse.json(
         await mockGetCourts({
-          adminType: authResult.adminType,
+          adminType: authResult.adminType === "club_owner" ? "club_admin" : authResult.adminType,
           managedIds: authResult.managedIds,
           filters: {
             search,
             clubId,
             status,
-            sportType,
-            surfaceType,
-            indoor: indoorFilter,
             sortBy,
             sortOrder,
             page,
@@ -114,7 +111,7 @@ export async function GET(request: Request) {
 
     // Add sport type filter
     if (sportType) {
-      whereClause.sportType = sportType;
+      whereClause.sportType = sportType as SportType;
     }
 
     // Add surface type filter (exact match)
