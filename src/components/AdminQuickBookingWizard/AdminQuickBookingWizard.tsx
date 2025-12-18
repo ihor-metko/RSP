@@ -251,6 +251,23 @@ export function AdminQuickBookingWizard({
     }
   }, [predefinedOrganization, predefinedClub, predefinedCourt]);
 
+  // 🔹 Синхронізація stepDateTime з predefinedData при відкритті або зміні даних
+  useEffect(() => {
+    if (isOpen && predefinedData) {
+      const newDateTime = {
+        date: predefinedData.date || getTodayDateString(),
+        startTime: predefinedData.startTime || "10:00",
+        duration: predefinedData.duration || MINUTES_PER_HOUR,
+      };
+      
+      setState((prev) => ({
+        ...prev,
+        stepDateTime: newDateTime,
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, predefinedData?.date, predefinedData?.startTime, predefinedData?.duration]);
+
   // 🔹 Синхронізація даних хуків до state
   useEffect(() => {
     setState((prev) => ({

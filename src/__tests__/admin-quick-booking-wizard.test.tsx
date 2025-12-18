@@ -621,6 +621,38 @@ describe("AdminQuickBookingWizard - Predefined Court Support", () => {
     });
   });
 
+  it("shows predefined date, time, and duration correctly in Step3", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithPredefinedCourt} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // Verify all three predefined values are shown correctly
+    const dateInput = screen.getByLabelText("Date") as HTMLInputElement;
+    expect(dateInput.value).toBe("2024-01-15");
+    
+    const timeSelect = screen.getByLabelText("Start Time") as HTMLSelectElement;
+    expect(timeSelect.value).toBe("10:00");
+    
+    const durationSelect = screen.getByLabelText("Duration") as HTMLSelectElement;
+    expect(durationSelect.value).toBe("60");
+  });
+
   it("allows date and time adjustment with predefined court", async () => {
     const mockCourt = {
       id: "court-1",
@@ -651,5 +683,209 @@ describe("AdminQuickBookingWizard - Predefined Court Support", () => {
     });
 
     expect(dateInput).toHaveValue("2024-01-16");
+  });
+
+  it("preserves predefined date/time when reopening with new predefinedData", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+
+    // First render with initial predefinedData
+    const { rerender } = await act(async () => {
+      return render(<AdminQuickBookingWizard {...propsWithPredefinedCourt} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // Verify initial values
+    expect(screen.getByLabelText("Date")).toHaveValue("2024-01-15");
+    expect(screen.getByLabelText("Start Time")).toHaveValue("10:00");
+    expect(screen.getByLabelText("Duration")).toHaveValue("60");
+
+    // Close the modal
+    await act(async () => {
+      rerender(<AdminQuickBookingWizard {...propsWithPredefinedCourt} isOpen={false} />);
+    });
+
+    // Reopen with different predefinedData
+    const newProps = {
+      ...propsWithPredefinedCourt,
+      isOpen: true,
+      predefinedData: {
+        clubId: "club-1",
+        courtId: "court-1",
+        date: "2024-02-20",
+        startTime: "14:30",
+        duration: 90,
+      },
+    };
+
+    await act(async () => {
+      rerender(<AdminQuickBookingWizard {...newProps} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // Verify new values are shown
+    expect(screen.getByLabelText("Date")).toHaveValue("2024-02-20");
+    expect(screen.getByLabelText("Start Time")).toHaveValue("14:30");
+    expect(screen.getByLabelText("Duration")).toHaveValue("90");
+  });
+
+  it("shows predefined date/time correctly in confirmation step", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    const mockUser = {
+      id: "user-1",
+      name: "Test User",
+      email: "test@example.com",
+    };
+    
+    const mockClub = {
+      id: "club-1",
+      name: "Test Club",
+      organizationId: "org-1",
+      organization: { id: "org-1", name: "Test Org" },
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+    mockClubStore.getClubById.mockReturnValue(mockClub);
+    mockAdminUsersStore.simpleUsers = [mockUser];
+
+    const propsWithUser = {
+      ...propsWithPredefinedCourt,
+      predefinedData: {
+        ...propsWithPredefinedCourt.predefinedData,
+        userId: "user-1",
+      },
+    };
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithUser} />);
+    });
+
+    // Wait for DateTime step
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // Navigate to confirmation step by clicking Continue
+    await act(async () => {
+      fireEvent.click(screen.getByText("Continue"));
+    });
+
+    // Wait for confirmation step
+    await waitFor(() => {
+      expect(screen.getByText("Review the booking details and confirm")).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Verify date/time are shown in confirmation
+    // The confirmation shows formatted date and time
+    expect(screen.getByText("Monday, January 15, 2024")).toBeInTheDocument();
+    expect(screen.getByText("10:00 - 11:00")).toBeInTheDocument();
+    expect(screen.getByText((content, element) => {
+      return element?.textContent === "60 minutes";
+    })).toBeInTheDocument();
+  });
+
+  it("propagates date/time changes from Step3 to Step6 confirmation", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    const mockUser = {
+      id: "user-1",
+      name: "Test User",
+      email: "test@example.com",
+    };
+    
+    const mockClub = {
+      id: "club-1",
+      name: "Test Club",
+      organizationId: "org-1",
+      organization: { id: "org-1", name: "Test Org" },
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+    mockClubStore.getClubById.mockReturnValue(mockClub);
+    mockAdminUsersStore.simpleUsers = [mockUser];
+
+    const propsWithUser = {
+      ...propsWithPredefinedCourt,
+      predefinedData: {
+        ...propsWithPredefinedCourt.predefinedData,
+        userId: "user-1",
+      },
+    };
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithUser} />);
+    });
+
+    // Wait for DateTime step
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // Change the date
+    const dateInput = screen.getByLabelText("Date");
+    await act(async () => {
+      fireEvent.change(dateInput, { target: { value: "2024-01-20" } });
+    });
+
+    // Change the time
+    const timeSelect = screen.getByLabelText("Start Time");
+    await act(async () => {
+      fireEvent.change(timeSelect, { target: { value: "15:30" } });
+    });
+
+    // Change the duration
+    const durationSelect = screen.getByLabelText("Duration");
+    await act(async () => {
+      fireEvent.change(durationSelect, { target: { value: "90" } });
+    });
+
+    // Navigate to confirmation step
+    await act(async () => {
+      fireEvent.click(screen.getByText("Continue"));
+    });
+
+    // Wait for confirmation step
+    await waitFor(() => {
+      expect(screen.getByText("Review the booking details and confirm")).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Verify updated date/time are shown in confirmation
+    expect(screen.getByText("Saturday, January 20, 2024")).toBeInTheDocument();
+    expect(screen.getByText("15:30 - 17:00")).toBeInTheDocument();
+    expect(screen.getByText((content, element) => {
+      return element?.textContent === "90 minutes";
+    })).toBeInTheDocument();
   });
 });
