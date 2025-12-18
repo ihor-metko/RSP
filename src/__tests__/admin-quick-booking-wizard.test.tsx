@@ -189,6 +189,28 @@ jest.mock("@/stores/useAdminUsersStore", () => ({
   }),
 }));
 
+const mockCourtStore = {
+  courts: [] as any[],
+  courtsById: {} as Record<string, any>,
+  loading: false,
+  error: null,
+  ensureCourtById: jest.fn(() => Promise.resolve(null)),
+};
+
+jest.mock("@/stores/useCourtStore", () => ({
+  useCourtStore: Object.assign(
+    jest.fn((selector) => {
+      if (typeof selector === "function") {
+        return selector(mockCourtStore);
+      }
+      return mockCourtStore;
+    }),
+    {
+      getState: jest.fn(() => mockCourtStore),
+    }
+  ),
+}));
+
 // Mock organization utility
 jest.mock("@/utils/organization", () => ({
   toOrganizationOption: (org: any) => org,
@@ -372,7 +394,7 @@ describe("AdminQuickBookingWizard - User Selection", () => {
     mockAdminUsersStore.error = null;
   });
 
-  it("shows user list when available", async () => {
+  it("shows date and time step first when court is predefined (to allow confirmation)", async () => {
     const users = [
       { id: "user-1", name: "User One", email: "user1@example.com" },
       { id: "user-2", name: "User Two", email: "user2@example.com" },
@@ -384,9 +406,9 @@ describe("AdminQuickBookingWizard - User Selection", () => {
       render(<AdminQuickBookingWizard {...orgAdminProps} />);
     });
 
+    // With predefined court, Step 3 (DateTime) should be shown first to allow confirmation
     await waitFor(() => {
-      expect(screen.getByText("Select User")).toBeInTheDocument();
-      expect(screen.getByLabelText("Existing User")).toBeInTheDocument();
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
     }, { timeout: 3000 });
   });
 });
@@ -474,5 +496,160 @@ describe("AdminQuickBookingWizard - Navigation", () => {
     });
 
     expect(props.onClose).toHaveBeenCalled();
+  });
+});
+
+describe("AdminQuickBookingWizard - Predefined Court Support", () => {
+  const propsWithPredefinedCourt = {
+    isOpen: true,
+    onClose: jest.fn(),
+    onBookingComplete: jest.fn(),
+    adminType: "club_admin" as const,
+    managedIds: ["club-1"],
+    predefinedData: {
+      clubId: "club-1",
+      courtId: "court-1",
+      date: "2024-01-15",
+      startTime: "10:00",
+      duration: 60,
+    },
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFetch.mockReset();
+    
+    // Reset store mocks
+    mockOrganizationStore.organizations = [];
+    mockOrganizationStore.loading = false;
+    mockOrganizationStore.error = null;
+    mockOrganizationStore.getOrganizationsWithAutoFetch.mockReturnValue([]);
+    
+    mockClubStore.clubs = [];
+    mockClubStore.loading = false;
+    mockClubStore.error = null;
+    
+    mockAdminUsersStore.simpleUsers = [];
+    mockAdminUsersStore.loading = false;
+    mockAdminUsersStore.error = null;
+
+    mockCourtStore.courts = [];
+    mockCourtStore.courtsById = {};
+    mockCourtStore.loading = false;
+    mockCourtStore.error = null;
+  });
+
+  it("shows date and time step when court is predefined", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithPredefinedCourt} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // DateTime step should be shown to allow confirmation/adjustment
+    expect(screen.getByLabelText("Date")).toBeInTheDocument();
+    expect(screen.getByLabelText("Start Time")).toBeInTheDocument();
+    expect(screen.getByLabelText("Duration")).toBeInTheDocument();
+  });
+
+  it("does not show court selection step when court is predefined", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ timeline: [] }),
+    });
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithPredefinedCourt} />);
+    });
+
+    // Wait for the DateTime step to appear
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // Court selection step should not be visible at any point
+    expect(screen.queryByText("Choose an available court")).not.toBeInTheDocument();
+  });
+
+  it("loads court data when court is predefined", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithPredefinedCourt} />);
+    });
+
+    await waitFor(() => {
+      expect(mockCourtStore.ensureCourtById).toHaveBeenCalledWith(
+        "court-1",
+        { clubId: "club-1" }
+      );
+    });
+  });
+
+  it("allows date and time adjustment with predefined court", async () => {
+    const mockCourt = {
+      id: "court-1",
+      name: "Court 1",
+      slug: "court-1",
+      type: "Tennis",
+      surface: "Hard",
+      indoor: false,
+      defaultPriceCents: 6000,
+    };
+    
+    mockCourtStore.ensureCourtById.mockResolvedValue(mockCourt);
+
+    await act(async () => {
+      render(<AdminQuickBookingWizard {...propsWithPredefinedCourt} />);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("Select Date and Time")).toBeInTheDocument();
+    });
+
+    // User should be able to modify the date
+    const dateInput = screen.getByLabelText("Date");
+    expect(dateInput).toHaveValue("2024-01-15");
+    
+    await act(async () => {
+      fireEvent.change(dateInput, { target: { value: "2024-01-16" } });
+    });
+
+    expect(dateInput).toHaveValue("2024-01-16");
   });
 });

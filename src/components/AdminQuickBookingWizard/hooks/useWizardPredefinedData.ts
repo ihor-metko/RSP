@@ -4,7 +4,8 @@
 import { useEffect, useState } from "react";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
-import type { WizardOrganization, WizardClub, PredefinedData } from "../types";
+import { useCourtStore } from "@/stores/useCourtStore";
+import type { WizardOrganization, WizardClub, WizardCourt, PredefinedData } from "../types";
 
 interface UseWizardPredefinedDataOptions {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface UseWizardPredefinedDataOptions {
 interface UseWizardPredefinedDataReturn {
   predefinedOrganization: WizardOrganization | null;
   predefinedClub: WizardClub | null;
+  predefinedCourt: WizardCourt | null;
   isLoading: boolean;
 }
 
@@ -28,6 +30,7 @@ export function useWizardPredefinedData({
   const [predefinedOrganization, setPredefinedOrganization] = 
     useState<WizardOrganization | null>(null);
   const [predefinedClub, setPredefinedClub] = useState<WizardClub | null>(null);
+  const [predefinedCourt, setPredefinedCourt] = useState<WizardCourt | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -41,17 +44,20 @@ export function useWizardPredefinedData({
       setIsLoading(true);
 
       try {
-        // Fetch organization and club in parallel for better performance
-        const [orgToSet, clubToSet] = await Promise.all([
+        // Fetch organization, club, and court in parallel for better performance
+        const [orgToSet, clubToSet, courtToSet] = await Promise.all([
           // Initialize organization if predefined
           predefinedData?.organizationId
             ? (async () => {
+                const organizationId = predefinedData.organizationId;
+                if (!organizationId) return null;
+
                 const orgStore = useOrganizationStore.getState();
                 const getOrganizationById = orgStore.getOrganizationById;
                 const fetchOrganizations = orgStore.fetchOrganizations;
 
                 // First try to get from current store state
-                let org = getOrganizationById(predefinedData.organizationId!);
+                let org = getOrganizationById(organizationId);
 
                 // If not in store, fetch organizations first
                 if (!org) {
@@ -59,7 +65,7 @@ export function useWizardPredefinedData({
                     await fetchOrganizations();
                     org = useOrganizationStore
                       .getState()
-                      .getOrganizationById(predefinedData.organizationId!);
+                      .getOrganizationById(organizationId);
                   } catch {
                     // Handle error silently as the organization might not be accessible
                   }
@@ -72,23 +78,64 @@ export function useWizardPredefinedData({
           // Initialize club if predefined
           predefinedData?.clubId
             ? (async () => {
+                const clubId = predefinedData.clubId;
+                if (!clubId) return null;
+
                 const clubStore = useClubStore.getState();
                 const getClubById = clubStore.getClubById;
                 const fetchClubsIfNeeded = clubStore.fetchClubsIfNeeded;
 
                 try {
                   // Try to get from current store state first
-                  let club = getClubById(predefinedData.clubId!);
+                  let club = getClubById(clubId);
 
                   // If not in store, fetch clubs to populate the store
                   if (!club) {
                     await fetchClubsIfNeeded();
-                    club = useClubStore.getState().getClubById(predefinedData.clubId!);
+                    club = useClubStore.getState().getClubById(clubId);
                   }
 
                   return club || null;
                 } catch {
                   // Handle error silently as the club might not be accessible
+                  return null;
+                }
+              })()
+            : Promise.resolve(null),
+
+          // Initialize court if predefined
+          predefinedData?.courtId
+            ? (async () => {
+                const courtId = predefinedData.courtId;
+                if (!courtId) return null;
+
+                const courtStore = useCourtStore.getState();
+                const ensureCourtById = courtStore.ensureCourtById;
+
+                try {
+                  // Fetch court details using clubId if available
+                  const court = await ensureCourtById(
+                    courtId,
+                    { clubId: predefinedData.clubId }
+                  );
+
+                  // Convert CourtDetail to WizardCourt format
+                  if (court) {
+                    return {
+                      id: court.id,
+                      name: court.name,
+                      slug: court.slug || null,
+                      type: court.type || null,
+                      surface: court.surface || null,
+                      indoor: court.indoor || false,
+                      defaultPriceCents: court.defaultPriceCents,
+                      available: true,
+                    } as WizardCourt;
+                  }
+
+                  return null;
+                } catch {
+                  // Handle error silently as the court might not be accessible
                   return null;
                 }
               })()
@@ -102,6 +149,10 @@ export function useWizardPredefinedData({
         if (clubToSet) {
           setPredefinedClub(clubToSet);
         }
+
+        if (courtToSet) {
+          setPredefinedCourt(courtToSet);
+        }
       } finally {
         setIsLoading(false);
         setHasInitialized(true);
@@ -109,7 +160,7 @@ export function useWizardPredefinedData({
     };
 
     initializePredefinedData();
-  }, [isOpen, hasInitialized, predefinedData?.organizationId, predefinedData?.clubId]);
+  }, [isOpen, hasInitialized, predefinedData?.organizationId, predefinedData?.clubId, predefinedData?.courtId]);
 
   // Reset when modal closes  
   useEffect(() => {
@@ -118,12 +169,14 @@ export function useWizardPredefinedData({
       setHasInitialized(false);
       setPredefinedOrganization(null);
       setPredefinedClub(null);
+      setPredefinedCourt(null);
     }
   }, [isOpen, hasInitialized]);
 
   return {
     predefinedOrganization,
     predefinedClub,
+    predefinedCourt,
     isLoading,
   };
 }

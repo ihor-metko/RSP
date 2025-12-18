@@ -164,8 +164,14 @@ export const ADMIN_WIZARD_STEPS: WizardStepConfig[] = [
   {
     id: 3,
     label: "dateTime", // Step 3: Select Date & Time (check availability first)
-    shouldShow: (_, predefinedData) => 
-      !predefinedData?.date || !predefinedData?.startTime || !predefinedData?.duration,
+    shouldShow: (_, predefinedData) => {
+      // If predefined court exists, always show datetime to allow confirmation/adjustment
+      if (predefinedData?.courtId) {
+        return true;
+      }
+      // Otherwise, show if date/time is not fully predefined
+      return !predefinedData?.date || !predefinedData?.startTime || !predefinedData?.duration;
+    },
   },
   {
     id: 4,
