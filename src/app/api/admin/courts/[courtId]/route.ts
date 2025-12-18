@@ -184,14 +184,17 @@ export async function PATCH(
         
         // Emit WebSocket event for court availability change
         // Note: Changes to court properties (isActive, defaultPriceCents) can affect availability
-        const io = getIO();
-        if (io && (isActive !== undefined || defaultPriceCents !== undefined)) {
+        if (isActive !== undefined || defaultPriceCents !== undefined) {
+          const io = getIO();
           const eventPayload: CourtAvailabilityEventPayload = {
             clubId: court.clubId,
             courtId: courtId,
             date: new Date().toISOString().split("T")[0],
           };
-          io.to(`club:${court.clubId}:bookings`).emit("court:availability", eventPayload);
+          
+          // Use helper function for consistent event emission
+          const { emitCourtAvailabilityChanged } = await import("@/lib/websocket");
+          emitCourtAvailabilityChanged(io, court.clubId, eventPayload);
         }
         
         return NextResponse.json(updatedCourt);
@@ -344,14 +347,17 @@ export async function PATCH(
 
     // Emit WebSocket event for court availability change
     // Note: Changes to court properties (isActive, defaultPriceCents) can affect availability
-    const io = getIO();
-    if (io && (isActive !== undefined || defaultPriceCents !== undefined)) {
+    if (isActive !== undefined || defaultPriceCents !== undefined) {
+      const io = getIO();
       const eventPayload: CourtAvailabilityEventPayload = {
         clubId: updatedCourt.club.id,
         courtId: courtId,
         date: new Date().toISOString().split("T")[0],
       };
-      io.to(`club:${updatedCourt.club.id}:bookings`).emit("court:availability", eventPayload);
+      
+      // Use helper function for consistent event emission
+      const { emitCourtAvailabilityChanged } = await import("@/lib/websocket");
+      emitCourtAvailabilityChanged(io, updatedCourt.club.id, eventPayload);
     }
 
     return NextResponse.json(updatedCourt);
@@ -399,14 +405,15 @@ export async function DELETE(
         
         // Emit WebSocket event for court availability change (court deleted)
         const io = getIO();
-        if (io) {
-          const eventPayload: CourtAvailabilityEventPayload = {
-            clubId: court.clubId,
-            courtId: courtId,
-            date: new Date().toISOString().split("T")[0],
-          };
-          io.to(`club:${court.clubId}:bookings`).emit("court:availability", eventPayload);
-        }
+        const eventPayload: CourtAvailabilityEventPayload = {
+          clubId: court.clubId,
+          courtId: courtId,
+          date: new Date().toISOString().split("T")[0],
+        };
+        
+        // Use helper function for consistent event emission
+        const { emitCourtAvailabilityChanged } = await import("@/lib/websocket");
+        emitCourtAvailabilityChanged(io, court.clubId, eventPayload);
         
         return new NextResponse(null, { status: 204 });
       } catch (err) {
@@ -456,14 +463,15 @@ export async function DELETE(
 
     // Emit WebSocket event for court availability change (court deleted)
     const io = getIO();
-    if (io) {
-      const eventPayload: CourtAvailabilityEventPayload = {
-        clubId: existingCourt.club.id,
-        courtId: courtId,
-        date: new Date().toISOString().split("T")[0],
-      };
-      io.to(`club:${existingCourt.club.id}:bookings`).emit("court:availability", eventPayload);
-    }
+    const eventPayload: CourtAvailabilityEventPayload = {
+      clubId: existingCourt.club.id,
+      courtId: courtId,
+      date: new Date().toISOString().split("T")[0],
+    };
+    
+    // Use helper function for consistent event emission
+    const { emitCourtAvailabilityChanged } = await import("@/lib/websocket");
+    emitCourtAvailabilityChanged(io, existingCourt.club.id, eventPayload);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

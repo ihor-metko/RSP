@@ -135,19 +135,20 @@ export async function POST(request: Request) {
 
       // Emit WebSocket event for real-time updates
       const io = getIO();
-      if (io) {
-        const eventPayload: BookingEventPayload = {
-          id: booking.id,
-          clubId: club.id,
-          courtId: booking.courtId,
-          userId: booking.userId,
-          start: booking.start.toISOString(),
-          end: booking.end.toISOString(),
-          status: booking.status,
-          price: booking.price,
-        };
-        io.to(`club:${club.id}:bookings`).emit("booking:created", eventPayload);
-      }
+      const eventPayload: BookingEventPayload = {
+        id: booking.id,
+        clubId: club.id,
+        courtId: booking.courtId,
+        userId: booking.userId,
+        start: booking.start.toISOString(),
+        end: booking.end.toISOString(),
+        status: booking.status,
+        price: booking.price,
+      };
+      
+      // Use helper function for consistent event emission
+      const { emitBookingCreated } = await import("@/lib/websocket");
+      emitBookingCreated(io, club.id, eventPayload);
 
       return NextResponse.json(
         {
@@ -339,19 +340,20 @@ export async function POST(request: Request) {
 
     // Emit WebSocket event for real-time updates
     const io = getIO();
-    if (io) {
-      const eventPayload: BookingEventPayload = {
-        id: booking.id,
-        clubId: booking.court.club.id,
-        courtId: booking.courtId,
-        userId: booking.userId,
-        start: booking.start.toISOString(),
-        end: booking.end.toISOString(),
-        status: booking.status,
-        price: booking.price,
-      };
-      io.to(`club:${booking.court.club.id}:bookings`).emit("booking:created", eventPayload);
-    }
+    const eventPayload: BookingEventPayload = {
+      id: booking.id,
+      clubId: booking.court.club.id,
+      courtId: booking.courtId,
+      userId: booking.userId,
+      start: booking.start.toISOString(),
+      end: booking.end.toISOString(),
+      status: booking.status,
+      price: booking.price,
+    };
+    
+    // Use helper function for consistent event emission
+    const { emitBookingCreated } = await import("@/lib/websocket");
+    emitBookingCreated(io, booking.court.club.id, eventPayload);
 
     return NextResponse.json(
       {

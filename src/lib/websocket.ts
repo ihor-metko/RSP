@@ -111,19 +111,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
   return io;
 }
 
-/**
- * Get the global Socket.io server instance
- * Returns null if not yet initialized
- */
-let globalIoInstance: SocketIOServer | null = null;
 
-export function getSocketServer(): SocketIOServer | null {
-  return globalIoInstance;
-}
-
-export function setSocketServer(io: SocketIOServer): void {
-  globalIoInstance = io;
-}
 
 /**
  * Emit booking created event to club room

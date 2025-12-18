@@ -374,7 +374,7 @@ export async function PATCH(
 
       // Emit WebSocket event for real-time updates
       const io = getIO();
-      if (io && updatedBooking.clubId) {
+      if (updatedBooking.clubId) {
         const eventPayload: BookingEventPayload = {
           id: updatedBooking.id,
           clubId: updatedBooking.clubId,
@@ -385,7 +385,10 @@ export async function PATCH(
           status: updatedBooking.status,
           price: updatedBooking.price,
         };
-        io.to(`club:${updatedBooking.clubId}:bookings`).emit("booking:updated", eventPayload);
+        
+        // Use helper function for consistent event emission
+        const { emitBookingUpdated } = await import("@/lib/websocket");
+        emitBookingUpdated(io, updatedBooking.clubId, eventPayload);
       }
 
       return NextResponse.json(updatedBooking);
@@ -472,19 +475,20 @@ export async function PATCH(
 
     // Emit WebSocket event for real-time updates
     const io = getIO();
-    if (io) {
-      const eventPayload: BookingEventPayload = {
-        id: updatedBooking.id,
-        clubId: updatedBooking.court.club.id,
-        courtId: updatedBooking.courtId,
-        userId: updatedBooking.userId,
-        start: startISO,
-        end: endISO,
-        status: updatedBooking.status,
-        price: updatedBooking.price,
-      };
-      io.to(`club:${updatedBooking.court.club.id}:bookings`).emit("booking:updated", eventPayload);
-    }
+    const eventPayload: BookingEventPayload = {
+      id: updatedBooking.id,
+      clubId: updatedBooking.court.club.id,
+      courtId: updatedBooking.courtId,
+      userId: updatedBooking.userId,
+      start: startISO,
+      end: endISO,
+      status: updatedBooking.status,
+      price: updatedBooking.price,
+    };
+    
+    // Use helper function for consistent event emission
+    const { emitBookingUpdated } = await import("@/lib/websocket");
+    emitBookingUpdated(io, updatedBooking.court.club.id, eventPayload);
 
     const response: AdminBookingDetailResponse = {
       id: updatedBooking.id,
