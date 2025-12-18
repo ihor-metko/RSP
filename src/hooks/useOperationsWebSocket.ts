@@ -53,11 +53,12 @@ export interface UseOperationsWebSocketReturn {
 
 /**
  * Convert BookingEventPayload to partial OperationsBooking for store update
+ * Only includes fields present in the payload to allow proper merging with existing data
  */
 function convertToOperationsBooking(
   payload: BookingEventPayload
 ): Partial<OperationsBooking> & { id: string } {
-  return {
+  const booking: Partial<OperationsBooking> & { id: string } = {
     id: payload.id,
     userId: payload.userId,
     courtId: payload.courtId,
@@ -67,10 +68,14 @@ function convertToOperationsBooking(
     // Use bookingStatus if available, otherwise fall back to status
     bookingStatus: (payload.bookingStatus || payload.status || "Active") as BookingStatus,
     paymentStatus: (payload.paymentStatus || "Unpaid") as PaymentStatus,
-    // Optional fields - these will be merged with existing data in the store
-    coachId: null,
-    createdAt: new Date().toISOString(),
   };
+
+  // Only include optional fields if they're present in the payload
+  if (payload.coachId !== undefined) {
+    booking.coachId = payload.coachId;
+  }
+
+  return booking;
 }
 
 /**
@@ -130,14 +135,7 @@ export function useOperationsWebSocket(
     
     // Convert to OperationsBooking and add to store
     const booking = convertToOperationsBooking(data);
-    
-    // Use store's add method if available, otherwise update the bookings array
-    if (addBookingFromEvent) {
-      addBookingFromEvent(booking);
-    } else {
-      // Fallback: trigger a refetch
-      useBookingStore.getState().invalidateBookings();
-    }
+    addBookingFromEvent(booking);
   }, [addBookingFromEvent]);
 
   /**
@@ -148,14 +146,7 @@ export function useOperationsWebSocket(
     
     // Convert to OperationsBooking and update in store
     const booking = convertToOperationsBooking(data);
-    
-    // Use store's update method if available, otherwise update the bookings array
-    if (updateBookingFromEvent) {
-      updateBookingFromEvent(booking);
-    } else {
-      // Fallback: trigger a refetch
-      useBookingStore.getState().invalidateBookings();
-    }
+    updateBookingFromEvent(booking);
   }, [updateBookingFromEvent]);
 
   /**

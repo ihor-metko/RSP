@@ -246,11 +246,11 @@ export function useWebSocket(
   }, []);
 
   /**
-   * Reconnect WebSocket
+   * Reconnect WebSocket with configurable delay
    */
-  const reconnect = useCallback(() => {
+  const reconnect = useCallback((delayMs = 100) => {
     disconnect();
-    setTimeout(connect, 100);
+    setTimeout(connect, delayMs);
   }, [connect, disconnect]);
 
   // Auto-connect on mount if enabled

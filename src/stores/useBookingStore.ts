@@ -277,11 +277,12 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         newBookings[existingIndex] = { ...newBookings[existingIndex], ...booking };
         return { bookings: newBookings };
       } else {
-        // For new bookings, we need to have all required fields
-        // If this is from a WebSocket event, we might not have all fields
-        // In that case, trigger a refetch instead
-        console.warn("[Booking Store] Attempted to add incomplete booking, triggering refetch");
-        return { lastFetchedAt: null };
+        // For new bookings from WebSocket, we might not have all required fields
+        // Trigger a refetch to get complete booking data
+        console.warn("[Booking Store] New booking detected, triggering refetch to get complete data");
+        get().invalidateBookings();
+        // Return current state - the refetch will update it
+        return state;
       }
     });
   },
@@ -291,14 +292,16 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       const existingIndex = state.bookings.findIndex((b) => b.id === booking.id);
       
       if (existingIndex >= 0) {
-        // Update existing booking by merging
+        // Update existing booking by merging new data with existing
         const newBookings = [...state.bookings];
         newBookings[existingIndex] = { ...newBookings[existingIndex], ...booking };
         return { bookings: newBookings };
       } else {
-        // Booking not found, trigger refetch to get complete data
+        // Booking not found in current view, trigger refetch
         console.warn("[Booking Store] Booking not found for update, triggering refetch");
-        return { lastFetchedAt: null };
+        get().invalidateBookings();
+        // Return current state - the refetch will update it
+        return state;
       }
     });
   },
