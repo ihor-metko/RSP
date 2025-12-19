@@ -45,6 +45,7 @@ import {
   createMockAuditLog,
 } from "./mockDb";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
+import { SportType } from "@/constants/sports";
 
 // ============================================================================
 // Constants for default pagination and sorting
@@ -170,8 +171,8 @@ export async function mockGetBookings(params: {
       organizationName: organization?.name || null,
       start: booking.start.toISOString(),
       end: booking.end.toISOString(),
-      bookingStatus: booking.bookingStatus,
-      paymentStatus: booking.paymentStatus,
+      bookingStatus: booking.bookingStatus as "Active" | "Cancelled" | "Completed" | "No-show" | "Pending",
+      paymentStatus: booking.paymentStatus as "Paid" | "Unpaid" | "Refunded" | "PartiallyRefunded" | "PaymentPending",
       price: booking.price,
       sportType: booking.sportType || "PADEL",
       coachId: booking.coachId,
@@ -1671,7 +1672,7 @@ export async function mockCreateOrganizationHandler(data: {
   website?: string;
   address?: string;
   metadata?: Record<string, unknown>;
-  supportedSports?: string[];
+  supportedSports?: SportType[];
   createdById: string;
 }) {
   // Simulate latency
@@ -1716,7 +1717,7 @@ export async function mockCreateOrganizationHandler(data: {
     address: data.address,
     metadata: data.metadata,
     createdById: data.createdById,
-    supportedSports: data.supportedSports || ["PADEL"],
+    supportedSports: data.supportedSports || [SportType.PADEL],
   });
 
   // Create audit log

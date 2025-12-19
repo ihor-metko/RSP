@@ -538,7 +538,7 @@ export default function OrganizationAdminsTable({
 
           <p>
             {t("orgAdmins.removeConfirm", {
-              name: adminToRemove?.userName || adminToRemove?.userEmail,
+              name: adminToRemove?.userName || adminToRemove?.userEmail || "",
             })}
           </p>
 

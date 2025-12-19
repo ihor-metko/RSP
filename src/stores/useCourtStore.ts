@@ -184,7 +184,7 @@ export const useCourtStore = create<CourtState>((set, get) => ({
     }
 
     // If already fetching this court, return the existing promise
-    if (state._inflightFetchCourtById[courtId]) {
+    if (courtId in state._inflightFetchCourtById) {
       return state._inflightFetchCourtById[courtId];
     }
 

@@ -36,7 +36,7 @@ export function PaymentAccountList({
   const t = useTranslations("paymentAccount");
 
   // Helper to get badge variant based on technical verification status
-  const getStatusVariant = (status: PaymentAccountStatus): "success" | "warning" | "danger" | "default" => {
+  const getStatusVariant = (status: PaymentAccountStatus): "success" | "warning" | "error" | "default" => {
     switch (status) {
       case PaymentAccountStatus.VERIFIED:
         return "success";
@@ -45,7 +45,7 @@ export function PaymentAccountList({
       case PaymentAccountStatus.PENDING:
         return "warning";
       case PaymentAccountStatus.INVALID:
-        return "danger";
+        return "error";
       case PaymentAccountStatus.DISABLED:
         return "default";
       default:

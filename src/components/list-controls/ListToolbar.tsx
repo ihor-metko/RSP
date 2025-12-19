@@ -112,7 +112,7 @@ export function ListToolbar<TFilters = Record<string, unknown>>({
   const controller = useControllerOrContext(controllerProp);
 
   // Check if any filters are active
-  const hasActiveFilters = Object.values(controller.filters).some((value) => {
+  const hasActiveFilters = Object.values(controller.filters as Record<string, unknown>).some((value) => {
     if (typeof value === "string") return value.length > 0;
     if (typeof value === "boolean") return value === true;
     if (Array.isArray(value)) return value.length > 0;

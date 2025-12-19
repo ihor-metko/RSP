@@ -316,7 +316,7 @@ export function EntityEditStepper({
     // 2. Using a more generic form state management approach
     // 3. Creating specialized stepper components per entity type
     let formData: unknown;
-    let onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void) | ((field: "logo" | "heroImage", value: UploadedFile | null) => void);
+    let onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
 
     switch (currentStep) {
       case 1:

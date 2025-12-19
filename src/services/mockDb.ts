@@ -169,6 +169,10 @@ export function initializeMockData() {
       archivedAt: null,
       createdAt: new Date("2024-01-01"),
       updatedAt: new Date("2024-01-01"),
+      logo: null,
+      heroImage: null,
+      isPublic: true,
+      description: "Professional padel sports organization",
     },
     {
       id: "org-2",
@@ -184,6 +188,10 @@ export function initializeMockData() {
       archivedAt: null,
       createdAt: new Date("2024-01-01"),
       updatedAt: new Date("2024-01-01"),
+      logo: null,
+      heroImage: null,
+      isPublic: true,
+      description: "Tennis and padel sports facility",
     },
     {
       id: "org-3",
@@ -199,6 +207,10 @@ export function initializeMockData() {
       archivedAt: new Date("2024-06-01"),
       createdAt: new Date("2024-01-01"),
       updatedAt: new Date("2024-06-01"),
+      logo: null,
+      heroImage: null,
+      isPublic: false,
+      description: null,
     },
   ];
 
@@ -232,6 +244,9 @@ export function initializeMockData() {
       tags: JSON.stringify(["premium", "indoor", "outdoor"]),
       createdAt: new Date("2024-01-15"),
       updatedAt: new Date("2024-01-15"),
+      supportedSports: ["PADEL"],
+      wayforpayKey: null,
+      liqpayKey: null,
     },
     {
       id: "club-2",
@@ -261,6 +276,9 @@ export function initializeMockData() {
       tags: JSON.stringify(["family", "outdoor"]),
       createdAt: new Date("2024-02-01"),
       updatedAt: new Date("2024-02-01"),
+      supportedSports: ["PADEL"],
+      wayforpayKey: null,
+      liqpayKey: null,
     },
     {
       id: "club-3",
@@ -290,6 +308,9 @@ export function initializeMockData() {
       tags: JSON.stringify(["professional", "coaching"]),
       createdAt: new Date("2024-03-01"),
       updatedAt: new Date("2024-03-01"),
+      supportedSports: ["PADEL"],
+      wayforpayKey: null,
+      liqpayKey: null,
     },
     {
       id: "club-4",
@@ -319,6 +340,9 @@ export function initializeMockData() {
       tags: JSON.stringify(["modern", "multi-sport", "indoor"]),
       createdAt: new Date("2024-04-01"),
       updatedAt: new Date("2024-04-01"),
+      supportedSports: ["PADEL"],
+      wayforpayKey: null,
+      liqpayKey: null,
     },
     {
       id: "club-5",
@@ -348,6 +372,9 @@ export function initializeMockData() {
       tags: JSON.stringify(["outdoor", "scenic", "premium"]),
       createdAt: new Date("2024-05-01"),
       updatedAt: new Date("2024-05-01"),
+      supportedSports: ["PADEL"],
+      wayforpayKey: null,
+      liqpayKey: null,
     },
   ];
 
@@ -363,6 +390,7 @@ export function initializeMockData() {
       indoor: true,
       isActive: true,
       defaultPriceCents: 5000,
+      sportType: "PADEL",
       createdAt: new Date("2024-01-15"),
       updatedAt: new Date("2024-01-15"),
     },
@@ -376,6 +404,7 @@ export function initializeMockData() {
       indoor: true,
       isActive: true,
       defaultPriceCents: 5000,
+      sportType: "PADEL",
       createdAt: new Date("2024-01-15"),
       updatedAt: new Date("2024-01-15"),
     },
@@ -389,6 +418,7 @@ export function initializeMockData() {
       indoor: false,
       isActive: true,
       defaultPriceCents: 4000,
+      sportType: "PADEL",
       createdAt: new Date("2024-01-15"),
       updatedAt: new Date("2024-01-15"),
     },
@@ -402,6 +432,7 @@ export function initializeMockData() {
       indoor: false,
       isActive: true,
       defaultPriceCents: 3500,
+      sportType: "PADEL",
       createdAt: new Date("2024-02-01"),
       updatedAt: new Date("2024-02-01"),
     },
@@ -415,6 +446,7 @@ export function initializeMockData() {
       indoor: false,
       isActive: true,
       defaultPriceCents: 3500,
+      sportType: "PADEL",
       createdAt: new Date("2024-02-01"),
       updatedAt: new Date("2024-02-01"),
     },
@@ -428,6 +460,7 @@ export function initializeMockData() {
       indoor: true,
       isActive: true,
       defaultPriceCents: 8000,
+      sportType: "PADEL",
       createdAt: new Date("2024-03-01"),
       updatedAt: new Date("2024-03-01"),
     },
@@ -441,6 +474,7 @@ export function initializeMockData() {
       indoor: true,
       isActive: true,
       defaultPriceCents: 8000,
+      sportType: "PADEL",
       createdAt: new Date("2024-03-01"),
       updatedAt: new Date("2024-03-01"),
     },
@@ -454,6 +488,7 @@ export function initializeMockData() {
       indoor: true,
       isActive: true,
       defaultPriceCents: 6000,
+      sportType: "PADEL",
       createdAt: new Date("2024-04-01"),
       updatedAt: new Date("2024-04-01"),
     },
@@ -467,6 +502,7 @@ export function initializeMockData() {
       indoor: true,
       isActive: true,
       defaultPriceCents: 6000,
+      sportType: "PADEL",
       createdAt: new Date("2024-04-01"),
       updatedAt: new Date("2024-04-01"),
     },
@@ -480,6 +516,7 @@ export function initializeMockData() {
       indoor: false,
       isActive: true,
       defaultPriceCents: 7000,
+      sportType: "PADEL",
       createdAt: new Date("2024-05-01"),
       updatedAt: new Date("2024-05-01"),
     },
@@ -493,6 +530,7 @@ export function initializeMockData() {
       indoor: false,
       isActive: true,
       defaultPriceCents: 7000,
+      sportType: "PADEL",
       createdAt: new Date("2024-05-01"),
       updatedAt: new Date("2024-05-01"),
     },
@@ -506,6 +544,7 @@ export function initializeMockData() {
       indoor: false,
       isActive: true,
       defaultPriceCents: 9000,
+      sportType: "PADEL",
       createdAt: new Date("2024-05-01"),
       updatedAt: new Date("2024-05-01"),
     },
@@ -1268,6 +1307,9 @@ export function createMockClub(data: {
     tags: null,
     createdAt: new Date(),
     updatedAt: new Date(),
+    supportedSports: ["PADEL"],
+    wayforpayKey: null,
+    liqpayKey: null,
   };
   mockClubs.push(club);
   return club;
@@ -1283,7 +1325,7 @@ export function createMockOrganization(data: {
   website?: string;
   address?: string;
   metadata?: Record<string, unknown>;
-  supportedSports?: string[];
+  supportedSports?: SportType[];
 }): Organization {
   const org: Organization = {
     id: generateMockId("org"),
@@ -1294,12 +1336,15 @@ export function createMockOrganization(data: {
     contactPhone: data.contactPhone || null,
     website: data.website || null,
     address: data.address || null,
-    metadata: data.metadata || null,
-    supportedSports: data.supportedSports || ["PADEL"],
+    metadata: data.metadata ? JSON.stringify(data.metadata) : null,
+    supportedSports: data.supportedSports || [SportType.PADEL],
     createdById: data.createdById,
     archivedAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
+    logo: null,
+    heroImage: null,
+    isPublic: true,
   };
   mockOrganizations.push(org);
   return org;
@@ -1369,7 +1414,7 @@ export function findOrganizationBySlug(slug: string): Organization | undefined {
 export function createMockMembership(data: {
   userId: string;
   organizationId: string;
-  role: "ORGANIZATION_ADMIN" | "CLUB_ADMIN";
+  role: "ORGANIZATION_ADMIN" | "MEMBER";
   isPrimaryOwner?: boolean;
 }): Membership {
   const membership: Membership = {

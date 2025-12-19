@@ -196,7 +196,7 @@ export const useClubStore = create<ClubState>((set, get) => ({
     }
 
     // If there's already an inflight request for this ID, return it
-    if (state._inflightFetchClubById && state._inflightFetchClubById[id]) {
+    if (state._inflightFetchClubById && id in state._inflightFetchClubById) {
       return state._inflightFetchClubById[id];
     }
 

@@ -125,13 +125,11 @@ export function shouldMarkAsCompleted(
  */
 export function getStatusLabel(status: BookingStatus): string {
   const labels: Record<BookingStatus, string> = {
-    pending: "Pending",
-    paid: "Paid",
-    reserved: "Reserved",
-    ongoing: "Ongoing",
-    completed: "Completed",
-    cancelled: "Cancelled",
-    "no-show": "No-show",
+    "Active": "Active",
+    "Pending": "Pending",
+    "Completed": "Completed",
+    "Cancelled": "Cancelled",
+    "No-show": "No-show",
   };
   return labels[status] || status;
 }
@@ -144,13 +142,11 @@ export function getStatusLabel(status: BookingStatus): string {
  */
 export function getStatusColorClass(status: BookingStatus): string {
   const colorMap: Record<BookingStatus, string> = {
-    pending: "warning",
-    paid: "success",
-    reserved: "info",
-    ongoing: "active",
-    completed: "neutral",
-    cancelled: "danger",
-    "no-show": "danger",
+    "Active": "active",
+    "Pending": "warning",
+    "Completed": "neutral",
+    "Cancelled": "danger",
+    "No-show": "danger",
   };
   return colorMap[status] || "neutral";
 }

@@ -436,7 +436,7 @@ export function ClubAdminsSection({
 
           <p>
             {t("common.confirmRemove", {
-              item: adminToRemove?.name || adminToRemove?.email,
+              item: adminToRemove?.name || adminToRemove?.email || "",
             })}
           </p>
 
