@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   app:
     build: .
@@ -29,7 +27,7 @@ services:
     environment:
       POSTGRES_USER: arena
       POSTGRES_PASSWORD: GsD32Nq6X4qB7PCVTNWMVRIj0oXbebRl
-      POSTGRES_DB: arenaone
+      POSTGRES_DB: arena_one
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
