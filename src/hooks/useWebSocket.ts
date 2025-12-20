@@ -85,7 +85,7 @@ export function useWebSocket(
         handlersRef.current.onConnect?.();
       });
 
-      socket.on("disconnect", (reason) => {
+      socket.on("disconnect", () => {
         setState((prev) => ({
           ...prev,
           isConnected: false,
