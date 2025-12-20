@@ -13,6 +13,7 @@ import type { Server as HTTPServer } from "http";
 
 // Singleton instance
 let io: SocketIOServer | null = null;
+let attachedServer: HTTPServer | null = null;
 
 /**
  * Type definition for Node.js global with Socket.io
@@ -33,12 +34,21 @@ declare global {
  * @returns Socket.IO server instance
  */
 export function initSocketIO(httpServer: HTTPServer): SocketIOServer {
-  // Return existing instance if already initialized
-  if (io) {
+  // If already initialized with the same server, return existing instance
+  if (io && attachedServer === httpServer) {
     if (process.env.NODE_ENV === "development") {
       console.log("[WebSocket] Socket.IO already initialized (singleton)");
     }
     return io;
+  }
+
+  // If server changed, close old instance
+  if (io && attachedServer !== httpServer) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[WebSocket] HTTP server changed, reinitializing Socket.IO");
+    }
+    io.close();
+    io = null;
   }
 
   // Create new Socket.IO server with websocket-only transport
@@ -53,11 +63,15 @@ export function initSocketIO(httpServer: HTTPServer): SocketIOServer {
     addTrailingSlash: false,
   });
 
+  // Store reference to the HTTP server
+  attachedServer = httpServer;
+
   // Setup connection handlers
   setupSocketHandlers(io);
 
   // Store in global for backward compatibility with existing code
-  global.io = io;
+  // Note: This allows API routes to access io via getIO() function
+  (global as { io?: SocketIOServer }).io = io;
 
   if (process.env.NODE_ENV === "development") {
     console.log("[WebSocket] Socket.IO server initialized");
@@ -120,13 +134,8 @@ function setupSocketHandlers(io: SocketIOServer): void {
  * @returns Socket.IO server instance or null if not initialized
  */
 export function getIO(): SocketIOServer | null {
+  // Return module-level singleton
   if (io) {
-    return io;
-  }
-  
-  // Fallback to global for backward compatibility
-  if (typeof global.io !== "undefined") {
-    io = global.io;
     return io;
   }
   
@@ -144,5 +153,5 @@ export function getIO(): SocketIOServer | null {
  * Check if Socket.IO server is initialized
  */
 export function isIOInitialized(): boolean {
-  return io !== null || typeof global.io !== "undefined";
+  return io !== null;
 }
