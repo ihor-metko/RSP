@@ -1,21 +1,12 @@
 /**
- * WebSocket Event Types and Helper Functions
+ * WebSocket Event Helpers
  * 
- * Provides type-safe event payloads and helper functions for emitting
- * Socket.IO events to club-specific rooms.
- * 
- * Room naming convention: club:{clubId}:bookings
- * 
- * Events:
- * - booking:created - New booking created
- * - booking:updated - Booking updated
- * - booking:deleted - Booking deleted/cancelled
- * - court:availability - Court availability changed
+ * Type-safe event emission for Socket.IO
+ * Room naming: club:{clubId}:bookings
  */
 
 import type { Server as SocketIOServer } from "socket.io";
 
-// Event payload types
 export interface BookingEventPayload {
   id: string;
   clubId: string;
@@ -42,92 +33,60 @@ export interface CourtAvailabilityEventPayload {
 
 /**
  * Emit booking created event to club room
+ * @param io - Socket.IO server instance
+ * @param clubId - Club identifier
+ * @param booking - Booking event data
  */
 export function emitBookingCreated(
   io: SocketIOServer | null,
   clubId: string,
   booking: BookingEventPayload
 ): void {
-  if (!io) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[WebSocket] Cannot emit booking:created - server not initialized");
-    }
-    return;
-  }
-
-  const room = `club:${clubId}:bookings`;
-  io.to(room).emit("booking:created", booking);
-
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[WebSocket] Emitted booking:created to room ${room}:`, booking.id);
-  }
+  if (!io) return;
+  io.to(`club:${clubId}:bookings`).emit("booking:created", booking);
 }
 
 /**
  * Emit booking updated event to club room
+ * @param io - Socket.IO server instance
+ * @param clubId - Club identifier
+ * @param booking - Booking event data
  */
 export function emitBookingUpdated(
   io: SocketIOServer | null,
   clubId: string,
   booking: BookingEventPayload
 ): void {
-  if (!io) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[WebSocket] Cannot emit booking:updated - server not initialized");
-    }
-    return;
-  }
-
-  const room = `club:${clubId}:bookings`;
-  io.to(room).emit("booking:updated", booking);
-
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[WebSocket] Emitted booking:updated to room ${room}:`, booking.id);
-  }
+  if (!io) return;
+  io.to(`club:${clubId}:bookings`).emit("booking:updated", booking);
 }
 
 /**
  * Emit booking deleted event to club room
+ * @param io - Socket.IO server instance
+ * @param clubId - Club identifier
+ * @param bookingId - Booking identifier
  */
 export function emitBookingDeleted(
   io: SocketIOServer | null,
   clubId: string,
   bookingId: string
 ): void {
-  if (!io) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[WebSocket] Cannot emit booking:deleted - server not initialized");
-    }
-    return;
-  }
-
-  const room = `club:${clubId}:bookings`;
-  io.to(room).emit("booking:deleted", { id: bookingId, clubId });
-
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[WebSocket] Emitted booking:deleted to room ${room}:`, bookingId);
-  }
+  if (!io) return;
+  io.to(`club:${clubId}:bookings`).emit("booking:deleted", { id: bookingId, clubId });
 }
 
 /**
  * Emit court availability changed event to club room
+ * @param io - Socket.IO server instance
+ * @param clubId - Club identifier
+ * @param data - Court availability data
  */
 export function emitCourtAvailabilityChanged(
   io: SocketIOServer | null,
   clubId: string,
   data: CourtAvailabilityEventPayload
 ): void {
-  if (!io) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("[WebSocket] Cannot emit court:availability - server not initialized");
-    }
-    return;
-  }
-
-  const room = `club:${clubId}:bookings`;
-  io.to(room).emit("court:availability", data);
-
-  if (process.env.NODE_ENV === "development") {
-    console.log(`[WebSocket] Emitted court:availability to room ${room}:`, data.courtId);
-  }
+  if (!io) return;
+  io.to(`club:${clubId}:bookings`).emit("court:availability", data);
 }
