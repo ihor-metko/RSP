@@ -276,18 +276,9 @@ export function useOperationsWebSocket(
       return;
     }
 
-    // Unsubscribe from any previous clubs
-    subscribedClubs.forEach((subscribedClubId) => {
-      if (subscribedClubId !== clubId) {
-        unsubscribe(subscribedClubId);
-      }
-    });
-
     // Subscribe to new club
-    if (!subscribedClubs.has(clubId)) {
-      console.log("[Operations WebSocket] Subscribing to club:", clubId);
-      subscribe(clubId);
-    }
+    console.log("[Operations WebSocket] Subscribing to club:", clubId);
+    subscribe(clubId);
 
     // Cleanup: unsubscribe on unmount or club change
     return () => {
@@ -303,7 +294,6 @@ export function useOperationsWebSocket(
     hasClubAccess,
     subscribe,
     unsubscribe,
-    subscribedClubs,
   ]);
 
   return {
