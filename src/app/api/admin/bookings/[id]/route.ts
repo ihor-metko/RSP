@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { calculateBookingStatus, toBookingStatus } from "@/utils/bookingStatus";
-import { getIO } from "@/lib/socket-instance";
-import { emitBookingUpdated } from "@/lib/websocket";
-import type { BookingEventPayload } from "@/lib/websocket";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetBookingById, mockUpdateBookingById } from "@/services/mockApiHandlers";
@@ -373,24 +370,6 @@ export async function PATCH(
         );
       }
 
-      // Emit WebSocket event for real-time updates
-      const io = getIO();
-      if (updatedBooking.clubId) {
-        const eventPayload: BookingEventPayload = {
-          id: updatedBooking.id,
-          clubId: updatedBooking.clubId,
-          courtId: updatedBooking.courtId,
-          userId: updatedBooking.userId,
-          start: updatedBooking.start,
-          end: updatedBooking.end,
-          status: updatedBooking.status,
-          price: updatedBooking.price,
-        };
-        
-        // Use helper function for consistent event emission
-        emitBookingUpdated(io, updatedBooking.clubId, eventPayload);
-      }
-
       return NextResponse.json(updatedBooking);
     }
 
@@ -472,22 +451,6 @@ export async function PATCH(
       endISO,
       toBookingStatus(updatedBooking.status)
     );
-
-    // Emit WebSocket event for real-time updates
-    const io = getIO();
-    const eventPayload: BookingEventPayload = {
-      id: updatedBooking.id,
-      clubId: updatedBooking.court.club.id,
-      courtId: updatedBooking.courtId,
-      userId: updatedBooking.userId,
-      start: startISO,
-      end: endISO,
-      status: updatedBooking.status,
-      price: updatedBooking.price,
-    };
-    
-    // Use helper function for consistent event emission
-    emitBookingUpdated(io, updatedBooking.court.club.id, eventPayload);
 
     const response: AdminBookingDetailResponse = {
       id: updatedBooking.id,

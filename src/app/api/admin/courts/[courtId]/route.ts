@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { isSupportedSport } from "@/constants/sports";
-import { getIO } from "@/lib/socket-instance";
-import { emitCourtAvailabilityChanged } from "@/lib/websocket";
-import type { CourtAvailabilityEventPayload } from "@/lib/websocket";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetCourtDetailById } from "@/services/mockApiHandlers";
@@ -183,20 +180,6 @@ export async function PATCH(
 
         const updatedCourt = await mockUpdateCourtDetail(courtId, court.clubId, updateData);
         
-        // Emit WebSocket event for court availability change
-        // Note: Changes to court properties (isActive, defaultPriceCents) can affect availability
-        if (isActive !== undefined || defaultPriceCents !== undefined) {
-          const io = getIO();
-          const eventPayload: CourtAvailabilityEventPayload = {
-            clubId: court.clubId,
-            courtId: courtId,
-            date: new Date().toISOString().split("T")[0],
-          };
-          
-          // Use helper function for consistent event emission
-          emitCourtAvailabilityChanged(io, court.clubId, eventPayload);
-        }
-        
         return NextResponse.json(updatedCourt);
       } catch (err) {
         if (err instanceof Error) {
@@ -345,20 +328,6 @@ export async function PATCH(
       },
     });
 
-    // Emit WebSocket event for court availability change
-    // Note: Changes to court properties (isActive, defaultPriceCents) can affect availability
-    if (isActive !== undefined || defaultPriceCents !== undefined) {
-      const io = getIO();
-      const eventPayload: CourtAvailabilityEventPayload = {
-        clubId: updatedCourt.club.id,
-        courtId: courtId,
-        date: new Date().toISOString().split("T")[0],
-      };
-      
-      // Use helper function for consistent event emission
-      emitCourtAvailabilityChanged(io, updatedCourt.club.id, eventPayload);
-    }
-
     return NextResponse.json(updatedCourt);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
@@ -401,17 +370,6 @@ export async function DELETE(
 
         const { mockDeleteCourtDetail } = await import("@/services/mockApiHandlers");
         await mockDeleteCourtDetail(courtId, court.clubId);
-        
-        // Emit WebSocket event for court availability change (court deleted)
-        const io = getIO();
-        const eventPayload: CourtAvailabilityEventPayload = {
-          clubId: court.clubId,
-          courtId: courtId,
-          date: new Date().toISOString().split("T")[0],
-        };
-        
-        // Use helper function for consistent event emission
-        emitCourtAvailabilityChanged(io, court.clubId, eventPayload);
         
         return new NextResponse(null, { status: 204 });
       } catch (err) {
@@ -458,17 +416,6 @@ export async function DELETE(
     await prisma.court.delete({
       where: { id: courtId },
     });
-
-    // Emit WebSocket event for court availability change (court deleted)
-    const io = getIO();
-    const eventPayload: CourtAvailabilityEventPayload = {
-      clubId: existingCourt.club.id,
-      courtId: courtId,
-      date: new Date().toISOString().split("T")[0],
-    };
-    
-    // Use helper function for consistent event emission
-    emitCourtAvailabilityChanged(io, existingCourt.club.id, eventPayload);
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {

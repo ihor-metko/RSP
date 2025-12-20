@@ -1,14 +1,12 @@
 /**
- * Next.js Custom Server with Socket.IO
+ * Next.js Custom Server
  * 
- * Provides WebSocket support for real-time updates.
- * Required because Next.js doesn't natively support WebSocket upgrades.
+ * Simple HTTP server for Next.js
  */
 
 const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
-const { Server } = require('socket.io');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.HOSTNAME || 'localhost';
@@ -28,47 +26,6 @@ app.prepare().then(() => {
       res.end('Internal server error');
     }
   });
-
-  // Initialize Socket.IO (singleton pattern)
-  // Stored in global.io to allow API routes to emit events
-  if (!global.io) {
-    const io = new Server(httpServer, {
-      path: '/api/socket',
-      transports: ['websocket'],
-      cors: {
-        origin: process.env.NEXTAUTH_URL || `http://${hostname}:${port}`,
-        methods: ['GET', 'POST'],
-        credentials: true,
-      },
-      addTrailingSlash: false,
-    });
-
-    // Connection handlers
-    io.on('connection', (socket) => {
-      if (dev) console.log(`[WebSocket] Client connected: ${socket.id}`);
-
-      socket.on('subscribe:club:bookings', (clubId) => {
-        const room = `club:${clubId}:bookings`;
-        socket.join(room);
-        if (dev) console.log(`[WebSocket] ${socket.id} joined ${room}`);
-        socket.emit('subscribed', { room, clubId });
-      });
-
-      socket.on('unsubscribe:club:bookings', (clubId) => {
-        const room = `club:${clubId}:bookings`;
-        socket.leave(room);
-        if (dev) console.log(`[WebSocket] ${socket.id} left ${room}`);
-        socket.emit('unsubscribed', { room, clubId });
-      });
-
-      socket.on('disconnect', () => {
-        if (dev) console.log(`[WebSocket] Client disconnected: ${socket.id}`);
-      });
-    });
-
-    global.io = io;
-    if (dev) console.log('[WebSocket] Socket.IO initialized on /api/socket');
-  }
 
   httpServer
     .once('error', (err) => {

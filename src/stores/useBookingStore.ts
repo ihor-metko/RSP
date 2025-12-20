@@ -68,14 +68,6 @@ interface BookingState {
   startPolling: (clubId: string, date: string, intervalMs?: number) => void;
   stopPolling: () => void;
 
-  // WebSocket event handlers
-  addBookingFromEvent: (booking: Partial<OperationsBooking> & { id: string }) => void;
-  updateBookingFromEvent: (booking: Partial<OperationsBooking> & { id: string }) => void;
-  removeBookingFromEvent: (bookingId: string) => void;
-  
-  // Internal tracking for event timestamps
-  _lastEventTimestamp: Record<string, number>;
-
   // Selectors
   getBookingById: (id: string) => OperationsBooking | undefined;
   getBookingsByCourtId: (courtId: string) => OperationsBooking[];
@@ -94,7 +86,6 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   pollingInterval: null,
   pollingTimeoutId: null,
   _inflightFetch: null,
-  _lastEventTimestamp: {},
 
   // State setters
   setBookings: (bookings) => set({ bookings }),
@@ -267,98 +258,6 @@ export const useBookingStore = create<BookingState>((set, get) => ({
       clearInterval(state.pollingTimeoutId);
       set({ pollingInterval: null, pollingTimeoutId: null });
     }
-  },
-
-  // WebSocket event handlers
-  addBookingFromEvent: (booking: Partial<OperationsBooking> & { id: string }) => {
-    const now = Date.now();
-    
-    set((state) => {
-      // Check for stale events - reject events with timestamps earlier than the last processed event for this booking
-      // This prevents out-of-order event delivery from network delays/race conditions
-      const lastTimestamp = state._lastEventTimestamp[booking.id] || 0;
-      if (now < lastTimestamp) {
-        console.warn("[Booking Store] Ignoring stale booking created event:", booking.id);
-        return state;
-      }
-      
-      // Check if booking already exists (duplicate prevention)
-      const existingIndex = state.bookings.findIndex((b) => b.id === booking.id);
-      
-      if (existingIndex >= 0) {
-        // Booking already exists - merge update instead of adding
-        console.log("[Booking Store] Booking already exists, merging update:", booking.id);
-        const newBookings = [...state.bookings];
-        newBookings[existingIndex] = { ...newBookings[existingIndex], ...booking };
-        return { 
-          bookings: newBookings,
-          _lastEventTimestamp: { ...state._lastEventTimestamp, [booking.id]: now }
-        };
-      } else {
-        // New booking - trigger refetch to get complete data with user/court names
-        // WebSocket events don't include display fields, so we need a full fetch
-        // Note: This may cause brief additional API calls when bookings are created rapidly,
-        // but ensures the UI has complete data for display (names, images, etc.)
-        console.log("[Booking Store] New booking detected, triggering refetch:", booking.id);
-        get().invalidateBookings();
-        return { 
-          ...state,
-          _lastEventTimestamp: { ...state._lastEventTimestamp, [booking.id]: now }
-        };
-      }
-    });
-  },
-
-  updateBookingFromEvent: (booking: Partial<OperationsBooking> & { id: string }) => {
-    const now = Date.now();
-    
-    set((state) => {
-      // Check for stale events
-      const lastTimestamp = state._lastEventTimestamp[booking.id] || 0;
-      if (now < lastTimestamp) {
-        console.warn("[Booking Store] Ignoring stale booking updated event:", booking.id);
-        return state;
-      }
-      
-      const existingIndex = state.bookings.findIndex((b) => b.id === booking.id);
-      
-      if (existingIndex >= 0) {
-        // Update existing booking by merging new data with existing (immutable update)
-        const newBookings = [...state.bookings];
-        newBookings[existingIndex] = { ...newBookings[existingIndex], ...booking };
-        return { 
-          bookings: newBookings,
-          _lastEventTimestamp: { ...state._lastEventTimestamp, [booking.id]: now }
-        };
-      } else {
-        // Booking not in current view - might be for different date or court
-        // Ignore silently unless it's within our current fetch params
-        if (state.lastFetchParams) {
-          console.log("[Booking Store] Updated booking not in current view, may trigger refetch if needed");
-        }
-        return state;
-      }
-    });
-  },
-
-  removeBookingFromEvent: (bookingId: string) => {
-    const now = Date.now();
-    
-    set((state) => {
-      // Check if booking exists before removing
-      const exists = state.bookings.some((b) => b.id === bookingId);
-      
-      if (!exists) {
-        // Booking not in current view - ignore silently
-        return state;
-      }
-      
-      // Remove booking (immutable update)
-      return {
-        bookings: state.bookings.filter((b) => b.id !== bookingId),
-        _lastEventTimestamp: { ...state._lastEventTimestamp, [bookingId]: now }
-      };
-    });
   },
 
   // Selectors

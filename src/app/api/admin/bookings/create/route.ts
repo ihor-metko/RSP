@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
-import { getIO } from "@/lib/socket-instance";
-import { emitBookingCreated } from "@/lib/websocket";
-import type { BookingEventPayload } from "@/lib/websocket";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode, findCourtById, findClubById, findUserById, getMockBookings } from "@/services/mockDb";
 import { mockCreateBooking } from "@/services/mockApiHandlers";
@@ -133,22 +130,6 @@ export async function POST(request: Request) {
         price: priceCents,
         status: "reserved",
       });
-
-      // Emit WebSocket event for real-time updates
-      const io = getIO();
-      const eventPayload: BookingEventPayload = {
-        id: booking.id,
-        clubId: club.id,
-        courtId: booking.courtId,
-        userId: booking.userId,
-        start: booking.start.toISOString(),
-        end: booking.end.toISOString(),
-        status: booking.status,
-        price: booking.price,
-      };
-      
-      // Use helper function for consistent event emission
-      emitBookingCreated(io, club.id, eventPayload);
 
       return NextResponse.json(
         {
@@ -337,22 +318,6 @@ export async function POST(request: Request) {
         },
       },
     });
-
-    // Emit WebSocket event for real-time updates
-    const io = getIO();
-    const eventPayload: BookingEventPayload = {
-      id: booking.id,
-      clubId: booking.court.club.id,
-      courtId: booking.courtId,
-      userId: booking.userId,
-      start: booking.start.toISOString(),
-      end: booking.end.toISOString(),
-      status: booking.status,
-      price: booking.price,
-    };
-    
-    // Use helper function for consistent event emission
-    emitBookingCreated(io, booking.court.club.id, eventPayload);
 
     return NextResponse.json(
       {

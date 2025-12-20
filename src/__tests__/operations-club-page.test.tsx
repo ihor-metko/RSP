@@ -131,16 +131,6 @@ jest.mock("@/components/AdminQuickBookingWizard", () => ({
   AdminQuickBookingWizard: () => null,
 }));
 
-// Mock WebSocket hook
-jest.mock("@/hooks/useOperationsWebSocket", () => ({
-  useOperationsWebSocket: () => ({
-    isConnected: true,
-    isConnecting: false,
-    error: null,
-    subscribedClubId: "club-1",
-  }),
-}));
-
 import ClubOperationsPage from "@/app/(pages)/admin/operations/[clubId]/page";
 
 describe("ClubOperationsPage", () => {
@@ -263,40 +253,6 @@ describe("ClubOperationsPage", () => {
         expect(mockCourtStore.fetchCourtsIfNeeded).toHaveBeenCalledWith({ clubId: "club-1" });
         expect(mockBookingStore.fetchBookingsForDay).toHaveBeenCalled();
       });
-    });
-
-    it("should NOT start polling when using WebSocket", async () => {
-      mockUserStore.isLoggedIn = true;
-      mockUserStore.isLoading = false;
-      mockUserStore.adminStatus = {
-        isAdmin: true,
-        adminType: "club_admin",
-        managedIds: ["club-1"],
-        assignedClub: {
-          id: "club-1",
-          name: "Test Club",
-        },
-      };
-
-      mockClubStore.clubsById = {
-        "club-1": {
-          id: "club-1",
-          name: "Test Club",
-          location: "Test Location",
-          status: "active",
-          createdAt: new Date().toISOString(),
-        } as any,
-      };
-
-      render(<ClubOperationsPage />);
-
-      // With WebSocket enabled, polling should NOT be started
-      await waitFor(() => {
-        expect(mockBookingStore.fetchBookingsForDay).toHaveBeenCalled();
-      });
-      
-      // Verify polling was NOT started (WebSocket replaces polling)
-      expect(mockBookingStore.startPolling).not.toHaveBeenCalled();
     });
   });
 
