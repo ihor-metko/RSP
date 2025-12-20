@@ -110,10 +110,10 @@ describe('socketUpdateManager', () => {
       expect(shouldApplyBookingUpdate(currentBooking, incomingBooking)).toBe(false);
     });
 
-    it('should apply update if timestamps are equal', () => {
+    it('should not apply update if timestamps are equal', () => {
       const currentBooking = createMockBooking('booking-1', '2024-01-15T10:00:00Z');
       const incomingBooking = createMockBooking('booking-1', '2024-01-15T10:00:00Z');
-      expect(shouldApplyBookingUpdate(currentBooking, incomingBooking)).toBe(true);
+      expect(shouldApplyBookingUpdate(currentBooking, incomingBooking)).toBe(false);
     });
   });
 

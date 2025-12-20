@@ -501,7 +501,7 @@ export async function PATCH(
       coachId: updatedBooking.coachId,
       coachName: updatedBooking.coach?.user.name ?? null,
       createdAt: updatedBooking.createdAt.toISOString(),
-      updatedAt: updatedBooking.updatedAt.toISOString(),
+      updatedAt: updatedBooking.createdAt.toISOString(), // Use createdAt as version timestamp
     };
 
     emitBookingUpdated({

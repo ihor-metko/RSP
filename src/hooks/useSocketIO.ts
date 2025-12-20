@@ -200,7 +200,7 @@ export function useSocketIO(options: UseSocketIOOptions = {}): UseSocketIOReturn
       socket.off('bookingDeleted');
       socket.disconnect();
     };
-  }, [autoConnect, debounceMs]); // Only reconnect when autoConnect or debounceMs changes
+  }, [autoConnect]); // Only reconnect when autoConnect changes
 
   const connect = () => {
     if (!socketRef.current) {

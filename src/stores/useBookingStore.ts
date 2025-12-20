@@ -284,7 +284,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     const currentBookings = get().bookings;
     const updatedBookings = updateBookingInList(currentBookings, booking);
     
-    // Only update state if the list actually changed
+    // Only update state if the booking list was modified (prevents unnecessary re-renders)
     if (updatedBookings !== currentBookings) {
       set({ bookings: updatedBookings });
     }

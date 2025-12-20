@@ -95,8 +95,8 @@ export function shouldApplyBookingUpdate(
   const currentTimestamp = new Date(currentBooking.updatedAt).getTime();
   const incomingTimestamp = new Date(incomingBooking.updatedAt).getTime();
 
-  // Only apply if incoming is newer or equal (for same-time updates)
-  if (incomingTimestamp >= currentTimestamp) {
+  // Only apply if incoming is strictly newer
+  if (incomingTimestamp > currentTimestamp) {
     return true;
   }
 
@@ -106,7 +106,7 @@ export function shouldApplyBookingUpdate(
       bookingId: incomingBooking.id,
       currentTimestamp: new Date(currentBooking.updatedAt).toISOString(),
       incomingTimestamp: new Date(incomingBooking.updatedAt).toISOString(),
-      message: 'Ignoring outdated update',
+      message: 'Ignoring outdated or duplicate update',
     });
   }
 
