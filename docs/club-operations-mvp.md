@@ -209,31 +209,10 @@ src/components/club-operations/
 ### Planned Features
 1. **Drag & Drop**: Move bookings between time slots
 2. **Bulk Operations**: Multi-select and batch actions
-3. **WebSocket Integration**: Real-time updates without polling
-4. **Payment Management**: Mark as paid, refund functionality
-5. **Recurring Bookings**: Create series of bookings
-6. **Conflict Resolution**: Advanced handling of overlapping bookings
-7. **Export**: Download booking data as CSV/PDF
-
-### WebSocket Integration Points
-The current implementation is designed to easily integrate WebSockets:
-
-**Store modification:**
-```typescript
-// Add WebSocket connection management
-connectWebSocket: (clubId: string) => void;
-disconnectWebSocket: () => void;
-
-// Handle incoming WebSocket messages
-handleBookingUpdate: (booking: OperationsBooking) => void;
-handleBookingDelete: (bookingId: string) => void;
-```
-
-**Server events:**
-- `booking.created`
-- `booking.updated`
-- `booking.cancelled`
-- `booking.deleted`
+3. **Payment Management**: Mark as paid, refund functionality
+4. **Recurring Bookings**: Create series of bookings
+5. **Conflict Resolution**: Advanced handling of overlapping bookings
+6. **Export**: Download booking data as CSV/PDF
 
 ## Troubleshooting
 
@@ -310,7 +289,6 @@ npm test -- booking-store.test.ts
 5. **Skeleton Loaders**: Immediate visual feedback
 
 ### Scaling Recommendations
-- Consider WebSocket for >50 concurrent users
 - Implement pagination for clubs with >100 bookings/day
 - Add backend caching (Redis) for high-traffic clubs
 - Consider virtual scrolling for large time ranges
