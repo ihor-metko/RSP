@@ -1,19 +1,24 @@
 /**
- * Custom Next.js Server with Socket.io
+ * Next.js Server with Socket.IO Integration
  * 
- * This custom server wraps Next.js to add Socket.io WebSocket support.
- * It's required because Next.js doesn't natively support WebSocket upgrades
- * in the App Router without a custom server.
+ * This server integrates Socket.IO with Next.js for WebSocket support.
+ * Uses Next.js built-in server with Socket.IO attached for WebSocket upgrades.
+ * 
+ * Features:
+ * - WebSocket-only transport (no polling fallback)
+ * - Room-based architecture for club channels
+ * - Singleton Socket.IO instance
+ * - Production-ready for Docker + Nginx deployment
  * 
  * Usage:
- * - Development: node server.js
- * - Production: NODE_ENV=production node server.js
+ * - Development: npm run dev
+ * - Production: npm start
  */
 
 const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
-const { Server } = require('socket.io');
+const { initSocketIO } = require('./src/lib/socket-instance');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.HOSTNAME || 'localhost';
@@ -24,7 +29,7 @@ const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
-  // Create HTTP server
+  // Create HTTP server for Next.js
   const httpServer = createServer(async (req, res) => {
     try {
       const parsedUrl = parse(req.url, true);
@@ -36,60 +41,8 @@ app.prepare().then(() => {
     }
   });
 
-  // Initialize Socket.io server
-  const io = new Server(httpServer, {
-    path: '/api/socket',
-    cors: {
-      origin: process.env.NEXTAUTH_URL || `http://${hostname}:${port}`,
-      methods: ['GET', 'POST'],
-      credentials: true,
-    },
-    addTrailingSlash: false,
-  });
-
-  // Socket.io connection handler
-  io.on('connection', (socket) => {
-    if (dev) {
-      console.log(`[WebSocket] Client connected: ${socket.id}`);
-    }
-
-    // Handle club room subscription
-    socket.on('subscribe:club:bookings', (clubId) => {
-      const room = `club:${clubId}:bookings`;
-      socket.join(room);
-      
-      if (dev) {
-        console.log(`[WebSocket] Client ${socket.id} joined room: ${room}`);
-      }
-      
-      socket.emit('subscribed', { room, clubId });
-    });
-
-    // Handle club room unsubscription
-    socket.on('unsubscribe:club:bookings', (clubId) => {
-      const room = `club:${clubId}:bookings`;
-      socket.leave(room);
-      
-      if (dev) {
-        console.log(`[WebSocket] Client ${socket.id} left room: ${room}`);
-      }
-      
-      socket.emit('unsubscribed', { room, clubId });
-    });
-
-    socket.on('disconnect', () => {
-      if (dev) {
-        console.log(`[WebSocket] Client disconnected: ${socket.id}`);
-      }
-    });
-  });
-
-  // Make io accessible globally for API routes
-  global.io = io;
-
-  if (dev) {
-    console.log('[WebSocket] Socket.io server initialized');
-  }
+  // Initialize Socket.IO (singleton pattern in socket-instance.js)
+  initSocketIO(httpServer);
 
   // Start the server
   httpServer
@@ -98,8 +51,8 @@ app.prepare().then(() => {
       process.exit(1);
     })
     .listen(port, () => {
-      console.log(
-        `> Ready on http://${hostname}:${port} with Socket.io support`
-      );
+      console.log(`> Ready on http://${hostname}:${port}`);
+      console.log(`> Socket.IO path: /api/socket`);
+      console.log(`> Transport: websocket only`);
     });
 });

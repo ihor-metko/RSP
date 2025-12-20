@@ -1,14 +1,18 @@
 /**
- * Socket.io Instance Helper
+ * Socket.IO Server Singleton
  * 
- * Provides access to the global Socket.io server instance
- * initialized in the custom server (server.js).
+ * Provides centralized Socket.IO server initialization and access.
+ * Implements singleton pattern to prevent multiple instances.
  * 
- * This module allows API routes to emit WebSocket events
- * without needing direct access to the HTTP server.
+ * This module ensures only one Socket.IO instance exists across
+ * the application lifecycle, even during hot module reloads in development.
  */
 
-import type { Server as SocketIOServer } from "socket.io";
+import { Server as SocketIOServer } from "socket.io";
+import type { Server as HTTPServer } from "http";
+
+// Singleton instance
+let io: SocketIOServer | null = null;
 
 /**
  * Type definition for Node.js global with Socket.io
@@ -19,22 +23,117 @@ declare global {
 }
 
 /**
- * Get the Socket.io server instance
+ * Initialize Socket.IO server (singleton pattern)
  * 
- * Returns the global io instance if available, otherwise null.
- * The io instance is set by server.js when the custom server starts.
+ * This function is called once by server.js when the HTTP server starts.
+ * It ensures only one Socket.IO instance exists, preventing duplicate
+ * connections and event handlers.
  * 
- * @returns Socket.io server instance or null
+ * @param httpServer - The HTTP server instance from Next.js
+ * @returns Socket.IO server instance
+ */
+export function initSocketIO(httpServer: HTTPServer): SocketIOServer {
+  // Return existing instance if already initialized
+  if (io) {
+    if (process.env.NODE_ENV === "development") {
+      console.log("[WebSocket] Socket.IO already initialized (singleton)");
+    }
+    return io;
+  }
+
+  // Create new Socket.IO server with websocket-only transport
+  io = new SocketIOServer(httpServer, {
+    path: "/api/socket",
+    transports: ["websocket"], // Websocket only - no polling fallback
+    cors: {
+      origin: process.env.NEXTAUTH_URL || "http://localhost:3000",
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+    addTrailingSlash: false,
+  });
+
+  // Setup connection handlers
+  setupSocketHandlers(io);
+
+  // Store in global for backward compatibility with existing code
+  global.io = io;
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("[WebSocket] Socket.IO server initialized");
+    console.log("[WebSocket] Path: /api/socket");
+    console.log("[WebSocket] Transport: websocket only");
+  }
+
+  return io;
+}
+
+/**
+ * Setup Socket.IO event handlers
+ * 
+ * Handles connection events, room subscriptions, and disconnections.
+ * Uses room-based architecture for club-specific channels.
+ */
+function setupSocketHandlers(io: SocketIOServer): void {
+  io.on("connection", (socket) => {
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[WebSocket] Client connected: ${socket.id}`);
+    }
+
+    // Handle club room subscription
+    socket.on("subscribe:club:bookings", (clubId: string) => {
+      const room = `club:${clubId}:bookings`;
+      socket.join(room);
+      
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[WebSocket] Client ${socket.id} joined room: ${room}`);
+      }
+      
+      socket.emit("subscribed", { room, clubId });
+    });
+
+    // Handle club room unsubscription
+    socket.on("unsubscribe:club:bookings", (clubId: string) => {
+      const room = `club:${clubId}:bookings`;
+      socket.leave(room);
+      
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[WebSocket] Client ${socket.id} left room: ${room}`);
+      }
+      
+      socket.emit("unsubscribed", { room, clubId });
+    });
+
+    socket.on("disconnect", () => {
+      if (process.env.NODE_ENV === "development") {
+        console.log(`[WebSocket] Client disconnected: ${socket.id}`);
+      }
+    });
+  });
+}
+
+/**
+ * Get the Socket.IO server instance
+ * 
+ * Returns the singleton Socket.IO instance for emitting events from API routes.
+ * 
+ * @returns Socket.IO server instance or null if not initialized
  */
 export function getIO(): SocketIOServer | null {
+  if (io) {
+    return io;
+  }
+  
+  // Fallback to global for backward compatibility
   if (typeof global.io !== "undefined") {
-    return global.io;
+    io = global.io;
+    return io;
   }
   
   // In development, log a warning if io is not available
   if (process.env.NODE_ENV === "development") {
     console.warn(
-      "[Socket.io] Server instance not available. Make sure you're running the custom server (npm run dev)."
+      "[Socket.IO] Server instance not available. Make sure you're running with 'npm run dev' or 'npm start'."
     );
   }
   
@@ -42,8 +141,8 @@ export function getIO(): SocketIOServer | null {
 }
 
 /**
- * Check if Socket.io server is initialized
+ * Check if Socket.IO server is initialized
  */
 export function isIOInitialized(): boolean {
-  return typeof global.io !== "undefined";
+  return io !== null || typeof global.io !== "undefined";
 }
