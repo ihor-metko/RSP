@@ -148,8 +148,9 @@ async function runTests() {
         log(`Failed: ${testsFailed}`, 'error');
       }
       
-      const percentage = testsRun > 0 ? ((testsPassed / testsRun) * 100).toFixed(1) : '0.0';
-      log(`\nSuccess rate: ${percentage}%\n`, percentage === '100.0' ? 'success' : 'warning');
+      const percentage = testsRun > 0 ? ((testsPassed / testsRun) * 100) : 0;
+      const percentageStr = percentage.toFixed(1);
+      log(`\nSuccess rate: ${percentageStr}%\n`, percentage >= 100 ? 'success' : 'warning');
 
       socket.disconnect();
       
