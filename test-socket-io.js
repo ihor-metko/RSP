@@ -112,13 +112,22 @@ async function runTests() {
     });
 
     let reconnected = false;
+    let initialConnectionComplete = false;
+    
     socket.on('connect', () => {
+      // Skip if this is the reconnection we're testing
       if (reconnected) return;
-      if (socket.id && testsRun > 3) {
-        reconnected = true;
-        assert(true, 'Reconnection successful');
-        cleanup();
+      
+      // First connection - run initial tests
+      if (!initialConnectionComplete) {
+        initialConnectionComplete = true;
+        return;
       }
+      
+      // This is the reconnection after intentional disconnect
+      reconnected = true;
+      assert(true, 'Reconnection successful');
+      cleanup();
     });
 
     socket.on('disconnect', (reason) => {

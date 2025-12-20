@@ -18,7 +18,7 @@
 const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
-const { initSocketIO } = require('./src/lib/socket-instance');
+const { Server } = require('socket.io');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.HOSTNAME || 'localhost';
@@ -27,6 +27,78 @@ const port = parseInt(process.env.PORT || '3000', 10);
 // Create Next.js app
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
+
+// Singleton Socket.IO instance
+let io = null;
+
+/**
+ * Initialize Socket.IO server (singleton pattern)
+ */
+function initSocketIO(httpServer) {
+  if (io) {
+    if (dev) {
+      console.log('[WebSocket] Socket.IO already initialized (singleton)');
+    }
+    return io;
+  }
+
+  io = new Server(httpServer, {
+    path: '/api/socket',
+    transports: ['websocket'], // Websocket only - no polling
+    cors: {
+      origin: process.env.NEXTAUTH_URL || `http://${hostname}:${port}`,
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
+    addTrailingSlash: false,
+  });
+
+  // Setup connection handlers
+  io.on('connection', (socket) => {
+    if (dev) {
+      console.log(`[WebSocket] Client connected: ${socket.id}`);
+    }
+
+    socket.on('subscribe:club:bookings', (clubId) => {
+      const room = `club:${clubId}:bookings`;
+      socket.join(room);
+      
+      if (dev) {
+        console.log(`[WebSocket] Client ${socket.id} joined room: ${room}`);
+      }
+      
+      socket.emit('subscribed', { room, clubId });
+    });
+
+    socket.on('unsubscribe:club:bookings', (clubId) => {
+      const room = `club:${clubId}:bookings`;
+      socket.leave(room);
+      
+      if (dev) {
+        console.log(`[WebSocket] Client ${socket.id} left room: ${room}`);
+      }
+      
+      socket.emit('unsubscribed', { room, clubId });
+    });
+
+    socket.on('disconnect', () => {
+      if (dev) {
+        console.log(`[WebSocket] Client disconnected: ${socket.id}`);
+      }
+    });
+  });
+
+  // Make io accessible globally for API routes
+  global.io = io;
+
+  if (dev) {
+    console.log('[WebSocket] Socket.IO server initialized');
+    console.log('[WebSocket] Path: /api/socket');
+    console.log('[WebSocket] Transport: websocket only');
+  }
+
+  return io;
+}
 
 app.prepare().then(() => {
   // Create HTTP server for Next.js
@@ -41,7 +113,7 @@ app.prepare().then(() => {
     }
   });
 
-  // Initialize Socket.IO (singleton pattern in socket-instance.js)
+  // Initialize Socket.IO (singleton pattern)
   initSocketIO(httpServer);
 
   // Start the server
