@@ -148,7 +148,7 @@ export async function POST(request: Request) {
         bookingStatus,
         paymentStatus,
         price: booking.price,
-        sportType: court.sportType,
+        sportType: court.sportType as OperationsBooking['sportType'],
         coachId: null,
         coachName: null,
         createdAt: booking.createdAt.toISOString(),

@@ -4,6 +4,7 @@ import { requireAnyAdmin } from "@/lib/requireRole";
 import { calculateBookingStatus, toBookingStatus, migrateLegacyStatus } from "@/utils/bookingStatus";
 import { emitBookingUpdated, emitBookingDeleted } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
+import { SportType } from "@/constants/sports";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
 import { mockGetBookingById, mockUpdateBookingById } from "@/services/mockApiHandlers";
@@ -386,7 +387,7 @@ export async function PATCH(
         bookingStatus: newBookingStatus,
         paymentStatus: newPaymentStatus,
         price: updatedBooking.price,
-        sportType: "PADEL", // mock bookings use default sport type
+        sportType: SportType.PADEL, // mock bookings use default sport type
         coachId: updatedBooking.coachId,
         coachName: updatedBooking.coachName,
         createdAt: updatedBooking.createdAt,
