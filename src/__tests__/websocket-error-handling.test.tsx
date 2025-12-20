@@ -26,6 +26,10 @@ import type {
 // Mock socket instance
 let mockSocket: any;
 
+// Test constants
+const DEBOUNCE_WAIT_TIME = 350; // Wait time for 300ms debounce + buffer
+const SHORT_DEBOUNCE = 100; // For tests with custom short debounce
+
 // Mock socket.io-client
 jest.mock("socket.io-client", () => {
   return {
@@ -85,7 +89,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         useSocketIO({
           autoConnect: true,
           onBookingCreated,
-          debounceMs: 100, // Shorter debounce for testing
+          debounceMs: SHORT_DEBOUNCE,
         })
       );
 
@@ -100,7 +104,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       }).not.toThrow();
 
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, SHORT_DEBOUNCE + 50));
 
       // The debounce wrapper should handle null gracefully
       // The callback may or may not be called depending on debounce implementation
@@ -114,7 +118,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         useSocketIO({
           autoConnect: true,
           onBookingUpdated,
-          debounceMs: 100, // Shorter debounce for testing
+          debounceMs: SHORT_DEBOUNCE,
         })
       );
 
@@ -129,7 +133,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       }).not.toThrow();
 
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, SHORT_DEBOUNCE + 50));
 
       // The debounce wrapper should handle undefined gracefully
       // The important thing is the app doesn't crash
@@ -156,7 +160,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       }).not.toThrow();
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       await waitFor(() => {
         expect(onBookingDeleted).toHaveBeenCalledWith({});
@@ -198,7 +202,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       }).not.toThrow();
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
     });
 
     it("should handle booking event with wrong data types", async () => {
@@ -228,7 +232,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       }).not.toThrow();
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       await waitFor(() => {
         expect(onBookingUpdated).toHaveBeenCalledWith(wrongTypeEvent);
@@ -262,7 +266,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       }).not.toThrow();
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Known callbacks should not be triggered
       expect(onBookingCreated).not.toHaveBeenCalled();
@@ -349,7 +353,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         emitSocketEvent("bookingCreated", { invalid: "data" });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Store should still have the original booking
       await waitFor(() => {
@@ -410,7 +414,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Store should remain unchanged
       await waitFor(() => {
@@ -471,7 +475,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Booking should not be deleted
       await waitFor(() => {
@@ -510,7 +514,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         emitSocketEvent("bookingCreated", null);
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Emit a valid event
       act(() => {
@@ -538,7 +542,7 @@ describe("WebSocket Error Handling - Invalid Messages", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Valid booking should be in the store
       await waitFor(() => {

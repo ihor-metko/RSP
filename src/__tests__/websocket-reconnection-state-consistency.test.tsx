@@ -23,6 +23,9 @@ import type { OperationsBooking } from "@/types/booking";
 // Mock socket instance
 let mockSocket: any;
 
+// Test constants
+const DEBOUNCE_WAIT_TIME = 350; // Wait time for 300ms debounce + buffer
+
 // Mock socket.io-client
 jest.mock("socket.io-client", () => {
   return {
@@ -395,7 +398,7 @@ describe("WebSocket Reconnection and State Consistency", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Event should be processed correctly
       await waitFor(() => {
@@ -453,7 +456,7 @@ describe("WebSocket Reconnection and State Consistency", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       await waitFor(() => {
         expect(useBookingStore.getState().bookings.length).toBe(1);
@@ -489,7 +492,7 @@ describe("WebSocket Reconnection and State Consistency", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Both events should be processed
       await waitFor(() => {
@@ -538,7 +541,7 @@ describe("WebSocket Reconnection and State Consistency", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Event 2: Update
       act(() => {
@@ -553,7 +556,7 @@ describe("WebSocket Reconnection and State Consistency", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Disconnect and reconnect
       act(() => {
@@ -583,7 +586,7 @@ describe("WebSocket Reconnection and State Consistency", () => {
         });
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 350));
+      await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
 
       // Events should be processed in order
       await waitFor(() => {
