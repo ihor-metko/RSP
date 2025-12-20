@@ -1278,7 +1278,10 @@
     "calendarView": "Вигляд календаря",
     "listView": "Вигляд списку",
     "newBooking": "Нове бронювання",
-    "pageDescription": "Перегляд та керування бронюваннями, кортами та розкладами"
+    "pageDescription": "Перегляд та керування бронюваннями, кортами та розкладами",
+    "bookingCreatedToast": "Створено нове бронювання",
+    "bookingUpdatedToast": "Бронювання оновлено",
+    "bookingDeletedToast": "Бронювання видалено"
   },
   "users": {
     "title": "Управління користувачами",
@@ -1731,7 +1734,10 @@
     "description": "Підсумок активних та минулих бронювань",
     "activeBookings": "Активні / Майбутні бронювання",
     "pastBookings": "Минулі бронювання",
-    "noBookings": "Немає доступних бронювань"
+    "noBookings": "Немає доступних бронювань",
+    "bookingCreatedToast": "Створено нове бронювання",
+    "bookingUpdatedToast": "Бронювання оновлено",
+    "bookingDeletedToast": "Бронювання видалено"
   },
   "dashboardGraphs": {
     "title": "Аналітика",

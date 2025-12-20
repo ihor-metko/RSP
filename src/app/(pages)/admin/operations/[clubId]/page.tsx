@@ -181,8 +181,14 @@ export default function ClubOperationsPage() {
 
   // Handle booking creation success
   const handleBookingSuccess = useCallback(() => {
-    // Bookings will auto-refresh via polling
-    // Or we can manually trigger a refresh
+    // Refresh bookings
+    if (clubId && selectedDate) {
+      fetchBookingsForDay(clubId, selectedDate).catch(console.error);
+    }
+  }, [clubId, selectedDate, fetchBookingsForDay]);
+
+  // Handle refresh from real-time updates
+  const handleRefreshBookings = useCallback(() => {
     if (clubId && selectedDate) {
       fetchBookingsForDay(clubId, selectedDate).catch(console.error);
     }
@@ -375,6 +381,8 @@ export default function ClubOperationsPage() {
                 }
               }}
               loading={loadingBookings}
+              clubId={clubId}
+              onRefresh={handleRefreshBookings}
             />
           </div>
         </div>
@@ -392,6 +400,8 @@ export default function ClubOperationsPage() {
               }
             }}
             loading={loadingBookings}
+            clubId={clubId}
+            onRefresh={handleRefreshBookings}
           />
         </div>
       )}

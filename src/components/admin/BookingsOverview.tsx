@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useSocketIO } from "@/hooks/useSocketIO";
+import { showToast } from "@/lib/toast";
 import "./BookingsOverview.css";
 
 /**
@@ -110,6 +112,10 @@ export interface BookingsOverviewProps {
   pastBreakdown?: { label: string; count: number }[];
   /** Whether the data is loading */
   loading?: boolean;
+  /** Callback to refresh bookings data */
+  onRefresh?: () => void;
+  /** Enable WebSocket for real-time updates */
+  enableRealtime?: boolean;
 }
 
 /**
@@ -130,8 +136,33 @@ export default function BookingsOverview({
   activeBreakdown,
   pastBreakdown,
   loading = false,
+  onRefresh,
+  enableRealtime = false,
 }: BookingsOverviewProps) {
   const t = useTranslations();
+
+  // Set up WebSocket connection for real-time updates
+  useSocketIO({
+    autoConnect: enableRealtime,
+    onBookingCreated: () => {
+      if (enableRealtime) {
+        showToast(t("bookingsOverview.bookingCreatedToast"), { type: "success" });
+        onRefresh?.();
+      }
+    },
+    onBookingUpdated: () => {
+      if (enableRealtime) {
+        showToast(t("bookingsOverview.bookingUpdatedToast"), { type: "info" });
+        onRefresh?.();
+      }
+    },
+    onBookingDeleted: () => {
+      if (enableRealtime) {
+        showToast(t("bookingsOverview.bookingDeletedToast"), { type: "warning" });
+        onRefresh?.();
+      }
+    },
+  });
 
   if (loading) {
     return (

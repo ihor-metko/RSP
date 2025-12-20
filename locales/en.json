@@ -1349,7 +1349,10 @@
     "calendarView": "Calendar View",
     "listView": "List View",
     "newBooking": "New Booking",
-    "pageDescription": "View and manage bookings, courts, and schedules"
+    "pageDescription": "View and manage bookings, courts, and schedules",
+    "bookingCreatedToast": "New booking created",
+    "bookingUpdatedToast": "Booking updated",
+    "bookingDeletedToast": "Booking deleted"
   },
   "users": {
     "title": "User Management",
@@ -1765,7 +1768,10 @@
     "description": "Summary of active and past bookings",
     "activeBookings": "Active / Upcoming Bookings",
     "pastBookings": "Past Bookings",
-    "noBookings": "No bookings available"
+    "noBookings": "No bookings available",
+    "bookingCreatedToast": "New booking created",
+    "bookingUpdatedToast": "Booking updated",
+    "bookingDeletedToast": "Booking deleted"
   },
   "dashboardGraphs": {
     "title": "Analytics",

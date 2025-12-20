@@ -128,6 +128,14 @@ export default function AdminDashboardPage() {
     }
   }, [router]);
 
+  // Refresh dashboard data
+  const refreshDashboard = useCallback(async () => {
+    const data = await fetchDashboard();
+    if (data) {
+      setDashboardData(data);
+    }
+  }, [fetchDashboard]);
+
   useEffect(() => {
     // Wait for hydration before checking auth
     if (!isHydrated) return;
@@ -276,6 +284,8 @@ export default function AdminDashboardPage() {
             <BookingsOverview
               activeBookings={dashboardData.platformStats.activeBookingsCount}
               pastBookings={dashboardData.platformStats.pastBookingsCount}
+              onRefresh={refreshDashboard}
+              enableRealtime={true}
             />
 
             {/* Dashboard Graphs Section */}
@@ -309,6 +319,8 @@ export default function AdminDashboardPage() {
             <BookingsOverview
               activeBookings={dashboardData.organizations.reduce((sum, org) => sum + org.activeBookings, 0)}
               pastBookings={dashboardData.organizations.reduce((sum, org) => sum + org.pastBookings, 0)}
+              onRefresh={refreshDashboard}
+              enableRealtime={true}
             />
 
             {/* Dashboard Graphs Section */}
@@ -342,6 +354,8 @@ export default function AdminDashboardPage() {
             <BookingsOverview
               activeBookings={dashboardData.clubs.reduce((sum, club) => sum + club.activeBookings, 0)}
               pastBookings={dashboardData.clubs.reduce((sum, club) => sum + club.pastBookings, 0)}
+              onRefresh={refreshDashboard}
+              enableRealtime={true}
             />
 
             {/* Dashboard Graphs Section */}

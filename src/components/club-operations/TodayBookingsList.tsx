@@ -5,6 +5,8 @@ import { Button, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui"
 import type { OperationsBooking } from "@/types/booking";
 import { formatPrice } from "@/utils/price";
 import { canCancelBooking } from "@/utils/bookingStatus";
+import { useSocketIO } from "@/hooks/useSocketIO";
+import { showToast } from "@/lib/toast";
 import "./TodayBookingsList.css";
 
 interface TodayBookingsListProps {
@@ -12,6 +14,8 @@ interface TodayBookingsListProps {
   onViewBooking: (booking: OperationsBooking) => void;
   onCancelBooking: (bookingId: string) => void;
   loading?: boolean;
+  clubId?: string;
+  onRefresh?: () => void;
 }
 
 /**
@@ -25,8 +29,36 @@ export function TodayBookingsList({
   onViewBooking,
   onCancelBooking,
   loading = false,
+  clubId,
+  onRefresh,
 }: TodayBookingsListProps) {
   const t = useTranslations();
+
+  // Set up WebSocket connection for real-time updates
+  useSocketIO({
+    autoConnect: true,
+    onBookingCreated: (data) => {
+      // Only handle events for this club
+      if (clubId && data.clubId === clubId) {
+        showToast(t("operations.bookingCreatedToast"), { type: "success" });
+        onRefresh?.();
+      }
+    },
+    onBookingUpdated: (data) => {
+      // Only handle events for this club
+      if (clubId && data.clubId === clubId) {
+        showToast(t("operations.bookingUpdatedToast"), { type: "info" });
+        onRefresh?.();
+      }
+    },
+    onBookingDeleted: (data) => {
+      // Only handle events for this club
+      if (clubId && data.clubId === clubId) {
+        showToast(t("operations.bookingDeletedToast"), { type: "warning" });
+        onRefresh?.();
+      }
+    },
+  });
 
   // Sort bookings by start time
   const sortedBookings = [...bookings].sort((a, b) => {
