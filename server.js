@@ -1,13 +1,18 @@
 /**
- * Custom Next.js Server with Socket.io
+ * Next.js Server with Socket.IO Integration
  * 
- * This custom server wraps Next.js to add Socket.io WebSocket support.
- * It's required because Next.js doesn't natively support WebSocket upgrades
- * in the App Router without a custom server.
+ * This server integrates Socket.IO with Next.js for WebSocket support.
+ * Uses Next.js built-in server with Socket.IO attached for WebSocket upgrades.
+ * 
+ * Features:
+ * - WebSocket-only transport (no polling fallback)
+ * - Room-based architecture for club channels
+ * - Singleton Socket.IO instance
+ * - Production-ready for Docker + Nginx deployment
  * 
  * Usage:
- * - Development: node server.js
- * - Production: NODE_ENV=production node server.js
+ * - Development: npm run dev
+ * - Production: npm start
  */
 
 const { createServer } = require('http');
@@ -23,22 +28,23 @@ const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
-  // Create HTTP server
-  const httpServer = createServer(async (req, res) => {
-    try {
-      const parsedUrl = parse(req.url, true);
-      await handle(req, res, parsedUrl);
-    } catch (err) {
-      console.error('Error occurred handling', req.url, err);
-      res.statusCode = 500;
-      res.end('Internal server error');
-    }
-  });
+// Singleton Socket.IO instance
+let io = null;
 
-  // Initialize Socket.io server
-  const io = new Server(httpServer, {
+/**
+ * Initialize Socket.IO server (singleton pattern)
+ */
+function initSocketIO(httpServer) {
+  if (io) {
+    if (dev) {
+      console.log('[WebSocket] Socket.IO already initialized (singleton)');
+    }
+    return io;
+  }
+
+  io = new Server(httpServer, {
     path: '/api/socket',
+    transports: ['websocket'], // Websocket only - no polling
     cors: {
       origin: process.env.NEXTAUTH_URL || `http://${hostname}:${port}`,
       methods: ['GET', 'POST'],
@@ -47,13 +53,12 @@ app.prepare().then(() => {
     addTrailingSlash: false,
   });
 
-  // Socket.io connection handler
+  // Setup connection handlers
   io.on('connection', (socket) => {
     if (dev) {
       console.log(`[WebSocket] Client connected: ${socket.id}`);
     }
 
-    // Handle club room subscription
     socket.on('subscribe:club:bookings', (clubId) => {
       const room = `club:${clubId}:bookings`;
       socket.join(room);
@@ -65,7 +70,6 @@ app.prepare().then(() => {
       socket.emit('subscribed', { room, clubId });
     });
 
-    // Handle club room unsubscription
     socket.on('unsubscribe:club:bookings', (clubId) => {
       const room = `club:${clubId}:bookings`;
       socket.leave(room);
@@ -88,8 +92,29 @@ app.prepare().then(() => {
   global.io = io;
 
   if (dev) {
-    console.log('[WebSocket] Socket.io server initialized');
+    console.log('[WebSocket] Socket.IO server initialized');
+    console.log('[WebSocket] Path: /api/socket');
+    console.log('[WebSocket] Transport: websocket only');
   }
+
+  return io;
+}
+
+app.prepare().then(() => {
+  // Create HTTP server for Next.js
+  const httpServer = createServer(async (req, res) => {
+    try {
+      const parsedUrl = parse(req.url, true);
+      await handle(req, res, parsedUrl);
+    } catch (err) {
+      console.error('Error occurred handling', req.url, err);
+      res.statusCode = 500;
+      res.end('Internal server error');
+    }
+  });
+
+  // Initialize Socket.IO (singleton pattern)
+  initSocketIO(httpServer);
 
   // Start the server
   httpServer
@@ -98,8 +123,8 @@ app.prepare().then(() => {
       process.exit(1);
     })
     .listen(port, () => {
-      console.log(
-        `> Ready on http://${hostname}:${port} with Socket.io support`
-      );
+      console.log(`> Ready on http://${hostname}:${port}`);
+      console.log(`> Socket.IO path: /api/socket`);
+      console.log(`> Transport: websocket only`);
     });
 });

@@ -114,6 +114,7 @@ export function useWebSocket(
     try {
       const socket = io("/", {
         path,
+        transports: ["websocket"], // Websocket only - no polling
         autoConnect: true,
         reconnection: true,
         reconnectionAttempts: 5,

@@ -1,8 +1,8 @@
 /**
- * WebSocket Server Singleton
+ * WebSocket Event Types and Helper Functions
  * 
- * Manages Socket.io server instance for real-time updates.
- * Implements room-based architecture for club-specific channels.
+ * Provides type-safe event payloads and helper functions for emitting
+ * Socket.IO events to club-specific rooms.
  * 
  * Room naming convention: club:{clubId}:bookings
  * 
@@ -13,21 +13,7 @@
  * - court:availability - Court availability changed
  */
 
-import { Server as SocketIOServer } from "socket.io";
-import type { Server as HTTPServer } from "http";
-import type { Server as NetServer, Socket } from "net";
-
-// Type for custom Next.js HTTP server with Socket.io attached
-export type NextServerWithIO = HTTPServer & {
-  io?: SocketIOServer;
-};
-
-// Type for Next.js socket with io attached
-export type SocketWithIO = Socket & {
-  server: NetServer & {
-    io?: SocketIOServer;
-  };
-};
+import type { Server as SocketIOServer } from "socket.io";
 
 // Event payload types
 export interface BookingEventPayload {
@@ -52,64 +38,6 @@ export interface CourtAvailabilityEventPayload {
     start: string;
     end: string;
   }>;
-}
-
-/**
- * Initialize Socket.io server
- * This should be called once when the WebSocket route is first accessed
- */
-export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
-  const io = new SocketIOServer(httpServer, {
-    path: "/api/socket",
-    cors: {
-      origin: process.env.NEXTAUTH_URL || "http://localhost:3000",
-      methods: ["GET", "POST"],
-      credentials: true,
-    },
-    addTrailingSlash: false,
-  });
-
-  io.on("connection", (socket) => {
-    if (process.env.NODE_ENV === "development") {
-      console.log(`[WebSocket] Client connected: ${socket.id}`);
-    }
-
-    // Handle club room subscription
-    socket.on("subscribe:club:bookings", (clubId: string) => {
-      const room = `club:${clubId}:bookings`;
-      socket.join(room);
-      
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[WebSocket] Client ${socket.id} joined room: ${room}`);
-      }
-      
-      socket.emit("subscribed", { room, clubId });
-    });
-
-    // Handle club room unsubscription
-    socket.on("unsubscribe:club:bookings", (clubId: string) => {
-      const room = `club:${clubId}:bookings`;
-      socket.leave(room);
-      
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[WebSocket] Client ${socket.id} left room: ${room}`);
-      }
-      
-      socket.emit("unsubscribed", { room, clubId });
-    });
-
-    socket.on("disconnect", () => {
-      if (process.env.NODE_ENV === "development") {
-        console.log(`[WebSocket] Client disconnected: ${socket.id}`);
-      }
-    });
-  });
-
-  if (process.env.NODE_ENV === "development") {
-    console.log("[WebSocket] Socket.io server initialized");
-  }
-
-  return io;
 }
 
 /**

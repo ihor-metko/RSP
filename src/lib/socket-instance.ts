@@ -1,17 +1,18 @@
 /**
- * Socket.io Instance Helper
+ * Socket.IO Server Instance Accessor
  * 
- * Provides access to the global Socket.io server instance
- * initialized in the custom server (server.js).
+ * Provides access to the Socket.IO server instance initialized in server.js.
+ * This module allows API routes to emit WebSocket events without direct access
+ * to the HTTP server.
  * 
- * This module allows API routes to emit WebSocket events
- * without needing direct access to the HTTP server.
+ * The Socket.IO server is initialized as a singleton in server.js and stored
+ * in the global object for access across the application.
  */
 
 import type { Server as SocketIOServer } from "socket.io";
 
 /**
- * Type definition for Node.js global with Socket.io
+ * Type definition for Node.js global with Socket.IO
  */
 declare global {
   // eslint-disable-next-line no-var
@@ -19,12 +20,12 @@ declare global {
 }
 
 /**
- * Get the Socket.io server instance
+ * Get the Socket.IO server instance
  * 
- * Returns the global io instance if available, otherwise null.
- * The io instance is set by server.js when the custom server starts.
+ * Returns the singleton Socket.IO instance for emitting events from API routes.
+ * The instance is initialized in server.js when the HTTP server starts.
  * 
- * @returns Socket.io server instance or null
+ * @returns Socket.IO server instance or null if not initialized
  */
 export function getIO(): SocketIOServer | null {
   if (typeof global.io !== "undefined") {
@@ -34,7 +35,7 @@ export function getIO(): SocketIOServer | null {
   // In development, log a warning if io is not available
   if (process.env.NODE_ENV === "development") {
     console.warn(
-      "[Socket.io] Server instance not available. Make sure you're running the custom server (npm run dev)."
+      "[Socket.IO] Server instance not available. Make sure you're running with 'npm run dev' or 'npm start'."
     );
   }
   
@@ -42,7 +43,7 @@ export function getIO(): SocketIOServer | null {
 }
 
 /**
- * Check if Socket.io server is initialized
+ * Check if Socket.IO server is initialized
  */
 export function isIOInitialized(): boolean {
   return typeof global.io !== "undefined";
