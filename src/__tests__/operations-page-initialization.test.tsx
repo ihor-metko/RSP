@@ -37,6 +37,7 @@ const mockUserStore = {
   adminStatus: null as any,
   isLoggedIn: false,
   isLoading: false,
+  isHydrated: true,
   user: null as any,
 };
 
@@ -47,6 +48,7 @@ const mockClubStore = {
   clubs: [],
   fetchClubsIfNeeded: jest.fn().mockResolvedValue(undefined),
   loadingClubs: false,
+  clubsError: null,
 };
 
 const mockCourtStore = {
