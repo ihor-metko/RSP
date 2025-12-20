@@ -199,7 +199,6 @@ describe("WebSocket Real-time Booking Updates - Multi-Client Tests", () => {
 
     it("should update booking store when booking is created", async () => {
       const booking = createMockBooking("booking-new");
-      const store = useBookingStore.getState();
 
       // Set initial bookings
       useBookingStore.setState({
@@ -207,7 +206,7 @@ describe("WebSocket Real-time Booking Updates - Multi-Client Tests", () => {
       });
 
       const callback = jest.fn((data: BookingCreatedEvent) => {
-        store.updateBookingFromSocket(data.booking);
+        useBookingStore.getState().updateBookingFromSocket(data.booking);
       });
 
       renderHook(() =>
@@ -288,9 +287,8 @@ describe("WebSocket Real-time Booking Updates - Multi-Client Tests", () => {
         bookings: [originalBooking],
       });
 
-      const store = useBookingStore.getState();
       const callback = jest.fn((data: BookingUpdatedEvent) => {
-        store.updateBookingFromSocket(data.booking);
+        useBookingStore.getState().updateBookingFromSocket(data.booking);
       });
 
       renderHook(() =>
@@ -370,9 +368,8 @@ describe("WebSocket Real-time Booking Updates - Multi-Client Tests", () => {
         ],
       });
 
-      const store = useBookingStore.getState();
       const callback = jest.fn((data: BookingDeletedEvent) => {
-        store.removeBookingFromSocket(data.bookingId);
+        useBookingStore.getState().removeBookingFromSocket(data.bookingId);
       });
 
       renderHook(() =>
@@ -553,11 +550,9 @@ describe("WebSocket Real-time Booking Updates - Multi-Client Tests", () => {
       useBookingStore.setState({
         bookings: [],
       });
-
-      const store = useBookingStore.getState();
       
       const callback = jest.fn((data: BookingCreatedEvent) => {
-        store.updateBookingFromSocket(data.booking);
+        useBookingStore.getState().updateBookingFromSocket(data.booking);
       });
 
       renderHook(() =>
@@ -603,9 +598,8 @@ describe("WebSocket Real-time Booking Updates - Multi-Client Tests", () => {
         bookings: [],
       });
 
-      const store = useBookingStore.getState();
       const callback = jest.fn((data: BookingCreatedEvent) => {
-        store.updateBookingFromSocket(data.booking);
+        useBookingStore.getState().updateBookingFromSocket(data.booking);
       });
 
       renderHook(() =>
@@ -659,9 +653,8 @@ describe("WebSocket Real-time Booking Updates - Multi-Client Tests", () => {
         bookings: [newerBooking],
       });
 
-      const store = useBookingStore.getState();
       const callback = jest.fn((data: BookingUpdatedEvent) => {
-        store.updateBookingFromSocket(data.booking);
+        useBookingStore.getState().updateBookingFromSocket(data.booking);
       });
 
       renderHook(() =>
@@ -707,15 +700,13 @@ describe("WebSocket Real-time Booking Updates - Multi-Client Tests", () => {
           createMockBooking("booking-2"),
         ],
       });
-
-      const store = useBookingStore.getState();
       
       renderHook(() =>
         useSocketIO({
           autoConnect: true,
-          onBookingCreated: (data) => store.updateBookingFromSocket(data.booking),
-          onBookingUpdated: (data) => store.updateBookingFromSocket(data.booking),
-          onBookingDeleted: (data) => store.removeBookingFromSocket(data.bookingId),
+          onBookingCreated: (data) => useBookingStore.getState().updateBookingFromSocket(data.booking),
+          onBookingUpdated: (data) => useBookingStore.getState().updateBookingFromSocket(data.booking),
+          onBookingDeleted: (data) => useBookingStore.getState().removeBookingFromSocket(data.bookingId),
         })
       );
 
