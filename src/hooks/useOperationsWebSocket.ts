@@ -282,8 +282,10 @@ export function useOperationsWebSocket(
 
     // Cleanup: unsubscribe on unmount or club change
     return () => {
-      console.log("[Operations WebSocket] Unsubscribing from club:", clubId);
-      unsubscribe(clubId);
+      if (clubId) {
+        console.log("[Operations WebSocket] Unsubscribing from club:", clubId);
+        unsubscribe(clubId);
+      }
     };
   }, [
     enabled,
