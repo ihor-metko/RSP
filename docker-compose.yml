@@ -21,3 +21,20 @@ services:
     depends_on:
       - app
     restart: always
+
+  postgres:
+    image: postgres:18
+    container_name: arena_one_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: arena
+      POSTGRES_PASSWORD: GsD32Nq6X4qB7PCVTNWMVRIj0oXbebRl
+      POSTGRES_DB: arenaone
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  pgdata:
+    name: arena_pgdata
