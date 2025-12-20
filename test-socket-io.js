@@ -73,15 +73,28 @@ async function runTests() {
 
     socket.on('connect', () => {
       clearTimeout(connectTimeout);
-      assert(true, 'Socket.IO connection established');
-      assert(socket.id !== undefined, 'Socket ID assigned');
-      assert(socket.connected === true, 'Socket connected state');
       
-      log(`\nSocket ID: ${socket.id}\n`, 'info');
+      // First connection - run initial tests
+      if (!initialConnectionComplete) {
+        assert(true, 'Socket.IO connection established');
+        assert(socket.id !== undefined, 'Socket ID assigned');
+        assert(socket.connected === true, 'Socket connected state');
+        
+        log(`\nSocket ID: ${socket.id}\n`, 'info');
 
-      // Test 2: Room subscription
-      log('Testing room subscription...', 'info');
-      socket.emit('subscribe:club:bookings', TEST_CLUB_ID);
+        // Test 2: Room subscription
+        log('Testing room subscription...', 'info');
+        socket.emit('subscribe:club:bookings', TEST_CLUB_ID);
+        initialConnectionComplete = true;
+        return;
+      }
+      
+      // This is the reconnection after intentional disconnect
+      if (!reconnected) {
+        reconnected = true;
+        assert(true, 'Reconnection successful');
+        cleanup();
+      }
     });
 
     socket.on('subscribed', (data) => {
@@ -113,22 +126,6 @@ async function runTests() {
 
     let reconnected = false;
     let initialConnectionComplete = false;
-    
-    socket.on('connect', () => {
-      // Skip if this is the reconnection we're testing
-      if (reconnected) return;
-      
-      // First connection - run initial tests
-      if (!initialConnectionComplete) {
-        initialConnectionComplete = true;
-        return;
-      }
-      
-      // This is the reconnection after intentional disconnect
-      reconnected = true;
-      assert(true, 'Reconnection successful');
-      cleanup();
-    });
 
     socket.on('disconnect', (reason) => {
       if (testsRun === 0) {
@@ -150,8 +147,8 @@ async function runTests() {
         log(`Failed: ${testsFailed}`, 'error');
       }
       
-      const percentage = testsRun > 0 ? ((testsPassed / testsRun) * 100).toFixed(1) : 0;
-      log(`\nSuccess rate: ${percentage}%\n`, percentage === 100 ? 'success' : 'warning');
+      const percentage = testsRun > 0 ? ((testsPassed / testsRun) * 100).toFixed(1) : '0.0';
+      log(`\nSuccess rate: ${percentage}%\n`, parseFloat(percentage) === 100.0 ? 'success' : 'warning');
 
       socket.disconnect();
       

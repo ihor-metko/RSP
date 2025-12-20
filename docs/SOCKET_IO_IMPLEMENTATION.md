@@ -247,7 +247,7 @@ Use the test client script:
 npm run dev
 
 # In another terminal
-node /tmp/socket-test-client.js
+node test-socket-io.js
 ```
 
 **Expected output:**
