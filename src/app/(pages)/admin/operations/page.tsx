@@ -86,6 +86,9 @@ export default function OperationsListPage() {
 
   // Error loading clubs
   if (clubsError) {
+    // Log the actual error for debugging but show generic message to user
+    console.error("Failed to load clubs:", clubsError);
+    
     return (
       <main className="im-club-operations-page">
         <PageHeader
@@ -94,7 +97,7 @@ export default function OperationsListPage() {
         />
         <div className="im-club-operations-error">
           <h2>{t("operations.errorLoadingClubs")}</h2>
-          <p>{clubsError}</p>
+          <p>{t("operations.errorLoadingClubsDescription")}</p>
           <Button 
             variant="primary"
             onClick={() => fetchClubsIfNeeded({ force: true })}

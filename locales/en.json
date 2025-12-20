@@ -1351,7 +1351,8 @@
     "listView": "List View",
     "newBooking": "New Booking",
     "pageDescription": "View and manage bookings, courts, and schedules",
-    "errorLoadingClubs": "Failed to load clubs"
+    "errorLoadingClubs": "Failed to load clubs",
+    "errorLoadingClubsDescription": "Unable to load clubs. Please try again or contact support if the problem persists."
   },
   "users": {
     "title": "User Management",
