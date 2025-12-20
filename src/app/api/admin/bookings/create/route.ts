@@ -4,6 +4,7 @@ import { requireAnyAdmin } from "@/lib/requireRole";
 import { emitBookingCreated } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
 import { migrateLegacyStatus } from "@/utils/bookingStatus";
+import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode, findCourtById, findClubById, findUserById, getMockBookings } from "@/services/mockDb";
 import { mockCreateBooking } from "@/services/mockApiHandlers";
@@ -362,7 +363,7 @@ export async function POST(request: Request) {
       bookingStatus,
       paymentStatus,
       price: booking.price,
-      sportType: (booking.sportType as OperationsBooking['sportType']) || "PADEL",
+      sportType: (booking.sportType as OperationsBooking['sportType']) || DEFAULT_SPORT_TYPE,
       coachId: null,
       coachName: null,
       createdAt: booking.createdAt.toISOString(),
