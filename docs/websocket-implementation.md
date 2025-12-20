@@ -197,7 +197,9 @@ npm test -- socketEmitters.test.ts
 
 The Socket.IO server is configured to accept connections from:
 - Development: `http://localhost:3000`
-- Production: Value of `NEXT_PUBLIC_APP_URL` environment variable
+- Production: Value of `NEXT_PUBLIC_APP_URL` environment variable (required)
+
+**Security Note**: In production, the `NEXT_PUBLIC_APP_URL` environment variable **must** be set. If not set, Socket.IO connections will be rejected for security reasons.
 
 To modify CORS settings, edit `server.js`:
 
