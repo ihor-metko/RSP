@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader } from "@/components/ui";
+import { PageHeader, Button } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useClubStore } from "@/stores/useClubStore";
 import { OperationsClubCardSelector } from "@/components/club-operations";
@@ -28,7 +28,7 @@ export default function OperationsListPage() {
   const isHydrated = useUserStore((state) => state.isHydrated);
 
   // Club store
-  const { fetchClubsIfNeeded, loading: loadingClubs } = useClubStore();
+  const { fetchClubsIfNeeded, loadingClubs, clubsError } = useClubStore();
 
   // Check access permissions and redirect Club Admins
   useEffect(() => {
@@ -82,6 +82,28 @@ export default function OperationsListPage() {
   // Access denied
   if (!isLoggedIn || !adminStatus?.isAdmin) {
     return null;
+  }
+
+  // Error loading clubs
+  if (clubsError) {
+    return (
+      <main className="im-club-operations-page">
+        <PageHeader
+          title={t("operations.title")}
+          description={t("operations.description")}
+        />
+        <div className="im-club-operations-error">
+          <h2>{t("operations.errorLoadingClubs")}</h2>
+          <p>{clubsError}</p>
+          <Button 
+            variant="primary"
+            onClick={() => fetchClubsIfNeeded({ force: true })}
+          >
+            {t("common.retry")}
+          </Button>
+        </div>
+      </main>
+    );
   }
 
   // Check if Club Admin has no assigned club

@@ -80,7 +80,8 @@
     "viewProfile": "View Profile",
     "from": "From",
     "to": "To",
-    "selected": "selected"
+    "selected": "selected",
+    "retry": "Retry"
   },
   "pagination": {
     "showing": "Showing {start} to {end} of {total}",
@@ -1349,7 +1350,8 @@
     "calendarView": "Calendar View",
     "listView": "List View",
     "newBooking": "New Booking",
-    "pageDescription": "View and manage bookings, courts, and schedules"
+    "pageDescription": "View and manage bookings, courts, and schedules",
+    "errorLoadingClubs": "Failed to load clubs"
   },
   "users": {
     "title": "User Management",
