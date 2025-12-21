@@ -21,7 +21,7 @@ The Club Operations page provides a comprehensive interface for club administrat
 - Side panel showing all bookings for the selected day
 - Sortable by time
 - Quick actions: View, Cancel
-- Real-time updates via short-polling (15s interval)
+- Real-time updates via WebSocket events (polling removed December 2024)
 
 ### 3. Quick Create Modal
 - Pre-filled with selected court and time

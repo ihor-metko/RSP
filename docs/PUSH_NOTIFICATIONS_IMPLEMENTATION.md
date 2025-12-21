@@ -12,9 +12,11 @@ December 20, 2024
 ✅ **Create server-side functions that trigger on booking events**: `createBooking`, `updateBooking`, `deleteBooking`
 
 ✅ **Emit Socket.IO messages to all connected clients** with event names:
-- `bookingCreated`
-- `bookingUpdated`
-- `bookingDeleted`
+- `booking_created`
+- `booking_updated`
+- `booking_cancelled` (formerly `bookingDeleted`)
+
+Note: Legacy event names (bookingCreated, bookingUpdated, bookingDeleted) have been removed as of December 2024.
 
 ✅ **Include full booking data payload** in emitted messages
 
@@ -80,12 +82,12 @@ interface BookingDeletedEvent {
 #### 2. Admin Booking Update (`src/app/api/admin/bookings/[id]/route.ts`)
 **Changes Made:**
 - Import `emitBookingUpdated` and `emitBookingDeleted`
-- On PATCH: Emit `bookingUpdated` after successful update
-- NEW: Added DELETE endpoint that emits `bookingDeleted` after successful deletion
+- On PATCH: Emit `booking_updated` after successful update
+- NEW: Added DELETE endpoint that emits `booking_cancelled` after successful deletion
 
 **Key Points:**
-- PATCH updates (status changes, cancellations) trigger `bookingUpdated`
-- DELETE operations trigger `bookingDeleted`
+- PATCH updates (status changes, cancellations) trigger `booking_updated`
+- DELETE operations trigger `booking_cancelled`
 - Includes `previousStatus` in update events for tracking changes
 - Both operations only emit after successful database commits
 
@@ -93,7 +95,7 @@ interface BookingDeletedEvent {
 **Changes Made:**
 - Import `emitBookingCreated` and required types
 - Modified transaction to include user and court details
-- Emit `bookingCreated` after transaction completes successfully
+- Emit `booking_created` after transaction completes successfully
 
 **Key Points:**
 - Uses Prisma transaction for atomicity
@@ -175,7 +177,7 @@ User Action → API Route → Database Transaction → Transaction Commits → e
 2. API route validates and processes the request
 3. Database transaction creates the booking
 4. Transaction commits successfully
-5. Server emits `bookingCreated` event with full booking data
+5. Server emits `booking_created` event with full booking data
 6. All connected clients receive the event via Socket.IO
 7. Client handlers refresh UI/update state
 
@@ -189,7 +191,7 @@ Admin Updates → API Route → Database Update → Update Commits → emitBooki
 2. API validates update
 3. Database updates booking
 4. Update commits successfully
-5. Server emits `bookingUpdated` with new and previous status
+5. Server emits `booking_updated` with new and previous status
 6. Clients receive update and refresh UI
 
 ### Deleting a Booking
@@ -202,7 +204,7 @@ Admin Deletes → API Route → Database Delete → Delete Commits → emitBooki
 2. API validates permissions
 3. Database deletes booking
 4. Delete commits successfully
-5. Server emits `bookingDeleted` with booking ID and context
+5. Server emits `booking_cancelled` with booking ID and context
 6. Clients remove booking from UI
 
 ## Data Consistency
