@@ -1,35 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Button, Card } from "@/components/ui";
+import { useNotifications } from "@/hooks/useNotifications";
+import { AdminNotification } from "@/stores/useNotificationStore";
 import "./AdminNotifications.css";
 
-interface AdminNotification {
-  id: string;
-  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
-  playerId: string;
-  playerName: string;
-  playerEmail: string | null;
-  coachId: string;
-  coachName: string;
-  trainingRequestId: string | null;
-  bookingId: string | null;
-  sessionDate: string | null;
-  sessionTime: string | null;
-  courtInfo: string | null;
-  read: boolean;
-  createdAt: string;
-}
-
-interface AdminNotificationsResponse {
-  notifications: AdminNotification[];
-  totalCount: number;
-  unreadCount: number;
-  hasMore: boolean;
-}
-
 interface AdminNotificationsPanelProps {
-  pollInterval?: number; // Polling interval in milliseconds (default: 30000)
+  pollInterval?: number; // Deprecated - kept for backward compatibility but not used
 }
 
 function formatDateDisplay(dateStr: string): string {
@@ -92,95 +70,37 @@ function getNotificationIcon(type: string): string {
   }
 }
 
-export function AdminNotificationsPanel({ pollInterval = 30000 }: AdminNotificationsPanelProps) {
-  const [notifications, setNotifications] = useState<AdminNotification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
+export function AdminNotificationsPanel({ pollInterval }: AdminNotificationsPanelProps) {
+  // Note: pollInterval is ignored - we rely on Socket.IO for real-time updates
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications({
+    enabled: true,
+  });
 
   const showToast = useCallback((message: string, type: "success" | "error") => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  const fetchNotifications = useCallback(async () => {
-    // Skip fetching if the page is not visible
-    if (document.hidden) {
-      return;
-    }
-
-    try {
-      const url = showUnreadOnly
-        ? "/api/admin/notifications?unreadOnly=true"
-        : "/api/admin/notifications";
-
-      const response = await fetch(url);
-
-      if (response.status === 401 || response.status === 403) {
-        setError("Access denied. Admin privileges required.");
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
-      }
-
-      const data: AdminNotificationsResponse = await response.json();
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load notifications");
-    } finally {
-      setLoading(false);
-    }
-  }, [showUnreadOnly]);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
-  // Polling for updates with visibility-based optimization
-  useEffect(() => {
-    const interval = setInterval(fetchNotifications, pollInterval);
-
-    // Fetch immediately when page becomes visible
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchNotifications();
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      clearInterval(interval);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [fetchNotifications, pollInterval]);
-
   const handleMarkAsRead = async (notificationId: string, currentlyRead: boolean) => {
     setProcessingId(notificationId);
     try {
-      const response = await fetch(`/api/admin/notifications/${notificationId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ read: !currentlyRead }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update notification");
+      // For now, we only support marking as read (not toggling back to unread)
+      // This matches the API behavior
+      if (!currentlyRead) {
+        await markAsRead(notificationId);
+        showToast("Notification marked as read", "success");
       }
-
-      showToast(
-        currentlyRead ? "Notification marked as unread" : "Notification marked as read",
-        "success"
-      );
-      fetchNotifications();
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to update notification", "error");
     } finally {
@@ -190,21 +110,17 @@ export function AdminNotificationsPanel({ pollInterval = 30000 }: AdminNotificat
 
   const handleMarkAllAsRead = async () => {
     try {
-      const response = await fetch("/api/admin/notifications/mark-all-read", {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to mark all as read");
-      }
-
-      const data = await response.json();
-      showToast(data.message, "success");
-      fetchNotifications();
+      await markAllAsRead();
+      showToast("All notifications marked as read", "success");
     } catch (err) {
       showToast(err instanceof Error ? err.message : "Failed to mark all as read", "error");
     }
   };
+
+  // Filter notifications based on showUnreadOnly
+  const filteredNotifications = showUnreadOnly
+    ? notifications.filter(n => !n.read)
+    : notifications;
 
   return (
     <div className="tm-admin-notifications">
@@ -268,7 +184,7 @@ export function AdminNotificationsPanel({ pollInterval = 30000 }: AdminNotificat
       )}
 
       {/* Empty State */}
-      {!loading && !error && notifications.length === 0 && (
+      {!loading && !error && filteredNotifications.length === 0 && (
         <Card className="tm-empty-state">
           <p>
             {showUnreadOnly
@@ -279,9 +195,9 @@ export function AdminNotificationsPanel({ pollInterval = 30000 }: AdminNotificat
       )}
 
       {/* Notifications List */}
-      {!loading && !error && notifications.length > 0 && (
+      {!loading && !error && filteredNotifications.length > 0 && (
         <div className="tm-notifications-list">
-          {notifications.map((notification) => (
+          {filteredNotifications.map((notification) => (
             <div
               key={notification.id}
               className={`tm-notification-item ${
@@ -310,18 +226,16 @@ export function AdminNotificationsPanel({ pollInterval = 30000 }: AdminNotificat
                 </div>
               </div>
               <div className="tm-notification-actions">
-                <Button
-                  variant="outline"
-                  onClick={() => handleMarkAsRead(notification.id, notification.read)}
-                  disabled={processingId === notification.id}
-                  className="tm-mark-read-btn"
-                >
-                  {processingId === notification.id
-                    ? "..."
-                    : notification.read
-                    ? "Unread"
-                    : "Read"}
-                </Button>
+                {!notification.read && (
+                  <Button
+                    variant="outline"
+                    onClick={() => handleMarkAsRead(notification.id, notification.read)}
+                    disabled={processingId === notification.id}
+                    className="tm-mark-read-btn"
+                  >
+                    {processingId === notification.id ? "..." : "Read"}
+                  </Button>
+                )}
               </div>
             </div>
           ))}

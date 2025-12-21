@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notificationEmitter, NotificationPayload } from "@/lib/notificationEmitter";
+import type { TypedServer } from "@/types/socket";
 
 export type NotificationType = "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
 
@@ -40,7 +41,9 @@ function generateSummary(type: NotificationType, sessionDate?: Date, sessionTime
 
 /**
  * Create an admin notification for tracking training request events
- * Also emits the notification to real-time SSE listeners
+ * Also emits the notification to:
+ * - Real-time SSE listeners (via notificationEmitter)
+ * - Socket.IO clients (via global io instance)
  */
 export async function createAdminNotification(
   params: CreateNotificationParams
@@ -60,7 +63,7 @@ export async function createAdminNotification(
       },
     });
 
-    // Emit to real-time SSE listeners
+    // Create notification payload
     const payload: NotificationPayload = {
       id: notification.id,
       type: notification.type as NotificationType,
@@ -79,7 +82,18 @@ export async function createAdminNotification(
       createdAt: notification.createdAt.toISOString(),
     };
 
+    // Emit to real-time SSE listeners
     notificationEmitter.emit(payload);
+
+    // Emit to Socket.IO clients
+    if (global.io) {
+      const io = global.io as TypedServer;
+      io.emit('admin_notification', {
+        ...payload,
+        read: false,
+      });
+      console.log('[AdminNotifications] Socket.IO event emitted:', payload.id);
+    }
   } catch (error) {
     // Log error in development but don't throw - notifications are non-critical
     if (process.env.NODE_ENV === "development") {

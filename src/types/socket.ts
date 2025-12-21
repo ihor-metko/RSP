@@ -72,6 +72,27 @@ export interface PaymentFailedEvent {
 }
 
 /**
+ * Admin notification event payload
+ */
+export interface AdminNotificationEvent {
+  id: string;
+  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
+  playerId: string;
+  playerName?: string;
+  playerEmail?: string | null;
+  coachId: string;
+  coachName?: string;
+  trainingRequestId: string | null;
+  bookingId: string | null;
+  sessionDate: string | null;
+  sessionTime: string | null;
+  courtInfo: string | null;
+  summary?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+/**
  * Client to Server events
  * Reserved for future client-initiated events
  */
@@ -90,6 +111,7 @@ export interface ServerToClientEvents {
   lock_expired: (data: LockExpiredEvent) => void;
   payment_confirmed: (data: PaymentConfirmedEvent) => void;
   payment_failed: (data: PaymentFailedEvent) => void;
+  admin_notification: (data: AdminNotificationEvent) => void;
   // Legacy event names for backward compatibility
   bookingCreated: (data: BookingCreatedEvent) => void;
   bookingUpdated: (data: BookingUpdatedEvent) => void;

@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Modal } from "@/components/ui";
-import { useAdminNotifications, AdminNotification } from "@/hooks/useAdminNotifications";
+import { useNotifications } from "@/hooks/useNotifications";
+import { AdminNotification } from "@/stores/useNotificationStore";
 import { NotificationToastContainer } from "./NotificationToast";
 import "./NotificationBell.css";
 
@@ -96,8 +97,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
     error,
     markAsRead,
     markAllAsRead,
-    connectionStatus,
-  } = useAdminNotifications({
+  } = useNotifications({
     enabled: true,
     onNewNotification: handleNewNotification,
   });
@@ -192,10 +192,10 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
-          {/* Connection status indicator */}
+          {/* Connection status indicator - always show connected since we use Socket.IO */}
           <span
-            className={`tm-bell-status tm-bell-status--${connectionStatus}`}
-            aria-label={`Connection status: ${connectionStatus}`}
+            className="tm-bell-status tm-bell-status--connected"
+            aria-label="Connection status: connected"
           />
         </button>
 

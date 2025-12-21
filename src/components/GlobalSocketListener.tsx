@@ -5,7 +5,7 @@
  * 
  * Subscribes to all real-time Socket.IO events and:
  * 1. Displays toast notifications via globalNotificationManager
- * 2. Updates Zustand stores (booking store) with real-time data
+ * 2. Updates Zustand stores (booking store, notification store) with real-time data
  * 
  * This component is initialized once at app startup and works across all pages.
  * 
@@ -13,12 +13,14 @@
  * - booking_created, booking_updated, booking_cancelled
  * - slot_locked, slot_unlocked, lock_expired
  * - payment_confirmed, payment_failed
+ * - admin_notification
  * 
  * Features:
  * - Uses global socket from SocketProvider (no duplicate connections)
  * - Centralized event dispatching
  * - Automatic duplicate prevention via notification manager
  * - Updates booking store for real-time UI sync
+ * - Updates notification store for admin notifications
  */
 
 import { useEffect } from 'react';
@@ -31,10 +33,12 @@ import type {
   LockExpiredEvent,
   PaymentConfirmedEvent,
   PaymentFailedEvent,
+  AdminNotificationEvent,
 } from '@/types/socket';
 import { handleSocketEvent, cleanupNotificationManager } from '@/utils/globalNotificationManager';
 import { useSocket } from '@/contexts/SocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
+import { useNotificationStore } from '@/stores/useNotificationStore';
 
 /**
  * Global Socket Event Dispatcher
@@ -48,6 +52,7 @@ export function GlobalSocketListener() {
   const { socket, isConnected } = useSocket();
   const updateBookingFromSocket = useBookingStore(state => state.updateBookingFromSocket);
   const removeBookingFromSocket = useBookingStore(state => state.removeBookingFromSocket);
+  const addNotification = useNotificationStore(state => state.addNotification);
 
   useEffect(() => {
     if (!socket) return;
@@ -70,10 +75,17 @@ export function GlobalSocketListener() {
       removeBookingFromSocket(data.bookingId);
     };
 
+    // Admin notification event - update notification store
+    const handleAdminNotification = (data: AdminNotificationEvent) => {
+      console.log('[GlobalSocketListener] Admin notification received:', data);
+      addNotification(data);
+    };
+
     // Register new event names
     socket.on('booking_created', handleBookingCreated);
     socket.on('booking_updated', handleBookingUpdated);
     socket.on('booking_cancelled', handleBookingCancelled);
+    socket.on('admin_notification', handleAdminNotification);
 
     // Legacy event names for backward compatibility
     socket.on('bookingCreated', handleBookingCreated);
@@ -109,6 +121,7 @@ export function GlobalSocketListener() {
       socket.off('booking_created', handleBookingCreated);
       socket.off('booking_updated', handleBookingUpdated);
       socket.off('booking_cancelled', handleBookingCancelled);
+      socket.off('admin_notification', handleAdminNotification);
       socket.off('bookingCreated', handleBookingCreated);
       socket.off('bookingUpdated', handleBookingUpdated);
       socket.off('bookingDeleted', handleBookingCancelled);
