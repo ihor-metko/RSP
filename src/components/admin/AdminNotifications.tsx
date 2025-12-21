@@ -70,6 +70,7 @@ function getNotificationIcon(type: string): string {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function AdminNotificationsPanel({ pollInterval }: AdminNotificationsPanelProps) {
   // Note: pollInterval is ignored - we rely on Socket.IO for real-time updates
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
