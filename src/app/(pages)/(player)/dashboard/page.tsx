@@ -241,13 +241,13 @@ export default function PlayerDashboardPage() {
   // Initial data fetch
   useEffect(() => {
     // Fetch data when user is authenticated and not a root admin
-    if (status === "authenticated" && session?.user && !session.user.isRoot) {
+    if (isLoggedIn && user && !user.isRoot) {
       fetchClubs();
       fetchUpcomingBookings();
       fetchCoaches();
       fetchEvents();
     }
-  }, [status, session, fetchClubs, fetchUpcomingBookings, fetchCoaches, fetchEvents]);
+  }, [isLoggedIn, user, fetchClubs, fetchUpcomingBookings, fetchCoaches, fetchEvents]);
 
   // Handle Quick Book button click
   const handleQuickBookClick = () => {
@@ -327,7 +327,7 @@ export default function PlayerDashboardPage() {
   }
 
   // Guard check - show null for root admins (they get redirected) and unauthenticated users
-  if (!session?.user || session.user.isRoot) {
+  if (!user || user.isRoot) {
     return null;
   }
 

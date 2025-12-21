@@ -175,7 +175,6 @@ export default function Header({ showSearch = false, hideProfile = false }: Head
   const currentLocale = useCurrentLocale();
   
   // Use store for auth
-  const isHydrated = useUserStore(state => state.isHydrated);
   const isLoading = useUserStore(state => state.isLoading);
   const isLoggedIn = useUserStore(state => state.isLoggedIn);
   const user = useUserStore(state => state.user);

@@ -121,7 +121,6 @@ export default function AdminUsersPage() {
   const router = useRouter();
   
   // Use store for auth state
-  const user = useUserStore((state) => state.user);
   const isHydrated = useUserStore((state) => state.isHydrated);
   const isLoading = useUserStore((state) => state.isLoading);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
