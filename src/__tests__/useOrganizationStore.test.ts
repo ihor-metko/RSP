@@ -15,10 +15,12 @@ describe("useOrganizationStore", () => {
     // Reset the entire store to initial state
     useOrganizationStore.setState({
       organizations: [],
+      organizationsById: {},
       currentOrg: null,
       loading: false,
       error: null,
       hasFetched: false,
+      _inflightFetchById: {},
     });
     // Clear fetch mock
     jest.clearAllMocks();
@@ -261,6 +263,184 @@ describe("useOrganizationStore", () => {
       expect(result.current.currentOrg).toBeNull();
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe("Not found");
+    });
+  });
+
+  describe("ensureOrganizationById", () => {
+    it("should fetch organization by ID and cache it", async () => {
+      const mockOrgDetail = { 
+        id: "1", 
+        name: "Org 1", 
+        slug: "org-1", 
+        createdAt: "2024-01-01",
+        description: "Test org",
+        metrics: {
+          totalClubs: 5,
+          totalCourts: 20,
+          activeBookings: 100,
+          activeUsers: 50,
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrgDetail,
+      });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      let fetchedOrg;
+      await act(async () => {
+        fetchedOrg = await result.current.ensureOrganizationById("1");
+      });
+
+      expect(fetchedOrg).toEqual(mockOrgDetail);
+      expect(result.current.getOrganizationDetailById("1")).toEqual(mockOrgDetail);
+      expect(result.current.currentOrg).toEqual(mockOrgDetail);
+      expect(result.current.loading).toBe(false);
+      expect(global.fetch).toHaveBeenCalledWith("/api/orgs/1");
+    });
+
+    it("should return cached organization without fetching", async () => {
+      const mockOrgDetail = { 
+        id: "1", 
+        name: "Org 1", 
+        slug: "org-1", 
+        createdAt: "2024-01-01",
+        description: "Test org",
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockOrgDetail,
+      });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // First call - should fetch
+      await act(async () => {
+        await result.current.ensureOrganizationById("1");
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+
+      // Second call - should use cache
+      let cachedOrg;
+      await act(async () => {
+        cachedOrg = await result.current.ensureOrganizationById("1");
+      });
+
+      expect(cachedOrg).toEqual(mockOrgDetail);
+      expect(global.fetch).toHaveBeenCalledTimes(1); // Still 1, not called again
+    });
+
+    it("should force refetch when force option is true", async () => {
+      const mockOrgDetail1 = { 
+        id: "1", 
+        name: "Org 1", 
+        slug: "org-1", 
+        createdAt: "2024-01-01",
+        description: "Original description",
+      };
+
+      const mockOrgDetail2 = { 
+        id: "1", 
+        name: "Org 1", 
+        slug: "org-1", 
+        createdAt: "2024-01-01",
+        description: "Updated description",
+      };
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockOrgDetail1,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockOrgDetail2,
+        });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // First call
+      await act(async () => {
+        await result.current.ensureOrganizationById("1");
+      });
+
+      expect(result.current.getOrganizationDetailById("1")?.description).toBe("Original description");
+
+      // Force refetch
+      await act(async () => {
+        await result.current.ensureOrganizationById("1", { force: true });
+      });
+
+      expect(result.current.getOrganizationDetailById("1")?.description).toBe("Updated description");
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("should prevent duplicate concurrent fetches", async () => {
+      const mockOrgDetail = { 
+        id: "1", 
+        name: "Org 1", 
+        slug: "org-1", 
+        createdAt: "2024-01-01",
+      };
+
+      let resolvePromise: ((value: { ok: boolean; json: () => Promise<unknown> }) => void) | null = null;
+      const fetchPromise = new Promise<{ ok: boolean; json: () => Promise<unknown> }>((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      (global.fetch as jest.Mock).mockReturnValueOnce(fetchPromise);
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      // Start first fetch
+      const promise1 = result.current.ensureOrganizationById("1");
+
+      // Start second fetch while first is still pending  
+      const promise2 = result.current.ensureOrganizationById("1");
+
+      // Resolve the fetch
+      if (resolvePromise) {
+        resolvePromise({
+          ok: true,
+          json: async () => mockOrgDetail,
+        });
+      }
+
+      // Wait for both to complete
+      await act(async () => {
+        const [org1, org2] = await Promise.all([promise1, promise2]);
+        expect(org1).toEqual(mockOrgDetail);
+        expect(org2).toEqual(mockOrgDetail);
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1); // Only called once despite two ensureOrganizationById calls
+    });
+
+    it("should handle fetch error", async () => {
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        json: async () => ({ error: "Organization not found" }),
+      });
+
+      const { result } = renderHook(() => useOrganizationStore());
+
+      await act(async () => {
+        try {
+          await result.current.ensureOrganizationById("999");
+        } catch (error) {
+          expect(error).toBeInstanceOf(Error);
+          expect((error as Error).message).toBe("Organization not found");
+        }
+      });
+
+      expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBe("Organization not found");
+      expect(result.current.getOrganizationDetailById("999")).toBeUndefined();
     });
   });
 

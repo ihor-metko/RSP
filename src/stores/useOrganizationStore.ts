@@ -29,15 +29,79 @@ export interface ChangeOwnerPayload {
 }
 
 /**
+ * Organization detail with extended data for detail pages
+ */
+export interface OrganizationDetail extends Organization {
+  description?: string | null;
+  logo?: string | null;
+  heroImage?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdBy?: {
+    id: string;
+    name: string | null;
+    email: string;
+  };
+  superAdmins?: Array<{
+    id: string;
+    name: string | null;
+    email: string;
+    isPrimaryOwner: boolean;
+    membershipId: string;
+  }>;
+  primaryOwner?: {
+    id: string;
+    name: string | null;
+    email: string;
+    isPrimaryOwner: boolean;
+    membershipId: string;
+  } | null;
+  metrics?: {
+    totalClubs: number;
+    totalCourts: number;
+    activeBookings: number;
+    activeUsers: number;
+  };
+  clubsPreview?: Array<{
+    id: string;
+    name: string;
+    slug: string | null;
+    city: string | null;
+    isPublic: boolean;
+    courtCount: number;
+    adminCount: number;
+    createdAt: string;
+  }>;
+  clubAdmins?: Array<{
+    id: string;
+    userId: string;
+    userName: string | null;
+    userEmail: string;
+    clubId: string;
+    clubName: string;
+  }>;
+  recentActivity?: Array<{
+    id: string;
+    action: string;
+    actorId: string;
+    detail: unknown;
+    createdAt: Date;
+  }>;
+}
+
+/**
  * Organization store state
  */
 interface OrganizationState {
   // State
   organizations: Organization[];
+  organizationsById: Record<string, OrganizationDetail>;
   currentOrg: Organization | null;
   loading: boolean;
   error: string | null;
   hasFetched: boolean;
+
+  // Internal inflight guards (prevent duplicate concurrent requests)
+  _inflightFetchById: Record<string, Promise<OrganizationDetail>>;
 
   // Actions
   setOrganizations: (orgs: Organization[]) => void;
@@ -46,6 +110,7 @@ interface OrganizationState {
   setError: (error: string | null) => void;
   fetchOrganizations: (force?: boolean) => Promise<void>;
   fetchOrganizationById: (id: string) => Promise<void>;
+  ensureOrganizationById: (id: string, options?: { force?: boolean }) => Promise<OrganizationDetail>;
   createOrganization: (payload: CreateOrganizationPayload) => Promise<Organization>;
   updateOrganization: (id: string, payload: UpdateOrganizationPayload) => Promise<Organization>;
   deleteOrganization: (id: string, confirmOrgSlug?: string) => Promise<void>;
@@ -58,6 +123,7 @@ interface OrganizationState {
 
   // Selectors
   getOrganizationById: (id: string) => Organization | undefined;
+  getOrganizationDetailById: (id: string) => OrganizationDetail | undefined;
   isOrgSelected: (id: string) => boolean;
   getOrganizationsWithAutoFetch: () => Organization[];
 }
@@ -70,14 +136,17 @@ interface OrganizationState {
  * - Lazy fetching: data is only fetched when needed
  * - Auto-fetch selector: automatically fetches data if not loaded
  * - Single source of truth for organization data
+ * - Fetch-if-missing pattern for individual organizations with inflight guards
  */
 export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   // Initial state
   organizations: [],
+  organizationsById: {},
   currentOrg: null,
   loading: false,
   error: null,
   hasFetched: false,
+  _inflightFetchById: {},
 
   // State setters
   setOrganizations: (orgs) => set({ organizations: orgs }),
@@ -132,12 +201,97 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
       }
 
       const data = await response.json();
-      set({ currentOrg: data, loading: false });
+      
+      // Update both organizationsById cache and currentOrg
+      set((state) => ({
+        organizationsById: {
+          ...state.organizationsById,
+          [id]: data,
+        },
+        currentOrg: data,
+        loading: false,
+      }));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch organization";
       set({ error: errorMessage, loading: false, currentOrg: null });
       throw error;
     }
+  },
+
+  // Ensure organization is loaded by ID with fetch-if-missing pattern
+  // This method prevents duplicate fetches and returns cached data when available
+  ensureOrganizationById: async (id: string, options?: { force?: boolean }) => {
+    const state = get();
+    
+    // Return cached data if available and not forcing refresh
+    if (!options?.force && state.organizationsById[id]) {
+      return state.organizationsById[id];
+    }
+    
+    // If there's already an inflight request for this ID, return it
+    const inflightRequest = state._inflightFetchById[id];
+    if (inflightRequest) {
+      return inflightRequest;
+    }
+
+    // Create new fetch promise
+    const fetchPromise = (async () => {
+      try {
+        set({ loading: true, error: null });
+        
+        const response = await fetch(`/api/orgs/${id}`);
+        
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: "Failed to fetch organization" }));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Update cache and clear inflight
+        // Only set as currentOrg if no org is currently selected or if it's the same org
+        set((state) => {
+          const newInflight = { ...state._inflightFetchById };
+          delete newInflight[id];
+          return {
+            organizationsById: {
+              ...state.organizationsById,
+              [id]: data,
+            },
+            currentOrg: (!state.currentOrg || state.currentOrg.id === id) ? data : state.currentOrg,
+            loading: false,
+            _inflightFetchById: newInflight,
+          };
+        });
+        
+        return data;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch organization";
+        
+        // Clear inflight and set error
+        set((state) => {
+          const newInflight = { ...state._inflightFetchById };
+          delete newInflight[id];
+          return {
+            error: errorMessage,
+            loading: false,
+            _inflightFetchById: newInflight,
+          };
+        });
+        
+        throw error;
+      }
+    })();
+
+    // Store inflight promise
+    set((state) => ({
+      _inflightFetchById: {
+        ...state._inflightFetchById,
+        [id]: fetchPromise,
+      },
+    }));
+
+    return fetchPromise;
   },
 
   // Create a new organization (optimistic update)
@@ -190,7 +344,7 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
 
       const updatedOrg = await response.json();
 
-      // Update in organizations list - merge updated fields with existing org
+      // Update in organizations list, organizationsById cache, and currentOrg
       set((state) => ({
         organizations: state.organizations.map((org) =>
           org.id === id 
@@ -202,6 +356,18 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
               } 
             : org
         ),
+        // Update organizationsById cache if the org is cached
+        organizationsById: state.organizationsById[id]
+          ? {
+              ...state.organizationsById,
+              [id]: {
+                ...state.organizationsById[id],
+                ...updatedOrg,
+                // Preserve id to prevent any accidental overwrites
+                id: state.organizationsById[id].id,
+              },
+            }
+          : state.organizationsById,
         // Update currentOrg if it matches
         currentOrg: state.currentOrg?.id === id 
           ? { 
@@ -237,12 +403,18 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
         throw new Error(data.error || `HTTP ${response.status}`);
       }
 
-      // Remove from organizations list and clear currentOrg if it was deleted
-      set((state) => ({
-        organizations: state.organizations.filter((org) => org.id !== id),
-        currentOrg: state.currentOrg?.id === id ? null : state.currentOrg,
-        loading: false,
-      }));
+      // Remove from organizations list, organizationsById cache, and clear currentOrg if it was deleted
+      set((state) => {
+        // Remove the deleted organization from the cache using destructuring
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [id]: _, ...remainingById } = state.organizationsById;
+        return {
+          organizations: state.organizations.filter((org) => org.id !== id),
+          organizationsById: remainingById,
+          currentOrg: state.currentOrg?.id === id ? null : state.currentOrg,
+          loading: false,
+        };
+      });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to delete organization";
       set({ error: errorMessage, loading: false });
@@ -328,6 +500,11 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   // Selector: Get organization by ID from the store
   getOrganizationById: (id: string) => {
     return get().organizations.find((org) => org.id === id);
+  },
+
+  // Selector: Get organization detail by ID from the organizationsById cache
+  getOrganizationDetailById: (id: string) => {
+    return get().organizationsById[id];
   },
 
   // Selector: Check if an organization is currently selected

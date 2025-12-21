@@ -15,18 +15,8 @@ import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import "./page.css";
 import "@/components/ClubDetailPage.css";
 
-// Basic user info interface for this component
+// Basic interfaces for this component
 // Note: Defined locally to avoid coupling with full User model from Prisma
-interface User {
-  id: string;
-  name: string | null;
-  email: string;
-}
-
-interface SuperAdmin extends User {
-  isPrimaryOwner: boolean;
-  membershipId: string;
-}
 
 interface OrgAdmin {
   id: string;
@@ -39,27 +29,6 @@ interface OrgAdmin {
   createdAt: Date;
 }
 
-interface ClubPreview {
-  id: string;
-  name: string;
-  slug: string | null;
-  city: string | null;
-  isPublic: boolean;
-  courtCount: number;
-  adminCount: number;
-  createdAt: string;
-}
-
-interface ClubAdmin {
-  id: string;
-  userId: string;
-  userName: string | null;
-  userEmail: string;
-  clubId: string;
-  clubName: string;
-  createdAt: string;
-}
-
 interface BookingPreview {
   id: string;
   courtName: string;
@@ -70,35 +39,6 @@ interface BookingPreview {
   end: string;
   status: string;
   sportType: string;
-}
-
-interface OrgDetail {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string | null;
-  contactEmail: string | null;
-  contactPhone: string | null;
-  website: string | null;
-  address: string | null;
-  logo: string | null;
-  heroImage: string | null;
-  metadata?: Record<string, unknown> | null;
-  isPublic: boolean;
-  archivedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: User;
-  superAdmins: SuperAdmin[];
-  primaryOwner: SuperAdmin | null;
-  metrics: {
-    totalClubs: number;
-    totalCourts: number;
-    activeBookings: number;
-    activeUsers: number;
-  };
-  clubsPreview: ClubPreview[];
-  clubAdmins: ClubAdmin[];
 }
 
 interface BookingsPreviewData {
@@ -118,15 +58,16 @@ export default function OrganizationDetailPage() {
   const orgId = params?.orgId as string;
 
   // Use Zustand store
+  const ensureOrganizationById = useOrganizationStore((state) => state.ensureOrganizationById);
+  const org = useOrganizationStore((state) => state.getOrganizationDetailById(orgId));
   const updateOrganization = useOrganizationStore((state) => state.updateOrganization);
-  const setCurrentOrg = useOrganizationStore((state) => state.setCurrentOrg);
+  const loading = useOrganizationStore((state) => state.loading);
+  const storeError = useOrganizationStore((state) => state.error);
   // Note: deleteOrganization and archive functionality removed as per requirement to simplify the page
   // Archive/Delete modals can be re-added later if needed via the Danger Zone section
 
-  const [org, setOrg] = useState<OrgDetail | null>(null);
   const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
   const [orgAdmins, setOrgAdmins] = useState<OrgAdmin[]>([]);
-  const [loadingOrg, setLoadingOrg] = useState(true);
   const [loadingAdmins, setLoadingAdmins] = useState(true);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [error, setError] = useState("");
@@ -163,44 +104,16 @@ export default function OrganizationDetailPage() {
   // Publication toggle
   const [isTogglingPublication, setIsTogglingPublication] = useState(false);
 
-  const fetchOrgDetail = useCallback(async () => {
+  // Fetch organization from store (with fetch-if-missing pattern)
+  const fetchOrgDetail = useCallback(async (force = false) => {
     try {
-      setLoadingOrg(true);
-      // Fetch full org details from API (includes metrics, activity, etc.)
-      const response = await fetch(`/api/orgs/${orgId}`);
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          router.push("/auth/sign-in");
-          return;
-        }
-        throw new Error(t("organizations.errors.fetchFailed"));
-      }
-      const data = await response.json();
-      setOrg(data);
       setError("");
-
-      // Update the store's currentOrg with the fetched data (avoid redundant API call)
-      // Extract Organization-compatible fields from the full org detail response
-      const { id, name, slug, createdAt, updatedAt, archivedAt, contactEmail, contactPhone, website, address, isPublic } = data;
-      setCurrentOrg({
-        id,
-        name,
-        slug,
-        createdAt,
-        updatedAt,
-        archivedAt,
-        contactEmail,
-        contactPhone,
-        website,
-        address,
-        isPublic,
-      });
-    } catch {
+      await ensureOrganizationById(orgId, { force });
+    } catch (err) {
       setError(t("orgDetail.failedToLoad"));
-    } finally {
-      setLoadingOrg(false);
+      console.error("Failed to load organization:", err);
     }
-  }, [orgId, router, t, setCurrentOrg]);
+  }, [orgId, ensureOrganizationById, t]);
 
   const fetchAdmins = useCallback(async () => {
     try {
@@ -288,10 +201,12 @@ export default function OrganizationDetailPage() {
       router.push("/auth/sign-in");
       return;
     }
+    
+    // Fetch organization data from store (will use cache if available)
     fetchOrgDetail();
     fetchAdmins();
     fetchBookingsPreview();
-  }, [session, status, router, fetchOrgDetail, fetchAdmins, fetchBookingsPreview]);
+  }, [session, status, router, orgId, fetchOrgDetail, fetchAdmins, fetchBookingsPreview]);
 
   // Debounced user search
   // useEffect(() => {
@@ -365,7 +280,8 @@ export default function OrganizationDetailPage() {
       }
 
       showToast(t("orgDetail.updateSuccess"), "success");
-      fetchOrgDetail();
+      // Force refresh to get updated data including images
+      await fetchOrgDetail(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : t("organizations.errors.updateFailed");
       showToast(message, "error");
@@ -409,7 +325,8 @@ export default function OrganizationDetailPage() {
 
       showToast(t("orgDetail.ownerChanged"), "success");
       setIsChangeOwnerModalOpen(false);
-      fetchOrgDetail();
+      // Force refresh to get updated owner data
+      await fetchOrgDetail(true);
       fetchAdmins();
     } catch (err) {
       setChangeOwnerError(err instanceof Error ? err.message : t("organizations.errors.changeOwnerFailed"));
@@ -512,7 +429,8 @@ export default function OrganizationDetailPage() {
 
       showToast(t("orgDetail.logoUpdateSuccess"), "success");
       setIsEditingLogo(false);
-      fetchOrgDetail();
+      // Force refresh to get updated logo
+      await fetchOrgDetail(true);
     } catch (err) {
       setImageUploadError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
     } finally {
@@ -556,7 +474,8 @@ export default function OrganizationDetailPage() {
 
       showToast(t("orgDetail.bannerUpdateSuccess"), "success");
       setIsEditingBanner(false);
-      fetchOrgDetail();
+      // Force refresh to get updated banner
+      await fetchOrgDetail(true);
     } catch (err) {
       setImageUploadError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
     } finally {
@@ -576,7 +495,8 @@ export default function OrganizationDetailPage() {
         newPublicStatus ? t("orgDetail.publishSuccess") : t("orgDetail.unpublishSuccess"),
         "success"
       );
-      fetchOrgDetail();
+      // Force refresh to get updated publication status
+      await fetchOrgDetail(true);
     } catch (err) {
       showToast(err instanceof Error ? err.message : t("organizations.errors.updateFailed"), "error");
     } finally {
@@ -586,8 +506,8 @@ export default function OrganizationDetailPage() {
 
 
 
-  // Show loading spinner while checking authentication
-  const isLoadingState = status === "loading" || loadingOrg;
+  // Show loading spinner while checking authentication or loading org
+  const isLoadingState = status === "loading" || loading;
 
   return (
     <main className="im-org-detail-page">
@@ -596,9 +516,9 @@ export default function OrganizationDetailPage() {
         <div className="im-section-card">
           <div className="im-skeleton h-32 w-full rounded-lg" />
         </div>
-      ) : error && !org ? (
+      ) : (error || storeError) && !org ? (
         <div className="im-org-detail-error">
-          <p>{error || t("orgDetail.notFound")}</p>
+          <p>{error || storeError || t("orgDetail.notFound")}</p>
           <Button onClick={() => router.push("/admin/organizations")}>
             {t("common.backToDashboard")}
           </Button>
@@ -648,7 +568,7 @@ export default function OrganizationDetailPage() {
 
         <section className="im-org-detail-content">
           {/* Organization Owner Section */}
-          {loadingOrg ? (
+          {isLoadingState ? (
             <OrgInfoCardSkeleton items={3} className="im-org-detail-content--full" />
           ) : org && (
             <div className="im-section-card im-org-detail-content--full">
@@ -709,7 +629,7 @@ export default function OrganizationDetailPage() {
 
 
           {/* Key Metrics */}
-          {loadingOrg ? (
+          {isLoadingState ? (
             <div className="im-section-card im-org-detail-content--full">
               <div className="im-section-header">
                 <div className="im-skeleton im-skeleton-icon--round w-10 h-10" />
@@ -735,19 +655,19 @@ export default function OrganizationDetailPage() {
               </div>
               <div className="im-metrics-grid">
                 <div className="im-metric-card im-metric-card--clubs">
-                  <div className="im-metric-value">{org.metrics.totalClubs}</div>
+                  <div className="im-metric-value">{org.metrics?.totalClubs ?? 0}</div>
                   <div className="im-metric-label">{t("orgDetail.totalClubs")}</div>
                 </div>
                 <div className="im-metric-card im-metric-card--courts">
-                  <div className="im-metric-value">{org.metrics.totalCourts}</div>
+                  <div className="im-metric-value">{org.metrics?.totalCourts ?? 0}</div>
                   <div className="im-metric-label">{t("orgDetail.totalCourts")}</div>
                 </div>
                 <div className="im-metric-card im-metric-card--bookings">
-                  <div className="im-metric-value">{org.metrics.activeBookings}</div>
+                  <div className="im-metric-value">{org.metrics?.activeBookings ?? 0}</div>
                   <div className="im-metric-label">{t("orgDetail.activeBookings")}</div>
                 </div>
                 <div className="im-metric-card im-metric-card--users">
-                  <div className="im-metric-value">{org.metrics.activeUsers}</div>
+                  <div className="im-metric-value">{org.metrics?.activeUsers ?? 0}</div>
                   <div className="im-metric-label">{t("orgDetail.activeUsers")}</div>
                 </div>
               </div>
@@ -755,7 +675,7 @@ export default function OrganizationDetailPage() {
           )}
 
           {/* Clubs Preview */}
-          {loadingOrg ? (
+          {isLoadingState ? (
             <ClubsPreviewSkeleton count={3} />
           ) : org && (
             <div className="im-section-card">
@@ -768,12 +688,12 @@ export default function OrganizationDetailPage() {
                 </div>
                 <h2 className="im-section-title">{t("orgDetail.clubs")}</h2>
               </div>
-              {org.clubsPreview.length === 0 ? (
+              {(org.clubsPreview ?? []).length === 0 ? (
                 <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
               ) : (
                 <>
                   <div className="im-clubs-preview-list">
-                    {org.clubsPreview.map((club) => (
+                    {(org.clubsPreview ?? []).map((club) => (
                       <div key={club.id} className="im-club-preview-item">
                         <div className="im-club-preview-info">
                           <span className="im-club-preview-name">{club.name}</span>
@@ -791,14 +711,14 @@ export default function OrganizationDetailPage() {
                       </div>
                     ))}
                   </div>
-                  {org.metrics.totalClubs > org.clubsPreview.length && (
+                  {(org.metrics?.totalClubs ?? 0) > (org.clubsPreview ?? []).length && (
                     <Button
                       variant="outline"
                       size="small"
                       onClick={() => router.push(`/admin/organizations/${orgId}/clubs`)}
                       className="im-view-all-btn"
                     >
-                      {t("orgDetail.viewAllClubs")} ({org.metrics.totalClubs})
+                      {t("orgDetail.viewAllClubs")} ({org.metrics?.totalClubs})
                     </Button>
                   )}
                 </>
