@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, EntityBanner, MetricCardSkeleton, OrgInfoCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton, ImageUpload } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
 import { EntityEditStepper } from "@/components/admin/EntityEditStepper.client";
@@ -52,10 +52,14 @@ interface BookingsPreviewData {
 
 export default function OrganizationDetailPage() {
   const t = useTranslations();
-  const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const orgId = params?.orgId as string;
+  
+  // Use store for auth
+  const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
 
   // Use Zustand store
   const ensureOrganizationById = useOrganizationStore((state) => state.ensureOrganizationById);
@@ -196,8 +200,8 @@ export default function OrganizationDetailPage() {
   }, [fetchSimpleUsers]);
 
   useEffect(() => {
-    if (status === "loading") return;
-    if (!session?.user) {
+    if (!isHydrated || isLoading) return;
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
@@ -206,7 +210,7 @@ export default function OrganizationDetailPage() {
     fetchOrgDetail();
     fetchAdmins();
     fetchBookingsPreview();
-  }, [session, status, router, orgId, fetchOrgDetail, fetchAdmins, fetchBookingsPreview]);
+  }, [isLoggedIn, isLoading, router, orgId, fetchOrgDetail, fetchAdmins, fetchBookingsPreview, isHydrated]);
 
   // Debounced user search
   // useEffect(() => {

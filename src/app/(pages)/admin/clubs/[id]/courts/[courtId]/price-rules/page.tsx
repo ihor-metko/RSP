@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
@@ -47,7 +47,10 @@ export default function PriceRulesPage({
 }: {
   params: Promise<{ id: string; courtId: string }>;
 }) {
-  const { data: session, status } = useSession();
+  // Use store for auth
+  const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const router = useRouter();
   const [clubId, setClubId] = useState<string | null>(null);
   const [courtId, setCourtId] = useState<string | null>(null);
@@ -126,7 +129,7 @@ export default function PriceRulesPage({
   }, [ensureCourtByIdFromStore, courtId, clubId]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (!isHydrated || isLoading) return;
 
     if (!session?.user || !session.user.isRoot) {
       router.push("/auth/sign-in");
