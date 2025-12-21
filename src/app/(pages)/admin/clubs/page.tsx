@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IMLink, PageHeader, Select } from "@/components/ui";
@@ -16,8 +16,8 @@ import {
   PaginationControls,
   QuickPresets,
 } from "@/components/list-controls";
-import type { ClubWithCounts } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
+import { useClubStore } from "@/stores/useClubStore";
 import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
 import "@/components/admin/AdminClubCard.css";
 
@@ -32,24 +32,17 @@ interface ClubFilters extends Record<string, unknown> {
   courtCountMax: string;
 }
 
-/**
- * Admin Clubs Page
- *
- * Note: This page uses direct API calls instead of useClubStore because it requires
- * server-side filtering, pagination, and sorting with query parameters that are not
- * supported by the basic store implementation. Complex admin pages with server-side
- * features should continue using direct API calls for optimal performance.
- */
-
 export default function AdminClubsPage() {
   const t = useTranslations();
   const router = useRouter();
-  const [clubs, setClubs] = useState<ClubWithCounts[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   // Use deferred loading to prevent flicker on fast responses
-  const deferredLoading = useDeferredLoading(loading);
+  const clubs = useClubStore((state) => state.clubs);
+  const loadingClubs = useClubStore((state) => state.loadingClubs);
+  const clubsError = useClubStore((state) => state.clubsError);
+  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+
+  const deferredLoading = useDeferredLoading(loadingClubs);
 
   // Get admin status from user store
   const adminStatus = useUserStore((state) => state.adminStatus);
@@ -75,50 +68,7 @@ export default function AdminClubsPage() {
     defaultPageSize: 25,
   });
 
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-
-  // Admin status is loaded from store via UserStoreInitializer
-
-  const fetchClubs = useCallback(async () => {
-    try {
-      setLoading(true);
-      // Build query parameters
-      const params = new URLSearchParams();
-      if (controller.filters.searchQuery) params.append("search", controller.filters.searchQuery);
-      if (controller.filters.selectedCity) params.append("city", controller.filters.selectedCity);
-      if (controller.filters.selectedStatus) params.append("status", controller.filters.selectedStatus);
-      if (controller.filters.organizationFilter) params.append("organizationId", controller.filters.organizationFilter);
-      if (controller.filters.selectedSportType) params.append("sportType", controller.filters.selectedSportType);
-      if (controller.filters.courtCountMin) params.append("courtCountMin", controller.filters.courtCountMin);
-      if (controller.filters.courtCountMax) params.append("courtCountMax", controller.filters.courtCountMax);
-      params.append("sortBy", controller.sortBy);
-      params.append("sortOrder", controller.sortOrder);
-      params.append("page", controller.page.toString());
-      params.append("pageSize", controller.pageSize.toString());
-
-      const response = await fetch(`/api/admin/clubs?${params.toString()}`);
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          router.push("/auth/sign-in");
-          return;
-        }
-        throw new Error("Failed to fetch clubs");
-      }
-      const data = await response.json();
-      setClubs(data.clubs || data); // Support both old and new response format
-      if (data.pagination) {
-        setTotalCount(data.pagination.totalCount);
-        setTotalPages(data.pagination.totalPages);
-      }
-      setError("");
-    } catch {
-      setError(t("clubs.failedToLoad"));
-    } finally {
-      setLoading(false);
-    }
-  }, [router, t, controller.filters, controller.sortBy, controller.sortOrder, controller.page, controller.pageSize]);
-
+  // Fetch clubs from store when component mounts or organizationFilter changes
   useEffect(() => {
     // Wait for hydration before checking auth
     if (!isHydrated || isLoadingStore) return;
@@ -130,12 +80,88 @@ export default function AdminClubsPage() {
 
     // Fetch clubs if user is admin
     if (adminStatus?.isAdmin) {
-      fetchClubs();
+      fetchClubsIfNeeded({ 
+        organizationId: controller.filters.organizationFilter || null 
+      }).catch((err) => {
+        console.error("Failed to fetch clubs:", err);
+      });
     } else {
       // User is not an admin, redirect
       router.push("/auth/sign-in");
     }
-  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchClubs, isHydrated]);
+  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchClubsIfNeeded, controller.filters.organizationFilter, isHydrated]);
+
+  // Client-side filtering and sorting
+  const filteredAndSortedClubs = useMemo(() => {
+    let result = [...clubs];
+
+    // Filter by search query
+    if (controller.filters.searchQuery) {
+      const query = controller.filters.searchQuery.toLowerCase();
+      result = result.filter(
+        (club) =>
+          club.name.toLowerCase().includes(query) ||
+          club.location?.toLowerCase().includes(query) ||
+          club.city?.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by city
+    if (controller.filters.selectedCity) {
+      result = result.filter((club) => club.city === controller.filters.selectedCity);
+    }
+
+    // Filter by status
+    if (controller.filters.selectedStatus) {
+      result = result.filter((club) => club.status === controller.filters.selectedStatus);
+    }
+
+    // Filter by sport type
+    if (controller.filters.selectedSportType) {
+      result = result.filter((club) => 
+        club.supportedSports?.includes(controller.filters.selectedSportType)
+      );
+    }
+
+    // Filter by court count range
+    if (controller.filters.courtCountMin || controller.filters.courtCountMax) {
+      result = result.filter((club) => {
+        const courtCount = club.courtCount || 0;
+        const min = controller.filters.courtCountMin ? parseInt(controller.filters.courtCountMin) : 0;
+        const max = controller.filters.courtCountMax ? parseInt(controller.filters.courtCountMax) : Infinity;
+        return courtCount >= min && courtCount <= max;
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let comparison = 0;
+      switch (controller.sortBy) {
+        case "name":
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case "createdAt":
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case "bookingCount":
+          comparison = (a.bookingCount || 0) - (b.bookingCount || 0);
+          break;
+      }
+      return controller.sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    return result;
+  }, [clubs, controller.filters, controller.sortBy, controller.sortOrder]);
+
+  // Paginated clubs
+  const paginatedClubs = useMemo(() => {
+    const startIndex = (controller.page - 1) * controller.pageSize;
+    return filteredAndSortedClubs.slice(startIndex, startIndex + controller.pageSize);
+  }, [filteredAndSortedClubs, controller.page, controller.pageSize]);
+
+  // Total pages
+  const totalPages = Math.ceil(filteredAndSortedClubs.length / controller.pageSize);
+  const totalCount = filteredAndSortedClubs.length;
 
   // Extract unique cities for filters (client-side for now)
   const cities = useMemo(() => {
@@ -273,15 +299,15 @@ export default function AdminClubsPage() {
             </div>
           </ListToolbar>
 
-          {error && (
+          {clubsError && (
             <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-              {error}
+              {clubsError}
             </div>
           )}
 
           {isLoading ? (
             <CardListSkeleton count={controller.pageSize > 12 ? 12 : controller.pageSize} variant="default" />
-          ) : clubs.length === 0 ? (
+          ) : paginatedClubs.length === 0 ? (
             <div className="im-admin-clubs-empty">
               <p className="im-admin-clubs-empty-text">
                 {totalCount === 0
@@ -292,7 +318,7 @@ export default function AdminClubsPage() {
           ) : (
             <>
               <section className="im-admin-clubs-grid">
-                {clubs.map((club) => (
+                {paginatedClubs.map((club) => (
                   <AdminClubCard
                     key={club.id}
                     club={club}

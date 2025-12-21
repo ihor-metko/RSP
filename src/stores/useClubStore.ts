@@ -27,6 +27,9 @@ interface ClubState {
   clubsError: string | null;
   error: string | null;
   lastFetchedAt: number | null;
+  
+  // Context tracking for invalidation
+  lastOrganizationId: string | null;
 
   // Internal inflight Promise guards (not exposed)
   _inflightFetchClubs: Promise<void> | null;
@@ -42,7 +45,7 @@ interface ClubState {
   fetchClubById: (id: string) => Promise<void>;
   
   // New idempotent, concurrency-safe methods
-  fetchClubsIfNeeded: (options?: { force?: boolean }) => Promise<void>;
+  fetchClubsIfNeeded: (options?: { force?: boolean; organizationId?: string | null }) => Promise<void>;
   ensureClubById: (id: string, options?: { force?: boolean }) => Promise<ClubDetail>;
   invalidateClubs: () => void;
   
@@ -69,6 +72,7 @@ export const useClubStore = create<ClubState>((set, get) => ({
   clubsError: null,
   error: null,
   lastFetchedAt: null,
+  lastOrganizationId: null,
   _inflightFetchClubs: null,
   _inflightFetchClubById: null,
 
@@ -127,16 +131,27 @@ export const useClubStore = create<ClubState>((set, get) => ({
 
   /**
    * Fetch clubs if needed with inflight guard
-   * - If !force and clubs.length > 0, returns immediately
+   * - If !force and clubs.length > 0 and organizationId matches, returns immediately
+   * - If organizationId changes, invalidates cache and refetches
    * - If an inflight request exists, returns that Promise
    * - Otherwise, performs a new network request
    */
   fetchClubsIfNeeded: async (options = {}) => {
-    const { force = false } = options;
+    const { force = false, organizationId = null } = options as { force?: boolean; organizationId?: string | null };
     const state = get();
 
-    // If not forcing and clubs are already loaded, return immediately
-    if (!force && state.clubs.length > 0) {
+    // If organizationId changed, invalidate cache
+    if (organizationId && state.lastOrganizationId && organizationId !== state.lastOrganizationId) {
+      set({ 
+        clubs: [], 
+        clubsById: {}, 
+        lastFetchedAt: null,
+        lastOrganizationId: organizationId,
+      });
+    }
+
+    // If not forcing and clubs are already loaded for this context, return immediately
+    if (!force && state.clubs.length > 0 && (!organizationId || organizationId === state.lastOrganizationId)) {
       return Promise.resolve();
     }
 
@@ -149,7 +164,14 @@ export const useClubStore = create<ClubState>((set, get) => ({
     const inflightPromise = (async () => {
       set({ loadingClubs: true, clubsError: null });
       try {
-        const response = await fetch("/api/admin/clubs");
+        // Build query params
+        const params = new URLSearchParams();
+        if (organizationId) {
+          params.append('organizationId', organizationId);
+        }
+        
+        const url = `/api/admin/clubs${params.toString() ? `?${params.toString()}` : ''}`;
+        const response = await fetch(url);
         
         if (!response.ok) {
           const data = await response.json().catch(() => ({ error: "Failed to fetch clubs" }));
@@ -163,6 +185,7 @@ export const useClubStore = create<ClubState>((set, get) => ({
           loadingClubs: false,
           clubsError: null,
           lastFetchedAt: Date.now(),
+          lastOrganizationId: organizationId,
           _inflightFetchClubs: null,
         });
       } catch (error) {
@@ -279,6 +302,7 @@ export const useClubStore = create<ClubState>((set, get) => ({
       clubs: [],
       clubsById: {},
       lastFetchedAt: null,
+      lastOrganizationId: null,
       clubsError: null,
     });
   },

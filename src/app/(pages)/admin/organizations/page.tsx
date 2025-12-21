@@ -71,7 +71,6 @@ export default function AdminOrganizationsPage() {
   
   // Use store for auth state
   const isHydrated = useUserStore((state) => state.isHydrated);
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoading = useUserStore((state) => state.isLoading);
   const user = useUserStore((state) => state.user);
 
@@ -323,7 +322,7 @@ export default function AdminOrganizationsPage() {
     // Wait for hydration before checking auth
     if (!isHydrated) return;
 
-    if (status === "loading") return;
+    if (isLoading) return;
 
     if (!user || !user.isRoot) {
       router.push("/auth/sign-in");
@@ -335,7 +334,7 @@ export default function AdminOrganizationsPage() {
     if (storeError && (storeError.includes("401") || storeError.includes("403"))) {
       router.push("/auth/sign-in");
     }
-  }, [user, status, router, storeError, isHydrated]);
+  }, [user, isLoading, router, storeError, isHydrated]);
 
   // Debounced user search
   useEffect(() => {
@@ -452,8 +451,8 @@ export default function AdminOrganizationsPage() {
 
   const fetchOrgClubs = useCallback(async (orgId: string) => {
     try {
-      // Use store method with inflight guard
-      await fetchClubsIfNeeded();
+      // Use store method with inflight guard and organization context
+      await fetchClubsIfNeeded({ organizationId: orgId });
 
       // Get clubs from store and filter to organization
       const allClubs = useClubStore.getState().clubs;
@@ -669,7 +668,7 @@ export default function AdminOrganizationsPage() {
 
 
   // Combined loading state for consistent loading UI (includes hydration state)
-  const isLoading = !isHydrated || status === "loading" || loading;
+  const isLoadingState = !isHydrated || isLoading || loading;
 
   return (
     <ListControllerProvider controller={controller}>
@@ -766,7 +765,7 @@ export default function AdminOrganizationsPage() {
             </div>
           )}
 
-          {isLoading ? (
+          {isLoadingState ? (
             <CardListSkeleton count={Math.min(controller.pageSize, MAX_SKELETON_COUNT)} variant="default" />
           ) : organizations.length === 0 ? (
             <div className="im-admin-organizations-empty">
