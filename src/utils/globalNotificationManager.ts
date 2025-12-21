@@ -250,6 +250,9 @@ function generateNotificationId(eventType: string, eventId: string): string {
 export function transformBookingCreated(event: BookingCreatedEvent): AdminNotificationEvent {
   const { booking, courtId } = event;
   
+  const courtInfo = booking.courtName || `Court ${courtId}`;
+  const playerInfo = booking.userName || booking.userEmail;
+  
   return {
     id: generateNotificationId('booking_created', booking.id),
     type: 'BOOKING_CREATED',
@@ -265,8 +268,8 @@ export function transformBookingCreated(event: BookingCreatedEvent): AdminNotifi
       hour: '2-digit', 
       minute: '2-digit' 
     }),
-    courtInfo: booking.courtName || `Court ${courtId}`,
-    summary: `New booking created by ${booking.userName || booking.userEmail} for ${booking.courtName}`,
+    courtInfo: courtInfo,
+    summary: `New booking created by ${playerInfo} for ${courtInfo}`,
     read: false,
     createdAt: new Date().toISOString(),
   };
@@ -278,6 +281,7 @@ export function transformBookingCreated(event: BookingCreatedEvent): AdminNotifi
 export function transformBookingUpdated(event: BookingUpdatedEvent): AdminNotificationEvent {
   const { booking, courtId, previousStatus } = event;
   
+  const courtInfo = booking.courtName || `Court ${courtId}`;
   const statusChange = previousStatus 
     ? ` (${previousStatus} → ${booking.bookingStatus})`
     : '';
@@ -297,8 +301,8 @@ export function transformBookingUpdated(event: BookingUpdatedEvent): AdminNotifi
       hour: '2-digit', 
       minute: '2-digit' 
     }),
-    courtInfo: booking.courtName || `Court ${courtId}`,
-    summary: `Booking updated${statusChange} for ${booking.courtName}`,
+    courtInfo: courtInfo,
+    summary: `Booking updated${statusChange} for ${courtInfo}`,
     read: false,
     createdAt: new Date().toISOString(),
   };

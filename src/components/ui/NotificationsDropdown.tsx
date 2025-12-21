@@ -96,10 +96,10 @@ function getNotificationIcon(type: string): string {
     case "BOOKING_UPDATED":
       return "🔄";
     case "BOOKING_CANCELLED":
-      return "❌";
+      return "🚫";
     // Payment event types
     case "PAYMENT_CONFIRMED":
-      return "✅";
+      return "💰";
     case "PAYMENT_FAILED":
       return "💳";
     default:
