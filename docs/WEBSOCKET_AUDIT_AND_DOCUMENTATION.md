@@ -708,12 +708,25 @@ cleanupExpiredLocks(): void
 
 **Conflict Resolution Example**:
 ```typescript
+// Implemented in /src/utils/socketUpdateManager.ts
 // If incoming booking has older timestamp, it's ignored
 const shouldApplyBookingUpdate = (current, incoming) => {
   const currentTime = new Date(current.updatedAt).getTime();
   const incomingTime = new Date(incoming.updatedAt).getTime();
   return incomingTime > currentTime;
 };
+
+// Usage in booking store:
+updateBookingFromSocket(booking: OperationsBooking) {
+  const currentBookings = get().bookings;
+  const updatedBookings = updateBookingInList(currentBookings, booking);
+  
+  // updateBookingInList internally uses shouldApplyBookingUpdate
+  // Only updates state if the booking list was modified
+  if (updatedBookings !== currentBookings) {
+    set({ bookings: updatedBookings });
+  }
+}
 ```
 
 ### Notification Store (`useNotificationStore`)
@@ -1304,9 +1317,21 @@ socket.on('error', (error) => {
 1. **Event Batching**:
 ```typescript
 // Batch multiple events within 100ms window
+// Using lodash debounce or custom implementation
+import { debounce } from 'lodash';
+
 const eventBatcher = debounce((events) => {
   io.emit('batch_update', events);
 }, 100);
+
+// Alternatively, implement custom debounce:
+function debounce(func, delay) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+}
 ```
 
 2. **Selective Re-renders**:
