@@ -3,7 +3,7 @@
  */
 import { useEffect, useState } from "react";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useCourtStore } from "@/stores/useCourtStore";
 import type { WizardOrganization, WizardClub, WizardCourt, PredefinedData } from "../types";
 
@@ -81,7 +81,7 @@ export function useWizardPredefinedData({
                 const clubId = predefinedData.clubId;
                 if (!clubId) return null;
 
-                const clubStore = useClubStore.getState();
+                const clubStore = useAdminClubStore.getState();
                 const getClubById = clubStore.getClubById;
                 const fetchClubsIfNeeded = clubStore.fetchClubsIfNeeded;
 
@@ -92,7 +92,7 @@ export function useWizardPredefinedData({
                   // If not in store, fetch clubs to populate the store
                   if (!club) {
                     await fetchClubsIfNeeded();
-                    club = useClubStore.getState().getClubById(clubId);
+                    club = useAdminClubStore.getState().getClubById(clubId);
                   }
 
                   return club || null;

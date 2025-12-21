@@ -7,7 +7,7 @@ import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
 import { CardListSkeleton } from "@/components/ui/skeletons";
 import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { useUserStore } from "@/stores/useUserStore";
 import type { Organization } from "@/types/organization";
@@ -447,7 +447,7 @@ export default function AdminOrganizationsPage() {
   }, [t]);
 
   // Fetch clubs for an organization using store
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+  const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
 
   const fetchOrgClubs = useCallback(async (orgId: string) => {
     try {
@@ -455,7 +455,7 @@ export default function AdminOrganizationsPage() {
       await fetchClubsIfNeeded({ organizationId: orgId });
 
       // Get clubs from store and filter to organization
-      const allClubs = useClubStore.getState().clubs;
+      const allClubs = useAdminClubStore.getState().clubs;
       const orgClubsList = allClubs.filter((club) => club.organization?.id === orgId);
       setOrgClubs(orgClubsList.map((club) => ({
         id: club.id,

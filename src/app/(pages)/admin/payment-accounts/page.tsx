@@ -8,7 +8,7 @@ import { PaymentAccountList } from "@/components/admin/payment-accounts/PaymentA
 import { PaymentAccountForm, PaymentAccountFormData } from "@/components/admin/payment-accounts/PaymentAccountForm";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import type { MaskedPaymentAccount } from "@/types/paymentAccount";
 import { PaymentAccountStatus } from "@/types/paymentAccount";
 import "./page.css";
@@ -38,8 +38,8 @@ export default function UnifiedPaymentAccountsPage() {
 
   const organizations = useOrganizationStore((state) => state.organizations);
   const fetchOrganizations = useOrganizationStore((state) => state.fetchOrganizations);
-  const clubs = useClubStore((state) => state.clubs);
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+  const clubs = useAdminClubStore((state) => state.clubs);
+  const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
 
   const [organizationAccounts, setOrganizationAccounts] = useState<MaskedPaymentAccount[]>([]);
   const [clubAccounts, setClubAccounts] = useState<ClubWithAccounts[]>([]);
