@@ -5,6 +5,36 @@ import type {
 } from "@/types/club";
 
 /**
+ * Cache configuration
+ */
+const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Utility function to safely sync public fields from PlayerClubDetail to PlayerClub
+ */
+function syncPlayerClubFields(
+  target: PlayerClub,
+  source: PlayerClubDetail
+): PlayerClub {
+  return {
+    ...target,
+    // Only update public fields that are safe to sync
+    name: source.name,
+    shortDescription: source.shortDescription,
+    location: source.location,
+    city: source.city,
+    contactInfo: source.contactInfo,
+    openingHours: source.openingHours,
+    logo: source.logo,
+    heroImage: source.heroImage,
+    tags: source.tags,
+    // Preserve existing id and createdAt
+    id: target.id,
+    createdAt: target.createdAt,
+  };
+}
+
+/**
  * SSR NOTE: This client-side store should not be relied upon for SSR logic.
  * Server-side pages must fetch data directly via getServerSideProps or route handlers.
  * After hydration, you can optionally call usePlayerClubStore.getState().setClubs(serverData)
@@ -170,8 +200,7 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
     }
 
     // If not forcing and clubs are already loaded for this context, return immediately
-    // Check timestamp to prevent serving stale data (refresh after 5 minutes)
-    const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+    // Check timestamp to prevent serving stale data
     const isCacheExpired = state.lastFetchedAt && (Date.now() - state.lastFetchedAt > CACHE_EXPIRY_MS);
     
     if (!force && state.clubs.length > 0 && searchParamsStr === state.lastSearchParams && !isCacheExpired) {
@@ -278,23 +307,8 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
         const clubIndex = currentClubs.findIndex(c => c.id === id);
         if (clubIndex >= 0) {
           const updatedClubs = [...currentClubs];
-          // Only update public fields that are safe to sync
-          updatedClubs[clubIndex] = { 
-            ...updatedClubs[clubIndex],
-            // Explicitly update only PlayerClub fields
-            name: club.name,
-            shortDescription: club.shortDescription,
-            location: club.location,
-            city: club.city,
-            contactInfo: club.contactInfo,
-            openingHours: club.openingHours,
-            logo: club.logo,
-            heroImage: club.heroImage,
-            tags: club.tags,
-            // Preserve existing id and createdAt
-            id: updatedClubs[clubIndex].id,
-            createdAt: updatedClubs[clubIndex].createdAt,
-          };
+          // Use utility function to safely sync fields
+          updatedClubs[clubIndex] = syncPlayerClubFields(updatedClubs[clubIndex], club);
           set({ clubs: updatedClubs });
         }
 

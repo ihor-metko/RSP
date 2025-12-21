@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSafeHeaders } from "../../shared";
 
 /**
  * Player club detail endpoint - GET /api/player/clubs/:id
@@ -21,15 +22,7 @@ export async function GET(
     const targetUrl = `${baseUrl}/api/(player)/clubs/${clubId}`;
     
     // Forward the request with only safe headers
-    const safeHeaders = new Headers();
-    const headersToForward = ['accept', 'accept-language', 'user-agent'];
-    
-    headersToForward.forEach(headerName => {
-      const headerValue = request.headers.get(headerName);
-      if (headerValue) {
-        safeHeaders.set(headerName, headerValue);
-      }
-    });
+    const safeHeaders = getSafeHeaders(request);
     
     const response = await fetch(targetUrl, {
       method: 'GET',

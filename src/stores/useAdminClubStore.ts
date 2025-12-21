@@ -7,6 +7,32 @@ import type {
 } from "@/types/club";
 
 /**
+ * Utility function to safely merge club detail fields into club summary
+ * Preserves aggregated data (counts, organization, admins) that should only
+ * be updated via fetchClubsIfNeeded
+ */
+function mergeClubDetailToSummary(
+  target: AdminClubWithCounts,
+  source: AdminClubDetail
+): AdminClubWithCounts {
+  return {
+    ...target,
+    // Update basic club info from detail
+    name: source.name,
+    location: source.location,
+    shortDescription: source.shortDescription,
+    city: source.city,
+    logo: source.logo,
+    heroImage: source.heroImage,
+    tags: source.tags,
+    isPublic: source.isPublic,
+    status: source.status,
+    // Preserve existing aggregated data (counts, organization, admins)
+    // These should only be updated via fetchClubsIfNeeded
+  };
+}
+
+/**
  * SSR NOTE: This client-side store should not be relied upon for SSR logic.
  * Server-side pages must fetch data directly via getServerSideProps or route handlers.
  * After hydration, you can optionally call useAdminClubStore.getState().setClubs(serverData)
@@ -254,22 +280,8 @@ export const useAdminClubStore = create<AdminClubState>((set, get) => ({
         const clubIndex = currentClubs.findIndex(c => c.id === id);
         if (clubIndex >= 0) {
           const updatedClubs = [...currentClubs];
-          // Explicitly merge only safe fields to avoid overwriting counts or organization data
-          updatedClubs[clubIndex] = { 
-            ...updatedClubs[clubIndex],
-            // Update basic club info from detail
-            name: club.name,
-            location: club.location,
-            shortDescription: club.shortDescription,
-            city: club.city,
-            logo: club.logo,
-            heroImage: club.heroImage,
-            tags: club.tags,
-            isPublic: club.isPublic,
-            status: club.status,
-            // Preserve existing aggregated data (counts, organization, admins)
-            // These should only be updated via fetchClubsIfNeeded
-          };
+          // Use utility function to safely merge fields
+          updatedClubs[clubIndex] = mergeClubDetailToSummary(updatedClubs[clubIndex], club);
           set({ clubs: updatedClubs });
         }
 

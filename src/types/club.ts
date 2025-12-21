@@ -212,16 +212,20 @@ export interface UpdateClubPayload {
 /**
  * Admin-specific club data with full operational details
  * Used by useAdminClubStore
- * Extends ClubWithCounts with the same interface for now, but allows for
- * future admin-specific fields without breaking the type system
+ * 
+ * Currently a type alias of ClubWithCounts for consistency and future extensibility.
+ * Using a type alias allows us to add admin-specific fields in the future without
+ * breaking the API of components using AdminClubWithCounts.
  */
 export type AdminClubWithCounts = ClubWithCounts;
 
 /**
  * Admin-specific detailed club data
  * Used by useAdminClubStore for individual club details
- * Extends ClubDetail with the same interface for now, but allows for
- * future admin-specific fields without breaking the type system
+ * 
+ * Currently a type alias of ClubDetail for consistency and future extensibility.
+ * Using a type alias allows us to add admin-specific fields in the future without
+ * breaking the API of components using AdminClubDetail.
  */
 export type AdminClubDetail = ClubDetail;
 
