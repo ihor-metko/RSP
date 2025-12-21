@@ -401,6 +401,8 @@ export default function AdminOrganizationsPage() {
             userId: selectedUserId,
           };
 
+      // NOTE: Direct fetch is intentional - this is a specialized operation (assign admin)
+      // not basic domain state retrieval (per data-fetching-guidelines.md)
       const response = await fetch("/api/admin/organizations/assign-admin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

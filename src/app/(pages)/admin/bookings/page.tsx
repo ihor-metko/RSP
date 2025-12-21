@@ -110,6 +110,8 @@ export default function AdminBookingsPage() {
       if (controller.filters.dateFrom) params.set("dateFrom", controller.filters.dateFrom);
       if (controller.filters.dateTo) params.set("dateTo", controller.filters.dateTo);
 
+      // NOTE: Direct fetch is intentional - this is a reporting/list endpoint with
+      // pagination and complex filtering, not basic domain state (per data-fetching-guidelines.md)
       const response = await fetch(`/api/admin/bookings?${params.toString()}`);
 
       if (!response.ok) {

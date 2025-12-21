@@ -140,7 +140,8 @@ export default function CourtDetailPage({
     const dateStr = formatDateString(date);
 
     try {
-      // Fetch both availability and price timeline in parallel
+      // NOTE: Direct fetch is intentional - availability and price-timeline are specialized
+      // endpoints with date-specific queries, not basic domain state (per data-fetching-guidelines.md)
       const [availabilityResponse, priceResponse] = await Promise.all([
         fetch(`/api/courts/${courtId}/availability?date=${dateStr}`),
         fetch(`/api/courts/${courtId}/price-timeline?date=${dateStr}`),

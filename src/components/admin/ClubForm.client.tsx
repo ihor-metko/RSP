@@ -273,6 +273,8 @@ export function ClubForm() {
         })),
       };
 
+      // NOTE: Direct fetch is intentional - this is a mutation operation (create club)
+      // not basic domain state retrieval (per data-fetching-guidelines.md)
       const response = await fetch("/api/admin/clubs/new", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

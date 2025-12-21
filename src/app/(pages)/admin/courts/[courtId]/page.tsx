@@ -92,7 +92,8 @@ export default function CourtDetailPage({
       if (!courtId || !court) return;
 
       try {
-        // Update via new API route
+        // NOTE: Direct fetch is intentional - this is a mutation operation (update court)
+        // not domain state retrieval (per data-fetching-guidelines.md)
         const response = await fetch(`/api/admin/courts/${courtId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

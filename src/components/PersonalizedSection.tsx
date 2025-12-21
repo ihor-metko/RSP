@@ -341,6 +341,8 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
       const endTime = calculateEndTime(selectedStartTime, selectedDuration);
       const endDateTime = `${selectedDate}T${endTime}:00.000Z`;
 
+      // NOTE: Direct fetch is intentional - this is a mutation operation (create booking)
+      // not domain state retrieval (per data-fetching-guidelines.md)
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {

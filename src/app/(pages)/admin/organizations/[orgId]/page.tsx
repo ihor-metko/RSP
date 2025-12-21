@@ -151,7 +151,8 @@ export default function OrganizationDetailPage() {
       const weekFromNow = new Date(today);
       weekFromNow.setDate(weekFromNow.getDate() + 7);
 
-      // Fetch bookings for the organization
+      // NOTE: Direct fetch is intentional - these are reporting endpoints with
+      // complex date filtering for dashboard stats (per data-fetching-guidelines.md)
       const [todayResponse, weekResponse, upcomingResponse] = await Promise.all([
         fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&dateTo=${tomorrow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
         fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&dateTo=${weekFromNow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
@@ -256,6 +257,8 @@ export default function OrganizationDetailPage() {
         logoFormData.append("file", data.logo);
         logoFormData.append("type", "logo");
 
+        // NOTE: Direct fetch is intentional - image upload is a specialized operation
+        // not basic domain state retrieval (per data-fetching-guidelines.md)
         const logoResponse = await fetch(`/api/admin/organizations/${orgId}/images`, {
           method: "POST",
           body: logoFormData,
@@ -272,6 +275,8 @@ export default function OrganizationDetailPage() {
         heroFormData.append("file", data.heroImage);
         heroFormData.append("type", "heroImage");
 
+        // NOTE: Direct fetch is intentional - image upload is a specialized operation
+        // not basic domain state retrieval (per data-fetching-guidelines.md)
         const heroResponse = await fetch(`/api/admin/organizations/${orgId}/images`, {
           method: "POST",
           body: heroFormData,

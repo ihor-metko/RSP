@@ -190,6 +190,8 @@ export function BookingModal({
     setAlert(null);
 
     try {
+      // NOTE: Direct fetch is intentional - this is a mutation operation (create booking)
+      // not domain state retrieval (per data-fetching-guidelines.md)
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {

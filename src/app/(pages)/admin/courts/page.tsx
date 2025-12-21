@@ -113,6 +113,8 @@ export default function AdminCourtsPage() {
       params.append("sortBy", controller.sortBy);
       params.append("sortOrder", controller.sortOrder);
 
+      // NOTE: Direct fetch is intentional - this is a reporting/list endpoint with
+      // pagination and complex filtering, not basic domain state (per data-fetching-guidelines.md)
       const response = await fetch(`/api/admin/courts?${params.toString()}`);
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {

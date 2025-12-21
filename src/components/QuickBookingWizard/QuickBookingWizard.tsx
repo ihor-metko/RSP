@@ -221,6 +221,8 @@ export function QuickBookingWizard({
       const endTime = calculateEndTime(step1.startTime, step1.duration);
       const endDateTime = `${step1.date}T${endTime}:00.000Z`;
 
+      // NOTE: Direct fetch is intentional - this is a mutation operation (create booking)
+      // not domain state retrieval (per data-fetching-guidelines.md)
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {
