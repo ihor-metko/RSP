@@ -16,6 +16,9 @@
  * - payment_confirmed, payment_failed
  * - admin_notification
  * 
+ * Note: Legacy event names (bookingCreated, bookingUpdated, bookingDeleted) have been removed.
+ * The system now uses only the standardized event names with underscores.
+ * 
  * Features:
  * - Uses global socket from SocketProvider (no duplicate connections)
  * - Centralized event dispatching
@@ -148,11 +151,6 @@ export function GlobalSocketListener() {
     socket.on('booking_cancelled', handleBookingCancelled);
     socket.on('admin_notification', handleAdminNotification);
 
-    // Legacy event names for backward compatibility
-    socket.on('bookingCreated', handleBookingCreated);
-    socket.on('bookingUpdated', handleBookingUpdated);
-    socket.on('bookingDeleted', handleBookingCancelled);
-
     // Slot lock events (notifications only for now)
     socket.on('slot_locked', (data: SlotLockedEvent) => {
       handleSocketEvent('slot_locked', data);
@@ -178,9 +176,6 @@ export function GlobalSocketListener() {
       socket.off('booking_updated', handleBookingUpdated);
       socket.off('booking_cancelled', handleBookingCancelled);
       socket.off('admin_notification', handleAdminNotification);
-      socket.off('bookingCreated', handleBookingCreated);
-      socket.off('bookingUpdated', handleBookingUpdated);
-      socket.off('bookingDeleted', handleBookingCancelled);
       socket.off('slot_locked');
       socket.off('slot_unlocked');
       socket.off('lock_expired');

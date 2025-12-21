@@ -109,6 +109,9 @@ export interface ClientToServerEvents {}
 
 /**
  * Server to Client events
+ * 
+ * Note: Legacy event names (bookingCreated, bookingUpdated, bookingDeleted) have been removed.
+ * Only standardized event names with underscores are supported.
  */
 export interface ServerToClientEvents {
   booking_created: (data: BookingCreatedEvent) => void;
@@ -120,10 +123,6 @@ export interface ServerToClientEvents {
   payment_confirmed: (data: PaymentConfirmedEvent) => void;
   payment_failed: (data: PaymentFailedEvent) => void;
   admin_notification: (data: AdminNotificationEvent) => void;
-  // Legacy event names for backward compatibility
-  bookingCreated: (data: BookingCreatedEvent) => void;
-  bookingUpdated: (data: BookingUpdatedEvent) => void;
-  bookingDeleted: (data: BookingDeletedEvent) => void;
 }
 
 /**

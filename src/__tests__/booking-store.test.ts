@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import { act, waitFor } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { useBookingStore } from "@/stores/useBookingStore";
 import type { OperationsBooking } from "@/types/booking";
 
@@ -16,7 +16,6 @@ describe("useBookingStore", () => {
       useBookingStore.getState().setBookings([]);
       useBookingStore.getState().setLoading(false);
       useBookingStore.getState().setError(null);
-      useBookingStore.getState().stopPolling();
       useBookingStore.setState({
         lastFetchedAt: null,
         lastFetchParams: null,
@@ -58,7 +57,6 @@ describe("useBookingStore", () => {
       expect(state.loading).toBe(false);
       expect(state.error).toBeNull();
       expect(state.lastFetchedAt).toBeNull();
-      expect(state.pollingInterval).toBeNull();
     });
   });
 
@@ -319,82 +317,6 @@ describe("useBookingStore", () => {
       expect(errorThrown).toBe(true);
       const state = useBookingStore.getState();
       expect(state.error).toBeTruthy();
-    });
-  });
-
-  describe("Polling", () => {
-    it("should start polling and fetch at intervals", async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => [mockBooking],
-      });
-
-      act(() => {
-        useBookingStore.getState().startPolling("club-1", "2024-01-15", 1000);
-      });
-
-      // Initial fetch
-      await act(async () => {
-        jest.advanceTimersByTime(0);
-        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
-      });
-
-      // First interval
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
-      });
-
-      // Second interval
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(3));
-      });
-
-      // Stop polling
-      act(() => {
-        useBookingStore.getState().stopPolling();
-      });
-
-      // Should not fetch anymore
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      expect(global.fetch).toHaveBeenCalledTimes(3);
-    });
-
-    it("should stop existing polling when starting new one", async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => [mockBooking],
-      });
-
-      // Start first polling
-      act(() => {
-        useBookingStore.getState().startPolling("club-1", "2024-01-15", 1000);
-      });
-
-      await act(async () => {
-        jest.advanceTimersByTime(0);
-        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
-      });
-
-      // Start second polling (should stop first)
-      act(() => {
-        useBookingStore.getState().startPolling("club-2", "2024-01-16", 1000);
-      });
-
-      await act(async () => {
-        jest.advanceTimersByTime(0);
-        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
-      });
-
-      // Verify only one polling is active
-      await act(async () => {
-        jest.advanceTimersByTime(1000);
-        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(3));
-      });
     });
   });
 

@@ -58,8 +58,6 @@ const mockCourtStore = {
 const mockBookingStore = {
   bookings: [],
   fetchBookingsForDay: jest.fn().mockResolvedValue([]),
-  startPolling: jest.fn(),
-  stopPolling: jest.fn(),
   loading: false,
   error: null,
 };

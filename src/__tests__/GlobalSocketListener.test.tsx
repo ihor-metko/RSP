@@ -3,6 +3,8 @@
  * 
  * Tests the unified notification system where all admin-relevant events
  * (Booking, Payment, Admin) show toasts AND persist in notification store.
+ * 
+ * Note: Legacy event names (bookingCreated, bookingUpdated, bookingDeleted) have been removed.
  */
 
 import React from 'react';
@@ -125,11 +127,6 @@ describe('GlobalSocketListener', () => {
     expect(registeredEvents).toContain('payment_confirmed');
     expect(registeredEvents).toContain('payment_failed');
     expect(registeredEvents).toContain('admin_notification');
-    
-    // Legacy events
-    expect(registeredEvents).toContain('bookingCreated');
-    expect(registeredEvents).toContain('bookingUpdated');
-    expect(registeredEvents).toContain('bookingDeleted');
   });
 
   it('should handle booking_created event with unified notification system', async () => {
@@ -323,9 +320,6 @@ describe('GlobalSocketListener', () => {
     expect(mockSocket.off).toHaveBeenCalledWith('booking_updated', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('booking_cancelled', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('admin_notification', expect.any(Function));
-    expect(mockSocket.off).toHaveBeenCalledWith('bookingCreated', expect.any(Function));
-    expect(mockSocket.off).toHaveBeenCalledWith('bookingUpdated', expect.any(Function));
-    expect(mockSocket.off).toHaveBeenCalledWith('bookingDeleted', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('slot_locked');
     expect(mockSocket.off).toHaveBeenCalledWith('slot_unlocked');
     expect(mockSocket.off).toHaveBeenCalledWith('lock_expired');
