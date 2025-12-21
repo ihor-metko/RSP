@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { GlobalSocketListener } from "@/components/GlobalSocketListener";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { MockModeWarning } from "@/components/MockModeWarning";
 
@@ -25,6 +26,7 @@ export default async function RootLayout({
         <MockModeWarning />
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
+            <GlobalSocketListener />
             {children}
           </AuthProvider>
         </NextIntlClientProvider>
