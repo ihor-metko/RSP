@@ -13,7 +13,7 @@
  * - Safe cleanup on unmount
  */
 
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import type {
   ServerToClientEvents,
@@ -120,10 +120,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
     };
   }, []); // Empty dependency array - initialize only once
 
-  const value: SocketContextValue = {
-    socket: socketRef.current,
-    isConnected,
-  };
+  const value: SocketContextValue = useMemo(
+    () => ({
+      socket: socketRef.current,
+      isConnected,
+    }),
+    [isConnected]
+  );
 
   return (
     <SocketContext.Provider value={value}>
