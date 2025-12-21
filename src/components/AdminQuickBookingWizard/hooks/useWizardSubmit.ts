@@ -3,6 +3,7 @@
  */
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { useBookingStore } from "@/stores/useBookingStore";
 import { calculateEndTime, type WizardState } from "../types";
 import { generateGuestEmail } from "../utils/generateGuestEmail";
 
@@ -40,6 +41,9 @@ export function useWizardSubmit({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  
+  // Use booking store for creating bookings
+  const createBooking = useBookingStore((state) => state.createBooking);
 
   const submitBooking = useCallback(async () => {
     const { stepUser, stepCourt, stepDateTime, stepClub } = state;
@@ -53,6 +57,8 @@ export function useWizardSubmit({
 
     try {
       // If guest booking, create a minimal user account first
+      // NOTE: Intentional direct fetch - specialized endpoint for creating guest users
+      // Guest user creation is a specialized operation for the booking wizard
       let userId = stepUser.selectedUser?.id;
 
       if (stepUser.isGuestBooking && stepUser.guestName) {
@@ -89,33 +95,14 @@ export function useWizardSubmit({
       const endTime = calculateEndTime(stepDateTime.startTime, stepDateTime.duration);
       const endDateTime = `${stepDateTime.date}T${endTime}:00.000Z`;
 
-      const response = await fetch("/api/admin/bookings/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId,
-          courtId: stepCourt.selectedCourt.id,
-          startTime: startDateTime,
-          endTime: endDateTime,
-          clubId: stepClub.selectedClubId,
-        }),
+      // Use booking store instead of direct fetch
+      const data = await createBooking({
+        userId,
+        courtId: stepCourt.selectedCourt.id,
+        startTime: startDateTime,
+        endTime: endDateTime,
+        clubId: stepClub.selectedClubId,
       });
-
-      const data = await response.json();
-
-      if (response.status === 409) {
-        setSubmitError(t("booking.slotAlreadyBooked"));
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (!response.ok) {
-        setSubmitError(data.error || t("auth.errorOccurred"));
-        setIsSubmitting(false);
-        return;
-      }
 
       setIsComplete(true);
       setBookingId(data.bookingId);
@@ -130,11 +117,19 @@ export function useWizardSubmit({
           endTime
         );
       }, BOOKING_SUCCESS_DISPLAY_DELAY);
-    } catch {
-      setSubmitError(t("auth.errorOccurred"));
+    } catch (err) {
+      // Handle specific error messages from the booking store
+      const errorMessage = err instanceof Error ? err.message : t("auth.errorOccurred");
+      
+      // Check for slot already booked error
+      if (errorMessage.includes("409") || errorMessage.toLowerCase().includes("already booked")) {
+        setSubmitError(t("booking.slotAlreadyBooked"));
+      } else {
+        setSubmitError(errorMessage);
+      }
       setIsSubmitting(false);
     }
-  }, [state, t, onSuccess]);
+  }, [state, t, onSuccess, createBooking]);
 
   return {
     isSubmitting,

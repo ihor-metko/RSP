@@ -103,8 +103,9 @@ export default function AdminClubDetailPage({
     if (!clubId) return;
 
     try {
-      // Section updates still use direct API call as they're not part of the basic store
-      // This is a specialized admin endpoint for partial updates
+      // NOTE: Intentional direct fetch - specialized endpoint for partial section updates
+      // This endpoint updates specific sections of a club (header, contacts, hours, etc.)
+      // This is a specialized admin operation, not a simple CRUD update
       const response = await fetch(`/api/admin/clubs/${clubId}/section`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

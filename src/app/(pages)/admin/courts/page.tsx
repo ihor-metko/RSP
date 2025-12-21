@@ -94,6 +94,9 @@ export default function AdminCourtsPage() {
   });
 
   // Admin status is loaded from store via UserStoreInitializer
+  // NOTE: Intentional direct fetch - this is a reporting endpoint with pagination and filtering
+  // Admin courts list is a reporting view with complex query parameters (search, club, status, sport type, surface, indoor, sorting, pagination)
+  // Per architecture guidelines, reporting endpoints with server-side filtering should use direct fetches
   const fetchCourts = useCallback(async () => {
     try {
       setLoading(true);
