@@ -310,5 +310,7 @@ All WebSocket tests must pass before merging to main branch.
 - [Socket.IO Documentation](https://socket.io/docs/v4/)
 - [React Testing Library](https://testing-library.com/react)
 - [Zustand Documentation](https://github.com/pmndrs/zustand)
-- Project-specific WebSocket hook: `src/hooks/useSocketIO.ts`
-- Socket event types: `src/types/socket.ts`
+- Project-specific socket components:
+  - SocketProvider: `src/contexts/SocketContext.tsx`
+  - GlobalSocketListener: `src/components/GlobalSocketListener.tsx`
+  - Socket event types: `src/types/socket.ts`
