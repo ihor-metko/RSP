@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { PageHeader } from "@/components/ui";
 import { CreateAdminWizard } from "@/components/admin/admin-wizard";
 import { useUserStore } from "@/stores/useUserStore";
@@ -17,24 +16,25 @@ import type { CreateAdminWizardConfig } from "@/types/adminWizard";
  */
 export default function CreateAdminPage() {
   const router = useRouter();
-  const { status } = useSession();
+  
+  // Use store for auth state
   const user = useUserStore((state) => state.user);
   const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const hasAnyRole = useUserStore((state) => state.hasAnyRole);
 
   useEffect(() => {
-    if (!isHydrated) return;
-
-    if (status === "loading") return;
+    if (!isHydrated || isLoading) return;
 
     // Only ROOT_ADMIN and ORGANIZATION_ADMIN can access this page
-    if (!user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN"])) {
+    if (!isLoggedIn || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN"])) {
       router.push("/auth/sign-in");
       return;
     }
-  }, [user, status, router, isHydrated, hasAnyRole]);
+  }, [isLoggedIn, isLoading, router, isHydrated, hasAnyRole]);
 
-  const isLoading = !isHydrated || status === "loading";
+  const isLoadingState = !isHydrated || isLoading;
 
   // Determine wizard configuration based on user role
   const getWizardConfig = (): CreateAdminWizardConfig => {
@@ -77,7 +77,7 @@ export default function CreateAdminPage() {
     };
   };
 
-  if (isLoading) {
+  if (isLoadingState) {
     return (
       <main className="im-admin-page">
         <PageHeaderSkeleton showDescription />

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
@@ -68,10 +67,13 @@ interface OrganizationFilters extends Record<string, unknown> {
 
 export default function AdminOrganizationsPage() {
   const t = useTranslations();
-  const { status } = useSession();
   const router = useRouter();
-  const user = useUserStore((state) => state.user);
+  
+  // Use store for auth state
   const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const user = useUserStore((state) => state.user);
 
   // Use Zustand store for organizations with auto-fetch
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());

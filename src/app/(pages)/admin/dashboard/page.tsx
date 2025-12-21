@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui";
@@ -109,11 +108,14 @@ function StatCard({ title, value, icon, colorClass }: StatCardProps) {
  */
 export default function AdminDashboardPage() {
   const t = useTranslations();
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<UnifiedDashboardResponse | null>(null);
   const [error, setError] = useState("");
+  
+  // Use store instead of session
   const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const isLoading = useUserStore((state) => state.isLoading);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -137,12 +139,11 @@ export default function AdminDashboardPage() {
   }, [fetchDashboard]);
 
   useEffect(() => {
-    // Wait for hydration before checking auth
-    if (!isHydrated) return;
-    
-    if (status === "loading") return;
+    // Wait for hydration and store initialization
+    if (!isHydrated || isLoading) return;
 
-    if (!session?.user) {
+    // Redirect to sign-in if not logged in
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
@@ -161,7 +162,7 @@ export default function AdminDashboardPage() {
     };
 
     initializeDashboard();
-  }, [session, status, router, fetchDashboard, t, isHydrated]);
+  }, [isLoggedIn, isLoading, router, fetchDashboard, t, isHydrated]);
 
   // Helper to get dashboard title based on admin type
   const getDashboardTitle = () => {
@@ -192,7 +193,7 @@ export default function AdminDashboardPage() {
   };
 
   // Show skeleton while hydrating or loading
-  const isLoadingState = !isHydrated || status === "loading" || !dashboardData;
+  const isLoadingState = !isHydrated || isLoading || !dashboardData;
 
   if (isLoadingState && !error) {
     return (
