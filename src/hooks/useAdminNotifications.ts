@@ -2,6 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 
+/**
+ * @deprecated This hook is deprecated and will be removed in a future version.
+ * Please use `useNotifications` from '@/hooks/useNotifications' instead,
+ * which uses the centralized notification store and Socket.IO for real-time updates.
+ * 
+ * Migration guide:
+ * - Replace `useAdminNotifications` with `useNotifications`
+ * - The new hook does not return `connectionStatus` (always connected via Socket.IO)
+ * - Remove `pollInterval` option (no longer needed)
+ * - All other APIs remain the same
+ */
+
 export interface AdminNotification {
   id: string;
   type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
@@ -53,6 +65,9 @@ const MAX_RECONNECT_DELAY = 30000;
 // Maximum toast rate (1 per second)
 const TOAST_RATE_LIMIT_MS = 1000;
 
+/**
+ * @deprecated Use `useNotifications` instead
+ */
 export function useAdminNotifications(
   options: UseAdminNotificationsOptions = {}
 ): UseAdminNotificationsReturn {

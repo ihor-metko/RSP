@@ -2,6 +2,90 @@
 
 This directory contains Zustand store implementations for state management.
 
+## useNotificationStore
+
+A centralized Zustand store for managing admin notifications across the entire application.
+
+### Features
+
+- **Single source of truth**: All notification-related UI (toasts, bell, notifications page) use this store
+- **Real-time updates**: Automatically updated by Socket.IO events
+- **Duplicate prevention**: Automatically prevents duplicate notifications
+- **Type-safe**: Full TypeScript support with proper type definitions
+- **Automatic unread count**: Tracks unread count automatically
+
+### Usage
+
+```typescript
+import { useNotificationStore } from '@/stores/useNotificationStore';
+
+function MyComponent() {
+  const notifications = useNotificationStore(state => state.notifications);
+  const unreadCount = useNotificationStore(state => state.unreadCount);
+  const addNotification = useNotificationStore(state => state.addNotification);
+  const markAsRead = useNotificationStore(state => state.markAsRead);
+
+  return (
+    <div>
+      <span>Unread: {unreadCount}</span>
+      {notifications.map(notification => (
+        <div key={notification.id}>
+          {notification.summary}
+          {!notification.read && (
+            <button onClick={() => markAsRead(notification.id)}>
+              Mark as read
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+### State
+
+- `notifications: AdminNotification[]` - List of all notifications
+- `unreadCount: number` - Number of unread notifications
+- `loading: boolean` - Loading state
+- `error: string | null` - Error message
+
+### Actions
+
+- `setNotifications(notifications)` - Set entire notifications list (from initial fetch)
+- `setUnreadCount(count)` - Set unread count
+- `setLoading(loading)` - Set loading state
+- `setError(error)` - Set error state
+- `addNotification(notification)` - Add a single notification (from socket event)
+- `markAsRead(notificationId)` - Mark notification as read (local only)
+- `markAllAsRead()` - Mark all notifications as read (local only)
+- `clearNotifications()` - Clear all notifications
+
+### Integration
+
+The store is automatically updated by:
+- **Socket.IO events**: `GlobalSocketListener` listens for `admin_notification` events
+- **Initial HTTP fetch**: `useNotifications` hook fetches initial data on mount
+- **User actions**: Components call `markAsRead` after API calls
+
+### Recommended Hook
+
+Use the `useNotifications` hook instead of directly accessing the store:
+
+```typescript
+import { useNotifications } from '@/hooks/useNotifications';
+
+function MyComponent() {
+  const { notifications, unreadCount, markAsRead } = useNotifications({
+    onNewNotification: (notification) => {
+      showToast(notification.summary);
+    }
+  });
+  
+  // Hook handles initial fetch and provides API methods
+}
+```
+
 ## useClubStore
 
 A reusable, well-typed Zustand store for managing clubs and the current club context in the admin UI.
