@@ -65,6 +65,9 @@ export function GlobalSocketListener() {
   const { socket, isConnected } = useSocket();
   const updateBookingFromSocket = useBookingStore(state => state.updateBookingFromSocket);
   const removeBookingFromSocket = useBookingStore(state => state.removeBookingFromSocket);
+  const addLockedSlot = useBookingStore(state => state.addLockedSlot);
+  const removeLockedSlot = useBookingStore(state => state.removeLockedSlot);
+  const cleanupExpiredLocks = useBookingStore(state => state.cleanupExpiredLocks);
   const addNotification = useNotificationStore(state => state.addNotification);
 
   useEffect(() => {
@@ -151,17 +154,23 @@ export function GlobalSocketListener() {
     socket.on('booking_cancelled', handleBookingCancelled);
     socket.on('admin_notification', handleAdminNotification);
 
-    // Slot lock events (notifications only for now)
+    // Slot lock events - update booking store for real-time UI sync
     socket.on('slot_locked', (data: SlotLockedEvent) => {
       handleSocketEvent('slot_locked', data);
+      addLockedSlot(data);
+      console.log('[GlobalSocketListener] Slot locked - toast shown, store updated');
     });
 
     socket.on('slot_unlocked', (data: SlotUnlockedEvent) => {
       handleSocketEvent('slot_unlocked', data);
+      removeLockedSlot(data.slotId);
+      console.log('[GlobalSocketListener] Slot unlocked - toast shown, store updated');
     });
 
     socket.on('lock_expired', (data: LockExpiredEvent) => {
       handleSocketEvent('lock_expired', data);
+      removeLockedSlot(data.slotId);
+      console.log('[GlobalSocketListener] Lock expired - toast shown, store updated');
     });
 
     // Payment events with unified notification system
@@ -191,6 +200,15 @@ export function GlobalSocketListener() {
       cleanupNotificationManager();
     };
   }, []);
+
+  // Periodic cleanup of expired slot locks (every 60 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      cleanupExpiredLocks();
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, [cleanupExpiredLocks]);
 
   // Log connection status changes
   useEffect(() => {

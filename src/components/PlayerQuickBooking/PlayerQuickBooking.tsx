@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
 import { useClubStore } from "@/stores/useClubStore";
+import { useCourtAvailability } from "@/hooks/useCourtAvailability";
 import { Step0SelectClub } from "./Step0SelectClub";
 import { Step1DateTime } from "./Step1DateTime";
 import { Step2Courts } from "./Step2Courts";
@@ -38,6 +39,17 @@ export function PlayerQuickBooking({
   // Use centralized club store with new idempotent method
   const clubsFromStore = useClubStore((state) => state.clubs);
   const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+
+  // Real-time availability updates via WebSocket
+  const { refreshKey, triggerRefresh } = useCourtAvailability(
+    preselectedClubId || null,
+    () => {
+      // Refetch courts when availability changes
+      if (state.currentStep === 2 && (state.step0.selectedClubId || preselectedClubId)) {
+        fetchAvailableCourts();
+      }
+    }
+  );
 
   // Determine visible steps based on preselected data
   const visibleSteps = useMemo(

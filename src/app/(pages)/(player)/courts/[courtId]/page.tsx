@@ -8,6 +8,8 @@ import { Card, Button, IMLink, Breadcrumbs } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { useUserStore } from "@/stores/useUserStore";
+import { useBookingStore } from "@/stores/useBookingStore";
+import { useCourtAvailability } from "@/hooks/useCourtAvailability";
 import { formatPrice } from "@/utils/price";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, PriceTimelineResponse, PriceSegment } from "@/types/court";
@@ -49,7 +51,11 @@ function extractTimeFromISO(isoString: string): string {
   return `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
 }
 
-function getStatusColor(status: AvailabilitySlot["status"]): string {
+function getStatusColor(status: AvailabilitySlot["status"], isLocked?: boolean): string {
+  if (isLocked) {
+    return "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 border-orange-300 dark:border-orange-700 cursor-not-allowed opacity-70";
+  }
+  
   switch (status) {
     case "available":
       return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800 cursor-pointer";
@@ -62,7 +68,11 @@ function getStatusColor(status: AvailabilitySlot["status"]): string {
   }
 }
 
-function getStatusLabel(status: AvailabilitySlot["status"]): string {
+function getStatusLabel(status: AvailabilitySlot["status"], isLocked?: boolean): string {
+  if (isLocked) {
+    return "Locked";
+  }
+  
   switch (status) {
     case "available":
       return "Available";
@@ -99,6 +109,21 @@ export default function CourtDetailPage({
 
   const userId = user?.id || "guest";
   const isAuthenticated = isLoggedIn && user;
+
+  // Get locked slots from store
+  const lockedSlots = useBookingStore((state) => state.lockedSlots);
+  const isSlotLocked = useBookingStore((state) => state.isSlotLocked);
+
+  // Real-time availability updates via WebSocket  
+  const { refreshKey } = useCourtAvailability(
+    court?.clubId || null,
+    () => {
+      // Refetch availability when WebSocket events occur
+      if (court?.id) {
+        fetchAvailability(court.id, selectedDate, court.defaultPriceCents);
+      }
+    }
+  );
 
   // Cleanup toast timeout on unmount
   useEffect(() => {
@@ -207,8 +232,8 @@ export default function CourtDetailPage({
     }
   };
 
-  const handleSlotClick = (slot: AvailabilitySlot) => {
-    if (slot.status === "booked") return;
+  const handleSlotClick = (slot: AvailabilitySlot, isLocked: boolean) => {
+    if (slot.status === "booked" || isLocked) return;
     
     // If user is not authenticated, show auth prompt modal
     if (!isAuthenticated) {
@@ -433,7 +458,7 @@ export default function CourtDetailPage({
 
       {/* Slots legend */}
       <section className="tm-slots-legend mb-4">
-        <div className="flex justify-center gap-4 text-sm">
+        <div className="flex justify-center gap-4 text-sm flex-wrap">
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-sm bg-green-500" /> {t("common.available")}
           </span>
@@ -442,6 +467,9 @@ export default function CourtDetailPage({
           </span>
           <span className="flex items-center gap-1">
             <span className="w-3 h-3 rounded-sm bg-yellow-500" /> Limited
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-3 rounded-sm bg-orange-500" /> Locked
           </span>
         </div>
       </section>
@@ -477,22 +505,25 @@ export default function CourtDetailPage({
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {availability.map((slot) => (
-              <button
-                key={slot.start}
-                className={`tm-slot-button p-3 rounded-sm border text-center transition-colors ${getStatusColor(slot.status)}`}
-                onClick={() => handleSlotClick(slot)}
-                disabled={slot.status === "booked"}
-                aria-label={`${formatTime(slot.start)} - ${formatTime(slot.end)}: ${getStatusLabel(slot.status)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
-              >
-                <div className="font-semibold">{formatTime(slot.start)}</div>
-                <div className="text-xs">{formatTime(slot.end)}</div>
-                {slot.priceCents !== undefined && slot.status !== "booked" && (
-                  <div className="text-xs font-medium mt-1">{formatPrice(slot.priceCents)}</div>
-                )}
-                <div className="text-xs mt-1 opacity-75">{getStatusLabel(slot.status)}</div>
-              </button>
-            ))}
+            {availability.map((slot) => {
+              const locked = court?.id ? isSlotLocked(court.id, slot.start, slot.end) : false;
+              return (
+                <button
+                  key={slot.start}
+                  className={`tm-slot-button p-3 rounded-sm border text-center transition-colors ${getStatusColor(slot.status, locked)}`}
+                  onClick={() => handleSlotClick(slot, locked)}
+                  disabled={slot.status === "booked" || locked}
+                  aria-label={`${formatTime(slot.start)} - ${formatTime(slot.end)}: ${getStatusLabel(slot.status, locked)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
+                >
+                  <div className="font-semibold">{formatTime(slot.start)}</div>
+                  <div className="text-xs">{formatTime(slot.end)}</div>
+                  {slot.priceCents !== undefined && slot.status !== "booked" && !locked && (
+                    <div className="text-xs font-medium mt-1">{formatPrice(slot.priceCents)}</div>
+                  )}
+                  <div className="text-xs mt-1 opacity-75">{getStatusLabel(slot.status, locked)}</div>
+                </button>
+              );
+            })}
           </div>
         )}
       </section>

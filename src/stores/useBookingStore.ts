@@ -4,6 +4,7 @@ import type {
   CreateBookingPayload,
   CreateBookingResponse,
 } from "@/types/booking";
+import type { SlotLockedEvent } from "@/types/socket";
 import {
   updateBookingInList,
   removeBookingFromList,
@@ -16,14 +17,17 @@ import {
  * - Fetch bookings by club and date with inflight guards
  * - Create and cancel bookings
  * - Real-time updates via Socket.IO events
+ * - Slot locking for temporary reservations
  * - Cache management and invalidation
  * 
  * Note: Polling has been removed. The store relies entirely on Socket.IO events
- * for real-time updates (booking_created, booking_updated, booking_cancelled).
+ * for real-time updates (booking_created, booking_updated, booking_cancelled,
+ * slot_locked, slot_unlocked).
  * 
  * Usage:
  * ```tsx
  * const bookings = useBookingStore(state => state.bookings);
+ * const lockedSlots = useBookingStore(state => state.lockedSlots);
  * const fetchBookingsForDay = useBookingStore(state => state.fetchBookingsForDay);
  * 
  * useEffect(() => {
@@ -32,9 +36,20 @@ import {
  * ```
  */
 
+interface LockedSlot {
+  slotId: string;
+  courtId: string;
+  clubId: string;
+  userId?: string;
+  startTime: string;
+  endTime: string;
+  lockedAt: number;
+}
+
 interface BookingState {
   // State
   bookings: OperationsBooking[];
+  lockedSlots: LockedSlot[];
   loading: boolean;
   error: string | null;
   lastFetchedAt: number | null;
@@ -70,10 +85,17 @@ interface BookingState {
   // Selectors
   getBookingById: (id: string) => OperationsBooking | undefined;
   getBookingsByCourtId: (courtId: string) => OperationsBooking[];
+  isSlotLocked: (courtId: string, startTime: string, endTime: string) => boolean;
+  getLockedSlotsForCourt: (courtId: string) => LockedSlot[];
 
   // Real-time update methods with timestamp checking
   updateBookingFromSocket: (booking: OperationsBooking) => void;
   removeBookingFromSocket: (bookingId: string) => void;
+  
+  // Slot lock management
+  addLockedSlot: (event: SlotLockedEvent) => void;
+  removeLockedSlot: (slotId: string) => void;
+  cleanupExpiredLocks: () => void;
 }
 
 /**
@@ -82,6 +104,7 @@ interface BookingState {
 export const useBookingStore = create<BookingState>((set, get) => ({
   // Initial state
   bookings: [],
+  lockedSlots: [],
   loading: false,
   error: null,
   lastFetchedAt: null,
@@ -244,6 +267,21 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     return state.bookings.filter((booking) => booking.courtId === courtId);
   },
 
+  isSlotLocked: (courtId: string, startTime: string, endTime: string) => {
+    const state = get();
+    return state.lockedSlots.some(
+      (lock) =>
+        lock.courtId === courtId &&
+        lock.startTime === startTime &&
+        lock.endTime === endTime
+    );
+  },
+
+  getLockedSlotsForCourt: (courtId: string) => {
+    const state = get();
+    return state.lockedSlots.filter((lock) => lock.courtId === courtId);
+  },
+
   // Real-time update methods with timestamp checking
   updateBookingFromSocket: (booking: OperationsBooking) => {
     const currentBookings = get().bookings;
@@ -259,5 +297,58 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     const currentBookings = get().bookings;
     const updatedBookings = removeBookingFromList(currentBookings, bookingId);
     set({ bookings: updatedBookings });
+  },
+
+  // Slot lock management
+  addLockedSlot: (event: SlotLockedEvent) => {
+    const currentLocks = get().lockedSlots;
+    
+    // Check if slot is already locked (deduplication)
+    const exists = currentLocks.some((lock) => lock.slotId === event.slotId);
+    if (exists) {
+      console.log('[BookingStore] Slot already locked, ignoring duplicate:', event.slotId);
+      return;
+    }
+
+    const newLock: LockedSlot = {
+      slotId: event.slotId,
+      courtId: event.courtId,
+      clubId: event.clubId,
+      userId: event.userId,
+      startTime: event.startTime,
+      endTime: event.endTime,
+      lockedAt: Date.now(),
+    };
+
+    set({ lockedSlots: [...currentLocks, newLock] });
+    console.log('[BookingStore] Slot locked:', event.slotId);
+  },
+
+  removeLockedSlot: (slotId: string) => {
+    const currentLocks = get().lockedSlots;
+    const updatedLocks = currentLocks.filter((lock) => lock.slotId !== slotId);
+    
+    if (updatedLocks.length !== currentLocks.length) {
+      set({ lockedSlots: updatedLocks });
+      console.log('[BookingStore] Slot unlocked:', slotId);
+    }
+  },
+
+  cleanupExpiredLocks: () => {
+    const currentLocks = get().lockedSlots;
+    const now = Date.now();
+    const LOCK_EXPIRATION_MS = 5 * 60 * 1000; // 5 minutes
+    
+    const validLocks = currentLocks.filter(
+      (lock) => now - lock.lockedAt < LOCK_EXPIRATION_MS
+    );
+    
+    if (validLocks.length !== currentLocks.length) {
+      set({ lockedSlots: validLocks });
+      console.log(
+        '[BookingStore] Cleaned up expired locks:',
+        currentLocks.length - validLocks.length
+      );
+    }
   },
 }));
