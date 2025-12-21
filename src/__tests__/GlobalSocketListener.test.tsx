@@ -56,12 +56,18 @@ jest.mock('@/utils/globalNotificationManager', () => ({
 // Mock the booking store
 const mockUpdateBookingFromSocket = jest.fn();
 const mockRemoveBookingFromSocket = jest.fn();
+const mockAddLockedSlot = jest.fn();
+const mockRemoveLockedSlot = jest.fn();
+const mockCleanupExpiredLocks = jest.fn();
 
 jest.mock('@/stores/useBookingStore', () => ({
   useBookingStore: jest.fn((selector) => {
     const mockStore = {
       updateBookingFromSocket: mockUpdateBookingFromSocket,
       removeBookingFromSocket: mockRemoveBookingFromSocket,
+      addLockedSlot: mockAddLockedSlot,
+      removeLockedSlot: mockRemoveLockedSlot,
+      cleanupExpiredLocks: mockCleanupExpiredLocks,
     };
     return selector(mockStore);
   }),
@@ -305,6 +311,87 @@ describe('GlobalSocketListener', () => {
     await waitFor(() => {
       // Admin notifications go directly to store without transformation
       expect(mockAddNotification).toHaveBeenCalledWith(eventData);
+    });
+  });
+
+  it('should handle slot_locked event', async () => {
+    render(<GlobalSocketListener />);
+
+    const eventHandler = mockSocket.on.mock.calls.find(
+      call => call[0] === 'slot_locked'
+    )?.[1];
+
+    expect(eventHandler).toBeDefined();
+
+    const eventData = {
+      slotId: 'slot-1',
+      courtId: 'court-1',
+      clubId: 'club-1',
+      userId: 'user-1',
+      startTime: '2024-01-15T10:00:00Z',
+      endTime: '2024-01-15T11:00:00Z',
+    };
+
+    eventHandler(eventData);
+
+    await waitFor(() => {
+      // Toast notification
+      expect(handleSocketEvent).toHaveBeenCalledWith('slot_locked', eventData);
+      
+      // Booking store update
+      expect(mockAddLockedSlot).toHaveBeenCalledWith(eventData);
+    });
+  });
+
+  it('should handle slot_unlocked event', async () => {
+    render(<GlobalSocketListener />);
+
+    const eventHandler = mockSocket.on.mock.calls.find(
+      call => call[0] === 'slot_unlocked'
+    )?.[1];
+
+    expect(eventHandler).toBeDefined();
+
+    const eventData = {
+      slotId: 'slot-1',
+      courtId: 'court-1',
+      clubId: 'club-1',
+    };
+
+    eventHandler(eventData);
+
+    await waitFor(() => {
+      // Toast notification
+      expect(handleSocketEvent).toHaveBeenCalledWith('slot_unlocked', eventData);
+      
+      // Booking store update
+      expect(mockRemoveLockedSlot).toHaveBeenCalledWith(eventData.slotId);
+    });
+  });
+
+  it('should handle lock_expired event', async () => {
+    render(<GlobalSocketListener />);
+
+    const eventHandler = mockSocket.on.mock.calls.find(
+      call => call[0] === 'lock_expired'
+    )?.[1];
+
+    expect(eventHandler).toBeDefined();
+
+    const eventData = {
+      slotId: 'slot-1',
+      courtId: 'court-1',
+      clubId: 'club-1',
+    };
+
+    eventHandler(eventData);
+
+    await waitFor(() => {
+      // Toast notification
+      expect(handleSocketEvent).toHaveBeenCalledWith('lock_expired', eventData);
+      
+      // Booking store update
+      expect(mockRemoveLockedSlot).toHaveBeenCalledWith(eventData.slotId);
     });
   });
 
