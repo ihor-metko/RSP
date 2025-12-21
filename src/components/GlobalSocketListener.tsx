@@ -1,9 +1,12 @@
 'use client';
 
 /**
- * Global Socket.IO Listener Component
+ * Global Socket.IO Event Dispatcher
  * 
- * Subscribes to all real-time Socket.IO events and displays toast notifications.
+ * Subscribes to all real-time Socket.IO events and:
+ * 1. Displays toast notifications via globalNotificationManager
+ * 2. Updates Zustand stores (booking store) with real-time data
+ * 
  * This component is initialized once at app startup and works across all pages.
  * 
  * Events monitored:
@@ -12,17 +15,14 @@
  * - payment_confirmed, payment_failed
  * 
  * Features:
- * - Single global listener (no route-based conditions)
- * - Automatic duplicate prevention
- * - Multi-toast queue support
- * - Auto-dismiss after 6 seconds
+ * - Uses global socket from SocketProvider (no duplicate connections)
+ * - Centralized event dispatching
+ * - Automatic duplicate prevention via notification manager
+ * - Updates booking store for real-time UI sync
  */
 
-import { useEffect, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect } from 'react';
 import type {
-  ServerToClientEvents,
-  ClientToServerEvents,
   BookingCreatedEvent,
   BookingUpdatedEvent,
   BookingDeletedEvent,
@@ -33,68 +33,54 @@ import type {
   PaymentFailedEvent,
 } from '@/types/socket';
 import { handleSocketEvent, cleanupNotificationManager } from '@/utils/globalNotificationManager';
+import { useSocket } from '@/contexts/SocketContext';
+import { useBookingStore } from '@/stores/useBookingStore';
 
 /**
- * Typed Socket.IO client
- */
-type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
-
-/**
- * Global Socket Listener Component
+ * Global Socket Event Dispatcher
  * 
- * Usage: Add this component to the root layout to enable global notifications
+ * Usage: Add this component to the root layout to enable:
+ * - Global socket event listening
+ * - Toast notifications
+ * - Automatic store updates
  */
 export function GlobalSocketListener() {
-  const socketRef = useRef<TypedSocket | null>(null);
+  const { socket, isConnected } = useSocket();
+  const updateBookingFromSocket = useBookingStore(state => state.updateBookingFromSocket);
+  const removeBookingFromSocket = useBookingStore(state => state.removeBookingFromSocket);
 
   useEffect(() => {
-    // Initialize Socket.IO client
-    const socket: TypedSocket = io({
-      path: '/socket.io',
-    });
+    if (!socket) return;
 
-    socketRef.current = socket;
+    console.log('[GlobalSocketListener] Registering event listeners');
 
-    // Connection event handlers
-    socket.on('connect', () => {
-      console.log('[GlobalSocketListener] Socket.IO connected:', socket.id);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('[GlobalSocketListener] Socket.IO disconnected');
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('[GlobalSocketListener] Connection error:', error.message);
-    });
-
-    // Booking events
-    socket.on('booking_created', (data: BookingCreatedEvent) => {
+    // Booking events - handle both notifications and store updates
+    const handleBookingCreated = (data: BookingCreatedEvent) => {
       handleSocketEvent('booking_created', data);
-    });
+      updateBookingFromSocket(data.booking);
+    };
 
-    socket.on('booking_updated', (data: BookingUpdatedEvent) => {
+    const handleBookingUpdated = (data: BookingUpdatedEvent) => {
       handleSocketEvent('booking_updated', data);
-    });
+      updateBookingFromSocket(data.booking);
+    };
 
-    socket.on('booking_cancelled', (data: BookingDeletedEvent) => {
+    const handleBookingCancelled = (data: BookingDeletedEvent) => {
       handleSocketEvent('booking_cancelled', data);
-    });
+      removeBookingFromSocket(data.bookingId);
+    };
+
+    // Register new event names
+    socket.on('booking_created', handleBookingCreated);
+    socket.on('booking_updated', handleBookingUpdated);
+    socket.on('booking_cancelled', handleBookingCancelled);
 
     // Legacy event names for backward compatibility
-    socket.on('bookingCreated', (data: BookingCreatedEvent) => {
-      handleSocketEvent('booking_created', data);
-    });
+    socket.on('bookingCreated', handleBookingCreated);
+    socket.on('bookingUpdated', handleBookingUpdated);
+    socket.on('bookingDeleted', handleBookingCancelled);
 
-    socket.on('bookingUpdated', (data: BookingUpdatedEvent) => {
-      handleSocketEvent('booking_updated', data);
-    });
-
-    socket.on('bookingDeleted', (data: BookingDeletedEvent) => {
-      handleSocketEvent('booking_cancelled', data);
-    });
-
-    // Slot lock events
+    // Slot lock events (notifications only for now)
     socket.on('slot_locked', (data: SlotLockedEvent) => {
       handleSocketEvent('slot_locked', data);
     });
@@ -107,7 +93,7 @@ export function GlobalSocketListener() {
       handleSocketEvent('lock_expired', data);
     });
 
-    // Payment events
+    // Payment events (notifications only for now)
     socket.on('payment_confirmed', (data: PaymentConfirmedEvent) => {
       handleSocketEvent('payment_confirmed', data);
     });
@@ -116,33 +102,40 @@ export function GlobalSocketListener() {
       handleSocketEvent('payment_failed', data);
     });
 
-    // Cleanup on unmount
+    // Cleanup on unmount or socket change
     return () => {
-      console.log('[GlobalSocketListener] Cleaning up socket listeners');
+      console.log('[GlobalSocketListener] Cleaning up event listeners');
       
-      // Remove all event listeners
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('connect_error');
-      socket.off('booking_created');
-      socket.off('booking_updated');
-      socket.off('booking_cancelled');
-      socket.off('bookingCreated');
-      socket.off('bookingUpdated');
-      socket.off('bookingDeleted');
+      socket.off('booking_created', handleBookingCreated);
+      socket.off('booking_updated', handleBookingUpdated);
+      socket.off('booking_cancelled', handleBookingCancelled);
+      socket.off('bookingCreated', handleBookingCreated);
+      socket.off('bookingUpdated', handleBookingUpdated);
+      socket.off('bookingDeleted', handleBookingCancelled);
       socket.off('slot_locked');
       socket.off('slot_unlocked');
       socket.off('lock_expired');
       socket.off('payment_confirmed');
       socket.off('payment_failed');
-      
-      // Disconnect socket
-      socket.disconnect();
-      
-      // Clean up notification manager
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket]); // Zustand store functions are stable and excluded from dependencies
+
+  // Cleanup notification manager on unmount
+  useEffect(() => {
+    return () => {
       cleanupNotificationManager();
     };
-  }, []); // Empty dependency array - initialize only once
+  }, []);
+
+  // Log connection status changes
+  useEffect(() => {
+    if (isConnected) {
+      console.log('[GlobalSocketListener] Socket connected and ready');
+    } else {
+      console.log('[GlobalSocketListener] Socket disconnected');
+    }
+  }, [isConnected]);
 
   // This component doesn't render anything
   return null;

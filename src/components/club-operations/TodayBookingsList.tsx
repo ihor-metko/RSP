@@ -5,9 +5,6 @@ import { Button, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui"
 import type { OperationsBooking } from "@/types/booking";
 import { formatPrice } from "@/utils/price";
 import { canCancelBooking } from "@/utils/bookingStatus";
-import { useSocketIO } from "@/hooks/useSocketIO";
-import { showToast } from "@/lib/toast";
-import { useBookingStore } from "@/stores/useBookingStore";
 import "./TodayBookingsList.css";
 
 interface TodayBookingsListProps {
@@ -24,54 +21,17 @@ interface TodayBookingsListProps {
  * 
  * Displays a list of all bookings for the selected day in a side panel.
  * Shows time, court, customer, status, and action buttons.
+ * 
+ * Real-time updates are handled by GlobalSocketListener which updates the booking store.
+ * This component reactively displays the latest bookings from props.
  */
 export function TodayBookingsList({
   bookings,
   onViewBooking,
   onCancelBooking,
   loading = false,
-  clubId,
-  onRefresh,
 }: TodayBookingsListProps) {
   const t = useTranslations();
-  const updateBookingFromSocket = useBookingStore(state => state.updateBookingFromSocket);
-  const removeBookingFromSocket = useBookingStore(state => state.removeBookingFromSocket);
-
-  // Set up WebSocket connection for real-time updates
-  useSocketIO({
-    autoConnect: true,
-    onBookingCreated: (data) => {
-      // Only handle events for this club
-      if (clubId && data.clubId === clubId) {
-        showToast(t("operations.bookingCreatedToast"), { type: "success" });
-        updateBookingFromSocket(data.booking);
-        onRefresh?.();
-      }
-    },
-    onBookingUpdated: (data) => {
-      // Only handle events for this club
-      if (clubId && data.clubId === clubId) {
-        showToast(t("operations.bookingUpdatedToast"), { type: "info" });
-        updateBookingFromSocket(data.booking);
-        onRefresh?.();
-      }
-    },
-    onBookingDeleted: (data) => {
-      // Only handle events for this club
-      if (clubId && data.clubId === clubId) {
-        showToast(t("operations.bookingDeletedToast"), { type: "warning" });
-        removeBookingFromSocket(data.bookingId);
-        onRefresh?.();
-      }
-    },
-    onReconnect: () => {
-      // Sync missed updates after reconnection
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[TodayBookingsList] Reconnected, syncing data...');
-      }
-      onRefresh?.();
-    },
-  });
 
   // Sort bookings by start time
   const sortedBookings = [...bookings].sort((a, b) => {

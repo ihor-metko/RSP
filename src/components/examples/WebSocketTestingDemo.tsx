@@ -2,7 +2,7 @@
  * WebSocket Real-time Updates - Testing Example Component
  * 
  * This component demonstrates and tests real-time booking updates
- * across multiple simulated clients. It's useful for:
+ * using the centralized SocketProvider. It's useful for:
  * - Manual testing during development
  * - Demonstrating WebSocket functionality
  * - Training/onboarding developers
@@ -12,12 +12,15 @@
  * 2. Open the page in multiple browser tabs
  * 3. Use the controls to simulate booking events
  * 4. Observe real-time updates across all tabs
+ * 
+ * NOTE: Real-time updates are now handled by GlobalSocketListener.
+ * This component only monitors the connection status and displays data.
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSocketIO } from '@/hooks/useSocketIO';
+import { useSocket } from '@/contexts/SocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
 import type { OperationsBooking } from '@/types/booking';
 
@@ -35,82 +38,39 @@ interface WebSocketTestingDemoProps {
 
 /**
  * Demo component for testing WebSocket real-time updates
+ * 
+ * This component uses the global socket from SocketProvider.
+ * Real-time updates are automatically handled by GlobalSocketListener.
  */
 export function WebSocketTestingDemo({
   clubId,
   showDebugLogs = true,
 }: WebSocketTestingDemoProps) {
   const [logs, setLogs] = useState<string[]>([]);
-  const [eventCount, setEventCount] = useState({
-    created: 0,
-    updated: 0,
-    deleted: 0,
-  });
-  const [lastEventTime, setLastEventTime] = useState<Date | null>(null);
-  const [reconnectCount, setReconnectCount] = useState(0);
 
+  const { socket, isConnected } = useSocket();
   const bookings = useBookingStore((state) => state.bookings);
   const fetchBookingsForDay = useBookingStore((state) => state.fetchBookingsForDay);
-  const updateBookingFromSocket = useBookingStore(
-    (state) => state.updateBookingFromSocket
-  );
-  const removeBookingFromSocket = useBookingStore(
-    (state) => state.removeBookingFromSocket
-  );
 
   const addLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 49)]); // Keep last 50 logs
   };
 
-  // Set up WebSocket connection
-  const { isConnected, socket } = useSocketIO({
-    autoConnect: true,
-    onBookingCreated: (data) => {
-      if (data.clubId === clubId) {
-        addLog(`✅ Booking Created: ${data.booking.id} - ${data.booking.courtName}`);
-        setEventCount((prev) => ({ ...prev, created: prev.created + 1 }));
-        setLastEventTime(new Date());
-        updateBookingFromSocket(data.booking);
-      } else {
-        addLog(`ℹ️ Booking Created (different club): ${data.clubId}`);
-      }
-    },
-    onBookingUpdated: (data) => {
-      if (data.clubId === clubId) {
-        addLog(
-          `🔄 Booking Updated: ${data.booking.id} - ${data.previousStatus} → ${data.booking.bookingStatus}`
-        );
-        setEventCount((prev) => ({ ...prev, updated: prev.updated + 1 }));
-        setLastEventTime(new Date());
-        updateBookingFromSocket(data.booking);
-      } else {
-        addLog(`ℹ️ Booking Updated (different club): ${data.clubId}`);
-      }
-    },
-    onBookingDeleted: (data) => {
-      if (data.clubId === clubId) {
-        addLog(`🗑️ Booking Deleted: ${data.bookingId}`);
-        setEventCount((prev) => ({ ...prev, deleted: prev.deleted + 1 }));
-        setLastEventTime(new Date());
-        removeBookingFromSocket(data.bookingId);
-      } else {
-        addLog(`ℹ️ Booking Deleted (different club): ${data.clubId}`);
-      }
-    },
-    onReconnect: () => {
-      setReconnectCount((prev) => prev + 1);
-      addLog('🔌 Reconnected to server - syncing data...');
-      fetchBookingsForDay(clubId, new Date().toISOString().split('T')[0]);
-    },
-  });
-
   // Initial fetch
   useEffect(() => {
     fetchBookingsForDay(clubId, new Date().toISOString().split('T')[0]);
   }, [clubId, fetchBookingsForDay]);
 
-  // Manual disconnect/connect handlers
+  // Monitor booking changes
+  useEffect(() => {
+    if (bookings.length > 0) {
+      addLog(`📊 Bookings list updated: ${bookings.length} total`);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookings]);
+
+  // Manual disconnect/connect handlers (for testing)
   const handleDisconnect = () => {
     if (socket) {
       socket.disconnect();
@@ -127,12 +87,6 @@ export function WebSocketTestingDemo({
 
   const handleClearLogs = () => {
     setLogs([]);
-  };
-
-  const handleResetStats = () => {
-    setEventCount({ created: 0, updated: 0, deleted: 0 });
-    setReconnectCount(0);
-    setLastEventTime(null);
   };
 
   return (
@@ -185,42 +139,6 @@ export function WebSocketTestingDemo({
               Disconnect
             </button>
           </div>
-        </div>
-
-        {/* Event Statistics */}
-        <div className="im-section">
-          <h3 className="im-section-title">Event Statistics</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="im-stat-card">
-              <div className="im-stat-value">{eventCount.created}</div>
-              <div className="im-stat-label">Created</div>
-            </div>
-            <div className="im-stat-card">
-              <div className="im-stat-value">{eventCount.updated}</div>
-              <div className="im-stat-label">Updated</div>
-            </div>
-            <div className="im-stat-card">
-              <div className="im-stat-value">{eventCount.deleted}</div>
-              <div className="im-stat-label">Deleted</div>
-            </div>
-            <div className="im-stat-card">
-              <div className="im-stat-value">{reconnectCount}</div>
-              <div className="im-stat-label">Reconnects</div>
-            </div>
-          </div>
-
-          {lastEventTime && (
-            <div className="mt-4 text-sm text-gray-400">
-              Last event: {lastEventTime.toLocaleTimeString()}
-            </div>
-          )}
-
-          <button
-            onClick={handleResetStats}
-            className="im-button im-button-sm mt-4"
-          >
-            Reset Statistics
-          </button>
         </div>
 
         {/* Current Bookings */}
@@ -291,16 +209,14 @@ export function WebSocketTestingDemo({
             <li>
               Test reconnection: Use the &quot;Disconnect&quot; button, then &quot;Connect&quot;
             </li>
-            <li>
-              Check event statistics to verify all events are received
-            </li>
             <li>Verify no duplicate bookings appear in the list</li>
+            <li>Check toast notifications appear for booking events</li>
           </ol>
 
           <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
             <p className="text-sm text-blue-400">
               💡 <strong>Tip:</strong> Open browser DevTools Console to see
-              additional WebSocket debug logs
+              additional WebSocket debug logs from SocketProvider and GlobalSocketListener
             </p>
           </div>
         </div>
@@ -312,11 +228,12 @@ export function WebSocketTestingDemo({
 /**
  * Example: Minimal WebSocket Status Indicator
  * 
- * A lightweight component that just shows connection status.
+ * A lightweight component that just shows connection status
+ * from the global SocketProvider.
  * Can be added to any page header or toolbar.
  */
 export function WebSocketStatusBadge() {
-  const { isConnected } = useSocketIO({ autoConnect: true });
+  const { isConnected } = useSocket();
 
   return (
     <div
@@ -329,32 +246,6 @@ export function WebSocketStatusBadge() {
     >
       <span className="text-sm">{isConnected ? '🟢' : '⚪'}</span>
       <span>{isConnected ? 'Live' : 'Offline'}</span>
-    </div>
-  );
-}
-
-/**
- * Example: Auto-refresh on Reconnect
- * 
- * Demonstrates how to automatically refresh data when reconnecting
- */
-export function AutoRefreshExample({ clubId }: { clubId: string }) {
-  const fetchBookings = useBookingStore((state) => state.fetchBookingsForDay);
-  const [lastSync, setLastSync] = useState<Date | null>(null);
-
-  useSocketIO({
-    autoConnect: true,
-    onReconnect: () => {
-      // Automatically resync data when reconnected
-      const today = new Date().toISOString().split('T')[0];
-      fetchBookings(clubId, today);
-      setLastSync(new Date());
-    },
-  });
-
-  return (
-    <div className="text-sm text-gray-400">
-      {lastSync && `Last sync: ${lastSync.toLocaleTimeString()}`}
     </div>
   );
 }

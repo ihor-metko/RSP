@@ -1,8 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useSocketIO } from "@/hooks/useSocketIO";
-import { showToast } from "@/lib/toast";
 import "./BookingsOverview.css";
 
 /**
@@ -114,7 +112,7 @@ export interface BookingsOverviewProps {
   loading?: boolean;
   /** Callback to refresh bookings data */
   onRefresh?: () => void;
-  /** Enable WebSocket for real-time updates */
+  /** Enable WebSocket for real-time updates (deprecated - now handled by GlobalSocketListener) */
   enableRealtime?: boolean;
 }
 
@@ -128,6 +126,9 @@ export interface BookingsOverviewProps {
  * Optionally shows breakdown by organization, club, or court depending on admin role.
  * Works for all admin types (Root Admin, SuperAdmin, Club Admin).
  *
+ * Real-time updates are handled by GlobalSocketListener which updates the booking store.
+ * This component reactively displays the latest bookings from props.
+ *
  * Uses dark theme and im-* semantic classes for consistency.
  */
 export default function BookingsOverview({
@@ -136,42 +137,8 @@ export default function BookingsOverview({
   activeBreakdown,
   pastBreakdown,
   loading = false,
-  onRefresh,
-  enableRealtime = false,
 }: BookingsOverviewProps) {
   const t = useTranslations();
-
-  // Set up WebSocket connection for real-time updates
-  useSocketIO({
-    autoConnect: enableRealtime,
-    onBookingCreated: () => {
-      if (enableRealtime) {
-        showToast(t("bookingsOverview.bookingCreatedToast"), { type: "success" });
-        onRefresh?.();
-      }
-    },
-    onBookingUpdated: () => {
-      if (enableRealtime) {
-        showToast(t("bookingsOverview.bookingUpdatedToast"), { type: "info" });
-        onRefresh?.();
-      }
-    },
-    onBookingDeleted: () => {
-      if (enableRealtime) {
-        showToast(t("bookingsOverview.bookingDeletedToast"), { type: "warning" });
-        onRefresh?.();
-      }
-    },
-    onReconnect: () => {
-      if (enableRealtime) {
-        // Sync missed updates after reconnection
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[BookingsOverview] Reconnected, syncing data...');
-        }
-        onRefresh?.();
-      }
-    },
-  });
 
   if (loading) {
     return (

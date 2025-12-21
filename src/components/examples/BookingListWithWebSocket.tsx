@@ -1,12 +1,15 @@
 /**
  * Example: WebSocket-enabled Booking Component
  * 
- * This is a demonstration component showing how to integrate
- * the useSocketIO hook for real-time booking updates.
+ * This is a demonstration component showing how to use
+ * the centralized SocketProvider for real-time booking updates.
+ * 
+ * NOTE: Real-time updates are now handled globally by GlobalSocketListener,
+ * which automatically updates the booking store. Components just need to
+ * read from the store.
  * 
  * USAGE:
- * Import this component in any page that displays bookings
- * and needs real-time updates.
+ * Import this component in any page that displays bookings.
  * 
  * @example
  * ```tsx
@@ -21,7 +24,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSocketIO } from '@/hooks';
+import { useSocket } from '@/contexts/SocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
 import type { OperationsBooking } from '@/types/booking';
 
@@ -33,6 +36,9 @@ interface BookingListWithWebSocketProps {
 /**
  * Example component demonstrating WebSocket integration
  * for real-time booking updates
+ * 
+ * This component now uses the global socket from SocketProvider.
+ * Real-time updates are automatically handled by GlobalSocketListener.
  */
 export function BookingListWithWebSocket({
   clubId,
@@ -40,51 +46,25 @@ export function BookingListWithWebSocket({
 }: BookingListWithWebSocketProps) {
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   
+  // Get socket connection status from global SocketProvider
+  const { isConnected } = useSocket();
+  
   // Get bookings from Zustand store
   const bookings = useBookingStore((state) => state.bookings);
   const loading = useBookingStore((state) => state.loading);
   const fetchBookingsForDay = useBookingStore((state) => state.fetchBookingsForDay);
-  const invalidateBookings = useBookingStore((state) => state.invalidateBookings);
-
-  // Set up WebSocket connection with event handlers
-  const { isConnected } = useSocketIO({
-    autoConnect: true,
-    onBookingCreated: (data) => {
-      console.log('📅 New booking created:', data);
-      
-      // Only refresh if the event is for the current club
-      if (data.clubId === clubId) {
-        setLastUpdate(`Booking created: ${data.booking.id}`);
-        invalidateBookings();
-        fetchBookingsForDay(clubId, date);
-      }
-    },
-    onBookingUpdated: (data) => {
-      console.log('✏️ Booking updated:', data);
-      
-      if (data.clubId === clubId) {
-        setLastUpdate(
-          `Booking updated: ${data.booking.id} (${data.previousStatus} → ${data.booking.bookingStatus})`
-        );
-        invalidateBookings();
-        fetchBookingsForDay(clubId, date);
-      }
-    },
-    onBookingDeleted: (data) => {
-      console.log('🗑️ Booking deleted:', data);
-      
-      if (data.clubId === clubId) {
-        setLastUpdate(`Booking deleted: ${data.bookingId}`);
-        invalidateBookings();
-        fetchBookingsForDay(clubId, date);
-      }
-    },
-  });
 
   // Initial fetch of bookings
   useEffect(() => {
     fetchBookingsForDay(clubId, date);
   }, [clubId, date, fetchBookingsForDay]);
+
+  // Track booking changes for demo purposes
+  useEffect(() => {
+    if (bookings.length > 0) {
+      setLastUpdate(`Bookings updated: ${bookings.length} total`);
+    }
+  }, [bookings]);
 
   return (
     <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
@@ -192,9 +172,10 @@ export function BookingListWithWebSocket({
  * Alternative: Minimal WebSocket Status Indicator
  * 
  * Use this in any component to show WebSocket connection status
+ * from the global SocketProvider
  */
 export function WebSocketStatusIndicator() {
-  const { isConnected } = useSocketIO({ autoConnect: true });
+  const { isConnected } = useSocket();
 
   return (
     <div
