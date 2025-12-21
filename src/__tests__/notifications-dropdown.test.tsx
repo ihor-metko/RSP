@@ -3,7 +3,7 @@
  */
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { NotificationsDropdown } from "@/components/ui/NotificationsDropdown";
-import { useAdminNotifications } from "@/hooks/useAdminNotifications";
+import { useNotifications } from "@/hooks/useNotifications";
 
 // Mock next/navigation
 jest.mock("next/navigation", () => ({
@@ -12,9 +12,13 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
-// Mock useAdminNotifications hook
-jest.mock("@/hooks/useAdminNotifications", () => ({
-  useAdminNotifications: jest.fn(),
+// Mock useNotifications hook
+jest.mock("@/hooks/useNotifications", () => ({
+  useNotifications: jest.fn(),
+}));
+
+// Mock notification store types
+jest.mock("@/stores/useNotificationStore", () => ({
   AdminNotification: {},
 }));
 
@@ -56,7 +60,7 @@ jest.mock("@/components/admin/NotificationToast", () => ({
     ) : null,
 }));
 
-const mockUseAdminNotifications = useAdminNotifications as jest.Mock;
+const mockUseNotifications = useNotifications as jest.Mock;
 
 const mockNotifications = [
   {
@@ -100,14 +104,13 @@ describe("NotificationsDropdown Component", () => {
 
   describe("Rendering", () => {
     it("renders the notification bell button", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: [],
         unreadCount: 0,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -115,14 +118,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("shows unread count badge when there are unread notifications", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -130,14 +132,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("shows 99+ for counts over 99", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: [],
         unreadCount: 150,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -145,14 +146,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("displays connection status indicator", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: [],
         unreadCount: 0,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -163,14 +163,13 @@ describe("NotificationsDropdown Component", () => {
 
   describe("Dropdown Behavior", () => {
     it("opens dropdown when bell button is clicked", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -181,14 +180,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("closes dropdown when clicking outside", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -204,14 +202,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("displays notifications in dropdown", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -226,14 +223,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("shows empty state when no notifications", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: [],
         unreadCount: 0,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -244,14 +240,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("shows loading state", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: [],
         unreadCount: 0,
         loading: true,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connecting",
       });
 
       render(<NotificationsDropdown />);
@@ -262,14 +257,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("shows error state", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: [],
         unreadCount: 0,
         loading: false,
         error: "Failed to load notifications",
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "disconnected",
       });
 
       render(<NotificationsDropdown />);
@@ -283,14 +277,13 @@ describe("NotificationsDropdown Component", () => {
   describe("Mark as Read", () => {
     it("calls markAsRead when notification is clicked", async () => {
       const markAsReadMock = jest.fn().mockResolvedValue(undefined);
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: markAsReadMock,
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -308,14 +301,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("shows mark all read button when there are unread notifications", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -327,14 +319,13 @@ describe("NotificationsDropdown Component", () => {
 
     it("calls markAllAsRead when mark all read button is clicked", async () => {
       const markAllAsReadMock = jest.fn().mockResolvedValue(undefined);
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: markAllAsReadMock,
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -352,14 +343,13 @@ describe("NotificationsDropdown Component", () => {
 
   describe("Keyboard Accessibility", () => {
     it("opens dropdown on Enter key", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -370,14 +360,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("closes dropdown on Escape key", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: mockNotifications,
         unreadCount: 1,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -392,14 +381,13 @@ describe("NotificationsDropdown Component", () => {
     });
 
     it("has proper aria attributes", () => {
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: [],
         unreadCount: 0,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown />);
@@ -418,14 +406,13 @@ describe("NotificationsDropdown Component", () => {
         playerName: `Player ${i}`,
       }));
 
-      mockUseAdminNotifications.mockReturnValue({
+      mockUseNotifications.mockReturnValue({
         notifications: manyNotifications,
         unreadCount: 20,
         loading: false,
         error: null,
         markAsRead: jest.fn(),
         markAllAsRead: jest.fn(),
-        connectionStatus: "connected",
       });
 
       render(<NotificationsDropdown maxDropdownItems={5} />);
