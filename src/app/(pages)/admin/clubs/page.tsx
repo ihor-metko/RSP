@@ -18,7 +18,7 @@ import {
 } from "@/components/list-controls";
 import { useUserStore } from "@/stores/useUserStore";
 import { useClubStore } from "@/stores/useClubStore";
-import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
+import { SPORT_TYPE_OPTIONS, SportType } from "@/constants/sports";
 import "@/components/admin/AdminClubCard.css";
 
 // Define filters interface
@@ -119,7 +119,7 @@ export default function AdminClubsPage() {
     // Filter by sport type
     if (controller.filters.selectedSportType) {
       result = result.filter((club) => 
-        club.supportedSports?.includes(controller.filters.selectedSportType)
+        club.supportedSports?.includes(controller.filters.selectedSportType as SportType)
       );
     }
 
