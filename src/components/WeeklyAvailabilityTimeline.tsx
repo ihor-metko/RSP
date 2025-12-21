@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui";
+import { useCourtAvailability } from "@/hooks/useCourtAvailability";
 import { isSlotBlocked } from "@/utils/slotBlocking";
 import {
   getTodayInTimezone,
@@ -249,6 +250,12 @@ export function WeeklyAvailabilityTimeline({
   
   // Compute current time once per render for consistent blocking checks
   const now = useMemo(() => new Date(), []);
+
+  // Real-time availability updates via WebSocket
+  const { refreshKey } = useCourtAvailability(clubId, () => {
+    console.log('[WeeklyAvailabilityTimeline] Real-time update triggered, refetching');
+    fetchAvailability();
+  });
 
   const fetchAvailability = useCallback(async () => {
     setIsLoading(true);
