@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { DarkModeToggle, LanguageSwitcher, NotificationsDropdown } from "@/components/ui";
@@ -172,21 +171,23 @@ const primaryNavItems: NavItem[] = [
  * - Header height: 56px desktop, 48px mobile
  */
 export default function Header({ showSearch = false, hideProfile = false }: HeaderProps) {
-  const { data: session, status } = useSession();
   const t = useTranslations();
   const currentLocale = useCurrentLocale();
+  
+  // Use store for auth
+  const isHydrated = useUserStore(state => state.isHydrated);
+  const isLoading = useUserStore(state => state.isLoading);
+  const isLoggedIn = useUserStore(state => state.isLoggedIn);
+  const user = useUserStore(state => state.user);
+  const adminStatus = useUserStore(state => state.adminStatus);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  const isLoading = status === "loading";
-  const isAuthenticated = status === "authenticated" && session?.user;
-  const isRoot = session?.user?.isRoot ?? false;
-  const userName = session?.user?.name;
-  const userEmail = session?.user?.email;
-
-  // Get admin status from store to show notifications for admin users
-  const adminStatus = useUserStore(state => state.adminStatus);
+  const isAuthenticated = isLoggedIn && user;
+  const isRoot = user?.isRoot ?? false;
+  const userName = user?.name;
+  const userEmail = user?.email;
   const isAdmin = adminStatus?.isAdmin ?? false;
 
   // Close mobile menu when clicking outside

@@ -1,17 +1,19 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { IMLink } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 
 export function UserRoleIndicator() {
-  const { data: session, status } = useSession();
   const clearUser = useUserStore(state => state.clearUser);
   const hasRole = useUserStore(state => state.hasRole);
+  const isHydrated = useUserStore(state => state.isHydrated);
+  const isLoading = useUserStore(state => state.isLoading);
+  const user = useUserStore(state => state.user);
   const t = useTranslations();
 
-  if (status === "loading") {
+  if (!isHydrated || isLoading) {
     return (
       <div className="rsp-user-indicator flex items-center gap-2">
         <span className="text-gray-400 text-sm">{t("common.loading")}</span>
@@ -19,7 +21,7 @@ export function UserRoleIndicator() {
     );
   }
 
-  if (!session?.user) {
+  if (!user) {
     return (
       <div className="rsp-user-indicator flex items-center gap-4">
         <IMLink
@@ -69,7 +71,7 @@ export function UserRoleIndicator() {
     <div className="rsp-user-indicator flex items-center gap-4">
       <div className="flex items-center gap-2">
         <span className="text-gray-400 dark:text-gray-300 text-sm">
-          {session.user.name || session.user.email}
+          {user.name || user.email}
         </span>
         <span
           className={`${roleBgColor} text-white text-xs px-2 py-1 rounded-full font-medium`}

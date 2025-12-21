@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSession } from "next-auth/react";
+
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Card, Button, IMLink, Breadcrumbs } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
+import { useUserStore } from "@/stores/useUserStore";
 import { formatPrice } from "@/utils/price";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, PriceTimelineResponse, PriceSegment } from "@/types/court";
@@ -79,7 +80,9 @@ export default function CourtDetailPage({
 }: {
   params: Promise<{ courtId: string }>;
 }) {
-  const { data: session, status: authStatus } = useSession();
+  // Use store for auth
+  const user = useUserStore((state) => state.user);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const pathname = usePathname();
   const t = useTranslations();
   const [court, setCourt] = useState<CourtWithClub | null>(null);
@@ -94,8 +97,8 @@ export default function CourtDetailPage({
   const [isAuthPromptOpen, setIsAuthPromptOpen] = useState(false);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const userId = session?.user?.id || "guest";
-  const isAuthenticated = authStatus === "authenticated" && session?.user;
+  const userId = user?.id || "guest";
+  const isAuthenticated = isLoggedIn && user;
 
   // Cleanup toast timeout on unmount
   useEffect(() => {

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button, Modal, Breadcrumbs, Badge, Card, Input } from "@/components/ui";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import { useUserStore } from "@/stores/useUserStore";
 import type { AdminUserDetail } from "@/types/adminUser";
 import "./page.css";
 
@@ -138,10 +138,14 @@ function AlertTriangleIcon() {
 
 export default function UserDetailPage() {
   const t = useTranslations();
-  const { data: session, status: sessionStatus } = useSession();
   const router = useRouter();
   const params = useParams();
   const userId = params.id as string;
+  
+  // Use store for auth
+  const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
 
   // Get user from store
   const ensureUserById = useAdminUsersStore((state) => state.ensureUserById);
@@ -187,15 +191,15 @@ export default function UserDetailPage() {
   }, [userId, ensureUserById, t]);
 
   useEffect(() => {
-    if (sessionStatus === "loading") return;
+    if (!isHydrated || isLoading) return;
 
-    if (!session?.user) {
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
 
     fetchUser();
-  }, [session, sessionStatus, router, fetchUser]);
+  }, [isLoggedIn, isLoading, router, fetchUser, isHydrated]);
 
   const handleBlock = async () => {
     if (!user) return;

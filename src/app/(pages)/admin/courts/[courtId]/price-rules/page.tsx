@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { PriceRuleForm, PriceRuleFormData } from "@/components/admin/PriceRuleForm";
 import { formatPrice } from "@/utils/price";
 import { useCourtStore } from "@/stores/useCourtStore";
+import { useUserStore } from "@/stores/useUserStore";
 
 
 interface PriceRule {
@@ -47,8 +47,13 @@ export default function PriceRulesPage({
 }: {
   params: Promise<{ courtId: string }>;
 }) {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Use store for auth
+  const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  
   const [courtId, setCourtId] = useState<string | null>(null);
   const [court, setCourt] = useState<Court | null>(null);
   const [rules, setRules] = useState<PriceRule[]>([]);
@@ -104,9 +109,9 @@ export default function PriceRulesPage({
   }, [ensureCourtByIdFromStore, courtId]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (!isHydrated || isLoading) return;
 
-    if (!session?.user) {
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
@@ -115,7 +120,7 @@ export default function PriceRulesPage({
       fetchCourt();
       fetchRules();
     }
-  }, [session, status, router, courtId, fetchCourt, fetchRules]);
+  }, [isLoggedIn, isLoading, router, courtId, fetchCourt, fetchRules, isHydrated]);
 
   const showToast = (type: "success" | "error", message: string) => {
     setToast({ type, message });

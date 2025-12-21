@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal, IMLink, Select } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
@@ -10,6 +9,7 @@ import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { RequestTrainingModal } from "../../../../../archived_features/components/training/RequestTrainingModal";
 import { DarkModeToggle, LanguageSwitcher } from "@/components/ui";
 import { useClubStore } from "@/stores/useClubStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
 import "./player-dashboard.css";
@@ -93,10 +93,15 @@ function formatTime(isoString: string): string {
 }
 
 export default function PlayerDashboardPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const t = useTranslations();
   const currentLocale = useCurrentLocale();
+  
+  // Use store for auth
+  const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const user = useUserStore((state) => state.user);
 
   // Use centralized club store
   const clubsFromStore = useClubStore((state) => state.clubs);
@@ -138,23 +143,23 @@ export default function PlayerDashboardPage() {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
 
   // Get user info
-  const userName = session?.user?.name || t("playerDashboard.player");
-  const userId = session?.user?.id || "";
+  const userName = user?.name || t("playerDashboard.player");
+  const userId = user?.id || "";
 
   // Redirect logic for authentication and role
   useEffect(() => {
-    if (status === "loading") return;
+    if (!isHydrated || isLoading) return;
 
-    if (!session?.user) {
+    if (!isLoggedIn) {
       router.push("/auth/sign-in");
       return;
     }
 
     // Root admins should go to admin dashboard
-    if (session.user.isRoot) {
+    if (user?.isRoot) {
       router.push("/admin/dashboard");
     }
-  }, [session, status, router]);
+  }, [isLoggedIn, isLoading, router, user, isHydrated]);
 
   // Fetch clubs from store
   const fetchClubs = useCallback(async () => {

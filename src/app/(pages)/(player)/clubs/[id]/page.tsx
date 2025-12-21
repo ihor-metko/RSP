@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { PlayerQuickBooking } from "@/components/PlayerQuickBooking";
@@ -16,6 +15,7 @@ import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
 import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel, EntityBanner } from "@/components/ui";
 import { useClubStore } from "@/stores/useClubStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
@@ -91,9 +91,12 @@ export default function ClubDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { data: session, status: authStatus } = useSession();
   const pathname = usePathname();
   const t = useTranslations();
+  
+  // Use store for auth
+  const user = useUserStore((state) => state.user);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   
   // Use centralized club store
   const currentClub = useClubStore((state) => state.currentClub);
@@ -124,8 +127,8 @@ export default function ClubDetailPage({
   const [scheduleModalCourt, setScheduleModalCourt] = useState<Court | null>(null);
 
   // Get user ID from session, or use a placeholder for unauthenticated users
-  const userId = session?.user?.id || "guest";
-  const isAuthenticated = authStatus === "authenticated" && session?.user;
+  const userId = user?.id || "guest";
+  const isAuthenticated = isLoggedIn && user;
 
   // Fetch availability for all courts
   const fetchAvailability = useCallback(async (courts: Court[]) => {

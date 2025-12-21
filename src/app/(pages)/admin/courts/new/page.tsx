@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
@@ -107,13 +106,15 @@ export default function CreateCourtPage({
   params: Promise<{ id: string }>;
 }) {
   const t = useTranslations();
-  const { data: session, status } = useSession();
   const router = useRouter();
   
-  // User store for role checks
+  // User store for auth and role checks
   const hasRole = useUserStore(state => state.hasRole);
   const hasAnyRole = useUserStore(state => state.hasAnyRole);
   const adminStatus = useUserStore(state => state.adminStatus);
+  const isHydrated = useUserStore(state => state.isHydrated);
+  const isLoading = useUserStore(state => state.isLoading);
+  const isLoggedIn = useUserStore(state => state.isLoggedIn);
   
   // Organization and Club stores
   const { organizations, fetchOrganizations, loading: orgsLoading } = useOrganizationStore();
@@ -316,12 +317,12 @@ export default function CreateCourtPage({
 
   // Auth check - allow any admin
   useEffect(() => {
-    if (status === "loading") return;
+    if (!isHydrated || isLoading) return;
 
-    if (!session?.user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"])) {
+    if (!isLoggedIn || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"])) {
       router.push("/auth/sign-in");
     }
-  }, [session, status, hasAnyRole, router]);
+  }, [isLoggedIn, isLoading, hasAnyRole, router, isHydrated]);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });

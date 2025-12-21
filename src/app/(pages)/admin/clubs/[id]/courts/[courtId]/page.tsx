@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Modal, IMLink, Breadcrumbs } from "@/components/ui";
 import {
@@ -12,6 +11,7 @@ import {
   CourtPreview,
 } from "@/components/admin/court";
 import { useCourtStore } from "@/stores/useCourtStore";
+import { useUserStore } from "@/stores/useUserStore";
 import type { CourtDetail as StoreCourtDetail } from "@/types/court";
 
 import "./page.css";
@@ -21,8 +21,13 @@ export default function CourtDetailPage({
 }: {
   params: Promise<{ id: string; courtId: string }>;
 }) {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Use store for auth
+  const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const user = useUserStore((state) => state.user);
+  
   const [clubId, setClubId] = useState<string | null>(null);
   const [courtId, setCourtId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -69,9 +74,9 @@ export default function CourtDetailPage({
   }, [ensureCourtByIdFromStore, clubId, courtId, router]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (!isHydrated || isLoading) return;
 
-    if (!session?.user || !session.user.isRoot) {
+    if (!user || !user.isRoot) {
       router.push("/auth/sign-in");
       return;
     }
@@ -79,7 +84,7 @@ export default function CourtDetailPage({
     if (clubId && courtId) {
       fetchCourt();
     }
-  }, [session, status, router, clubId, courtId, fetchCourt]);
+  }, [user, isLoading, router, clubId, courtId, fetchCourt, isHydrated]);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });

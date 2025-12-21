@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { formatPrice } from "@/utils/price";
 import { useCourtStore } from "@/stores/useCourtStore";
+import { useUserStore } from "@/stores/useUserStore";
 import type { Court } from "@/types/court";
 
 interface Club {
@@ -19,8 +19,13 @@ export default function AdminCourtsPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Use store for auth
+  const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const user = useUserStore((state) => state.user);
+  
   const [clubId, setClubId] = useState<string | null>(null);
   const [club, setClub] = useState<Club | null>(null);
   const [error, setError] = useState("");
@@ -65,9 +70,9 @@ export default function AdminCourtsPage({
   }, [clubId]);
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (!isHydrated || isLoading) return;
 
-    if (!session?.user || !session.user.isRoot) {
+    if (!user || !user.isRoot) {
       router.push("/auth/sign-in");
       return;
     }
@@ -78,7 +83,7 @@ export default function AdminCourtsPage({
         setError(err instanceof Error ? err.message : "Failed to load courts");
       });
     }
-  }, [session, status, router, clubId, fetchClub, fetchCourtsIfNeeded]);
+  }, [user, isLoading, router, clubId, fetchClub, fetchCourtsIfNeeded, isHydrated]);
 
   const handleOpenCreateModal = () => {
     setEditingCourt(null);

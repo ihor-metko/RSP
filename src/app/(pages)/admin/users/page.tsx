@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -119,10 +118,13 @@ interface UserFilters extends Record<string, unknown> {
 
 export default function AdminUsersPage() {
   const t = useTranslations();
-  const { status } = useSession();
   const router = useRouter();
+  
+  // Use store for auth state
   const user = useUserStore((state) => state.user);
   const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const hasAnyRole = useUserStore((state) => state.hasAnyRole);
 
   // Use list controller hook for persistent filters
@@ -210,25 +212,17 @@ export default function AdminUsersPage() {
   }, [page, pageSize, sortBy, sortOrder, filters, fetchUsersFromStore]);
 
   useEffect(() => {
-    // Wait for hydration before checking auth
-    if (!isHydrated) return;
-
-    if (status === "loading") return;
+    // Wait for hydration and store initialization
+    if (!isHydrated || isLoading) return;
 
     // Check if user has any admin role (ROOT_ADMIN, ORGANIZATION_ADMIN, CLUB_OWNER, or CLUB_ADMIN)
-    if (!user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_OWNER", "CLUB_ADMIN"])) {
+    if (!isLoggedIn || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_OWNER", "CLUB_ADMIN"])) {
       router.push("/auth/sign-in");
       return;
     }
 
     fetchUsers();
-  }, [user, status, router, fetchUsers, isHydrated, hasAnyRole]);
-
-  // Fetch users when dependencies change (filters already handle debouncing via useListController)
-  useEffect(() => {
-    if (!isHydrated || status === "loading" || !user || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_OWNER", "CLUB_ADMIN"])) return;
-    fetchUsers();
-  }, [status, user, fetchUsers, isHydrated, hasAnyRole]);
+  }, [isLoggedIn, isLoading, router, fetchUsers, isHydrated, hasAnyRole]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
@@ -342,7 +336,7 @@ export default function AdminUsersPage() {
     }
   };
 
-  const isLoadingData = !isHydrated || status === "loading" || deferredLoading;
+  const isLoadingData = !isHydrated || isLoading || deferredLoading;
 
   return (
     <main className="im-admin-users-page">
