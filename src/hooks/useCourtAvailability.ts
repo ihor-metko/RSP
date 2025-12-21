@@ -10,6 +10,11 @@ import type {
 } from '@/types/socket';
 
 /**
+ * Event deduplication timeout in milliseconds (5 seconds)
+ */
+const EVENT_DEDUPLICATION_TIMEOUT_MS = 5000;
+
+/**
  * Custom hook for managing court availability with real-time WebSocket updates
  * 
  * Features:
@@ -46,10 +51,10 @@ export function useCourtAvailability(
     }
     eventHandledRef.current.add(eventId);
     
-    // Clean up old event IDs after 5 seconds
+    // Clean up old event IDs after deduplication timeout
     setTimeout(() => {
       eventHandledRef.current.delete(eventId);
-    }, 5000);
+    }, EVENT_DEDUPLICATION_TIMEOUT_MS);
     
     return false;
   }, []);

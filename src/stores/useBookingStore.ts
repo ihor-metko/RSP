@@ -11,6 +11,11 @@ import {
 } from "@/utils/socketUpdateManager";
 
 /**
+ * Slot lock expiration time in milliseconds (5 minutes)
+ */
+const LOCK_EXPIRATION_MS = 5 * 60 * 1000;
+
+/**
  * Zustand store for managing bookings in club operations
  * 
  * Features:
@@ -337,7 +342,6 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   cleanupExpiredLocks: () => {
     const currentLocks = get().lockedSlots;
     const now = Date.now();
-    const LOCK_EXPIRATION_MS = 5 * 60 * 1000; // 5 minutes
     
     const validLocks = currentLocks.filter(
       (lock) => now - lock.lockedAt < LOCK_EXPIRATION_MS

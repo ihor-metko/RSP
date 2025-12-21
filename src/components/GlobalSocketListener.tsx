@@ -54,6 +54,11 @@ import { useBookingStore } from '@/stores/useBookingStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
 
 /**
+ * Cleanup interval for expired locks in milliseconds (60 seconds)
+ */
+const CLEANUP_INTERVAL_MS = 60000;
+
+/**
  * Global Socket Event Dispatcher
  * 
  * Usage: Add this component to the root layout to enable:
@@ -201,11 +206,11 @@ export function GlobalSocketListener() {
     };
   }, []);
 
-  // Periodic cleanup of expired slot locks (every 60 seconds)
+  // Periodic cleanup of expired slot locks
   useEffect(() => {
     const interval = setInterval(() => {
       cleanupExpiredLocks();
-    }, 60000); // 60 seconds
+    }, CLEANUP_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [cleanupExpiredLocks]);

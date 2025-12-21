@@ -8,10 +8,14 @@ import type { SlotLockedEvent } from '@/types/socket';
 
 describe('useBookingStore - Slot Lock Management', () => {
   beforeEach(() => {
-    // Reset store state before each test
+    // Reset store state before each test by clearing all locked slots
     const { result } = renderHook(() => useBookingStore());
     act(() => {
-      result.current.lockedSlots.length = 0;
+      // Properly clear locked slots by removing each one
+      const slotsToRemove = [...result.current.lockedSlots];
+      slotsToRemove.forEach(slot => {
+        result.current.removeLockedSlot(slot.slotId);
+      });
     });
   });
 
