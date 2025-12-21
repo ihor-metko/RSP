@@ -12,6 +12,44 @@ import type {
 import { debounceSocketEvent } from '@/utils/socketUpdateManager';
 
 /**
+ * @deprecated This hook is deprecated. Use the global SocketProvider instead.
+ * 
+ * Migration Guide:
+ * 1. Remove `useSocketIO` imports from your components
+ * 2. Import `useSocket` from '@/contexts/SocketContext'
+ * 3. Event handling is now centralized in GlobalSocketListener
+ * 4. Components should read data from Zustand stores, not listen to socket events directly
+ * 
+ * Old pattern (deprecated):
+ * ```tsx
+ * const { socket, isConnected } = useSocketIO({
+ *   onBookingCreated: (data) => {
+ *     // Handle event
+ *   }
+ * });
+ * ```
+ * 
+ * New pattern (recommended):
+ * ```tsx
+ * // 1. Use global socket for connection status only
+ * const { socket, isConnected } = useSocket();
+ * 
+ * // 2. Read booking data from store
+ * const bookings = useBookingStore(state => state.bookings);
+ * 
+ * // 3. GlobalSocketListener automatically updates the store
+ * // No need to listen to events in components
+ * ```
+ * 
+ * Benefits of migration:
+ * - Single socket connection (no duplicates)
+ * - No duplicate event listeners
+ * - Centralized state management
+ * - Automatic toast notifications
+ * - Better performance and memory usage
+ */
+
+/**
  * Typed Socket.IO client
  */
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -81,6 +119,10 @@ interface UseSocketIOReturn {
 /**
  * Custom hook for Socket.IO client connection
  * 
+ * @deprecated This hook creates duplicate socket connections and is deprecated.
+ * Use the global SocketProvider and useSocket hook instead.
+ * See the JSDoc comment above for migration instructions.
+ * 
  * Features:
  * - Automatic reconnection handling
  * - Debounced event handlers to prevent UI flickering
@@ -132,6 +174,12 @@ export function useSocketIO(options: UseSocketIOOptions = {}): UseSocketIOReturn
 
   useEffect(() => {
     if (!autoConnect) return;
+
+    // Log deprecation warning
+    console.warn(
+      '[useSocketIO] DEPRECATED: This hook creates duplicate socket connections. ' +
+      'Please migrate to the global SocketProvider. See hook documentation for migration guide.'
+    );
 
     // Initialize Socket.IO client
     const socket: TypedSocket = io({
