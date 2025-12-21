@@ -6,7 +6,7 @@
  * - Event-to-toast-type mapping
  * - Duplicate event prevention
  * - Multi-toast queue support
- * - Auto-dismiss after 5-7 seconds
+ * - Auto-dismiss after 6 seconds
  */
 
 import { showToast, type ToastType } from '@/lib/toast';

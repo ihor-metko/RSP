@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       case 'lock_expired':
         emitLockExpired({
           slotId: `test-slot-${Date.now()}`,
-          courtId: 'test-club',
+          courtId: 'test-court',
           clubId: 'test-club',
         });
         break;

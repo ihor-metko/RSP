@@ -15,7 +15,7 @@
  * - Single global listener (no route-based conditions)
  * - Automatic duplicate prevention
  * - Multi-toast queue support
- * - Auto-dismiss after 5-7 seconds
+ * - Auto-dismiss after 6 seconds
  */
 
 import { useEffect, useRef } from 'react';
