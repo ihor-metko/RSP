@@ -106,7 +106,6 @@ export function useNotifications(
 
       if (response.status === 401 || response.status === 403) {
         setError("Access denied. Admin privileges required.");
-        setLoading(false);
         return;
       }
 

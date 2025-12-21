@@ -89,12 +89,9 @@ export async function createAdminNotification(
     if (global.io) {
       const io = global.io as TypedServer;
       // Create socket event payload with read status
-      const socketPayload = {
+      const socketPayload: typeof payload & { read: boolean } = {
         ...payload,
         read: notification.read,
-        playerName: undefined,
-        playerEmail: undefined,
-        coachName: undefined,
       };
       io.emit('admin_notification', socketPayload);
       console.log('[AdminNotifications] Socket.IO event emitted:', payload.id);

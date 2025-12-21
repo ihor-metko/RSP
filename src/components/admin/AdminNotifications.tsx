@@ -7,7 +7,10 @@ import { AdminNotification } from "@/stores/useNotificationStore";
 import "./AdminNotifications.css";
 
 interface AdminNotificationsPanelProps {
-  // Deprecated: polling is no longer used
+  /**
+   * @deprecated Polling is no longer used. The component now relies on Socket.IO for real-time updates.
+   * This parameter is kept for backward compatibility but is ignored.
+   */
   pollInterval?: number;
 }
 
