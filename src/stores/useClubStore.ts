@@ -8,6 +8,39 @@ import type {
 } from "@/types/club";
 
 /**
+ * @deprecated This store is deprecated. Use the new context-specific stores instead:
+ * - For admin contexts: import { useAdminClubStore } from "@/stores/useAdminClubStore"
+ * - For player contexts: import { usePlayerClubStore } from "@/stores/usePlayerClubStore"
+ * 
+ * Migration Guide:
+ * 
+ * Admin Pages/Components:
+ * Replace all instances of:
+ *   import { useClubStore } from "@/stores/useClubStore";
+ * With:
+ *   import { useAdminClubStore } from "@/stores/useAdminClubStore";
+ * 
+ * And update all usage:
+ *   useClubStore((state) => ...) → useAdminClubStore((state) => ...)
+ * 
+ * Player Pages/Components:
+ * Replace all instances of:
+ *   import { useClubStore } from "@/stores/useClubStore";
+ * With:
+ *   import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
+ * 
+ * And update all usage:
+ *   useClubStore((state) => ...) → usePlayerClubStore((state) => ...)
+ * 
+ * Key Differences:
+ * - AdminClubStore uses /api/admin/clubs endpoints (requires authentication)
+ * - PlayerClubStore uses /api/player/clubs endpoints (public data only)
+ * - Both stores have the same API but different data types and endpoints
+ * 
+ * This store will be removed in a future version.
+ */
+
+/**
  * SSR NOTE: This client-side store should not be relied upon for SSR logic.
  * Server-side pages must fetch data directly via getServerSideProps or route handlers.
  * After hydration, you can optionally call useClubStore.getState().setClubs(serverData)

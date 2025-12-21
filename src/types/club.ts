@@ -212,18 +212,18 @@ export interface UpdateClubPayload {
 /**
  * Admin-specific club data with full operational details
  * Used by useAdminClubStore
+ * Extends ClubWithCounts with the same interface for now, but allows for
+ * future admin-specific fields without breaking the type system
  */
-export interface AdminClubWithCounts extends ClubWithCounts {
-  // Inherited from ClubWithCounts: organizationId, organization, admins, counts, etc.
-}
+export type AdminClubWithCounts = ClubWithCounts;
 
 /**
  * Admin-specific detailed club data
  * Used by useAdminClubStore for individual club details
+ * Extends ClubDetail with the same interface for now, but allows for
+ * future admin-specific fields without breaking the type system
  */
-export interface AdminClubDetail extends ClubDetail {
-  // Inherited from ClubDetail: all fields including coaches, gallery, business hours, etc.
-}
+export type AdminClubDetail = ClubDetail;
 
 /**
  * Player-specific club data with only public information
