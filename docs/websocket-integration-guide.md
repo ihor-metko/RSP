@@ -163,55 +163,57 @@ export async function DELETE(
 
 ## Client-side Integration
 
-In components that display booking lists, add the WebSocket hook:
+Real-time updates are handled automatically by the unified socket architecture:
+
+### Setup (Already configured in root layout)
+
+```typescript
+// src/app/layout.tsx
+
+import { SocketProvider } from '@/contexts/SocketContext';
+import { GlobalSocketListener } from '@/components/GlobalSocketListener';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <body>
+        <SocketProvider>
+          <GlobalSocketListener />
+          {children}
+        </SocketProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+### Using in Components
+
+Components simply read from the booking store - updates happen automatically:
 
 ```typescript
 // src/app/(pages)/admin/clubs/[id]/operations/page.tsx
 
 'use client';
 
-import { useSocketIO } from '@/hooks/useSocketIO';
+import { useSocket } from '@/contexts/SocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
 
 export default function ClubOperationsPage({ params }: { params: { id: string } }) {
   const { fetchBookingsForDay } = useBookingStore();
   const [selectedDate, setSelectedDate] = useState(new Date());
+  
+  // Optional: Get connection status for UI indication
+  const { isConnected } = useSocket();
+  
+  // Fetch bookings - store will be automatically updated by GlobalSocketListener
+  useEffect(() => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    fetchBookingsForDay(params.id, dateStr);
+  }, [params.id, selectedDate, fetchBookingsForDay]);
 
-  // 🔥 Listen for real-time booking updates
-  const { isConnected } = useSocketIO({
-    onBookingCreated: (data) => {
-      // Only refresh if it's for the current club and date
-      if (data.clubId === params.id) {
-        const bookingDate = data.booking.start.split('T')[0];
-        const selectedDateStr = selectedDate.toISOString().split('T')[0];
-        
-        if (bookingDate === selectedDateStr) {
-          console.log('New booking received, refreshing...');
-          fetchBookingsForDay(params.id, selectedDateStr);
-        }
-      }
-    },
-    
-    onBookingUpdated: (data) => {
-      if (data.clubId === params.id) {
-        const bookingDate = data.booking.start.split('T')[0];
-        const selectedDateStr = selectedDate.toISOString().split('T')[0];
-        
-        if (bookingDate === selectedDateStr) {
-          console.log('Booking updated, refreshing...');
-          fetchBookingsForDay(params.id, selectedDateStr);
-        }
-      }
-    },
-    
-    onBookingDeleted: (data) => {
-      if (data.clubId === params.id) {
-        console.log('Booking deleted, refreshing...');
-        const selectedDateStr = selectedDate.toISOString().split('T')[0];
-        fetchBookingsForDay(params.id, selectedDateStr);
-      }
-    },
-  });
+  // Read bookings from store - automatically updated in real-time
+  const bookings = useBookingStore(state => state.bookings);
 
   return (
     <div>
@@ -223,11 +225,21 @@ export default function ClubOperationsPage({ params }: { params: { id: string } 
           <span className="text-gray-500">● Offline</span>
         )}
       </div>
-      {/* Rest of your component */}
+      {/* Display bookings - they update automatically via GlobalSocketListener */}
+      {bookings.map(booking => (
+        <div key={booking.id}>{booking.courtName} - {booking.userName}</div>
+      ))}
     </div>
   );
 }
 ```
+
+### How it Works
+
+1. **SocketProvider**: Creates a single global socket connection
+2. **GlobalSocketListener**: Listens to all socket events and updates Zustand stores
+3. **Components**: Read from stores and automatically re-render when data changes
+4. **No manual event handling needed**: The global listener handles everything centrally
 
 ## Best Practices
 

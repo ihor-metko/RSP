@@ -1,62 +1,70 @@
 # WebSocket Real-time Booking Updates - Testing Guide
 
-This document provides guidance on testing WebSocket-based real-time booking updates, both automated and manual.
+This document provides guidance on testing WebSocket-based real-time booking updates using the unified socket architecture, both automated and manual.
 
 ## Overview
 
-The ArenaOne platform uses WebSocket (Socket.IO) to provide real-time updates for bookings across all connected clients. When a booking is created, updated, or deleted, all connected clients receive instant notifications and their UI updates automatically.
+The ArenaOne platform uses WebSocket (Socket.IO) with a unified architecture to provide real-time updates for bookings across all connected clients. The `GlobalSocketListener` component automatically handles all socket events and updates the Zustand booking store, which triggers UI updates across all components.
+
+## Architecture
+
+- **SocketProvider**: Single global socket connection
+- **GlobalSocketListener**: Centralized event dispatcher
+- **useBookingStore**: Zustand store automatically updated by socket events
+- **Components**: Read from store and automatically re-render
 
 ## Automated Tests
 
 ### Location
-- **Primary test file**: `src/__tests__/websocket-realtime-booking-updates.test.tsx`
+- **Primary test file**: `src/__tests__/GlobalSocketListener.test.tsx` - Integration tests for the centralized listener
 - **Supporting tests**: 
-  - `src/__tests__/useSocketIO.test.ts` - Hook unit tests
-  - `src/__tests__/today-bookings-list-socketio.test.tsx` - Component integration tests
-  - `src/__tests__/bookings-overview-socketio.test.tsx` - Component integration tests
+  - `src/__tests__/socketEmitters.test.ts` - Server-side event emitters
+  - `src/__tests__/socketUpdateManager.test.ts` - Event debouncing and deduplication
+  - `src/__tests__/globalNotificationManager.test.ts` - Toast notifications
 
 ### Running Automated Tests
 
 ```bash
 # Run all WebSocket tests
-npm test -- --testPathPatterns="websocket|socket"
+npm test -- GlobalSocketListener
+npm test -- socketEmitters
+npm test -- socketUpdateManager
 
-# Run just the comprehensive real-time updates tests
-npm test -- --testPathPatterns="websocket-realtime-booking-updates"
+# Run with coverage
+npm test -- --coverage --collectCoverageFrom="src/components/GlobalSocketListener.tsx"
 
 # Run with verbose output
-npm test -- --testPathPatterns="websocket-realtime-booking-updates" --verbose
+npm test -- GlobalSocketListener --verbose
 ```
 
 ### Test Coverage
 
 The automated test suite covers:
 
-1. **Multi-client Connections**
-   - Multiple clients connecting simultaneously
-   - Event handler registration for all clients
-   - Unique socket IDs per client
+1. **Event Listener Registration**
+   - All event types properly registered
+   - Both new and legacy event names supported
+   - Proper cleanup on unmount
 
 2. **Booking Created Events**
-   - All clients receive notification
-   - UI state updates correctly
-   - No duplication of bookings
+   - Store updated with new booking
+   - Toast notification displayed
+   - `handleSocketEvent` called correctly
 
 3. **Booking Updated Events**
-   - All clients receive update
-   - Existing bookings are updated in place
-   - Status changes are reflected correctly
+   - Store updated with modified booking
+   - Existing bookings updated in place
+   - Status changes reflected
 
-4. **Booking Deleted Events**
-   - All clients are notified
-   - Bookings are removed from UI
-   - Other bookings remain unaffected
+4. **Booking Cancelled Events**
+   - Booking removed from store
+   - UI state updates correctly
+   - Toast notification shown
 
-5. **Edge Cases**
-   - **Reconnection**: Clients can disconnect and reconnect without issues
-   - **Rapid events**: Debouncing prevents UI flickering from rapid updates
-   - **Conflict resolution**: Timestamp-based conflict detection prevents outdated updates
-   - **No duplication**: Same event received multiple times doesn't create duplicates
+5. **Payment and Slot Events**
+   - Payment confirmed/failed events handled
+   - Slot locked/unlocked events processed
+   - Lock expired notifications
 
 ## Manual Testing
 
@@ -199,64 +207,55 @@ WebSocket events are logged to the browser console in development mode:
    - Check that Socket.IO server is running (`npm run dev`)
    - Verify WebSocket connection in Network tab (look for `socket.io` requests)
    - Check browser console for connection errors
+   - Ensure `GlobalSocketListener` is rendered in root layout
 
 2. **UI not updating**
-   - Verify event handlers are registered (check component code)
-   - Check that clubId matches between event and current view
+   - Verify `GlobalSocketListener` is active (check console logs)
+   - Check that booking store methods work: `updateBookingFromSocket`, `removeBookingFromSocket`
    - Inspect Zustand store state in React DevTools
+   - Ensure components are reading from the store
 
 3. **Duplicate bookings**
-   - Check that `updateBookingFromSocket` is using conflict resolution
+   - Check that `updateBookingFromSocket` uses proper deduplication
    - Verify booking IDs are unique
-   - Check for multiple event handler registrations
+   - Check for multiple `GlobalSocketListener` instances (should only be one)
 
 4. **Performance issues**
-   - Increase debounce delay if updates are too frequent
-   - Check that old event handlers are cleaned up on unmount
+   - Event debouncing is handled by `socketUpdateManager`
+   - Check that `GlobalSocketListener` is only rendered once
    - Monitor memory usage in browser DevTools
 
 ## Example Usage in Components
 
-### Basic WebSocket Integration
+### Basic Integration (Recommended)
+
+Components simply read from the store - updates happen automatically:
 
 ```tsx
-import { useSocketIO } from '@/hooks/useSocketIO';
+import { useSocket } from '@/contexts/SocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
 
-function BookingsList({ clubId }: { clubId: string }) {
+function BookingsList({ clubId, date }: { clubId: string; date: string }) {
+  // Optional: Get connection status for UI indicator
+  const { isConnected } = useSocket();
+  
+  // Read bookings from store
   const bookings = useBookingStore(state => state.bookings);
   const fetchBookings = useBookingStore(state => state.fetchBookingsForDay);
-  const updateBooking = useBookingStore(state => state.updateBookingFromSocket);
-  const removeBooking = useBookingStore(state => state.removeBookingFromSocket);
 
-  // Set up WebSocket connection
-  const { isConnected } = useSocketIO({
-    autoConnect: true,
-    onBookingCreated: (data) => {
-      if (data.clubId === clubId) {
-        updateBooking(data.booking);
-      }
-    },
-    onBookingUpdated: (data) => {
-      if (data.clubId === clubId) {
-        updateBooking(data.booking);
-      }
-    },
-    onBookingDeleted: (data) => {
-      if (data.clubId === clubId) {
-        removeBooking(data.bookingId);
-      }
-    },
-    onReconnect: () => {
-      // Resync data after reconnection
-      fetchBookings(clubId, new Date().toISOString().split('T')[0]);
-    },
-  });
+  // Initial fetch
+  useEffect(() => {
+    fetchBookings(clubId, date);
+  }, [clubId, date, fetchBookings]);
+
+  // That's it! Bookings automatically update via GlobalSocketListener
 
   return (
     <div>
       {isConnected && <div>🟢 Live updates enabled</div>}
-      {/* Render bookings */}
+      {bookings.map(booking => (
+        <div key={booking.id}>{booking.courtName} - {booking.userName}</div>
+      ))}
     </div>
   );
 }
@@ -264,7 +263,7 @@ function BookingsList({ clubId }: { clubId: string }) {
 
 ### Testing WebSocket in Storybook
 
-If you use Storybook, you can create stories that simulate WebSocket events:
+If you use Storybook, mock the SocketContext:
 
 ```tsx
 import { ComponentStory, ComponentMeta } from '@storybook/react';
@@ -311,5 +310,7 @@ All WebSocket tests must pass before merging to main branch.
 - [Socket.IO Documentation](https://socket.io/docs/v4/)
 - [React Testing Library](https://testing-library.com/react)
 - [Zustand Documentation](https://github.com/pmndrs/zustand)
-- Project-specific WebSocket hook: `src/hooks/useSocketIO.ts`
-- Socket event types: `src/types/socket.ts`
+- Project-specific socket components:
+  - SocketProvider: `src/contexts/SocketContext.tsx`
+  - GlobalSocketListener: `src/components/GlobalSocketListener.tsx`
+  - Socket event types: `src/types/socket.ts`

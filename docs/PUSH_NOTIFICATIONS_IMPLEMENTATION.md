@@ -20,7 +20,7 @@ December 20, 2024
 
 ✅ **Ensure emission only happens after database transaction is successfully committed**
 
-✅ **Easy frontend subscription** via the `useSocketIO` hook
+✅ **Easy frontend subscription** via the unified socket architecture (`SocketProvider` + `GlobalSocketListener`)
 
 ## Architecture
 
@@ -102,32 +102,53 @@ interface BookingDeletedEvent {
 
 ### Client-Side Components
 
-#### 1. useSocketIO Hook (`src/hooks/useSocketIO.ts`)
-Pre-existing custom React hook for WebSocket connections:
+#### 1. SocketProvider (`src/contexts/SocketContext.tsx`)
+Creates a single global socket connection shared across the entire app:
 
 **Features:**
-- Auto-connect on mount (configurable)
-- Type-safe event handlers
-- Callback support for all booking events
-- Connection state management
-- Manual connect/disconnect methods
+- Singleton socket connection
+- Automatic reconnection handling
+- Connection state tracking
+- Safe cleanup on unmount
 
-**Usage Example:**
+#### 2. GlobalSocketListener (`src/components/GlobalSocketListener.tsx`)
+Centralized event dispatcher that handles all socket events:
+
+**Features:**
+- Listens to all booking events (created, updated, deleted/cancelled)
+- Automatically updates Zustand booking store
+- Displays toast notifications via `globalNotificationManager`
+- Supports both new and legacy event names
+- No duplicate event listeners
+
+**Usage:**
+The GlobalSocketListener is automatically included in the root layout. Components simply read from the booking store:
+
 ```typescript
-const { socket, isConnected } = useSocketIO({
-  onBookingCreated: (data) => {
-    console.log('New booking:', data);
-    refreshBookingsList();
-  },
-  onBookingUpdated: (data) => {
-    console.log('Booking updated:', data);
-    refreshBookingsList();
-  },
-  onBookingDeleted: (data) => {
-    console.log('Booking deleted:', data);
-    refreshBookingsList();
-  }
-});
+import { useSocket } from '@/contexts/SocketContext';
+import { useBookingStore } from '@/stores/useBookingStore';
+
+function BookingsPage() {
+  // Optional: Get connection status for UI indicator
+  const { isConnected } = useSocket();
+  
+  // Read bookings from store - automatically updated by GlobalSocketListener
+  const bookings = useBookingStore(state => state.bookings);
+  const fetchBookings = useBookingStore(state => state.fetchBookingsForDay);
+  
+  useEffect(() => {
+    fetchBookings(clubId, date);
+  }, [clubId, date, fetchBookings]);
+  
+  // Bookings automatically update in real-time via GlobalSocketListener
+  
+  return (
+    <div>
+      {isConnected && <span>🟢 Live</span>}
+      {bookings.map(b => <div key={b.id}>{b.courtName}</div>)}
+    </div>
+  );
+}
 ```
 
 #### 2. Example Component (`src/components/examples/BookingListWithWebSocket.tsx`)
@@ -224,8 +245,8 @@ All events include complete booking information:
 - Prisma transactions - Ensure atomic operations
 
 ### Frontend
-- `useSocketIO` hook - Easy subscription to events
-- Zustand stores - Can be integrated to auto-update state
+- `SocketProvider` + `GlobalSocketListener` - Unified socket architecture
+- Zustand stores - Automatically updated by GlobalSocketListener
 - Example components - Reference implementation
 
 ## Performance Considerations

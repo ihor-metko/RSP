@@ -2,269 +2,197 @@
 
 ## Overview
 
-This document describes the comprehensive WebSocket testing infrastructure for the ArenaOne application. The tests ensure reliable real-time booking updates across all components using Socket.IO.
+This document describes the WebSocket testing infrastructure for the ArenaOne application using the unified socket architecture. The tests ensure reliable real-time booking updates using the centralized `GlobalSocketListener` and `SocketProvider`.
 
 ## Test Architecture
 
-### Test Files
+### Current Test Files
 
-1. **`useSocketIO.test.ts`** - Core Hook Tests (9 tests)
-   - Socket initialization and connection
-   - Event handler registration
-   - Manual connect/disconnect functionality
-   - Cleanup on unmount
-   - Event type structures
+1. **`GlobalSocketListener.test.tsx`** - Core Integration Tests (6 tests)
+   - Event listener registration
+   - Booking event handling (created, updated, cancelled)
+   - Payment event handling
+   - Store updates via socket events
+   - Component cleanup on unmount
+   - Proper event unregistration
 
-2. **`websocket-realtime-booking-updates.test.tsx`** - Multi-Client Integration Tests (15 tests)
-   - Multiple client connections
-   - Booking event broadcasting (created, updated, deleted)
-   - Reconnection handling with data sync
-   - Rapid consecutive event debouncing
-   - No duplication of bookings
-   - Timestamp-based conflict resolution
-   - UI state consistency
+2. **`socketEmitters.test.ts`** - Server-side Emitter Tests
+   - Event emission for booking operations
+   - Proper event payload structure
+   - Safe handling when Socket.IO not initialized
 
-3. **`bookings-overview-socketio.test.tsx`** - Component Tests (5 tests)
-   - BookingsOverview component WebSocket integration
-   - Real-time updates with toast notifications
-   - Conditional socket connection based on `enableRealtime` prop
-   - Event filtering and refresh callbacks
+3. **`socketUpdateManager.test.ts`** - Update Manager Tests
+   - Debouncing of rapid socket events
+   - Prevention of UI flickering
+   - Event deduplication
 
-4. **`today-bookings-list-socketio.test.tsx`** - Component Tests (6 tests)
-   - TodayBookingsList component WebSocket integration
-   - Club-specific event filtering
-   - Booking store updates
-   - Event handling for all booking lifecycle events
-
-5. **`websocket-error-handling.test.tsx`** - Error Handling Tests (13 tests) ⭐ NEW
-   - Malformed event data (null, undefined, empty objects)
-   - Missing required fields in events
-   - Wrong data types in events
-   - Unexpected event types
-   - State consistency after invalid events
-   - Concurrent invalid and valid events
-   - Connection error handling
-
-6. **`websocket-reconnection-state-consistency.test.tsx`** - Reconnection Tests (10 tests) ⭐ NEW
-   - Basic reconnection flow
-   - State preservation after reconnection
-   - Data synchronization after missed updates
-   - Multiple reconnection attempts
-   - Concurrent events during reconnection
-   - Event order preservation
-   - Rapid connect/disconnect cycles
-   - Recovery from reconnect callback errors
+4. **`globalNotificationManager.test.ts`** - Notification Tests
+   - Toast notification generation for events
+   - Duplicate notification prevention
+   - Event-specific message formatting
 
 ### Total Coverage
 
-- **Total WebSocket Tests**: 58 tests (as of Dec 2024 - update when adding/removing tests)
-- **Test Coverage**: All components with WebSocket subscriptions
-- **Event Types Tested**: bookingCreated, bookingUpdated, bookingDeleted
-- **Edge Cases Covered**: 25+ edge cases and error scenarios
+- **Total WebSocket Tests**: 20+ tests covering the unified architecture
+- **Test Coverage**: All socket components and utilities
+- **Event Types Tested**: booking_created, booking_updated, booking_cancelled, slot_locked, slot_unlocked, payment_confirmed, payment_failed
+- **Legacy Events**: bookingCreated, bookingUpdated, bookingDeleted (for backward compatibility)
 
 ## Testing Strategy
 
 ### Mock Implementation
 
-The tests use a custom Socket.IO mock instead of `socket.io-mock` library for better control:
+Tests use a custom Socket.IO mock for the unified architecture:
 
 ```typescript
 // Mock socket instance
-let mockSocket: any;
+const mockSocket = {
+  on: jest.fn(),
+  off: jest.fn(),
+  disconnect: jest.fn(),
+  connect: jest.fn(),
+  id: 'test-socket-id',
+  connected: false,
+  io: {
+    on: jest.fn(),
+    off: jest.fn(),
+  },
+};
 
-jest.mock("socket.io-client", () => {
-  return {
-    io: jest.fn(() => {
-      mockSocket = {
-        id: "mock-socket-id",
-        connected: false,
-        on: jest.fn(),
-        off: jest.fn(),
-        emit: jest.fn(),
-        connect: jest.fn(function () {
-          this.connected = true;
-        }),
-        disconnect: jest.fn(function () {
-          this.connected = false;
-        }),
-        io: {
-          on: jest.fn(),
-          off: jest.fn(),
-        },
-      };
-      return mockSocket;
-    }),
-  };
-});
+jest.mock('socket.io-client', () => ({
+  io: jest.fn(() => mockSocket),
+}));
+
+// Mock SocketProvider
+jest.mock('@/contexts/SocketContext', () => ({
+  useSocket: jest.fn(() => ({
+    socket: mockSocket,
+    isConnected: true,
+  })),
+  SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 ```
 
-### Event Simulation
-
-Tests simulate server-side event emissions:
+### Mock Booking Store
 
 ```typescript
-function emitSocketEvent(eventName: string, data: any) {
-  const handler = mockSocket.on.mock.calls.find(
-    (call: any) => call[0] === eventName
-  )?.[1];
-  if (handler) {
-    handler(data);
-  }
-}
+const mockUpdateBookingFromSocket = jest.fn();
+const mockRemoveBookingFromSocket = jest.fn();
+
+jest.mock('@/stores/useBookingStore', () => ({
+  useBookingStore: jest.fn((selector) => {
+    const mockStore = {
+      updateBookingFromSocket: mockUpdateBookingFromSocket,
+      removeBookingFromSocket: mockRemoveBookingFromSocket,
+    };
+    return selector(mockStore);
+  }),
+}));
 ```
 
-### Debouncing Awareness
-
-Tests account for the 300ms debounce on WebSocket events. The test files define a constant for consistent wait times:
+### Mock Notification Manager
 
 ```typescript
-// Test constants
-const DEBOUNCE_WAIT_TIME = 350; // Wait time for 300ms debounce + buffer
-
-// In tests
-act(() => {
-  emitSocketEvent("bookingCreated", event);
-});
-
-// Wait for debounce
-await new Promise((resolve) => setTimeout(resolve, DEBOUNCE_WAIT_TIME));
-
-// Verify results
-await waitFor(() => {
-  expect(callback).toHaveBeenCalled();
-});
+jest.mock('@/utils/globalNotificationManager', () => ({
+  handleSocketEvent: jest.fn(),
+  cleanupNotificationManager: jest.fn(),
+}));
 ```
 
 ## Key Test Scenarios
 
-### 1. Component State Updates
+### 1. Event Listener Registration
 
-Tests verify that components correctly update their state when receiving events:
+Tests that `GlobalSocketListener` registers all necessary event listeners:
 
 ```typescript
-it("should update booking store when booking is created", async () => {
-  const booking = createMockBooking("booking-new");
+it('should register all event listeners', () => {
+  render(<GlobalSocketListener />);
+
+  const registeredEvents = mockSocket.on.mock.calls.map(call => call[0]);
   
-  useBookingStore.setState({
-    bookings: [createMockBooking("booking-1")],
-  });
+  expect(registeredEvents).toContain('booking_created');
+  expect(registeredEvents).toContain('booking_updated');
+  expect(registeredEvents).toContain('booking_cancelled');
+  expect(registeredEvents).toContain('slot_locked');
+  expect(registeredEvents).toContain('payment_confirmed');
+  
+  // Legacy events
+  expect(registeredEvents).toContain('bookingCreated');
+  expect(registeredEvents).toContain('bookingUpdated');
+  expect(registeredEvents).toContain('bookingDeleted');
+});
+```
 
-  const callback = jest.fn((data: BookingCreatedEvent) => {
-    useBookingStore.getState().updateBookingFromSocket(data.booking);
-  });
+### 2. Booking Created Event
 
-  // ... emit event ...
+Tests that booking creation events update the store and trigger notifications:
+
+```typescript
+it('should handle booking_created event', async () => {
+  render(<GlobalSocketListener />);
+
+  const eventHandler = mockSocket.on.mock.calls.find(
+    call => call[0] === 'booking_created'
+  )?.[1];
+
+  const eventData = {
+    booking: { id: 'booking-1', bookingStatus: 'CONFIRMED' },
+    clubId: 'club-1',
+    courtId: 'court-1',
+  };
+
+  eventHandler(eventData);
 
   await waitFor(() => {
-    const bookings = useBookingStore.getState().bookings;
-    expect(bookings.length).toBe(2);
-    expect(bookings.find((b) => b.id === "booking-new")).toBeTruthy();
+    expect(handleSocketEvent).toHaveBeenCalledWith('booking_created', eventData);
+    expect(mockUpdateBookingFromSocket).toHaveBeenCalledWith(eventData.booking);
   });
 });
 ```
 
-### 2. Reconnection with State Sync
+### 3. Booking Cancelled Event
 
-Tests verify reconnection triggers data synchronization:
+Tests that booking cancellation removes from store:
 
 ```typescript
-it("should sync missed updates after reconnection via onReconnect callback", async () => {
-  const onReconnect = jest.fn(() => {
-    // Simulate fetching missed updates
-    const newBooking = createMockBooking("booking-2");
-    useBookingStore.getState().updateBookingFromSocket(newBooking);
-  });
+it('should handle booking_cancelled event', async () => {
+  render(<GlobalSocketListener />);
 
-  // ... setup and reconnect ...
+  const eventHandler = mockSocket.on.mock.calls.find(
+    call => call[0] === 'booking_cancelled'
+  )?.[1];
+
+  const eventData = {
+    bookingId: 'booking-1',
+    clubId: 'club-1',
+    courtId: 'court-1',
+  };
+
+  eventHandler(eventData);
 
   await waitFor(() => {
-    expect(onReconnect).toHaveBeenCalled();
-  });
-
-  const bookings = useBookingStore.getState().bookings;
-  expect(bookings.length).toBe(2); // Initial + synced
-});
-```
-
-### 3. Invalid Message Handling
-
-Tests ensure the UI doesn't break with malformed data:
-
-```typescript
-it("should not crash when receiving null data", async () => {
-  const onBookingCreated = jest.fn();
-
-  renderHook(() =>
-    useSocketIO({
-      autoConnect: true,
-      onBookingCreated,
-      debounceMs: 100,
-    })
-  );
-
-  expect(() => {
-    act(() => {
-      emitSocketEvent("bookingCreated", null);
-    });
-  }).not.toThrow();
-});
-```
-
-### 4. Multi-Client Scenarios
-
-Tests verify events are broadcast to all connected clients:
-
-```typescript
-it("should notify all connected clients when a booking is created", async () => {
-  const callback1 = jest.fn();
-  const callback2 = jest.fn();
-  const callback3 = jest.fn();
-
-  renderHook(() => useSocketIO({ autoConnect: true, onBookingCreated: callback1 }));
-  renderHook(() => useSocketIO({ autoConnect: true, onBookingCreated: callback2 }));
-  renderHook(() => useSocketIO({ autoConnect: true, onBookingCreated: callback3 }));
-
-  // ... emit event to all ...
-
-  await waitFor(() => {
-    expect(callback1).toHaveBeenCalledWith(event);
-    expect(callback2).toHaveBeenCalledWith(event);
-    expect(callback3).toHaveBeenCalledWith(event);
+    expect(handleSocketEvent).toHaveBeenCalledWith('booking_cancelled', eventData);
+    expect(mockRemoveBookingFromSocket).toHaveBeenCalledWith(eventData.bookingId);
   });
 });
 ```
 
-## Event Types and Schemas
+### 4. Cleanup on Unmount
 
-### BookingCreatedEvent
-
-```typescript
-interface BookingCreatedEvent {
-  booking: OperationsBooking;
-  clubId: string;
-  courtId: string;
-}
-```
-
-### BookingUpdatedEvent
+Tests proper cleanup of event listeners:
 
 ```typescript
-interface BookingUpdatedEvent {
-  booking: OperationsBooking;
-  clubId: string;
-  courtId: string;
-  previousStatus?: string;
-}
-```
+it('should cleanup on unmount', () => {
+  const { unmount } = render(<GlobalSocketListener />);
 
-### BookingDeletedEvent
+  unmount();
 
-```typescript
-interface BookingDeletedEvent {
-  bookingId: string;
-  clubId: string;
-  courtId: string;
-}
+  expect(mockSocket.off).toHaveBeenCalledWith('booking_created', expect.any(Function));
+  expect(mockSocket.off).toHaveBeenCalledWith('booking_updated', expect.any(Function));
+  expect(mockSocket.off).toHaveBeenCalledWith('booking_cancelled', expect.any(Function));
+  expect(cleanupNotificationManager).toHaveBeenCalled();
+});
 ```
 
 ## Running Tests
@@ -272,201 +200,144 @@ interface BookingDeletedEvent {
 ### Run All WebSocket Tests
 
 ```bash
-npm run test -- --testNamePattern="socket|Socket"
+# Run all socket-related tests
+npm test -- GlobalSocketListener
+npm test -- socketEmitters
+npm test -- socketUpdateManager
+npm test -- globalNotificationManager
 ```
 
-### Run Individual Test Suites
+### Run Specific Test File
 
 ```bash
-# Core hook tests
-npm run test -- src/__tests__/useSocketIO.test.ts
+# Run GlobalSocketListener tests
+npm test -- GlobalSocketListener.test.tsx
 
-# Integration tests
-npm run test -- src/__tests__/websocket-realtime-booking-updates.test.tsx
-
-# Component tests
-npm run test -- src/__tests__/bookings-overview-socketio.test.tsx
-npm run test -- src/__tests__/today-bookings-list-socketio.test.tsx
-
-# Error handling tests
-npm run test -- src/__tests__/websocket-error-handling.test.tsx
-
-# Reconnection tests
-npm run test -- src/__tests__/websocket-reconnection-state-consistency.test.tsx
+# Run with coverage
+npm test -- --coverage --collectCoverageFrom="src/components/GlobalSocketListener.tsx"
 ```
 
-### Run with Coverage
+### Watch Mode
 
 ```bash
-npm run test -- --coverage --collectCoverageFrom="src/hooks/useSocketIO.ts" --collectCoverageFrom="src/components/**/*WebSocket*"
+# Watch mode for active development
+npm test -- --watch GlobalSocketListener
 ```
 
-## Best Practices
+## Test Best Practices
 
-### 1. Isolation
+### 1. Mock the Socket Context
 
-Each test is completely isolated:
-- Mock socket is reset before each test
-- Booking store is cleared before each test
-- No shared state between tests
+Always mock `SocketContext` instead of creating real socket connections:
 
-### 2. Realistic Scenarios
+```typescript
+jest.mock('@/contexts/SocketContext', () => ({
+  useSocket: jest.fn(() => ({
+    socket: mockSocket,
+    isConnected: true,
+  })),
+}));
+```
 
-Tests simulate real-world scenarios:
-- Network disconnections
-- Multiple simultaneous clients
-- Rapid event sequences
-- Invalid server responses
+### 2. Test Event Handlers
 
-### 3. Debounce Handling
+Extract and test event handlers directly:
 
-All tests account for the 300ms debounce:
-- Use appropriate wait times (350ms+)
-- Don't rely on immediate callback execution
+```typescript
+const eventHandler = mockSocket.on.mock.calls.find(
+  call => call[0] === 'booking_created'
+)?.[1];
 
-### 4. Cleanup Verification
+expect(eventHandler).toBeDefined();
+eventHandler(mockEventData);
+```
 
-Tests verify proper cleanup:
-- Event listeners are removed
-- Sockets are disconnected
-- No memory leaks
+### 3. Test Store Integration
 
-## Edge Cases Covered
+Verify that socket events update Zustand stores correctly:
 
-### Connection Issues
-- ✅ Connection failures
-- ✅ Disconnections
-- ✅ Reconnections
-- ✅ Multiple reconnection attempts
-- ✅ Rapid connect/disconnect cycles
+```typescript
+await waitFor(() => {
+  expect(mockUpdateBookingFromSocket).toHaveBeenCalledWith(expectedData);
+});
+```
 
-### Data Integrity
-- ✅ Null/undefined events
-- ✅ Empty objects
-- ✅ Missing required fields
-- ✅ Wrong data types
-- ✅ Unexpected event types
+### 4. Test Cleanup
 
-### Concurrency
-- ✅ Multiple clients receiving same event
-- ✅ Rapid consecutive events
-- ✅ Events during reconnection
-- ✅ Concurrent valid and invalid events
+Always test that event listeners are properly cleaned up:
 
-### State Management
-- ✅ No duplicate bookings
-- ✅ Timestamp-based conflict resolution
-- ✅ State preservation during disconnection
-- ✅ Data synchronization after reconnection
-- ✅ Event order preservation
+```typescript
+const { unmount } = render(<GlobalSocketListener />);
+unmount();
 
-## Components with WebSocket Integration
+expect(mockSocket.off).toHaveBeenCalled();
+expect(cleanupNotificationManager).toHaveBeenCalled();
+```
 
-### Tested Components
+## Coverage Goals
 
-1. **`BookingsOverview`** (`src/components/admin/BookingsOverview.tsx`)
-   - Displays booking statistics
-   - Refreshes on booking events
-   - Shows toast notifications
-   - Controlled by `enableRealtime` prop
+- **GlobalSocketListener**: 100% coverage of all event handlers
+- **socketEmitters**: 100% coverage of emit functions
+- **socketUpdateManager**: 100% coverage of debouncing logic
+- **globalNotificationManager**: 100% coverage of notification logic
 
-2. **`TodayBookingsList`** (`src/components/club-operations/TodayBookingsList.tsx`)
-   - Displays bookings for selected day
-   - Filters events by clubId
-   - Updates booking store
-   - Triggers refresh callback
+## Continuous Integration
 
-3. **`useSocketIO`** (`src/hooks/useSocketIO.ts`)
-   - Core WebSocket hook
-   - Handles connection lifecycle
-   - Provides event callbacks
-   - Implements debouncing
+WebSocket tests run automatically on:
+- Pull request creation
+- Push to main branch
+- Pre-commit hooks (if configured)
 
-### Example Component
+All tests must pass before merging changes.
 
-**`BookingListWithWebSocket`** (`src/components/examples/BookingListWithWebSocket.tsx`)
-- Demonstration component
-- Shows connection status
-- Displays last update
-- Full event handling example
+## Troubleshooting Tests
 
-## Maintenance
+### Mock Socket Not Working
 
-### Adding New Tests
+Ensure the mock is set up before importing components:
 
-When adding new WebSocket functionality:
+```typescript
+jest.mock('socket.io-client', () => ({
+  io: jest.fn(() => mockSocket),
+}));
 
-1. Add test file following naming convention: `*-socketio.test.tsx` or `websocket-*.test.tsx`
-2. Use the custom mock pattern shown above
-3. Account for debouncing (350ms wait)
-4. Test all three event types
-5. Verify cleanup on unmount
+// Then import components
+import { GlobalSocketListener } from '@/components/GlobalSocketListener';
+```
 
-### Updating Existing Tests
+### Store Not Updating
 
-When modifying WebSocket behavior:
+Verify the store mock selector is working:
 
-1. Update relevant test expectations
-2. Add tests for new edge cases
-3. Verify all existing tests still pass
-4. Update documentation if event schemas change
+```typescript
+jest.mock('@/stores/useBookingStore', () => ({
+  useBookingStore: jest.fn((selector) => {
+    const store = { /* ... */ };
+    return selector(store);
+  }),
+}));
+```
 
-## Troubleshooting
+### Async Events Not Firing
 
-### Tests Timeout
+Use `waitFor` for async assertions:
 
-If tests timeout, check:
-- Debounce wait time is sufficient (350ms+)
-- Mock socket handlers are properly set up
-- waitFor conditions are correct
+```typescript
+await waitFor(() => {
+  expect(mockFunction).toHaveBeenCalled();
+});
+```
 
-### Callbacks Not Called
+## Related Documentation
 
-If callbacks aren't triggered:
-- Verify mock socket event handlers are registered
-- Check event emission is wrapped in `act()`
-- Ensure proper wait time after emission
+- [WebSocket Client Setup](./websocket-client-setup.md) - Client-side integration guide
+- [WebSocket Implementation](./websocket-implementation.md) - Server and client architecture
+- [GlobalSocketListener Source](../src/components/GlobalSocketListener.tsx) - Implementation
+- [SocketContext Source](../src/contexts/SocketContext.tsx) - Context implementation
 
-### State Not Updating
+## Future Improvements
 
-If store state doesn't update:
-- Verify callback function updates the store
-- Check waitFor conditions
-- Ensure store is reset before test
-
-## Future Enhancements
-
-Potential areas for additional testing:
-
-1. **Performance Testing**
-   - Event throughput limits
-   - Memory usage under high load
-   - Debounce effectiveness metrics
-
-2. **Network Simulation**
-   - Latency simulation
-   - Packet loss handling
-   - Bandwidth constraints
-
-3. **Browser Compatibility**
-   - Cross-browser WebSocket support
-   - Fallback mechanisms
-
-4. **Security Testing**
-   - XSS prevention in event data
-   - Authorization checks
-   - Rate limiting
-
-## References
-
-- [Socket.IO Documentation](https://socket.io/docs/v4/)
-- [Jest Testing Documentation](https://jestjs.io/docs/getting-started)
-- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
-- [Zustand Testing Guide](https://docs.pmnd.rs/zustand/guides/testing)
-
-## Contact
-
-For questions about WebSocket testing:
-- Review existing test files for patterns
-- Check the copilot-settings.md for project conventions
-- Refer to this documentation for test strategies
+- Add E2E tests with real Socket.IO server
+- Test reconnection scenarios with network simulation
+- Add performance benchmarks for event processing
+- Test concurrent event handling under load

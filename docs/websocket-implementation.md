@@ -32,11 +32,21 @@ The WebSocket server is implemented using Socket.IO and provides real-time updat
 
 ### Client-side Components
 
-1. **`src/hooks/useSocketIO.ts`** - React hook for Socket.IO client
-   - Auto-connects to the Socket.IO server
-   - Provides event listeners for booking events
-   - Handles connection state management
-   - Cleans up connections on unmount
+1. **`src/contexts/SocketContext.tsx`** - Global Socket Provider
+   - Creates a single global socket connection
+   - Provides socket instance and connection status to all components
+   - Handles automatic reconnection
+
+2. **`src/components/GlobalSocketListener.tsx`** - Centralized Event Dispatcher
+   - Listens to all socket events globally
+   - Automatically updates Zustand stores when events are received
+   - Displays toast notifications via globalNotificationManager
+   - No duplicate connections or event listeners
+
+3. **`src/utils/globalNotificationManager.ts`** - Notification Handler
+   - Manages toast notifications for socket events
+   - Prevents duplicate notifications
+   - Handles all booking, payment, and slot events
 
 ## Usage
 
@@ -59,41 +69,36 @@ The server will log:
 > Socket.IO server initialized
 ```
 
-### Using the Client Hook
+### Using in Components
 
-In your React components, use the `useSocketIO` hook to listen for real-time updates:
+The socket architecture is already configured in the root layout. Components simply read from Zustand stores:
 
 ```typescript
-import { useSocketIO } from '@/hooks/useSocketIO';
+import { useSocket } from '@/contexts/SocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
 
-function BookingManager() {
+function BookingManager({ clubId, date }: { clubId: string; date: string }) {
+  // Optional: Get connection status for UI indicator
+  const { isConnected } = useSocket();
+  
+  // Read bookings from store
+  const bookings = useBookingStore(state => state.bookings);
   const fetchBookingsForDay = useBookingStore(state => state.fetchBookingsForDay);
   
-  const { isConnected } = useSocketIO({
-    onBookingCreated: (data) => {
-      console.log('New booking created:', data);
-      // Refresh bookings list for the affected club
-      fetchBookingsForDay(data.clubId, data.booking.start.split('T')[0]);
-    },
-    
-    onBookingUpdated: (data) => {
-      console.log('Booking updated:', data);
-      // Refresh bookings list
-      fetchBookingsForDay(data.clubId, data.booking.start.split('T')[0]);
-    },
-    
-    onBookingDeleted: (data) => {
-      console.log('Booking deleted:', data);
-      // Refresh bookings list
-      fetchBookingsForDay(data.clubId, /* date */);
-    },
-  });
+  // Initial fetch
+  useEffect(() => {
+    fetchBookingsForDay(clubId, date);
+  }, [clubId, date, fetchBookingsForDay]);
+  
+  // That's it! Bookings automatically update via GlobalSocketListener
+  // No manual event handling needed
 
   return (
     <div>
       {isConnected ? '🟢 Live' : '🔴 Offline'}
-      {/* Your booking UI */}
+      {bookings.map(booking => (
+        <div key={booking.id}>{booking.courtName}</div>
+      ))}
     </div>
   );
 }
@@ -160,9 +165,10 @@ export async function POST(req: Request) {
 Run the test suite:
 
 ```bash
-# Run all Socket.IO tests
-npm test -- useSocketIO.test.ts
+# Run socket-related tests
+npm test -- GlobalSocketListener.test.tsx
 npm test -- socketEmitters.test.ts
+npm test -- socketUpdateManager.test.ts
 ```
 
 ### Manual Testing

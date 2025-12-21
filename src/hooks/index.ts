@@ -5,4 +5,3 @@ export type { ListState, UseListControllerOptions, UseListControllerReturn } fro
 export { useDropdownPosition } from "./useDropdownPosition";
 export type { DropdownPosition } from "./useDropdownPosition";
 export { useDeferredLoading } from "./useDeferredLoading";
-export { useSocketIO } from "./useSocketIO";

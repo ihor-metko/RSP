@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ArenaOne platform uses Socket.IO to provide real-time updates for bookings. The WebSocket client is fully integrated into the React/Next.js frontend and can be easily used by any component that needs to receive live updates.
+The ArenaOne platform uses Socket.IO to provide real-time updates for bookings. The WebSocket client uses a unified architecture with centralized event handling through the `GlobalSocketListener`.
 
 ## Architecture
 
@@ -11,334 +11,240 @@ The ArenaOne platform uses Socket.IO to provide real-time updates for bookings. 
 - **Socket Types**: Typed events defined in `@/types/socket`
 - **Emitters**: Helper functions in `@/lib/socketEmitters` for emitting events from API routes
 
-### Client-Side
-- **Hook**: `useSocketIO` hook in `@/hooks/useSocketIO`
+### Client-Side (Unified Architecture)
+- **SocketProvider**: Creates a single global socket connection (`@/contexts/SocketContext`)
+- **GlobalSocketListener**: Centralized event listener that updates Zustand stores (`@/components/GlobalSocketListener`)
 - **Library**: `socket.io-client@4.8.1`
-- **Connection**: Singleton pattern with automatic cleanup
+- **Connection**: Single global connection with automatic reconnection
 
-## Usage
+## Setup
 
-### Basic Usage
+### 1. Root Layout Configuration
 
-Import the hook from `@/hooks`:
+The socket architecture is already configured in the root layout:
 
 ```tsx
-import { useSocketIO } from '@/hooks';
+// src/app/layout.tsx
 
-function MyBookingComponent() {
-  const { socket, isConnected } = useSocketIO({
-    autoConnect: true,
-    onBookingCreated: (data) => {
-      console.log('New booking created:', data);
-      // Refresh bookings or update UI
-    },
-    onBookingUpdated: (data) => {
-      console.log('Booking updated:', data);
-      // Update booking in UI
-    },
-    onBookingDeleted: (data) => {
-      console.log('Booking deleted:', data);
-      // Remove booking from UI
-    },
-  });
+import { SocketProvider } from '@/contexts/SocketContext';
+import { GlobalSocketListener } from '@/components/GlobalSocketListener';
 
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <p>WebSocket Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
-      {/* Your booking UI */}
-    </div>
+    <html>
+      <body>
+        <SocketProvider>
+          {/* GlobalSocketListener handles all socket events centrally */}
+          <GlobalSocketListener />
+          {children}
+        </SocketProvider>
+      </body>
+    </html>
   );
 }
 ```
 
-### Manual Connection Control
+### 2. How It Works
+
+1. **SocketProvider**: Initializes a single socket connection shared across the entire app
+2. **GlobalSocketListener**: Listens to all socket events (booking_created, booking_updated, etc.)
+3. **Automatic Store Updates**: When events are received, the listener automatically updates the Zustand booking store
+4. **Components**: Just read from the store - they automatically re-render when data changes
+
+## Usage in Components
+
+### Basic Usage - Reading Connection Status
 
 ```tsx
-import { useSocketIO } from '@/hooks';
+import { useSocket } from '@/contexts/SocketContext';
 
 function MyComponent() {
-  const { socket, isConnected, connect, disconnect } = useSocketIO({
-    autoConnect: false, // Don't connect automatically
-  });
-
-  const handleConnect = () => {
-    connect();
-  };
-
-  const handleDisconnect = () => {
-    disconnect();
-  };
+  // Get connection status if needed for UI indication
+  const { isConnected } = useSocket();
 
   return (
     <div>
-      <button onClick={handleConnect} disabled={isConnected}>
-        Connect
-      </button>
-      <button onClick={handleDisconnect} disabled={!isConnected}>
-        Disconnect
-      </button>
+      <p>WebSocket Status: {isConnected ? '🟢 Connected' : '🔴 Disconnected'}</p>
     </div>
   );
 }
 ```
 
-### Integration with Zustand Store
+### Recommended Pattern - Use Booking Store
 
-The recommended pattern is to integrate WebSocket events with the `useBookingStore`:
+Components should read booking data from the Zustand store, which is automatically updated by `GlobalSocketListener`:
 
 ```tsx
 import { useEffect } from 'react';
-import { useSocketIO } from '@/hooks';
+import { useSocket } from '@/contexts/SocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
 
 function BookingsList({ clubId, date }: { clubId: string; date: string }) {
+  // Get bookings from store
   const bookings = useBookingStore(state => state.bookings);
   const fetchBookingsForDay = useBookingStore(state => state.fetchBookingsForDay);
-  const invalidateBookings = useBookingStore(state => state.invalidateBookings);
-
-  // Set up WebSocket connection
-  const { isConnected } = useSocketIO({
-    autoConnect: true,
-    onBookingCreated: (data) => {
-      // Only refresh if the event is for the current club
-      if (data.clubId === clubId) {
-        invalidateBookings();
-        fetchBookingsForDay(clubId, date);
-      }
-    },
-    onBookingUpdated: (data) => {
-      if (data.clubId === clubId) {
-        invalidateBookings();
-        fetchBookingsForDay(clubId, date);
-      }
-    },
-    onBookingDeleted: (data) => {
-      if (data.clubId === clubId) {
-        invalidateBookings();
-        fetchBookingsForDay(clubId, date);
-      }
-    },
-  });
+  
+  // Optional: Get connection status for UI indicator
+  const { isConnected } = useSocket();
 
   // Initial fetch
   useEffect(() => {
     fetchBookingsForDay(clubId, date);
   }, [clubId, date, fetchBookingsForDay]);
 
+  // That's it! The bookings will automatically update in real-time
+  // GlobalSocketListener handles all socket events and updates the store
+
   return (
     <div>
-      <div>Connection: {isConnected ? '🟢 Live' : '🔴 Offline'}</div>
-      {/* Render bookings */}
+      <div className="flex items-center gap-2">
+        <h2>Bookings for {date}</h2>
+        {isConnected && <span className="text-green-500">● Live</span>}
+      </div>
+      
+      {bookings.map(booking => (
+        <div key={booking.id}>
+          {booking.courtName} - {booking.userName}
+        </div>
+      ))}
     </div>
   );
 }
 ```
 
+### Advanced Usage - Custom Socket Events
+
+If you need to listen to custom socket events (beyond the standard booking events), you can access the socket directly:
+
+```tsx
+import { useEffect } from 'react';
+import { useSocket } from '@/contexts/SocketContext';
+
+function CustomEventComponent() {
+  const { socket, isConnected } = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCustomEvent = (data: any) => {
+      console.log('Custom event received:', data);
+    };
+
+    socket.on('custom_event', handleCustomEvent);
+
+    return () => {
+      socket.off('custom_event', handleCustomEvent);
+    };
+  }, [socket]);
+
+  return <div>Listening for custom events...</div>;
+}
+```
+
 ## Event Types
 
-### `bookingCreated`
+The following events are automatically handled by `GlobalSocketListener`:
 
-Emitted when a new booking is created.
+### Booking Events
+- `booking_created` - New booking created
+- `booking_updated` - Booking status or details updated
+- `booking_cancelled` - Booking cancelled/deleted
 
-```typescript
-interface BookingCreatedEvent {
-  booking: OperationsBooking;
-  clubId: string;
-  courtId: string;
-}
-```
+### Legacy Event Names (supported for backward compatibility)
+- `bookingCreated`
+- `bookingUpdated`
+- `bookingDeleted`
 
-### `bookingUpdated`
+### Slot Lock Events
+- `slot_locked` - Time slot locked for booking
+- `slot_unlocked` - Time slot unlocked
+- `lock_expired` - Lock expired
 
-Emitted when a booking is updated (e.g., status change, time change).
+### Payment Events
+- `payment_confirmed` - Payment successfully processed
+- `payment_failed` - Payment failed
 
-```typescript
-interface BookingUpdatedEvent {
-  booking: OperationsBooking;
-  clubId: string;
-  courtId: string;
-  previousStatus?: string;
-}
-```
+## Benefits of the Unified Architecture
 
-### `bookingDeleted`
+1. **Single Socket Connection**: No duplicate connections or memory leaks
+2. **Centralized Event Handling**: All socket logic in one place (`GlobalSocketListener`)
+3. **Automatic Store Updates**: Zustand stores updated automatically
+4. **Toast Notifications**: Automatic notifications for events via `globalNotificationManager`
+5. **Simpler Components**: Components just read from stores, no event handling needed
+6. **Better Performance**: Single connection, no duplicate listeners
+7. **Easier Testing**: Mock `SocketContext` instead of testing hook in every component
 
-Emitted when a booking is deleted or cancelled.
+## Troubleshooting
 
-```typescript
-interface BookingDeletedEvent {
-  bookingId: string;
-  clubId: string;
-  courtId: string;
-}
-```
+### Events not being received
 
-## Hook API
+1. Check that the server is running via `npm run dev` or `npm start` (not `next dev`)
+2. Verify Socket.IO is initialized: `curl http://localhost:3000/api/socket`
+3. Check browser console for connection errors
+4. Ensure `SocketProvider` wraps your app in the root layout
 
-### `useSocketIO(options?: UseSocketIOOptions): UseSocketIOReturn`
+### Store not updating
 
-#### Options
+1. Verify `GlobalSocketListener` is rendered in the root layout
+2. Check that the booking store methods are working: `updateBookingFromSocket` and `removeBookingFromSocket`
+3. Look for errors in the browser console
 
-```typescript
-interface UseSocketIOOptions {
-  /**
-   * Whether to automatically connect on mount
-   * @default true
-   */
-  autoConnect?: boolean;
+### Connection status always showing disconnected
 
-  /**
-   * Callback when a booking is created
-   */
-  onBookingCreated?: (data: BookingCreatedEvent) => void;
+1. Ensure the custom Next.js server (`server.js`) is running
+2. Check that Socket.IO middleware is properly initialized
+3. Verify no network/firewall issues blocking WebSocket connections
 
-  /**
-   * Callback when a booking is updated
-   */
-  onBookingUpdated?: (data: BookingUpdatedEvent) => void;
+## Related Files
 
-  /**
-   * Callback when a booking is deleted
-   */
-  onBookingDeleted?: (data: BookingDeletedEvent) => void;
-}
-```
+- **SocketProvider**: `src/contexts/SocketContext.tsx`
+- **GlobalSocketListener**: `src/components/GlobalSocketListener.tsx`
+- **Socket Types**: `src/types/socket.ts`
+- **Emitters**: `src/lib/socketEmitters.ts`
+- **Notification Manager**: `src/utils/globalNotificationManager.ts`
+- **Booking Store**: `src/stores/useBookingStore.ts`
 
-#### Return Value
+## Migration from Old Architecture
 
-```typescript
-interface UseSocketIOReturn {
-  /**
-   * Socket.IO client instance
-   */
-  socket: TypedSocket | null;
+If you're migrating from the deprecated `useSocketIO` hook:
 
-  /**
-   * Whether the socket is connected
-   */
-  isConnected: boolean;
+### Old Pattern (Deprecated)
+```tsx
+import { useSocketIO } from '@/hooks/useSocketIO';
 
-  /**
-   * Manually connect the socket
-   */
-  connect: () => void;
-
-  /**
-   * Manually disconnect the socket
-   */
-  disconnect: () => void;
-}
-```
-
-## Connection Lifecycle
-
-The hook automatically manages the connection lifecycle:
-
-1. **On Mount** (if `autoConnect: true`):
-   - Creates Socket.IO client
-   - Connects to server
-   - Registers event listeners
-   - Logs: `Socket.IO connected: <socket-id>`
-
-2. **On Disconnect**:
-   - Updates `isConnected` state
-   - Logs: `Socket.IO disconnected`
-
-3. **On Error**:
-   - Logs connection errors
-   - Console: `Socket.IO connection error: <error-message>`
-
-4. **On Unmount**:
-   - Removes all event listeners
-   - Disconnects socket
-   - Cleans up resources
-
-## Server-Side Emitting
-
-To emit events from API routes, use the helper functions in `@/lib/socketEmitters`:
-
-```typescript
-import { emitBookingCreated, emitBookingUpdated, emitBookingDeleted } from '@/lib/socketEmitters';
-
-// After creating a booking
-emitBookingCreated({
-  booking: newBooking,
-  clubId: booking.clubId,
-  courtId: booking.courtId,
+const { isConnected } = useSocketIO({
+  onBookingCreated: (data) => {
+    // Handle event
+  }
 });
+```
 
-// After updating a booking
-emitBookingUpdated({
-  booking: updatedBooking,
-  clubId: booking.clubId,
-  courtId: booking.courtId,
-  previousStatus: 'confirmed',
-});
+### New Pattern (Current)
+```tsx
+import { useSocket } from '@/contexts/SocketContext';
+import { useBookingStore } from '@/stores/useBookingStore';
 
-// After deleting a booking
-emitBookingDeleted({
-  bookingId: booking.id,
-  clubId: booking.clubId,
-  courtId: booking.courtId,
-});
+// Just use the socket for connection status
+const { isConnected } = useSocket();
+
+// Read bookings from store - automatically updated by GlobalSocketListener
+const bookings = useBookingStore(state => state.bookings);
 ```
 
 ## Testing
 
-Tests are available in `src/__tests__/useSocketIO.test.ts`. Run with:
+For testing components that use the socket:
 
-```bash
-npm test useSocketIO
+```tsx
+import { useSocket } from '@/contexts/SocketContext';
+
+jest.mock('@/contexts/SocketContext', () => ({
+  useSocket: jest.fn(() => ({
+    socket: mockSocket,
+    isConnected: true,
+  })),
+  SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 ```
 
-## Troubleshooting
-
-### Connection Not Establishing
-
-1. Ensure you're running the app with the custom server:
-   ```bash
-   npm run dev  # Uses server.js
-   ```
-   NOT:
-   ```bash
-   npm run dev:next  # Doesn't include Socket.IO server
-   ```
-
-2. Check that Socket.IO server is initialized:
-   ```
-   > Socket.IO server initialized
-   ```
-
-3. Verify the endpoint is accessible:
-   ```bash
-   curl http://localhost:3000/api/socket
-   ```
-
-### Events Not Received
-
-1. Check that callbacks are properly defined
-2. Verify the event is being emitted server-side (check console logs)
-3. Ensure the socket is connected (`isConnected === true`)
-
-### Multiple Connections
-
-The hook uses a singleton pattern with cleanup on unmount. If you're seeing multiple connections:
-- Ensure you're not calling the hook multiple times at the root level
-- Check that components using the hook are properly unmounting
-
-## Best Practices
-
-1. **Use with Zustand stores**: Integrate WebSocket events with your existing stores for consistent state management
-2. **Filter events by context**: Only refresh data if the event is relevant to the current view (check `clubId`, `courtId`, etc.)
-3. **Handle disconnections gracefully**: Show connection status to users and fall back to polling if needed
-4. **Don't over-fetch**: Use the invalidation pattern to trigger controlled refetches rather than fetching on every event
-5. **Clean up properly**: Let the hook manage the lifecycle; don't manually disconnect unless needed
-
-## Related Files
-
-- Hook: `src/hooks/useSocketIO.ts`
-- Types: `src/types/socket.ts`
-- Server: `server.js`
-- Emitters: `src/lib/socketEmitters.ts`
-- Tests: `src/__tests__/useSocketIO.test.ts`
-- Booking Store: `src/stores/useBookingStore.ts`
+See `src/__tests__/GlobalSocketListener.test.tsx` for testing examples.
