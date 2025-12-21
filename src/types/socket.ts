@@ -30,6 +30,48 @@ export interface BookingDeletedEvent {
 }
 
 /**
+ * Slot lock event payloads
+ */
+export interface SlotLockedEvent {
+  slotId: string;
+  courtId: string;
+  clubId: string;
+  userId?: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface SlotUnlockedEvent {
+  slotId: string;
+  courtId: string;
+  clubId: string;
+}
+
+export interface LockExpiredEvent {
+  slotId: string;
+  courtId: string;
+  clubId: string;
+}
+
+/**
+ * Payment event payloads
+ */
+export interface PaymentConfirmedEvent {
+  paymentId: string;
+  bookingId: string;
+  amount: number;
+  currency: string;
+  clubId: string;
+}
+
+export interface PaymentFailedEvent {
+  paymentId: string;
+  bookingId: string;
+  reason: string;
+  clubId: string;
+}
+
+/**
  * Client to Server events
  * Reserved for future client-initiated events
  */
@@ -40,6 +82,15 @@ export interface ClientToServerEvents {}
  * Server to Client events
  */
 export interface ServerToClientEvents {
+  booking_created: (data: BookingCreatedEvent) => void;
+  booking_updated: (data: BookingUpdatedEvent) => void;
+  booking_cancelled: (data: BookingDeletedEvent) => void;
+  slot_locked: (data: SlotLockedEvent) => void;
+  slot_unlocked: (data: SlotUnlockedEvent) => void;
+  lock_expired: (data: LockExpiredEvent) => void;
+  payment_confirmed: (data: PaymentConfirmedEvent) => void;
+  payment_failed: (data: PaymentFailedEvent) => void;
+  // Legacy event names for backward compatibility
   bookingCreated: (data: BookingCreatedEvent) => void;
   bookingUpdated: (data: BookingUpdatedEvent) => void;
   bookingDeleted: (data: BookingDeletedEvent) => void;
