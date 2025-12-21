@@ -2,11 +2,15 @@
  * Global Real-Time Notification Manager
  * 
  * Manages display of real-time Socket.IO event notifications as toast messages.
+ * Also provides transformation utilities to convert Booking/Payment events
+ * into AdminNotification format for the unified notification system.
+ * 
  * Features:
  * - Event-to-toast-type mapping
  * - Duplicate event prevention
  * - Multi-toast queue support
  * - Auto-dismiss after 6 seconds
+ * - Event transformation for notification store integration
  */
 
 import { showToast, type ToastType } from '@/lib/toast';
@@ -19,6 +23,7 @@ import type {
   LockExpiredEvent,
   PaymentConfirmedEvent,
   PaymentFailedEvent,
+  AdminNotificationEvent,
 } from '@/types/socket';
 
 /**
@@ -217,4 +222,162 @@ export function cleanupNotificationManager(): void {
     managerInstance.cleanup();
     managerInstance = null;
   }
+}
+
+/**
+ * =============================================================================
+ * Event Transformation Functions
+ * =============================================================================
+ * 
+ * These functions transform Booking and Payment WebSocket events into 
+ * AdminNotification format so they can be stored in the notification store
+ * and displayed in the notification UI components.
+ * 
+ * This enables a unified notification system where all admin-relevant events
+ * (Training requests, Bookings, Payments) flow through the same UI components.
+ */
+
+/**
+ * Generate a unique notification ID for an event
+ */
+function generateNotificationId(eventType: string, eventId: string): string {
+  return `${eventType}-${eventId}-${Date.now()}`;
+}
+
+/**
+ * Transform BookingCreatedEvent to AdminNotification
+ */
+export function transformBookingCreated(event: BookingCreatedEvent): AdminNotificationEvent {
+  const { booking, courtId } = event;
+  
+  const courtInfo = booking.courtName || `Court ${courtId}`;
+  const playerInfo = booking.userName || booking.userEmail;
+  
+  return {
+    id: generateNotificationId('booking_created', booking.id),
+    type: 'BOOKING_CREATED',
+    playerId: booking.userId,
+    playerName: booking.userName,
+    playerEmail: booking.userEmail,
+    coachId: booking.coachId || '',
+    coachName: booking.coachName,
+    trainingRequestId: null,
+    bookingId: booking.id,
+    sessionDate: booking.start,
+    sessionTime: new Date(booking.start).toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    }),
+    courtInfo: courtInfo,
+    summary: `New booking created by ${playerInfo} for ${courtInfo}`,
+    read: false,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Transform BookingUpdatedEvent to AdminNotification
+ */
+export function transformBookingUpdated(event: BookingUpdatedEvent): AdminNotificationEvent {
+  const { booking, courtId, previousStatus } = event;
+  
+  const courtInfo = booking.courtName || `Court ${courtId}`;
+  const statusChange = previousStatus 
+    ? ` (${previousStatus} → ${booking.bookingStatus})`
+    : '';
+  
+  return {
+    id: generateNotificationId('booking_updated', booking.id),
+    type: 'BOOKING_UPDATED',
+    playerId: booking.userId,
+    playerName: booking.userName,
+    playerEmail: booking.userEmail,
+    coachId: booking.coachId || '',
+    coachName: booking.coachName,
+    trainingRequestId: null,
+    bookingId: booking.id,
+    sessionDate: booking.start,
+    sessionTime: new Date(booking.start).toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    }),
+    courtInfo: courtInfo,
+    summary: `Booking updated${statusChange} for ${courtInfo}`,
+    read: false,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Transform BookingDeletedEvent to AdminNotification
+ */
+export function transformBookingCancelled(event: BookingDeletedEvent): AdminNotificationEvent {
+  const { bookingId, courtId } = event;
+  
+  return {
+    id: generateNotificationId('booking_cancelled', bookingId),
+    type: 'BOOKING_CANCELLED',
+    playerId: '',
+    playerEmail: null,
+    coachId: '',
+    trainingRequestId: null,
+    bookingId: bookingId,
+    sessionDate: null,
+    sessionTime: null,
+    courtInfo: `Court ${courtId}`,
+    summary: `Booking cancelled for Court ${courtId}`,
+    read: false,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+/**
+ * Transform PaymentConfirmedEvent to AdminNotification
+ */
+export function transformPaymentConfirmed(event: PaymentConfirmedEvent): AdminNotificationEvent {
+  const { paymentId, bookingId, amount, currency } = event;
+  
+  return {
+    id: generateNotificationId('payment_confirmed', paymentId),
+    type: 'PAYMENT_CONFIRMED',
+    playerId: '',
+    playerEmail: null,
+    coachId: '',
+    trainingRequestId: null,
+    bookingId: bookingId,
+    sessionDate: null,
+    sessionTime: null,
+    courtInfo: null,
+    summary: `Payment confirmed: ${currency} ${amount}`,
+    read: false,
+    createdAt: new Date().toISOString(),
+    paymentId: paymentId,
+    amount: amount,
+    currency: currency,
+  };
+}
+
+/**
+ * Transform PaymentFailedEvent to AdminNotification
+ */
+export function transformPaymentFailed(event: PaymentFailedEvent): AdminNotificationEvent {
+  const { paymentId, bookingId, reason } = event;
+  
+  return {
+    id: generateNotificationId('payment_failed', paymentId),
+    type: 'PAYMENT_FAILED',
+    playerId: '',
+    playerEmail: null,
+    coachId: '',
+    trainingRequestId: null,
+    bookingId: bookingId,
+    sessionDate: null,
+    sessionTime: null,
+    courtInfo: null,
+    summary: `Payment failed: ${reason}`,
+    read: false,
+    createdAt: new Date().toISOString(),
+    paymentId: paymentId,
+    paymentReason: reason,
+  };
 }

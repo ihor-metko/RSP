@@ -12,6 +12,11 @@ import "./AdminNotifications.css";
  * Displays notifications from the centralized notification store.
  * This component is fully passive and does not trigger any data loading.
  * 
+ * Supports a unified notification system where all admin-relevant events are displayed:
+ * - Training request notifications (REQUESTED, ACCEPTED, DECLINED, CANCELED)
+ * - Booking event notifications (BOOKING_CREATED, BOOKING_UPDATED, BOOKING_CANCELLED)
+ * - Payment event notifications (PAYMENT_CONFIRMED, PAYMENT_FAILED)
+ * 
  * Data flow:
  * - Initial load: NotificationStoreInitializer (on app startup)
  * - Real-time updates: GlobalSocketListener (via WebSocket)
@@ -44,7 +49,14 @@ function formatTimeAgo(dateStr: string): string {
 }
 
 function getNotificationMessage(notification: AdminNotification): string {
-  const { type, playerName, coachName, sessionDate, sessionTime } = notification;
+  const { type, playerName, coachName, sessionDate, sessionTime, summary } = notification;
+  
+  // Use pre-generated summary if available (for Booking/Payment events)
+  if (summary) {
+    return summary;
+  }
+  
+  // Generate message for training request events
   const dateInfo = sessionDate && sessionTime 
     ? ` for ${formatDateDisplay(sessionDate)} at ${sessionTime}` 
     : "";
@@ -65,6 +77,7 @@ function getNotificationMessage(notification: AdminNotification): string {
 
 function getNotificationIcon(type: string): string {
   switch (type) {
+    // Training request types
     case "REQUESTED":
       return "📩";
     case "ACCEPTED":
@@ -73,6 +86,18 @@ function getNotificationIcon(type: string): string {
       return "❌";
     case "CANCELED":
       return "🚫";
+    // Booking event types
+    case "BOOKING_CREATED":
+      return "📅";
+    case "BOOKING_UPDATED":
+      return "🔄";
+    case "BOOKING_CANCELLED":
+      return "🚫";
+    // Payment event types
+    case "PAYMENT_CONFIRMED":
+      return "💰";
+    case "PAYMENT_FAILED":
+      return "💳";
     default:
       return "🔔";
   }

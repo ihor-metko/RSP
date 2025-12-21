@@ -32,13 +32,18 @@ interface NotificationState {
  * Zustand store for managing admin notifications.
  * 
  * This store is the single source of truth for all notification-related UI:
- * - Toast notifications
+ * - Toast notifications (instant feedback)
  * - Header bell component
  * - Notifications page
  * 
+ * Supports a unified notification system where ALL admin-relevant events flow through:
+ * - Training request notifications (REQUESTED, ACCEPTED, DECLINED, CANCELED)
+ * - Booking event notifications (BOOKING_CREATED, BOOKING_UPDATED, BOOKING_CANCELLED)
+ * - Payment event notifications (PAYMENT_CONFIRMED, PAYMENT_FAILED)
+ * 
  * The store is updated by:
- * - Socket.IO events (real-time)
- * - Initial HTTP fetch
+ * - Socket.IO events (real-time) via GlobalSocketListener
+ * - Initial HTTP fetch via NotificationStoreInitializer
  * - User actions (mark as read)
  * 
  * @example

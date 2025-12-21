@@ -73,10 +73,13 @@ export interface PaymentFailedEvent {
 
 /**
  * Admin notification event payload
+ * 
+ * Supports both training request notifications and booking/payment event notifications.
+ * All admin-relevant events (Training, Booking, Payment) flow through this unified type.
  */
 export interface AdminNotificationEvent {
   id: string;
-  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
+  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED" | "BOOKING_CREATED" | "BOOKING_UPDATED" | "BOOKING_CANCELLED" | "PAYMENT_CONFIRMED" | "PAYMENT_FAILED";
   playerId: string;
   playerName?: string;
   playerEmail?: string | null;
@@ -90,6 +93,11 @@ export interface AdminNotificationEvent {
   summary?: string;
   read: boolean;
   createdAt: string;
+  // Optional fields for payment notifications
+  paymentId?: string | null;
+  amount?: number | null;
+  currency?: string | null;
+  paymentReason?: string | null;
 }
 
 /**

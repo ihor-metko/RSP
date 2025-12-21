@@ -5,6 +5,7 @@
  * 
  * Features:
  * - Real-time notifications via WebSocket (Socket.IO)
+ * - Unified notification system (Training requests, Bookings, Payments)
  * - Unread count badge
  * - Dropdown menu with recent notifications
  * - Toast notifications for new events
@@ -15,6 +16,11 @@
  * - Initial load: NotificationStoreInitializer (on app startup)
  * - Real-time updates: GlobalSocketListener (via WebSocket)
  * - UI: Reads from centralized notification store
+ * 
+ * Supported notification types:
+ * - Training: REQUESTED, ACCEPTED, DECLINED, CANCELED
+ * - Booking: BOOKING_CREATED, BOOKING_UPDATED, BOOKING_CANCELLED
+ * - Payment: PAYMENT_CONFIRMED, PAYMENT_FAILED
  * 
  * Usage:
  * ```tsx
@@ -75,6 +81,7 @@ function formatTimeAgo(dateStr: string): string {
 
 function getNotificationIcon(type: string): string {
   switch (type) {
+    // Training request types
     case "REQUESTED":
       return "📩";
     case "ACCEPTED":
@@ -83,6 +90,18 @@ function getNotificationIcon(type: string): string {
       return "❌";
     case "CANCELED":
       return "🚫";
+    // Booking event types
+    case "BOOKING_CREATED":
+      return "📅";
+    case "BOOKING_UPDATED":
+      return "🔄";
+    case "BOOKING_CANCELLED":
+      return "🚫";
+    // Payment event types
+    case "PAYMENT_CONFIRMED":
+      return "💰";
+    case "PAYMENT_FAILED":
+      return "💳";
     default:
       return "🔔";
   }
@@ -91,7 +110,14 @@ function getNotificationIcon(type: string): string {
 function generateNotificationSummary(
   notification: AdminNotification
 ): string {
-  const { type, playerName, coachName, sessionDate, sessionTime } = notification;
+  const { type, playerName, coachName, sessionDate, sessionTime, summary } = notification;
+  
+  // Use pre-generated summary if available (for Booking/Payment events)
+  if (summary) {
+    return summary;
+  }
+  
+  // Generate summary for training request events
   const dateInfo =
     sessionDate && sessionTime
       ? ` for ${new Date(sessionDate).toLocaleDateString("en-US", {
@@ -393,6 +419,31 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
                 <div className="im-details-row">
                   <span className="im-details-label">Court</span>
                   <span className="im-details-value">{selectedNotification.courtInfo}</span>
+                </div>
+              )}
+
+              {selectedNotification.paymentId && (
+                <div className="im-details-row">
+                  <span className="im-details-label">Payment ID</span>
+                  <span className="im-details-value im-details-id">
+                    {selectedNotification.paymentId}
+                  </span>
+                </div>
+              )}
+
+              {selectedNotification.amount != null && selectedNotification.currency && (
+                <div className="im-details-row">
+                  <span className="im-details-label">Amount</span>
+                  <span className="im-details-value">
+                    {selectedNotification.currency} {selectedNotification.amount}
+                  </span>
+                </div>
+              )}
+
+              {selectedNotification.paymentReason && (
+                <div className="im-details-row">
+                  <span className="im-details-label">Reason</span>
+                  <span className="im-details-value">{selectedNotification.paymentReason}</span>
                 </div>
               )}
 

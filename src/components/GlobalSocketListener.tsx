@@ -6,6 +6,7 @@
  * Subscribes to all real-time Socket.IO events and:
  * 1. Displays toast notifications via globalNotificationManager
  * 2. Updates Zustand stores (booking store, notification store) with real-time data
+ * 3. Transforms Booking/Payment events into AdminNotification format for unified notification system
  * 
  * This component is initialized once at app startup and works across all pages.
  * 
@@ -20,7 +21,8 @@
  * - Centralized event dispatching
  * - Automatic duplicate prevention via notification manager
  * - Updates booking store for real-time UI sync
- * - Updates notification store for admin notifications
+ * - Updates notification store for admin notifications (unified system)
+ * - All admin-relevant events (Training, Booking, Payment) persist in notification store
  */
 
 import { useEffect } from 'react';
@@ -35,7 +37,15 @@ import type {
   PaymentFailedEvent,
   AdminNotificationEvent,
 } from '@/types/socket';
-import { handleSocketEvent, cleanupNotificationManager } from '@/utils/globalNotificationManager';
+import { 
+  handleSocketEvent, 
+  cleanupNotificationManager,
+  transformBookingCreated,
+  transformBookingUpdated,
+  transformBookingCancelled,
+  transformPaymentConfirmed,
+  transformPaymentFailed,
+} from '@/utils/globalNotificationManager';
 import { useSocket } from '@/contexts/SocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
@@ -60,22 +70,73 @@ export function GlobalSocketListener() {
     console.log('[GlobalSocketListener] Registering event listeners');
 
     // Booking events - handle both notifications and store updates
+    // Now includes unified notification system: toasts + notification store persistence
     const handleBookingCreated = (data: BookingCreatedEvent) => {
+      // Show toast notification
       handleSocketEvent('booking_created', data);
+      
+      // Update booking store for real-time calendar sync
       updateBookingFromSocket(data.booking);
+      
+      // Add to notification store for admin notification UI
+      const notification = transformBookingCreated(data);
+      addNotification(notification);
+      
+      console.log('[GlobalSocketListener] Booking created - toast shown, store updated, notification added');
     };
 
     const handleBookingUpdated = (data: BookingUpdatedEvent) => {
+      // Show toast notification
       handleSocketEvent('booking_updated', data);
+      
+      // Update booking store for real-time calendar sync
       updateBookingFromSocket(data.booking);
+      
+      // Add to notification store for admin notification UI
+      const notification = transformBookingUpdated(data);
+      addNotification(notification);
+      
+      console.log('[GlobalSocketListener] Booking updated - toast shown, store updated, notification added');
     };
 
     const handleBookingCancelled = (data: BookingDeletedEvent) => {
+      // Show toast notification
       handleSocketEvent('booking_cancelled', data);
+      
+      // Remove from booking store for real-time calendar sync
       removeBookingFromSocket(data.bookingId);
+      
+      // Add to notification store for admin notification UI
+      const notification = transformBookingCancelled(data);
+      addNotification(notification);
+      
+      console.log('[GlobalSocketListener] Booking cancelled - toast shown, store updated, notification added');
     };
 
-    // Admin notification event - update notification store
+    // Payment events - now integrated with unified notification system
+    const handlePaymentConfirmed = (data: PaymentConfirmedEvent) => {
+      // Show toast notification
+      handleSocketEvent('payment_confirmed', data);
+      
+      // Add to notification store for admin notification UI
+      const notification = transformPaymentConfirmed(data);
+      addNotification(notification);
+      
+      console.log('[GlobalSocketListener] Payment confirmed - toast shown, notification added');
+    };
+
+    const handlePaymentFailed = (data: PaymentFailedEvent) => {
+      // Show toast notification
+      handleSocketEvent('payment_failed', data);
+      
+      // Add to notification store for admin notification UI
+      const notification = transformPaymentFailed(data);
+      addNotification(notification);
+      
+      console.log('[GlobalSocketListener] Payment failed - toast shown, notification added');
+    };
+
+    // Admin notification event - update notification store (unchanged)
     const handleAdminNotification = (data: AdminNotificationEvent) => {
       console.log('[GlobalSocketListener] Admin notification received:', data);
       addNotification(data);
@@ -105,14 +166,9 @@ export function GlobalSocketListener() {
       handleSocketEvent('lock_expired', data);
     });
 
-    // Payment events (notifications only for now)
-    socket.on('payment_confirmed', (data: PaymentConfirmedEvent) => {
-      handleSocketEvent('payment_confirmed', data);
-    });
-
-    socket.on('payment_failed', (data: PaymentFailedEvent) => {
-      handleSocketEvent('payment_failed', data);
-    });
+    // Payment events with unified notification system
+    socket.on('payment_confirmed', handlePaymentConfirmed);
+    socket.on('payment_failed', handlePaymentFailed);
 
     // Cleanup on unmount or socket change
     return () => {
@@ -128,8 +184,8 @@ export function GlobalSocketListener() {
       socket.off('slot_locked');
       socket.off('slot_unlocked');
       socket.off('lock_expired');
-      socket.off('payment_confirmed');
-      socket.off('payment_failed');
+      socket.off('payment_confirmed', handlePaymentConfirmed);
+      socket.off('payment_failed', handlePaymentFailed);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]); // Zustand store functions are stable and excluded from dependencies
