@@ -301,6 +301,13 @@
       "supportedSports": "Підтримувані види спорту",
       "smallClubs": "Малі клуби (< 3 корти)",
       "largeClubs": "Великі клуби (≥ 5 кортів)",
+      "page": "Сторінка",
+      "of": "з",
+      "showing": "Показано",
+      "to": "до",
+      "results": "результатів",
+      "pageSize": "Розмір сторінки",
+      "itemsPerPage": "елементів на сторінці",
       "form": {
         "basicInfo": "Основна інформація",
         "locationContact": "Локація та контакти",
@@ -761,6 +768,9 @@
       "tryAnotherTime": "Спробуйте інший час або перевірте розклад кортів.",
       "availableCourts": "Доступні корти ({count})",
       "select": "Вибрати"
+    },
+    "playerQuickBooking": {
+      "title": "Швидке бронювання"
     }
   },
   "training": {
@@ -823,7 +833,10 @@
     "noCourtsFound": "Корти для цього клубу не знайдені.",
     "partiallyBooked": "Частково заброньований",
     "pending": "Очікує підтвердження",
-    "noAvailableAtTime": "Немає доступних кортів у цей час. Спробуйте інший слот."
+    "noAvailableAtTime": "Немає доступних кортів у цей час. Спробуйте інший слот.",
+    "noAvailabilityData": "Немає даних про доступність",
+    "showMoreSlots": "Показати більше часових слотів",
+    "moreSlots": "більше"
   },
   "weeklyAvailability": {
     "title": "Тижнева доступність кортів",
@@ -931,20 +944,27 @@
       "dateTime": "Дата та час",
       "selectCourt": "Вибір корту",
       "selectClub": "Вибір клубу",
-      "payment": "Оплата"
+      "payment": "Оплата",
+      "confirmation": "Підтвердження"
     },
+    "step0Title": "Виберіть клуб",
     "step1Title": "Виберіть дату, час та тривалість",
     "step2Title": "Виберіть доступний корт",
     "step3Title": "Перегляньте та підтвердіть оплату",
     "estimatedPrice": "Орієнтовна ціна",
     "priceVariesByTime": "Остаточна ціна може залежати від вибору корту",
     "peakHoursHint": "Пікові години - корти можуть швидко заповнитися",
+    "loadingClubs": "Завантаження клубів...",
     "loadingCourts": "Пошук доступних кортів...",
+    "selectClubDescription": "Виберіть клуб, де хочете грати",
+    "noClubsAvailable": "Немає доступних клубів",
     "selectCourt": "Виберіть корт",
     "availableCount": "{count} доступно",
     "courtUnavailable": "Недоступний у цей час",
+    "club": "Клуб",
     "court": "Корт",
     "total": "Разом",
+    "totalPaid": "Сплачено",
     "selectPaymentMethod": "Виберіть спосіб оплати",
     "payWithCard": "Картка",
     "applePay": "Apple Pay",
@@ -952,7 +972,10 @@
     "confirmBooking": "Підтвердити бронювання",
     "continue": "Продовжити",
     "bookingConfirmed": "Бронювання підтверджено!",
-    "bookingConfirmedMessage": "Ваш корт успішно заброньований."
+    "bookingConfirmedMessage": "Ваш корт успішно заброньований.",
+    "bookingReference": "Номер бронювання",
+    "bookingDetails": "Деталі бронювання",
+    "closeAndViewBookings": "Закрити"
   },
   "breadcrumbs": {
     "home": "Головна",
@@ -1502,7 +1525,18 @@
     "alreadyClubAdmin": "Вже є адміном цього клубу",
     "assign": "Призначити",
     "removeConfirm": "Ви впевнені, що хочете видалити {name} як адміна клубу {club}?",
-    "cannotUndoRemoval": "Цю дію неможливо скасувати."
+    "cannotUndoRemoval": "Цю дію неможливо скасувати.",
+    "addAdmin": "Додати адміна клубу",
+    "adminAdded": "Адміна клубу успішно додано",
+    "adminUpdated": "Адміна клубу успішно оновлено",
+    "adminRemoved": "Адміна клубу успішно видалено",
+    "editAdmin": "Редагувати адміна клубу",
+    "editDescription": "Перепризначити {name} до іншого клубу",
+    "selectMembership": "Виберіть членство",
+    "reassignToClub": "Перепризначити до клубу",
+    "inviteUser": "Запросити користувача",
+    "lastLogin": "Останній вхід",
+    "noAdmins": "Адмінів клубів ще не призначено."
   },
   "orgDetail": {
     "title": "Деталі організації",
@@ -1786,6 +1820,28 @@
     "viewAll": "Переглянути всю активність",
     "showMore": "Показати ще {count} активностей",
     "by": "від"
+  },
+  "orgAdmins": {
+    "title": "Адміністратори організації",
+    "addAdmin": "Додати адміна",
+    "removeAdmin": "Видалити адміна",
+    "changeOwner": "Змінити власника",
+    "owner": "Власник",
+    "orgAdmin": "Адміністратор організації",
+    "role": "Роль",
+    "lastLogin": "Останній вхід",
+    "noAdmins": "Адміністраторів організації ще не призначено.",
+    "existingUser": "Існуючий користувач",
+    "newUser": "Новий користувач",
+    "searchUsers": "Пошук користувачів",
+    "searchUsersPlaceholder": "Пошук за ім'ям або email...",
+    "noUsersFound": "Користувачів не знайдено.",
+    "adminAdded": "Адміна успішно додано",
+    "adminRemoved": "Адміна успішно видалено",
+    "ownerChanged": "Власника успішно змінено",
+    "removeConfirm": "Ви впевнені, що хочете видалити {name} як адміністратора організації?",
+    "changeOwnerDescription": "Виберіть нового основного власника для цієї організації. Поточний власник стане звичайним адміністратором організації.",
+    "ownerProtectionTooltip": "Тільки головний адміністратор може змінити власника організації"
   },
   "confirmation": {
     "title": "Підтвердження дії",
