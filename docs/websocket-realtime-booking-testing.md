@@ -16,17 +16,26 @@ The ArenaOne platform uses WebSocket (Socket.IO) with a unified architecture to 
 ## Automated Tests
 
 ### Location
-- **Primary test file**: `src/__tests__/GlobalSocketListener.test.tsx` - Integration tests for the centralized listener
+- **Primary test files**:
+  - `src/__tests__/GlobalSocketListener.test.tsx` - Integration tests for the centralized listener (12 tests)
+  - `src/__tests__/realtime-booking-updates.test.tsx` - Client-side integration tests (14 tests)
 - **Supporting tests**: 
-  - `src/__tests__/socketEmitters.test.ts` - Server-side event emitters
-  - `src/__tests__/socketUpdateManager.test.ts` - Event debouncing and deduplication
+  - `src/__tests__/socketEmitters.test.ts` - Server-side event emitters (8 tests)
+  - `src/__tests__/socketUpdateManager.test.ts` - Event debouncing and deduplication (14 tests)
+  - `src/__tests__/useBookingStore-slotLocks.test.ts` - Slot lock management (12 tests)
   - `src/__tests__/globalNotificationManager.test.ts` - Toast notifications
+
+**Total Tests**: 60+ automated tests for WebSocket functionality
 
 ### Running Automated Tests
 
 ```bash
-# Run all WebSocket tests
+# Run all WebSocket tests together
+npm test -- GlobalSocketListener socketEmitters socketUpdateManager useBookingStore-slotLocks realtime-booking-updates
+
+# Run specific test suites
 npm test -- GlobalSocketListener
+npm test -- realtime-booking-updates
 npm test -- socketEmitters
 npm test -- socketUpdateManager
 
@@ -41,30 +50,64 @@ npm test -- GlobalSocketListener --verbose
 
 The automated test suite covers:
 
-1. **Event Listener Registration**
+1. **Event Listener Registration** (GlobalSocketListener.test.tsx)
    - All event types properly registered
-   - Both new and legacy event names supported
    - Proper cleanup on unmount
+   - Connection state tracking
 
-2. **Booking Created Events**
-   - Store updated with new booking
-   - Toast notification displayed
-   - `handleSocketEvent` called correctly
+2. **Booking Events** (GlobalSocketListener.test.tsx)
+   - Booking created: Store updated, toast notification, notification store persistence
+   - Booking updated: Store updated with newer data, toast notification shown
+   - Booking cancelled: Removed from store, toast notification shown
+   - Unified notification system integration
 
-3. **Booking Updated Events**
-   - Store updated with modified booking
-   - Existing bookings updated in place
-   - Status changes reflected
-
-4. **Booking Cancelled Events**
-   - Booking removed from store
-   - UI state updates correctly
-   - Toast notification shown
-
-5. **Payment and Slot Events**
+3. **Payment and Slot Events** (GlobalSocketListener.test.tsx)
    - Payment confirmed/failed events handled
    - Slot locked/unlocked events processed
    - Lock expired notifications
+
+4. **Multi-Client Updates** (realtime-booking-updates.test.tsx) ✨ NEW
+   - Booking creation reflects in all clients simultaneously
+   - Booking cancellation reflects in all clients
+   - Real-time slot availability updates
+
+5. **Rapid Events Deduplication** (realtime-booking-updates.test.tsx) ✨ NEW
+   - Handles rapid consecutive updates without duplicates
+   - Ignores outdated updates when newer data exists
+   - Prevents duplicate bookings from multiple create events
+   - Timestamp-based conflict resolution
+
+6. **Slot Lock Synchronization** (realtime-booking-updates.test.tsx) ✨ NEW
+   - Temporary slot locks reflect across all clients
+   - Slot unlocks reflect immediately
+   - Multiple slot locks handled without conflicts
+
+7. **Socket Reconnection Behavior** (realtime-booking-updates.test.tsx) ✨ NEW
+   - Maintains listener registration after reconnection
+   - Handles events correctly after reconnection
+   - No data loss during reconnection
+
+8. **Listener Cleanup** (realtime-booking-updates.test.tsx) ✨ NEW
+   - Complete cleanup on component unmount
+   - Cleanup on route change (unmount/remount cycle)
+   - No event processing after unmount
+
+9. **Complex Scenarios** (realtime-booking-updates.test.tsx) ✨ NEW
+   - Mixed rapid events (create, update, delete)
+   - Concurrent operations across multiple clients
+   - State consistency across rapid changes
+
+10. **Slot Lock Management** (useBookingStore-slotLocks.test.ts)
+    - Add/remove locked slots
+    - Check slot lock status
+    - Cleanup expired locks (5-minute expiration)
+    - Prevent duplicate locks
+
+11. **Update Manager** (socketUpdateManager.test.ts)
+    - Debouncing rapid consecutive calls
+    - Throttling event processing
+    - Timestamp-based conflict detection
+    - Merge booking lists with conflict resolution
 
 ## Manual Testing
 
