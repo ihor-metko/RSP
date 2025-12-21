@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { Card, Button, IMLink, Breadcrumbs } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
+import { useUserStore } from "@/stores/useUserStore";
 import { formatPrice } from "@/utils/price";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, PriceTimelineResponse, PriceSegment } from "@/types/court";

@@ -224,12 +224,6 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, [isLoggedIn, isLoading, router, fetchUsers, isHydrated, hasAnyRole]);
 
-  // Fetch users when dependencies change (filters already handle debouncing via useListController)
-  useEffect(() => {
-    if (!isHydrated || isLoading || !isLoggedIn || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_OWNER", "CLUB_ADMIN"])) return;
-    fetchUsers();
-  }, [isLoading, isLoggedIn, fetchUsers, isHydrated, hasAnyRole]);
-
   const handleSort = (field: string) => {
     if (sortBy === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
