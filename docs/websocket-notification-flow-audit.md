@@ -597,7 +597,7 @@ GlobalSocketListener receives
 
 4. **UI Components:**
    - Header bell and notifications page properly connected
-   - No polling (fully socket-based)
+   - No polling (fully socket-based, polling removed December 2024)
    - Good UX with toasts and persistent list
 
 ### 9.2 What Doesn't Work
@@ -652,12 +652,10 @@ interface ServerToClientEvents {
   payment_confirmed: (data: PaymentConfirmedEvent) => void;
   payment_failed: (data: PaymentFailedEvent) => void;
   admin_notification: (data: AdminNotificationEvent) => void;
-  // Legacy event names
-  bookingCreated: (data: BookingCreatedEvent) => void;
-  bookingUpdated: (data: BookingUpdatedEvent) => void;
-  bookingDeleted: (data: BookingDeletedEvent) => void;
 }
 ```
+
+Note: Legacy event names (bookingCreated, bookingUpdated, bookingDeleted) have been removed as of December 2024.
 
 ### 10.2 AdminNotification Schema
 
