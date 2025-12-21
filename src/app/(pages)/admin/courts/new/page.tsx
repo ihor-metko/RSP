@@ -284,20 +284,13 @@ export default function CreateCourtPage({
     const fetchClub = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/clubs/${selectedClubId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError(t("admin.courts.new.errors.clubNotFound"));
-            return;
-          }
-          throw new Error(t("admin.courts.new.errors.failedToLoadClub"));
-        }
-        const data = await response.json();
-        setClub(data);
+        // Use club store to fetch club data
+        const club = await useClubStore.getState().ensureClubById(selectedClubId);
+        setClub(club);
         
         // Set default currency from club
-        if (data.defaultCurrency) {
-          setValue("currency", data.defaultCurrency);
+        if (club.defaultCurrency) {
+          setValue("currency", club.defaultCurrency);
         }
         
         // Set organization ID from club if not already set
@@ -615,6 +608,8 @@ export default function CreateCourtPage({
         notes: data.notes || null,
       };
 
+      // NOTE: Direct fetch is intentional - this is a mutation operation (create court)
+      // not domain state retrieval (per data-fetching-guidelines.md)
       const response = await fetch(`/api/clubs/${targetClubId}/courts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

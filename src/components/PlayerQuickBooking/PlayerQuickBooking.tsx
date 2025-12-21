@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
 import { useClubStore } from "@/stores/useClubStore";
+import { useCourtStore } from "@/stores/useCourtStore";
 import { Step0SelectClub } from "./Step0SelectClub";
 import { Step1DateTime } from "./Step1DateTime";
 import { Step2Courts } from "./Step2Courts";
@@ -35,9 +36,11 @@ export function PlayerQuickBooking({
 }: PlayerQuickBookingProps) {
   const t = useTranslations();
   
-  // Use centralized club store with new idempotent method
+  // Use centralized club and court stores
   const clubsFromStore = useClubStore((state) => state.clubs);
   const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+  const ensureClubById = useClubStore((state) => state.ensureClubById);
+  const ensureCourtById = useCourtStore((state) => state.ensureCourtById);
 
   // Determine visible steps based on preselected data
   const visibleSteps = useMemo(
@@ -128,24 +131,22 @@ export function PlayerQuickBooking({
     const fetchPreselectedClub = async () => {
       if (preselectedClubId && !state.step0.selectedClub) {
         try {
-          const response = await fetch(`/api/clubs/${preselectedClubId}`);
-          if (response.ok) {
-            const data = await response.json();
-            setState((prev) => ({
-              ...prev,
-              step0: {
-                selectedClubId: preselectedClubId,
-                selectedClub: {
-                  id: data.id,
-                  name: data.name,
-                  slug: data.slug,
-                  location: data.location,
-                  city: data.city,
-                  heroImage: data.heroImage,
-                },
+          // Use club store to fetch club data
+          const club = await ensureClubById(preselectedClubId);
+          setState((prev) => ({
+            ...prev,
+            step0: {
+              selectedClubId: preselectedClubId,
+              selectedClub: {
+                id: club.id,
+                name: club.name,
+                slug: club.slug || "",
+                location: club.location,
+                city: club.city || null,
+                heroImage: club.heroImage || null,
               },
-            }));
-          }
+            },
+          }));
         } catch {
           // Silently fail - user can select club manually
         }
@@ -155,29 +156,28 @@ export function PlayerQuickBooking({
     if (isOpen && preselectedClubId) {
       fetchPreselectedClub();
     }
-  }, [isOpen, preselectedClubId, state.step0.selectedClub]);
+  }, [isOpen, preselectedClubId, state.step0.selectedClub, ensureClubById]);
 
   // Fetch court data if preselected
   useEffect(() => {
     const fetchPreselectedCourt = async () => {
       if (preselectedCourtId && !state.step2.selectedCourt) {
         try {
-          const response = await fetch(`/api/courts/${preselectedCourtId}`);
-          if (response.ok) {
-            const data = await response.json();
-            setState((prev) => ({
-              ...prev,
-              step2: {
-                selectedCourtId: preselectedCourtId,
-                selectedCourt: {
-                  id: data.id,
-                  name: data.name,
-                  slug: data.slug,
-                  type: data.type,
-                  surface: data.surface,
-                  indoor: data.indoor,
-                  defaultPriceCents: data.defaultPriceCents,
-                },
+          // Use court store to fetch court data
+          const court = await ensureCourtById(preselectedCourtId);
+          setState((prev) => ({
+            ...prev,
+            step2: {
+              selectedCourtId: preselectedCourtId,
+              selectedCourt: {
+                id: court.id,
+                name: court.name,
+                slug: court.slug || "",
+                type: court.type || "",
+                surface: court.surface || "",
+                indoor: court.indoor,
+                defaultPriceCents: court.defaultPriceCents,
+              },
               },
             }));
           }
@@ -417,6 +417,8 @@ export function PlayerQuickBooking({
       const endTime = calculateEndTime(step1.startTime, step1.duration);
       const endDateTime = `${step1.date}T${endTime}:00.000Z`;
 
+      // NOTE: Direct fetch is intentional - this is a mutation operation (create booking)
+      // not domain state retrieval (per data-fetching-guidelines.md)
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {

@@ -131,6 +131,8 @@ export default function ClubDetailPage({
   const isAuthenticated = isLoggedIn && user;
 
   // Fetch availability for all courts
+  // NOTE: Direct fetch is intentional - availability is a specialized endpoint
+  // with date-specific queries, not basic domain state (per data-fetching-guidelines.md)
   const fetchAvailability = useCallback(async (courts: Court[]) => {
     const today = getTodayDateString();
     setAvailabilityLoading(true);

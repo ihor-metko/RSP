@@ -179,6 +179,8 @@ export default function PlayerDashboardPage() {
   }, [clubs, selectedClubId]);
 
   // Fetch upcoming bookings
+  // NOTE: Direct fetch is intentional - this is user-specific data (per data-fetching-guidelines.md)
+  // User bookings are personal data specific to the logged-in user, not shared domain state
   const fetchUpcomingBookings = useCallback(async () => {
     if (!userId) return;
 
@@ -203,6 +205,8 @@ export default function PlayerDashboardPage() {
   }, [userId, router, t]);
 
   // Fetch coaches the user has trained with
+  // NOTE: Direct fetch is intentional - fetching coach data from public endpoint
+  // This is not basic club domain data but a specialized query for coaches
   const fetchCoaches = useCallback(async () => {
     try {
       const response = await fetch("/api/clubs");
@@ -270,6 +274,7 @@ export default function PlayerDashboardPage() {
   };
 
   // Handle booking cancellation
+  // NOTE: Direct fetch is intentional - this is a mutation operation, not domain state retrieval
   const handleCancelBooking = async () => {
     if (!cancellingBookingId) return;
 

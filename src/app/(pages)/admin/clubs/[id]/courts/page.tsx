@@ -6,13 +6,9 @@ import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import { formatPrice } from "@/utils/price";
 import { useCourtStore } from "@/stores/useCourtStore";
+import { useClubStore } from "@/stores/useClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import type { Court } from "@/types/court";
-
-interface Club {
-  id: string;
-  name: string;
-}
 
 export default function AdminCourtsPage({
   params,
@@ -27,7 +23,6 @@ export default function AdminCourtsPage({
   const user = useUserStore((state) => state.user);
   
   const [clubId, setClubId] = useState<string | null>(null);
-  const [club, setClub] = useState<Club | null>(null);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -35,6 +30,10 @@ export default function AdminCourtsPage({
   const [deletingCourt, setDeletingCourt] = useState<Court | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Use club store
+  const currentClub = useClubStore((state) => state.currentClub);
+  const ensureClubById = useClubStore((state) => state.ensureClubById);
+  
   // Use court store
   const courts = useCourtStore((state) => state.courts);
   const loadingCourts = useCourtStore((state) => state.loadingCourts);
@@ -54,20 +53,12 @@ export default function AdminCourtsPage({
     if (!clubId) return;
 
     try {
-      const response = await fetch(`/api/clubs/${clubId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("Club not found");
-          return;
-        }
-        throw new Error("Failed to fetch club");
-      }
-      const data = await response.json();
-      setClub(data);
-    } catch {
-      setError("Failed to load club");
+      // Use club store to fetch club data
+      await ensureClubById(clubId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load club");
     }
-  }, [clubId]);
+  }, [clubId, ensureClubById]);
 
   useEffect(() => {
     if (!isHydrated || isLoading) return;
@@ -155,7 +146,7 @@ export default function AdminCourtsPage({
       <header className="rsp-header flex items-center justify-between mb-8">
         <div>
           <h1 className="rsp-title text-3xl font-bold">
-            Courts - {club?.name || "Loading..."}
+            Courts - {currentClub?.name || "Loading..."}
           </h1>
           <p className="rsp-subtitle text-gray-500 mt-2">
             Manage courts for this club

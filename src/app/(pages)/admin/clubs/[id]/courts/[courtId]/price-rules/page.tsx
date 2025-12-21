@@ -8,6 +8,7 @@ import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { PriceRuleForm, PriceRuleFormData } from "@/components/admin/PriceRuleForm";
 import { formatPrice } from "@/utils/price";
 import { useCourtStore } from "@/stores/useCourtStore";
+import { useClubStore } from "@/stores/useClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 
 
@@ -24,11 +25,6 @@ interface PriceRule {
 }
 
 interface Court {
-  id: string;
-  name: string;
-}
-
-interface Club {
   id: string;
   name: string;
 }
@@ -57,7 +53,6 @@ export default function PriceRulesPage({
   
   const [clubId, setClubId] = useState<string | null>(null);
   const [courtId, setCourtId] = useState<string | null>(null);
-  const [club, setClub] = useState<Club | null>(null);
   const [court, setCourt] = useState<Court | null>(null);
   const [rules, setRules] = useState<PriceRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +63,10 @@ export default function PriceRulesPage({
   const [deletingRule, setDeletingRule] = useState<PriceRule | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Use club store
+  const currentClub = useClubStore((state) => state.currentClub);
+  const ensureClubById = useClubStore((state) => state.ensureClubById);
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -103,20 +102,12 @@ export default function PriceRulesPage({
     if (!clubId) return;
 
     try {
-      const response = await fetch(`/api/clubs/${clubId}`);
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("Club not found");
-          return;
-        }
-        throw new Error("Failed to fetch club");
-      }
-      const data = await response.json();
-      setClub(data);
-    } catch {
-      setError("Failed to load club");
+      // Use club store to fetch club data
+      await ensureClubById(clubId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load club");
     }
-  }, [clubId]);
+  }, [clubId, ensureClubById]);
 
   const ensureCourtByIdFromStore = useCourtStore((state) => state.ensureCourtById);
   
@@ -272,7 +263,7 @@ export default function PriceRulesPage({
             Price Rules - {court?.name || "Loading..."}
           </h1>
           <p className="rsp-subtitle text-gray-500 mt-2">
-            {club?.name || "Loading..."} - Manage time-based pricing for this court
+            {currentClub?.name || "Loading..."} - Manage time-based pricing for this court
           </p>
         </div>
       </header>

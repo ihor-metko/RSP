@@ -13,10 +13,10 @@ import "@/components/ClubsList.css";
 /**
  * Player Clubs Page
  * 
- * Note: This page uses direct API calls instead of useClubStore because it requires
- * server-side filtering with query parameters (search, city, indoor filter) that are
- * not supported by the basic store implementation. Public-facing pages with complex
- * filtering should continue using direct API calls for optimal performance.
+ * NOTE: Direct fetch is intentional - this is a public endpoint with server-side filtering.
+ * Per data-fetching-guidelines.md, public-facing endpoints with complex server-side filtering
+ * (search, city, indoor filter) should use direct API calls for optimal performance rather
+ * than the basic club store which doesn't support these query parameters.
  */
 
 interface ClubWithCounts {
