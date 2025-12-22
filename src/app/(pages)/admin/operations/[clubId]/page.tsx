@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, Input, Card } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useCourtStore } from "@/stores/useCourtStore";
 import { useBookingStore } from "@/stores/useBookingStore";
 import {
@@ -48,7 +48,7 @@ export default function ClubOperationsPage() {
   const user = useUserStore((state) => state.user);
 
   // Club and courts stores
-  const { clubsById, clubs, ensureClubById, loadingClubs: loadingClub, clubsError } = useClubStore();
+  const { clubsById, clubs, ensureClubById, loadingClubs: loadingClub, clubsError } = useAdminClubStore();
   const { courts, fetchCourtsIfNeeded, loading: loadingCourts } = useCourtStore();
 
   // Booking store

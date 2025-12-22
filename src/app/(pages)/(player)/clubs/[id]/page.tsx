@@ -14,7 +14,7 @@ import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
 import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel, EntityBanner } from "@/components/ui";
-import { useClubStore } from "@/stores/useClubStore";
+import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
@@ -98,9 +98,9 @@ export default function ClubDetailPage({
   const user = useUserStore((state) => state.user);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   
-  // Use centralized club store
-  const currentClub = useClubStore((state) => state.currentClub);
-  const fetchClubById = useClubStore((state) => state.fetchClubById);
+  // Use centralized player club store
+  const currentClub = usePlayerClubStore((state) => state.currentClub);
+  const ensureClubById = usePlayerClubStore((state) => state.ensureClubById);
   
   // Map currentClub to ClubWithDetails (they should be compatible)
   const club = currentClub as ClubWithDetails | null;
@@ -165,7 +165,7 @@ export default function ClubDetailPage({
     async function fetchClubData() {
       try {
         const resolvedParams = await params;
-        await fetchClubById(resolvedParams.id);
+        await ensureClubById(resolvedParams.id);
         setError(null);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : t("clubs.failedToLoadClub");
@@ -179,7 +179,7 @@ export default function ClubDetailPage({
       }
     }
     fetchClubData();
-  }, [params, fetchClubById, t]);
+  }, [params, ensureClubById, t]);
   
   // Fetch availability when club data is loaded
   useEffect(() => {

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { PageHeader, Button, type TableColumn, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { useUserStore } from "@/stores/useUserStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import { BookingDetailsModal } from "@/components/admin/BookingDetailsModal";
 import { formatDateTime, calculateDuration, getInitials } from "@/utils/bookingFormatters";
@@ -89,7 +89,7 @@ export default function AdminBookingsPage() {
   const [wizardPredefinedData, setWizardPredefinedData] = useState<PredefinedData | undefined>(undefined);
 
   // Club store to fetch club details when needed
-  const { clubs, fetchClubsIfNeeded } = useClubStore();
+  const { clubs, fetchClubsIfNeeded } = useAdminClubStore();
 
   // Fetch bookings
   const fetchBookings = useCallback(async () => {

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import { CardListSkeleton } from "@/components/ui/skeletons";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import "./OperationsClubCardSelector.css";
 
@@ -38,9 +38,9 @@ export function OperationsClubCardSelector({
   const t = useTranslations();
   
   // Get clubs from store
-  const clubs = useClubStore((state) => state.clubs);
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
-  const loading = useClubStore((state) => state.loadingClubs);
+  const clubs = useAdminClubStore((state) => state.clubs);
+  const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
+  const loading = useAdminClubStore((state) => state.loadingClubs);
 
   // Get user info for filtering
   const adminStatus = useUserStore((state) => state.adminStatus);

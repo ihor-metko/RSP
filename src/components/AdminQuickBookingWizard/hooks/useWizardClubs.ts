@@ -3,7 +3,7 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import type { WizardClub, AdminType, PredefinedData } from "../types";
 
 interface UseWizardClubsOptions {
@@ -37,7 +37,7 @@ export function useWizardClubs({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+  const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
 
   const fetchClubs = useCallback(async () => {
     if (!isOpen || currentStep !== 2) {

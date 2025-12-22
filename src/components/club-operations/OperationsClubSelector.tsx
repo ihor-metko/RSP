@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Select, type SelectOption } from "@/components/ui";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 
 interface OperationsClubSelectorProps {
@@ -50,9 +50,9 @@ export function OperationsClubSelector({
   disabled = false,
 }: OperationsClubSelectorProps) {
   // Get clubs from store
-  const clubs = useClubStore((state) => state.clubs);
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
-  const loading = useClubStore((state) => state.loadingClubs);
+  const clubs = useAdminClubStore((state) => state.clubs);
+  const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
+  const loading = useAdminClubStore((state) => state.loadingClubs);
 
   // Get user info for filtering
   const adminStatus = useUserStore((state) => state.adminStatus);

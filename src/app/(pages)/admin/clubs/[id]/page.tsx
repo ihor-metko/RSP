@@ -13,7 +13,7 @@ import { ClubCoachesView } from "@/components/admin/club/ClubCoachesView";
 import { ClubAdminsSection } from "@/components/admin/club/ClubAdminsSection";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { GalleryModal } from "@/components/GalleryModal";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
@@ -30,11 +30,11 @@ export default function AdminClubDetailPage({
   const t = useTranslations();
   const [clubId, setClubId] = useState<string | null>(null);
   
-  // Use centralized club store
-  const currentClub = useClubStore((state) => state.currentClub);
-  const loading = useClubStore((state) => state.loading);
-  const fetchClubById = useClubStore((state) => state.fetchClubById);
-  const deleteClub = useClubStore((state) => state.deleteClub);
+  // Use centralized admin club store
+  const currentClub = useAdminClubStore((state) => state.currentClub);
+  const loading = useAdminClubStore((state) => state.loading);
+  const fetchClubById = useAdminClubStore((state) => state.fetchClubById);
+  const deleteClub = useAdminClubStore((state) => state.deleteClub);
   
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

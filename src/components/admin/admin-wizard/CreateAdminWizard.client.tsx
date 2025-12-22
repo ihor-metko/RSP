@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button, Card } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { SelectContextStep } from "./SelectContextStep";
 import { UserDataStep } from "./UserDataStep";
 import { ReviewStep } from "./ReviewStep";
@@ -44,10 +44,10 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
 
   // Get organizations and clubs from stores
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
-  const clubs = useClubStore((state) => state.clubs);
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+  const clubs = useAdminClubStore((state) => state.clubs);
+  const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
   const isLoadingOrgs = useOrganizationStore((state) => state.loading);
-  const isLoadingClubs = useClubStore((state) => state.loadingClubs);
+  const isLoadingClubs = useAdminClubStore((state) => state.loadingClubs);
 
   // Fetch clubs on mount to ensure the dropdown has data
   // This is required for the Club dropdown to be populated when creating a Club Admin

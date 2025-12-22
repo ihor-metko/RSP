@@ -3,7 +3,7 @@
  */
 import { useEffect, useState } from "react";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useCourtStore } from "@/stores/useCourtStore";
 import type { WizardOrganization, WizardClub, WizardCourt, PredefinedData } from "../types";
 

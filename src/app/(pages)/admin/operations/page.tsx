@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { OperationsClubCardSelector } from "@/components/club-operations";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import "./page.css";
@@ -28,7 +28,7 @@ export default function OperationsListPage() {
   const isHydrated = useUserStore((state) => state.isHydrated);
 
   // Club store
-  const { fetchClubsIfNeeded, loading: loadingClubs } = useClubStore();
+  const { fetchClubsIfNeeded, loading: loadingClubs } = useAdminClubStore();
 
   // Check access permissions and redirect Club Admins
   useEffect(() => {

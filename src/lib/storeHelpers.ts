@@ -13,8 +13,11 @@
 
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
+import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import type { OrganizationDetail } from "@/stores/useOrganizationStore";
 import type { ClubDetail } from "@/types/club";
+import type { PlayerClubDetail } from "@/stores/usePlayerClubStore";
 
 /**
  * Ensure organization is loaded by ID with proper context
@@ -41,6 +44,55 @@ export async function ensureOrganizationContext(
 }
 
 /**
+ * Ensure club is loaded by ID with proper context (Admin)
+ * 
+ * This helper prevents duplicate fetches and ensures club data
+ * is loaded from the admin store with proper caching and inflight guards.
+ * 
+ * @param clubId - The club ID to ensure is loaded
+ * @param options - Optional configuration
+ * @returns Promise<ClubDetail>
+ * 
+ * @example
+ * ```tsx
+ * const club = await ensureAdminClubContext('club-123');
+ * // Club is now guaranteed to be in the admin store
+ * ```
+ */
+export async function ensureAdminClubContext(
+  clubId: string,
+  options?: { force?: boolean }
+): Promise<ClubDetail> {
+  const store = useAdminClubStore.getState();
+  return store.ensureClubById(clubId, options);
+}
+
+/**
+ * Ensure club is loaded by ID with proper context (Player)
+ * 
+ * This helper prevents duplicate fetches and ensures public club data
+ * is loaded from the player store with proper caching and inflight guards.
+ * 
+ * @param clubId - The club ID to ensure is loaded
+ * @param options - Optional configuration
+ * @returns Promise<PlayerClubDetail>
+ * 
+ * @example
+ * ```tsx
+ * const club = await ensurePlayerClubContext('club-123');
+ * // Club is now guaranteed to be in the player store
+ * ```
+ */
+export async function ensurePlayerClubContext(
+  clubId: string,
+  options?: { force?: boolean }
+): Promise<PlayerClubDetail> {
+  const store = usePlayerClubStore.getState();
+  return store.ensureClubById(clubId, options);
+}
+
+/**
+ * @deprecated Use ensureAdminClubContext or ensurePlayerClubContext instead
  * Ensure club is loaded by ID with proper context
  * 
  * This helper prevents duplicate fetches and ensures club data
@@ -65,6 +117,53 @@ export async function ensureClubContext(
 }
 
 /**
+ * Ensure clubs are loaded for an organization (Admin)
+ * 
+ * This helper prevents duplicate fetches and ensures club list is loaded
+ * from the admin store with proper organization context.
+ * 
+ * @param organizationId - The organization ID to load clubs for
+ * @param options - Optional configuration
+ * @returns Promise<void>
+ * 
+ * @example
+ * ```tsx
+ * await ensureAdminClubsForOrganization('org-123');
+ * const clubs = useAdminClubStore.getState().clubs;
+ * ```
+ */
+export async function ensureAdminClubsForOrganization(
+  organizationId: string | null,
+  options?: { force?: boolean }
+): Promise<void> {
+  const store = useAdminClubStore.getState();
+  return store.fetchClubsIfNeeded({ organizationId, force: options?.force });
+}
+
+/**
+ * Ensure clubs are loaded (Player)
+ * 
+ * This helper prevents duplicate fetches and ensures public club list is loaded
+ * from the player store.
+ * 
+ * @param options - Optional configuration (search, city filters)
+ * @returns Promise<void>
+ * 
+ * @example
+ * ```tsx
+ * await ensurePlayerClubs({ search: 'tennis' });
+ * const clubs = usePlayerClubStore.getState().clubs;
+ * ```
+ */
+export async function ensurePlayerClubs(
+  options?: { force?: boolean; search?: string; city?: string }
+): Promise<void> {
+  const store = usePlayerClubStore.getState();
+  return store.fetchClubsIfNeeded(options);
+}
+
+/**
+ * @deprecated Use ensureAdminClubsForOrganization or ensurePlayerClubs instead
  * Ensure clubs are loaded for an organization
  * 
  * This helper prevents duplicate fetches and ensures club list is loaded
@@ -110,6 +209,49 @@ export function selectOrganizations<T>(
 }
 
 /**
+ * Safe selector pattern for clubs (Admin)
+ * 
+ * Use this to select club data from the admin store without triggering
+ * re-renders when unrelated state changes.
+ * 
+ * @param selector - Function to select specific data from clubs
+ * @returns Hook to use in components
+ * 
+ * @example
+ * ```tsx
+ * const useClubNames = selectAdminClubs(clubs => clubs.map(c => c.name));
+ * const names = useClubNames();
+ * ```
+ */
+export function selectAdminClubs<T>(
+  selector: (clubs: ReturnType<typeof useAdminClubStore.getState>["clubs"]) => T
+) {
+  return () => useAdminClubStore((state) => selector(state.clubs));
+}
+
+/**
+ * Safe selector pattern for clubs (Player)
+ * 
+ * Use this to select club data from the player store without triggering
+ * re-renders when unrelated state changes.
+ * 
+ * @param selector - Function to select specific data from clubs
+ * @returns Hook to use in components
+ * 
+ * @example
+ * ```tsx
+ * const useClubNames = selectPlayerClubs(clubs => clubs.map(c => c.name));
+ * const names = useClubNames();
+ * ```
+ */
+export function selectPlayerClubs<T>(
+  selector: (clubs: ReturnType<typeof usePlayerClubStore.getState>["clubs"]) => T
+) {
+  return () => usePlayerClubStore((state) => selector(state.clubs));
+}
+
+/**
+ * @deprecated Use selectAdminClubs or selectPlayerClubs instead
  * Safe selector pattern for clubs
  * 
  * Use this to select club data from the store without triggering
@@ -149,6 +291,40 @@ export function invalidateOrganizations(): void {
 }
 
 /**
+ * Invalidate club cache (Admin)
+ * 
+ * Use this when you need to force a refetch of clubs from admin store,
+ * for example after creating or updating a club.
+ * 
+ * @example
+ * ```tsx
+ * await createClub(data);
+ * invalidateAdminClubs(); // Force refetch on next access
+ * ```
+ */
+export function invalidateAdminClubs(): void {
+  const store = useAdminClubStore.getState();
+  store.invalidateClubs();
+}
+
+/**
+ * Invalidate club cache (Player)
+ * 
+ * Use this when you need to force a refetch of clubs from player store,
+ * for example when search filters change.
+ * 
+ * @example
+ * ```tsx
+ * invalidatePlayerClubs(); // Force refetch on next access
+ * ```
+ */
+export function invalidatePlayerClubs(): void {
+  const store = usePlayerClubStore.getState();
+  store.invalidateClubs();
+}
+
+/**
+ * @deprecated Use invalidateAdminClubs or invalidatePlayerClubs instead
  * Invalidate club cache
  * 
  * Use this when you need to force a refetch of clubs,

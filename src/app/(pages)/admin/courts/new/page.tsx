@@ -10,7 +10,7 @@ import { FormSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { formatPrice, dollarsToCents } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 
 import "./page.css";
 
@@ -118,7 +118,7 @@ export default function CreateCourtPage({
   
   // Organization and Club stores
   const { organizations, fetchOrganizations, loading: orgsLoading } = useOrganizationStore();
-  const { clubs, fetchClubsIfNeeded, loadingClubs: clubsLoading } = useClubStore();
+  const { clubs, fetchClubsIfNeeded, loadingClubs: clubsLoading } = useAdminClubStore();
   
   const [clubIdFromUrl, setClubIdFromUrl] = useState<string | null>(null);
   const [club, setClub] = useState<Club | null>(null);

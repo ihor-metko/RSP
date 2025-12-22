@@ -17,7 +17,7 @@ import {
   QuickPresets,
 } from "@/components/list-controls";
 import { useUserStore } from "@/stores/useUserStore";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { SPORT_TYPE_OPTIONS, SportType } from "@/constants/sports";
 import "@/components/admin/AdminClubCard.css";
 
@@ -37,10 +37,10 @@ export default function AdminClubsPage() {
   const router = useRouter();
 
   // Use deferred loading to prevent flicker on fast responses
-  const clubs = useClubStore((state) => state.clubs);
-  const loadingClubs = useClubStore((state) => state.loadingClubs);
-  const clubsError = useClubStore((state) => state.clubsError);
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
+  const clubs = useAdminClubStore((state) => state.clubs);
+  const loadingClubs = useAdminClubStore((state) => state.loadingClubs);
+  const clubsError = useAdminClubStore((state) => state.clubsError);
+  const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
 
   const deferredLoading = useDeferredLoading(loadingClubs);
 

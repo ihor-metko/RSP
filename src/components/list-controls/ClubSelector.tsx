@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Select, type SelectOption } from "@/components/ui";
 import type { UseListControllerReturn } from "@/hooks/useListController";
 import { useControllerOrContext } from "./ListControllerContext";
-import { useClubStore } from "@/stores/useClubStore";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 
 interface ClubSelectorProps<TFilters = Record<string, unknown>> {
   /** List controller - if not provided, uses context */
@@ -53,9 +53,9 @@ export function ClubSelector<TFilters = Record<string, unknown>>({
   const controller = useControllerOrContext(controllerProp);
 
   // Get clubs from store
-  const clubs = useClubStore((state) => state.clubs);
-  const fetchClubsIfNeeded = useClubStore((state) => state.fetchClubsIfNeeded);
-  const loading = useClubStore((state) => state.loading);
+  const clubs = useAdminClubStore((state) => state.clubs);
+  const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
+  const loading = useAdminClubStore((state) => state.loading);
 
   const [hasInitialized, setHasInitialized] = useState(false);
 

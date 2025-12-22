@@ -8,7 +8,7 @@ import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { RequestTrainingModal } from "../../../../../archived_features/components/training/RequestTrainingModal";
 import { DarkModeToggle, LanguageSwitcher } from "@/components/ui";
-import { useClubStore } from "@/stores/useClubStore";
+import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
@@ -103,10 +103,10 @@ export default function PlayerDashboardPage() {
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const user = useUserStore((state) => state.user);
 
-  // Use centralized club store
-  const clubsFromStore = useClubStore((state) => state.clubs);
-  const clubsLoading = useClubStore((state) => state.loading);
-  const fetchClubsFromStore = useClubStore((state) => state.fetchClubs);
+  // Use centralized player club store
+  const clubsFromStore = usePlayerClubStore((state) => state.clubs);
+  const clubsLoading = usePlayerClubStore((state) => state.loading);
+  const fetchClubsFromStore = usePlayerClubStore((state) => state.fetchClubsIfNeeded);
   
   const [selectedClubId, setSelectedClubId] = useState<string>("");
   
