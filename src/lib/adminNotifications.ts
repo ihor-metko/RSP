@@ -85,7 +85,8 @@ export async function createAdminNotification(
     // Emit to real-time SSE listeners
     notificationEmitter.emit(payload);
 
-    // Emit to Socket.IO clients
+    // Emit to Socket.IO clients (root admins only for now)
+    // TODO: In the future, emit to specific organization/club rooms based on coach/player context
     if (global.io) {
       const io = global.io as TypedServer;
       // Create socket event payload with read status
@@ -93,8 +94,10 @@ export async function createAdminNotification(
         ...payload,
         read: notification.read,
       };
-      io.emit('admin_notification', socketPayload);
-      console.log('[AdminNotifications] Socket.IO event emitted:', payload.id);
+      
+      // Emit to root admins
+      io.to('root_admin').emit('admin_notification', socketPayload);
+      console.log('[AdminNotifications] Socket.IO event emitted to root_admin room:', payload.id);
     }
   } catch (error) {
     // Log error in development but don't throw - notifications are non-critical

@@ -10,10 +10,14 @@ import {
 import type { BookingCreatedEvent, BookingUpdatedEvent, BookingDeletedEvent } from '@/types/socket';
 import { SportType } from '@/constants/sports';
 
-// Mock the global.io
+// Mock the global.io with room-based emit
 const mockEmit = jest.fn();
+const mockTo = jest.fn(() => ({
+  emit: mockEmit,
+}));
 const mockIO = {
   emit: mockEmit,
+  to: mockTo,
 };
 
 describe('Socket Emitters', () => {
@@ -45,7 +49,7 @@ describe('Socket Emitters', () => {
   });
 
   describe('emitBookingCreated', () => {
-    it('should emit bookingCreated event when io is available', () => {
+    it('should emit booking_created event to club room when io is available', () => {
       global.io = mockIO as any;
 
       const event: BookingCreatedEvent = {
@@ -74,7 +78,13 @@ describe('Socket Emitters', () => {
 
       emitBookingCreated(event);
 
+      // Verify it emits to the club room
+      expect(mockTo).toHaveBeenCalledWith('club:club-123');
+      // Verify it emits both new and legacy event names
+      expect(mockEmit).toHaveBeenCalledWith('booking_created', event);
       expect(mockEmit).toHaveBeenCalledWith('bookingCreated', event);
+      // Verify it also emits to root_admin room
+      expect(mockTo).toHaveBeenCalledWith('root_admin');
     });
 
     it('should not throw when io is not available', () => {
@@ -108,7 +118,7 @@ describe('Socket Emitters', () => {
   });
 
   describe('emitBookingUpdated', () => {
-    it('should emit bookingUpdated event when io is available', () => {
+    it('should emit booking_updated event to club room when io is available', () => {
       global.io = mockIO as any;
 
       const event: BookingUpdatedEvent = {
@@ -138,7 +148,13 @@ describe('Socket Emitters', () => {
 
       emitBookingUpdated(event);
 
+      // Verify it emits to the club room
+      expect(mockTo).toHaveBeenCalledWith('club:club-123');
+      // Verify it emits both new and legacy event names
+      expect(mockEmit).toHaveBeenCalledWith('booking_updated', event);
       expect(mockEmit).toHaveBeenCalledWith('bookingUpdated', event);
+      // Verify it also emits to root_admin room
+      expect(mockTo).toHaveBeenCalledWith('root_admin');
     });
 
     it('should not throw when io is not available', () => {
@@ -172,7 +188,7 @@ describe('Socket Emitters', () => {
   });
 
   describe('emitBookingDeleted', () => {
-    it('should emit bookingDeleted event when io is available', () => {
+    it('should emit booking_cancelled event to club room when io is available', () => {
       global.io = mockIO as any;
 
       const event: BookingDeletedEvent = {
@@ -183,7 +199,13 @@ describe('Socket Emitters', () => {
 
       emitBookingDeleted(event);
 
+      // Verify it emits to the club room
+      expect(mockTo).toHaveBeenCalledWith('club:club-123');
+      // Verify it emits both new and legacy event names
+      expect(mockEmit).toHaveBeenCalledWith('booking_cancelled', event);
       expect(mockEmit).toHaveBeenCalledWith('bookingDeleted', event);
+      // Verify it also emits to root_admin room
+      expect(mockTo).toHaveBeenCalledWith('root_admin');
     });
 
     it('should not throw when io is not available', () => {

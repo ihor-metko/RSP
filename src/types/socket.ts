@@ -129,8 +129,12 @@ export interface ServerToClientEvents {
  * Socket data (attached to each socket connection)
  */
 export interface SocketData {
-  userId?: string;
-  clubId?: string;
+  user?: {
+    userId: string;
+    isRoot: boolean;
+    organizationIds: string[];
+    clubIds: string[];
+  };
 }
 
 /**
