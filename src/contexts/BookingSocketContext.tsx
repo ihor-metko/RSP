@@ -117,16 +117,10 @@ export function BookingSocketProvider({ children }: BookingSocketProviderProps) 
       return;
     }
 
-    // Verify user has access to the requested club
-    const hasAccess = 
-      user.isRoot || 
-      adminStatus?.managedIds.includes(activeClubId) ||
-      false;
-
-    if (!hasAccess) {
-      console.warn('[BookingSocket] User does not have access to club:', activeClubId);
-      return;
-    }
+    // Access control is primarily enforced server-side in socketAuth.ts
+    // which verifies the user has the club in their clubIds array.
+    // We allow connection attempt here and let server validate actual membership.
+    // This ensures players can connect to clubs they belong to.
 
     // If socket already exists for this club, don't reinitialize
     if (socketRef.current) {

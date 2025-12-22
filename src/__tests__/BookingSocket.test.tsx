@@ -142,10 +142,8 @@ describe('BookingSocket', () => {
     });
   });
 
-  it('should not initialize socket if user does not have access to the club', async () => {
+  it('should allow connection attempt for any club (server validates access)', async () => {
     mockActiveClubId = 'club-3'; // Club not in managedIds
-
-    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
 
     render(
       <BookingSocketProvider>
@@ -153,17 +151,19 @@ describe('BookingSocket', () => {
       </BookingSocketProvider>
     );
 
-    // Wait to ensure socket is not initialized
+    // Client allows connection attempt - server will validate actual membership
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[BookingSocket] User does not have access to club:'),
-        'club-3'
-      );
+      expect(io).toHaveBeenCalled();
     });
 
-    expect(io).not.toHaveBeenCalled();
-
-    consoleSpy.mockRestore();
+    // Verify socket was initialized (server will reject if no access)
+    expect(io).toHaveBeenCalledWith({
+      path: '/socket.io',
+      auth: {
+        token: 'mock-jwt-token',
+        clubId: 'club-3',
+      },
+    });
   });
 
   it('should initialize socket for root admin regardless of club', async () => {

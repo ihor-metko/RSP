@@ -21,6 +21,7 @@
  * - Centralized event dispatching for booking events
  * - Automatic duplicate prevention via notification manager
  * - Updates booking store for real-time UI sync
+ * - Periodic cleanup of expired slot locks
  */
 
 import { useEffect } from 'react';
@@ -37,6 +38,11 @@ import {
 } from '@/utils/globalNotificationManager';
 import { useBookingSocket } from '@/contexts/BookingSocketContext';
 import { useBookingStore } from '@/stores/useBookingStore';
+
+/**
+ * Cleanup interval for expired locks in milliseconds (60 seconds)
+ */
+const CLEANUP_INTERVAL_MS = 60000;
 
 /**
  * Booking Socket Event Dispatcher
@@ -57,6 +63,7 @@ export function BookingSocketListener() {
   const removeBookingFromSocket = useBookingStore(state => state.removeBookingFromSocket);
   const addLockedSlot = useBookingStore(state => state.addLockedSlot);
   const removeLockedSlot = useBookingStore(state => state.removeLockedSlot);
+  const cleanupExpiredLocks = useBookingStore(state => state.cleanupExpiredLocks);
 
   useEffect(() => {
     if (!socket || !activeClubId) return;
@@ -168,8 +175,16 @@ export function BookingSocketListener() {
       socket.off('slot_unlocked', handleSlotUnlocked);
       socket.off('lock_expired', handleLockExpired);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, activeClubId]); // Zustand store functions are stable and excluded from dependencies
+  }, [socket, activeClubId, updateBookingFromSocket, removeBookingFromSocket, addLockedSlot, removeLockedSlot]);
+
+  // Periodic cleanup of expired slot locks
+  useEffect(() => {
+    const interval = setInterval(() => {
+      cleanupExpiredLocks();
+    }, CLEANUP_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [cleanupExpiredLocks]);
 
   // Log connection status changes
   useEffect(() => {
