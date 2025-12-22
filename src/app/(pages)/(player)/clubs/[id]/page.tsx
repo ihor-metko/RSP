@@ -16,6 +16,7 @@ import { GalleryModal } from "@/components/GalleryModal";
 import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel, EntityBanner } from "@/components/ui";
 import { useClubStore } from "@/stores/useClubStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { useActiveClub } from "@/contexts/ClubContext";
 import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
@@ -93,6 +94,7 @@ export default function ClubDetailPage({
 }) {
   const pathname = usePathname();
   const t = useTranslations();
+  const { setActiveClubId } = useActiveClub();
   
   // Use store for auth
   const user = useUserStore((state) => state.user);
@@ -165,6 +167,9 @@ export default function ClubDetailPage({
     async function fetchClubData() {
       try {
         const resolvedParams = await params;
+        // Set active club for socket room targeting
+        setActiveClubId(resolvedParams.id);
+        
         await fetchClubById(resolvedParams.id);
         setError(null);
       } catch (err) {
@@ -179,7 +184,7 @@ export default function ClubDetailPage({
       }
     }
     fetchClubData();
-  }, [params, fetchClubById, t]);
+  }, [params, fetchClubById, t, setActiveClubId]);
   
   // Fetch availability when club data is loaded
   useEffect(() => {

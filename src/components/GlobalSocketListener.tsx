@@ -19,6 +19,12 @@
  * Note: Legacy event names (bookingCreated, bookingUpdated, bookingDeleted) have been removed.
  * The system now uses only the standardized event names with underscores.
  * 
+ * Club-Based Room Targeting:
+ * - Server-side guarantees that only events for the user's active club are received
+ * - Socket connection automatically joins the correct club:{clubId} room
+ * - No client-side filtering by clubId is needed (events are pre-filtered by server)
+ * - This component receives and processes all events knowing they're already targeted
+ * 
  * Features:
  * - Uses global socket from SocketProvider (no duplicate connections)
  * - Centralized event dispatching

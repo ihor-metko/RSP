@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useClubStore } from "@/stores/useClubStore";
 import { useCourtStore } from "@/stores/useCourtStore";
 import { useBookingStore } from "@/stores/useBookingStore";
+import { useActiveClub } from "@/contexts/ClubContext";
 import {
   DayCalendar,
   TodayBookingsList,
@@ -40,6 +41,7 @@ export default function ClubOperationsPage() {
   const router = useRouter();
   const params = useParams();
   const clubId = params.clubId as string;
+  const { setActiveClubId } = useActiveClub();
 
   // User store
   const adminStatus = useUserStore((state) => state.adminStatus);
@@ -142,13 +144,16 @@ export default function ClubOperationsPage() {
     }
   }, [adminStatus, clubs, clubId, user]);
 
-  // Load club data
+  // Load club data and set active club for socket connection
   useEffect(() => {
     if (clubId) {
+      // Set active club for socket room targeting
+      setActiveClubId(clubId);
+      
       ensureClubById(clubId).catch(console.error);
       fetchCourtsIfNeeded({ clubId }).catch(console.error);
     }
-  }, [clubId, ensureClubById, fetchCourtsIfNeeded]);
+  }, [clubId, ensureClubById, fetchCourtsIfNeeded, setActiveClubId]);
 
   // Load bookings for selected date (initial fetch)
   useEffect(() => {

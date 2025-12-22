@@ -17,6 +17,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useSession } from 'next-auth/react';
+import { useActiveClub } from '@/contexts/ClubContext';
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
@@ -61,6 +62,11 @@ interface SocketProviderProps {
  * Should be placed high in the component tree (e.g., root layout).
  * Requires authentication - will only connect when user is authenticated.
  * 
+ * Club-Based Room Targeting:
+ * - Passes activeClubId during connection for room targeting
+ * - Reconnects when activeClubId changes to switch club rooms
+ * - Server joins socket to club:{clubId} room based on this value
+ * 
  * @example
  * ```tsx
  * <SocketProvider>
@@ -72,6 +78,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<TypedSocket | null>(null);
   const { data: session, status } = useSession();
+  const { activeClubId } = useActiveClub();
 
   useEffect(() => {
     // Only initialize socket if user is authenticated
@@ -86,13 +93,22 @@ export function SocketProvider({ children }: SocketProviderProps) {
       return;
     }
 
+    // If socket exists and activeClubId changed, reconnect with new clubId
+    if (socketRef.current && socketRef.current.connected) {
+      console.log('[SocketProvider] Active club changed, reconnecting socket:', activeClubId);
+      socketRef.current.disconnect();
+      socketRef.current = null;
+      setIsConnected(false);
+      // Fall through to reinitialize below
+    }
+
     // Prevent multiple socket instances
     if (socketRef.current) {
       console.warn('[SocketProvider] Socket already initialized, skipping');
       return;
     }
 
-    console.log('[SocketProvider] Initializing socket connection with authentication');
+    console.log('[SocketProvider] Initializing socket connection with authentication and clubId:', activeClubId);
 
     // Get the JWT token via API endpoint
     const getSessionToken = async () => {
@@ -121,11 +137,12 @@ export function SocketProvider({ children }: SocketProviderProps) {
         return;
       }
 
-      // Initialize Socket.IO client with authentication
+      // Initialize Socket.IO client with authentication and clubId
       const socket: TypedSocket = io({
         path: '/socket.io',
         auth: {
           token,
+          clubId: activeClubId, // Pass active clubId for room targeting
         },
       });
 
@@ -133,7 +150,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
       // Connection event handlers
       socket.on('connect', () => {
-        console.log('[SocketProvider] Socket connected:', socket.id);
+        console.log('[SocketProvider] Socket connected:', socket.id, 'clubId:', activeClubId);
         setIsConnected(true);
       });
 
@@ -160,7 +177,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     initializeSocket();
 
-    // Cleanup on unmount or when session changes
+    // Cleanup on unmount or when session/activeClubId changes
     return () => {
       if (!socketRef.current) return;
       
@@ -175,7 +192,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [session, status]); // Re-initialize when session changes
+  }, [session, status, activeClubId]); // Re-initialize when session or activeClubId changes
 
   const value: SocketContextValue = useMemo(
     () => ({

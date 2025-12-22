@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { ClubProvider } from "@/contexts/ClubContext";
 import { SocketProvider } from "@/contexts/SocketContext";
 import { GlobalSocketListener } from "@/components/GlobalSocketListener";
 import { NotificationStoreInitializer } from "@/components/NotificationStoreInitializer";
@@ -28,11 +29,13 @@ export default async function RootLayout({
         <MockModeWarning />
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
-            <SocketProvider>
-              <GlobalSocketListener />
-              <NotificationStoreInitializer />
-              {children}
-            </SocketProvider>
+            <ClubProvider>
+              <SocketProvider>
+                <GlobalSocketListener />
+                <NotificationStoreInitializer />
+                {children}
+              </SocketProvider>
+            </ClubProvider>
           </AuthProvider>
         </NextIntlClientProvider>
       </body>
