@@ -94,28 +94,18 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     console.log('[SocketProvider] Initializing socket connection with authentication');
 
-    // Get the JWT token from the session
-    // Note: NextAuth v5 doesn't expose the raw token directly in session
-    // We need to get it from the cookie or use a custom API endpoint
-    // For now, we'll use a workaround by creating a custom session token
+    // Get the JWT token via API endpoint
     const getSessionToken = async () => {
       try {
-        // Get the session token from cookies
-        const cookies = document.cookie.split(';');
-        const sessionTokenCookie = cookies.find(c => 
-          c.trim().startsWith('authjs.session-token=') || 
-          c.trim().startsWith('next-auth.session-token=') ||
-          c.trim().startsWith('__Secure-authjs.session-token=') ||
-          c.trim().startsWith('__Secure-next-auth.session-token=')
-        );
+        const response = await fetch('/api/socket/token');
         
-        if (!sessionTokenCookie) {
-          console.error('[SocketProvider] Session token cookie not found');
+        if (!response.ok) {
+          console.error('[SocketProvider] Failed to get session token:', response.status);
           return null;
         }
 
-        const token = sessionTokenCookie.split('=')[1];
-        return token;
+        const data = await response.json();
+        return data.token;
       } catch (error) {
         console.error('[SocketProvider] Error getting session token:', error);
         return null;
