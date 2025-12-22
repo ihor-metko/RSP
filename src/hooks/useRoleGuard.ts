@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useUserStore } from "@/stores/useUserStore";
 
 interface UseRoleGuardResult {
   isLoading: boolean;
@@ -14,13 +15,16 @@ interface UseRoleGuardResult {
  * Redirects unauthenticated users to sign-in and non-root users to /clubs.
  */
 export function useRootAdminGuard(): UseRoleGuardResult {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
+  const user = useUserStore(state => state.user);
+  const hasRole = useUserStore(state => state.hasRole);
+  const isUserLoading = useUserStore(state => state.isLoading);
 
-  const isLoading = status === "loading";
+  const isLoading = status === "loading" || isUserLoading;
   const isAuthenticated = status === "authenticated";
-  const isRoot = session?.user?.isRoot;
-  const isAuthorized = isAuthenticated && isRoot === true;
+  const isRoot = hasRole("ROOT_ADMIN");
+  const isAuthorized = isAuthenticated && isRoot;
 
   useEffect(() => {
     if (isLoading) return;

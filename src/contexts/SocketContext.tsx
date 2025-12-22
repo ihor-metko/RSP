@@ -18,6 +18,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, useMemo 
 import { io, Socket } from 'socket.io-client';
 import { useSession } from 'next-auth/react';
 import { useActiveClub } from '@/contexts/ClubContext';
+import { useAuthStore } from '@/stores/useAuthStore';
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
@@ -79,6 +80,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const socketRef = useRef<TypedSocket | null>(null);
   const { data: session, status } = useSession();
   const { activeClubId } = useActiveClub();
+  const getSocketToken = useAuthStore(state => state.getSocketToken);
+  const clearSocketToken = useAuthStore(state => state.clearSocketToken);
 
   useEffect(() => {
     // Only initialize socket if user is authenticated
@@ -90,6 +93,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
         socketRef.current = null;
         setIsConnected(false);
       }
+      // Clear cached socket token on logout
+      clearSocketToken();
       return;
     }
 
@@ -110,27 +115,10 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     console.log('[SocketProvider] Initializing socket connection with authentication and clubId:', activeClubId);
 
-    // Get the JWT token via API endpoint
-    const getSessionToken = async () => {
-      try {
-        const response = await fetch('/api/socket/token');
-        
-        if (!response.ok) {
-          console.error('[SocketProvider] Failed to get session token:', response.status);
-          return null;
-        }
-
-        const data = await response.json();
-        return data.token;
-      } catch (error) {
-        console.error('[SocketProvider] Error getting session token:', error);
-        return null;
-      }
-    };
-
     // Initialize socket connection with authentication
     const initializeSocket = async () => {
-      const token = await getSessionToken();
+      // Get token from auth store (cached and deduplicated)
+      const token = await getSocketToken();
 
       if (!token) {
         console.error('[SocketProvider] Cannot initialize socket: no token available');
@@ -192,7 +180,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [session, status, activeClubId]); // Re-initialize when session or activeClubId changes
+  }, [session, status, activeClubId, getSocketToken, clearSocketToken]); // Re-initialize when session or activeClubId changes
 
   const value: SocketContextValue = useMemo(
     () => ({

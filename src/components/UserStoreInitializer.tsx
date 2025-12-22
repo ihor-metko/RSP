@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useUserStore } from "@/stores/useUserStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 /**
  * Time to wait for Zustand persist to restore from localStorage
@@ -18,6 +19,7 @@ export function UserStoreInitializer() {
   const { status } = useSession();
   const loadUser = useUserStore(state => state.loadUser);
   const clearUser = useUserStore(state => state.clearUser);
+  const clearSocketToken = useAuthStore(state => state.clearSocketToken);
   const isHydrated = useUserStore(state => state.isHydrated);
   const setHydrated = useUserStore(state => state.setHydrated);
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -47,11 +49,12 @@ export function UserStoreInitializer() {
       // Load user data into the store when authenticated
       loadUser().finally(() => setHasInitialized(true));
     } else if (status === "unauthenticated") {
-      // Clear user data when unauthenticated
+      // Clear user data and socket token when unauthenticated
       clearUser();
+      clearSocketToken();
       setHasInitialized(true);
     }
-  }, [status, loadUser, clearUser, isHydrated, hasInitialized]);
+  }, [status, loadUser, clearUser, clearSocketToken, isHydrated, hasInitialized]);
 
   // This component doesn't render anything
   return null;

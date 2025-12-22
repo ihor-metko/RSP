@@ -4,9 +4,11 @@ import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { IMLink } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 export function UserRoleIndicator() {
   const clearUser = useUserStore(state => state.clearUser);
+  const clearSocketToken = useAuthStore(state => state.clearSocketToken);
   const hasRole = useUserStore(state => state.hasRole);
   const isHydrated = useUserStore(state => state.isHydrated);
   const isLoading = useUserStore(state => state.isLoading);
@@ -64,6 +66,7 @@ export function UserRoleIndicator() {
 
   const handleSignOut = () => {
     clearUser();
+    clearSocketToken();
     signOut({ callbackUrl: "/auth/sign-in" });
   };
 
