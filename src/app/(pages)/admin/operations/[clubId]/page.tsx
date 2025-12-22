@@ -44,7 +44,7 @@ export default function ClubOperationsPage() {
   const clubId = params.clubId as string;
 
   // Page-scoped socket connection - only connects on this page with valid clubId
-  const { socket, isConnected: isSocketConnected } = useOperationalSocket({ clubId });
+  const { socket } = useOperationalSocket({ clubId });
 
   // User store
   const adminStatus = useUserStore((state) => state.adminStatus);

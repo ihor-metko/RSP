@@ -11,8 +11,6 @@
  * 
  * This component is kept for reference but will not work without a SocketProvider.
  */
- * ```
- */
 
 'use client';
 
