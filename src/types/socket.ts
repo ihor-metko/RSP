@@ -76,6 +76,14 @@ export interface PaymentFailedEvent {
  * 
  * Supports both training request notifications and booking/payment event notifications.
  * All admin-relevant events (Training, Booking, Payment) flow through this unified type.
+ * 
+ * Role-based delivery:
+ * - Root Admin: receives all notifications via root_admin room
+ * - Organization Admin: receives notifications for organizations they manage via organization:{orgId} rooms
+ * - Club Admin: receives notifications for clubs they manage via club:{clubId} rooms
+ * - Player: receives notifications for clubs they belong to via club:{clubId} rooms
+ * 
+ * Server-side room filtering ensures each user only receives notifications relevant to their role and scope.
  */
 export interface AdminNotificationEvent {
   id: string;

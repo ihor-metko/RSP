@@ -3,21 +3,22 @@
 /**
  * Global Socket.IO Event Dispatcher
  * 
- * Subscribes to all real-time Socket.IO events and:
+ * Subscribes to all real-time Socket.IO events from the Notification Socket and:
  * 1. Displays toast notifications via globalNotificationManager
  * 2. Updates Zustand stores (booking store, notification store) with real-time data
  * 3. Transforms Booking/Payment events into AdminNotification format for unified notification system
  * 
  * This component is initialized once at app startup and works across all pages.
+ * It uses the Notification Socket which remains active regardless of page navigation.
  * 
- * Club-Based Room Targeting:
- * - Server-side guarantees that only events for the user's active club are received
- * - Socket connection automatically joins the correct club:{clubId} room
- * - Events are pre-filtered by server based on room membership
- * - This component receives and processes all events knowing they're already targeted correctly
+ * Notification Socket Features:
+ * - Always active during user session
+ * - Independent of page navigation or active club changes
+ * - Receives role-scoped notifications (Root Admin, Org Admin, Club Admin, Player)
+ * - Server-side room filtering ensures users only receive relevant notifications
  * 
  * Features:
- * - Uses global socket from SocketProvider (no duplicate connections)
+ * - Uses notification socket from SocketProvider (single persistent connection)
  * - Centralized event dispatching
  * - Automatic duplicate prevention via notification manager
  * - Updates booking store for real-time UI sync

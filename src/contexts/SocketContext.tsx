@@ -1,22 +1,24 @@
 'use client';
 
 /**
- * Centralized Socket.IO Context
+ * Centralized Socket.IO Context - Notification Socket
  * 
- * Provides a single global socket connection to the entire application.
- * Ensures only one socket instance exists and is shared across all components.
+ * Provides a single persistent notification socket connection for the entire application.
+ * This socket is always active during the user session and independent of the current page.
  * 
  * Features:
- * - Singleton socket connection
+ * - Singleton notification socket connection (always active)
  * - Authentication via JWT token
  * - Automatic reconnection handling
  * - Connection state tracking
- * - Safe cleanup on unmount
+ * - Role-based notification delivery (Root Admin, Org Admin, Club Admin, Player)
+ * - Safe cleanup on logout
+ * 
+ * Note: This is the Notification Socket. Booking Socket (club-specific) is not implemented yet.
  */
 
 import React, { createContext, useContext, useEffect, useRef, useState, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useActiveClub } from '@/contexts/ClubContext';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useUserStore } from '@/stores/useUserStore';
 import type {
@@ -34,12 +36,12 @@ type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
  */
 interface SocketContextValue {
   /**
-   * The global socket instance (null if not connected)
+   * The notification socket instance (null if not connected)
    */
   socket: TypedSocket | null;
 
   /**
-   * Whether the socket is connected
+   * Whether the notification socket is connected
    */
   isConnected: boolean;
 }
@@ -57,16 +59,21 @@ interface SocketProviderProps {
 }
 
 /**
- * Global Socket Provider
+ * Notification Socket Provider
  * 
- * Wraps the application and provides a single socket connection.
+ * Wraps the application and provides a single notification socket connection.
  * Should be placed high in the component tree (e.g., root layout).
  * Requires authentication - will only connect when user is authenticated.
  * 
- * Club-Based Room Targeting:
- * - Passes activeClubId during connection for room targeting
- * - Reconnects when activeClubId changes to switch club rooms
- * - Server joins socket to club:{clubId} room based on this value
+ * Notification Socket Behavior:
+ * - Connects once per user session
+ * - Remains active regardless of page navigation or club changes
+ * - Delivers role-scoped notifications (Root Admin, Org Admin, Club Admin, Player)
+ * - Automatically joins appropriate rooms based on user role and memberships
+ * - Disconnects only on logout
+ * 
+ * Note: Booking Socket (club-specific, connects/disconnects on club changes) 
+ * will be implemented in a future task.
  * 
  * @example
  * ```tsx
@@ -80,7 +87,6 @@ export function SocketProvider({ children }: SocketProviderProps) {
   const socketRef = useRef<TypedSocket | null>(null);
   const sessionStatus = useUserStore(state => state.sessionStatus);
   const user = useUserStore(state => state.user);
-  const { activeClubId } = useActiveClub();
   const getSocketToken = useAuthStore(state => state.getSocketToken);
   const clearSocketToken = useAuthStore(state => state.clearSocketToken);
 
@@ -89,7 +95,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
     if (sessionStatus !== 'authenticated' || !user) {
       // If socket exists and user is no longer authenticated, disconnect
       if (socketRef.current) {
-        console.log('[SocketProvider] User logged out, disconnecting socket');
+        console.log('[NotificationSocket] User logged out, disconnecting socket');
         socketRef.current.disconnect();
         socketRef.current = null;
         setIsConnected(false);
@@ -99,22 +105,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
       return;
     }
 
-    // If socket exists and activeClubId changed, reconnect with new clubId
-    if (socketRef.current && socketRef.current.connected) {
-      console.log('[SocketProvider] Active club changed, reconnecting socket:', activeClubId);
-      socketRef.current.disconnect();
-      socketRef.current = null;
-      setIsConnected(false);
-      // Fall through to reinitialize below
-    }
-
     // Prevent multiple socket instances
     if (socketRef.current) {
-      console.warn('[SocketProvider] Socket already initialized, skipping');
+      console.log('[NotificationSocket] Socket already initialized, skipping');
       return;
     }
 
-    console.log('[SocketProvider] Initializing socket connection with authentication and clubId:', activeClubId);
+    console.log('[NotificationSocket] Initializing notification socket connection');
 
     // Initialize socket connection with authentication
     const initializeSocket = async () => {
@@ -122,16 +119,17 @@ export function SocketProvider({ children }: SocketProviderProps) {
       const token = await getSocketToken();
 
       if (!token) {
-        console.error('[SocketProvider] Cannot initialize socket: no token available');
+        console.error('[NotificationSocket] Cannot initialize socket: no token available');
         return;
       }
 
-      // Initialize Socket.IO client with authentication and clubId
+      // Initialize Socket.IO client with authentication
+      // Note: No clubId is passed - this is a notification-only socket
       const socket: TypedSocket = io({
         path: '/socket.io',
         auth: {
           token,
-          clubId: activeClubId, // Pass active clubId for room targeting
+          // No clubId - notification socket is independent of active club
         },
       });
 
@@ -139,38 +137,38 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
       // Connection event handlers
       socket.on('connect', () => {
-        console.log('[SocketProvider] Socket connected:', socket.id, 'clubId:', activeClubId);
+        console.log('[NotificationSocket] Notification socket connected:', socket.id);
         setIsConnected(true);
       });
 
       socket.on('disconnect', (reason) => {
-        console.log('[SocketProvider] Socket disconnected:', reason);
+        console.log('[NotificationSocket] Notification socket disconnected:', reason);
         setIsConnected(false);
       });
 
       socket.on('connect_error', (error) => {
-        console.error('[SocketProvider] Connection error:', error.message);
+        console.error('[NotificationSocket] Connection error:', error.message);
         // If authentication fails, don't retry
         if (error.message.includes('Authentication')) {
-          console.error('[SocketProvider] Authentication failed, disconnecting');
+          console.error('[NotificationSocket] Authentication failed, disconnecting');
           socket.disconnect();
         }
       });
 
       // Reconnection handler
       socket.io.on('reconnect', (attemptNumber) => {
-        console.log('[SocketProvider] Socket reconnected after', attemptNumber, 'attempts');
+        console.log('[NotificationSocket] Socket reconnected after', attemptNumber, 'attempts');
         setIsConnected(true);
       });
     };
 
     initializeSocket();
 
-    // Cleanup on unmount or when session/activeClubId changes
+    // Cleanup on unmount or when session changes
     return () => {
       if (!socketRef.current) return;
       
-      console.log('[SocketProvider] Cleaning up socket connection');
+      console.log('[NotificationSocket] Cleaning up notification socket connection');
       
       const socket = socketRef.current;
       socket.off('connect');
@@ -181,7 +179,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [sessionStatus, user, activeClubId, getSocketToken, clearSocketToken]); // Re-initialize when session or activeClubId changes
+  }, [sessionStatus, user, getSocketToken, clearSocketToken]); // Only re-initialize when session changes
 
   const value: SocketContextValue = useMemo(
     () => ({
@@ -199,7 +197,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
 }
 
 /**
- * Hook to access the global socket instance
+ * Hook to access the notification socket instance
  * 
  * @throws Error if used outside of SocketProvider
  * 
@@ -210,8 +208,8 @@ export function SocketProvider({ children }: SocketProviderProps) {
  * useEffect(() => {
  *   if (!socket) return;
  *   
- *   socket.on('custom_event', handleEvent);
- *   return () => socket.off('custom_event', handleEvent);
+ *   socket.on('admin_notification', handleNotification);
+ *   return () => socket.off('admin_notification', handleNotification);
  * }, [socket]);
  * ```
  */

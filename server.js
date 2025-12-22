@@ -94,19 +94,50 @@ app.prepare().then(() => {
       socketId: socket.id,
       userId: userData.userId,
       isRoot: userData.isRoot,
-      requestedClubId,
+      requestedClubId: requestedClubId || 'none (notification socket)',
     });
 
-    // Server-controlled room subscription
-    // Root admins join all rooms (represented by special room)
-    if (userData.isRoot) {
-      socket.join('root_admin');
-      console.log('[SocketIO] Root admin joined root_admin room');
-    }
+    // Notification Socket Logic (when no clubId is provided)
+    // This socket receives role-scoped notifications only
+    if (!requestedClubId) {
+      console.log('[SocketIO] Notification socket detected (no clubId)');
+      
+      // Root admins join root_admin room for all notifications
+      if (userData.isRoot) {
+        socket.join('root_admin');
+        console.log('[SocketIO] Root admin joined root_admin room for notifications');
+      }
 
-    // Club-based room targeting
-    // If a specific clubId was requested, join only that club room
-    if (requestedClubId) {
+      // Organization admins join organization rooms for org-scoped notifications
+      userData.organizationIds.forEach((orgId) => {
+        const roomName = `organization:${orgId}`;
+        socket.join(roomName);
+        console.log('[SocketIO] Joined organization room for notifications:', roomName);
+      });
+
+      // Club admins and players join club rooms for club-scoped notifications
+      userData.clubIds.forEach((clubId) => {
+        const roomName = `club:${clubId}`;
+        socket.join(roomName);
+        console.log('[SocketIO] Joined club room for notifications:', roomName);
+      });
+
+      console.log('[SocketIO] Notification socket rooms:', {
+        userId: userData.userId,
+        rooms: Array.from(socket.rooms).filter(r => r !== socket.id),
+      });
+    } 
+    // Booking Socket Logic (when clubId is provided) - LEGACY
+    // TODO: This will be refactored into a separate booking socket in the future
+    else {
+      console.log('[SocketIO] Booking socket detected (clubId provided)');
+      
+      // Root admins join all rooms
+      if (userData.isRoot) {
+        socket.join('root_admin');
+        console.log('[SocketIO] Root admin joined root_admin room');
+      }
+
       // Verify user has access to the requested club
       if (userData.clubIds.includes(requestedClubId) || userData.isRoot) {
         const clubRoom = `club:${requestedClubId}`;
@@ -119,29 +150,19 @@ app.prepare().then(() => {
           userClubIds: userData.clubIds,
         });
       }
-    } else {
-      // Legacy behavior: Join all club rooms if no specific club requested
-      // This maintains backward compatibility but will be deprecated
-      console.warn('[SocketIO] No clubId provided, joining all accessible clubs (legacy mode)');
-      userData.clubIds.forEach((clubId) => {
-        const roomName = `club:${clubId}`;
+
+      // Also join organization rooms for broader notifications
+      userData.organizationIds.forEach((orgId) => {
+        const roomName = `organization:${orgId}`;
         socket.join(roomName);
-        console.log('[SocketIO] Joined room (legacy):', roomName);
+        console.log('[SocketIO] Joined organization room:', roomName);
+      });
+
+      console.log('[SocketIO] Booking socket rooms:', {
+        userId: userData.userId,
+        rooms: Array.from(socket.rooms).filter(r => r !== socket.id),
       });
     }
-
-    // Also join organization rooms for broader notifications if needed
-    // This is kept for potential future use (e.g., org-wide announcements)
-    userData.organizationIds.forEach((orgId) => {
-      const roomName = `organization:${orgId}`;
-      socket.join(roomName);
-      console.log('[SocketIO] Joined organization room:', roomName);
-    });
-
-    console.log('[SocketIO] User rooms:', {
-      userId: userData.userId,
-      rooms: Array.from(socket.rooms).filter(r => r !== socket.id),
-    });
 
     socket.on('disconnect', () => {
       console.log('[SocketIO] Client disconnected:', {
