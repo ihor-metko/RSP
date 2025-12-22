@@ -4,7 +4,14 @@ This document describes the Socket.IO implementation for real-time booking updat
 
 ## Overview
 
-The WebSocket server is implemented using Socket.IO and provides real-time updates for booking operations across all connected clients.
+The WebSocket server is implemented using Socket.IO and provides real-time updates for booking operations. **Events are now isolated per club** using room-based targeting to improve security and scalability.
+
+## Key Features
+
+- **Club-Based Room Targeting**: Events are delivered only to clients connected to the same club
+- **Automatic Room Switching**: Socket reconnects when user switches clubs
+- **Server-Side Filtering**: Room membership is controlled server-side for security
+- **Backward Compatible**: Legacy mode supported for gradual migration
 
 ## Architecture
 
@@ -13,40 +20,127 @@ The WebSocket server is implemented using Socket.IO and provides real-time updat
 1. **`server.js`** - Custom Next.js server with Socket.IO integration
    - Initializes the Socket.IO server
    - Handles client connections/disconnections
+   - **Implements club-based room targeting**
    - Stores the Socket.IO instance globally for API routes
 
-2. **`src/types/socket.ts`** - TypeScript type definitions
+2. **`socketAuth.js`** - Socket authentication module (CommonJS)
+   - Verifies JWT tokens from socket connections
+   - Fetches user's organization and club memberships
+   - Returns user data including accessible clubIds
+
+3. **`src/types/socket.ts`** - TypeScript type definitions
    - Defines event payloads for booking operations
    - Provides strongly-typed Socket.IO server and client interfaces
-   - Includes types for `bookingCreated`, `bookingUpdated`, and `bookingDeleted` events
+   - Includes types for all real-time events
 
-3. **`src/lib/socketEmitters.ts`** - Event emitter utilities
+4. **`src/lib/socketEmitters.ts`** - Event emitter utilities
    - `emitBookingCreated()` - Emit when a new booking is created
    - `emitBookingUpdated()` - Emit when a booking is updated
    - `emitBookingDeleted()` - Emit when a booking is deleted
+   - `emitSlotLocked()`, `emitSlotUnlocked()`, `emitLockExpired()` - Slot lock events
+   - `emitPaymentConfirmed()`, `emitPaymentFailed()` - Payment events
+   - **All events target specific club rooms: `io.to(\`club:${clubId}\`).emit(...)`**
    - Safely handles cases when Socket.IO is not initialized
 
-4. **`src/app/api/socket/route.ts`** - API endpoint
+5. **`src/app/api/socket/route.ts`** - API endpoint
    - GET `/api/socket` - Check Socket.IO server status
    - Returns connection information and client count
 
 ### Client-side Components
 
-1. **`src/contexts/SocketContext.tsx`** - Global Socket Provider
+1. **`src/contexts/ClubContext.tsx`** - Active Club Provider
+   - Tracks the currently active/selected club
+   - Persists activeClubId in localStorage
+   - Used by SocketProvider to determine which club room to join
+
+2. **`src/contexts/SocketContext.tsx`** - Global Socket Provider
    - Creates a single global socket connection
    - Provides socket instance and connection status to all components
+   - **Passes activeClubId during connection for room targeting**
+   - **Automatically reconnects when activeClubId changes**
    - Handles automatic reconnection
 
-2. **`src/components/GlobalSocketListener.tsx`** - Centralized Event Dispatcher
+3. **`src/components/GlobalSocketListener.tsx`** - Centralized Event Dispatcher
    - Listens to all socket events globally
    - Automatically updates Zustand stores when events are received
    - Displays toast notifications via globalNotificationManager
+   - **No client-side filtering needed** - server guarantees correct targeting
    - No duplicate connections or event listeners
 
-3. **`src/utils/globalNotificationManager.ts`** - Notification Handler
+4. **`src/utils/globalNotificationManager.ts`** - Notification Handler
    - Manages toast notifications for socket events
    - Prevents duplicate notifications
    - Handles all booking, payment, and slot events
+
+## Club-Based Room Targeting
+
+### How It Works
+
+1. **Client Connection**:
+   ```typescript
+   // User navigates to a club page
+   setActiveClubId('club-123');
+   
+   // Socket connects with clubId
+   const socket = io({
+     auth: {
+       token: jwtToken,
+       clubId: 'club-123', // Passed to server
+     },
+   });
+   ```
+
+2. **Server Room Joining**:
+   ```javascript
+   // server.js connection handler
+   io.on('connection', (socket) => {
+     const clubId = socket.data.clubId;
+     
+     // Verify user has access to this club
+     if (userData.clubIds.includes(clubId)) {
+       socket.join(`club:${clubId}`);
+     }
+   });
+   ```
+
+3. **Event Emission**:
+   ```typescript
+   // API route emits event to specific club room
+   emitBookingCreated({
+     booking,
+     clubId: 'club-123',
+     courtId: 'court-456',
+   });
+   
+   // In socketEmitters.ts
+   io.to(`club:${clubId}`).emit('booking_created', data);
+   ```
+
+4. **Room Switching**:
+   ```typescript
+   // User navigates to different club
+   setActiveClubId('club-456');
+   
+   // Socket automatically disconnects and reconnects with new clubId
+   // Old room: club:123 (left)
+   // New room: club:456 (joined)
+   ```
+
+### Security Benefits
+
+- **Server-Side Validation**: Users can only join clubs they have access to
+- **Isolated Events**: Users never receive events from clubs they don't belong to
+- **No Client-Side Filtering**: Room membership is controlled entirely by server
+- **Root Admin Support**: Root admins join `root_admin` room to receive all events
+
+### Legacy Mode
+
+For backward compatibility, if no clubId is provided during connection:
+- Socket joins **all accessible clubs** (legacy behavior)
+- This allows gradual migration of existing pages
+- Client-side filtering in `useCourtAvailability` is marked as LEGACY
+
+Eventually, all pages should set activeClubId and legacy filtering will be removed.
 
 ## Usage
 
