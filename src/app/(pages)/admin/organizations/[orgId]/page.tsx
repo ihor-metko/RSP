@@ -721,8 +721,10 @@ export default function OrganizationDetailPage() {
                   userName: admin.name,
                   userEmail: admin.email,
                   isPrimaryOwner: admin.isPrimaryOwner,
+                  // Note: lastLoginAt is not available from organization detail endpoint
+                  // Consider enhancing the store to fetch this data separately if needed
                   lastLoginAt: null,
-                  createdAt: new Date(),
+                  createdAt: new Date(), // Placeholder, not displayed in UI
                 }))}
                 onRefresh={() => fetchOrgDetail(true)}
               />
