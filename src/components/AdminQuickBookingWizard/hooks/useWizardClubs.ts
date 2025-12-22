@@ -38,6 +38,7 @@ export function useWizardClubs({
   const [error, setError] = useState<string | null>(null);
 
   const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
+  const storeClubs = useAdminClubStore((state) => state.clubs);
 
   const fetchClubs = useCallback(async () => {
     if (!isOpen || currentStep !== 2) {
@@ -57,12 +58,11 @@ export function useWizardClubs({
       await fetchClubsIfNeeded();
 
       // Map clubs from store to wizard format
-      const storeClubs = useClubStore.getState().clubs;
       let mappedClubs: WizardClub[] = storeClubs.map((club) => ({
         id: club.id,
         name: club.name,
-        organizationId: club.organization?.id || "",
-        organizationName: club.organization?.name,
+        organizationId: club.organizationId || "",
+        organizationName: undefined,
       }));
 
       // Filter by selected organization for root admin
@@ -85,6 +85,7 @@ export function useWizardClubs({
     selectedOrganizationId,
     predefinedData,
     fetchClubsIfNeeded,
+    storeClubs,
     t,
   ]);
 

@@ -18,17 +18,6 @@ import "@/components/ClubDetailPage.css";
 // Basic interfaces for this component
 // Note: Defined locally to avoid coupling with full User model from Prisma
 
-interface OrgAdmin {
-  id: string;
-  type: "superadmin";
-  userId: string;
-  userName: string | null;
-  userEmail: string;
-  isPrimaryOwner: boolean;
-  lastLoginAt: Date | null;
-  createdAt: Date;
-}
-
 interface BookingPreview {
   id: string;
   courtName: string;
@@ -71,8 +60,6 @@ export default function OrganizationDetailPage() {
   // Archive/Delete modals can be re-added later if needed via the Danger Zone section
 
   const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
-  const [orgAdmins, setOrgAdmins] = useState<OrgAdmin[]>([]);
-  const [loadingAdmins, setLoadingAdmins] = useState(true);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [error, setError] = useState("");
 
@@ -118,21 +105,6 @@ export default function OrganizationDetailPage() {
       console.error("Failed to load organization:", err);
     }
   }, [orgId, ensureOrganizationById, t]);
-
-  const fetchAdmins = useCallback(async () => {
-    try {
-      setLoadingAdmins(true);
-      const response = await fetch(`/api/orgs/${orgId}/admins`);
-      if (response.ok) {
-        const data = await response.json();
-        setOrgAdmins(data.superAdmins || []);
-      }
-    } catch {
-      // Silent fail - admins section will show empty state
-    } finally {
-      setLoadingAdmins(false);
-    }
-  }, [orgId]);
 
   const fetchBookingsPreview = useCallback(async () => {
     try {
@@ -208,9 +180,8 @@ export default function OrganizationDetailPage() {
     
     // Fetch organization data from store (will use cache if available)
     fetchOrgDetail();
-    fetchAdmins();
     fetchBookingsPreview();
-  }, [isLoggedIn, isLoading, router, orgId, fetchOrgDetail, fetchAdmins, fetchBookingsPreview, isHydrated]);
+  }, [isLoggedIn, isLoading, router, orgId, fetchOrgDetail, fetchBookingsPreview, isHydrated]);
 
   // Debounced user search
   // useEffect(() => {
@@ -731,7 +702,7 @@ export default function OrganizationDetailPage() {
           )}
 
           {/* Organization Admins Management */}
-          {loadingAdmins ? (
+          {loading || !org ? (
             <div className="im-section-card im-org-detail-content--full">
               <div className="im-section-header">
                 <div className="im-skeleton im-skeleton-icon--round w-10 h-10" />
@@ -743,8 +714,17 @@ export default function OrganizationDetailPage() {
             <div className="im-section-card im-org-detail-content--full">
               <OrganizationAdminsTable
                 orgId={orgId}
-                admins={orgAdmins}
-                onRefresh={fetchAdmins}
+                admins={(org.superAdmins || []).map(admin => ({
+                  id: admin.membershipId,
+                  type: "superadmin" as const,
+                  userId: admin.id,
+                  userName: admin.name,
+                  userEmail: admin.email,
+                  isPrimaryOwner: admin.isPrimaryOwner,
+                  lastLoginAt: null,
+                  createdAt: new Date(),
+                }))}
+                onRefresh={() => fetchOrgDetail(true)}
               />
             </div>
           )}
