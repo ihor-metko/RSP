@@ -8,6 +8,7 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 const { Server } = require('socket.io');
+const { verifySocketToken } = require('./socketAuth');
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.HOSTNAME || 'localhost';
@@ -41,12 +42,87 @@ app.prepare().then(() => {
   // Store io instance globally for API routes to access
   global.io = io;
 
+  // Socket.IO authentication middleware
+  io.use(async (socket, next) => {
+    try {
+      const token = socket.handshake.auth.token;
+
+      if (!token) {
+        console.error('[SocketIO] Connection rejected: No token provided');
+        return next(new Error('Authentication token required'));
+      }
+
+      // Verify token and get user data
+      const userData = await verifySocketToken(token);
+
+      if (!userData) {
+        console.error('[SocketIO] Connection rejected: Invalid token');
+        return next(new Error('Invalid authentication token'));
+      }
+
+      // Attach user data to socket
+      socket.data.user = userData;
+
+      console.log('[SocketIO] User authenticated:', {
+        socketId: socket.id,
+        userId: userData.userId,
+        isRoot: userData.isRoot,
+      });
+
+      next();
+    } catch (error) {
+      console.error('[SocketIO] Authentication error:', error);
+      return next(new Error('Authentication failed'));
+    }
+  });
+
   // Socket.IO connection handling
   io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
+    const userData = socket.data.user;
+
+    if (!userData) {
+      console.error('[SocketIO] Connection without user data, disconnecting');
+      socket.disconnect(true);
+      return;
+    }
+
+    console.log('[SocketIO] Client connected:', {
+      socketId: socket.id,
+      userId: userData.userId,
+      isRoot: userData.isRoot,
+    });
+
+    // Server-controlled room subscription
+    // Root admins join all rooms (represented by special room)
+    if (userData.isRoot) {
+      socket.join('root_admin');
+      console.log('[SocketIO] Root admin joined root_admin room');
+    }
+
+    // Join organization rooms
+    userData.organizationIds.forEach((orgId) => {
+      const roomName = `organization:${orgId}`;
+      socket.join(roomName);
+      console.log('[SocketIO] Joined room:', roomName);
+    });
+
+    // Join club rooms
+    userData.clubIds.forEach((clubId) => {
+      const roomName = `club:${clubId}`;
+      socket.join(roomName);
+      console.log('[SocketIO] Joined room:', roomName);
+    });
+
+    console.log('[SocketIO] User rooms:', {
+      userId: userData.userId,
+      rooms: Array.from(socket.rooms).filter(r => r !== socket.id),
+    });
 
     socket.on('disconnect', () => {
-      console.log('Client disconnected:', socket.id);
+      console.log('[SocketIO] Client disconnected:', {
+        socketId: socket.id,
+        userId: userData.userId,
+      });
     });
   });
 

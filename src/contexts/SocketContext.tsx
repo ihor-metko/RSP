@@ -8,6 +8,7 @@
  * 
  * Features:
  * - Singleton socket connection
+ * - Authentication via JWT token
  * - Automatic reconnection handling
  * - Connection state tracking
  * - Safe cleanup on unmount
@@ -15,6 +16,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState, useMemo } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useSession } from 'next-auth/react';
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
@@ -57,6 +59,7 @@ interface SocketProviderProps {
  * 
  * Wraps the application and provides a single socket connection.
  * Should be placed high in the component tree (e.g., root layout).
+ * Requires authentication - will only connect when user is authenticated.
  * 
  * @example
  * ```tsx
@@ -68,48 +71,112 @@ interface SocketProviderProps {
 export function SocketProvider({ children }: SocketProviderProps) {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<TypedSocket | null>(null);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
+    // Only initialize socket if user is authenticated
+    if (status !== 'authenticated' || !session?.user) {
+      // If socket exists and user is no longer authenticated, disconnect
+      if (socketRef.current) {
+        console.log('[SocketProvider] User logged out, disconnecting socket');
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        setIsConnected(false);
+      }
+      return;
+    }
+
     // Prevent multiple socket instances
     if (socketRef.current) {
       console.warn('[SocketProvider] Socket already initialized, skipping');
       return;
     }
 
-    console.log('[SocketProvider] Initializing global socket connection');
+    console.log('[SocketProvider] Initializing socket connection with authentication');
 
-    // Initialize Socket.IO client
-    const socket: TypedSocket = io({
-      path: '/socket.io',
-    });
+    // Get the JWT token from the session
+    // Note: NextAuth v5 doesn't expose the raw token directly in session
+    // We need to get it from the cookie or use a custom API endpoint
+    // For now, we'll use a workaround by creating a custom session token
+    const getSessionToken = async () => {
+      try {
+        // Get the session token from cookies
+        const cookies = document.cookie.split(';');
+        const sessionTokenCookie = cookies.find(c => 
+          c.trim().startsWith('authjs.session-token=') || 
+          c.trim().startsWith('next-auth.session-token=') ||
+          c.trim().startsWith('__Secure-authjs.session-token=') ||
+          c.trim().startsWith('__Secure-next-auth.session-token=')
+        );
+        
+        if (!sessionTokenCookie) {
+          console.error('[SocketProvider] Session token cookie not found');
+          return null;
+        }
 
-    socketRef.current = socket;
+        const token = sessionTokenCookie.split('=')[1];
+        return token;
+      } catch (error) {
+        console.error('[SocketProvider] Error getting session token:', error);
+        return null;
+      }
+    };
 
-    // Connection event handlers
-    socket.on('connect', () => {
-      console.log('[SocketProvider] Socket connected:', socket.id);
-      setIsConnected(true);
-    });
+    // Initialize socket connection with authentication
+    const initializeSocket = async () => {
+      const token = await getSessionToken();
 
-    socket.on('disconnect', (reason) => {
-      console.log('[SocketProvider] Socket disconnected:', reason);
-      setIsConnected(false);
-    });
+      if (!token) {
+        console.error('[SocketProvider] Cannot initialize socket: no token available');
+        return;
+      }
 
-    socket.on('connect_error', (error) => {
-      console.error('[SocketProvider] Connection error:', error.message);
-    });
+      // Initialize Socket.IO client with authentication
+      const socket: TypedSocket = io({
+        path: '/socket.io',
+        auth: {
+          token,
+        },
+      });
 
-    // Reconnection handler
-    socket.io.on('reconnect', (attemptNumber) => {
-      console.log('[SocketProvider] Socket reconnected after', attemptNumber, 'attempts');
-      setIsConnected(true);
-    });
+      socketRef.current = socket;
 
-    // Cleanup on unmount
+      // Connection event handlers
+      socket.on('connect', () => {
+        console.log('[SocketProvider] Socket connected:', socket.id);
+        setIsConnected(true);
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.log('[SocketProvider] Socket disconnected:', reason);
+        setIsConnected(false);
+      });
+
+      socket.on('connect_error', (error) => {
+        console.error('[SocketProvider] Connection error:', error.message);
+        // If authentication fails, don't retry
+        if (error.message.includes('Authentication')) {
+          console.error('[SocketProvider] Authentication failed, disconnecting');
+          socket.disconnect();
+        }
+      });
+
+      // Reconnection handler
+      socket.io.on('reconnect', (attemptNumber) => {
+        console.log('[SocketProvider] Socket reconnected after', attemptNumber, 'attempts');
+        setIsConnected(true);
+      });
+    };
+
+    initializeSocket();
+
+    // Cleanup on unmount or when session changes
     return () => {
+      if (!socketRef.current) return;
+      
       console.log('[SocketProvider] Cleaning up socket connection');
       
+      const socket = socketRef.current;
       socket.off('connect');
       socket.off('disconnect');
       socket.off('connect_error');
@@ -118,7 +185,7 @@ export function SocketProvider({ children }: SocketProviderProps) {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, []); // Empty dependency array - initialize only once
+  }, [session, status]); // Re-initialize when session changes
 
   const value: SocketContextValue = useMemo(
     () => ({
