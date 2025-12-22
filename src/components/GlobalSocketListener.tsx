@@ -5,7 +5,7 @@
  * 
  * Subscribes to all real-time Socket.IO events from the Notification Socket and:
  * 1. Displays toast notifications via globalNotificationManager
- * 2. Updates Zustand stores (booking store, notification store) with real-time data
+ * 2. Updates Zustand stores (notification store) with real-time data
  * 3. Transforms Booking/Payment events into AdminNotification format for unified notification system
  * 
  * This component is initialized once at app startup and works across all pages.
@@ -19,11 +19,13 @@
  * 
  * Features:
  * - Uses notification socket from SocketProvider (single persistent connection)
- * - Centralized event dispatching
+ * - Centralized event dispatching for admin notifications and payment events
  * - Automatic duplicate prevention via notification manager
- * - Updates booking store for real-time UI sync
  * - Updates notification store for admin notifications (unified system)
  * - All admin-relevant events (Training, Booking, Payment) persist in notification store
+ * 
+ * Note: Booking events (booking_created, booking_updated, booking_cancelled) and slot events
+ * are now handled by BookingSocketListener on club operations pages for real-time calendar updates.
  */
 
 import { useEffect } from 'react';
@@ -31,9 +33,6 @@ import type {
   BookingCreatedEvent,
   BookingUpdatedEvent,
   BookingDeletedEvent,
-  SlotLockedEvent,
-  SlotUnlockedEvent,
-  LockExpiredEvent,
   PaymentConfirmedEvent,
   PaymentFailedEvent,
   AdminNotificationEvent,
@@ -48,29 +47,18 @@ import {
   transformPaymentFailed,
 } from '@/utils/globalNotificationManager';
 import { useSocket } from '@/contexts/SocketContext';
-import { useBookingStore } from '@/stores/useBookingStore';
 import { useNotificationStore } from '@/stores/useNotificationStore';
-
-/**
- * Cleanup interval for expired locks in milliseconds (60 seconds)
- */
-const CLEANUP_INTERVAL_MS = 60000;
 
 /**
  * Global Socket Event Dispatcher
  * 
  * Usage: Add this component to the root layout to enable:
- * - Global socket event listening
+ * - Global socket event listening for notifications and payments
  * - Toast notifications
- * - Automatic store updates
+ * - Automatic notification store updates
  */
 export function GlobalSocketListener() {
   const { socket, isConnected } = useSocket();
-  const updateBookingFromSocket = useBookingStore(state => state.updateBookingFromSocket);
-  const removeBookingFromSocket = useBookingStore(state => state.removeBookingFromSocket);
-  const addLockedSlot = useBookingStore(state => state.addLockedSlot);
-  const removeLockedSlot = useBookingStore(state => state.removeLockedSlot);
-  const cleanupExpiredLocks = useBookingStore(state => state.cleanupExpiredLocks);
   const addNotification = useNotificationStore(state => state.addNotification);
 
   useEffect(() => {
@@ -78,51 +66,42 @@ export function GlobalSocketListener() {
 
     console.log('[GlobalSocketListener] Registering event listeners');
 
-    // Booking events - handle both notifications and store updates
-    // Now includes unified notification system: toasts + notification store persistence
+    // Booking events - for notification purposes only (not for real-time calendar updates)
+    // Real-time calendar updates are handled by BookingSocketListener on club operations pages
     const handleBookingCreated = (data: BookingCreatedEvent) => {
       // Show toast notification
       handleSocketEvent('booking_created', data);
-      
-      // Update booking store for real-time calendar sync
-      updateBookingFromSocket(data.booking);
       
       // Add to notification store for admin notification UI
       const notification = transformBookingCreated(data);
       addNotification(notification);
       
-      console.log('[GlobalSocketListener] Booking created - toast shown, store updated, notification added');
+      console.log('[GlobalSocketListener] Booking created - notification added');
     };
 
     const handleBookingUpdated = (data: BookingUpdatedEvent) => {
       // Show toast notification
       handleSocketEvent('booking_updated', data);
       
-      // Update booking store for real-time calendar sync
-      updateBookingFromSocket(data.booking);
-      
       // Add to notification store for admin notification UI
       const notification = transformBookingUpdated(data);
       addNotification(notification);
       
-      console.log('[GlobalSocketListener] Booking updated - toast shown, store updated, notification added');
+      console.log('[GlobalSocketListener] Booking updated - notification added');
     };
 
     const handleBookingCancelled = (data: BookingDeletedEvent) => {
       // Show toast notification
       handleSocketEvent('booking_cancelled', data);
       
-      // Remove from booking store for real-time calendar sync
-      removeBookingFromSocket(data.bookingId);
-      
       // Add to notification store for admin notification UI
       const notification = transformBookingCancelled(data);
       addNotification(notification);
       
-      console.log('[GlobalSocketListener] Booking cancelled - toast shown, store updated, notification added');
+      console.log('[GlobalSocketListener] Booking cancelled - notification added');
     };
 
-    // Payment events - now integrated with unified notification system
+    // Payment events - integrated with unified notification system
     const handlePaymentConfirmed = (data: PaymentConfirmedEvent) => {
       // Show toast notification
       handleSocketEvent('payment_confirmed', data);
@@ -145,38 +124,17 @@ export function GlobalSocketListener() {
       console.log('[GlobalSocketListener] Payment failed - toast shown, notification added');
     };
 
-    // Admin notification event - update notification store (unchanged)
+    // Admin notification event - update notification store
     const handleAdminNotification = (data: AdminNotificationEvent) => {
       console.log('[GlobalSocketListener] Admin notification received:', data);
       addNotification(data);
     };
 
-    // Register new event names
+    // Register event handlers for notification events
     socket.on('booking_created', handleBookingCreated);
     socket.on('booking_updated', handleBookingUpdated);
     socket.on('booking_cancelled', handleBookingCancelled);
     socket.on('admin_notification', handleAdminNotification);
-
-    // Slot lock events - update booking store for real-time UI sync
-    socket.on('slot_locked', (data: SlotLockedEvent) => {
-      handleSocketEvent('slot_locked', data);
-      addLockedSlot(data);
-      console.log('[GlobalSocketListener] Slot locked - toast shown, store updated');
-    });
-
-    socket.on('slot_unlocked', (data: SlotUnlockedEvent) => {
-      handleSocketEvent('slot_unlocked', data);
-      removeLockedSlot(data.slotId);
-      console.log('[GlobalSocketListener] Slot unlocked - toast shown, store updated');
-    });
-
-    socket.on('lock_expired', (data: LockExpiredEvent) => {
-      handleSocketEvent('lock_expired', data);
-      removeLockedSlot(data.slotId);
-      console.log('[GlobalSocketListener] Lock expired - toast shown, store updated');
-    });
-
-    // Payment events with unified notification system
     socket.on('payment_confirmed', handlePaymentConfirmed);
     socket.on('payment_failed', handlePaymentFailed);
 
@@ -188,9 +146,6 @@ export function GlobalSocketListener() {
       socket.off('booking_updated', handleBookingUpdated);
       socket.off('booking_cancelled', handleBookingCancelled);
       socket.off('admin_notification', handleAdminNotification);
-      socket.off('slot_locked');
-      socket.off('slot_unlocked');
-      socket.off('lock_expired');
       socket.off('payment_confirmed', handlePaymentConfirmed);
       socket.off('payment_failed', handlePaymentFailed);
     };
@@ -203,15 +158,6 @@ export function GlobalSocketListener() {
       cleanupNotificationManager();
     };
   }, []);
-
-  // Periodic cleanup of expired slot locks
-  useEffect(() => {
-    const interval = setInterval(() => {
-      cleanupExpiredLocks();
-    }, CLEANUP_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [cleanupExpiredLocks]);
 
   // Log connection status changes
   useEffect(() => {

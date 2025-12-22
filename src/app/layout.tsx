@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { ClubProvider } from "@/contexts/ClubContext";
 import { SocketProvider } from "@/contexts/SocketContext";
+import { BookingSocketProvider } from "@/contexts/BookingSocketContext";
 import { GlobalSocketListener } from "@/components/GlobalSocketListener";
 import { NotificationStoreInitializer } from "@/components/NotificationStoreInitializer";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
@@ -31,9 +32,11 @@ export default async function RootLayout({
           <AuthProvider>
             <ClubProvider>
               <SocketProvider>
-                <GlobalSocketListener />
-                <NotificationStoreInitializer />
-                {children}
+                <BookingSocketProvider>
+                  <GlobalSocketListener />
+                  <NotificationStoreInitializer />
+                  {children}
+                </BookingSocketProvider>
               </SocketProvider>
             </ClubProvider>
           </AuthProvider>
