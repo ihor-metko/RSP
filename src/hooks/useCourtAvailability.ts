@@ -64,6 +64,9 @@ export function useCourtAvailability(
 
     console.log('[useCourtAvailability] Setting up event listeners for club:', clubId);
 
+    // Capture the current ref value for use in cleanup
+    const eventHandled = eventHandledRef.current;
+
     // Handle booking created - refresh if it affects this club
     // NOTE: Client-side filtering by clubId is LEGACY and will be removed.
     // Server now guarantees correct targeting via club-based rooms.
@@ -149,7 +152,8 @@ export function useCourtAvailability(
       socket.off('slot_locked', handleSlotLocked);
       socket.off('slot_unlocked', handleSlotUnlocked);
       socket.off('lock_expired', handleLockExpired);
-      eventHandledRef.current.clear();
+      // Use captured ref value from effect setup to avoid stale closure warning
+      eventHandled.clear();
     };
   }, [socket, clubId, triggerRefresh, isEventHandled]);
 
