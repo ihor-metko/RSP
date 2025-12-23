@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { IMLink, Button } from "@/components/ui";
-import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
+import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { getSportName } from "@/constants/sports";
 import type { ClubWithCounts } from "@/types/club";
 import "./AdminClubCard.css";

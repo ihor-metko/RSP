@@ -58,7 +58,8 @@ export function UploadField({
 
   const validateFile = useCallback((file: File): string | null => {
     const allowedTypes = allowSVG ? ALLOWED_LOGO_TYPES : ALLOWED_IMAGE_TYPES;
-    if (!allowedTypes.includes(file.type as typeof allowedTypes[number])) {
+    // Use type assertion to bypass strict type checking since we know the logic is correct
+    if (!(allowedTypes as readonly string[]).includes(file.type)) {
       const formats = allowSVG ? "JPG, PNG, WebP, SVG" : "JPG, PNG, WebP";
       return `Invalid file type. Allowed: ${formats}`;
     }

@@ -263,7 +263,8 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
         if (clubIndex >= 0) {
           const updatedClubs = [...currentClubs];
           // Update with all shared fields from the detail view
-          const { courts, coaches, businessHours, gallery, ...publicFields } = club;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { courts: _courts, coaches: _coaches, businessHours: _businessHours, gallery: _gallery, ...publicFields } = club;
           updatedClubs[clubIndex] = {
             ...updatedClubs[clubIndex],
             ...publicFields,

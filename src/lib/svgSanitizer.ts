@@ -5,7 +5,7 @@
  * Only used for organization and club logos.
  */
 
-import * as DOMPurify from "isomorphic-dompurify";
+import DOMPurify from "isomorphic-dompurify";
 
 /**
  * Configuration for SVG sanitization.

@@ -41,7 +41,7 @@ export function PlayerQuickBooking({
   const fetchClubsIfNeeded = usePlayerClubStore((state) => state.fetchClubsIfNeeded);
 
   // Real-time availability updates via WebSocket
-  const { refreshKey, triggerRefresh } = useCourtAvailability(
+  useCourtAvailability(
     preselectedClubId || null,
     () => {
       // Refetch courts when availability changes
@@ -209,7 +209,7 @@ export function PlayerQuickBooking({
     clubsFromStore.map((club) => ({
       id: club.id,
       name: club.name,
-      slug: club.slug || "",
+      slug: null, // PlayerClub doesn't have slug field
       location: club.location,
       city: club.city || undefined,
       heroImage: club.heroImage || undefined,

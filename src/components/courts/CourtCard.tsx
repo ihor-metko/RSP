@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button, IMLink } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
-import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
+import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import {
   formatTime,
   getSlotStatusClass,

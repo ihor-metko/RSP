@@ -17,6 +17,7 @@ import type {
   BookingDeletedEvent,
   SlotLockedEvent,
 } from '@/types/socket';
+import { handleSocketEvent } from '@/utils/globalNotificationManager';
 
 // Mock booking socket context
 const mockSocket = {
@@ -63,7 +64,7 @@ describe('BookingSocketListener', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockHandleSocketEvent = require('@/utils/globalNotificationManager').handleSocketEvent;
+    mockHandleSocketEvent = handleSocketEvent as jest.Mock;
   });
 
   it('should register event handlers on mount', async () => {

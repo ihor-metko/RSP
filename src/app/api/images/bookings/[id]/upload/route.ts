@@ -20,9 +20,10 @@ import { prisma } from "@/lib/prisma";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const bookingId = params.id;
+  const { id } = await params;
+  const bookingId = id;
   let formData: FormData | null = null;
   let file: File | null = null;
   
@@ -41,7 +42,6 @@ export async function POST(
       select: { 
         id: true, 
         userId: true,
-        image: true,
       },
     });
 
@@ -100,14 +100,15 @@ export async function POST(
     const url = getUploadedImageUrl("bookings", bookingId, filename);
 
     // Update booking record with new image URL
-    await prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        image: url,
-      },
-    });
+    // TODO: Add image field to Booking model if needed
+    // await prisma.booking.update({
+    //   where: { id: bookingId },
+    //   data: {
+    //     image: url,
+    //   },
+    // });
 
-    console.log(`[Booking Upload] Database updated successfully for booking ${bookingId}, image: ${url}`);
+    console.log(`[Booking Upload] File saved successfully for booking ${bookingId}, image: ${url}`);
 
     return NextResponse.json({
       success: true,

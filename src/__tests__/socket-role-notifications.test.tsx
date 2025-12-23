@@ -14,6 +14,7 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { GlobalSocketListener } from '@/components/GlobalSocketListener';
 import type { AdminNotificationEvent, BookingCreatedEvent } from '@/types/socket';
+import { useBookingSocket } from '@/contexts/BookingSocketContext';
 
 // Mock the notification manager
 jest.mock('@/utils/globalNotificationManager', () => ({
@@ -186,8 +187,7 @@ describe('Role-based Notification Delivery', () => {
   describe('Club Admin Notifications', () => {
     beforeEach(() => {
       // Mock useBookingSocket to return booking socket for club admin
-      const { useBookingSocket } = require('@/contexts/BookingSocketContext');
-      useBookingSocket.mockReturnValue({
+      (useBookingSocket as jest.Mock).mockReturnValue({
         socket: mockBookingSocket,
         isConnected: true,
         activeClubId: 'club-1',
@@ -390,10 +390,8 @@ describe('Role-based Notification Delivery', () => {
     });
 
     it('should cleanup BookingSocket listeners when activeClubId changes', async () => {
-      const { useBookingSocket } = require('@/contexts/BookingSocketContext');
-      
       // Start with booking socket connected
-      useBookingSocket.mockReturnValue({
+      (useBookingSocket as jest.Mock).mockReturnValue({
         socket: mockBookingSocket,
         isConnected: true,
         activeClubId: 'club-1',
@@ -402,7 +400,7 @@ describe('Role-based Notification Delivery', () => {
       const { rerender } = render(<GlobalSocketListener />);
 
       // Change to no active club
-      useBookingSocket.mockReturnValue({
+      (useBookingSocket as jest.Mock).mockReturnValue({
         socket: null,
         isConnected: false,
         activeClubId: null,

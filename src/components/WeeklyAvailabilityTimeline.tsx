@@ -252,7 +252,7 @@ export function WeeklyAvailabilityTimeline({
   const now = useMemo(() => new Date(), []);
 
   // Real-time availability updates via WebSocket
-  const { refreshKey } = useCourtAvailability(clubId, () => {
+  useCourtAvailability(clubId, () => {
     console.log('[WeeklyAvailabilityTimeline] Real-time update triggered, refetching');
     fetchAvailability();
   });

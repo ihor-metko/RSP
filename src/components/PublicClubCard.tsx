@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button, IMLink } from "@/components/ui";
-import { isValidImageUrl, getSupabaseStorageUrl } from "@/utils/image";
+import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import "./ClubsList.css";
 
 export interface PublicClubCardProps {

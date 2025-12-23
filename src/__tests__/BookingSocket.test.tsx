@@ -12,6 +12,7 @@ import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { BookingSocketProvider, useBookingSocket } from '@/contexts/BookingSocketContext';
 import { io } from 'socket.io-client';
+import { useUserStore } from '@/stores/useUserStore';
 
 // Mock socket.io-client
 jest.mock('socket.io-client');
@@ -169,8 +170,8 @@ describe('BookingSocket', () => {
   it('should initialize socket for root admin regardless of club', async () => {
     // Update mock to be root admin
     const mockRootUser = { ...mockUser, isRoot: true };
-    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
-    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+    (useUserStore as jest.Mock)
+    (useUserStore as jest.Mock).mockImplementation((selector) => {
       const mockStore = {
         sessionStatus: 'authenticated',
         user: mockRootUser,
@@ -295,8 +296,8 @@ describe('BookingSocket', () => {
 
   it('should not initialize socket for non-admin users even with activeClubId', async () => {
     // Update mock to be a regular player (non-admin)
-    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
-    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+    (useUserStore as jest.Mock)
+    (useUserStore as jest.Mock).mockImplementation((selector) => {
       const mockStore = {
         sessionStatus: 'authenticated',
         user: mockUser,
@@ -327,8 +328,8 @@ describe('BookingSocket', () => {
     mockActiveClubId = 'club-1';
 
     // Start with admin user
-    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
-    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+    (useUserStore as jest.Mock)
+    (useUserStore as jest.Mock).mockImplementation((selector) => {
       const mockStore = {
         sessionStatus: 'authenticated',
         user: mockUser,
@@ -350,7 +351,7 @@ describe('BookingSocket', () => {
     jest.clearAllMocks();
 
     // Change to non-admin user
-    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+    (useUserStore as jest.Mock).mockImplementation((selector) => {
       const mockStore = {
         sessionStatus: 'authenticated',
         user: mockUser,
@@ -376,8 +377,8 @@ describe('BookingSocket', () => {
 
   it('should initialize socket for organization admin with clubId', async () => {
     // Update mock to be organization admin
-    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
-    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+    (useUserStore as jest.Mock)
+    (useUserStore as jest.Mock).mockImplementation((selector) => {
       const mockStore = {
         sessionStatus: 'authenticated',
         user: mockUser,
@@ -413,8 +414,8 @@ describe('BookingSocket', () => {
 
   it('should initialize socket for club owner with clubId', async () => {
     // Update mock to be club owner
-    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
-    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+    (useUserStore as jest.Mock)
+    (useUserStore as jest.Mock).mockImplementation((selector) => {
       const mockStore = {
         sessionStatus: 'authenticated',
         user: mockUser,

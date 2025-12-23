@@ -111,11 +111,10 @@ export default function CourtDetailPage({
   const isAuthenticated = isLoggedIn && user;
 
   // Get locked slots from store
-  const lockedSlots = useBookingStore((state) => state.lockedSlots);
   const isSlotLocked = useBookingStore((state) => state.isSlotLocked);
 
   // Real-time availability updates via WebSocket  
-  const { refreshKey } = useCourtAvailability(
+  useCourtAvailability(
     court?.clubId || null,
     () => {
       // Refetch availability when WebSocket events occur

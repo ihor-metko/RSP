@@ -6,7 +6,7 @@ import "./NotificationToast.css";
 
 interface NotificationToastProps {
   id: string;
-  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
+  type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED" | "BOOKING_CREATED" | "BOOKING_UPDATED" | "BOOKING_CANCELLED" | "PAYMENT_CONFIRMED" | "PAYMENT_FAILED";
   summary: string;
   onView: () => void;
   onDismiss: () => void;
@@ -23,6 +23,16 @@ function getToastIcon(type: string): string {
       return "❌";
     case "CANCELED":
       return "🚫";
+    case "BOOKING_CREATED":
+      return "📅";
+    case "BOOKING_UPDATED":
+      return "📝";
+    case "BOOKING_CANCELLED":
+      return "🚫";
+    case "PAYMENT_CONFIRMED":
+      return "💳";
+    case "PAYMENT_FAILED":
+      return "❌";
     default:
       return "🔔";
   }
@@ -85,7 +95,7 @@ export function NotificationToast({
 interface ToastContainerProps {
   toasts: Array<{
     id: string;
-    type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED";
+    type: "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELED" | "BOOKING_CREATED" | "BOOKING_UPDATED" | "BOOKING_CANCELLED" | "PAYMENT_CONFIRMED" | "PAYMENT_FAILED";
     summary: string;
   }>;
   onView: (id: string) => void;

@@ -20,9 +20,10 @@ import { prisma } from "@/lib/prisma";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const targetUserId = params.id;
+  const { id } = await params;
+  const targetUserId = id;
   let formData: FormData | null = null;
   let file: File | null = null;
   

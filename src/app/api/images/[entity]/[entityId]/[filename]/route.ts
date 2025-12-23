@@ -95,10 +95,10 @@ function isValidUUID(uuid: string): boolean {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { entity: string; entityId: string; filename: string } }
+  { params }: { params: Promise<{ entity: string; entityId: string; filename: string }> }
 ) {
   try {
-    const { entity, entityId, filename } = params;
+    const { entity, entityId, filename } = await params;
 
     // Validate entity type
     if (!isValidEntity(entity)) {

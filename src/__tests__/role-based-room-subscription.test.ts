@@ -12,6 +12,7 @@
 import { verifySocketToken } from '@/lib/socketAuth';
 import { prisma } from '@/lib/prisma';
 import { MembershipRole, ClubMembershipRole } from '@/constants/roles';
+import { decode } from 'next-auth/jwt';
 
 // Mock Prisma
 jest.mock('@/lib/prisma', () => ({
@@ -34,7 +35,7 @@ jest.mock('next-auth/jwt', () => ({
 }));
 
 describe('Role-based room subscription', () => {
-  const mockDecode = require('next-auth/jwt').decode;
+  const mockDecode = decode as jest.Mock;
   const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
   beforeEach(() => {

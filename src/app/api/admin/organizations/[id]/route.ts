@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRootAdmin, requireOrganizationAdmin } from "@/lib/requireRole";
 import { MembershipRole } from "@/constants/roles";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
+import { SportType } from "@prisma/client";
 
 /**
  * Generate a URL-friendly slug from a name
@@ -336,7 +337,7 @@ export async function PATCH(
       heroImage?: string | null;
       metadata?: string | null;
       isPublic?: boolean;
-      supportedSports?: string[];
+      supportedSports?: SportType[];
     } = {};
 
     if (name !== undefined) updateData.name = name.trim();
