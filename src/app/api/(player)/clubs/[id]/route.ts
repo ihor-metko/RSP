@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Maximum number of gallery images to return
-const MAX_GALLERY_IMAGES = 6;
-
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

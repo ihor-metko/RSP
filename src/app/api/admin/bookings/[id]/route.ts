@@ -4,7 +4,6 @@ import { requireAnyAdmin } from "@/lib/requireRole";
 import { calculateBookingStatus, toBookingStatus, migrateLegacyStatus } from "@/utils/bookingStatus";
 import { emitBookingUpdated, emitBookingDeleted } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
-import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
 
 /**
  * Booking detail response type
@@ -296,23 +295,6 @@ export async function PATCH(
         { error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` },
         { status: 400 }
       );
-    }
-
-    // First check if admin has access to this booking
-        coachId: updatedBooking.coachId,
-        coachName: updatedBooking.coachName,
-        createdAt: updatedBooking.createdAt,
-        updatedAt: new Date().toISOString(),
-      };
-
-      emitBookingUpdated({
-        booking: operationsBooking,
-        clubId: updatedBooking.clubId,
-        courtId: updatedBooking.courtId,
-        previousStatus: mockBooking.status,
-      });
-
-      return NextResponse.json(updatedBooking);
     }
 
     // First check if admin has access to this booking
