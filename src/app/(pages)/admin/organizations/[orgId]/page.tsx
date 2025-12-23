@@ -7,6 +7,7 @@ import { Button, Input, Modal, EntityBanner, MetricCardSkeleton, OrgInfoCardSkel
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
+import { useBookingStore } from "@/stores/useBookingStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
 import { EntityEditStepper } from "@/components/admin/EntityEditStepper.client";
 import { BasicInfoStep, AddressStep, ImagesStep } from "@/components/admin/OrganizationSteps";
@@ -59,8 +60,13 @@ export default function OrganizationDetailPage() {
   // Note: deleteOrganization and archive functionality removed as per requirement to simplify the page
   // Archive/Delete modals can be re-added later if needed via the Danger Zone section
 
-  const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
+  // Use booking store for bookings preview
+  const fetchBookingsByOrganization = useBookingStore((state) => state.fetchBookingsByOrganization);
+  const bookingsByOrg = useBookingStore((state) => state.bookingsByOrg);
+  const loadingBookingsStore = useBookingStore((state) => state.loading);
+  
   const [loadingBookings, setLoadingBookings] = useState(true);
+  const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
   const [error, setError] = useState("");
 
   // Toast
@@ -123,45 +129,50 @@ export default function OrganizationDetailPage() {
       const weekFromNow = new Date(today);
       weekFromNow.setDate(weekFromNow.getDate() + 7);
 
-      // Fetch bookings for the organization
-      const [todayResponse, weekResponse, upcomingResponse] = await Promise.all([
-        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&dateTo=${tomorrow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
-        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&dateTo=${weekFromNow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
-        fetch(`/api/admin/bookings?orgId=${orgId}&dateFrom=${today.toISOString()}&perPage=${PREVIEW_BOOKINGS_LIMIT}`)
+      // Fetch bookings using the store
+      const [todayBookings, weekBookings, upcomingBookings] = await Promise.all([
+        fetchBookingsByOrganization(orgId, {
+          dateFrom: today.toISOString(),
+          dateTo: tomorrow.toISOString(),
+          perPage: MAX_SUMMARY_BOOKINGS,
+        }),
+        fetchBookingsByOrganization(orgId, {
+          dateFrom: today.toISOString(),
+          dateTo: weekFromNow.toISOString(),
+          perPage: MAX_SUMMARY_BOOKINGS,
+        }),
+        fetchBookingsByOrganization(orgId, {
+          dateFrom: today.toISOString(),
+          perPage: PREVIEW_BOOKINGS_LIMIT,
+        }),
       ]);
 
-      if (todayResponse.ok && weekResponse.ok && upcomingResponse.ok) {
-        const [todayData, weekData, upcomingData] = await Promise.all([
-          todayResponse.json(),
-          weekResponse.json(),
-          upcomingResponse.json()
-        ]);
-
-        setBookingsPreview({
-          items: upcomingData.bookings.map((b: AdminBookingResponse) => ({
-            id: b.id,
-            courtName: b.courtName,
-            clubName: b.clubName,
-            userName: b.userName,
-            userEmail: b.userEmail,
-            start: b.start,
-            end: b.end,
-            status: b.bookingStatus,
-            sportType: b.sportType,
-          })),
-          summary: {
-            todayCount: todayData.total,
-            weekCount: weekData.total,
-            totalUpcoming: upcomingData.total,
-          },
-        });
-      }
-    } catch {
-      // Silent fail
+      // Transform bookings to the expected format
+      setBookingsPreview({
+        items: upcomingBookings.slice(0, PREVIEW_BOOKINGS_LIMIT).map((b) => ({
+          id: b.id,
+          courtName: b.courtName || '',
+          clubName: b.clubName || '',
+          userName: b.userName || null,
+          userEmail: b.userEmail || '',
+          start: b.start,
+          end: b.end,
+          status: b.bookingStatus || b.status || '',
+          sportType: b.sportType || '',
+        })),
+        summary: {
+          todayCount: todayBookings.length,
+          weekCount: weekBookings.length,
+          totalUpcoming: upcomingBookings.length,
+        },
+      });
+    } catch (err) {
+      console.error("Failed to fetch bookings preview:", err);
+      // Silent fail for non-critical preview data
     } finally {
       setLoadingBookings(false);
     }
-  }, [orgId]);
+  }, [orgId, fetchBookingsByOrganization]);
 
   const fetchUsers = useCallback(async (query: string = "") => {
     try {

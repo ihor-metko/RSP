@@ -18,6 +18,7 @@ interface AdminUsersState {
   usersById: Record<string, AdminUserDetail>;
   currentUser: AdminUserDetail | null;
   simpleUsers: SimpleUser[]; // For autocomplete/search
+  clubAdminsCache: Record<string, SimpleUser[]>; // Cache club admins by clubId
   loading: boolean;
   loadingDetail: boolean;
   error: string | null;
@@ -30,6 +31,7 @@ interface AdminUsersState {
   // Internal inflight Promise guards (not exposed)
   _inflightFetchUsers: Promise<void> | null;
   _inflightFetchUserById: Record<string, Promise<AdminUserDetail>> | null;
+  _inflightFetchClubAdmins: Record<string, Promise<SimpleUser[]>> | null;
 
   // Actions
   setUsers: (users: AdminUser[]) => void;
@@ -52,6 +54,8 @@ interface AdminUsersState {
   ensureUserById: (userId: string, options?: { force?: boolean }) => Promise<AdminUserDetail>;
   
   fetchSimpleUsers: (query?: string) => Promise<void>;
+  
+  fetchClubAdmins: (clubId: string, options?: { force?: boolean }) => Promise<SimpleUser[]>;
   
   // CRUD actions
   updateUser: (userId: string, payload: UpdateUserPayload) => Promise<AdminUserDetail>;
@@ -100,6 +104,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   usersById: {},
   currentUser: null,
   simpleUsers: [],
+  clubAdminsCache: {},
   loading: false,
   loadingDetail: false,
   error: null,
@@ -110,6 +115,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   lastFetchedAt: null,
   _inflightFetchUsers: null,
   _inflightFetchUserById: null,
+  _inflightFetchClubAdmins: null,
 
   // State setters
   setUsers: (users) => set({ users }),
@@ -342,6 +348,82 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       set({ error: errorMessage, loading: false });
       throw error;
     }
+  },
+
+  /**
+   * Fetch club admins for a specific club with caching
+   */
+  fetchClubAdmins: async (clubId: string, options = {}) => {
+    const { force = false } = options;
+    const state = get();
+
+    // Return cached data if available and not forcing refresh
+    if (!force && state.clubAdminsCache[clubId]) {
+      return Promise.resolve(state.clubAdminsCache[clubId]);
+    }
+
+    // If there's already an inflight request for this club, return it
+    if (state._inflightFetchClubAdmins && clubId in state._inflightFetchClubAdmins) {
+      return state._inflightFetchClubAdmins[clubId];
+    }
+
+    // Create new inflight request
+    const inflightPromise = (async (): Promise<SimpleUser[]> => {
+      set({ loading: true, error: null });
+      try {
+        const response = await fetch(`/api/admin/clubs/${clubId}/admins`);
+        
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: "Failed to fetch club admins" }));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const admins: SimpleUser[] = await response.json();
+        
+        // Update cache and clear inflight
+        set((state) => {
+          const newInflight = { ...(state._inflightFetchClubAdmins || {}) };
+          delete newInflight[clubId];
+          
+          return {
+            clubAdminsCache: {
+              ...state.clubAdminsCache,
+              [clubId]: admins,
+            },
+            loading: false,
+            _inflightFetchClubAdmins: Object.keys(newInflight).length > 0 ? newInflight : null,
+          };
+        });
+        
+        return admins;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch club admins";
+        
+        // Clear inflight and set error
+        set((state) => {
+          const newInflight = { ...(state._inflightFetchClubAdmins || {}) };
+          delete newInflight[clubId];
+          
+          return {
+            error: errorMessage,
+            loading: false,
+            _inflightFetchClubAdmins: Object.keys(newInflight).length > 0 ? newInflight : null,
+          };
+        });
+        
+        throw error;
+      }
+    })();
+
+    // Store inflight promise
+    set((state) => ({
+      _inflightFetchClubAdmins: {
+        ...(state._inflightFetchClubAdmins || {}),
+        [clubId]: inflightPromise,
+      },
+    }));
+
+    return inflightPromise;
   },
 
   /**

@@ -55,6 +55,7 @@ interface BookingState {
   // State
   bookings: OperationsBooking[];
   lockedSlots: LockedSlot[];
+  bookingsByOrg: Record<string, OperationsBooking[]>; // Cache bookings by orgId
   loading: boolean;
   error: string | null;
   lastFetchedAt: number | null;
@@ -62,6 +63,7 @@ interface BookingState {
 
   // Internal inflight guards
   _inflightFetch: Promise<OperationsBooking[]> | null;
+  _inflightFetchByOrg: Record<string, Promise<OperationsBooking[]>> | null;
 
   // Actions
   setBookings: (bookings: OperationsBooking[]) => void;
@@ -76,6 +78,17 @@ interface BookingState {
     clubId: string,
     date: string,
     options?: { force?: boolean }
+  ) => Promise<OperationsBooking[]>;
+
+  // Fetch bookings for an organization with optional filters
+  fetchBookingsByOrganization: (
+    orgId: string,
+    options?: {
+      dateFrom?: string;
+      dateTo?: string;
+      perPage?: number;
+      force?: boolean;
+    }
   ) => Promise<OperationsBooking[]>;
 
   // Create a new booking
@@ -110,11 +123,13 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   // Initial state
   bookings: [],
   lockedSlots: [],
+  bookingsByOrg: {},
   loading: false,
   error: null,
   lastFetchedAt: null,
   lastFetchParams: null,
   _inflightFetch: null,
+  _inflightFetchByOrg: null,
 
   // State setters
   setBookings: (bookings) => set({ bookings }),
@@ -196,6 +211,94 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     }
 
     return get().fetchBookingsForDay(clubId, date);
+  },
+
+  // Fetch bookings for an organization with optional filters
+  fetchBookingsByOrganization: async (
+    orgId: string,
+    options = {}
+  ) => {
+    const { dateFrom, dateTo, perPage = 100, force = false } = options;
+    const state = get();
+
+    // Build a cache key from the parameters
+    const cacheKey = `${orgId}_${dateFrom || ''}_${dateTo || ''}_${perPage}`;
+
+    // Return cached data if available and not forcing refresh
+    if (!force && state.bookingsByOrg[cacheKey]) {
+      return Promise.resolve(state.bookingsByOrg[cacheKey]);
+    }
+
+    // If there's already an inflight request for this org, return it
+    if (state._inflightFetchByOrg && cacheKey in state._inflightFetchByOrg) {
+      return state._inflightFetchByOrg[cacheKey];
+    }
+
+    // Create new inflight request
+    const inflightPromise = (async (): Promise<OperationsBooking[]> => {
+      set({ loading: true, error: null });
+
+      try {
+        // Build query params
+        const params = new URLSearchParams({ orgId });
+        if (dateFrom) params.append('dateFrom', dateFrom);
+        if (dateTo) params.append('dateTo', dateTo);
+        if (perPage) params.append('perPage', perPage.toString());
+
+        const response = await fetch(`/api/admin/bookings?${params.toString()}`);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: "Failed to fetch bookings" }));
+          throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        const bookings: OperationsBooking[] = result.bookings || result;
+        
+        // Update cache and clear inflight
+        set((state) => {
+          const newInflight = { ...(state._inflightFetchByOrg || {}) };
+          delete newInflight[cacheKey];
+          
+          return {
+            bookingsByOrg: {
+              ...state.bookingsByOrg,
+              [cacheKey]: bookings,
+            },
+            loading: false,
+            _inflightFetchByOrg: Object.keys(newInflight).length > 0 ? newInflight : null,
+          };
+        });
+
+        return bookings;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch bookings";
+        
+        // Clear inflight and set error
+        set((state) => {
+          const newInflight = { ...(state._inflightFetchByOrg || {}) };
+          delete newInflight[cacheKey];
+          
+          return {
+            error: errorMessage,
+            loading: false,
+            _inflightFetchByOrg: Object.keys(newInflight).length > 0 ? newInflight : null,
+          };
+        });
+        
+        throw error;
+      }
+    })();
+
+    // Store inflight promise
+    set((state) => ({
+      _inflightFetchByOrg: {
+        ...(state._inflightFetchByOrg || {}),
+        [cacheKey]: inflightPromise,
+      },
+    }));
+
+    return inflightPromise;
   },
 
   // Create a new booking

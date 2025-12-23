@@ -25,8 +25,13 @@ export function ClubAdminsSection({
   const t = useTranslations();
   const hasAnyRole = useUserStore((state) => state.hasAnyRole);
   
-  const [admins, setAdmins] = useState<ClubAdmin[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use store for club admins
+  const fetchClubAdmins = useAdminUsersStore((state) => state.fetchClubAdmins);
+  const clubAdminsCache = useAdminUsersStore((state) => state.clubAdminsCache);
+  const loading = useAdminUsersStore((state) => state.loading);
+  const storeError = useAdminUsersStore((state) => state.error);
+  
+  const admins = clubAdminsCache[clubId] || [];
   const [error, setError] = useState("");
 
   // Add club admin modal state
@@ -65,34 +70,12 @@ export function ClubAdminsSection({
   // Check if user can manage club admins (Root Admin or Organization Admin)
   const canManageClubAdmins = hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN"]);
 
-  // Fetch club admins
-  const fetchClubAdmins = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    
-    try {
-      const response = await fetch(`/api/admin/clubs/${clubId}/admins`);
-      
-      if (!response.ok) {
-        if (response.status === 403) {
-          setError(t("common.forbidden"));
-          return;
-        }
-        throw new Error("Failed to fetch club admins");
-      }
-
-      const data = await response.json();
-      setAdmins(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load club admins");
-    } finally {
-      setLoading(false);
-    }
-  }, [clubId, t]);
-
+  // Fetch club admins from store on mount
   useEffect(() => {
-    fetchClubAdmins();
-  }, [fetchClubAdmins]);
+    fetchClubAdmins(clubId).catch((err) => {
+      setError(err instanceof Error ? err.message : "Failed to load club admins");
+    });
+  }, [clubId, fetchClubAdmins]);
 
   // Handle add club admin
   const handleOpenAddModal = async () => {
@@ -139,7 +122,8 @@ export function ClubAdminsSection({
 
       showToast(t("clubAdmins.adminAdded"), "success");
       setIsAddModalOpen(false);
-      fetchClubAdmins();
+      // Refetch from store to update cache
+      await fetchClubAdmins(clubId, { force: true });
       if (onRefresh) onRefresh();
     } catch (err) {
       setAddError(
@@ -178,7 +162,8 @@ export function ClubAdminsSection({
       showToast(t("clubAdmins.adminRemoved"), "success");
       setIsRemoveModalOpen(false);
       setAdminToRemove(null);
-      fetchClubAdmins();
+      // Refetch from store to update cache
+      await fetchClubAdmins(clubId, { force: true });
       if (onRefresh) onRefresh();
     } catch (err) {
       setRemoveError(
@@ -225,13 +210,13 @@ export function ClubAdminsSection({
     );
   }
 
-  if (error) {
+  if (error || storeError) {
     return (
       <div className="im-section-card">
         <div className="im-section-header">
           <h3 className="im-section-title">{t("clubAdmins.title")}</h3>
         </div>
-        <div className="im-error-state">{error}</div>
+        <div className="im-error-state">{error || storeError}</div>
       </div>
     );
   }
