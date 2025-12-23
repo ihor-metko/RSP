@@ -302,7 +302,6 @@ export default function OrganizationDetailPage() {
       setIsChangeOwnerModalOpen(false);
       // Force refresh to get updated owner data
       await fetchOrgDetail(true);
-      fetchAdmins();
     } catch (err) {
       setChangeOwnerError(err instanceof Error ? err.message : t("organizations.errors.changeOwnerFailed"));
     } finally {
@@ -482,7 +481,7 @@ export default function OrganizationDetailPage() {
 
 
   // Show loading spinner while checking authentication or loading org
-  const isLoadingState = status === "loading" || loading;
+  const isLoadingState = !isHydrated || isLoading || loading;
 
   return (
     <main className="im-org-detail-page">
