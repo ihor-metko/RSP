@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Card, Modal, IMLink, Breadcrumbs, ImageCarousel } from "@/components/ui";
+import { Button, Card, Modal, IMLink, Breadcrumbs, ImageCarousel, EntityBanner } from "@/components/ui";
 import { ClubHeaderView } from "@/components/admin/club/ClubHeaderView";
 import { ClubContactsView } from "@/components/admin/club/ClubContactsView";
 import { ClubHoursView } from "@/components/admin/club/ClubHoursView";
@@ -196,10 +196,6 @@ export default function AdminClubDetailPage({
   }
 
   // Prepare derived data
-  const heroImageUrl = getSupabaseStorageUrl(club.heroImage);
-  const logoUrl = getSupabaseStorageUrl(club.logo);
-  const hasHeroImage = isValidImageUrl(heroImageUrl);
-  const hasLogo = isValidImageUrl(logoUrl);
   const clubTags = parseTags(club.tags);
   const priceRange = getPriceRange(club.courts);
   const courtCounts = getCourtCounts(club.courts);
@@ -248,56 +244,18 @@ export default function AdminClubDetailPage({
         </div>
       )}
 
-      {/* Hero Section - matching player page design */}
-      <section className="im-admin-club-hero">
-        {hasHeroImage ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={heroImageUrl as string}
-              alt={`${club.name} hero image`}
-              className="im-admin-club-hero-image"
-            />
-            <div className="im-admin-club-hero-overlay" />
-          </>
-        ) : (
-          <div className="im-admin-club-hero-placeholder">
-            <span className="im-admin-club-hero-placeholder-text">
-              {club.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        <div className="im-admin-club-hero-content">
-          {hasLogo && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={logoUrl as string}
-              alt={`${club.name} logo`}
-              className="im-admin-club-hero-logo"
-            />
-          )}
-          <h1 className="im-admin-club-hero-name">{club.name}</h1>
-          {club.shortDescription && (
-            <p className="im-admin-club-hero-description">{club.shortDescription}</p>
-          )}
-          <p className="im-admin-club-hero-location">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            {locationDisplay}
-          </p>
-          {/* Status badge */}
-          <span
-            className={`im-admin-club-status-badge ${club.isPublic
-              ? "im-admin-club-status-badge--published"
-              : "im-admin-club-status-badge--unpublished"
-              }`}
-          >
-            {club.isPublic ? "Published" : "Unpublished"}
-          </span>
-        </div>
-      </section>
+      {/* Hero Banner Section */}
+      <EntityBanner
+        title={club.name}
+        subtitle={club.shortDescription}
+        location={locationDisplay}
+        imageUrl={club.heroImage}
+        logoUrl={club.logo}
+        imageAlt={`${club.name} hero image`}
+        logoAlt={`${club.name} logo`}
+        isPublished={club.isPublic}
+        onTogglePublish={handleTogglePublish}
+      />
 
       {/* Main Content */}
       <div className="im-admin-club-content">
@@ -314,12 +272,6 @@ export default function AdminClubDetailPage({
             />
           </div>
           <div className="im-admin-club-actions">
-            <Button
-              variant="outline"
-              onClick={handleTogglePublish}
-            >
-              {club.isPublic ? "Unpublish" : "Publish"}
-            </Button>
             {canDelete && (
               <Button
                 variant="outline"

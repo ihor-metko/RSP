@@ -117,6 +117,13 @@ export interface EntityBannerProps {
    * Edit button handler (optional)
    */
   onEdit?: () => void;
+  
+  /**
+   * Hide admin features (status badge, publish/unpublish button, edit button)
+   * When true, the component will only show basic entity information
+   * Use this for player/public views where admin controls shouldn't be visible
+   */
+  hideAdminFeatures?: boolean;
 }
 
 /**
@@ -140,6 +147,7 @@ export function EntityBanner({
   className = "",
   actions,
   onEdit,
+  hideAdminFeatures = false,
 }: EntityBannerProps) {
   // Convert stored paths to full URLs if needed (passthrough for full URLs, converts relative paths)
   const heroImageFullUrl = useMemo(() => getSupabaseStorageUrl(imageUrl), [imageUrl]);
@@ -154,6 +162,7 @@ export function EntityBanner({
   
   // Auto-generate status badge based on isPublished if not explicitly provided
   const effectiveStatus = useMemo(() => {
+    if (hideAdminFeatures) return null; // Don't show status when hiding admin features
     if (status) return status;
     if (isArchived) return { label: 'Archived', variant: 'archived' as const };
     if (isPublished !== null && isPublished !== undefined) {
@@ -162,10 +171,10 @@ export function EntityBanner({
         : { label: 'Unpublished', variant: 'draft' as const };
     }
     return null;
-  }, [status, isArchived, isPublished]);
+  }, [status, isArchived, isPublished, hideAdminFeatures]);
   
   // Determine if we should show the publish/unpublish button
-  const showPublishButton = !isArchived && isPublished !== null && isPublished !== undefined && onTogglePublish;
+  const showPublishButton = !hideAdminFeatures && !isArchived && isPublished !== null && isPublished !== undefined && onTogglePublish;
 
   return (
     <section className={`rsp-club-hero ${className}`} data-testid="entity-banner">
@@ -232,7 +241,7 @@ export function EntityBanner({
             )}
           </div>
         </div>
-        {onEdit && (
+        {onEdit && !hideAdminFeatures && (
           <button
             onClick={onEdit}
             className="rsp-entity-banner-edit-btn"
