@@ -227,7 +227,7 @@ export default function OrganizationDetailPage() {
         logoFormData.append("file", data.logo);
         logoFormData.append("type", "logo");
 
-        const logoResponse = await fetch(`/api/admin/organizations/${orgId}/images`, {
+        const logoResponse = await fetch(`/api/images/organizations/${orgId}/upload`, {
           method: "POST",
           body: logoFormData,
         });
@@ -243,7 +243,7 @@ export default function OrganizationDetailPage() {
         heroFormData.append("file", data.heroImage);
         heroFormData.append("type", "heroImage");
 
-        const heroResponse = await fetch(`/api/admin/organizations/${orgId}/images`, {
+        const heroResponse = await fetch(`/api/images/organizations/${orgId}/upload`, {
           method: "POST",
           body: heroFormData,
         });

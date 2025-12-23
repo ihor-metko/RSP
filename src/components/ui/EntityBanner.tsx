@@ -141,7 +141,7 @@ export function EntityBanner({
   actions,
   onEdit,
 }: EntityBannerProps) {
-  // Convert stored paths to full Supabase Storage URLs
+  // Convert stored paths to full URLs if needed (passthrough for full URLs, converts relative paths)
   const heroImageFullUrl = useMemo(() => getSupabaseStorageUrl(imageUrl), [imageUrl]);
   const logoFullUrl = useMemo(() => getSupabaseStorageUrl(logoUrl), [logoUrl]);
   
