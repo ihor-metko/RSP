@@ -354,9 +354,9 @@ function MyComponent() {
 The store uses the following API endpoints:
 
 - `GET /api/admin/organizations` - List all organizations (root admin)
-- `GET /api/orgs/:id` - Get single organization details
+- `GET /api/admin/organizations/:id` - Get single organization details
 - `POST /api/admin/organizations` - Create new organization
-- `PUT /api/orgs/:id` - Update organization
+- `PATCH /api/admin/organizations/:id` - Update organization
 - `DELETE /api/admin/organizations/:id` - Delete organization
 
 ### Types

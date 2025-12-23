@@ -27,9 +27,21 @@ jest.mock("@/lib/prisma", () => ({
     },
     booking: {
       count: jest.fn(),
+      groupBy: jest.fn(),
+    },
+    club: {
+      count: jest.fn(),
+      findMany: jest.fn(),
+    },
+    court: {
+      count: jest.fn(),
+    },
+    clubMembership: {
+      findMany: jest.fn(),
     },
     auditLog: {
       create: jest.fn(),
+      findMany: jest.fn(),
     },
   },
 }));
@@ -46,7 +58,7 @@ jest.mock("@/lib/auth", () => ({
 }));
 
 import { GET, POST } from "@/app/api/admin/organizations/route";
-import { PATCH as UpdateOrganization, DELETE as DeleteOrganization } from "@/app/api/admin/organizations/[id]/route";
+import { GET as GetOrganization, PATCH as UpdateOrganization, DELETE as DeleteOrganization } from "@/app/api/admin/organizations/[id]/route";
 import { POST as AssignAdmin } from "@/app/api/admin/organizations/assign-admin/route";
 import { PATCH as SetOwner } from "@/app/api/admin/organizations/set-owner/route";
 import { POST as RemoveAdmin } from "@/app/api/admin/organizations/remove-admin/route";
@@ -740,6 +752,105 @@ describe("Admin Organizations API", () => {
       });
 
       const response = await RemoveAdmin(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("Organization not found");
+    });
+  });
+
+  describe("GET /api/admin/organizations/[id]", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValue(null);
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1");
+      const response = await GetOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
+    });
+
+    it("should return organization details for authorized user", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-123", isRoot: true },
+      });
+
+      const mockOrg = {
+        id: "org-1",
+        name: "Test Organization",
+        slug: "test-organization",
+        description: "Test description",
+        contactEmail: "contact@test.com",
+        contactPhone: "123-456-7890",
+        website: "https://test.com",
+        address: "123 Test St",
+        logo: null,
+        heroImage: null,
+        metadata: null,
+        isPublic: true,
+        archivedAt: null,
+        createdAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01"),
+        createdBy: {
+          id: "creator-1",
+          name: "Creator",
+          email: "creator@test.com",
+        },
+        memberships: [
+          {
+            id: "membership-1",
+            isPrimaryOwner: true,
+            user: {
+              id: "owner-1",
+              name: "Owner",
+              email: "owner@test.com",
+            },
+          },
+        ],
+      };
+
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue(mockOrg);
+      (prisma.club.count as jest.Mock).mockResolvedValue(2);
+      (prisma.court.count as jest.Mock).mockResolvedValue(5);
+      (prisma.booking.count as jest.Mock).mockResolvedValue(10);
+      (prisma.booking.groupBy as jest.Mock).mockResolvedValue([{ userId: "user-1" }, { userId: "user-2" }]);
+      (prisma.club.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.auditLog.findMany as jest.Mock).mockResolvedValue([]);
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1");
+      const response = await GetOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.id).toBe("org-1");
+      expect(data.name).toBe("Test Organization");
+      expect(data.metrics).toEqual({
+        totalClubs: 2,
+        totalCourts: 5,
+        activeBookings: 10,
+        activeUsers: 2,
+      });
+      expect(data.superAdmins).toHaveLength(1);
+      expect(data.primaryOwner).toEqual({
+        id: "owner-1",
+        name: "Owner",
+        email: "owner@test.com",
+        isPrimaryOwner: true,
+        membershipId: "membership-1",
+      });
+    });
+
+    it("should return 404 when organization not found", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "user-123", isRoot: true },
+      });
+
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue(null);
+
+      const request = new Request("http://localhost:3000/api/admin/organizations/non-existent");
+      const response = await GetOrganization(request, { params: Promise.resolve({ id: "non-existent" }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);

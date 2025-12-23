@@ -240,7 +240,7 @@ describe("useOrganizationStore", () => {
       expect(result.current.currentOrg).toEqual(mockOrg);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(global.fetch).toHaveBeenCalledWith("/api/orgs/1");
+      expect(global.fetch).toHaveBeenCalledWith("/api/admin/organizations/1");
     });
 
     it("should handle fetch by ID error", async () => {
@@ -298,7 +298,7 @@ describe("useOrganizationStore", () => {
       expect(result.current.getOrganizationDetailById("1")).toEqual(mockOrgDetail);
       expect(result.current.currentOrg).toEqual(mockOrgDetail);
       expect(result.current.loading).toBe(false);
-      expect(global.fetch).toHaveBeenCalledWith("/api/orgs/1");
+      expect(global.fetch).toHaveBeenCalledWith("/api/admin/organizations/1");
     });
 
     it("should return cached organization without fetching", async () => {
@@ -545,9 +545,9 @@ describe("useOrganizationStore", () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(global.fetch).toHaveBeenCalledWith(
-        "/api/orgs/1",
+        "/api/admin/organizations/1",
         expect.objectContaining({
-          method: "PUT",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         })

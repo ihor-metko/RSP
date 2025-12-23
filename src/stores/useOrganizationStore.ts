@@ -193,7 +193,7 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   fetchOrganizationById: async (id: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch(`/api/orgs/${id}`);
+      const response = await fetch(`/api/admin/organizations/${id}`);
       
       if (!response.ok) {
         const data = await response.json().catch(() => ({ error: "Failed to fetch organization" }));
@@ -239,7 +239,7 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
       try {
         set({ loading: true, error: null });
         
-        const response = await fetch(`/api/orgs/${id}`);
+        const response = await fetch(`/api/admin/organizations/${id}`);
         
         if (!response.ok) {
           const data = await response.json().catch(() => ({ error: "Failed to fetch organization" }));
@@ -329,10 +329,9 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   updateOrganization: async (id: string, payload: UpdateOrganizationPayload) => {
     set({ loading: true, error: null });
     try {
-      // Determine which endpoint to use
-      // Use PATCH for root admin endpoint, PUT for org admin endpoint
-      const response = await fetch(`/api/orgs/${id}`, {
-        method: "PUT",
+      // Use PATCH for admin endpoint
+      const response = await fetch(`/api/admin/organizations/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
