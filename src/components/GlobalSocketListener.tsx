@@ -236,13 +236,15 @@ export function GlobalSocketListener() {
       return true;
     };
 
+    // Get store methods once to avoid repeated destructuring
+    const getStoreMethods = () => useBookingStore.getState();
+
     // Booking events - update booking store for real-time calendar sync
     const handleBookingCreated = (data: BookingCreatedEvent) => {
       if (!isEventForActiveClub(data.clubId)) return;
 
       // Update booking store for real-time calendar sync
-      const { updateBookingFromSocket } = useBookingStore.getState();
-      updateBookingFromSocket(data.booking);
+      getStoreMethods().updateBookingFromSocket(data.booking);
       
       console.log('[GlobalSocketListener] Booking created - store updated');
     };
@@ -251,8 +253,7 @@ export function GlobalSocketListener() {
       if (!isEventForActiveClub(data.clubId)) return;
 
       // Update booking store for real-time calendar sync
-      const { updateBookingFromSocket } = useBookingStore.getState();
-      updateBookingFromSocket(data.booking);
+      getStoreMethods().updateBookingFromSocket(data.booking);
       
       console.log('[GlobalSocketListener] Booking updated - store updated');
     };
@@ -261,8 +262,7 @@ export function GlobalSocketListener() {
       if (!isEventForActiveClub(data.clubId)) return;
 
       // Remove from booking store for real-time calendar sync
-      const { removeBookingFromSocket } = useBookingStore.getState();
-      removeBookingFromSocket(data.bookingId);
+      getStoreMethods().removeBookingFromSocket(data.bookingId);
       
       console.log('[GlobalSocketListener] Booking cancelled - store updated');
     };
@@ -272,8 +272,7 @@ export function GlobalSocketListener() {
       if (!isEventForActiveClub(data.clubId)) return;
 
       handleSocketEvent('slot_locked', data);
-      const { addLockedSlot } = useBookingStore.getState();
-      addLockedSlot(data);
+      getStoreMethods().addLockedSlot(data);
       console.log('[GlobalSocketListener] Slot locked - store updated');
     };
 
@@ -281,8 +280,7 @@ export function GlobalSocketListener() {
       if (!isEventForActiveClub(data.clubId)) return;
 
       handleSocketEvent('slot_unlocked', data);
-      const { removeLockedSlot } = useBookingStore.getState();
-      removeLockedSlot(data.slotId);
+      getStoreMethods().removeLockedSlot(data.slotId);
       console.log('[GlobalSocketListener] Slot unlocked - store updated');
     };
 
@@ -290,8 +288,7 @@ export function GlobalSocketListener() {
       if (!isEventForActiveClub(data.clubId)) return;
 
       handleSocketEvent('lock_expired', data);
-      const { removeLockedSlot } = useBookingStore.getState();
-      removeLockedSlot(data.slotId);
+      getStoreMethods().removeLockedSlot(data.slotId);
       console.log('[GlobalSocketListener] Lock expired - store updated');
     };
 
@@ -319,8 +316,7 @@ export function GlobalSocketListener() {
   // Periodic cleanup of expired slot locks
   useEffect(() => {
     const interval = setInterval(() => {
-      const { cleanupExpiredLocks } = useBookingStore.getState();
-      cleanupExpiredLocks();
+      useBookingStore.getState().cleanupExpiredLocks();
     }, CLEANUP_INTERVAL_MS);
 
     return () => clearInterval(interval);
