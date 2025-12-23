@@ -175,12 +175,12 @@ const handleStepperSave = async (data: {
 
   // 2. Upload logo if new file provided
   if (data.logo) {
-    // Upload via /api/admin/organizations/${orgId}/images
+    // Upload via new image upload API (to be implemented)
   }
 
   // 3. Upload hero image if new file provided
   if (data.heroImage) {
-    // Upload via /api/admin/organizations/${orgId}/images
+    // Upload via new image upload API (to be implemented)
   }
 
   // 4. Show success toast and refresh data

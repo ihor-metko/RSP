@@ -219,7 +219,7 @@ Currently uses SVG icons as placeholders. Could add:
 ## Deployment Notes
 
 ### Environment Variables Required
-- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL for image storage
+No specific environment variables are required for image display. The image storage implementation should provide the necessary configuration.
 
 ### Database Schema
 No schema changes required. Uses existing `imageUrl` field on Court table.

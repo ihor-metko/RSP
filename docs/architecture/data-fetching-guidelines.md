@@ -149,7 +149,6 @@ The following types of API calls should **NOT** go through stores. Direct `fetch
 
 ### 1. Specialized Operations
 Operations that modify data but aren't "domain state":
-- Image uploads: `/api/admin/organizations/${id}/images`
 - Admin assignments: `/api/admin/organizations/assign-admin`
 - Section updates: `/api/admin/clubs/${id}/section`
 - Owner changes: `/api/admin/organizations/set-owner`
@@ -282,17 +281,17 @@ function ClubCard({ clubId }: { clubId: string }) {
 
 **✅ Correct** - Direct fetch for operations:
 ```tsx
-async function uploadOrganizationLogo(orgId: string, file: File) {
-  const formData = new FormData();
-  formData.append('logo', file);
+async function assignOrganizationAdmin(orgId: string, userId: string) {
+  const payload = { userId };
   
   // This is a specialized operation, not domain state
-  const response = await fetch(`/api/admin/organizations/${orgId}/images`, {
+  const response = await fetch(`/api/admin/organizations/assign-admin`, {
     method: 'POST',
-    body: formData,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
   });
   
-  // After upload completes, invalidate cache to refetch domain state
+  // After operation completes, invalidate cache to refetch domain state
   if (response.ok) {
     invalidateOrganizations();
   }
