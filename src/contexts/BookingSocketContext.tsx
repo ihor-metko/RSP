@@ -4,16 +4,21 @@
  * Centralized Booking Socket Context
  * 
  * Provides a club-specific booking socket connection that connects/disconnects
- * based on the currently active club.
+ * based on the currently active club and user's admin role.
  * 
  * Features:
- * - Club-specific socket connection (connects only when clubId is set)
- * - Automatic connection when entering club operations page
- * - Automatic disconnection when leaving club operations page
+ * - Club-specific socket connection (connects only when clubId is set AND user is admin)
+ * - Automatic connection when entering club operations page (admin users only)
+ * - Automatic disconnection when leaving club operations page or user loses admin role
  * - Authentication via JWT token
  * - Automatic reconnection handling
  * - Connection state tracking
- * - Role-based access control (verifies user has access to the club)
+ * - Role-based access control (admins only: ROOT_ADMIN, ORGANIZATION_ADMIN, CLUB_ADMIN)
+ * 
+ * Access Rules:
+ * - Only admin users can connect to BookingSocket
+ * - Regular players receive booking notifications via NotificationSocket instead
+ * - Connection requires both activeClubId AND admin privileges
  * 
  * Note: This is the Booking Socket. For global notifications, use NotificationSocket.
  */
@@ -70,17 +75,18 @@ interface BookingSocketProviderProps {
  * 
  * Wraps the application and provides a club-specific booking socket connection.
  * Should be placed high in the component tree (e.g., root layout).
- * Requires authentication and an active club - will only connect when both are available.
+ * Requires authentication, admin role, and an active club - will only connect when all are available.
  * 
  * Booking Socket Behavior:
- * - Connects only when a club is selected (activeClubId is set)
- * - Disconnects when club is deselected or changed
- * - Delivers club-scoped real-time booking events
+ * - Connects only when a club is selected (activeClubId is set) AND user is an admin
+ * - Disconnects when club is deselected, user logs out, or user loses admin privileges
+ * - Delivers club-scoped real-time booking events for operations/calendar management
  * - Automatically joins the club:{clubId} room for the active club
- * - Disconnects on logout
+ * - Only available to admin roles (ROOT_ADMIN, ORGANIZATION_ADMIN, CLUB_ADMIN)
+ * - Regular players receive booking notifications via NotificationSocket instead
  * 
  * Usage:
- * - Set activeClubId when entering club operations page
+ * - Set activeClubId when entering club operations page (admin pages)
  * - Clear activeClubId when leaving club operations page
  * 
  * @example
@@ -95,6 +101,7 @@ export function BookingSocketProvider({ children }: BookingSocketProviderProps) 
   const socketRef = useRef<TypedSocket | null>(null);
   const sessionStatus = useUserStore(state => state.sessionStatus);
   const user = useUserStore(state => state.user);
+  const adminStatus = useUserStore(state => state.adminStatus);
   const getSocketToken = useAuthStore(state => state.getSocketToken);
   const clearSocketToken = useAuthStore(state => state.clearSocketToken);
   const { activeClubId } = useActiveClub();
@@ -116,10 +123,21 @@ export function BookingSocketProvider({ children }: BookingSocketProviderProps) 
       return;
     }
 
-    // Access control is primarily enforced server-side in socketAuth.ts
-    // which verifies the user has the club in their clubIds array.
-    // We allow connection attempt here and let server validate actual membership.
-    // This ensures players can connect to clubs they belong to.
+    // Role-based access control: BookingSocket is only for admins
+    // BookingSocket provides real-time calendar updates for club operations
+    // and should only connect for users with admin privileges.
+    // Regular players receive booking notifications via NotificationSocket instead.
+    const isAdmin = adminStatus?.isAdmin ?? false;
+    if (!isAdmin) {
+      // If socket exists for a non-admin user, disconnect it
+      if (socketRef.current) {
+        console.log('[BookingSocket] Disconnecting (user is not an admin)');
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        setIsConnected(false);
+      }
+      return;
+    }
 
     // If socket already exists for this club, don't reinitialize
     if (socketRef.current) {
@@ -194,7 +212,7 @@ export function BookingSocketProvider({ children }: BookingSocketProviderProps) 
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [sessionStatus, user, activeClubId, getSocketToken, clearSocketToken]);
+  }, [sessionStatus, user, activeClubId, adminStatus, getSocketToken, clearSocketToken]);
 
   const value: BookingSocketContextValue = useMemo(
     () => ({

@@ -9,52 +9,62 @@
  * 
  * 1. NotificationSocket (SocketProvider)
  *    - Purpose: Platform-wide notifications
- *    - Lifecycle: Always active during user session
+ *    - Lifecycle: Always active during user session (all roles)
  *    - Events: admin_notification, payment_confirmed, payment_failed, booking events (for notifications)
  *    - Store Updates: Notification store only
  *    - Room Filtering: Server-side based on user role (root_admin, organization:{orgId}, club:{clubId})
+ *    - Available to: All users (ROOT_ADMIN, ORG_ADMIN, CLUB_ADMIN, PLAYER)
  * 
  * 2. BookingSocket (BookingSocketProvider)
- *    - Purpose: Real-time booking calendar updates
- *    - Lifecycle: Active only when a club is selected (club operations page)
+ *    - Purpose: Real-time booking calendar updates for club operations
+ *    - Lifecycle: Active only when a club is selected (club operations page) AND user is admin
  *    - Events: booking_created, booking_updated, booking_cancelled, slot_locked, slot_unlocked, lock_expired
  *    - Store Updates: Booking store only
  *    - Room Filtering: Server-side, club:{clubId} room only
+ *    - Available to: Admin users only (ROOT_ADMIN, ORG_ADMIN, CLUB_ADMIN)
  * 
  * EVENT FLOW:
  * ===========
  * 
  * Booking Events:
- * - NotificationSocket receives booking events → Shows toast + Adds to notification store
- * - BookingSocket receives booking events → Updates booking store (calendar UI sync)
+ * - NotificationSocket receives booking events → Shows toast + Adds to notification store (all users)
+ * - BookingSocket receives booking events → Updates booking store for calendar UI sync (admins only)
  * - Both can fire simultaneously without duplication due to separate responsibilities
  * 
  * Slot Lock Events:
- * - Only handled by BookingSocket
+ * - Only handled by BookingSocket (admins only)
  * - Updates booking store to show locked/unavailable slots in calendar
  * 
  * Payment Events:
- * - Only handled by NotificationSocket
+ * - Only handled by NotificationSocket (all users)
  * - Shows toast + Adds to notification store
  * 
  * Admin Notification Events:
- * - Only handled by NotificationSocket
+ * - Only handled by NotificationSocket (all users)
  * - Adds directly to notification store (no transformation needed)
  * 
  * ROLE-BASED ACCESS:
  * ==================
+ * NotificationSocket (all roles):
  * - Root Admin: Receives all events from all clubs/organizations
  * - Organization Admin: Receives events for clubs within their organizations
  * - Club Admin: Receives events for clubs they manage
  * - Player: Receives events for clubs they belong to
  * - Server-side room filtering ensures users only receive relevant events
  * 
+ * BookingSocket (admin roles only):
+ * - Root Admin: Can connect to any club's BookingSocket (when activeClubId is set)
+ * - Organization Admin: Can connect to clubs in their organizations (when activeClubId is set)
+ * - Club Admin: Can connect to clubs they manage (when activeClubId is set)
+ * - Player: Cannot connect to BookingSocket (receives booking updates via NotificationSocket)
+ * 
  * INTEGRATION:
  * ============
  * - Place in root layout (app/layout.tsx) as a singleton
  * - Uses existing socket instances from SocketProvider and BookingSocketProvider
  * - Reacts to activeClubId changes from ClubContext
- * - BookingSocket automatically connects when activeClubId is set, disconnects when cleared
+ * - BookingSocket automatically connects when activeClubId is set AND user is admin
+ * - BookingSocket disconnects when activeClubId is cleared OR user loses admin privileges
  * 
  * USAGE:
  * ======
@@ -68,12 +78,12 @@
  * </SocketProvider>
  * ```
  * 
- * In club operations page:
+ * In club operations page (admin only):
  * ```tsx
  * const { setActiveClubId } = useActiveClub();
  * 
  * useEffect(() => {
- *   setActiveClubId(clubId); // BookingSocket connects
+ *   setActiveClubId(clubId); // BookingSocket connects (if user is admin)
  *   return () => setActiveClubId(null); // BookingSocket disconnects
  * }, [clubId]);
  * ```

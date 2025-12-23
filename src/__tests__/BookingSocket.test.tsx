@@ -292,4 +292,159 @@ describe('BookingSocket', () => {
       expect(mockSocket.disconnect).toHaveBeenCalled();
     });
   });
+
+  it('should not initialize socket for non-admin users even with activeClubId', async () => {
+    // Update mock to be a regular player (non-admin)
+    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
+    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+      const mockStore = {
+        sessionStatus: 'authenticated',
+        user: mockUser,
+        adminStatus: {
+          isAdmin: false, // Not an admin
+          adminType: 'none' as const,
+          managedIds: [],
+        },
+      };
+      return selector(mockStore);
+    });
+
+    mockActiveClubId = 'club-1'; // Club is selected
+
+    render(
+      <BookingSocketProvider>
+        <TestComponent />
+      </BookingSocketProvider>
+    );
+
+    // Wait to ensure socket is not initialized
+    await waitFor(() => {
+      expect(io).not.toHaveBeenCalled();
+    }, { timeout: 500 });
+  });
+
+  it('should disconnect socket when user loses admin privileges', async () => {
+    mockActiveClubId = 'club-1';
+
+    // Start with admin user
+    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
+    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+      const mockStore = {
+        sessionStatus: 'authenticated',
+        user: mockUser,
+        adminStatus: mockAdminStatus,
+      };
+      return selector(mockStore);
+    });
+
+    const { rerender } = render(
+      <BookingSocketProvider>
+        <TestComponent />
+      </BookingSocketProvider>
+    );
+
+    await waitFor(() => {
+      expect(io).toHaveBeenCalled();
+    });
+
+    jest.clearAllMocks();
+
+    // Change to non-admin user
+    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+      const mockStore = {
+        sessionStatus: 'authenticated',
+        user: mockUser,
+        adminStatus: {
+          isAdmin: false,
+          adminType: 'none' as const,
+          managedIds: [],
+        },
+      };
+      return selector(mockStore);
+    });
+
+    rerender(
+      <BookingSocketProvider>
+        <TestComponent />
+      </BookingSocketProvider>
+    );
+
+    await waitFor(() => {
+      expect(mockSocket.disconnect).toHaveBeenCalled();
+    });
+  });
+
+  it('should initialize socket for organization admin with clubId', async () => {
+    // Update mock to be organization admin
+    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
+    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+      const mockStore = {
+        sessionStatus: 'authenticated',
+        user: mockUser,
+        adminStatus: {
+          isAdmin: true,
+          adminType: 'organization_admin' as const,
+          managedIds: ['org-1', 'org-2'],
+        },
+      };
+      return selector(mockStore);
+    });
+
+    mockActiveClubId = 'club-1';
+
+    render(
+      <BookingSocketProvider>
+        <TestComponent />
+      </BookingSocketProvider>
+    );
+
+    await waitFor(() => {
+      expect(io).toHaveBeenCalled();
+    });
+
+    expect(io).toHaveBeenCalledWith({
+      path: '/socket.io',
+      auth: {
+        token: 'mock-jwt-token',
+        clubId: 'club-1',
+      },
+    });
+  });
+
+  it('should initialize socket for club owner with clubId', async () => {
+    // Update mock to be club owner
+    const useUserStoreMock = require('@/stores/useUserStore').useUserStore;
+    (useUserStoreMock as jest.Mock).mockImplementation((selector) => {
+      const mockStore = {
+        sessionStatus: 'authenticated',
+        user: mockUser,
+        adminStatus: {
+          isAdmin: true,
+          adminType: 'club_owner' as const,
+          managedIds: ['club-1'],
+        },
+      };
+      return selector(mockStore);
+    });
+
+    mockActiveClubId = 'club-1';
+
+    render(
+      <BookingSocketProvider>
+        <TestComponent />
+      </BookingSocketProvider>
+    );
+
+    await waitFor(() => {
+      expect(io).toHaveBeenCalled();
+    });
+
+    expect(io).toHaveBeenCalledWith({
+      path: '/socket.io',
+      auth: {
+        token: 'mock-jwt-token',
+        clubId: 'club-1',
+      },
+    });
+  });
 });
