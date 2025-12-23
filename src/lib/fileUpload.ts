@@ -71,7 +71,7 @@ export function validateUploadedFile(file: File): string | null {
 /**
  * Generate a unique filename for upload
  * Format: [timestamp]-[random].ext
- * 
+ *
  * @param originalFilename - Original filename (for extension)
  * @param mimeType - MIME type of the file
  * @returns Unique filename
@@ -79,7 +79,7 @@ export function validateUploadedFile(file: File): string | null {
 export function generateUniqueFilename(originalFilename: string, mimeType: string): string {
   const timestamp = Date.now();
   const randomSuffix = randomBytes(8).toString("hex");
-  
+
   // Get extension from MIME type (preferred) or original filename
   let extension = MIME_TO_EXTENSION[mimeType];
   if (!extension) {
@@ -92,7 +92,7 @@ export function generateUniqueFilename(originalFilename: string, mimeType: strin
 
 /**
  * Save uploaded file to storage
- * 
+ *
  * @param file - The file to save
  * @param entity - Entity type (organizations, clubs, users, bookings)
  * @param entityId - ID of the entity
@@ -107,7 +107,9 @@ export async function saveUploadedFile(
   const filename = generateUniqueFilename(file.name, file.type);
 
   // Construct storage path
-  const storagePath = "/app/storage/images";
+  const storagePath = process.env.NODE_ENV === 'production'
+    ? process.env.IMAGE_UPLOAD_PATH_PROD!
+    : process.env.IMAGE_UPLOAD_PATH_DEV!;
   const entityDir = path.join(storagePath, entity, entityId);
 
   // Ensure directory exists
@@ -126,7 +128,7 @@ export async function saveUploadedFile(
 
 /**
  * Generate the URL for accessing an uploaded image
- * 
+ *
  * @param entity - Entity type
  * @param entityId - Entity ID
  * @param filename - Filename
