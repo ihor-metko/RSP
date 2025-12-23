@@ -54,6 +54,31 @@ jest.mock('@/contexts/SocketContext', () => ({
   SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+// Mock BookingSocketContext
+const mockBookingSocket = {
+  on: jest.fn(),
+  off: jest.fn(),
+  disconnect: jest.fn(),
+  connect: jest.fn(),
+  id: 'test-booking-socket-id',
+  connected: true,
+  io: {
+    on: jest.fn(),
+    off: jest.fn(),
+  },
+};
+
+const mockUseBookingSocket = jest.fn(() => ({
+  socket: mockBookingSocket,
+  isConnected: true,
+  activeClubId: 'club-1',
+}));
+
+jest.mock('@/contexts/BookingSocketContext', () => ({
+  useBookingSocket: () => mockUseBookingSocket(),
+  BookingSocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 // Mock notification manager
 jest.mock('@/utils/globalNotificationManager', () => ({
   handleSocketEvent: jest.fn(),
@@ -140,7 +165,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
       const { unmount: unmount3 } = render(<GlobalSocketListener />);
 
       // Get the booking_created event handler
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_created'
       )?.[1];
 
@@ -181,7 +206,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
       render(<GlobalSocketListener />);
 
       // Get the booking_cancelled event handler
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_cancelled'
       )?.[1];
 
@@ -210,7 +235,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
     it('should handle rapid consecutive booking updates without duplicates', async () => {
       render(<GlobalSocketListener />);
 
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_updated'
       )?.[1];
 
@@ -264,7 +289,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
 
       render(<GlobalSocketListener />);
 
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_updated'
       )?.[1];
 
@@ -298,7 +323,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
     it('should not create duplicate bookings from multiple create events', async () => {
       render(<GlobalSocketListener />);
 
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_created'
       )?.[1];
 
@@ -331,7 +356,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
     it('should reflect temporary slot locks across all clients', async () => {
       render(<GlobalSocketListener />);
 
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'slot_locked'
       )?.[1];
 
@@ -374,7 +399,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
 
       render(<GlobalSocketListener />);
 
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'slot_unlocked'
       )?.[1];
 
@@ -401,7 +426,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
     it('should handle multiple slot locks without conflicts', async () => {
       render(<GlobalSocketListener />);
 
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'slot_locked'
       )?.[1];
 
@@ -499,7 +524,7 @@ describe('Real-Time Booking Updates - Client Integration', () => {
       rerender(<GlobalSocketListener />);
 
       // Get event handler after reconnection
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_created'
       )?.[1];
 
@@ -531,20 +556,27 @@ describe('Real-Time Booking Updates - Client Integration', () => {
 
       // Clear previous calls to isolate unmount behavior
       mockSocket.off.mockClear();
+      mockBookingSocket.off.mockClear();
 
       unmount();
 
-      // Verify all event listeners are cleaned up
-      const cleanedEvents = mockSocket.off.mock.calls.map(call => call[0]);
-      expect(cleanedEvents).toContain('booking_created');
-      expect(cleanedEvents).toContain('booking_updated');
-      expect(cleanedEvents).toContain('booking_cancelled');
-      expect(cleanedEvents).toContain('slot_locked');
-      expect(cleanedEvents).toContain('slot_unlocked');
-      expect(cleanedEvents).toContain('lock_expired');
-      expect(cleanedEvents).toContain('payment_confirmed');
-      expect(cleanedEvents).toContain('payment_failed');
-      expect(cleanedEvents).toContain('admin_notification');
+      // Verify NotificationSocket event listeners are cleaned up
+      const notificationCleanedEvents = mockSocket.off.mock.calls.map(call => call[0]);
+      expect(notificationCleanedEvents).toContain('booking_created');
+      expect(notificationCleanedEvents).toContain('booking_updated');
+      expect(notificationCleanedEvents).toContain('booking_cancelled');
+      expect(notificationCleanedEvents).toContain('payment_confirmed');
+      expect(notificationCleanedEvents).toContain('payment_failed');
+      expect(notificationCleanedEvents).toContain('admin_notification');
+
+      // Verify BookingSocket event listeners are cleaned up
+      const bookingCleanedEvents = mockBookingSocket.off.mock.calls.map(call => call[0]);
+      expect(bookingCleanedEvents).toContain('booking_created');
+      expect(bookingCleanedEvents).toContain('booking_updated');
+      expect(bookingCleanedEvents).toContain('booking_cancelled');
+      expect(bookingCleanedEvents).toContain('slot_locked');
+      expect(bookingCleanedEvents).toContain('slot_unlocked');
+      expect(bookingCleanedEvents).toContain('lock_expired');
     });
 
     it('should cleanup listeners on route change (component unmount and remount)', () => {
@@ -552,27 +584,32 @@ describe('Real-Time Booking Updates - Client Integration', () => {
       const { unmount } = render(<GlobalSocketListener />);
 
       // Record initial listener registrations
-      const initialOnCalls = mockSocket.on.mock.calls.length;
+      const initialNotificationOnCalls = mockSocket.on.mock.calls.length;
+      const initialBookingOnCalls = mockBookingSocket.on.mock.calls.length;
 
       // Simulate route change (unmount)
       unmount();
 
       // Record cleanup calls
-      const offCalls = mockSocket.off.mock.calls.length;
-      expect(offCalls).toBeGreaterThan(0);
+      const notificationOffCalls = mockSocket.off.mock.calls.length;
+      const bookingOffCalls = mockBookingSocket.off.mock.calls.length;
+      expect(notificationOffCalls).toBeGreaterThan(0);
+      expect(bookingOffCalls).toBeGreaterThan(0);
 
       // Remount on new route
       render(<GlobalSocketListener />);
 
       // Verify new listeners are registered
-      const newOnCalls = mockSocket.on.mock.calls.length;
-      expect(newOnCalls).toBeGreaterThan(initialOnCalls);
+      const newNotificationOnCalls = mockSocket.on.mock.calls.length;
+      const newBookingOnCalls = mockBookingSocket.on.mock.calls.length;
+      expect(newNotificationOnCalls).toBeGreaterThan(initialNotificationOnCalls);
+      expect(newBookingOnCalls).toBeGreaterThan(initialBookingOnCalls);
     });
 
     it('should not process events after component unmount', async () => {
       const { unmount } = render(<GlobalSocketListener />);
 
-      const eventHandler = mockSocket.on.mock.calls.find(
+      const eventHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_created'
       )?.[1];
 
@@ -607,13 +644,13 @@ describe('Real-Time Booking Updates - Client Integration', () => {
     it('should handle mixed rapid events (create, update, delete) correctly', async () => {
       render(<GlobalSocketListener />);
 
-      const createHandler = mockSocket.on.mock.calls.find(
+      const createHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_created'
       )?.[1];
-      const updateHandler = mockSocket.on.mock.calls.find(
+      const updateHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_updated'
       )?.[1];
-      const deleteHandler = mockSocket.on.mock.calls.find(
+      const deleteHandler = mockBookingSocket.on.mock.calls.find(
         call => call[0] === 'booking_cancelled'
       )?.[1];
 
