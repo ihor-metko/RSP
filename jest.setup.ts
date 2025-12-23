@@ -7,6 +7,7 @@ jest.mock("next-intl", () => ({
     const translations: Record<string, Record<string, string>> = {
       common: {
         clearFilters: "Clear filters",
+        loadingDashboard: "Loading dashboard...",
       },
       pagination: {
         showing: "Showing {start} to {end} of {total}",

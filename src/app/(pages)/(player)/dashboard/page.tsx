@@ -204,6 +204,7 @@ export default function PlayerDashboardPage() {
 
   // Fetch coaches the user has trained with
   const fetchCoaches = useCallback(async () => {
+    const defaultCoachName = t("playerDashboard.defaultCoachName");
     try {
       const response = await fetch("/api/clubs");
       if (response.ok) {
@@ -215,7 +216,7 @@ export default function PlayerDashboardPage() {
             for (const coach of club.coaches) {
               allCoaches.push({
                 id: coach.id,
-                name: coach.user?.name || "Coach",
+                name: coach.user?.name || defaultCoachName,
                 clubId: club.id,
                 clubName: club.name,
               });
@@ -229,7 +230,7 @@ export default function PlayerDashboardPage() {
     } finally {
       setCoachesLoading(false);
     }
-  }, []);
+  }, [t]);
 
   // Fetch events (placeholder - events API would be needed)
   const fetchEvents = useCallback(async () => {
@@ -315,7 +316,7 @@ export default function PlayerDashboardPage() {
   });
 
   // Loading state
-  if (status === "loading") {
+  if (!isHydrated || isLoading) {
     return (
       <main className="tm-player-dashboard min-h-screen p-4 md:p-8">
         <div className="tm-loading-skeleton">

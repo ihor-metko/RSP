@@ -1,6 +1,8 @@
 {
   "common": {
     "loading": "Завантаження...",
+    "loadingDashboard": "Завантаження панелі керування...",
+    "noData": "Немає даних",
     "error": "Помилка",
     "cancel": "Скасувати",
     "confirm": "Підтвердити",
@@ -883,6 +885,7 @@
     "player": "Гравець",
     "greeting": "Привіт, {name}!",
     "subtitle": "Ваша панель падел клубу",
+    "defaultCoachName": "Тренер",
     "quickBook": {
       "title": "Швидке бронювання",
       "selectClub": "Виберіть клуб",

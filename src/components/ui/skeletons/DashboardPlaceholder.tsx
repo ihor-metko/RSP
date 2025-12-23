@@ -12,6 +12,7 @@
  * - Accessible with proper aria attributes
  */
 
+import { useTranslations } from "next-intl";
 import MetricCardSkeleton from "./MetricCardSkeleton";
 import GraphSkeleton from "./GraphSkeleton";
 import "./skeletons.css";
@@ -36,6 +37,8 @@ export default function DashboardPlaceholder({
   showHeader = true,
   className = "",
 }: DashboardPlaceholderProps) {
+  const t = useTranslations("common");
+
   return (
     <div
       className={`im-dashboard-placeholder ${className}`}
@@ -43,7 +46,7 @@ export default function DashboardPlaceholder({
       aria-busy="true"
       aria-live="polite"
     >
-      <span className="sr-only">Loading dashboard...</span>
+      <span className="sr-only">{t("loadingDashboard")}</span>
       
       {/* Header placeholder */}
       {showHeader && (
