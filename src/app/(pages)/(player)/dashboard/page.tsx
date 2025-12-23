@@ -215,7 +215,7 @@ export default function PlayerDashboardPage() {
             for (const coach of club.coaches) {
               allCoaches.push({
                 id: coach.id,
-                name: coach.user?.name || "Coach",
+                name: coach.user?.name || t("playerDashboard.defaultCoachName"),
                 clubId: club.id,
                 clubName: club.name,
               });
@@ -315,7 +315,7 @@ export default function PlayerDashboardPage() {
   });
 
   // Loading state
-  if (status === "loading") {
+  if (!isHydrated || isLoading) {
     return (
       <main className="tm-player-dashboard min-h-screen p-4 md:p-8">
         <div className="tm-loading-skeleton">

@@ -19,6 +19,7 @@ interface RegisteredUsersCardProps {
  */
 export function RegisteredUsersCard({ className = "" }: RegisteredUsersCardProps) {
   const t = useTranslations("rootAdmin.dashboard");
+  const tCommon = useTranslations("common");
   const [data, setData] = useState<RegisteredUsersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export function RegisteredUsersCard({ className = "" }: RegisteredUsersCardProps
       <div className={`im-registered-users-card ${className}`.trim()}>
         <div className="im-registered-users-loading">
           <div className="im-registered-users-spinner" />
-          <span className="im-registered-users-loading-text">{t("loading", { ns: "common" })}</span>
+          <span className="im-registered-users-loading-text">{tCommon("loading")}</span>
         </div>
       </div>
     );

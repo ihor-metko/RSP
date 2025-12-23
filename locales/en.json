@@ -1,6 +1,8 @@
 {
   "common": {
     "loading": "Loading...",
+    "loadingDashboard": "Loading dashboard...",
+    "noData": "No data available",
     "error": "Error",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -883,6 +885,7 @@
     "player": "Player",
     "greeting": "Hello, {name}!",
     "subtitle": "Your padel club dashboard",
+    "defaultCoachName": "Coach",
     "quickBook": {
       "title": "Quick Book",
       "selectClub": "Select Club",
