@@ -50,7 +50,9 @@ export function getImageUrl(storedPath: string | null | undefined): string | nul
  * Legacy function name for backward compatibility.
  * New code should use getImageUrl() instead.
  * 
- * @deprecated Use getImageUrl() instead
+ * @deprecated Use getImageUrl() instead. This function is kept only for backward compatibility
+ * and will be removed in a future version. All Supabase storage references have been migrated
+ * to server-side storage.
  */
 export function getSupabaseStorageUrl(storedPath: string | null | undefined): string | null {
   return getImageUrl(storedPath);
