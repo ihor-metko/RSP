@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Input, Checkbox } from "@/components/ui";
 import type { InlineCourt } from "@/types/admin";
 
@@ -27,6 +28,8 @@ export function CourtsStep({
   errors = {},
   disabled = false,
 }: CourtsStepProps) {
+  const t = useTranslations("admin.clubs.stepper.courts");
+  
   const handleAddCourt = useCallback(() => {
     const newCourt: InlineCourt = {
       id: generateTempId(),
@@ -85,7 +88,7 @@ export function CourtsStep({
               <div className="im-inline-courts-fields">
                 <div className="im-inline-courts-field">
                   <Input
-                    label="Name"
+                    label={t("courtName")}
                     value={court.name}
                     onChange={(e) =>
                       handleCourtChange(court.id, "name", e.target.value)
@@ -97,7 +100,7 @@ export function CourtsStep({
 
                 <div className="im-inline-courts-field">
                   <Input
-                    label="Type"
+                    label={t("courtType")}
                     value={court.type}
                     onChange={(e) =>
                       handleCourtChange(court.id, "type", e.target.value)
@@ -109,7 +112,7 @@ export function CourtsStep({
 
                 <div className="im-inline-courts-field">
                   <Input
-                    label="Surface"
+                    label={t("courtSurface")}
                     value={court.surface}
                     onChange={(e) =>
                       handleCourtChange(court.id, "surface", e.target.value)
@@ -121,7 +124,7 @@ export function CourtsStep({
 
                 <div className="im-inline-courts-field">
                   <Input
-                    label="Default Price (cents)"
+                    label={t("courtPrice")}
                     type="number"
                     min="0"
                     value={court.defaultPriceCents.toString()}
@@ -139,7 +142,7 @@ export function CourtsStep({
 
                 <div className="im-inline-courts-field im-inline-courts-checkbox-field">
                   <Checkbox
-                    label="Indoor"
+                    label={t("courtIndoor")}
                     checked={court.indoor}
                     onChange={(e) =>
                       handleCourtChange(court.id, "indoor", e.target.checked)
@@ -160,7 +163,7 @@ export function CourtsStep({
         disabled={disabled}
         className="im-inline-courts-add"
       >
-        + Add Court
+        {t("addCourt")}
       </Button>
     </div>
   );

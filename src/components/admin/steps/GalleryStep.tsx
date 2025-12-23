@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { UploadField } from "@/components/admin/UploadField.client";
 import type { UploadedFile } from "@/types/admin";
 
@@ -24,6 +25,7 @@ export function GalleryStep({
   errors = {},
   disabled = false,
 }: GalleryStepProps) {
+  const t = useTranslations("admin.clubs.stepper.gallery");
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogoChange = useCallback(
@@ -63,11 +65,11 @@ export function GalleryStep({
       <div className="im-stepper-row">
         <div className="im-stepper-field">
           <UploadField
-            label="Club Logo"
+            label={t("clubLogo")}
             value={data.logo}
             onChange={handleLogoChange}
             aspectRatio="square"
-            helperText="Recommended: 512x512 square image (SVG supported)"
+            helperText={t("logoHint")}
             disabled={disabled}
             allowSVG={true}
           />
@@ -79,9 +81,9 @@ export function GalleryStep({
 
       <div className="im-stepper-row">
         <div className="im-stepper-field im-stepper-field--full">
-          <label className="im-stepper-label">Gallery Photos</label>
+          <label className="im-stepper-label">{t("galleryPhotos")}</label>
           <p className="im-stepper-field-hint" style={{ marginBottom: "0.5rem" }}>
-            Add photos of your club facilities
+            {t("galleryHint")}
           </p>
 
           <div className="im-stepper-gallery-grid">
@@ -112,7 +114,7 @@ export function GalleryStep({
               disabled={disabled}
             >
               <span className="im-stepper-gallery-add-icon">+</span>
-              <span>Add Image</span>
+              <span>{t("addImage")}</span>
             </button>
           </div>
 
