@@ -5,6 +5,7 @@
 import { GET } from "@/app/api/images/[entity]/[entityId]/[filename]/route";
 import { NextRequest } from "next/server";
 import { readFile, stat } from "fs/promises";
+import path from "path";
 
 // Mock fs/promises
 jest.mock("fs/promises", () => ({
@@ -366,6 +367,28 @@ describe("Images API - GET /api/images/[entity]/[entityId]/[filename]", () => {
       expect(response.status).toBe(200);
       const buffer = await response.arrayBuffer();
       expect(Buffer.from(buffer)).toEqual(fakeImageData);
+    });
+
+    it("should construct file path with entity and entityId", async () => {
+      const params = {
+        entity: "organizations",
+        entityId: "abc12345-e89b-12d3-a456-426614174000",
+        filename: "logo.png",
+      };
+
+      mockStat.mockResolvedValue({
+        isFile: () => true,
+      } as any);
+      mockReadFile.mockResolvedValue(Buffer.from("fake image data"));
+
+      await GET(
+        createRequest("http://localhost:3000/api/images/organizations/abc12345-e89b-12d3-a456-426614174000/logo.png"),
+        { params }
+      );
+
+      // Verify that stat was called with the correct path structure
+      const expectedPath = path.join("/app/storage/images", "organizations", "abc12345-e89b-12d3-a456-426614174000", "logo.png");
+      expect(mockStat).toHaveBeenCalledWith(expectedPath);
     });
   });
 

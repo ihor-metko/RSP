@@ -126,9 +126,9 @@ export async function GET(
     }
 
     // Construct the file path within the Docker volume
-    // Storage structure: /app/storage/images/<filename>
+    // Storage structure: /app/storage/images/[entity]/[entityId]/[filename]
     const storagePath = "/app/storage/images";
-    const filePath = path.join(storagePath, sanitizedFilename);
+    const filePath = path.join(storagePath, entity, entityId, sanitizedFilename);
 
     // Verify the resolved path is still within storage directory (extra security)
     const resolvedPath = path.resolve(filePath);
