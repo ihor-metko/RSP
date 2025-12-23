@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRootAdmin } from "@/lib/requireRole";
+import { requireRootAdmin, requireOrganizationAdmin } from "@/lib/requireRole";
+import { MembershipRole } from "@/constants/roles";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
 // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
 import { isMockMode } from "@/services/mockDb";
+import { mockGetOrganizationDetail } from "@/services/mockApiHandlers";
 
 /**
  * Generate a URL-friendly slug from a name
@@ -26,23 +28,260 @@ function generateSlug(name: string): string {
 }
 
 /**
+ * GET /api/admin/organizations/[id]
+ * Returns full org detail payload including metrics, clubs preview, admins, and recent activity.
+ * Allowed: isRoot OR ORGANIZATION_ADMIN of this org
+ */
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    const authResult = await requireOrganizationAdmin(id);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
+    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
+    if (isMockMode()) {
+      const orgDetail = await mockGetOrganizationDetail(id);
+      if (!orgDetail) {
+        return NextResponse.json(
+          { error: "Organization not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(orgDetail);
+    }
+
+    // Fetch organization with related data
+    const organization = await prisma.organization.findUnique({
+      where: { id },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        memberships: {
+          where: {
+            role: MembershipRole.ORGANIZATION_ADMIN,
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: [{ isPrimaryOwner: "desc" }, { createdAt: "asc" }],
+        },
+      },
+    });
+
+    if (!organization) {
+      return NextResponse.json(
+        { error: "Organization not found" },
+        { status: 404 }
+      );
+    }
+
+    // Fetch metrics in parallel
+    const [clubCount, courtCount, activeBookingsCount, userCount, clubsPreview, recentActivity] =
+      await Promise.all([
+        // Total clubs
+        prisma.club.count({
+          where: { organizationId: id },
+        }),
+        // Total courts across all clubs
+        prisma.court.count({
+          where: {
+            club: {
+              organizationId: id,
+            },
+          },
+        }),
+        // Active bookings (pending or confirmed, future start date)
+        prisma.booking.count({
+          where: {
+            court: {
+              club: {
+                organizationId: id,
+              },
+            },
+            status: { in: ["pending", "paid", "reserved", "confirmed"] },
+            start: { gte: new Date() },
+          },
+        }),
+        // Count of unique users with bookings in this org's clubs
+        prisma.booking.groupBy({
+          by: ["userId"],
+          where: {
+            court: {
+              club: {
+                organizationId: id,
+              },
+            },
+          },
+        }).then((groups) => groups.length),
+        // Clubs preview (first 5)
+        prisma.club.findMany({
+          where: { organizationId: id },
+          take: 5,
+          orderBy: { createdAt: "desc" },
+          include: {
+            _count: {
+              select: {
+                courts: true,
+                clubMemberships: true,
+              },
+            },
+          },
+        }),
+        // Recent activity (audit logs)
+        prisma.auditLog.findMany({
+          where: {
+            targetType: TargetType.ORGANIZATION,
+            targetId: id,
+          },
+          take: 10,
+          orderBy: { createdAt: "desc" },
+        }),
+      ]);
+
+    // Get club admins for preview
+    const clubIds = clubsPreview.map((c) => c.id);
+    const clubAdmins =
+      clubIds.length > 0
+        ? await prisma.clubMembership.findMany({
+            where: {
+              clubId: { in: clubIds },
+              role: "CLUB_ADMIN",
+            },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              club: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+            take: 10,
+          })
+        : [];
+
+    // Format super admins
+    const superAdmins = organization.memberships.map((m) => ({
+      id: m.user.id,
+      name: m.user.name,
+      email: m.user.email,
+      isPrimaryOwner: m.isPrimaryOwner,
+      membershipId: m.id,
+    }));
+
+    // Format clubs preview
+    const formattedClubsPreview = clubsPreview.map((club) => ({
+      id: club.id,
+      name: club.name,
+      slug: club.slug,
+      city: club.city,
+      isPublic: club.isPublic,
+      courtCount: club._count.courts,
+      adminCount: club._count.clubMemberships,
+      createdAt: club.createdAt,
+    }));
+
+    // Format club admins
+    const formattedClubAdmins = clubAdmins.map((ca) => ({
+      id: ca.id,
+      userId: ca.user.id,
+      userName: ca.user.name,
+      userEmail: ca.user.email,
+      clubId: ca.club.id,
+      clubName: ca.club.name,
+    }));
+
+    // Format activity
+    const formattedActivity = recentActivity.map((log) => ({
+      id: log.id,
+      action: log.action,
+      actorId: log.actorId,
+      detail: log.detail ? JSON.parse(log.detail) : null,
+      createdAt: log.createdAt,
+    }));
+
+    return NextResponse.json({
+      id: organization.id,
+      name: organization.name,
+      slug: organization.slug,
+      description: organization.description,
+      contactEmail: organization.contactEmail,
+      contactPhone: organization.contactPhone,
+      website: organization.website,
+      address: organization.address,
+      logo: organization.logo,
+      heroImage: organization.heroImage,
+      metadata: organization.metadata ? JSON.parse(organization.metadata) : null,
+      isPublic: organization.isPublic,
+      archivedAt: organization.archivedAt,
+      createdAt: organization.createdAt,
+      updatedAt: organization.updatedAt,
+      createdBy: organization.createdBy,
+      superAdmins,
+      primaryOwner: superAdmins.find((a) => a.isPrimaryOwner) || superAdmins[0] || null,
+      metrics: {
+        totalClubs: clubCount,
+        totalCourts: courtCount,
+        activeBookings: activeBookingsCount,
+        activeUsers: userCount,
+      },
+      clubsPreview: formattedClubsPreview,
+      clubAdmins: formattedClubAdmins,
+      recentActivity: formattedActivity,
+    });
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error fetching organization detail:", error);
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * PATCH /api/admin/organizations/[id]
- * Updates an organization's name and/or slug (root admin only)
+ * Updates an organization's metadata (name, contact info, slug, metadata, etc.)
+ * Allowed: isRoot OR ORGANIZATION_ADMIN of this org
  */
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await requireRootAdmin(request);
-
-  if (!authResult.authorized) {
-    return authResult.response;
-  }
-
   try {
     const { id } = await params;
+
+    const authResult = await requireOrganizationAdmin(id);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
+
     const body = await request.json();
-    const { name, slug, supportedSports } = body;
+    const { name, slug, description, contactEmail, contactPhone, website, address, logo, heroImage, metadata, isPublic, supportedSports } = body;
 
     // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
     if (isMockMode()) {
@@ -52,6 +291,11 @@ export async function PATCH(
           orgId: id,
           name,
           slug,
+          contactEmail,
+          contactPhone,
+          website,
+          address,
+          metadata,
           supportedSports,
           userId: authResult.userId,
         });
@@ -77,6 +321,14 @@ export async function PATCH(
       );
     }
 
+    // Check if archived
+    if (organization.archivedAt) {
+      return NextResponse.json(
+        { error: "Cannot update archived organization" },
+        { status: 400 }
+      );
+    }
+
     // Validate name if provided
     if (name !== undefined) {
       if (typeof name !== "string" || name.trim().length === 0) {
@@ -88,16 +340,12 @@ export async function PATCH(
     }
 
     // Determine the final slug
-    // - If slug is undefined, keep the current slug (unless name changes)
-    // - If slug is an empty string, auto-generate from the name
-    // - Otherwise, use the provided slug
     let finalSlug = organization.slug;
+    const trimmedName = name?.trim();
     if (slug !== undefined) {
-      // Empty string means auto-generate, otherwise use provided value
-      finalSlug = slug.trim() || generateSlug(name?.trim() || organization.name);
-    } else if (name !== undefined && name.trim() !== organization.name) {
-      // Auto-generate slug from new name if slug wasn't explicitly provided
-      finalSlug = generateSlug(name);
+      finalSlug = slug.trim() || generateSlug(trimmedName || organization.name);
+    } else if (trimmedName && trimmedName !== organization.name) {
+      finalSlug = generateSlug(trimmedName);
     }
 
     // Check if slug already exists for a different organization
@@ -114,18 +362,42 @@ export async function PATCH(
       }
     }
 
+    // Build update data
+    const updateData: {
+      name?: string;
+      slug?: string;
+      description?: string | null;
+      contactEmail?: string | null;
+      contactPhone?: string | null;
+      website?: string | null;
+      address?: string | null;
+      logo?: string | null;
+      heroImage?: string | null;
+      metadata?: string | null;
+      isPublic?: boolean;
+      supportedSports?: string[];
+    } = {};
+
+    if (name !== undefined) updateData.name = name.trim();
+    if (slug !== undefined || name !== undefined) updateData.slug = finalSlug;
+    if (description !== undefined) updateData.description = description?.trim() || null;
+    if (contactEmail !== undefined) updateData.contactEmail = contactEmail?.trim() || null;
+    if (contactPhone !== undefined) updateData.contactPhone = contactPhone?.trim() || null;
+    if (website !== undefined) updateData.website = website?.trim() || null;
+    if (address !== undefined) updateData.address = address?.trim() || null;
+    if (logo !== undefined) updateData.logo = logo?.trim() || null;
+    if (heroImage !== undefined) updateData.heroImage = heroImage?.trim() || null;
+    if (metadata !== undefined) {
+      updateData.metadata = metadata ? JSON.stringify(metadata) : null;
+    }
+    if (isPublic !== undefined) updateData.isPublic = isPublic;
+    if (supportedSports !== undefined) updateData.supportedSports = supportedSports;
+
     // Update the organization
     const updatedOrganization = await prisma.organization.update({
       where: { id },
-      data: {
-        ...(name !== undefined && { name: name.trim() }),
-        slug: finalSlug,
-        ...(supportedSports !== undefined && { supportedSports }),
-      },
+      data: updateData,
       include: {
-        _count: {
-          select: { clubs: true },
-        },
         createdBy: {
           select: {
             id: true,
@@ -133,43 +405,45 @@ export async function PATCH(
             email: true,
           },
         },
-        memberships: {
-          where: {
-            role: "ORGANIZATION_ADMIN",
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: [
-            { isPrimaryOwner: "desc" },
-            { createdAt: "asc" },
-          ],
+        _count: {
+          select: { clubs: true },
         },
       },
     });
 
-    const superAdmins = updatedOrganization.memberships.map((m) => ({
-      id: m.user.id,
-      name: m.user.name,
-      email: m.user.email,
-      isPrimaryOwner: m.isPrimaryOwner,
-    }));
+    // Create audit log
+    await auditLog(
+      authResult.userId,
+      AuditAction.ORG_UPDATE,
+      TargetType.ORGANIZATION,
+      id,
+      {
+        changes: updateData,
+        previousName: organization.name,
+        previousSlug: organization.slug,
+      }
+    );
 
     return NextResponse.json({
       id: updatedOrganization.id,
       name: updatedOrganization.name,
       slug: updatedOrganization.slug,
+      description: updatedOrganization.description,
+      contactEmail: updatedOrganization.contactEmail,
+      contactPhone: updatedOrganization.contactPhone,
+      website: updatedOrganization.website,
+      address: updatedOrganization.address,
+      logo: updatedOrganization.logo,
+      heroImage: updatedOrganization.heroImage,
+      metadata: updatedOrganization.metadata
+        ? JSON.parse(updatedOrganization.metadata)
+        : null,
+      isPublic: updatedOrganization.isPublic,
+      archivedAt: updatedOrganization.archivedAt,
       createdAt: updatedOrganization.createdAt,
-      clubCount: updatedOrganization._count.clubs,
+      updatedAt: updatedOrganization.updatedAt,
       createdBy: updatedOrganization.createdBy,
-      superAdmins,
-      superAdmin: superAdmins.find((a) => a.isPrimaryOwner) || superAdmins[0] || null,
+      clubCount: updatedOrganization._count.clubs,
       supportedSports: updatedOrganization.supportedSports,
     });
   } catch (error) {
