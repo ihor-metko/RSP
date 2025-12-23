@@ -3,8 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { requireRootAdmin, isValidEmail } from "@/lib/requireRole";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
 import { MembershipRole } from "@/constants/roles";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
 
 /**
  * POST /api/orgs/[orgId]/reassign-superadmin
@@ -31,26 +29,6 @@ export async function POST(
     const body = await request.json();
     const { userId, email, name } = body;
 
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const { mockReassignOwnerHandler } = await import("@/services/mockApiHandlers");
-      try {
-        const result = await mockReassignOwnerHandler({
-          orgId,
-          userId,
-          email,
-          name,
-          actorId: authResult.userId,
-        });
-        return NextResponse.json(result);
-      } catch (error: unknown) {
-        const err = error as { status?: number; message?: string };
-        return NextResponse.json(
-          { error: err.message || "Internal server error" },
-          { status: err.status || 500 }
-        );
-      }
-    }
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({
