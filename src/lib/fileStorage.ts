@@ -10,10 +10,32 @@ import * as path from "path";
 import { randomUUID } from "crypto";
 
 /**
+ * Validate and get the storage base path.
+ * Ensures the path is absolute and doesn't contain dangerous sequences.
+ */
+function getValidatedStoragePath(): string {
+  const envPath = process.env.STORAGE_BASE_PATH || "/app/storage/images";
+  
+  // Validate the path is absolute
+  if (!envPath.startsWith("/")) {
+    console.warn("STORAGE_BASE_PATH must be absolute, using default");
+    return "/app/storage/images";
+  }
+  
+  // Check for dangerous sequences
+  if (envPath.includes("..")) {
+    console.warn("STORAGE_BASE_PATH contains dangerous sequences, using default");
+    return "/app/storage/images";
+  }
+  
+  return envPath;
+}
+
+/**
  * Base storage directory for images (Docker volume mount point)
  * Can be overridden via STORAGE_BASE_PATH environment variable
  */
-export const STORAGE_BASE_PATH = process.env.STORAGE_BASE_PATH || "/app/storage/images";
+export const STORAGE_BASE_PATH = getValidatedStoragePath();
 
 /**
  * Allowed MIME types for image uploads.
@@ -221,15 +243,33 @@ export async function deleteFileFromStorage(
 }
 
 /**
+ * Validate a filename to prevent path traversal attacks.
+ * 
+ * @param filename - The filename to validate
+ * @returns true if valid, false otherwise
+ */
+export function isValidFilename(filename: string): boolean {
+  if (!filename) {
+    return false;
+  }
+  
+  // Check for dangerous path characters
+  if (filename.includes("..") || filename.includes("/") || filename.includes("\\")) {
+    return false;
+  }
+  
+  // Must be a simple filename with no path separators
+  return true;
+}
+
+/**
  * Extract filename from a stored URL path.
  * Handles various path formats:
  * - /api/images/uuid.jpg -> uuid.jpg
  * - /uploads/clubs/uuid.jpg -> uuid.jpg
  * - clubs/uuid.jpg -> uuid.jpg
  * 
- * This function validates the filename for security:
- * - Ensures no path traversal attacks (.., /, \)
- * - Returns only the last segment of the path
+ * This function validates the filename for security using isValidFilename.
  * 
  * @param urlPath - The URL path as stored in the database
  * @returns The filename only, or empty string if invalid
@@ -239,8 +279,8 @@ export function extractFilenameFromPath(urlPath: string): string {
   const segments = urlPath.split("/").filter(Boolean);
   const filename = segments[segments.length - 1] || "";
   
-  // Validate the filename doesn't contain dangerous characters
-  if (filename.includes("..") || filename.includes("/") || filename.includes("\\")) {
+  // Validate the filename
+  if (!isValidFilename(filename)) {
     console.error("Invalid filename detected in path:", urlPath);
     return "";
   }

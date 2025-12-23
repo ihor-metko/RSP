@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readFileFromStorage, getMimeTypeFromFilename } from "@/lib/fileStorage";
+import { readFileFromStorage, getMimeTypeFromFilename, isValidFilename } from "@/lib/fileStorage";
 
 /**
  * GET /api/images/[filename]
@@ -15,8 +15,8 @@ export async function GET(
     const resolvedParams = await params;
     const { filename } = resolvedParams;
 
-    // Basic validation: filename should not contain path separators
-    if (!filename || filename.includes("..") || filename.includes("/") || filename.includes("\\")) {
+    // Validate filename to prevent path traversal
+    if (!isValidFilename(filename)) {
       return NextResponse.json(
         { error: "Invalid filename" },
         { status: 400 }
@@ -37,7 +37,7 @@ export async function GET(
     const mimeType = getMimeTypeFromFilename(filename);
 
     // Return the image with appropriate headers
-    return new NextResponse(result.buffer as BodyInit, {
+    return new NextResponse(result.buffer, {
       status: 200,
       headers: {
         "Content-Type": mimeType,
