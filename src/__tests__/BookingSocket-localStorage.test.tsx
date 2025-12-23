@@ -252,7 +252,7 @@ describe('BookingSocket localStorage behavior', () => {
     // Start with active club (on operations page)
     mockActiveClubId = 'club-1';
     
-    const { getByTestId, rerender } = render(
+    const { rerender } = render(
       <BookingSocketProvider>
         <TestComponent />
       </BookingSocketProvider>
