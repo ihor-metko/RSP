@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
-import { mockGetRegisteredUsers } from "@/services/mockApiHandlers";
 
 /**
  * Trend data point for user registrations
@@ -43,12 +40,6 @@ export async function GET(
   }
 
   try {
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const mockResult = await mockGetRegisteredUsers();
-      return NextResponse.json(mockResult);
-    }
-
     // Get admin user IDs to exclude
     const [rootAdmins, orgAdmins, clubAdmins] = await Promise.all([
       // Root admins

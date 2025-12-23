@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin, AdminType } from "@/lib/requireRole";
 import type { PlatformStatistics } from "@/types/admin";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
-import { mockGetUnifiedDashboard } from "@/services/mockApiHandlers";
 
 /**
  * Organization info for unified dashboard
@@ -76,15 +73,6 @@ export async function GET(
   const { adminType, managedIds } = authResult;
 
   try {
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const mockResult = await mockGetUnifiedDashboard({
-        adminType: adminType === "club_owner" ? "club_admin" : adminType,
-        managedIds,
-      });
-      return NextResponse.json(mockResult as UnifiedDashboardResponse);
-    }
-
     if (adminType === "root_admin") {
       // Fetch platform-wide statistics for root admin
       const today = new Date();
