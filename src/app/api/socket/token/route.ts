@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { SignJWT } from 'jose';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { MembershipRole, ClubMembershipRole } from '@/constants/roles';
 
 /**
  * Convert string to Uint8Array for jose library
@@ -15,6 +14,29 @@ function stringToUint8Array(str: string): Uint8Array {
   }
   // Fallback for Node.js environments without TextEncoder
   return new Uint8Array(Buffer.from(str, 'utf-8'));
+}
+
+/**
+ * Determine the highest role for a user based on their memberships
+ */
+function determineUserRole(
+  isRoot: boolean,
+  organizationMemberships: Array<{ role: string }>,
+  clubMemberships: Array<{ role: string }>
+): string {
+  if (isRoot) {
+    return 'ROOT_ADMIN';
+  }
+  
+  if (organizationMemberships.some(m => m.role === MembershipRole.ORGANIZATION_ADMIN)) {
+    return 'ORGANIZATION_ADMIN';
+  }
+  
+  if (clubMemberships.some(m => m.role === ClubMembershipRole.CLUB_ADMIN)) {
+    return 'CLUB_ADMIN';
+  }
+  
+  return 'PLAYER';
 }
 
 /**
@@ -65,7 +87,7 @@ export async function GET() {
 
     // If user is an org admin, add all clubs in that organization to their scope
     const orgAdminMemberships = organizationMemberships.filter(
-      m => m.role === 'ORGANIZATION_ADMIN'
+      m => m.role === MembershipRole.ORGANIZATION_ADMIN
     );
 
     if (orgAdminMemberships.length > 0) {
@@ -108,10 +130,13 @@ export async function GET() {
       );
     }
 
+    // Determine user's highest role
+    const userRole = determineUserRole(isRoot, organizationMemberships, clubMemberships);
+
     // Create a signed JWT (JWS) using HS256
     const token = await new SignJWT({
       sub: userId,
-      role: isRoot ? 'ROOT_ADMIN' : (organizationMemberships.some(m => m.role === 'ORGANIZATION_ADMIN') ? 'ORGANIZATION_ADMIN' : (clubMemberships.some(m => m.role === 'CLUB_ADMIN') ? 'CLUB_ADMIN' : 'PLAYER')),
+      role: userRole,
       scopes,
       organizationIds,
       clubIds,
