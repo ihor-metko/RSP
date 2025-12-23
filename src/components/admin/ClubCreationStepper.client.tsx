@@ -32,6 +32,7 @@ interface StepperFormData {
   slug: string;
   clubType: string;
   shortDescription: string;
+  supportedSports: string[];
   // Step 2: Contacts and Address
   address: string;
   city: string;
@@ -67,6 +68,7 @@ const initialFormData: StepperFormData = {
   slug: "",
   clubType: "",
   shortDescription: "Сучасний падел-клуб у центрі міста з професійними кортами і тренерською командою.",
+  supportedSports: [],
   address: "вул. Спортивна 12, Київ",
   city: "Київ",
   postalCode: "12345",
@@ -319,7 +321,7 @@ export function ClubCreationStepper() {
         organizationId: formData.organizationId,
         name: formData.name.trim(),
         slug: formData.slug.trim() || generateSlug(formData.name),
-        shortDescription: formData.shortDescription.trim() || `${formData.name} - ${formData.clubType || "Sports"} Club`,
+        shortDescription: formData.shortDescription.trim() || `${formData.name} - Sports Club`,
         location: formData.address.trim() || "Address not provided",
         city: formData.city.trim() || null,
         country: formData.country.trim() || null,
@@ -328,6 +330,7 @@ export function ClubCreationStepper() {
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
         website: formData.website.trim() || null,
+        supportedSports: formData.supportedSports.length > 0 ? formData.supportedSports : undefined,
         businessHours: formData.businessHours,
         courts: formData.courts.map((court) => ({
           name: court.name,
@@ -428,6 +431,7 @@ export function ClubCreationStepper() {
                 slug: formData.slug,
                 clubType: formData.clubType,
                 shortDescription: formData.shortDescription,
+                supportedSports: formData.supportedSports,
               }}
               onChange={handleGeneralInfoChange}
               errors={fieldErrors}

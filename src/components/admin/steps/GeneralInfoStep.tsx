@@ -2,8 +2,8 @@
 
 import { useCallback, useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Input, Select, Textarea, Checkbox } from "@/components/ui";
-import type { SelectOption } from "@/components/ui";
+import { Input, Textarea, Checkbox, Multiselect } from "@/components/ui";
+import type { MultiselectOption } from "@/components/ui";
 import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
 
 export interface OrganizationOption {
@@ -19,6 +19,7 @@ export interface GeneralInfoData {
   shortDescription: string;
   isPublic?: boolean;
   organizationId?: string;
+  supportedSports?: string[];
 }
 
 interface GeneralInfoStepProps {
@@ -239,12 +240,12 @@ export function GeneralInfoStep({
           )}
         </div>
         <div className="im-stepper-field">
-          <Select
+          <Multiselect
             label={t("clubType")}
-            options={SPORT_TYPE_OPTIONS}
+            options={SPORT_TYPE_OPTIONS as MultiselectOption[]}
             placeholder={t("selectType")}
-            value={data.clubType}
-            onChange={(value) => onChange({ clubType: value })}
+            value={data.supportedSports || []}
+            onChange={(values) => onChange({ supportedSports: values })}
             disabled={disabled}
           />
         </div>
