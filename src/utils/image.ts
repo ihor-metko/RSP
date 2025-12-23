@@ -1,9 +1,8 @@
 /**
- * Image URL utilities for server-side filesystem storage
+ * Image URL utilities for image display.
  * 
- * Images are stored in the filesystem at /app/storage/images/
- * In the database, we store the API URL path (e.g., "/api/images/uuid.jpg").
- * This utility handles URL validation and conversion.
+ * These utilities handle image URL validation and conversion.
+ * The actual storage implementation should be handled separately by the backend.
  */
 
 /**
@@ -19,13 +18,13 @@ function isFullUrl(url: string): boolean {
 }
 
 /**
- * Convert a stored image path to a full URL if needed.
+ * Convert a stored image path to a URL for display.
  * 
  * If the URL is already a full HTTP/HTTPS URL, it's returned as-is.
- * If it's a relative path, it's returned as-is (assumes it's already in the correct format).
+ * If it's a relative path, it's returned as-is.
  * Returns null only if the input is null, undefined, or empty.
  * 
- * @param storedPath - The path as stored in the database (e.g., "/api/images/uuid.jpg")
+ * @param storedPath - The path as stored in the database
  * @returns The URL for the image, or null for invalid input
  * 
  * @example
@@ -34,16 +33,16 @@ function isFullUrl(url: string): boolean {
  * // Returns: "https://example.com/image.jpg"
  * 
  * @example
- * // API path - returned as-is
- * getImageUrl("/api/images/abc123.jpg")
- * // Returns: "/api/images/abc123.jpg"
+ * // Relative path - returned as-is
+ * getImageUrl("/images/abc123.jpg")
+ * // Returns: "/images/abc123.jpg"
  */
 export function getImageUrl(storedPath: string | null | undefined): string | null {
   if (!storedPath) {
     return null;
   }
 
-  // Return as-is (either full URL or relative API path)
+  // Return as-is (either full URL or relative path)
   return storedPath;
 }
 
@@ -59,7 +58,7 @@ export function getSupabaseStorageUrl(storedPath: string | null | undefined): st
 
 /**
  * Check if an image URL is valid for display.
- * A valid URL is either a full HTTP/HTTPS URL or a relative API path.
+ * A valid URL is either a full HTTP/HTTPS URL or a relative path.
  * 
  * @param url - The URL to validate
  * @returns true if the URL is valid for image display
@@ -74,13 +73,13 @@ export function isValidImageUrl(url: string | null | undefined): boolean {
     return true;
   }
 
-  // Check if it's a valid API path
-  if (url.startsWith("/api/images/")) {
+  // Check if it's a relative path (starting with /)
+  if (url.startsWith("/")) {
     return true;
   }
 
-  // Legacy paths that might still exist in the database
-  if (url.startsWith("/") || url.startsWith("uploads/") || url.startsWith("clubs/") || url.startsWith("organizations/")) {
+  // Legacy relative paths without leading slash
+  if (url.startsWith("uploads/") || url.startsWith("clubs/") || url.startsWith("organizations/")) {
     return true;
   }
 

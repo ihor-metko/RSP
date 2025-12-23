@@ -1,8 +1,21 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { ALLOWED_IMAGE_TYPES, ALLOWED_LOGO_TYPES } from "@/constants/uploadConstants";
 import "./UploadField.css";
+
+// Allowed MIME types for raster image uploads
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+] as const;
+
+// Allowed MIME types for logo uploads (includes SVG)
+const ALLOWED_LOGO_TYPES = [
+  ...ALLOWED_IMAGE_TYPES,
+  "image/svg+xml",
+] as const;
 
 interface UploadedFile {
   url: string;
