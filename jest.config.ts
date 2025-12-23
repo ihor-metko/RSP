@@ -13,7 +13,7 @@ const config: Config = {
   },
   testMatch: ["**/__tests__/**/*.test.ts", "**/__tests__/**/*.test.tsx"],
   transformIgnorePatterns: [
-    "node_modules/(?!(next-intl)/)",
+    "node_modules/(?!(next-intl|isomorphic-dompurify|jsdom|parse5)/)",
   ],
 };
 

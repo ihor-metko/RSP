@@ -2,10 +2,17 @@
  * @jest-environment node
  */
 
+// Mock isomorphic-dompurify since it has ES module dependencies
+jest.mock("isomorphic-dompurify", () => ({
+  sanitize: jest.fn((input: string) => input),
+}));
+
 import {
   validateFileForUpload,
+  validateLogoFileForUpload,
   getExtensionForMimeType,
   ALLOWED_MIME_TYPES,
+  ALLOWED_LOGO_MIME_TYPES,
   MAX_FILE_SIZE,
 } from "@/lib/supabase";
 
@@ -27,6 +34,11 @@ describe("Supabase Utilities", () => {
       expect(validateFileForUpload("image/avif", 1024)).toBeNull();
     });
 
+    it("should return error for SVG file (not allowed in general uploads)", () => {
+      const result = validateFileForUpload("image/svg+xml", 1024);
+      expect(result).toBe("Invalid file type. Allowed: jpg, png, webp, avif");
+    });
+
     it("should return error for invalid MIME type", () => {
       const result = validateFileForUpload("application/pdf", 1024);
       expect(result).toBe("Invalid file type. Allowed: jpg, png, webp, avif");
@@ -39,6 +51,42 @@ describe("Supabase Utilities", () => {
 
     it("should return null for file at exactly max size", () => {
       expect(validateFileForUpload("image/jpeg", MAX_FILE_SIZE)).toBeNull();
+    });
+  });
+
+  describe("validateLogoFileForUpload", () => {
+    it("should return null for valid JPEG file", () => {
+      expect(validateLogoFileForUpload("image/jpeg", 1024)).toBeNull();
+    });
+
+    it("should return null for valid PNG file", () => {
+      expect(validateLogoFileForUpload("image/png", 1024)).toBeNull();
+    });
+
+    it("should return null for valid WebP file", () => {
+      expect(validateLogoFileForUpload("image/webp", 1024)).toBeNull();
+    });
+
+    it("should return null for valid AVIF file", () => {
+      expect(validateLogoFileForUpload("image/avif", 1024)).toBeNull();
+    });
+
+    it("should return null for valid SVG file (allowed in logo uploads)", () => {
+      expect(validateLogoFileForUpload("image/svg+xml", 1024)).toBeNull();
+    });
+
+    it("should return error for invalid MIME type", () => {
+      const result = validateLogoFileForUpload("application/pdf", 1024);
+      expect(result).toBe("Invalid file type. Allowed: jpg, png, webp, avif, svg");
+    });
+
+    it("should return error for file too large", () => {
+      const result = validateLogoFileForUpload("image/svg+xml", MAX_FILE_SIZE + 1);
+      expect(result).toBe("File too large. Maximum size: 5MB");
+    });
+
+    it("should return null for SVG file at exactly max size", () => {
+      expect(validateLogoFileForUpload("image/svg+xml", MAX_FILE_SIZE)).toBeNull();
     });
   });
 
@@ -63,18 +111,40 @@ describe("Supabase Utilities", () => {
       expect(getExtensionForMimeType("image/avif")).toBe("avif");
     });
 
+    it("should return svg for image/svg+xml", () => {
+      expect(getExtensionForMimeType("image/svg+xml")).toBe("svg");
+    });
+
     it("should return jpg for unknown MIME type", () => {
       expect(getExtensionForMimeType("image/unknown")).toBe("jpg");
     });
   });
 
   describe("ALLOWED_MIME_TYPES", () => {
-    it("should include all supported image types", () => {
+    it("should include all supported raster image types", () => {
       expect(ALLOWED_MIME_TYPES).toContain("image/jpeg");
       expect(ALLOWED_MIME_TYPES).toContain("image/jpg");
       expect(ALLOWED_MIME_TYPES).toContain("image/png");
       expect(ALLOWED_MIME_TYPES).toContain("image/webp");
       expect(ALLOWED_MIME_TYPES).toContain("image/avif");
+    });
+
+    it("should not include SVG in general allowed types", () => {
+      expect(ALLOWED_MIME_TYPES).not.toContain("image/svg+xml");
+    });
+  });
+
+  describe("ALLOWED_LOGO_MIME_TYPES", () => {
+    it("should include all raster image types", () => {
+      expect(ALLOWED_LOGO_MIME_TYPES).toContain("image/jpeg");
+      expect(ALLOWED_LOGO_MIME_TYPES).toContain("image/jpg");
+      expect(ALLOWED_LOGO_MIME_TYPES).toContain("image/png");
+      expect(ALLOWED_LOGO_MIME_TYPES).toContain("image/webp");
+      expect(ALLOWED_LOGO_MIME_TYPES).toContain("image/avif");
+    });
+
+    it("should include SVG for logo uploads", () => {
+      expect(ALLOWED_LOGO_MIME_TYPES).toContain("image/svg+xml");
     });
   });
 });
