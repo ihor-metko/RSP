@@ -399,5 +399,55 @@ describe("Organization Detail Page - Banner Component", () => {
       const statusBadge = container.querySelector(".rsp-entity-status-badge--active");
       expect(statusBadge).toBeInTheDocument();
     });
+
+    it("hides admin features when hideAdminFeatures is true", () => {
+      render(
+        <EntityBanner
+          title="Test Organization"
+          subtitle="Test subtitle"
+          isPublished={true}
+          onTogglePublish={jest.fn()}
+          onEdit={jest.fn()}
+          hideAdminFeatures={true}
+        />
+      );
+
+      // Should not show status badge
+      expect(screen.queryByText("Published")).not.toBeInTheDocument();
+      
+      // Should not show publish/unpublish button
+      expect(screen.queryByRole("button", { name: /unpublish/i })).not.toBeInTheDocument();
+      
+      // Should not show edit button
+      expect(screen.queryByRole("button", { name: /edit/i })).not.toBeInTheDocument();
+      
+      // Should still show basic info
+      expect(screen.getByText("Test Organization")).toBeInTheDocument();
+      expect(screen.getByText("Test subtitle")).toBeInTheDocument();
+    });
+
+    it("shows admin features when hideAdminFeatures is false or not provided", () => {
+      const mockToggle = jest.fn();
+      const mockEdit = jest.fn();
+      
+      render(
+        <EntityBanner
+          title="Test Organization"
+          isPublished={true}
+          onTogglePublish={mockToggle}
+          onEdit={mockEdit}
+          hideAdminFeatures={false}
+        />
+      );
+
+      // Should show status badge
+      expect(screen.getByText("Published")).toBeInTheDocument();
+      
+      // Should show publish/unpublish button
+      expect(screen.getByRole("button", { name: /unpublish test organization/i })).toBeInTheDocument();
+      
+      // Should show edit button
+      expect(screen.getByRole("button", { name: /edit test organization details/i })).toBeInTheDocument();
+    });
   });
 });
