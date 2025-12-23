@@ -168,6 +168,8 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": mimeType,
+        // Cache for 1 year (31536000 seconds) with immutable flag
+        // Images are content-addressed and won't change, allowing aggressive caching
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
