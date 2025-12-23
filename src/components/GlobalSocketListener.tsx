@@ -3,29 +3,33 @@
 /**
  * Global Socket.IO Event Dispatcher
  * 
- * Subscribes to all real-time Socket.IO events from the Notification Socket and:
- * 1. Displays toast notifications via globalNotificationManager
- * 2. Updates Zustand stores (notification store) with real-time data
- * 3. Transforms Booking/Payment events into AdminNotification format for unified notification system
+ * Handles two types of WebSocket connections:
+ * 1. NotificationSocket - Persistent connection for platform-wide notifications
+ * 2. BookingSocket - Club-specific connection for real-time booking updates
  * 
- * This component is initialized once at app startup and works across all pages.
- * It uses the Notification Socket which remains active regardless of page navigation.
- * 
- * Notification Socket Features:
+ * NotificationSocket:
  * - Always active during user session
- * - Independent of page navigation or active club changes
- * - Receives role-scoped notifications (Root Admin, Org Admin, Club Admin, Player)
- * - Server-side room filtering ensures users only receive relevant notifications
+ * - Handles: admin_notification, payment events, booking events (for notifications only)
+ * - Updates notification store with role-scoped notifications
+ * - Server-side room filtering based on user role (Root Admin, Org Admin, Club Admin, Player)
+ * 
+ * BookingSocket:
+ * - Active only when a club is selected (club operations page)
+ * - Handles: booking_created, booking_updated, booking_cancelled, slot_locked, slot_unlocked, lock_expired
+ * - Updates booking store for real-time calendar synchronization
+ * - Automatically disconnects when leaving club pages
+ * 
+ * Role-Based Event Filtering:
+ * - Root Admin: Receives all events (platform-wide)
+ * - Organization Admin: Receives events for their organizations
+ * - Club Admin/Player: Receives events for their clubs
+ * - Server-side room filtering ensures no client-side filtering needed
  * 
  * Features:
- * - Uses notification socket from SocketProvider (single persistent connection)
- * - Centralized event dispatching for admin notifications and payment events
- * - Automatic duplicate prevention via notification manager
- * - Updates notification store for admin notifications (unified system)
- * - All admin-relevant events (Training, Booking, Payment) persist in notification store
- * 
- * Note: Booking events (booking_created, booking_updated, booking_cancelled) and slot events
- * are now handled by BookingSocketListener on club operations pages for real-time calendar updates.
+ * - Singleton integration with existing socket instances
+ * - Proper event cleanup on unmount
+ * - Duplicate prevention via notification manager
+ * - Separate store updates for notifications vs booking calendar
  */
 
 import { useEffect } from 'react';
@@ -33,6 +37,9 @@ import type {
   BookingCreatedEvent,
   BookingUpdatedEvent,
   BookingDeletedEvent,
+  SlotLockedEvent,
+  SlotUnlockedEvent,
+  LockExpiredEvent,
   PaymentConfirmedEvent,
   PaymentFailedEvent,
   AdminNotificationEvent,
@@ -47,28 +54,48 @@ import {
   transformPaymentFailed,
 } from '@/utils/globalNotificationManager';
 import { useSocket } from '@/contexts/SocketContext';
+import { useBookingSocket } from '@/contexts/BookingSocketContext';
 import { useNotificationStore } from '@/stores/useNotificationStore';
+import { useBookingStore } from '@/stores/useBookingStore';
+
+/**
+ * Cleanup interval for expired locks in milliseconds (60 seconds)
+ */
+const CLEANUP_INTERVAL_MS = 60000;
 
 /**
  * Global Socket Event Dispatcher
  * 
  * Usage: Add this component to the root layout to enable:
- * - Global socket event listening for notifications and payments
+ * - Global notification socket listening (always active)
+ * - Club-specific booking socket listening (active when club is selected)
  * - Toast notifications
- * - Automatic notification store updates
+ * - Automatic store updates (notification store and booking store)
  */
 export function GlobalSocketListener() {
-  const { socket, isConnected } = useSocket();
+  // NotificationSocket - always active
+  const { socket: notificationSocket, isConnected: notificationConnected } = useSocket();
+  
+  // BookingSocket - active only when club is selected
+  const { socket: bookingSocket, isConnected: bookingConnected, activeClubId } = useBookingSocket();
+  
+  // Store actions
   const addNotification = useNotificationStore(state => state.addNotification);
+  const updateBookingFromSocket = useBookingStore(state => state.updateBookingFromSocket);
+  const removeBookingFromSocket = useBookingStore(state => state.removeBookingFromSocket);
+  const addLockedSlot = useBookingStore(state => state.addLockedSlot);
+  const removeLockedSlot = useBookingStore(state => state.removeLockedSlot);
+  const cleanupExpiredLocks = useBookingStore(state => state.cleanupExpiredLocks);
 
+  // ===== NotificationSocket Event Handlers =====
+  // These events are for notifications only, not real-time calendar updates
   useEffect(() => {
-    if (!socket) return;
+    if (!notificationSocket) return;
 
-    console.log('[GlobalSocketListener] Registering event listeners');
+    console.log('[GlobalSocketListener] Registering NotificationSocket event listeners');
 
-    // Booking events - for notification purposes only (not for real-time calendar updates)
-    // Real-time calendar updates are handled by BookingSocketListener on club operations pages
-    const handleBookingCreated = (data: BookingCreatedEvent) => {
+    // Booking events - for notification purposes only
+    const handleBookingCreatedNotification = (data: BookingCreatedEvent) => {
       // Show toast notification
       handleSocketEvent('booking_created', data);
       
@@ -76,10 +103,10 @@ export function GlobalSocketListener() {
       const notification = transformBookingCreated(data);
       addNotification(notification);
       
-      console.log('[GlobalSocketListener] Booking created - notification added');
+      console.log('[GlobalSocketListener] Booking created notification added');
     };
 
-    const handleBookingUpdated = (data: BookingUpdatedEvent) => {
+    const handleBookingUpdatedNotification = (data: BookingUpdatedEvent) => {
       // Show toast notification
       handleSocketEvent('booking_updated', data);
       
@@ -87,10 +114,10 @@ export function GlobalSocketListener() {
       const notification = transformBookingUpdated(data);
       addNotification(notification);
       
-      console.log('[GlobalSocketListener] Booking updated - notification added');
+      console.log('[GlobalSocketListener] Booking updated notification added');
     };
 
-    const handleBookingCancelled = (data: BookingDeletedEvent) => {
+    const handleBookingCancelledNotification = (data: BookingDeletedEvent) => {
       // Show toast notification
       handleSocketEvent('booking_cancelled', data);
       
@@ -98,7 +125,7 @@ export function GlobalSocketListener() {
       const notification = transformBookingCancelled(data);
       addNotification(notification);
       
-      console.log('[GlobalSocketListener] Booking cancelled - notification added');
+      console.log('[GlobalSocketListener] Booking cancelled notification added');
     };
 
     // Payment events - integrated with unified notification system
@@ -110,7 +137,7 @@ export function GlobalSocketListener() {
       const notification = transformPaymentConfirmed(data);
       addNotification(notification);
       
-      console.log('[GlobalSocketListener] Payment confirmed - toast shown, notification added');
+      console.log('[GlobalSocketListener] Payment confirmed - notification added');
     };
 
     const handlePaymentFailed = (data: PaymentFailedEvent) => {
@@ -121,7 +148,7 @@ export function GlobalSocketListener() {
       const notification = transformPaymentFailed(data);
       addNotification(notification);
       
-      console.log('[GlobalSocketListener] Payment failed - toast shown, notification added');
+      console.log('[GlobalSocketListener] Payment failed - notification added');
     };
 
     // Admin notification event - update notification store
@@ -130,26 +157,140 @@ export function GlobalSocketListener() {
       addNotification(data);
     };
 
-    // Register event handlers for notification events
-    socket.on('booking_created', handleBookingCreated);
-    socket.on('booking_updated', handleBookingUpdated);
-    socket.on('booking_cancelled', handleBookingCancelled);
-    socket.on('admin_notification', handleAdminNotification);
-    socket.on('payment_confirmed', handlePaymentConfirmed);
-    socket.on('payment_failed', handlePaymentFailed);
+    // Register NotificationSocket event handlers
+    notificationSocket.on('booking_created', handleBookingCreatedNotification);
+    notificationSocket.on('booking_updated', handleBookingUpdatedNotification);
+    notificationSocket.on('booking_cancelled', handleBookingCancelledNotification);
+    notificationSocket.on('admin_notification', handleAdminNotification);
+    notificationSocket.on('payment_confirmed', handlePaymentConfirmed);
+    notificationSocket.on('payment_failed', handlePaymentFailed);
 
     // Cleanup on unmount or socket change
     return () => {
-      console.log('[GlobalSocketListener] Cleaning up event listeners');
+      console.log('[GlobalSocketListener] Cleaning up NotificationSocket event listeners');
       
-      socket.off('booking_created', handleBookingCreated);
-      socket.off('booking_updated', handleBookingUpdated);
-      socket.off('booking_cancelled', handleBookingCancelled);
-      socket.off('admin_notification', handleAdminNotification);
-      socket.off('payment_confirmed', handlePaymentConfirmed);
-      socket.off('payment_failed', handlePaymentFailed);
+      notificationSocket.off('booking_created', handleBookingCreatedNotification);
+      notificationSocket.off('booking_updated', handleBookingUpdatedNotification);
+      notificationSocket.off('booking_cancelled', handleBookingCancelledNotification);
+      notificationSocket.off('admin_notification', handleAdminNotification);
+      notificationSocket.off('payment_confirmed', handlePaymentConfirmed);
+      notificationSocket.off('payment_failed', handlePaymentFailed);
     };
-  }, [socket, addNotification]);
+  }, [notificationSocket, addNotification]);
+
+  // ===== BookingSocket Event Handlers =====
+  // These events are for real-time calendar updates (only active when club is selected)
+  useEffect(() => {
+    if (!bookingSocket || !activeClubId) return;
+
+    console.log('[GlobalSocketListener] Registering BookingSocket event listeners for club:', activeClubId);
+
+    // Booking events - update booking store for real-time calendar sync
+    const handleBookingCreated = (data: BookingCreatedEvent) => {
+      // Only process events for the current club
+      if (data.clubId !== activeClubId) {
+        console.log('[GlobalSocketListener] Ignoring booking_created for different club');
+        return;
+      }
+
+      // Update booking store for real-time calendar sync
+      updateBookingFromSocket(data.booking);
+      
+      console.log('[GlobalSocketListener] Booking created - store updated');
+    };
+
+    const handleBookingUpdated = (data: BookingUpdatedEvent) => {
+      // Only process events for the current club
+      if (data.clubId !== activeClubId) {
+        console.log('[GlobalSocketListener] Ignoring booking_updated for different club');
+        return;
+      }
+
+      // Update booking store for real-time calendar sync
+      updateBookingFromSocket(data.booking);
+      
+      console.log('[GlobalSocketListener] Booking updated - store updated');
+    };
+
+    const handleBookingCancelled = (data: BookingDeletedEvent) => {
+      // Only process events for the current club
+      if (data.clubId !== activeClubId) {
+        console.log('[GlobalSocketListener] Ignoring booking_cancelled for different club');
+        return;
+      }
+
+      // Remove from booking store for real-time calendar sync
+      removeBookingFromSocket(data.bookingId);
+      
+      console.log('[GlobalSocketListener] Booking cancelled - store updated');
+    };
+
+    // Slot lock events - update booking store for real-time UI sync
+    const handleSlotLocked = (data: SlotLockedEvent) => {
+      // Only process events for the current club
+      if (data.clubId !== activeClubId) {
+        console.log('[GlobalSocketListener] Ignoring slot_locked for different club');
+        return;
+      }
+
+      handleSocketEvent('slot_locked', data);
+      addLockedSlot(data);
+      console.log('[GlobalSocketListener] Slot locked - store updated');
+    };
+
+    const handleSlotUnlocked = (data: SlotUnlockedEvent) => {
+      // Only process events for the current club
+      if (data.clubId !== activeClubId) {
+        console.log('[GlobalSocketListener] Ignoring slot_unlocked for different club');
+        return;
+      }
+
+      handleSocketEvent('slot_unlocked', data);
+      removeLockedSlot(data.slotId);
+      console.log('[GlobalSocketListener] Slot unlocked - store updated');
+    };
+
+    const handleLockExpired = (data: LockExpiredEvent) => {
+      // Only process events for the current club
+      if (data.clubId !== activeClubId) {
+        console.log('[GlobalSocketListener] Ignoring lock_expired for different club');
+        return;
+      }
+
+      handleSocketEvent('lock_expired', data);
+      removeLockedSlot(data.slotId);
+      console.log('[GlobalSocketListener] Lock expired - store updated');
+    };
+
+    // Register BookingSocket event handlers
+    bookingSocket.on('booking_created', handleBookingCreated);
+    bookingSocket.on('booking_updated', handleBookingUpdated);
+    bookingSocket.on('booking_cancelled', handleBookingCancelled);
+    bookingSocket.on('slot_locked', handleSlotLocked);
+    bookingSocket.on('slot_unlocked', handleSlotUnlocked);
+    bookingSocket.on('lock_expired', handleLockExpired);
+
+    // Cleanup on unmount or socket/club change
+    return () => {
+      console.log('[GlobalSocketListener] Cleaning up BookingSocket event listeners');
+      
+      bookingSocket.off('booking_created', handleBookingCreated);
+      bookingSocket.off('booking_updated', handleBookingUpdated);
+      bookingSocket.off('booking_cancelled', handleBookingCancelled);
+      bookingSocket.off('slot_locked', handleSlotLocked);
+      bookingSocket.off('slot_unlocked', handleSlotUnlocked);
+      bookingSocket.off('lock_expired', handleLockExpired);
+    };
+  }, [bookingSocket, activeClubId, updateBookingFromSocket, removeBookingFromSocket, addLockedSlot, removeLockedSlot]);
+
+  // Periodic cleanup of expired slot locks
+  useEffect(() => {
+    const interval = setInterval(() => {
+      cleanupExpiredLocks();
+    }, CLEANUP_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [cleanupExpiredLocks]);
 
   // Cleanup notification manager on unmount
   useEffect(() => {
@@ -160,12 +301,20 @@ export function GlobalSocketListener() {
 
   // Log connection status changes
   useEffect(() => {
-    if (isConnected) {
-      console.log('[GlobalSocketListener] Socket connected and ready');
+    if (notificationConnected) {
+      console.log('[GlobalSocketListener] NotificationSocket connected and ready');
     } else {
-      console.log('[GlobalSocketListener] Socket disconnected');
+      console.log('[GlobalSocketListener] NotificationSocket disconnected');
     }
-  }, [isConnected]);
+  }, [notificationConnected]);
+
+  useEffect(() => {
+    if (bookingConnected && activeClubId) {
+      console.log('[GlobalSocketListener] BookingSocket connected and ready for club:', activeClubId);
+    } else if (!bookingConnected && activeClubId) {
+      console.log('[GlobalSocketListener] BookingSocket disconnected');
+    }
+  }, [bookingConnected, activeClubId]);
 
   // This component doesn't render anything
   return null;

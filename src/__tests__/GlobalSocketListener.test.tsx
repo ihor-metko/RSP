@@ -73,6 +73,20 @@ jest.mock('@/stores/useBookingStore', () => ({
   }),
 }));
 
+// Mock booking socket.io-client
+const mockBookingSocket = {
+  on: jest.fn(),
+  off: jest.fn(),
+  disconnect: jest.fn(),
+  connect: jest.fn(),
+  id: 'test-booking-socket-id',
+  connected: false,
+  io: {
+    on: jest.fn(),
+    off: jest.fn(),
+  },
+};
+
 // Mock the notification store
 const mockAddNotification = jest.fn();
 
@@ -103,7 +117,7 @@ jest.mock('socket.io-client', () => ({
   io: jest.fn(() => mockSocket),
 }));
 
-// Mock SocketProvider by providing a mock socket
+// Mock SocketProvider by providing a mock notification socket
 jest.mock('@/contexts/SocketContext', () => ({
   useSocket: jest.fn(() => ({
     socket: mockSocket,
@@ -112,30 +126,44 @@ jest.mock('@/contexts/SocketContext', () => ({
   SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
+// Mock BookingSocketProvider by providing a mock booking socket
+jest.mock('@/contexts/BookingSocketContext', () => ({
+  useBookingSocket: jest.fn(() => ({
+    socket: mockBookingSocket,
+    isConnected: true,
+    activeClubId: 'club-1',
+  })),
+  BookingSocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 describe('GlobalSocketListener', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should register all event listeners', () => {
+  it('should register all event listeners for both sockets', () => {
     render(<GlobalSocketListener />);
 
-    // Check that all required events are registered
-    const registeredEvents = mockSocket.on.mock.calls.map(call => call[0]);
+    // Check NotificationSocket events
+    const notificationEvents = mockSocket.on.mock.calls.map(call => call[0]);
+    expect(notificationEvents).toContain('booking_created');
+    expect(notificationEvents).toContain('booking_updated');
+    expect(notificationEvents).toContain('booking_cancelled');
+    expect(notificationEvents).toContain('admin_notification');
+    expect(notificationEvents).toContain('payment_confirmed');
+    expect(notificationEvents).toContain('payment_failed');
     
-    // Booking events from GlobalSocketListener
-    expect(registeredEvents).toContain('booking_created');
-    expect(registeredEvents).toContain('booking_updated');
-    expect(registeredEvents).toContain('booking_cancelled');
-    expect(registeredEvents).toContain('slot_locked');
-    expect(registeredEvents).toContain('slot_unlocked');
-    expect(registeredEvents).toContain('lock_expired');
-    expect(registeredEvents).toContain('payment_confirmed');
-    expect(registeredEvents).toContain('payment_failed');
-    expect(registeredEvents).toContain('admin_notification');
+    // Check BookingSocket events
+    const bookingEvents = mockBookingSocket.on.mock.calls.map(call => call[0]);
+    expect(bookingEvents).toContain('booking_created');
+    expect(bookingEvents).toContain('booking_updated');
+    expect(bookingEvents).toContain('booking_cancelled');
+    expect(bookingEvents).toContain('slot_locked');
+    expect(bookingEvents).toContain('slot_unlocked');
+    expect(bookingEvents).toContain('lock_expired');
   });
 
-  it('should handle booking_created event with unified notification system', async () => {
+  it('should handle booking_created event from NotificationSocket (notification only)', async () => {
     const { transformBookingCreated } = jest.requireMock('@/utils/globalNotificationManager');
     render(<GlobalSocketListener />);
 
@@ -157,13 +185,62 @@ describe('GlobalSocketListener', () => {
       // Toast notification
       expect(handleSocketEvent).toHaveBeenCalledWith('booking_created', eventData);
       
-      // Notification store update (unified system)
+      // Notification store update
       expect(transformBookingCreated).toHaveBeenCalledWith(eventData);
       expect(mockAddNotification).toHaveBeenCalled();
+      
+      // Should NOT update booking store (that's for BookingSocket)
+      expect(mockUpdateBookingFromSocket).not.toHaveBeenCalled();
     });
   });
 
-  it('should handle booking_updated event with unified notification system', async () => {
+  it('should handle booking_created event from BookingSocket (store update only)', async () => {
+    render(<GlobalSocketListener />);
+
+    const eventHandler = mockBookingSocket.on.mock.calls.find(
+      call => call[0] === 'booking_created'
+    )?.[1];
+
+    expect(eventHandler).toBeDefined();
+
+    const eventData = {
+      booking: { id: 'booking-2', bookingStatus: 'CONFIRMED' },
+      clubId: 'club-1',
+      courtId: 'court-1',
+    };
+
+    eventHandler(eventData);
+
+    await waitFor(() => {
+      // Should update booking store for calendar sync
+      expect(mockUpdateBookingFromSocket).toHaveBeenCalledWith(eventData.booking);
+    });
+  });
+
+  it('should ignore booking events from BookingSocket for different club', async () => {
+    render(<GlobalSocketListener />);
+
+    const eventHandler = mockBookingSocket.on.mock.calls.find(
+      call => call[0] === 'booking_created'
+    )?.[1];
+
+    expect(eventHandler).toBeDefined();
+
+    const eventData = {
+      booking: { id: 'booking-3', bookingStatus: 'CONFIRMED' },
+      clubId: 'club-2', // Different club
+      courtId: 'court-1',
+    };
+
+    eventHandler(eventData);
+
+    await waitFor(() => {
+      // Should NOT update booking store for different club
+      expect(mockUpdateBookingFromSocket).not.toHaveBeenCalled();
+    });
+  });
+
+  it('should handle booking_updated event from NotificationSocket', async () => {
     const { transformBookingUpdated } = jest.requireMock('@/utils/globalNotificationManager');
     render(<GlobalSocketListener />);
 
@@ -186,13 +263,13 @@ describe('GlobalSocketListener', () => {
       // Toast notification
       expect(handleSocketEvent).toHaveBeenCalledWith('booking_updated', eventData);
       
-      // Notification store update (unified system)
+      // Notification store update
       expect(transformBookingUpdated).toHaveBeenCalledWith(eventData);
       expect(mockAddNotification).toHaveBeenCalled();
     });
   });
 
-  it('should handle booking_cancelled event with unified notification system', async () => {
+  it('should handle booking_cancelled event from NotificationSocket', async () => {
     const { transformBookingCancelled } = jest.requireMock('@/utils/globalNotificationManager');
     render(<GlobalSocketListener />);
 
@@ -214,9 +291,81 @@ describe('GlobalSocketListener', () => {
       // Toast notification
       expect(handleSocketEvent).toHaveBeenCalledWith('booking_cancelled', eventData);
       
-      // Notification store update (unified system)
+      // Notification store update
       expect(transformBookingCancelled).toHaveBeenCalledWith(eventData);
       expect(mockAddNotification).toHaveBeenCalled();
+    });
+  });
+
+  it('should handle slot_locked event from BookingSocket', async () => {
+    render(<GlobalSocketListener />);
+
+    const eventHandler = mockBookingSocket.on.mock.calls.find(
+      call => call[0] === 'slot_locked'
+    )?.[1];
+
+    expect(eventHandler).toBeDefined();
+
+    const eventData = {
+      slotId: 'slot-1',
+      courtId: 'court-1',
+      clubId: 'club-1',
+      userId: 'user-1',
+      startTime: '2024-01-15T10:00:00Z',
+      endTime: '2024-01-15T11:00:00Z',
+    };
+
+    eventHandler(eventData);
+
+    await waitFor(() => {
+      // Should add locked slot to booking store
+      expect(mockAddLockedSlot).toHaveBeenCalledWith(eventData);
+    });
+  });
+
+  it('should handle slot_unlocked event from BookingSocket', async () => {
+    render(<GlobalSocketListener />);
+
+    const eventHandler = mockBookingSocket.on.mock.calls.find(
+      call => call[0] === 'slot_unlocked'
+    )?.[1];
+
+    expect(eventHandler).toBeDefined();
+
+    const eventData = {
+      slotId: 'slot-1',
+      courtId: 'court-1',
+      clubId: 'club-1',
+    };
+
+    eventHandler(eventData);
+
+    await waitFor(() => {
+      // Should remove locked slot from booking store
+      expect(mockRemoveLockedSlot).toHaveBeenCalledWith(eventData.slotId);
+    });
+  });
+
+  it('should handle lock_expired event from BookingSocket', async () => {
+    render(<GlobalSocketListener />);
+
+    const eventHandler = mockBookingSocket.on.mock.calls.find(
+      call => call[0] === 'lock_expired'
+    )?.[1];
+
+    expect(eventHandler).toBeDefined();
+
+    const eventData = {
+      slotId: 'slot-2',
+      courtId: 'court-1',
+      clubId: 'club-1',
+    };
+
+    eventHandler(eventData);
+
+    await waitFor(() => {
+      // Should remove expired lock from booking store
+      expect(mockRemoveLockedSlot).toHaveBeenCalledWith(eventData.slotId);
     });
   });
 
@@ -312,13 +461,21 @@ describe('GlobalSocketListener', () => {
 
     unmount();
 
-    // Check that event listeners are unregistered
+    // Check that NotificationSocket event listeners are unregistered
     expect(mockSocket.off).toHaveBeenCalledWith('booking_created', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('booking_updated', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('booking_cancelled', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('admin_notification', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('payment_confirmed', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('payment_failed', expect.any(Function));
+
+    // Check that BookingSocket event listeners are unregistered
+    expect(mockBookingSocket.off).toHaveBeenCalledWith('booking_created', expect.any(Function));
+    expect(mockBookingSocket.off).toHaveBeenCalledWith('booking_updated', expect.any(Function));
+    expect(mockBookingSocket.off).toHaveBeenCalledWith('booking_cancelled', expect.any(Function));
+    expect(mockBookingSocket.off).toHaveBeenCalledWith('slot_locked', expect.any(Function));
+    expect(mockBookingSocket.off).toHaveBeenCalledWith('slot_unlocked', expect.any(Function));
+    expect(mockBookingSocket.off).toHaveBeenCalledWith('lock_expired', expect.any(Function));
 
     // Check notification manager is cleaned up
     expect(cleanupNotificationManager).toHaveBeenCalled();
