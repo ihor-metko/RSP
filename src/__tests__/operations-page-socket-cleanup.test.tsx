@@ -9,7 +9,6 @@
 
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
-import { useActiveClub } from '@/contexts/ClubContext';
 
 // Mock the ClubContext
 const mockSetActiveClubId = jest.fn();
@@ -177,6 +176,7 @@ describe('Operations Page Socket Cleanup', () => {
     });
 
     // Update the mock params to simulate navigation to different club
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { useParams } = require('next/navigation');
     (useParams as jest.Mock).mockReturnValue({ clubId: 'different-club-id' });
 
