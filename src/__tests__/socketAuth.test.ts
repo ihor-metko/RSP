@@ -34,6 +34,83 @@ describe('Socket Authentication', () => {
     jest.clearAllMocks();
   });
 
+  describe('verifySocketToken - Token Validation', () => {
+    let consoleErrorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should return null when token is null', async () => {
+      const result = await verifySocketToken(null as any);
+      
+      expect(result).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[SocketAuth] Invalid token type:',
+        'object'
+      );
+      expect(mockDecode).not.toHaveBeenCalled();
+    });
+
+    it('should return null when token is undefined', async () => {
+      const result = await verifySocketToken(undefined as any);
+      
+      expect(result).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[SocketAuth] Invalid token type:',
+        'undefined'
+      );
+      expect(mockDecode).not.toHaveBeenCalled();
+    });
+
+    it('should return null when token is a number', async () => {
+      const result = await verifySocketToken(12345 as any);
+      
+      expect(result).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[SocketAuth] Invalid token type:',
+        'number'
+      );
+      expect(mockDecode).not.toHaveBeenCalled();
+    });
+
+    it('should return null when token is an object', async () => {
+      const result = await verifySocketToken({ token: 'invalid' } as any);
+      
+      expect(result).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[SocketAuth] Invalid token type:',
+        'object'
+      );
+      expect(mockDecode).not.toHaveBeenCalled();
+    });
+
+    it('should return null when token is an empty string', async () => {
+      const result = await verifySocketToken('');
+      
+      expect(result).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[SocketAuth] Invalid token type:',
+        'string'
+      );
+      expect(mockDecode).not.toHaveBeenCalled();
+    });
+
+    it('should return null when token is only whitespace', async () => {
+      const result = await verifySocketToken('   ');
+      
+      expect(result).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[SocketAuth] Token is empty or whitespace'
+      );
+      expect(mockDecode).not.toHaveBeenCalled();
+    });
+  });
+
   describe('verifySocketToken', () => {
     it('should return null for invalid token', async () => {
       mockDecode.mockResolvedValue(null);

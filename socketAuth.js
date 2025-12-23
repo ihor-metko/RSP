@@ -18,6 +18,18 @@ const prisma = new PrismaClient();
  */
 async function verifySocketToken(token) {
   try {
+    // Validate token type - must be a non-empty string
+    if (!token || typeof token !== 'string') {
+      console.error('[SocketAuth] Invalid token type:', typeof token);
+      return null;
+    }
+
+    // Ensure token is not just whitespace
+    if (token.trim() === '') {
+      console.error('[SocketAuth] Token is empty or whitespace');
+      return null;
+    }
+
     // Dynamically import NextAuth JWT decode function
     const { decode } = await import('next-auth/jwt');
 

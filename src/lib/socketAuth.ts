@@ -21,6 +21,18 @@ export interface SocketUserData {
  */
 export async function verifySocketToken(token: string): Promise<SocketUserData | null> {
   try {
+    // Validate token type - must be a non-empty string
+    if (!token || typeof token !== 'string') {
+      console.error('[SocketAuth] Invalid token type:', typeof token);
+      return null;
+    }
+
+    // Ensure token is not just whitespace
+    if (token.trim() === '') {
+      console.error('[SocketAuth] Token is empty or whitespace');
+      return null;
+    }
+
     // Decode the JWT token using NextAuth's decode function
     const decoded = await decode({
       token,

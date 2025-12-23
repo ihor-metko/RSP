@@ -157,10 +157,24 @@ export function BookingSocketProvider({ children }: BookingSocketProviderProps) 
       // Get token from auth store (cached and deduplicated)
       const token = await getSocketToken();
 
+      // Validate token before initializing socket
       if (!token) {
         console.error('[BookingSocket] Cannot initialize socket: no token available');
         return;
       }
+
+      // Validate token is a non-empty string
+      if (typeof token !== 'string') {
+        console.error('[BookingSocket] Cannot initialize socket: token is not a string, got:', typeof token);
+        return;
+      }
+
+      if (token.trim() === '') {
+        console.error('[BookingSocket] Cannot initialize socket: token is empty');
+        return;
+      }
+
+      console.log('[BookingSocket] Token validated, initializing socket connection for club:', activeClubId);
 
       // Initialize Socket.IO client with authentication and clubId
       const socket: TypedSocket = io({

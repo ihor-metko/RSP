@@ -48,9 +48,22 @@ app.prepare().then(() => {
       const token = socket.handshake.auth.token;
       const clubId = socket.handshake.auth.clubId; // Extract clubId from auth
 
+      // Validate token exists
       if (!token) {
         console.error('[SocketIO] Connection rejected: No token provided');
         return next(new Error('Authentication token required'));
+      }
+
+      // Validate token is a string
+      if (typeof token !== 'string') {
+        console.error('[SocketIO] Connection rejected: Token must be a string, got:', typeof token);
+        return next(new Error('Invalid token format'));
+      }
+
+      // Validate token is not empty
+      if (token.trim() === '') {
+        console.error('[SocketIO] Connection rejected: Token is empty');
+        return next(new Error('Empty token provided'));
       }
 
       // Verify token and get user data

@@ -122,10 +122,24 @@ export function SocketProvider({ children }: SocketProviderProps) {
       // Get token from auth store (cached and deduplicated)
       const token = await getSocketToken();
 
+      // Validate token before initializing socket
       if (!token) {
         console.error('[NotificationSocket] Cannot initialize socket: no token available');
         return;
       }
+
+      // Validate token is a non-empty string
+      if (typeof token !== 'string') {
+        console.error('[NotificationSocket] Cannot initialize socket: token is not a string, got:', typeof token);
+        return;
+      }
+
+      if (token.trim() === '') {
+        console.error('[NotificationSocket] Cannot initialize socket: token is empty');
+        return;
+      }
+
+      console.log('[NotificationSocket] Token validated, initializing socket connection');
 
       // Initialize Socket.IO client with authentication
       // Note: No clubId is passed - this is a notification-only socket
