@@ -51,7 +51,7 @@ export function isValidUploadEntity(entity: string): entity is UploadEntityType 
  */
 export function validateUploadedFile(file: File): string | null {
   // Check file type
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type as any)) {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type as typeof ALLOWED_IMAGE_TYPES[number])) {
     return `Invalid file type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(", ")}`;
   }
 

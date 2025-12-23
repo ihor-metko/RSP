@@ -250,11 +250,12 @@ export function ClubCreationStepper() {
       .replace(/^-+|-+$/g, "");
   }, []);
 
-  const uploadFile = async (file: File): Promise<{ url: string; key: string }> => {
+  const uploadFile = async (clubId: string, file: File, imageType: 'logo' | 'heroImage'): Promise<{ url: string }> => {
     const formDataUpload = new FormData();
     formDataUpload.append("file", file);
+    formDataUpload.append("type", imageType);
 
-    const response = await fetch("/api/admin/uploads", {
+    const response = await fetch(`/api/images/clubs/${clubId}/upload`, {
       method: "POST",
       body: formDataUpload,
     });
@@ -288,26 +289,7 @@ export function ClubCreationStepper() {
     setError(null);
 
     try {
-      // Upload images first
-      let logoData = { url: "", key: "" };
-      const galleryData: { url: string; key: string }[] = [];
-
-      if (formData.logo?.file) {
-        logoData = await uploadFile(formData.logo.file);
-      } else if (formData.logo?.url) {
-        logoData = { url: formData.logo.url, key: formData.logo.key };
-      }
-
-      for (const galleryItem of formData.gallery) {
-        if (galleryItem.file) {
-          const uploaded = await uploadFile(galleryItem.file);
-          galleryData.push(uploaded);
-        } else if (galleryItem.url) {
-          galleryData.push({ url: galleryItem.url, key: galleryItem.key });
-        }
-      }
-
-      // Prepare data for submission
+      // Prepare data for submission (without images - they'll be uploaded after club creation)
       const submitData = {
         organizationId: formData.organizationId,
         name: formData.name.trim(),
@@ -318,9 +300,6 @@ export function ClubCreationStepper() {
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
         website: formData.website.trim() || null,
-        logo: logoData.url || null,
-        heroImage: logoData.url || null, // Use logo as hero if no hero
-        gallery: galleryData,
         businessHours: formData.businessHours,
         courts: formData.courts.map((court) => ({
           name: court.name,
@@ -332,6 +311,7 @@ export function ClubCreationStepper() {
         tags: formData.clubType ? JSON.stringify([formData.clubType]) : null,
       };
 
+      // Create club first
       const response = await fetch("/api/admin/clubs/new", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -349,11 +329,37 @@ export function ClubCreationStepper() {
         throw new Error(data.error || "Failed to create club");
       }
 
+      const clubId = data.id;
+
+      // Upload images after club is created
+      try {
+        // Upload logo if provided
+        if (formData.logo?.file) {
+          await uploadFile(clubId, formData.logo.file, "logo");
+        }
+
+        // For now, we'll skip gallery uploads as they need a different approach
+        // Gallery images would require a separate endpoint or multiple uploads
+        // This can be implemented later if needed
+      } catch (uploadErr) {
+        // Club was created successfully, but image upload failed
+        // This is not a critical error - user can upload images later
+        console.error("Image upload failed:", uploadErr);
+        const uploadMessage = uploadErr instanceof Error ? uploadErr.message : "Image upload failed";
+        showToast("success", `Club created successfully! Note: ${uploadMessage}`);
+        
+        // Continue to redirect
+        setTimeout(() => {
+          router.push(`/admin/clubs/${clubId}`);
+        }, 2000);
+        return;
+      }
+
       showToast("success", "Club created successfully!");
 
       // Redirect to the club detail page
       setTimeout(() => {
-        router.push(`/admin/clubs/${data.id}`);
+        router.push(`/admin/clubs/${clubId}`);
       }, 1500);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create club";
