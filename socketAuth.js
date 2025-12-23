@@ -3,17 +3,36 @@
  *
  * This module provides authentication for Socket.IO connections.
  * It's written in CommonJS to be compatible with server.js.
+ *
+ * Token Format: JWS (signed JWT) using HS256 algorithm
+ * Verification: Uses jose library's jwtVerify function
  */
 
-const { PrismaClient } = require('@prisma/client');
+let jose;
 
-// Initialize Prisma client
-const prisma = new PrismaClient();
+async function getJose() {
+  if (!jose) {
+    jose = await import('jose');
+  }
+  return jose;
+}
 
 /**
- * Verify JWT token and extract user information
+ * Convert string to Uint8Array for jose library
+ * Works in both browser and Node.js environments
+ */
+function stringToUint8Array(str) {
+  if (typeof TextEncoder !== 'undefined') {
+    return new TextEncoder().encode(str);
+  }
+  // Fallback for Node.js environments without TextEncoder
+  return new Uint8Array(Buffer.from(str, 'utf-8'));
+}
+
+/**
+ * Verify JWT token (JWS) and extract user information
  *
- * @param {string} token - JWT token from socket auth payload
+ * @param {string} token - JWS token from socket auth payload
  * @returns {Promise<Object|null>} User data if token is valid, null otherwise
  */
 async function verifySocketToken(token) {
@@ -30,61 +49,32 @@ async function verifySocketToken(token) {
       return null;
     }
 
-    // Dynamically import NextAuth JWT decode function
-    const { decode } = await import('next-auth/jwt');
-
-    // Decode the JWT token using NextAuth's decode function
-    const decoded = await decode({
-      token,
-      secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || '',
-    });
-
-    if (!decoded || !decoded.id) {
-      console.error('[SocketAuth] Invalid token: no user ID found');
+    // Get secret from environment
+    const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!secret) {
+      console.error('[SocketAuth] AUTH_SECRET not configured');
       return null;
     }
 
-    const userId = decoded.id;
-    const isRoot = decoded.isRoot ?? false;
-
-    // Fetch user's organization memberships
-    const organizationMemberships = await prisma.membership.findMany({
-      where: { userId },
-      select: {
-        organizationId: true,
-        role: true,
-      },
-    });
-
-    // Fetch user's club memberships
-    const clubMemberships = await prisma.clubMembership.findMany({
-      where: { userId },
-      select: {
-        clubId: true,
-        role: true,
-      },
-    });
-
-    const organizationIds = organizationMemberships.map(m => m.organizationId);
-    const clubIds = clubMemberships.map(m => m.clubId);
-
-    const orgAdminMemberships = organizationMemberships.filter(
-      m => m.role === 'ORGANIZATION_ADMIN'
+    // Verify the JWS token using jose
+    const { jwtVerify } = await getJose();
+    const { payload } = await jwtVerify(
+      token,
+      stringToUint8Array(secret),
+      {
+        algorithms: ['HS256'], // Only accept HS256 algorithm
+      }
     );
 
-    if (orgAdminMemberships.length > 0) {
-      const orgAdminClubs = await prisma.club.findMany({
-        where: {
-          organizationId: {
-            in: orgAdminMemberships.map(m => m.organizationId),
-          },
-        },
-        select: { id: true },
-      });
+    // Extract user data from verified payload
+    const userId = payload.sub;
+    const isRoot = payload.isRoot ?? false;
+    const organizationIds = payload.organizationIds || [];
+    const clubIds = payload.clubIds || [];
 
-      orgAdminClubs.forEach(c => {
-        if (!clubIds.includes(c.id)) clubIds.push(c.id);
-      });
+    if (!userId) {
+      console.error('[SocketAuth] Invalid token: no user ID found in payload');
+      return null;
     }
 
     console.log('[SocketAuth] User authenticated:', {
@@ -96,7 +86,7 @@ async function verifySocketToken(token) {
 
     return { userId, isRoot, organizationIds, clubIds };
   } catch (error) {
-    console.error('[SocketAuth] Token verification failed:', error);
+    console.error('[SocketAuth] Token verification failed:', error.message || error);
     return null;
   }
 }

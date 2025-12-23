@@ -2,33 +2,18 @@
  * Tests for Socket.IO authentication
  */
 import { verifySocketToken } from '@/lib/socketAuth';
-import { prisma } from '@/lib/prisma';
-import { decode } from 'next-auth/jwt';
-import { MembershipRole, ClubMembershipRole } from '@/constants/roles';
+import { jwtVerify } from 'jose';
 
-// Mock next-auth/jwt
-jest.mock('next-auth/jwt', () => ({
-  decode: jest.fn(),
+// Mock jose
+jest.mock('jose', () => ({
+  jwtVerify: jest.fn(),
 }));
 
-// Mock prisma
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    membership: {
-      findMany: jest.fn(),
-    },
-    clubMembership: {
-      findMany: jest.fn(),
-    },
-    club: {
-      findMany: jest.fn(),
-    },
-  },
-}));
+// Set up environment variable for tests
+process.env.AUTH_SECRET = 'test-secret-key-for-testing-only';
 
 describe('Socket Authentication', () => {
-  const mockDecode = decode as jest.MockedFunction<typeof decode>;
-  const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+  const mockJwtVerify = jwtVerify as jest.MockedFunction<typeof jwtVerify>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -53,7 +38,7 @@ describe('Socket Authentication', () => {
         '[SocketAuth] Invalid token type:',
         'object'
       );
-      expect(mockDecode).not.toHaveBeenCalled();
+      expect(mockJwtVerify).not.toHaveBeenCalled();
     });
 
     it('should return null when token is undefined', async () => {
@@ -64,7 +49,7 @@ describe('Socket Authentication', () => {
         '[SocketAuth] Invalid token type:',
         'undefined'
       );
-      expect(mockDecode).not.toHaveBeenCalled();
+      expect(mockJwtVerify).not.toHaveBeenCalled();
     });
 
     it('should return null when token is a number', async () => {
@@ -75,7 +60,7 @@ describe('Socket Authentication', () => {
         '[SocketAuth] Invalid token type:',
         'number'
       );
-      expect(mockDecode).not.toHaveBeenCalled();
+      expect(mockJwtVerify).not.toHaveBeenCalled();
     });
 
     it('should return null when token is an object', async () => {
@@ -86,7 +71,7 @@ describe('Socket Authentication', () => {
         '[SocketAuth] Invalid token type:',
         'object'
       );
-      expect(mockDecode).not.toHaveBeenCalled();
+      expect(mockJwtVerify).not.toHaveBeenCalled();
     });
 
     it('should return null when token is an empty string', async () => {
@@ -97,7 +82,7 @@ describe('Socket Authentication', () => {
         '[SocketAuth] Invalid token type:',
         'string'
       );
-      expect(mockDecode).not.toHaveBeenCalled();
+      expect(mockJwtVerify).not.toHaveBeenCalled();
     });
 
     it('should return null when token is only whitespace', async () => {
@@ -107,13 +92,13 @@ describe('Socket Authentication', () => {
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[SocketAuth] Token is empty or whitespace'
       );
-      expect(mockDecode).not.toHaveBeenCalled();
+      expect(mockJwtVerify).not.toHaveBeenCalled();
     });
   });
 
   describe('verifySocketToken', () => {
     it('should return null for invalid token', async () => {
-      mockDecode.mockResolvedValue(null);
+      mockJwtVerify.mockRejectedValue(new Error('Invalid token'));
 
       const result = await verifySocketToken('invalid-token');
 
@@ -121,7 +106,10 @@ describe('Socket Authentication', () => {
     });
 
     it('should return null for token without user ID', async () => {
-      mockDecode.mockResolvedValue({ sub: 'test' } as any);
+      mockJwtVerify.mockResolvedValue({
+        payload: { role: 'test' },
+        protectedHeader: { alg: 'HS256' },
+      } as any);
 
       const result = await verifySocketToken('token-without-id');
 
@@ -129,13 +117,15 @@ describe('Socket Authentication', () => {
     });
 
     it('should return user data for valid token with no memberships', async () => {
-      mockDecode.mockResolvedValue({
-        id: 'user-123',
-        isRoot: false,
+      mockJwtVerify.mockResolvedValue({
+        payload: {
+          sub: 'user-123',
+          isRoot: false,
+          organizationIds: [],
+          clubIds: [],
+        },
+        protectedHeader: { alg: 'HS256' },
       } as any);
-
-      mockPrisma.membership.findMany.mockResolvedValue([]);
-      mockPrisma.clubMembership.findMany.mockResolvedValue([]);
 
       const result = await verifySocketToken('valid-token');
 
@@ -148,13 +138,15 @@ describe('Socket Authentication', () => {
     });
 
     it('should return user data for root admin', async () => {
-      mockDecode.mockResolvedValue({
-        id: 'root-user',
-        isRoot: true,
+      mockJwtVerify.mockResolvedValue({
+        payload: {
+          sub: 'root-user',
+          isRoot: true,
+          organizationIds: [],
+          clubIds: [],
+        },
+        protectedHeader: { alg: 'HS256' },
       } as any);
-
-      mockPrisma.membership.findMany.mockResolvedValue([]);
-      mockPrisma.clubMembership.findMany.mockResolvedValue([]);
 
       const result = await verifySocketToken('root-token');
 
@@ -166,17 +158,16 @@ describe('Socket Authentication', () => {
       });
     });
 
-    it('should include organization IDs from memberships', async () => {
-      mockDecode.mockResolvedValue({
-        id: 'user-123',
-        isRoot: false,
+    it('should include organization IDs from token payload', async () => {
+      mockJwtVerify.mockResolvedValue({
+        payload: {
+          sub: 'user-123',
+          isRoot: false,
+          organizationIds: ['org-1', 'org-2'],
+          clubIds: [],
+        },
+        protectedHeader: { alg: 'HS256' },
       } as any);
-
-      mockPrisma.membership.findMany.mockResolvedValue([
-        { organizationId: 'org-1', role: MembershipRole.MEMBER },
-        { organizationId: 'org-2', role: MembershipRole.MEMBER },
-      ] as any);
-      mockPrisma.clubMembership.findMany.mockResolvedValue([]);
 
       const result = await verifySocketToken('valid-token');
 
@@ -188,17 +179,16 @@ describe('Socket Authentication', () => {
       });
     });
 
-    it('should include club IDs from club memberships', async () => {
-      mockDecode.mockResolvedValue({
-        id: 'user-123',
-        isRoot: false,
+    it('should include club IDs from token payload', async () => {
+      mockJwtVerify.mockResolvedValue({
+        payload: {
+          sub: 'user-123',
+          isRoot: false,
+          organizationIds: [],
+          clubIds: ['club-1', 'club-2'],
+        },
+        protectedHeader: { alg: 'HS256' },
       } as any);
-
-      mockPrisma.membership.findMany.mockResolvedValue([]);
-      mockPrisma.clubMembership.findMany.mockResolvedValue([
-        { clubId: 'club-1', role: ClubMembershipRole.MEMBER },
-        { clubId: 'club-2', role: ClubMembershipRole.CLUB_ADMIN },
-      ] as any);
 
       const result = await verifySocketToken('valid-token');
 
@@ -210,26 +200,16 @@ describe('Socket Authentication', () => {
       });
     });
 
-    it('should include all clubs from organizations where user is admin', async () => {
-      mockDecode.mockResolvedValue({
-        id: 'user-123',
-        isRoot: false,
+    it('should include all organizations and clubs from token payload', async () => {
+      mockJwtVerify.mockResolvedValue({
+        payload: {
+          sub: 'user-123',
+          isRoot: false,
+          organizationIds: ['org-1', 'org-2'],
+          clubIds: ['club-1', 'club-2', 'club-3'],
+        },
+        protectedHeader: { alg: 'HS256' },
       } as any);
-
-      mockPrisma.membership.findMany.mockResolvedValue([
-        { organizationId: 'org-1', role: MembershipRole.ORGANIZATION_ADMIN },
-        { organizationId: 'org-2', role: MembershipRole.MEMBER },
-      ] as any);
-
-      mockPrisma.clubMembership.findMany.mockResolvedValue([
-        { clubId: 'club-1', role: ClubMembershipRole.MEMBER },
-      ] as any);
-
-      // Clubs in org-1 that the user should get access to
-      mockPrisma.club.findMany.mockResolvedValue([
-        { id: 'club-2' },
-        { id: 'club-3' },
-      ] as any);
 
       const result = await verifySocketToken('valid-token');
 
@@ -237,47 +217,36 @@ describe('Socket Authentication', () => {
         userId: 'user-123',
         isRoot: false,
         organizationIds: ['org-1', 'org-2'],
-        clubIds: ['club-1', 'club-2', 'club-3'], // club-1 from direct membership, club-2 and club-3 from org admin
-      });
-    });
-
-    it('should avoid duplicate club IDs', async () => {
-      mockDecode.mockResolvedValue({
-        id: 'user-123',
-        isRoot: false,
-      } as any);
-
-      mockPrisma.membership.findMany.mockResolvedValue([
-        { organizationId: 'org-1', role: MembershipRole.ORGANIZATION_ADMIN },
-      ] as any);
-
-      // User is already a member of club-1
-      mockPrisma.clubMembership.findMany.mockResolvedValue([
-        { clubId: 'club-1', role: ClubMembershipRole.MEMBER },
-      ] as any);
-
-      // club-1 is also in org-1, so it would be returned twice
-      mockPrisma.club.findMany.mockResolvedValue([
-        { id: 'club-1' },
-        { id: 'club-2' },
-      ] as any);
-
-      const result = await verifySocketToken('valid-token');
-
-      expect(result).toEqual({
-        userId: 'user-123',
-        isRoot: false,
-        organizationIds: ['org-1'],
-        clubIds: ['club-1', 'club-2'], // No duplicates
+        clubIds: ['club-1', 'club-2', 'club-3'],
       });
     });
 
     it('should handle errors gracefully', async () => {
-      mockDecode.mockRejectedValue(new Error('Token decode failed'));
+      mockJwtVerify.mockRejectedValue(new Error('Token verification failed'));
 
       const result = await verifySocketToken('error-token');
 
       expect(result).toBeNull();
+    });
+
+    it('should verify token with correct algorithm', async () => {
+      mockJwtVerify.mockResolvedValue({
+        payload: {
+          sub: 'user-123',
+          isRoot: false,
+          organizationIds: [],
+          clubIds: [],
+        },
+        protectedHeader: { alg: 'HS256' },
+      } as any);
+
+      await verifySocketToken('valid-token');
+
+      expect(mockJwtVerify).toHaveBeenCalledWith(
+        'valid-token',
+        expect.any(Uint8Array),
+        { algorithms: ['HS256'] }
+      );
     });
   });
 });
