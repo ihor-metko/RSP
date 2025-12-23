@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
-import { mockGetOrganizations } from "@/services/mockApiHandlers";
 
 interface SuperAdmin {
   id: string;
@@ -24,36 +21,6 @@ export async function GET(request: Request) {
   }
 
   try {
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const organizations = await mockGetOrganizations({
-        adminType: "root_admin",
-        managedIds: [],
-        includeArchived: false,
-      });
-
-      const formattedOrganizations = organizations.map((org) => {
-        const superAdmins: SuperAdmin[] = org.admins.map((a) => ({
-          id: a.id,
-          name: a.name,
-          email: a.email,
-          isPrimaryOwner: false,
-        }));
-
-        return {
-          id: org.id,
-          name: org.name,
-          slug: org.slug,
-          createdAt: org.createdAt,
-          clubCount: org.clubCount,
-          createdBy: { id: org.createdById, name: null, email: "" },
-          superAdmins,
-          superAdmin: superAdmins[0] || null,
-        };
-      });
-
-      return NextResponse.json(formattedOrganizations);
-    }
 
     const organizations = await prisma.organization.findMany({
       orderBy: { createdAt: "desc" },
@@ -151,31 +118,6 @@ export async function POST(request: Request) {
       supportedSports 
     } = body;
 
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const { mockCreateOrganizationHandler } = await import("@/services/mockApiHandlers");
-      try {
-        const result = await mockCreateOrganizationHandler({
-          name,
-          slug,
-          description,
-          contactEmail,
-          contactPhone,
-          website,
-          address,
-          metadata,
-          supportedSports,
-          createdById: authResult.userId,
-        });
-        return NextResponse.json(result, { status: 201 });
-      } catch (error: unknown) {
-        const err = error as { status?: number; message?: string };
-        return NextResponse.json(
-          { error: err.message || "Internal server error" },
-          { status: err.status || 500 }
-        );
-      }
-    }
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(

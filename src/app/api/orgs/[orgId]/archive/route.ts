@@ -3,8 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { requireOrganizationAdmin } from "@/lib/requireRole";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
 
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
 
 /**
  * POST /api/orgs/[orgId]/archive
@@ -23,23 +21,6 @@ export async function POST(
       return authResult.response;
     }
 
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const { mockArchiveOrganizationHandler } = await import("@/services/mockApiHandlers");
-      try {
-        const result = await mockArchiveOrganizationHandler({
-          orgId,
-          userId: authResult.userId,
-        });
-        return NextResponse.json(result);
-      } catch (error: unknown) {
-        const err = error as { status?: number; message?: string };
-        return NextResponse.json(
-          { error: err.message || "Internal server error" },
-          { status: err.status || 500 }
-        );
-      }
-    }
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({

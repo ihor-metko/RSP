@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireOrganizationAdmin } from "@/lib/requireRole";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
-import { mockGetOrganizationUsers } from "@/services/mockApiHandlers";
 
 /**
  * GET /api/orgs/[orgId]/users
@@ -33,14 +30,6 @@ export async function GET(
 
     const limit = Math.min(Math.max(parseInt(limitParam || "10", 10) || 10, 1), 100);
 
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const users = await mockGetOrganizationUsers({
-        orgId,
-        limit,
-      });
-      return NextResponse.json(users);
-    }
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({

@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireClubAdmin } from "@/lib/requireRole";
 import { Prisma } from "@prisma/client";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
-import { mockGetCourts, mockCreateCourtForClub } from "@/services/mockApiHandlers";
 
 /**
  * GET /api/clubs/[clubId]/courts
@@ -44,25 +41,6 @@ export async function GET(
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "20", 10);
 
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const result = await mockGetCourts({
-        adminType: authResult.isRoot ? "root_admin" : "club_admin",
-        managedIds: [clubId],
-        filters: {
-          search,
-          clubId,
-          status,
-          sortBy,
-          sortOrder,
-          page,
-          limit,
-        },
-      });
-      
-      // Return just the courts array for this endpoint (not wrapped in pagination)
-      return NextResponse.json(result.courts);
-    }
 
     // Build where clause - filter by this specific club
     const whereClause: Prisma.CourtWhereInput = {
@@ -220,20 +198,6 @@ export async function POST(
       );
     }
 
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const court = await mockCreateCourtForClub(clubId, {
-        name: name.trim(),
-        slug: slug?.trim() || null,
-        type: type?.trim() || null,
-        surface: surface?.trim() || null,
-        indoor: indoor ?? false,
-        sportType: sportType || "PADEL",
-        defaultPriceCents: defaultPriceCents ?? 0,
-      });
-      
-      return NextResponse.json(court, { status: 201 });
-    }
 
     // Verify club exists
     const club = await prisma.club.findUnique({

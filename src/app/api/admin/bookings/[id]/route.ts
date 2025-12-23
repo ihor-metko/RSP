@@ -4,10 +4,6 @@ import { requireAnyAdmin } from "@/lib/requireRole";
 import { calculateBookingStatus, toBookingStatus, migrateLegacyStatus } from "@/utils/bookingStatus";
 import { emitBookingUpdated, emitBookingDeleted } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
-import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
-import { mockGetBookingById, mockUpdateBookingById } from "@/services/mockApiHandlers";
 
 /**
  * Booking detail response type
@@ -205,38 +201,6 @@ export async function GET(
   const { id } = await params;
 
   try {
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const mockBooking = await mockGetBookingById(id);
-
-      if (!mockBooking) {
-        return NextResponse.json(
-          { error: "Booking not found" },
-          { status: 404 }
-        );
-      }
-
-      // Check access based on admin type
-      let hasAccess = false;
-
-      if (adminType === "root_admin") {
-        hasAccess = true;
-      } else if (adminType === "organization_admin" && mockBooking.organizationId) {
-        hasAccess = managedIds.includes(mockBooking.organizationId);
-      } else if (adminType === "club_admin") {
-        hasAccess = managedIds.includes(mockBooking.clubId);
-      }
-
-      if (!hasAccess) {
-        return NextResponse.json(
-          { error: "Booking not found" },
-          { status: 404 }
-        );
-      }
-
-      return NextResponse.json(mockBooking);
-    }
-
     const { hasAccess, booking } = await checkBookingAccess(id, adminType, managedIds);
 
     if (!hasAccess || !booking) {
@@ -331,77 +295,6 @@ export async function PATCH(
         { error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` },
         { status: 400 }
       );
-    }
-
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      // First check if booking exists and admin has access
-      const mockBooking = await mockGetBookingById(id);
-
-      if (!mockBooking) {
-        return NextResponse.json(
-          { error: "Booking not found" },
-          { status: 404 }
-        );
-      }
-
-      // Check access based on admin type
-      let hasAccess = false;
-
-      if (adminType === "root_admin") {
-        hasAccess = true;
-      } else if (adminType === "organization_admin" && mockBooking.organizationId) {
-        hasAccess = managedIds.includes(mockBooking.organizationId);
-      } else if (adminType === "club_admin") {
-        hasAccess = managedIds.includes(mockBooking.clubId);
-      }
-
-      if (!hasAccess) {
-        return NextResponse.json(
-          { error: "Booking not found" },
-          { status: 404 }
-        );
-      }
-
-      // Update the booking
-      const updatedBooking = await mockUpdateBookingById(id, { status });
-
-      if (!updatedBooking) {
-        return NextResponse.json(
-          { error: "Failed to update booking" },
-          { status: 500 }
-        );
-      }
-
-      // Emit Socket.IO event for real-time updates
-      const { bookingStatus: newBookingStatus, paymentStatus: newPaymentStatus } = migrateLegacyStatus(updatedBooking.status);
-      const operationsBooking: OperationsBooking = {
-        id: updatedBooking.id,
-        userId: updatedBooking.userId,
-        userName: updatedBooking.userName,
-        userEmail: updatedBooking.userEmail,
-        courtId: updatedBooking.courtId,
-        courtName: updatedBooking.courtName,
-        start: updatedBooking.start,
-        end: updatedBooking.end,
-        bookingStatus: newBookingStatus,
-        paymentStatus: newPaymentStatus,
-        price: updatedBooking.price,
-        sportType: DEFAULT_SPORT_TYPE,
-        coachId: updatedBooking.coachId,
-        coachName: updatedBooking.coachName,
-        createdAt: updatedBooking.createdAt,
-        updatedAt: new Date().toISOString(),
-      };
-
-      emitBookingUpdated({
-        booking: operationsBooking,
-        clubId: updatedBooking.clubId,
-        courtId: updatedBooking.courtId,
-        previousStatus: mockBooking.status,
-      });
-
-      return NextResponse.json(updatedBooking);
     }
 
     // First check if admin has access to this booking
@@ -573,14 +466,6 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    // TEMPORARY MOCK MODE — Not implementing for mock mode
-    if (isMockMode()) {
-      return NextResponse.json(
-        { error: "Delete operation not supported in mock mode" },
-        { status: 501 }
-      );
-    }
-
     // First check if admin has access to this booking
     const { hasAccess, booking } = await checkBookingAccess(id, adminType, managedIds);
 

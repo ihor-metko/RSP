@@ -3,9 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { requireOrganizationAdmin } from "@/lib/requireRole";
 import { MembershipRole } from "@/constants/roles";
 import { auditLog, AuditAction, TargetType } from "@/lib/auditLog";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { isMockMode } from "@/services/mockDb";
-import { mockGetOrganizationDetail } from "@/services/mockApiHandlers";
 
 /**
  * GET /api/orgs/[orgId]
@@ -24,17 +21,6 @@ export async function GET(
       return authResult.response;
     }
 
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const orgDetail = await mockGetOrganizationDetail(orgId);
-      if (!orgDetail) {
-        return NextResponse.json(
-          { error: "Organization not found" },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json(orgDetail);
-    }
 
     // Fetch organization with related data
     const organization = await prisma.organization.findUnique({
@@ -263,30 +249,6 @@ export async function PUT(
     const body = await request.json();
     const { name, slug, description, contactEmail, contactPhone, website, address, logo, heroImage, metadata, isPublic } = body;
 
-    // TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-    if (isMockMode()) {
-      const { mockUpdateOrganizationHandler } = await import("@/services/mockApiHandlers");
-      try {
-        const result = await mockUpdateOrganizationHandler({
-          orgId,
-          name,
-          slug,
-          contactEmail,
-          contactPhone,
-          website,
-          address,
-          metadata,
-          userId: authResult.userId,
-        });
-        return NextResponse.json(result);
-      } catch (error: unknown) {
-        const err = error as { status?: number; message?: string };
-        return NextResponse.json(
-          { error: err.message || "Internal server error" },
-          { status: err.status || 500 }
-        );
-      }
-    }
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({

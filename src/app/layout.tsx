@@ -8,8 +8,6 @@ import { SocketProvider } from "@/contexts/SocketContext";
 import { BookingSocketProvider } from "@/contexts/BookingSocketContext";
 import { GlobalSocketListener } from "@/components/GlobalSocketListener";
 import { NotificationStoreInitializer } from "@/components/NotificationStoreInitializer";
-// TEMPORARY MOCK MODE — REMOVE WHEN DB IS FIXED
-import { MockModeWarning } from "@/components/MockModeWarning";
 
 export const metadata: Metadata = {
   title: "ArenaOne",
@@ -27,7 +25,6 @@ export default async function RootLayout({
   return (
     <html lang={locale} className="dark">
       <body className="antialiased min-h-screen flex flex-col">
-        <MockModeWarning />
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
             <ClubProvider>
