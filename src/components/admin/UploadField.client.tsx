@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { ALLOWED_IMAGE_TYPES, ALLOWED_LOGO_TYPES } from "@/constants/uploadConstants";
 import "./UploadField.css";
 
 interface UploadedFile {
@@ -23,9 +24,6 @@ interface UploadFieldProps {
   allowSVG?: boolean; // New prop to enable SVG support for logos only
 }
 
-const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const ALLOWED_LOGO_TYPES = [...ALLOWED_TYPES, "image/svg+xml"];
-
 export function UploadField({
   label,
   value,
@@ -46,8 +44,8 @@ export function UploadField({
   const acceptTypes = accept || (allowSVG ? "image/jpeg,image/png,image/webp,image/svg+xml" : "image/jpeg,image/png,image/webp");
 
   const validateFile = useCallback((file: File): string | null => {
-    const allowedTypes = allowSVG ? ALLOWED_LOGO_TYPES : ALLOWED_TYPES;
-    if (!allowedTypes.includes(file.type)) {
+    const allowedTypes = allowSVG ? ALLOWED_LOGO_TYPES : ALLOWED_IMAGE_TYPES;
+    if (!allowedTypes.includes(file.type as typeof allowedTypes[number])) {
       const formats = allowSVG ? "JPG, PNG, WebP, SVG" : "JPG, PNG, WebP";
       return `Invalid file type. Allowed: ${formats}`;
     }

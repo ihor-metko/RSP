@@ -45,7 +45,12 @@ const SVG_SANITIZE_CONFIG = {
  */
 export function sanitizeSVG(svgContent: string): string {
   // First check if this is actually SVG content
-  if (!svgContent.trim().toLowerCase().includes("<svg")) {
+  // More robust check: ensure <svg is at the start (after optional XML declaration and whitespace)
+  const trimmed = svgContent.trim();
+  const hasXmlDeclaration = trimmed.startsWith("<?xml");
+  const svgStartIndex = hasXmlDeclaration ? trimmed.indexOf("<svg") : 0;
+  
+  if (svgStartIndex === -1 || (!hasXmlDeclaration && !trimmed.toLowerCase().startsWith("<svg"))) {
     throw new Error("Invalid SVG: Content does not contain SVG markup");
   }
 
@@ -72,8 +77,18 @@ export function isValidSVGBuffer(buffer: Buffer): boolean {
     const content = buffer.toString("utf-8");
     const trimmed = content.trim().toLowerCase();
     
-    // Check for SVG opening tag (with or without XML declaration)
-    return trimmed.includes("<svg") && trimmed.includes("</svg>");
+    // Check for proper SVG structure
+    // Must have opening <svg tag and closing </svg> tag
+    const hasOpenTag = trimmed.startsWith("<svg") || trimmed.startsWith("<?xml");
+    const hasCloseTag = trimmed.includes("</svg>");
+    
+    // If it has XML declaration, verify SVG tag follows
+    if (trimmed.startsWith("<?xml")) {
+      const svgIndex = trimmed.indexOf("<svg");
+      return svgIndex > 0 && hasCloseTag;
+    }
+    
+    return hasOpenTag && hasCloseTag;
   } catch {
     return false;
   }

@@ -227,7 +227,7 @@ function getAllowedExtensionsList(allowedMimeTypes: readonly string[]): string {
   // Get extensions for the allowed MIME types
   const extensions = allowedMimeTypes
     .map(mimeType => MIME_TO_EXTENSION[mimeType])
-    .filter(Boolean);
+    .filter((ext): ext is string => ext !== undefined);
   return Array.from(new Set(extensions)).join(", ");
 }
 
