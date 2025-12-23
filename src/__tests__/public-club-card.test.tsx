@@ -113,11 +113,7 @@ describe("PublicClubCard", () => {
       expect(screen.getByText("T")).toBeInTheDocument(); // First letter of "Test Club"
     });
 
-    it("converts Supabase Storage paths to full URLs when NEXT_PUBLIC_SUPABASE_URL is set", () => {
-      // Set the Supabase URL environment variable
-      const originalEnv = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://xyz.supabase.co";
-
+    it("uses image paths as-is without Supabase transformation", () => {
       const clubWithStoragePath = {
         ...baseClub,
         heroImage: "/uploads/clubs/abc123.jpg",
@@ -127,29 +123,22 @@ describe("PublicClubCard", () => {
       expect(img).toBeInTheDocument();
       expect(img).toHaveAttribute(
         "src",
-        "https://xyz.supabase.co/storage/v1/object/public/uploads/clubs/abc123.jpg"
+        "/uploads/clubs/abc123.jpg"
       );
-
-      // Restore original environment
-      process.env.NEXT_PUBLIC_SUPABASE_URL = originalEnv;
     });
 
-    it("uses original path when NEXT_PUBLIC_SUPABASE_URL is not set", () => {
-      // Remove the Supabase URL environment variable
-      const originalEnv = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-
-      const clubWithStoragePath = {
+    it("uses original path for new API-based image URLs", () => {
+      const clubWithApiPath = {
         ...baseClub,
-        heroImage: "/uploads/clubs/abc123.jpg",
+        heroImage: "/api/images/clubs/club-123/image-456.jpg",
       };
-      render(<PublicClubCard club={clubWithStoragePath} />);
+      render(<PublicClubCard club={clubWithApiPath} />);
       const img = screen.getByAltText("Test Club main image");
       expect(img).toBeInTheDocument();
-      expect(img).toHaveAttribute("src", "/uploads/clubs/abc123.jpg");
-
-      // Restore original environment
-      process.env.NEXT_PUBLIC_SUPABASE_URL = originalEnv;
+      expect(img).toHaveAttribute(
+        "src",
+        "/api/images/clubs/club-123/image-456.jpg"
+      );
     });
   });
 

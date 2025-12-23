@@ -344,7 +344,7 @@ export default function OrganizationDetailPage() {
     formData.append("file", file);
     formData.append("type", imageType);
 
-    const response = await fetch(`/api/admin/organizations/${orgId}/images`, {
+    const response = await fetch(`/api/images/organizations/${orgId}/upload`, {
       method: "POST",
       body: formData,
     });

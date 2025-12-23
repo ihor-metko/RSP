@@ -304,7 +304,7 @@ export function OrganizationCreationStepper() {
           heroFormData.append("file", formData.heroImage.file);
           heroFormData.append("type", "heroImage");
 
-          const heroResponse = await fetch(`/api/admin/organizations/${organization.id}/images`, {
+          const heroResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
             method: "POST",
             body: heroFormData,
           });
@@ -321,7 +321,7 @@ export function OrganizationCreationStepper() {
           logoFormData.append("file", formData.logo.file);
           logoFormData.append("type", "logo");
 
-          const logoResponse = await fetch(`/api/admin/organizations/${organization.id}/images`, {
+          const logoResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
             method: "POST",
             body: logoFormData,
           });
