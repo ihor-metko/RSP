@@ -230,7 +230,7 @@ describe("Organization Images Upload API", () => {
         id: "org-123",
         name: "Test Org",
         slug: "test-org",
-        logo: "/api/images/test-uuid.jpg",
+        logo: "/api/images/organizations/test-uuid.jpg",
         heroImage: null,
       });
 
@@ -248,12 +248,17 @@ describe("Organization Images Upload API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(201);
-      expect(data.url).toMatch(/^\/api\/images\//);
+      expect(data.url).toMatch(/^\/api\/images\/organizations\//);
       expect(data.type).toBe("logo");
       expect(data.organization.id).toBe("org-123");
+      expect(mockSaveFileToStorage).toHaveBeenCalledWith(
+        expect.stringMatching(/\.jpg$/),
+        expect.any(Buffer),
+        "organizations"
+      );
       expect(mockPrisma.organization.update).toHaveBeenCalledWith({
         where: { id: "org-123" },
-        data: { logo: expect.stringMatching(/^\/api\/images\//) },
+        data: { logo: expect.stringMatching(/^\/api\/images\/organizations\//) },
       });
     });
 
@@ -273,7 +278,7 @@ describe("Organization Images Upload API", () => {
         name: "Test Org",
         slug: "test-org",
         logo: null,
-        heroImage: "/api/images/test-uuid.jpg",
+        heroImage: "/api/images/organizations/test-uuid.jpg",
       });
 
       const formData = new FormData();
@@ -290,12 +295,17 @@ describe("Organization Images Upload API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(201);
-      expect(data.url).toMatch(/^\/api\/images\//);
+      expect(data.url).toMatch(/^\/api\/images\/organizations\//);
       expect(data.type).toBe("heroImage");
       expect(data.organization.id).toBe("org-123");
+      expect(mockSaveFileToStorage).toHaveBeenCalledWith(
+        expect.stringMatching(/\.jpg$/),
+        expect.any(Buffer),
+        "organizations"
+      );
       expect(mockPrisma.organization.update).toHaveBeenCalledWith({
         where: { id: "org-123" },
-        data: { heroImage: expect.stringMatching(/^\/api\/images\//) },
+        data: { heroImage: expect.stringMatching(/^\/api\/images\/organizations\//) },
       });
     });
 
