@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { PlayerQuickBooking } from "@/components/PlayerQuickBooking";
-import { RequestTrainingModal } from "../../../../../../archived_features/components/training/RequestTrainingModal";
 import { CourtCard } from "@/components/CourtCard";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
@@ -113,7 +112,6 @@ export default function ClubDetailPage({
   const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
   const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
-  const [isRequestTrainingOpen, setIsRequestTrainingOpen] = useState(false);
   const [preselectedSlot, setPreselectedSlot] = useState<Slot | null>(null);
   const [isCourtAvailabilityOpen, setIsCourtAvailabilityOpen] = useState(false);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<{
@@ -273,18 +271,6 @@ export default function ClubDetailPage({
     setIsQuickBookingOpen(false);
   };
 
-  const handleRequestTrainingClick = () => {
-    if (!isAuthenticated) {
-      setIsAuthPromptOpen(true);
-      return;
-    }
-    setIsRequestTrainingOpen(true);
-  };
-
-  const handleRequestTrainingClose = () => {
-    setIsRequestTrainingOpen(false);
-  };
-
   const handleCloseBookingModal = () => {
     setIsModalOpen(false);
     setSelectedCourtId(null);
@@ -422,7 +408,7 @@ export default function ClubDetailPage({
         />
 
         {/* Admin Link */}
-        {session?.user?.isRoot && (
+        {user?.isRoot && (
           <div className="mb-4 text-right">
             <IMLink href={`/admin/clubs/${club.id}/courts`}>{t("clubs.adminCourts")}</IMLink>
           </div>
@@ -444,17 +430,6 @@ export default function ClubDetailPage({
           <Button onClick={handleQuickBookingClick} className="rsp-club-action-button" aria-label={t("clubs.quickBooking")}>
             {t("clubs.quickBooking")}
           </Button>
-
-          {club.coaches.length > 0 && (
-            <Button
-              onClick={handleRequestTrainingClick}
-              variant="outline"
-              className="rsp-club-action-button"
-              aria-label={t("clubs.requestTraining")}
-            >
-              {t("clubs.requestTraining")}
-            </Button>
-          )}
         </div>
 
         {/* Weekly Availability Timeline */}
@@ -697,17 +672,6 @@ export default function ClubDetailPage({
           isOpen={isQuickBookingOpen}
           onClose={handleQuickBookingClose}
           onBookingComplete={handleQuickBookingComplete}
-        />
-      )}
-
-      {isAuthenticated && (
-        <RequestTrainingModal
-          clubId={club.id}
-          trainers={club.coaches}
-          playerId={userId}
-          isOpen={isRequestTrainingOpen}
-          onClose={handleRequestTrainingClose}
-          onSuccess={handleBookingSuccess}
         />
       )}
 

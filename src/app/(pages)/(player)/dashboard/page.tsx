@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import { Button, Card, Modal, IMLink, Select } from "@/components/ui";
 import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
-import { RequestTrainingModal } from "../../../../../archived_features/components/training/RequestTrainingModal";
 import { DarkModeToggle, LanguageSwitcher } from "@/components/ui";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
@@ -133,7 +132,6 @@ export default function PlayerDashboardPage() {
 
   // Modal states
   const [isQuickBookingOpen, setIsQuickBookingOpen] = useState(false);
-  const [isRequestTrainingOpen, setIsRequestTrainingOpen] = useState(false);
   const [isBookingDetailsOpen, setIsBookingDetailsOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
@@ -297,12 +295,6 @@ export default function PlayerDashboardPage() {
     if (booking.court?.club?.id) {
       router.push(`/clubs/${booking.court.club.id}`);
     }
-  };
-
-  // Handle coach training request
-  const handleRequestTraining = (_coachId: string, clubId: string) => {
-    setSelectedClubId(clubId);
-    setIsRequestTrainingOpen(true);
   };
 
   // Generate calendar days for next 7 days
@@ -522,12 +514,6 @@ export default function PlayerDashboardPage() {
                         {coach.clubName}
                       </p>
                     </div>
-                    <Button
-                      onClick={() => handleRequestTraining(coach.id, coach.clubId)}
-                      aria-label={`${t("playerDashboard.coaches.requestTraining")} - ${coach.name}`}
-                    >
-                      {t("playerDashboard.coaches.requestTraining")}
-                    </Button>
                   </div>
                 ))}
               </div>
@@ -641,22 +627,6 @@ export default function PlayerDashboardPage() {
           isOpen={isQuickBookingOpen}
           onClose={() => setIsQuickBookingOpen(false)}
           onSelectCourt={handleQuickBookingSelectCourt}
-        />
-      )}
-
-      {/* Request Training Modal */}
-      {selectedClubId && coaches.length > 0 && (
-        <RequestTrainingModal
-          clubId={selectedClubId}
-          trainers={coaches.map((c) => ({ id: c.id, name: c.name }))}
-          playerId={userId}
-          isOpen={isRequestTrainingOpen}
-          onClose={() => {
-            setIsRequestTrainingOpen(false);
-          }}
-          onSuccess={() => {
-            setIsRequestTrainingOpen(false);
-          }}
         />
       )}
 
