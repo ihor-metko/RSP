@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { requireRootAdmin } from "@/lib/requireRole";
-import { randomUUID } from "crypto";
 import {
-  uploadToStorage,
+  saveFileToStorage,
   validateFileForUpload,
-  getExtensionForMimeType,
-  isSupabaseStorageConfigured,
-} from "@/lib/supabase";
+  generateUniqueFilename,
+} from "@/lib/fileStorage";
 
 export async function POST(request: Request) {
   const authResult = await requireRootAdmin(request);
@@ -35,39 +33,28 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate unique key for the file using validated extension from MIME type
-    const extension = getExtensionForMimeType(file.type);
-    // Path inside the bucket: clubs/{uuid}.{ext} (general upload, not club-specific)
-    const key = `clubs/${randomUUID()}.${extension}`;
+    // Generate unique filename
+    const filename = generateUniqueFilename(file.type);
 
-    let url: string;
+    // Save file to filesystem
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const saveResult = await saveFileToStorage(filename, buffer);
 
-    // Upload to Supabase Storage if configured, otherwise use mock URL
-    if (isSupabaseStorageConfigured()) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const uploadResult = await uploadToStorage(key, buffer, file.type);
-
-      if ("error" in uploadResult) {
-        console.error("Failed to upload to Supabase Storage:", uploadResult.error);
-        return NextResponse.json(
-          { error: `Upload failed: ${uploadResult.error}` },
-          { status: 500 }
-        );
-      }
-
-      // Store the relative path returned by Supabase (e.g., "clubs/{uuid}.jpg")
-      // The getSupabaseStorageUrl utility will convert this to a full URL
-      url = uploadResult.path;
-    } else {
-      // Development fallback: store as mock URL
-      console.warn("Supabase Storage not configured, using mock URL");
-      url = `/uploads/${key}`;
+    if ("error" in saveResult) {
+      console.error("Failed to save file:", saveResult.error);
+      return NextResponse.json(
+        { error: `Upload failed: ${saveResult.error}` },
+        { status: 500 }
+      );
     }
+
+    // Generate URL to serve the image
+    const url = `/api/images/${filename}`;
 
     return NextResponse.json(
       {
         url,
-        key,
+        key: filename,
         originalName: file.name,
         size: file.size,
         mimeType: file.type,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
-import { deleteFromStorage, isSupabaseStorageConfigured } from "@/lib/supabase";
+import { deleteFileFromStorage, extractFilenameFromPath } from "@/lib/fileStorage";
 
 export async function DELETE(
   request: Request,
@@ -39,12 +39,17 @@ export async function DELETE(
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
-    // Delete from Supabase Storage if configured and imageKey exists
-    if (isSupabaseStorageConfigured() && image.imageKey) {
-      const deleteResult = await deleteFromStorage(image.imageKey);
-      if ("error" in deleteResult) {
-        console.error("Failed to delete from Supabase Storage:", deleteResult.error);
-        // Continue with DB deletion even if storage deletion fails
+    // Delete from filesystem if imageKey exists
+    if (image.imageKey) {
+      // Extract filename from the key/URL
+      const filename = extractFilenameFromPath(image.imageKey);
+      
+      if (filename) {
+        const deleteResult = await deleteFileFromStorage(filename);
+        if ("error" in deleteResult) {
+          console.error("Failed to delete from filesystem:", deleteResult.error);
+          // Continue with DB deletion even if storage deletion fails
+        }
       }
     }
 
