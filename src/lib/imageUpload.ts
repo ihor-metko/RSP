@@ -5,10 +5,11 @@ import { existsSync } from "fs";
 
 /**
  * Allowed MIME types for image uploads
+ * Note: image/jpg is non-standard but included for compatibility with older clients
  */
 export const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
-  "image/jpg", 
+  "image/jpg", // Non-standard but sometimes sent by older browsers
   "image/png",
   "image/webp",
 ] as const;

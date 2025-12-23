@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/requireRole";
-import { ClubMembershipRole } from "@/constants/roles";
+import { ClubMembershipRole, MembershipRole } from "@/constants/roles";
 import { saveImageFile } from "@/lib/imageUpload";
 
 /**
@@ -47,7 +47,7 @@ export async function POST(
       const orgAuthResult = await requireRole({
         contextType: "organization",
         contextId: club.organizationId,
-        allowedRoles: ["ORGANIZATION_ADMIN" as never],
+        allowedRoles: [MembershipRole.ORGANIZATION_ADMIN],
       });
 
       if (!orgAuthResult.authorized) {
