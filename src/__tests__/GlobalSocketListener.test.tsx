@@ -157,9 +157,6 @@ describe('GlobalSocketListener', () => {
       // Toast notification
       expect(handleSocketEvent).toHaveBeenCalledWith('booking_created', eventData);
       
-      // Booking store update
-      expect(mockUpdateBookingFromSocket).toHaveBeenCalledWith(eventData.booking);
-      
       // Notification store update (unified system)
       expect(transformBookingCreated).toHaveBeenCalledWith(eventData);
       expect(mockAddNotification).toHaveBeenCalled();
@@ -189,9 +186,6 @@ describe('GlobalSocketListener', () => {
       // Toast notification
       expect(handleSocketEvent).toHaveBeenCalledWith('booking_updated', eventData);
       
-      // Booking store update
-      expect(mockUpdateBookingFromSocket).toHaveBeenCalledWith(eventData.booking);
-      
       // Notification store update (unified system)
       expect(transformBookingUpdated).toHaveBeenCalledWith(eventData);
       expect(mockAddNotification).toHaveBeenCalled();
@@ -219,9 +213,6 @@ describe('GlobalSocketListener', () => {
     await waitFor(() => {
       // Toast notification
       expect(handleSocketEvent).toHaveBeenCalledWith('booking_cancelled', eventData);
-      
-      // Booking store update
-      expect(mockRemoveBookingFromSocket).toHaveBeenCalledWith(eventData.bookingId);
       
       // Notification store update (unified system)
       expect(transformBookingCancelled).toHaveBeenCalledWith(eventData);
@@ -314,87 +305,6 @@ describe('GlobalSocketListener', () => {
     });
   });
 
-  it('should handle slot_locked event', async () => {
-    render(<GlobalSocketListener />);
-
-    const eventHandler = mockSocket.on.mock.calls.find(
-      call => call[0] === 'slot_locked'
-    )?.[1];
-
-    expect(eventHandler).toBeDefined();
-
-    const eventData = {
-      slotId: 'slot-1',
-      courtId: 'court-1',
-      clubId: 'club-1',
-      userId: 'user-1',
-      startTime: '2024-01-15T10:00:00Z',
-      endTime: '2024-01-15T11:00:00Z',
-    };
-
-    eventHandler(eventData);
-
-    await waitFor(() => {
-      // Toast notification
-      expect(handleSocketEvent).toHaveBeenCalledWith('slot_locked', eventData);
-      
-      // Booking store update
-      expect(mockAddLockedSlot).toHaveBeenCalledWith(eventData);
-    });
-  });
-
-  it('should handle slot_unlocked event', async () => {
-    render(<GlobalSocketListener />);
-
-    const eventHandler = mockSocket.on.mock.calls.find(
-      call => call[0] === 'slot_unlocked'
-    )?.[1];
-
-    expect(eventHandler).toBeDefined();
-
-    const eventData = {
-      slotId: 'slot-1',
-      courtId: 'court-1',
-      clubId: 'club-1',
-    };
-
-    eventHandler(eventData);
-
-    await waitFor(() => {
-      // Toast notification
-      expect(handleSocketEvent).toHaveBeenCalledWith('slot_unlocked', eventData);
-      
-      // Booking store update
-      expect(mockRemoveLockedSlot).toHaveBeenCalledWith(eventData.slotId);
-    });
-  });
-
-  it('should handle lock_expired event', async () => {
-    render(<GlobalSocketListener />);
-
-    const eventHandler = mockSocket.on.mock.calls.find(
-      call => call[0] === 'lock_expired'
-    )?.[1];
-
-    expect(eventHandler).toBeDefined();
-
-    const eventData = {
-      slotId: 'slot-1',
-      courtId: 'court-1',
-      clubId: 'club-1',
-    };
-
-    eventHandler(eventData);
-
-    await waitFor(() => {
-      // Toast notification
-      expect(handleSocketEvent).toHaveBeenCalledWith('lock_expired', eventData);
-      
-      // Booking store update
-      expect(mockRemoveLockedSlot).toHaveBeenCalledWith(eventData.slotId);
-    });
-  });
-
   it('should cleanup on unmount', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { cleanupNotificationManager } = require('@/utils/globalNotificationManager');
@@ -407,9 +317,6 @@ describe('GlobalSocketListener', () => {
     expect(mockSocket.off).toHaveBeenCalledWith('booking_updated', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('booking_cancelled', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('admin_notification', expect.any(Function));
-    expect(mockSocket.off).toHaveBeenCalledWith('slot_locked');
-    expect(mockSocket.off).toHaveBeenCalledWith('slot_unlocked');
-    expect(mockSocket.off).toHaveBeenCalledWith('lock_expired');
     expect(mockSocket.off).toHaveBeenCalledWith('payment_confirmed', expect.any(Function));
     expect(mockSocket.off).toHaveBeenCalledWith('payment_failed', expect.any(Function));
 

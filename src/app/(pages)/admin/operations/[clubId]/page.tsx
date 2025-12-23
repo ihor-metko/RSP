@@ -9,6 +9,7 @@ import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useCourtStore } from "@/stores/useCourtStore";
 import { useBookingStore } from "@/stores/useBookingStore";
 import { useActiveClub } from "@/contexts/ClubContext";
+import { BookingSocketListener } from "@/components/BookingSocketListener";
 import {
   DayCalendar,
   TodayBookingsList,
@@ -273,6 +274,9 @@ export default function ClubOperationsPage() {
 
   return (
     <main className="im-club-operations-page">
+      {/* Booking Socket Listener - handles real-time booking events for this club */}
+      <BookingSocketListener />
+      
       <PageHeader
         title={t("operations.title")}
         description={t("operations.pageDescription")}
