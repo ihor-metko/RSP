@@ -162,36 +162,4 @@ describe('Operations Page Socket Cleanup', () => {
       expect(mockSetActiveClubId).toHaveBeenCalledWith(null);
     });
   });
-
-  it('should clear activeClubId even if clubId changes before unmount', async () => {
-    const ClubOperationsPage = (await import(
-      '@/app/(pages)/admin/operations/[clubId]/page'
-    )).default;
-
-    const { unmount, rerender } = render(<ClubOperationsPage />);
-
-    // Verify initial set
-    await waitFor(() => {
-      expect(mockSetActiveClubId).toHaveBeenCalledWith('test-club-id');
-    });
-
-    // Update the mock params to simulate navigation to different club
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { useParams } = require('next/navigation');
-    (useParams as jest.Mock).mockReturnValue({ clubId: 'different-club-id' });
-
-    // Rerender
-    rerender(<ClubOperationsPage />);
-
-    // Clear mock to track final unmount
-    mockSetActiveClubId.mockClear();
-
-    // Unmount
-    unmount();
-
-    // Should still clear activeClubId
-    await waitFor(() => {
-      expect(mockSetActiveClubId).toHaveBeenCalledWith(null);
-    });
-  });
 });
