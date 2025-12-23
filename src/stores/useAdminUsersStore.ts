@@ -31,7 +31,7 @@ interface AdminUsersState {
   // Internal inflight Promise guards (not exposed)
   _inflightFetchUsers: Promise<void> | null;
   _inflightFetchUserById: Record<string, Promise<AdminUserDetail>> | null;
-  _inflightFetchClubAdmins: Record<string, Promise<SimpleUser[]>> | null;
+  _inflightFetchClubAdmins: Record<string, Promise<SimpleUser[]>>;
 
   // Actions
   setUsers: (users: AdminUser[]) => void;
@@ -115,7 +115,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   lastFetchedAt: null,
   _inflightFetchUsers: null,
   _inflightFetchUserById: null,
-  _inflightFetchClubAdmins: null,
+  _inflightFetchClubAdmins: {},
 
   // State setters
   setUsers: (users) => set({ users }),
@@ -382,7 +382,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         
         // Update cache and clear inflight
         set((state) => {
-          const newInflight = { ...(state._inflightFetchClubAdmins || {}) };
+          const newInflight = { ...state._inflightFetchClubAdmins };
           delete newInflight[clubId];
           
           return {
@@ -391,7 +391,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
               [clubId]: admins,
             },
             loading: false,
-            _inflightFetchClubAdmins: Object.keys(newInflight).length > 0 ? newInflight : null,
+            _inflightFetchClubAdmins: newInflight,
           };
         });
         
@@ -401,13 +401,13 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         
         // Clear inflight and set error
         set((state) => {
-          const newInflight = { ...(state._inflightFetchClubAdmins || {}) };
+          const newInflight = { ...state._inflightFetchClubAdmins };
           delete newInflight[clubId];
           
           return {
             error: errorMessage,
             loading: false,
-            _inflightFetchClubAdmins: Object.keys(newInflight).length > 0 ? newInflight : null,
+            _inflightFetchClubAdmins: newInflight,
           };
         });
         
@@ -418,7 +418,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     // Store inflight promise
     set((state) => ({
       _inflightFetchClubAdmins: {
-        ...(state._inflightFetchClubAdmins || {}),
+        ...state._inflightFetchClubAdmins,
         [clubId]: inflightPromise,
       },
     }));

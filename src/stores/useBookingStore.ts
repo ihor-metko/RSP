@@ -255,11 +255,11 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         }
 
         const result = await response.json();
-        const bookings: AdminBookingResponse[] = result.bookings || result;
+        const bookings: AdminBookingResponse[] = result.bookings;
         
         // Update cache and clear inflight
         set((state) => {
-          const newInflight = { ...(state._inflightFetchByOrg || {}) };
+          const newInflight = { ...state._inflightFetchByOrg };
           delete newInflight[cacheKey];
           
           return {
@@ -278,7 +278,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         
         // Clear inflight and set error
         set((state) => {
-          const newInflight = { ...(state._inflightFetchByOrg || {}) };
+          const newInflight = { ...state._inflightFetchByOrg };
           delete newInflight[cacheKey];
           
           return {
@@ -295,7 +295,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     // Store inflight promise
     set((state) => ({
       _inflightFetchByOrg: {
-        ...(state._inflightFetchByOrg || {}),
+        ...state._inflightFetchByOrg,
         [cacheKey]: inflightPromise,
       },
     }));
