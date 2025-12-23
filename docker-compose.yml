@@ -9,6 +9,8 @@ services:
       - "3000:3000"
     networks:
       - arenaone-network
+    volumes:
+      - arenaone_storage:/app/storage
 
   nginx:
     image: nginx:alpine
@@ -25,3 +27,6 @@ services:
 networks:
   arenaone-network:
     external: true
+
+volumes:
+  arenaone_storage:
