@@ -154,6 +154,12 @@ export default function ClubOperationsPage() {
       ensureClubById(clubId).catch(console.error);
       fetchCourtsIfNeeded({ clubId }).catch(console.error);
     }
+
+    // Cleanup: Clear active club when leaving this page
+    // This will trigger BookingSocket to disconnect automatically
+    return () => {
+      setActiveClubId(null);
+    };
   }, [clubId, ensureClubById, fetchCourtsIfNeeded, setActiveClubId]);
 
   // Load bookings for selected date (initial fetch)
