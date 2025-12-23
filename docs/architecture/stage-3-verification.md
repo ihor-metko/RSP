@@ -29,7 +29,6 @@
 ### 2. Direct Fetch Patterns (Legitimate) ✅
 
 **Specialized Operations** (Correct - NOT domain data):
-- Image uploads: `/api/admin/organizations/${id}/images`
 - Admin assignments: `/api/admin/organizations/assign-admin`
 - Section updates: `/api/admin/clubs/${id}/section`
 - Price rules: `/api/courts/${id}/price-rules`

@@ -66,13 +66,12 @@ The CourtCard component includes:
 ## Technical Details
 
 ### Image Storage and Processing
-Images are stored in Supabase Storage in the "uploads" bucket. The database stores only relative file paths (e.g., "clubs/uuid.jpg").
+Images are stored using a backend storage solution. The database stores image URL paths that can be displayed directly.
 
 **Utility Functions**:
-- `getSupabaseStorageUrl(storedPath)`: Converts stored paths to full Supabase Storage public URLs
+- `getImageUrl(storedPath)`: Converts stored paths to displayable URLs
 - `isValidImageUrl(url)`: Validates if a URL is valid for display
 - Handles full URLs (HTTP/HTTPS) and relative paths
-- Falls back gracefully when Supabase URL is not configured
 
 ### Data Structure
 Court objects include an `imageUrl` field:
@@ -220,7 +219,7 @@ Currently uses SVG icons as placeholders. Could add:
 ## Deployment Notes
 
 ### Environment Variables Required
-- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL for image storage
+No specific environment variables are required for image display. The image storage implementation should provide the necessary configuration.
 
 ### Database Schema
 No schema changes required. Uses existing `imageUrl` field on Court table.
