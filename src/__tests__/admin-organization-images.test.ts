@@ -18,14 +18,17 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
-// Mock Supabase functions
-const mockUploadToStorage = jest.fn();
-const mockIsSupabaseStorageConfigured = jest.fn();
-jest.mock("@/lib/supabase", () => ({
-  uploadToStorage: (...args: unknown[]) => mockUploadToStorage(...args),
-  validateFileForUpload: jest.requireActual("@/lib/supabase").validateFileForUpload,
-  getExtensionForMimeType: jest.requireActual("@/lib/supabase").getExtensionForMimeType,
-  isSupabaseStorageConfigured: () => mockIsSupabaseStorageConfigured(),
+// Mock filesystem storage
+const mockSaveFileToStorage = jest.fn();
+jest.mock("@/lib/fileStorage", () => ({
+  ...jest.requireActual("@/lib/fileStorage"),
+  saveFileToStorage: (...args: unknown[]) => mockSaveFileToStorage(...args),
+}));
+
+// Mock SVG sanitizer
+jest.mock("@/lib/svgSanitizer", () => ({
+  sanitizeSVG: jest.fn((svg: string) => svg),
+  isValidSVGBuffer: jest.fn(() => true),
 }));
 
 import { POST } from "@/app/api/admin/organizations/[id]/images/route";
@@ -36,7 +39,8 @@ describe("Organization Images Upload API", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsSupabaseStorageConfigured.mockReturnValue(false); // Use mock mode by default
+    // Default to successful save
+    mockSaveFileToStorage.mockResolvedValue({ filename: "test-uuid.jpg" });
   });
 
   describe("POST /api/admin/organizations/[id]/images", () => {
@@ -208,7 +212,7 @@ describe("Organization Images Upload API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Invalid file type. Allowed: jpg, png, webp, avif");
+      expect(data.error).toBe("Invalid file type. Allowed: jpg, png, webp, svg");
     });
 
     it("should successfully upload logo image", async () => {
@@ -226,7 +230,7 @@ describe("Organization Images Upload API", () => {
         id: "org-123",
         name: "Test Org",
         slug: "test-org",
-        logo: "organizations/org-123/uuid-123.jpg",
+        logo: "/api/images/test-uuid.jpg",
         heroImage: null,
       });
 
@@ -244,12 +248,12 @@ describe("Organization Images Upload API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(201);
-      expect(data.url).toContain("organizations/org-123/");
+      expect(data.url).toMatch(/^\/api\/images\//);
       expect(data.type).toBe("logo");
       expect(data.organization.id).toBe("org-123");
       expect(mockPrisma.organization.update).toHaveBeenCalledWith({
         where: { id: "org-123" },
-        data: { logo: expect.stringContaining("organizations/org-123/") },
+        data: { logo: expect.stringMatching(/^\/api\/images\//) },
       });
     });
 
@@ -269,7 +273,7 @@ describe("Organization Images Upload API", () => {
         name: "Test Org",
         slug: "test-org",
         logo: null,
-        heroImage: "organizations/org-123/uuid-456.jpg",
+        heroImage: "/api/images/test-uuid.jpg",
       });
 
       const formData = new FormData();
@@ -286,16 +290,16 @@ describe("Organization Images Upload API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(201);
-      expect(data.url).toContain("organizations/org-123/");
+      expect(data.url).toMatch(/^\/api\/images\//);
       expect(data.type).toBe("heroImage");
       expect(data.organization.id).toBe("org-123");
       expect(mockPrisma.organization.update).toHaveBeenCalledWith({
         where: { id: "org-123" },
-        data: { heroImage: expect.stringContaining("organizations/org-123/") },
+        data: { heroImage: expect.stringMatching(/^\/api\/images\//) },
       });
     });
 
-    it("should use Supabase Storage when configured", async () => {
+    it("should return 500 when file save fails", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: true },
       });
@@ -306,18 +310,8 @@ describe("Organization Images Upload API", () => {
         slug: "test-org",
       });
 
-      mockIsSupabaseStorageConfigured.mockReturnValue(true);
-      mockUploadToStorage.mockResolvedValue({
-        path: "organizations/org-123/uuid-789.jpg",
-      });
-
-      mockPrisma.organization.update.mockResolvedValue({
-        id: "org-123",
-        name: "Test Org",
-        slug: "test-org",
-        logo: "organizations/org-123/uuid-789.jpg",
-        heroImage: null,
-      });
+      // Mock storage failure
+      mockSaveFileToStorage.mockResolvedValue({ error: "Disk full" });
 
       const formData = new FormData();
       const file = new Blob(["test"], { type: "image/jpeg" });
@@ -332,9 +326,8 @@ describe("Organization Images Upload API", () => {
       const response = await POST(request, { params: Promise.resolve({ id: "org-123" }) });
       const data = await response.json();
 
-      expect(response.status).toBe(201);
-      expect(mockUploadToStorage).toHaveBeenCalled();
-      expect(data.url).toBe("organizations/org-123/uuid-789.jpg");
+      expect(response.status).toBe(500);
+      expect(data.error).toContain("Upload failed");
     });
   });
 });

@@ -1,19 +1,41 @@
-import { getSupabaseStorageUrl, isValidImageUrl } from "@/utils/image";
+import { getImageUrl, getSupabaseStorageUrl, isValidImageUrl } from "@/utils/image";
 
 describe("Image Utils", () => {
-  const originalEnv = process.env;
+  describe("getImageUrl", () => {
+    it("should return null for null input", () => {
+      expect(getImageUrl(null)).toBeNull();
+    });
 
-  beforeEach(() => {
-    // Reset environment for each test
-    jest.resetModules();
-    process.env = { ...originalEnv };
+    it("should return null for undefined input", () => {
+      expect(getImageUrl(undefined)).toBeNull();
+    });
+
+    it("should return null for empty string", () => {
+      expect(getImageUrl("")).toBeNull();
+    });
+
+    it("should return full URLs unchanged", () => {
+      const fullUrl = "https://example.com/image.jpg";
+      expect(getImageUrl(fullUrl)).toBe(fullUrl);
+    });
+
+    it("should return HTTP URLs unchanged", () => {
+      const httpUrl = "http://example.com/image.jpg";
+      expect(getImageUrl(httpUrl)).toBe(httpUrl);
+    });
+
+    it("should return API paths unchanged", () => {
+      const apiPath = "/api/images/test-uuid.jpg";
+      expect(getImageUrl(apiPath)).toBe(apiPath);
+    });
+
+    it("should return legacy paths unchanged", () => {
+      const legacyPath = "/uploads/clubs/image.jpg";
+      expect(getImageUrl(legacyPath)).toBe(legacyPath);
+    });
   });
 
-  afterAll(() => {
-    process.env = originalEnv;
-  });
-
-  describe("getSupabaseStorageUrl", () => {
+  describe("getSupabaseStorageUrl (backward compatibility)", () => {
     it("should return null for null input", () => {
       expect(getSupabaseStorageUrl(null)).toBeNull();
     });
@@ -36,57 +58,9 @@ describe("Image Utils", () => {
       expect(getSupabaseStorageUrl(httpUrl)).toBe(httpUrl);
     });
 
-    describe("without NEXT_PUBLIC_SUPABASE_URL", () => {
-      beforeEach(() => {
-        delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-      });
-
-      it("should return original path when Supabase URL is not configured", () => {
-        const path = "/uploads/clubs/image.jpg";
-        expect(getSupabaseStorageUrl(path)).toBe(path);
-      });
-    });
-
-    describe("with NEXT_PUBLIC_SUPABASE_URL", () => {
-      beforeEach(() => {
-        process.env.NEXT_PUBLIC_SUPABASE_URL = "https://xyz.supabase.co";
-      });
-
-      it("should convert /uploads/clubs/... path to Supabase URL", () => {
-        const path = "/uploads/clubs/abc123.jpg";
-        const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/clubs/abc123.jpg";
-        expect(getSupabaseStorageUrl(path)).toBe(expected);
-      });
-
-      it("should convert uploads/clubs/... path (no leading slash) to Supabase URL", () => {
-        const path = "uploads/clubs/abc123.jpg";
-        const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/clubs/abc123.jpg";
-        expect(getSupabaseStorageUrl(path)).toBe(expected);
-      });
-
-      it("should convert clubs/... path to Supabase URL", () => {
-        const path = "clubs/abc123.jpg";
-        const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/clubs/abc123.jpg";
-        expect(getSupabaseStorageUrl(path)).toBe(expected);
-      });
-
-      it("should handle nested paths correctly", () => {
-        const path = "/uploads/clubs/club-id/image.png";
-        const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/clubs/club-id/image.png";
-        expect(getSupabaseStorageUrl(path)).toBe(expected);
-      });
-
-      it("should convert organizations/... path to Supabase URL", () => {
-        const path = "organizations/org-id/abc123.jpg";
-        const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/organizations/org-id/abc123.jpg";
-        expect(getSupabaseStorageUrl(path)).toBe(expected);
-      });
-
-      it("should convert /uploads/organizations/... path to Supabase URL", () => {
-        const path = "/uploads/organizations/org-id/logo.png";
-        const expected = "https://xyz.supabase.co/storage/v1/object/public/uploads/organizations/org-id/logo.png";
-        expect(getSupabaseStorageUrl(path)).toBe(expected);
-      });
+    it("should return API paths unchanged", () => {
+      const apiPath = "/api/images/test-uuid.jpg";
+      expect(getSupabaseStorageUrl(apiPath)).toBe(apiPath);
     });
   });
 
@@ -111,44 +85,32 @@ describe("Image Utils", () => {
       expect(isValidImageUrl("http://example.com/image.jpg")).toBe(true);
     });
 
-    describe("without NEXT_PUBLIC_SUPABASE_URL", () => {
-      beforeEach(() => {
-        delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-      });
-
-      it("should return true for paths starting with /", () => {
-        expect(isValidImageUrl("/uploads/clubs/image.jpg")).toBe(true);
-      });
-
-      it("should return false for paths not starting with /", () => {
-        expect(isValidImageUrl("uploads/clubs/image.jpg")).toBe(false);
-      });
+    it("should return true for /api/images/ paths", () => {
+      expect(isValidImageUrl("/api/images/test-uuid.jpg")).toBe(true);
     });
 
-    describe("with NEXT_PUBLIC_SUPABASE_URL", () => {
-      beforeEach(() => {
-        process.env.NEXT_PUBLIC_SUPABASE_URL = "https://xyz.supabase.co";
-      });
+    it("should return true for legacy /uploads/... paths", () => {
+      expect(isValidImageUrl("/uploads/clubs/image.jpg")).toBe(true);
+    });
 
-      it("should return true for /uploads/... paths", () => {
-        expect(isValidImageUrl("/uploads/clubs/image.jpg")).toBe(true);
-      });
+    it("should return true for legacy uploads/... paths", () => {
+      expect(isValidImageUrl("uploads/clubs/image.jpg")).toBe(true);
+    });
 
-      it("should return true for uploads/... paths", () => {
-        expect(isValidImageUrl("uploads/clubs/image.jpg")).toBe(true);
-      });
+    it("should return true for legacy clubs/... paths", () => {
+      expect(isValidImageUrl("clubs/image.jpg")).toBe(true);
+    });
 
-      it("should return true for clubs/... paths", () => {
-        expect(isValidImageUrl("clubs/image.jpg")).toBe(true);
-      });
+    it("should return true for legacy organizations/... paths", () => {
+      expect(isValidImageUrl("organizations/org-id/image.jpg")).toBe(true);
+    });
 
-      it("should return true for organizations/... paths", () => {
-        expect(isValidImageUrl("organizations/org-id/image.jpg")).toBe(true);
-      });
+    it("should return true for paths starting with /", () => {
+      expect(isValidImageUrl("/some/path/image.jpg")).toBe(true);
+    });
 
-      it("should return true for /uploads/organizations/... paths", () => {
-        expect(isValidImageUrl("/uploads/organizations/org-id/logo.png")).toBe(true);
-      });
+    it("should return false for invalid paths", () => {
+      expect(isValidImageUrl("invalid-path")).toBe(false);
     });
   });
 });

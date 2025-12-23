@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
-import { randomUUID } from "crypto";
 import {
-  uploadToStorage,
+  saveFileToStorage,
   validateFileForUpload,
-  getExtensionForMimeType,
-  isSupabaseStorageConfigured,
-} from "@/lib/supabase";
+  generateUniqueFilename,
+} from "@/lib/fileStorage";
 
 export async function POST(
   request: Request,
@@ -51,34 +49,23 @@ export async function POST(
       );
     }
 
-    // Generate unique key for the file using validated extension from MIME type
-    const extension = getExtensionForMimeType(file.type);
-    // Path inside the bucket: clubs/{clubId}/{uuid}.{ext}
-    const imageKey = `clubs/${clubId}/${randomUUID()}.${extension}`;
+    // Generate unique filename
+    const filename = generateUniqueFilename(file.type);
 
-    let imageUrl: string;
+    // Save file to filesystem
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const saveResult = await saveFileToStorage(filename, buffer);
 
-    // Upload to Supabase Storage if configured, otherwise use mock URL
-    if (isSupabaseStorageConfigured()) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const uploadResult = await uploadToStorage(imageKey, buffer, file.type);
-
-      if ("error" in uploadResult) {
-        console.error("Failed to upload to Supabase Storage:", uploadResult.error);
-        return NextResponse.json(
-          { error: `Upload failed: ${uploadResult.error}` },
-          { status: 500 }
-        );
-      }
-
-      // Store the relative path returned by Supabase (e.g., "clubs/{clubId}/{uuid}.jpg")
-      // The getSupabaseStorageUrl utility will convert this to a full URL
-      imageUrl = uploadResult.path;
-    } else {
-      // Development fallback: store as mock URL
-      console.warn("Supabase Storage not configured, using mock URL");
-      imageUrl = `/uploads/${imageKey}`;
+    if ("error" in saveResult) {
+      console.error("Failed to save file:", saveResult.error);
+      return NextResponse.json(
+        { error: `Upload failed: ${saveResult.error}` },
+        { status: 500 }
+      );
     }
+
+    // Generate URL to serve the image
+    const imageUrl = `/api/images/${filename}`;
 
     // Get current max sortOrder for this club's gallery
     const maxSortOrder = await prisma.clubGallery.aggregate({
@@ -93,7 +80,7 @@ export async function POST(
       data: {
         clubId,
         imageUrl,
-        imageKey,
+        imageKey: filename,
         altText: file.name,
         sortOrder,
       },
@@ -103,7 +90,7 @@ export async function POST(
       {
         id: galleryImage.id,
         url: imageUrl,
-        key: imageKey,
+        key: filename,
         originalName: file.name,
         size: file.size,
         mimeType: file.type,

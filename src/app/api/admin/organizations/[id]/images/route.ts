@@ -1,24 +1,19 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRootAdmin } from "@/lib/requireRole";
-import { randomUUID } from "crypto";
 import {
-  uploadToStorage,
-  uploadLogoToStorage,
+  saveFileToStorage,
   validateLogoFileForUpload,
   validateFileForUpload,
-  getExtensionForMimeType,
-  isSupabaseStorageConfigured,
-} from "@/lib/supabase";
+  generateUniqueFilename,
+} from "@/lib/fileStorage";
+import { sanitizeSVG, isValidSVGBuffer } from "@/lib/svgSanitizer";
 
 /**
  * POST /api/admin/organizations/[id]/images
- * Upload an image for an organization to Supabase Storage
+ * Upload an image for an organization to filesystem storage.
  * 
- * Images are stored in the "uploads" bucket with the path:
- * organizations/{organizationId}/{uuid}.{ext}
- * 
- * This follows the same pattern as club images: clubs/{clubId}/{uuid}.{ext}
+ * Images are stored in /app/storage/images/ with unique filenames.
  */
 export async function POST(
   request: Request,
@@ -77,40 +72,52 @@ export async function POST(
       );
     }
 
-    // Generate unique key for the file using validated extension from MIME type
-    const extension = getExtensionForMimeType(file.type);
-    // Path inside the bucket: organizations/{organizationId}/{uuid}.{ext}
-    const imageKey = `organizations/${organizationId}/${randomUUID()}.${extension}`;
+    // Generate unique filename
+    const filename = generateUniqueFilename(file.type);
 
-    let imageUrl: string;
+    // Get file buffer
+    let fileBuffer = Buffer.from(await file.arrayBuffer());
 
-    // Upload to Supabase Storage if configured, otherwise use mock URL
-    if (isSupabaseStorageConfigured()) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      
-      // Use uploadLogoToStorage for logos (supports SVG with sanitization)
-      // Use regular upload for heroImage (no SVG support)
-      const uploadResult = imageType === "logo"
-        ? await uploadLogoToStorage(imageKey, buffer, file.type)
-        : await uploadToStorage(imageKey, buffer, file.type);
+    // If it's an SVG logo, sanitize it first
+    if (imageType === "logo" && file.type === "image/svg+xml") {
+      try {
+        // Validate the buffer contains SVG
+        if (!isValidSVGBuffer(fileBuffer)) {
+          return NextResponse.json(
+            { error: "Invalid SVG file" },
+            { status: 400 }
+          );
+        }
 
-      if ("error" in uploadResult) {
-        console.error("Failed to upload to Supabase Storage:", uploadResult.error);
+        // Convert buffer to string and sanitize
+        const svgContent = fileBuffer.toString("utf-8");
+        const sanitizedSVG = sanitizeSVG(svgContent);
+
+        // Convert sanitized content back to buffer
+        fileBuffer = Buffer.from(sanitizedSVG, "utf-8");
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "SVG sanitization failed";
+        console.error("SVG sanitization error:", errorMessage);
         return NextResponse.json(
-          { error: `Upload failed: ${uploadResult.error}` },
-          { status: 500 }
+          { error: errorMessage },
+          { status: 400 }
         );
       }
-
-      // uploadResult.path contains the relative path (e.g., "organizations/{organizationId}/{uuid}.jpg")
-      // Store this relative path in the database
-      // The getSupabaseStorageUrl utility will convert it to a full URL when needed
-      imageUrl = uploadResult.path;
-    } else {
-      // Development fallback: store as mock URL
-      console.warn("Supabase Storage not configured, using mock URL");
-      imageUrl = `/uploads/${imageKey}`;
     }
+
+    // Save file to filesystem
+    const saveResult = await saveFileToStorage(filename, fileBuffer);
+
+    if ("error" in saveResult) {
+      console.error("Failed to save file:", saveResult.error);
+      return NextResponse.json(
+        { error: `Upload failed: ${saveResult.error}` },
+        { status: 500 }
+      );
+    }
+
+    // Generate URL to serve the image
+    const imageUrl = `/api/images/${filename}`;
 
     // Update the organization with the new image URL
     const updateData = imageType === "logo" 
@@ -125,7 +132,7 @@ export async function POST(
     return NextResponse.json(
       {
         url: imageUrl,
-        key: imageKey,
+        key: filename,
         type: imageType,
         originalName: file.name,
         size: file.size,

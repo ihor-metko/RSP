@@ -8,11 +8,22 @@ jest.mock("@/lib/auth", () => ({
   auth: () => mockAuth(),
 }));
 
+// Mock filesystem storage
+jest.mock("@/lib/fileStorage", () => ({
+  ...jest.requireActual("@/lib/fileStorage"),
+  saveFileToStorage: jest.fn(),
+}));
+
 import { POST } from "@/app/api/admin/uploads/route";
+import { saveFileToStorage } from "@/lib/fileStorage";
+
+const mockSaveFileToStorage = saveFileToStorage as jest.MockedFunction<typeof saveFileToStorage>;
 
 describe("Admin Uploads API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default to successful save
+    mockSaveFileToStorage.mockResolvedValue({ filename: "test-uuid.jpg" });
   });
 
   describe("POST /api/admin/uploads", () => {
@@ -93,7 +104,7 @@ describe("Admin Uploads API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Invalid file type. Allowed: jpg, png, webp, avif");
+      expect(data.error).toBe("Invalid file type. Allowed: jpg, png, webp");
     });
 
     it("should return 400 for file too large", async () => {
@@ -101,8 +112,8 @@ describe("Admin Uploads API", () => {
         user: { id: "admin-123", isRoot: true },
       });
 
-      // Create a mock file that's larger than 5MB
-      const largeContent = "x".repeat(6 * 1024 * 1024); // 6MB
+      // Create a mock file that's larger than 10MB
+      const largeContent = "x".repeat(11 * 1024 * 1024); // 11MB
       const formData = new FormData();
       const file = new Blob([largeContent], { type: "image/jpeg" });
       formData.append("file", file, "large.jpg");
@@ -116,7 +127,7 @@ describe("Admin Uploads API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("File too large. Maximum size: 5MB");
+      expect(data.error).toBe("File too large. Maximum size: 10MB");
     });
 
     it("should successfully upload a valid image", async () => {
@@ -138,9 +149,11 @@ describe("Admin Uploads API", () => {
 
       expect(response.status).toBe(201);
       expect(data).toHaveProperty("url");
+      expect(data.url).toMatch(/^\/api\/images\//);
       expect(data).toHaveProperty("key");
       expect(data.originalName).toBe("test.jpg");
       expect(data.mimeType).toBe("image/jpeg");
+      expect(mockSaveFileToStorage).toHaveBeenCalled();
     });
 
     it("should accept png images", async () => {
@@ -181,14 +194,17 @@ describe("Admin Uploads API", () => {
       expect(response.status).toBe(201);
     });
 
-    it("should accept avif images", async () => {
+    it("should return 500 when file save fails", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: true },
       });
 
+      // Mock storage failure
+      mockSaveFileToStorage.mockResolvedValue({ error: "Disk full" });
+
       const formData = new FormData();
-      const file = new Blob(["test"], { type: "image/avif" });
-      formData.append("file", file, "test.avif");
+      const file = new Blob(["test"], { type: "image/jpeg" });
+      formData.append("file", file, "test.jpg");
 
       const request = new Request("http://localhost:3000/api/admin/uploads", {
         method: "POST",
@@ -196,8 +212,10 @@ describe("Admin Uploads API", () => {
       });
 
       const response = await POST(request);
+      const data = await response.json();
 
-      expect(response.status).toBe(201);
+      expect(response.status).toBe(500);
+      expect(data.error).toContain("Upload failed");
     });
   });
 });
