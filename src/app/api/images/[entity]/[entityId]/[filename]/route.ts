@@ -79,6 +79,11 @@ function isValidUUID(uuid: string): boolean {
 /**
  * GET /api/images/[entity]/[entityId]/[filename]
  *
+ * @deprecated This endpoint is deprecated. Images should be served directly
+ * by the web server (nginx) from /uploads/ path. This endpoint is kept for
+ * backward compatibility with existing image URLs in the database.
+ * New uploads will use direct server URLs (e.g., https://domain.com/uploads/...).
+ *
  * Serves uploaded images for different entity types from Docker volume.
  *
  * @param entity - Entity type: organizations, clubs, users, or bookings

@@ -17,8 +17,31 @@ const mockReadFile = readFile as jest.MockedFunction<typeof readFile>;
 const mockStat = stat as jest.MockedFunction<typeof stat>;
 
 describe("Images API - GET /api/images/[entity]/[entityId]/[filename]", () => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalProdPath = process.env.IMAGE_UPLOAD_PATH_PROD;
+  const originalDevPath = process.env.IMAGE_UPLOAD_PATH_DEV;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    // Set up environment variables for testing
+    process.env.NODE_ENV = 'production';
+    process.env.IMAGE_UPLOAD_PATH_PROD = '/var/www/arenaone_storage';
+    process.env.IMAGE_UPLOAD_PATH_DEV = './uploads';
+  });
+
+  afterEach(() => {
+    // Restore original environment
+    process.env.NODE_ENV = originalEnv;
+    if (originalProdPath !== undefined) {
+      process.env.IMAGE_UPLOAD_PATH_PROD = originalProdPath;
+    } else {
+      delete process.env.IMAGE_UPLOAD_PATH_PROD;
+    }
+    if (originalDevPath !== undefined) {
+      process.env.IMAGE_UPLOAD_PATH_DEV = originalDevPath;
+    } else {
+      delete process.env.IMAGE_UPLOAD_PATH_DEV;
+    }
   });
 
   // Helper to create a mock request
@@ -387,7 +410,8 @@ describe("Images API - GET /api/images/[entity]/[entityId]/[filename]", () => {
       );
 
       // Verify that stat was called with the correct path structure
-      const expectedPath = path.join("/app/storage/images", "organizations", "abc12345-e89b-12d3-a456-426614174000", "logo.png");
+      // Based on the production environment setting
+      const expectedPath = path.join("/var/www/arenaone_storage", "organizations", "abc12345-e89b-12d3-a456-426614174000", "logo.png");
       expect(mockStat).toHaveBeenCalledWith(expectedPath);
     });
   });

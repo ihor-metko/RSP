@@ -129,15 +129,38 @@ export async function saveUploadedFile(
 /**
  * Generate the URL for accessing an uploaded image
  *
+ * Uses NEXT_PUBLIC_ASSETS_BASE_URL to generate full URLs for server-based storage.
+ * Falls back to relative paths for local development if the env var is not set.
+ *
  * @param entity - Entity type
  * @param entityId - Entity ID
  * @param filename - Filename
- * @returns The URL for accessing the image
+ * @returns The full URL for accessing the image from the server storage
+ *
+ * @example
+ * // Production with NEXT_PUBLIC_ASSETS_BASE_URL="https://arenaone.app"
+ * getUploadedImageUrl("organizations", "abc123", "logo.jpg")
+ * // Returns: "https://arenaone.app/uploads/organizations/abc123/logo.jpg"
+ *
+ * @example
+ * // Local development without NEXT_PUBLIC_ASSETS_BASE_URL
+ * getUploadedImageUrl("clubs", "xyz789", "banner.png")
+ * // Returns: "/uploads/clubs/xyz789/banner.png"
  */
 export function getUploadedImageUrl(
   entity: UploadEntityType,
   entityId: string,
   filename: string
 ): string {
-  return `/api/images/${entity}/${entityId}/${filename}`;
+  const baseUrl = process.env.NEXT_PUBLIC_ASSETS_BASE_URL;
+  const relativePath = `/uploads/${entity}/${entityId}/${filename}`;
+  
+  // If base URL is set, return full URL; otherwise, return relative path
+  if (baseUrl) {
+    // Remove trailing slash from base URL if present
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    return `${cleanBaseUrl}${relativePath}`;
+  }
+  
+  return relativePath;
 }
