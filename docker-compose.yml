@@ -10,7 +10,7 @@ services:
     networks:
       - arenaone_network
     volumes:
-      - arenaone_storage:/app/storage
+      - arenaone_storage:/var/www/arenaone_storage
 
   nginx:
     image: nginx:alpine
