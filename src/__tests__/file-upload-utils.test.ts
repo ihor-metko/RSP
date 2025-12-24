@@ -99,9 +99,11 @@ describe("fileUpload utilities", () => {
     });
 
     it("should accept all allowed image types", () => {
+      // Note: Both 'image/jpeg' and 'image/jpg' are tested because some clients
+      // may send either MIME type, even though 'image/jpeg' is the standard
       const types = [
         { ext: "jpg", mime: "image/jpeg" },
-        { ext: "jpeg", mime: "image/jpg" },
+        { ext: "jpeg", mime: "image/jpg" },  // Non-standard but supported for compatibility
         { ext: "png", mime: "image/png" },
         { ext: "gif", mime: "image/gif" },
         { ext: "webp", mime: "image/webp" },

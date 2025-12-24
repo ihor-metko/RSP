@@ -142,10 +142,16 @@ export function getUploadedImageUrl(
   const baseUrl = process.env.NEXT_PUBLIC_ASSETS_BASE_URL;
   
   if (!baseUrl) {
-    console.warn(
-      "[getUploadedImageUrl] NEXT_PUBLIC_ASSETS_BASE_URL not set, using relative path. " +
-      "This should only happen in development. Set NEXT_PUBLIC_ASSETS_BASE_URL for production."
-    );
+    // In development without NEXT_PUBLIC_ASSETS_BASE_URL, use relative path
+    // This allows local development without setting up the full infrastructure
+    // In production, this environment variable should always be set
+    if (process.env.NODE_ENV === 'production') {
+      console.error(
+        '[getUploadedImageUrl] NEXT_PUBLIC_ASSETS_BASE_URL is not set in production! ' +
+        'Images will use relative paths which may not work correctly. ' +
+        'Please set NEXT_PUBLIC_ASSETS_BASE_URL environment variable.'
+      );
+    }
     // Fallback to uploads path for local development
     return `/uploads/${entity}/${entityId}/${filename}`;
   }
