@@ -2,6 +2,14 @@
  * @jest-environment node
  */
 
+/**
+ * Tests for backward compatibility image serving API route.
+ * 
+ * Note: This route is maintained for backward compatibility only.
+ * New uploads should use absolute URLs served directly by Nginx.
+ * See docs/IMAGE_HANDLING.md for current image handling architecture.
+ */
+
 import { GET } from "@/app/api/images/[entity]/[entityId]/[filename]/route";
 import { NextRequest } from "next/server";
 import { readFile, stat } from "fs/promises";
@@ -16,7 +24,21 @@ jest.mock("fs/promises", () => ({
 const mockReadFile = readFile as jest.MockedFunction<typeof readFile>;
 const mockStat = stat as jest.MockedFunction<typeof stat>;
 
-describe("Images API - GET /api/images/[entity]/[entityId]/[filename]", () => {
+describe("Images API - GET /api/images/[entity]/[entityId]/[filename] (Backward Compatibility)", () => {
+  const originalEnv = process.env;
+
+  beforeAll(() => {
+    // Set up environment variables for tests
+    process.env.NODE_ENV = 'production';
+    process.env.IMAGE_UPLOAD_PATH_PROD = '/app/storage/images';
+    process.env.IMAGE_UPLOAD_PATH_DEV = '/app/storage/images';
+  });
+
+  afterAll(() => {
+    // Restore original environment
+    process.env = originalEnv;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

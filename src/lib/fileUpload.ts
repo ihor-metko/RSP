@@ -132,12 +132,33 @@ export async function saveUploadedFile(
  * @param entity - Entity type
  * @param entityId - Entity ID
  * @param filename - Filename
- * @returns The URL for accessing the image
+ * @returns The absolute URL for accessing the image via Nginx
  */
 export function getUploadedImageUrl(
   entity: UploadEntityType,
   entityId: string,
   filename: string
 ): string {
-  return `/api/images/${entity}/${entityId}/${filename}`;
+  const baseUrl = process.env.NEXT_PUBLIC_ASSETS_BASE_URL;
+  
+  if (!baseUrl) {
+    // In development without NEXT_PUBLIC_ASSETS_BASE_URL, use relative path
+    // This allows local development without setting up the full infrastructure
+    // In production, this environment variable should always be set
+    if (process.env.NODE_ENV === 'production') {
+      console.error(
+        '[getUploadedImageUrl] NEXT_PUBLIC_ASSETS_BASE_URL is not set in production! ' +
+        'Images will use relative paths which may not work correctly. ' +
+        'Please set NEXT_PUBLIC_ASSETS_BASE_URL environment variable.'
+      );
+    }
+    // Fallback to uploads path for local development
+    return `/uploads/${entity}/${entityId}/${filename}`;
+  }
+  
+  // Remove trailing slash from base URL if present
+  const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  
+  // Return absolute URL for production/dev environments
+  return `${normalizedBaseUrl}/uploads/${entity}/${entityId}/${filename}`;
 }
