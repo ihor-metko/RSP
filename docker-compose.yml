@@ -19,7 +19,7 @@ services:
       - "8080:80"
       - "8443:443"
     volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - ./nginx/conf.d:/etc/nginx/conf.d
       - arenaone_storage:/var/www/arenaone_storage
     networks:
       - arenaone_network
