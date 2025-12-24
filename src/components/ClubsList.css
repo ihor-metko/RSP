@@ -107,9 +107,10 @@
 }
 
 .rsp-club-logo {
-  @apply w-14 h-14 rounded-xl object-cover flex-shrink-0;
+  @apply w-14 h-14 rounded-xl object-contain flex-shrink-0;
   background-color: var(--rsp-border);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  padding: 0.25rem;
 }
 
 .rsp-club-logo-placeholder {
@@ -208,6 +209,7 @@
 .rsp-club-hero-image--logo {
   @apply object-contain;
   background-color: var(--rsp-card-bg);
+  padding: 1rem;
 }
 
 .rsp-club-image-placeholder {
@@ -317,9 +319,10 @@
 }
 
 .tm-club-logo {
-  @apply w-14 h-14 rounded-xl object-cover flex-shrink-0;
+  @apply w-14 h-14 rounded-xl object-contain flex-shrink-0;
   background-color: var(--rsp-border);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  padding: 0.25rem;
 }
 
 .tm-club-logo-placeholder {

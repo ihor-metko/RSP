@@ -36,6 +36,7 @@
 .im-admin-org-hero-image--logo {
   @apply object-contain;
   background-color: var(--rsp-card-bg);
+  padding: 1rem;
 }
 
 /* Logo overlay on banner */
