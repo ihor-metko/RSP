@@ -1,31 +1,32 @@
 services:
-  app:
+  arenaone_app:
     build: .
-    container_name: arena_one_app
+    container_name: arenaone_app
     env_file:
       - .env.production
     restart: always
     ports:
       - "3000:3000"
     networks:
-      - arenaone-network
+      - arenaone_network
     volumes:
       - arenaone_storage:/app/storage
 
   nginx:
     image: nginx:alpine
-    container_name: arena_one_nginx
+    container_name: arenaone_nginx
     ports:
       - "8080:80"
       - "8443:443"
     volumes:
       - ./nginx:/etc/nginx/conf.d
+      - arenaone_storage:/var/www/arenaone_storage
     depends_on:
-      - app
+      - arenaone_app
     restart: always
 
 networks:
-  arenaone-network:
+  arenaone_network:
     external: true
 
 volumes:
