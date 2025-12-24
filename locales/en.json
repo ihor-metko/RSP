@@ -369,23 +369,44 @@
         "generalInfo": {
           "title": "General Information",
           "description": "Enter the basic details about your club.",
+          "organization": "Organization",
+          "organizationRequired": "Organization is required",
+          "organizationSearchPlaceholder": "Search organizations...",
+          "organizationHint": "This club will be created under Organization: {name}",
+          "noOrganizationsFound": "No organizations found",
+          "loadingOrganizations": "Loading...",
           "clubName": "Club Name",
+          "clubNamePlaceholder": "Enter club name",
           "clubNameRequired": "Club name is required",
           "slug": "Slug (optional)",
+          "slugPlaceholder": "club-name-slug",
           "slugHint": "Auto-generated from name if empty",
           "clubType": "Club Type",
           "selectType": "Select type...",
-          "shortDescription": "Short Description"
+          "shortDescription": "Short Description",
+          "shortDescriptionPlaceholder": "Brief description of the club..."
         },
         "contacts": {
           "title": "Contacts and Address",
           "description": "Provide contact information and location details.",
           "address": "Address",
+          "addressPlaceholder": "Street address",
           "city": "City",
+          "cityPlaceholder": "City",
           "postalCode": "Postal Code",
+          "postalCodePlaceholder": "Postal code",
+          "country": "Country",
+          "countryPlaceholder": "Country",
+          "latitude": "Latitude",
+          "latitudePlaceholder": "e.g., 40.7128",
+          "longitude": "Longitude",
+          "longitudePlaceholder": "e.g., -74.0060",
           "phone": "Phone",
+          "phonePlaceholder": "+1 (555) 123-4567",
           "email": "Email",
-          "website": "Website"
+          "emailPlaceholder": "contact@club.com",
+          "website": "Website",
+          "websitePlaceholder": "https://www.club.com"
         },
         "hours": {
           "title": "Club Working Hours",
@@ -416,6 +437,14 @@
           "next": "Next",
           "createClub": "Create Club",
           "creating": "Creating..."
+        },
+        "errors": {
+          "organizationRequired": "Organization is required",
+          "nameRequired": "Club name is required",
+          "invalidEmail": "Invalid email format",
+          "invalidLatitude": "Latitude must be a valid number",
+          "invalidLongitude": "Longitude must be a valid number",
+          "slugConflict": "This slug is already in use"
         },
         "toast": {
           "success": "Club created successfully!",

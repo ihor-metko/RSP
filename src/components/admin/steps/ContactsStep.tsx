@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui";
 
 export interface ContactsData {
@@ -20,7 +21,6 @@ interface ContactsStepProps {
   onChange: (data: Partial<ContactsData>) => void;
   errors?: Record<string, string>;
   disabled?: boolean;
-  showCoordinates?: boolean;
 }
 
 export function ContactsStep({
@@ -28,8 +28,9 @@ export function ContactsStep({
   onChange,
   errors = {},
   disabled = false,
-  showCoordinates = false,
 }: ContactsStepProps) {
+  const t = useTranslations("admin.clubs.stepper.contacts");
+  
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -43,11 +44,11 @@ export function ContactsStep({
       <div className="im-stepper-row">
         <div className="im-stepper-field im-stepper-field--full">
           <Input
-            label="Address"
+            label={t("address")}
             name="address"
             value={data.address}
             onChange={handleInputChange}
-            placeholder="Street address"
+            placeholder={t("addressPlaceholder")}
             disabled={disabled}
           />
           {errors.address && (
@@ -59,21 +60,21 @@ export function ContactsStep({
       <div className="im-stepper-row im-stepper-row--two">
         <div className="im-stepper-field">
           <Input
-            label="City"
+            label={t("city")}
             name="city"
             value={data.city}
             onChange={handleInputChange}
-            placeholder="City"
+            placeholder={t("cityPlaceholder")}
             disabled={disabled}
           />
         </div>
         <div className="im-stepper-field">
           <Input
-            label="Postal Code"
+            label={t("postalCode")}
             name="postalCode"
             value={data.postalCode}
             onChange={handleInputChange}
-            placeholder="Postal code"
+            placeholder={t("postalCodePlaceholder")}
             disabled={disabled}
           />
         </div>
@@ -82,12 +83,12 @@ export function ContactsStep({
       <div className="im-stepper-row">
         <div className="im-stepper-field im-stepper-field--full">
           <Input
-            label="Country"
+            label={t("country")}
             name="country"
             value={data.country}
             onChange={handleInputChange}
-            placeholder="Country"
-            disabled={disabled}
+            placeholder={t("countryPlaceholder")}
+            disabled={true}
           />
         </div>
       </div>
@@ -95,22 +96,51 @@ export function ContactsStep({
       <div className="im-stepper-row im-stepper-row--two">
         <div className="im-stepper-field">
           <Input
-            label="Phone"
+            label={t("latitude")}
+            name="latitude"
+            value={data.latitude || ""}
+            onChange={handleInputChange}
+            placeholder={t("latitudePlaceholder")}
+            disabled={disabled}
+          />
+          {errors.latitude && (
+            <span className="im-stepper-field-error">{errors.latitude}</span>
+          )}
+        </div>
+        <div className="im-stepper-field">
+          <Input
+            label={t("longitude")}
+            name="longitude"
+            value={data.longitude || ""}
+            onChange={handleInputChange}
+            placeholder={t("longitudePlaceholder")}
+            disabled={disabled}
+          />
+          {errors.longitude && (
+            <span className="im-stepper-field-error">{errors.longitude}</span>
+          )}
+        </div>
+      </div>
+
+      <div className="im-stepper-row im-stepper-row--two">
+        <div className="im-stepper-field">
+          <Input
+            label={t("phone")}
             name="phone"
             value={data.phone}
             onChange={handleInputChange}
-            placeholder="+1 (555) 123-4567"
+            placeholder={t("phonePlaceholder")}
             disabled={disabled}
           />
         </div>
         <div className="im-stepper-field">
           <Input
-            label="Email"
+            label={t("email")}
             name="email"
             type="email"
             value={data.email}
             onChange={handleInputChange}
-            placeholder="contact@club.com"
+            placeholder={t("emailPlaceholder")}
             disabled={disabled}
           />
           {errors.email && (
@@ -122,46 +152,15 @@ export function ContactsStep({
       <div className="im-stepper-row">
         <div className="im-stepper-field im-stepper-field--full">
           <Input
-            label="Website"
+            label={t("website")}
             name="website"
             value={data.website}
             onChange={handleInputChange}
-            placeholder="https://www.club.com"
+            placeholder={t("websitePlaceholder")}
             disabled={disabled}
           />
         </div>
       </div>
-
-      {showCoordinates && (
-        <div className="im-stepper-row im-stepper-row--two">
-          <div className="im-stepper-field">
-            <Input
-              label="Latitude"
-              name="latitude"
-              value={data.latitude || ""}
-              onChange={handleInputChange}
-              placeholder="e.g., 40.7128"
-              disabled={disabled}
-            />
-            {errors.latitude && (
-              <span className="im-stepper-field-error">{errors.latitude}</span>
-            )}
-          </div>
-          <div className="im-stepper-field">
-            <Input
-              label="Longitude"
-              name="longitude"
-              value={data.longitude || ""}
-              onChange={handleInputChange}
-              placeholder="e.g., -74.0060"
-              disabled={disabled}
-            />
-            {errors.longitude && (
-              <span className="im-stepper-field-error">{errors.longitude}</span>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

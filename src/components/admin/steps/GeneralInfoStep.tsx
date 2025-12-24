@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useState, useEffect, useRef } from "react";
-import { Input, Select, Textarea, Checkbox } from "@/components/ui";
-import type { SelectOption } from "@/components/ui";
-
-const CLUB_TYPES: SelectOption[] = [{ value: "padel", label: "Padel" }];
+import { useTranslations } from "next-intl";
+import { Input, Textarea, Checkbox, Multiselect } from "@/components/ui";
+import type { MultiselectOption } from "@/components/ui";
+import { SPORT_TYPE_OPTIONS } from "@/constants/sports";
 
 export interface OrganizationOption {
   id: string;
@@ -19,6 +19,7 @@ export interface GeneralInfoData {
   shortDescription: string;
   isPublic?: boolean;
   organizationId?: string;
+  supportedSports?: string[];
 }
 
 interface GeneralInfoStepProps {
@@ -50,6 +51,7 @@ export function GeneralInfoStep({
   showPublicToggle = false,
   organizationContext,
 }: GeneralInfoStepProps) {
+  const t = useTranslations("admin.clubs.stepper.generalInfo");
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -131,7 +133,7 @@ export function GeneralInfoStep({
         <div className="im-stepper-row">
           <div className="im-stepper-field im-stepper-field--full">
             <Input
-              label="Organization *"
+              label={`${t("organization")} *`}
               name="organization"
               value={getSelectedOrgName()}
               onChange={() => {}}
@@ -139,7 +141,7 @@ export function GeneralInfoStep({
               data-testid="organization-input"
             />
             <span className="im-stepper-field-hint im-org-context-hint">
-              This club will be created under Organization: <strong>{prefilledOrg.name}</strong>
+              {t("organizationHint", { name: prefilledOrg.name })}
             </span>
           </div>
         </div>
@@ -151,13 +153,13 @@ export function GeneralInfoStep({
       return (
         <div className="im-stepper-row">
           <div className="im-stepper-field im-stepper-field--full" ref={dropdownRef}>
-            <label className="im-stepper-label">Organization *</label>
+            <label className="im-stepper-label">{t("organization")} *</label>
             <div className="im-org-selector">
               <input
                 ref={inputRef}
                 type="text"
                 className="im-stepper-input im-org-search-input"
-                placeholder="Search organizations..."
+                placeholder={t("organizationSearchPlaceholder")}
                 value={data.organizationId ? getSelectedOrgName() : searchQuery}
                 onChange={handleOrgSearchInput}
                 onFocus={() => setIsDropdownOpen(true)}
@@ -165,7 +167,7 @@ export function GeneralInfoStep({
                 data-testid="organization-search-input"
               />
               {isLoading && (
-                <span className="im-org-loading">Loading...</span>
+                <span className="im-org-loading">{t("loadingOrganizations")}</span>
               )}
               {isDropdownOpen && organizations && organizations.length > 0 && (
                 <ul className="im-org-dropdown" data-testid="organization-dropdown">
@@ -184,7 +186,7 @@ export function GeneralInfoStep({
               )}
               {isDropdownOpen && organizations && organizations.length === 0 && searchQuery && !isLoading && (
                 <div className="im-org-dropdown im-org-dropdown--empty">
-                  No organizations found
+                  {t("noOrganizationsFound")}
                 </div>
               )}
             </div>
@@ -207,11 +209,11 @@ export function GeneralInfoStep({
       <div className="im-stepper-row">
         <div className="im-stepper-field im-stepper-field--full">
           <Input
-            label="Club Name *"
+            label={`${t("clubName")} *`}
             name="name"
             value={data.name}
             onChange={handleInputChange}
-            placeholder="Enter club name"
+            placeholder={t("clubNamePlaceholder")}
             disabled={disabled}
           />
           {errors.name && (
@@ -223,27 +225,27 @@ export function GeneralInfoStep({
       <div className="im-stepper-row im-stepper-row--two">
         <div className="im-stepper-field">
           <Input
-            label="Slug (optional)"
+            label={t("slug")}
             name="slug"
             value={data.slug}
             onChange={handleInputChange}
-            placeholder="club-name-slug"
+            placeholder={t("slugPlaceholder")}
             disabled={disabled}
           />
           <span className="im-stepper-field-hint">
-            Auto-generated from name if empty
+            {t("slugHint")}
           </span>
           {errors.slug && (
             <span className="im-stepper-field-error">{errors.slug}</span>
           )}
         </div>
         <div className="im-stepper-field">
-          <Select
-            label="Club Type"
-            options={CLUB_TYPES}
-            placeholder="Select type..."
-            value={data.clubType}
-            onChange={(value) => onChange({ clubType: value })}
+          <Multiselect
+            label={t("clubType")}
+            options={SPORT_TYPE_OPTIONS as MultiselectOption[]}
+            placeholder={t("selectType")}
+            value={data.supportedSports || []}
+            onChange={(values) => onChange({ supportedSports: values })}
             disabled={disabled}
           />
         </div>
@@ -252,11 +254,11 @@ export function GeneralInfoStep({
       <div className="im-stepper-row">
         <div className="im-stepper-field im-stepper-field--full">
           <Textarea
-            label="Short Description"
+            label={t("shortDescription")}
             name="shortDescription"
             value={data.shortDescription}
             onChange={handleInputChange}
-            placeholder="Brief description of the club..."
+            placeholder={t("shortDescriptionPlaceholder")}
             rows={3}
             disabled={disabled}
           />

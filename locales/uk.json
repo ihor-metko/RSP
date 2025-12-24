@@ -377,23 +377,44 @@
         "generalInfo": {
           "title": "Загальна інформація",
           "description": "Введіть основні дані про ваш клуб.",
+          "organization": "Організація",
+          "organizationRequired": "Організація обов'язкова",
+          "organizationSearchPlaceholder": "Шукати організації...",
+          "organizationHint": "Цей клуб буде створено під організацією: {name}",
+          "noOrganizationsFound": "Організації не знайдено",
+          "loadingOrganizations": "Завантаження...",
           "clubName": "Назва клубу",
+          "clubNamePlaceholder": "Введіть назву клубу",
           "clubNameRequired": "Назва клубу обов'язкова",
           "slug": "Slug (опційно)",
+          "slugPlaceholder": "назва-клубу-slug",
           "slugHint": "Автоматично генерується з назви, якщо порожній",
           "clubType": "Тип клубу",
           "selectType": "Виберіть тип...",
-          "shortDescription": "Короткий опис"
+          "shortDescription": "Короткий опис",
+          "shortDescriptionPlaceholder": "Короткий опис клубу..."
         },
         "contacts": {
           "title": "Контакти та адреса",
           "description": "Надайте контактну інформацію та деталі місцезнаходження.",
           "address": "Адреса",
+          "addressPlaceholder": "Вулиця і будинок",
           "city": "Місто",
+          "cityPlaceholder": "Місто",
           "postalCode": "Поштовий індекс",
+          "postalCodePlaceholder": "Поштовий індекс",
+          "country": "Країна",
+          "countryPlaceholder": "Країна",
+          "latitude": "Широта",
+          "latitudePlaceholder": "напр., 50.4501",
+          "longitude": "Довгота",
+          "longitudePlaceholder": "напр., 30.5234",
           "phone": "Телефон",
+          "phonePlaceholder": "+380 (50) 123-4567",
           "email": "Email",
-          "website": "Веб-сайт"
+          "emailPlaceholder": "контакт@клуб.com",
+          "website": "Веб-сайт",
+          "websitePlaceholder": "https://www.клуб.com"
         },
         "hours": {
           "title": "Години роботи клубу",
@@ -424,6 +445,14 @@
           "next": "Далі",
           "createClub": "Створити клуб",
           "creating": "Створення..."
+        },
+        "errors": {
+          "organizationRequired": "Організація обов'язкова",
+          "nameRequired": "Назва клубу обов'язкова",
+          "invalidEmail": "Невірний формат email",
+          "invalidLatitude": "Широта має бути дійсним числом",
+          "invalidLongitude": "Довгота має бути дійсним числом",
+          "slugConflict": "Цей slug вже використовується"
         },
         "toast": {
           "success": "Клуб успішно створено!",
