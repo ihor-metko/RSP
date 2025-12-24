@@ -119,6 +119,12 @@
   object-fit: cover;
 }
 
+/* Logo (square) uploads should use contain to prevent cropping */
+.im-upload-field--square .im-upload-field-image {
+  object-fit: contain;
+  padding: 0.5rem;
+}
+
 .im-upload-field-remove {
   position: absolute;
   top: 0.5rem;
