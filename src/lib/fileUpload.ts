@@ -155,8 +155,17 @@ export function getUploadedImageUrl(
   const baseUrl = process.env.NEXT_PUBLIC_ASSETS_BASE_URL;
   const relativePath = `/uploads/${entity}/${entityId}/${filename}`;
   
-  // If base URL is set, return full URL; otherwise, return relative path
+  // If base URL is set and valid, return full URL; otherwise, return relative path
   if (baseUrl) {
+    // Validate that base URL starts with http:// or https://
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+      console.warn(
+        `[fileUpload] NEXT_PUBLIC_ASSETS_BASE_URL should start with http:// or https://. ` +
+        `Found: "${baseUrl}". Falling back to relative path.`
+      );
+      return relativePath;
+    }
+    
     // Remove trailing slash from base URL if present
     const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     return `${cleanBaseUrl}${relativePath}`;

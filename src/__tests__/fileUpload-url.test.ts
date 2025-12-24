@@ -97,5 +97,17 @@ describe("fileUpload - getUploadedImageUrl", () => {
       const url = getUploadedImageUrl("users", "user-123", filename);
       expect(url).toBe(`https://arenaone.app/uploads/users/user-123/${filename}`);
     });
+
+    it("should fallback to relative path if base URL is invalid (missing protocol)", () => {
+      process.env.NEXT_PUBLIC_ASSETS_BASE_URL = "arenaone.app";
+      const url = getUploadedImageUrl("organizations", "org-123", "logo.jpg");
+      expect(url).toBe("/uploads/organizations/org-123/logo.jpg");
+    });
+
+    it("should fallback to relative path if base URL is invalid (wrong protocol)", () => {
+      process.env.NEXT_PUBLIC_ASSETS_BASE_URL = "ftp://arenaone.app";
+      const url = getUploadedImageUrl("clubs", "club-123", "banner.png");
+      expect(url).toBe("/uploads/clubs/club-123/banner.png");
+    });
   });
 });
