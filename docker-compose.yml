@@ -21,6 +21,8 @@ services:
     volumes:
       - ./nginx:/etc/nginx/conf.d
       - arenaone_storage:/var/www/arenaone_storage
+    networks:
+      - arenaone_network
     depends_on:
       - arenaone_app
     restart: always
