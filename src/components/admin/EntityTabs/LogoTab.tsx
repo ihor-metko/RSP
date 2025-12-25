@@ -35,7 +35,6 @@ export function LogoTab({ initialData, onSave, disabled = false, translationName
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
-  const [logoBackground, setLogoBackground] = useState<'light' | 'dark'>('light');
 
   const handleChange = useCallback((field: string, value: UploadedFile | null | string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -85,29 +84,6 @@ export function LogoTab({ initialData, onSave, disabled = false, translationName
     { value: 'dark', label: t("logo.logoThemeDark") },
   ];
 
-  const backgroundOptions: SelectOption[] = [
-    { value: 'light', label: t("logo.logoBackgroundLight") },
-    { value: 'dark', label: t("logo.logoBackgroundDark") },
-  ];
-
-  const getPreviewLogo = (): UploadedFile | null => {
-    const currentTheme = logoBackground;
-    
-    if (formData.logoCount === 'one') {
-      return formData.logo;
-    }
-    
-    if (formData.logoTheme === currentTheme) {
-      return formData.logo;
-    } else if (formData.secondLogoTheme === currentTheme) {
-      return formData.secondLogo;
-    }
-    
-    return null;
-  };
-  
-  const previewLogo = getPreviewLogo();
-
   return (
     <Card className="im-entity-tab-card">
       <div className="im-entity-tab-header">
@@ -151,21 +127,25 @@ export function LogoTab({ initialData, onSave, disabled = false, translationName
             helperText={t("logo.primaryLogoHelperText")}
             disabled={isSaving || disabled}
             allowSVG={true}
+            themeBackground={formData.logoTheme}
           />
         </div>
 
-        <div className="im-entity-tab-field">
-          <Select
-            label={formData.logoCount === 'one' ? t("logo.logoThemeLabel") : t("logo.firstLogoThemeLabel")}
-            options={themeOptions}
-            value={formData.logoTheme}
-            onChange={(value) => handleChange('logoTheme', value)}
-            disabled={isSaving || disabled}
-          />
-          <p className="im-field-hint">
-            {t("logo.logoThemeHelperText")}
-          </p>
-        </div>
+        {/* Theme Selection for Primary Logo - Only show for dual logos */}
+        {formData.logoCount === 'two' && (
+          <div className="im-entity-tab-field">
+            <Select
+              label={t("logo.firstLogoThemeLabel")}
+              options={themeOptions}
+              value={formData.logoTheme}
+              onChange={(value) => handleChange('logoTheme', value)}
+              disabled={isSaving || disabled}
+            />
+            <p className="im-field-hint">
+              {t("logo.logoThemeHelperText")}
+            </p>
+          </div>
+        )}
 
         {formData.logoCount === 'two' && (
           <>
@@ -178,6 +158,7 @@ export function LogoTab({ initialData, onSave, disabled = false, translationName
                 helperText={t("logo.secondLogoHelperText")}
                 disabled={isSaving || disabled}
                 allowSVG={true}
+                themeBackground={formData.secondLogoTheme}
               />
             </div>
 
@@ -191,52 +172,6 @@ export function LogoTab({ initialData, onSave, disabled = false, translationName
               />
               <p className="im-field-hint">
                 {t("logo.logoThemeHelperText")}
-              </p>
-            </div>
-          </>
-        )}
-
-        {(formData.logo || formData.secondLogo) && (
-          <>
-            <div className="im-entity-tab-field">
-              <Select
-                label={t("logo.logoBackgroundLabel")}
-                options={backgroundOptions}
-                value={logoBackground}
-                onChange={(value) => setLogoBackground(value as 'light' | 'dark')}
-                disabled={isSaving || disabled}
-              />
-              <p className="im-field-hint">
-                {t("logo.logoBackgroundHelperText")}
-              </p>
-            </div>
-
-            <div className="im-entity-tab-field">
-              <label className="im-upload-field-label">{t("logo.logoPreview")}</label>
-              <div
-                className={`im-logo-preview-container ${
-                  logoBackground === 'light' 
-                    ? 'im-logo-preview-container--light' 
-                    : 'im-logo-preview-container--dark'
-                }`}
-              >
-                {previewLogo ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={previewLogo.preview || previewLogo.url}
-                    alt={t("logo.logoPreviewAlt")}
-                    className="im-logo-preview-image"
-                  />
-                ) : (
-                  <div className="im-logo-preview-placeholder">
-                    <span className="im-logo-preview-placeholder-text">
-                      {t("logo.noLogoForTheme")}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <p className="im-field-hint">
-                {t("logo.logoPreviewHelperText")}
               </p>
             </div>
           </>

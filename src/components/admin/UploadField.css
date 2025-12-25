@@ -74,6 +74,21 @@
   aspect-ratio: 16 / 9;
 }
 
+/* Theme-based backgrounds for logos */
+.im-upload-field--theme-light {
+  background-color: #ffffff !important;
+}
+
+.im-upload-field--theme-dark {
+  background-color: #1a1a1a !important;
+}
+
+/* Ensure hover doesn't override theme backgrounds */
+.im-upload-field--theme-light:hover,
+.im-upload-field--theme-dark:hover {
+  border-color: var(--rsp-primary);
+}
+
 .im-upload-field-input {
   position: absolute;
   width: 0;

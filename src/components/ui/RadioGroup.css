@@ -26,13 +26,13 @@
 }
 
 .im-radio-option:hover {
-  border-color: var(--im-accent);
-  background-color: var(--im-hover-bg);
+  border-color: var(--im-primary);
+  background-color: var(--color-hover-bg);
 }
 
 .im-radio-option--selected {
-  border-color: var(--im-accent);
-  background-color: var(--im-accent-light);
+  border-color: var(--im-primary);
+  background-color: var(--color-primary-bg);
 }
 
 .im-radio-option input[type="radio"] {
@@ -40,7 +40,7 @@
   height: 1.25rem;
   margin: 0;
   cursor: pointer;
-  accent-color: var(--im-accent);
+  accent-color: var(--im-primary);
   flex-shrink: 0;
 }
 
