@@ -1,0 +1,157 @@
+@reference "tailwindcss";
+
+/* ===== Danger Zone Section ===== */
+.im-danger-zone {
+  @apply rounded-xl p-6;
+  background-color: var(--im-card-bg);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.im-danger-zone:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.dark .im-danger-zone:hover {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Danger Zone Header */
+.im-danger-zone-header {
+  @apply flex items-center gap-3 mb-5 pb-4;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Danger Zone Content */
+.im-danger-zone-content {
+  @apply flex flex-col gap-4;
+}
+
+/* Danger Action Item */
+.im-danger-action {
+  @apply flex justify-between items-center p-4 rounded-lg gap-4;
+  background-color: var(--im-background);
+  border: 1px solid var(--im-border);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.im-danger-action--danger {
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.im-danger-action--danger:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  background-color: rgba(239, 68, 68, 0.03);
+}
+
+.dark .im-danger-action--danger:hover {
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.im-danger-action--warning {
+  border-color: rgba(234, 179, 8, 0.2);
+}
+
+.im-danger-action--warning:hover {
+  border-color: rgba(234, 179, 8, 0.4);
+  background-color: rgba(234, 179, 8, 0.03);
+}
+
+.dark .im-danger-action--warning:hover {
+  background-color: rgba(234, 179, 8, 0.05);
+}
+
+/* Action Info */
+.im-danger-action-info {
+  @apply flex-1;
+}
+
+.im-danger-action-title {
+  @apply font-semibold text-sm mb-1;
+  color: var(--im-foreground);
+}
+
+.im-danger-action-description {
+  @apply text-xs leading-relaxed;
+  color: var(--im-muted);
+}
+
+/* Action Button */
+.im-danger-action-button {
+  @apply px-4 py-2 text-sm font-medium rounded-lg;
+  @apply transition-all duration-200 ease-in-out;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.im-danger-action-button--danger {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.im-danger-action-button--danger:hover:not(:disabled) {
+  background-color: #ef4444;
+  color: white;
+  border-color: #dc2626;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.im-danger-action-button--danger:focus {
+  @apply ring-red-500;
+}
+
+.dark .im-danger-action-button--danger {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.dark .im-danger-action-button--danger:hover:not(:disabled) {
+  background-color: #dc2626;
+  color: white;
+  border-color: #b91c1c;
+}
+
+.im-danger-action-button--warning {
+  background-color: rgba(234, 179, 8, 0.15);
+  color: #ca8a04;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.im-danger-action-button--warning:hover:not(:disabled) {
+  background-color: #eab308;
+  color: white;
+  border-color: #ca8a04;
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3);
+}
+
+.im-danger-action-button--warning:focus {
+  @apply ring-yellow-500;
+}
+
+.dark .im-danger-action-button--warning {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+.dark .im-danger-action-button--warning:hover:not(:disabled) {
+  background-color: #ca8a04;
+  color: white;
+  border-color: #a16207;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .im-danger-action {
+    @apply flex-col items-stretch;
+  }
+
+  .im-danger-action-button {
+    @apply w-full mt-3;
+  }
+}

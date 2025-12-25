@@ -89,22 +89,10 @@ export interface EntityBannerProps {
 
   /**
    * Whether the entity is currently published/public (optional)
-   * When provided along with onTogglePublish, EntityBanner will automatically:
-   * - Display "Published" or "Unpublished" status badge
-   * - Show a "Publish" or "Unpublish" button (opposite of current status)
+   * When provided, EntityBanner will display a "Published" or "Unpublished" status badge
+   * Note: This is now read-only. Publish/unpublish actions should be in DangerZone.
    */
   isPublished?: boolean | null;
-
-  /**
-   * Handler for toggling publish/unpublish status (optional)
-   * Required if isPublished is provided and entity is not archived
-   */
-  onTogglePublish?: () => void | Promise<void>;
-
-  /**
-   * Whether the publish/unpublish action is currently processing
-   */
-  isTogglingPublish?: boolean;
 
   /**
    * Whether the entity is archived (optional)
@@ -162,8 +150,6 @@ export function EntityBanner({
   imageAlt,
   logoAlt,
   isPublished,
-  onTogglePublish,
-  isTogglingPublish = false,
   isArchived = false,
   status,
   className = "",
@@ -197,9 +183,6 @@ export function EntityBanner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, isArchived, isPublished, hideAdminFeatures]);
 
-  // Determine if we should show the publish/unpublish button
-  const showPublishButton = !hideAdminFeatures && !isArchived && isPublished !== null && isPublished !== undefined && onTogglePublish;
-
   // Map alignment to CSS object-position
   const objectPosition = bannerAlignment === 'top' ? 'top' : bannerAlignment === 'bottom' ? 'bottom' : 'center';
 
@@ -224,23 +207,13 @@ export function EntityBanner({
         </div>
       )}
 
-      {/* Top-right actions (status and toggle) */}
-      {(actions || effectiveStatus || showPublishButton) && (
+      {/* Top-right actions (status badge only - destructive actions moved to DangerZone) */}
+      {(actions || effectiveStatus) && (
         <div className="rsp-entity-banner-actions">
           {effectiveStatus && (
             <span className={`rsp-entity-status-badge rsp-entity-status-badge--${effectiveStatus.variant}`}>
               {effectiveStatus.label}
             </span>
-          )}
-          {showPublishButton && (
-            <button
-              onClick={onTogglePublish}
-              disabled={isTogglingPublish}
-              className={`rsp-entity-banner-toggle-btn ${isPublished ? 'rsp-entity-banner-toggle-btn--unpublish' : 'rsp-entity-banner-toggle-btn--publish'}`}
-              aria-label={isPublished ? t('unpublishEntity', { name: title }) : t('publishEntity', { name: title })}
-            >
-              {isTogglingPublish ? t('processing') : (isPublished ? t('unpublish') : t('publish'))}
-            </button>
           )}
           {actions}
         </div>

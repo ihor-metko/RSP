@@ -72,3 +72,5 @@ export { ImageUpload } from "./ImageUpload";
 export type { ImageUploadProps } from "./ImageUpload";
 export { Tabs, TabList, Tab, TabPanel } from "./Tabs";
 export type { TabsProps, TabListProps, TabProps, TabPanelProps } from "./Tabs";
+export { DangerZone } from "./DangerZone";
+export type { DangerZoneProps, DangerAction } from "./DangerZone";
