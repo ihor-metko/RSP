@@ -54,33 +54,6 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
     { value: 'dark', label: t("logoThemeDark") },
   ];
 
-  const backgroundOptions: SelectOption[] = [
-    { value: 'light', label: t("logoBackgroundLight") },
-    { value: 'dark', label: t("logoBackgroundDark") },
-  ];
-
-  // Helper function to determine which logo to show in preview
-  const getPreviewLogo = (): UploadedFile | null => {
-    const currentTheme = data.logoBackground; // 'light' or 'dark'
-    
-    // If only one logo is selected, always show it
-    if (data.logoCount === 'one') {
-      return data.logo;
-    }
-    
-    // Two logos selected - show the one matching current background
-    if (data.logoTheme === currentTheme) {
-      return data.logo;
-    } else if (data.secondLogoTheme === currentTheme) {
-      return data.secondLogo;
-    }
-    
-    // No logo matches the current theme/background
-    return null;
-  };
-  
-  const previewLogo = getPreviewLogo();
-
   return (
     <Card className="im-stepper-section">
       <h2 className="im-stepper-section-title">{t("logoTitle")}</h2>
@@ -113,6 +86,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
               helperText={t("primaryLogoHelperText")}
               disabled={isSubmitting}
               allowSVG={true}
+              themeBackground={data.logoTheme}
             />
             {fieldErrors.logo && (
               <span className="im-stepper-field-error">{fieldErrors.logo}</span>
@@ -120,21 +94,23 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
           </div>
         </div>
 
-        {/* Theme Selection for Primary Logo */}
-        <div className="im-stepper-row">
-          <div className="im-stepper-field">
-            <Select
-              label={data.logoCount === 'one' ? t("logoThemeLabel") : t("firstLogoThemeLabel")}
-              options={themeOptions}
-              value={data.logoTheme}
-              onChange={(value) => handleChange('logoTheme', value)}
-              disabled={isSubmitting}
-            />
-            <p className="im-upload-field-helper im-logo-helper-spacing">
-              {t("logoThemeHelperText")}
-            </p>
+        {/* Theme Selection for Primary Logo - Only show for dual logos */}
+        {data.logoCount === 'two' && (
+          <div className="im-stepper-row">
+            <div className="im-stepper-field">
+              <Select
+                label={t("firstLogoThemeLabel")}
+                options={themeOptions}
+                value={data.logoTheme}
+                onChange={(value) => handleChange('logoTheme', value)}
+                disabled={isSubmitting}
+              />
+              <p className="im-upload-field-helper im-logo-helper-spacing">
+                {t("logoThemeHelperText")}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Second Logo Upload (conditional) */}
         {data.logoCount === 'two' && (
@@ -149,6 +125,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
                   helperText={t("secondLogoHelperText")}
                   disabled={isSubmitting}
                   allowSVG={true}
+                  themeBackground={data.secondLogoTheme}
                 />
                 {fieldErrors.secondLogo && (
                   <span className="im-stepper-field-error">{fieldErrors.secondLogo}</span>
@@ -172,58 +149,6 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
               </div>
             </div>
           </>
-        )}
-
-        {/* Preview Background Selector */}
-        {(data.logo || data.secondLogo) && (
-          <div className="im-stepper-row">
-            <div className="im-stepper-field">
-              <Select
-                label={t("logoBackgroundLabel")}
-                options={backgroundOptions}
-                value={data.logoBackground}
-                onChange={(value) => handleChange('logoBackground', value)}
-                disabled={isSubmitting}
-              />
-              <p className="im-upload-field-helper im-logo-helper-spacing">
-                {t("logoBackgroundHelperText")}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Live Preview */}
-        {(data.logo || data.secondLogo) && (
-          <div className="im-stepper-row">
-            <div className="im-stepper-field im-stepper-field--full">
-              <label className="im-upload-field-label">{t("logoPreview")}</label>
-              <div
-                className={`im-logo-preview-container ${
-                  data.logoBackground === 'light' 
-                    ? 'im-logo-preview-container--light' 
-                    : 'im-logo-preview-container--dark'
-                }`}
-              >
-                {previewLogo ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={previewLogo.preview || previewLogo.url}
-                    alt={t("logoPreviewAlt")}
-                    className="im-logo-preview-image"
-                  />
-                ) : (
-                  <div className="im-logo-preview-placeholder">
-                    <span className="im-logo-preview-placeholder-text">
-                      {t("noLogoForTheme")}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <p className="im-upload-field-helper im-logo-helper-spacing">
-                {t("logoPreviewHelperText")}
-              </p>
-            </div>
-          </div>
         )}
       </div>
     </Card>

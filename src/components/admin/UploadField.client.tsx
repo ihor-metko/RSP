@@ -35,6 +35,7 @@ interface UploadFieldProps {
   aspectRatio?: "square" | "wide" | "auto";
   disabled?: boolean;
   allowSVG?: boolean; // New prop to enable SVG support for logos only
+  themeBackground?: 'light' | 'dark'; // New prop to apply theme-based background
 }
 
 export function UploadField({
@@ -48,6 +49,7 @@ export function UploadField({
   aspectRatio = "auto",
   disabled = false,
   allowSVG = false, // Default to false for backward compatibility
+  themeBackground, // Optional theme background
 }: UploadFieldProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -150,6 +152,12 @@ export function UploadField({
     : aspectRatio === "wide" 
       ? "im-upload-field--wide" 
       : "";
+  
+  const themeClass = themeBackground 
+    ? themeBackground === 'light' 
+      ? 'im-upload-field--theme-light' 
+      : 'im-upload-field--theme-dark'
+    : '';
 
   return (
     <div className="im-upload-field-wrapper">
@@ -163,7 +171,7 @@ export function UploadField({
       )}
 
       <div
-        className={`im-upload-field ${aspectClass} ${isDragging ? "im-upload-field--dragging" : ""} ${disabled ? "im-upload-field--disabled" : ""} ${error ? "im-upload-field--error" : ""}`}
+        className={`im-upload-field ${aspectClass} ${themeClass} ${isDragging ? "im-upload-field--dragging" : ""} ${disabled ? "im-upload-field--disabled" : ""} ${error ? "im-upload-field--error" : ""}`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

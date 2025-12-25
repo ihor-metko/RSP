@@ -74,6 +74,30 @@
   aspect-ratio: 16 / 9;
 }
 
+/* Theme-based backgrounds for logos 
+ * Note: These use fixed colors (not CSS variables) intentionally to provide
+ * consistent preview backgrounds for logos regardless of the current app theme.
+ * This allows users to see how their logo looks on both light and dark backgrounds.
+ */
+.im-upload-field.im-upload-field--theme-light {
+  background-color: #ffffff;
+}
+
+.im-upload-field.im-upload-field--theme-dark {
+  background-color: #1a1a1a;
+}
+
+/* Ensure theme backgrounds persist on hover */
+.im-upload-field.im-upload-field--theme-light:hover {
+  background-color: #ffffff;
+  border-color: var(--im-primary);
+}
+
+.im-upload-field.im-upload-field--theme-dark:hover {
+  background-color: #1a1a1a;
+  border-color: var(--im-primary);
+}
+
 .im-upload-field-input {
   position: absolute;
   width: 0;
