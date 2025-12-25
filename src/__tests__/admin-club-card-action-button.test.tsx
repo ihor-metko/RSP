@@ -79,6 +79,23 @@ jest.mock("@/components/ui", () => ({
       {children}
     </button>
   ),
+  EntityLogo: ({
+    logoUrl,
+    alt,
+    className,
+  }: {
+    logoUrl: string | null | undefined;
+    alt: string;
+    className?: string;
+  }) => {
+    // Only render if logoUrl is valid
+    if (!logoUrl || typeof logoUrl !== 'string' || logoUrl.length === 0) {
+      return null;
+    }
+    return (
+      <img src={logoUrl} alt={alt} className={className} />
+    );
+  },
 }));
 
 const mockClub: ClubWithCounts = {

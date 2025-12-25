@@ -45,6 +45,23 @@ jest.mock("@/components/ui", () => ({
       {children}
     </a>
   ),
+  EntityLogo: ({
+    logoUrl,
+    alt,
+    className,
+  }: {
+    logoUrl: string | null | undefined;
+    alt: string;
+    className?: string;
+  }) => {
+    // Only render if logoUrl is valid
+    if (!logoUrl || typeof logoUrl !== 'string' || logoUrl.length === 0) {
+      return null;
+    }
+    return (
+      <img src={logoUrl} alt={alt} className={className} />
+    );
+  },
 }));
 
 import { PublicClubCard, PublicClubCardProps } from "@/components/PublicClubCard";
