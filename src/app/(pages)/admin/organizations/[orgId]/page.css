@@ -355,6 +355,14 @@
   color: var(--im-muted);
 }
 
+.im-preview-empty-state {
+  @apply flex flex-col items-center justify-center py-8;
+}
+
+.im-preview-empty-state .im-preview-empty {
+  @apply py-0 mb-4;
+}
+
 .im-preview-empty-icon {
   @apply w-12 h-12 mx-auto mb-3 opacity-50;
   color: var(--im-muted);
@@ -372,9 +380,18 @@
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.im-club-preview-item:hover {
+.im-club-preview-item--clickable {
+  cursor: pointer;
+}
+
+.im-club-preview-item--clickable:hover {
   border-color: var(--im-primary);
   transform: translateX(4px);
+}
+
+.im-club-preview-item--clickable:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
 }
 
 .im-club-preview-info {
