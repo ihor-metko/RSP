@@ -606,11 +606,15 @@ export default function ClubDetailPage({
               </svg>
               {t("clubDetail.location")}
             </h2>
-            <ClubMap
-              latitude={club.latitude as number}
-              longitude={club.longitude as number}
-              clubName={club.name}
-            />
+            {process.env.NODE_ENV === "production" ? (
+              <ClubMap
+                latitude={club.latitude as number}
+                longitude={club.longitude as number}
+                clubName={club.name}
+              />
+            ) : (
+              <div>Map hidden in development</div>
+            )}
             <p className="mt-3 text-sm opacity-70">{club.location}</p>
           </div>
         )}
