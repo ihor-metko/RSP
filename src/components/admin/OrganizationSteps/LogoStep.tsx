@@ -4,6 +4,7 @@ import { Card, Checkbox, Select } from "@/components/ui";
 import { UploadField } from "../UploadField.client";
 import { useTranslations } from "next-intl";
 import type { SelectOption } from "@/components/ui/Select";
+import "./LogoStep.css";
 
 interface UploadedFile {
   url: string;
@@ -71,7 +72,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
         </div>
 
         {/* Theme and Background Selectors */}
-        <div className="im-stepper-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div className="im-stepper-row im-logo-step-grid">
           <div className="im-stepper-field">
             <Select
               label={t("logoThemeLabel")}
@@ -98,30 +99,20 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
             <div className="im-stepper-field im-stepper-field--full">
               <label className="im-upload-field-label">{t("logoPreview")}</label>
               <div
-                className="im-logo-preview"
-                style={{
-                  backgroundColor: data.logoBackground === 'light' ? '#ffffff' : '#1a1a1a',
-                  padding: '2rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid var(--im-border-color)',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  minHeight: '200px',
-                }}
+                className={`im-logo-preview-container ${
+                  data.logoBackground === 'light' 
+                    ? 'im-logo-preview-container--light' 
+                    : 'im-logo-preview-container--dark'
+                }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={previewLogo.preview || previewLogo.url}
                   alt={t("logoPreviewAlt")}
-                  style={{
-                    maxWidth: '200px',
-                    maxHeight: '200px',
-                    objectFit: 'contain',
-                  }}
+                  className="im-logo-preview-image"
                 />
               </div>
-              <p className="im-upload-field-helper" style={{ marginTop: '0.5rem' }}>
+              <p className="im-upload-field-helper im-logo-helper-spacing">
                 {t("logoPreviewHelperText")}
               </p>
             </div>
@@ -137,7 +128,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
               onChange={(e) => handleChange('hasSecondLogo', e.target.checked)}
               disabled={isSubmitting}
             />
-            <p className="im-upload-field-helper" style={{ marginTop: '0.5rem', marginLeft: '1.75rem' }}>
+            <p className="im-upload-field-helper im-logo-checkbox-helper">
               {t("hasSecondLogoHelperText")}
             </p>
           </div>
