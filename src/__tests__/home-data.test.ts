@@ -107,10 +107,14 @@ describe("Home Data Server Functions", () => {
           id: true,
           name: true,
           location: true,
+          city: true,
           contactInfo: true,
           openingHours: true,
           shortDescription: true,
           logo: true,
+          heroImage: true,
+          metadata: true,
+          tags: true,
           courts: {
             select: {
               id: true,
