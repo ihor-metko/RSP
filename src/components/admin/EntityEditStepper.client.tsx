@@ -36,7 +36,7 @@ interface StepComponentProps {
   formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
 }
 
 interface EntityEditStepperProps {
@@ -282,7 +282,7 @@ export function EntityEditStepper({
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [basicInfoData, addressData, t]);
+  }, [basicInfoData, addressData, logoData.hasSecondLogo, logoData.logo, logoData.secondLogo, t]);
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
@@ -376,7 +376,7 @@ export function EntityEditStepper({
         break;
       case 4:
         formData = bannerData;
-        onChange = handleBannerChange as ((field: string, value: UploadedFile | null) => void);
+        onChange = handleBannerChange as ((field: string, value: UploadedFile | null | boolean | string) => void);
         break;
       default:
         formData = {};

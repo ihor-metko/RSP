@@ -19,12 +19,13 @@ interface BannerStepProps {
   formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: (field: string, value: UploadedFile | null) => void;
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
 }
 
 export function BannerStep({ formData, fieldErrors, isSubmitting, onChange }: BannerStepProps) {
   const t = useTranslations("organizations.stepper");
   const data = formData as BannerFormData;
+  const handleChange = onChange as (field: string, value: UploadedFile | null) => void;
 
   return (
     <Card className="im-stepper-section">
@@ -38,7 +39,7 @@ export function BannerStep({ formData, fieldErrors, isSubmitting, onChange }: Ba
             <UploadField
               label={t("backgroundImage")}
               value={data.heroImage}
-              onChange={(file) => onChange('heroImage', file)}
+              onChange={(file) => handleChange('heroImage', file)}
               aspectRatio="wide"
               required
               helperText={t("backgroundHelperText")}

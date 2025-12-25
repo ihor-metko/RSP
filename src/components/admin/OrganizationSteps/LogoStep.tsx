@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Card, Checkbox, Select } from "@/components/ui";
 import { UploadField } from "../UploadField.client";
 import { useTranslations } from "next-intl";
@@ -25,12 +24,13 @@ interface LogoStepProps {
   formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: (field: string, value: UploadedFile | null | boolean | string) => void;
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
 }
 
 export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: LogoStepProps) {
   const t = useTranslations("organizations.stepper");
   const data = formData as LogoFormData;
+  const handleChange = onChange as (field: string, value: UploadedFile | null | boolean | string) => void;
 
   const themeOptions: SelectOption[] = [
     { value: 'light', label: t("logoThemeLight") },
@@ -58,7 +58,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
             <UploadField
               label={t("primaryLogo")}
               value={data.logo}
-              onChange={(file) => onChange('logo', file)}
+              onChange={(file) => handleChange('logo', file)}
               aspectRatio="square"
               helperText={t("primaryLogoHelperText")}
               disabled={isSubmitting}
@@ -77,7 +77,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
               label={t("logoThemeLabel")}
               options={themeOptions}
               value={data.logoTheme}
-              onChange={(value) => onChange('logoTheme', value)}
+              onChange={(value) => handleChange('logoTheme', value)}
               disabled={isSubmitting}
             />
           </div>
@@ -86,7 +86,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
               label={t("logoBackgroundLabel")}
               options={backgroundOptions}
               value={data.logoBackground}
-              onChange={(value) => onChange('logoBackground', value)}
+              onChange={(value) => handleChange('logoBackground', value)}
               disabled={isSubmitting}
             />
           </div>
@@ -134,7 +134,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
             <Checkbox
               label={t("hasSecondLogoLabel")}
               checked={data.hasSecondLogo}
-              onChange={(e) => onChange('hasSecondLogo', e.target.checked)}
+              onChange={(e) => handleChange('hasSecondLogo', e.target.checked)}
               disabled={isSubmitting}
             />
             <p className="im-upload-field-helper" style={{ marginTop: '0.5rem', marginLeft: '1.75rem' }}>
@@ -150,7 +150,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
               <UploadField
                 label={t("secondLogo")}
                 value={data.secondLogo}
-                onChange={(file) => onChange('secondLogo', file)}
+                onChange={(file) => handleChange('secondLogo', file)}
                 aspectRatio="square"
                 helperText={t("secondLogoHelperText")}
                 disabled={isSubmitting}
