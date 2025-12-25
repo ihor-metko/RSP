@@ -175,13 +175,16 @@ export function EntityEditStepper({
       }
 
       // Set existing images as URLs (not files)
+      // Try to get logo metadata from entity data
+      const logoMetadata = entityData.metadata as { logoMetadata?: { logoTheme?: 'light' | 'dark'; secondLogo?: string | null; secondLogoTheme?: 'light' | 'dark'; } } | null;
+      
       setLogoData({
-        logoCount: 'one',
+        logoCount: logoMetadata?.logoMetadata?.secondLogo ? 'two' : 'one',
         logo: entityData.logo ? { url: entityData.logo, key: "", preview: entityData.logo } : null,
-        logoTheme: 'light',
+        logoTheme: logoMetadata?.logoMetadata?.logoTheme || 'light',
         logoBackground: 'light',
-        secondLogo: null,
-        secondLogoTheme: 'dark',
+        secondLogo: logoMetadata?.logoMetadata?.secondLogo ? { url: logoMetadata.logoMetadata.secondLogo, key: "", preview: logoMetadata.logoMetadata.secondLogo } : null,
+        secondLogoTheme: logoMetadata?.logoMetadata?.secondLogoTheme || 'dark',
       });
 
       setBannerData({

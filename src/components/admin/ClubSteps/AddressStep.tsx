@@ -23,10 +23,11 @@ interface AddressStepProps {
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
   onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
+  translationNamespace?: string;
 }
 
-export function AddressStep({ formData, fieldErrors, isSubmitting, onChange }: AddressStepProps) {
-  const t = useTranslations("clubs.stepper");
+export function AddressStep({ formData, fieldErrors, isSubmitting, onChange, translationNamespace = "clubs.stepper" }: AddressStepProps) {
+  const t = useTranslations(translationNamespace);
   const data = formData as AddressFormData;
   const handleChange = onChange as (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 

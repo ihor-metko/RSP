@@ -187,9 +187,9 @@ export default function AdminClubDetailPage({
         name: data.name,
         slug: data.slug,
         shortDescription: data.description,
-        location: data.location || club?.location,
-        city: data.city,
-        country: data.country,
+        location: data.location || club?.location || "",
+        city: data.city || "",
+        country: data.country || "",
         latitude: data.latitude,
         longitude: data.longitude,
       });
