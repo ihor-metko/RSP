@@ -155,7 +155,7 @@ export function EntityEditStepper({
           latitude: metadata?.latitude?.toString() || "",
           longitude: metadata?.longitude?.toString() || "",
         });
-      } 
+      }
       // Handle Clubs (use location, city, country fields directly)
       else {
         setBasicInfoData({
@@ -177,7 +177,7 @@ export function EntityEditStepper({
       // Set existing images as URLs (not files)
       // Try to get logo metadata from entity data
       const logoMetadata = entityData.metadata as { logoMetadata?: { logoTheme?: 'light' | 'dark'; secondLogo?: string | null; secondLogoTheme?: 'light' | 'dark'; } } | null;
-      
+
       setLogoData({
         logoCount: logoMetadata?.logoMetadata?.secondLogo ? 'two' : 'one',
         logo: entityData.logo ? { url: entityData.logo, key: "", preview: entityData.logo } : null,
@@ -306,8 +306,8 @@ export function EntityEditStepper({
 
     if (step === 3) {
       // Logo validation - logo is optional for editing
-      // If hasSecondLogo is checked, secondLogo is optional but can be validated if needed
-      if (logoData.hasSecondLogo && !logoData.secondLogo && !logoData.logo) {
+      // If logoCount is 'two', secondLogo is optional but can be validated if needed
+      if (logoData.logoCount === 'two' && !logoData.secondLogo && !logoData.logo) {
         // If user enabled second logo but didn't upload either logo, show a warning (optional)
         // For now, we allow this as logos are optional
       }
@@ -320,7 +320,7 @@ export function EntityEditStepper({
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [basicInfoData, addressData, logoData.hasSecondLogo, logoData.logo, logoData.secondLogo, t]);
+  }, [basicInfoData, addressData, logoData.logoCount, logoData.logo, logoData.secondLogo, t]);
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
@@ -437,7 +437,7 @@ export function EntityEditStepper({
         break;
       default:
         formData = {};
-        onChange = () => {};
+        onChange = () => { };
     }
 
     return (
