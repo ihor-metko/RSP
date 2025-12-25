@@ -58,10 +58,27 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: Logo
     { value: 'dark', label: t("logoBackgroundDark") },
   ];
 
-  // Determine which logo to show in preview based on current theme selection
-  const previewLogo = data.logoBackground === 'light' 
-    ? (data.logoTheme === 'light' ? data.logo : (data.logoCount === 'two' && data.secondLogoTheme === 'light' ? data.secondLogo : null))
-    : (data.logoTheme === 'dark' ? data.logo : (data.logoCount === 'two' && data.secondLogoTheme === 'dark' ? data.secondLogo : null));
+  // Helper function to determine which logo to show in preview
+  const getPreviewLogo = (): UploadedFile | null => {
+    const currentTheme = data.logoBackground; // 'light' or 'dark'
+    
+    // If only one logo is selected, always show it
+    if (data.logoCount === 'one') {
+      return data.logo;
+    }
+    
+    // Two logos selected - show the one matching current background
+    if (data.logoTheme === currentTheme) {
+      return data.logo;
+    } else if (data.secondLogoTheme === currentTheme) {
+      return data.secondLogo;
+    }
+    
+    // No logo matches the current theme/background
+    return null;
+  };
+  
+  const previewLogo = getPreviewLogo();
 
   return (
     <Card className="im-stepper-section">

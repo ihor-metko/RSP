@@ -197,8 +197,13 @@ export function OrganizationCreationStepper() {
 
     // Step 4: Logo (optional, but if two logos selected, both required)
     if (step === 4) {
-      if (formData.logoCount === 'two' && formData.logo && !formData.secondLogo) {
-        errors.secondLogo = t("validation.secondLogoRequired");
+      if (formData.logoCount === 'two') {
+        if (formData.logo && !formData.secondLogo) {
+          errors.secondLogo = t("validation.secondLogoRequired");
+        }
+        if (!formData.logo && formData.secondLogo) {
+          errors.logo = t("validation.primaryLogoRequired");
+        }
       }
     }
 
@@ -257,6 +262,28 @@ export function OrganizationCreationStepper() {
       .replace(/[\s_-]+/g, "-")
       .replace(/^-+|-+$/g, "");
   }, []);
+
+  // Helper function to update metadata with second logo URL
+  const updateMetadataWithSecondLogo = async (
+    organizationId: string,
+    baseMetadata: Record<string, unknown>,
+    secondLogoUrl: string
+  ) => {
+    const currentLogoMetadata = baseMetadata.logoMetadata as Record<string, unknown> || {};
+    const updatedMetadata = {
+      ...baseMetadata,
+      logoMetadata: {
+        ...currentLogoMetadata,
+        secondLogo: secondLogoUrl,
+      }
+    };
+    
+    await fetch(`/api/admin/organizations/${organizationId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ metadata: updatedMetadata }),
+    });
+  };
 
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) {
@@ -397,57 +424,9 @@ export function OrganizationCreationStepper() {
             
             const secondLogoData = await secondLogoResponse.json();
             
-            // Update metadata with second logo URL
-            const currentLogoMetadata = metadata.logoMetadata as Record<string, unknown> || {};
-            const updatedMetadata = {
-              ...metadata,
-              logoMetadata: {
-                ...currentLogoMetadata,
-                secondLogo: secondLogoData.url,
-              }
-            };
-            
-            // Update organization with second logo metadata
-            await fetch(`/api/admin/organizations/${organization.id}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ metadata: updatedMetadata }),
-            });
+            // Update metadata with second logo URL using helper
+            await updateMetadataWithSecondLogo(organization.id, metadata, secondLogoData.url);
           }
-        } else if (formData.logoCount === 'two' && formData.secondLogo?.file) {
-          // Only second logo is provided (edge case)
-          const secondLogoFormData = new FormData();
-          secondLogoFormData.append("file", formData.secondLogo.file);
-          secondLogoFormData.append("type", "secondLogo");
-
-          const secondLogoResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
-            method: "POST",
-            body: secondLogoFormData,
-          });
-
-          if (!secondLogoResponse.ok) {
-            const errorData = await secondLogoResponse.json();
-            throw new Error(errorData.error || t("errors.secondLogoUploadFailed"));
-          }
-          
-          const secondLogoData = await secondLogoResponse.json();
-          
-          // Update metadata with second logo URL
-          const currentLogoMetadata = metadata.logoMetadata as Record<string, unknown> || {};
-          const updatedMetadata = {
-            ...metadata,
-            logoMetadata: {
-              ...currentLogoMetadata,
-              secondLogo: secondLogoData.url,
-            }
-          };
-          
-          // Update organization with second logo metadata
-          await fetch(`/api/admin/organizations/${organization.id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ metadata: updatedMetadata }),
-          });
         }
       } catch (imageErr) {
         // Organization was created, but image upload failed

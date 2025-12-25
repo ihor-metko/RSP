@@ -201,11 +201,9 @@ export function EntityBanner({
       if (logoMetadata.logoTheme === currentTheme) {
         return logoUrl;
       }
-      // Fallback: use logo based on theme assignment
-      return logoMetadata.logoTheme === currentTheme ? logoUrl : logoMetadata.secondLogo;
     }
     
-    // Only one logo, but with theme preference - always show it
+    // Only one logo, or no theme match - use primary logo
     return logoUrl;
   }, [logoUrl, logoMetadata, isDarkTheme]);
   

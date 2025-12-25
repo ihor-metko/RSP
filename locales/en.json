@@ -1285,6 +1285,7 @@
         "longitudeRange": "Longitude must be between -180 and 180",
         "emailInvalid": "Invalid email format",
         "backgroundRequired": "Background image is required",
+        "primaryLogoRequired": "Primary logo is required when two logos are selected",
         "secondLogoRequired": "Second logo is required when two logos are selected",
         "userRequired": "Please select a user",
         "nameFieldRequired": "Name is required",

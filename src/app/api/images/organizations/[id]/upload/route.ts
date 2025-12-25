@@ -107,8 +107,16 @@ export async function POST(
         select: { metadata: true },
       });
       
-      const currentMetadata = org?.metadata ? JSON.parse(org.metadata) : {};
-      const logoMetadata = currentMetadata.logoMetadata || {};
+      let currentMetadata: Record<string, unknown> = {};
+      try {
+        currentMetadata = org?.metadata ? JSON.parse(org.metadata) : {};
+      } catch (error) {
+        console.error(`[Organization Upload] Failed to parse metadata for org ${organizationId}:`, error);
+        // Continue with empty metadata if parse fails
+        currentMetadata = {};
+      }
+      
+      const logoMetadata = currentMetadata.logoMetadata as Record<string, unknown> || {};
       logoMetadata.secondLogo = url;
       
       await prisma.organization.update({
