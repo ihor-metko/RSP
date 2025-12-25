@@ -140,6 +140,7 @@ export interface ClubDetail {
   isPublic: boolean;
   status: string;
   tags: string | null;
+  metadata?: Record<string, unknown> | null;
   supportedSports?: SportType[];
   createdAt: string;
   updatedAt: string;
