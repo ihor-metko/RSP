@@ -19,7 +19,7 @@ interface ClubData {
   longitude: number | null;
   logo: string | null;
   heroImage: string | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: string | null;
 }
 
 interface ClubEditorProps {
@@ -42,9 +42,22 @@ export function ClubEditor({
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingTabId, setPendingTabId] = useState<string | null>(null);
 
-  const metadata = club.metadata as {
+  // Parse metadata from JSON string
+  let metadata: {
     bannerAlignment?: 'top' | 'center' | 'bottom';
-  } | null;
+    logoTheme?: 'light' | 'dark';
+    secondLogo?: string | null;
+    secondLogoTheme?: 'light' | 'dark';
+  } | null = null;
+  
+  if (club.metadata) {
+    try {
+      metadata = JSON.parse(club.metadata);
+    } catch {
+      // Invalid JSON, use null
+      metadata = null;
+    }
+  }
 
   const baseInfoData: BaseInfoData = {
     name: club.name,
@@ -62,11 +75,11 @@ export function ClubEditor({
   };
 
   const logoData: LogoData = {
-    logoCount: 'one',
+    logoCount: metadata?.secondLogo ? 'two' : 'one',
     logo: club.logo ? { url: club.logo, key: "", preview: club.logo } : null,
-    logoTheme: 'light',
-    secondLogo: null,
-    secondLogoTheme: 'dark',
+    logoTheme: metadata?.logoTheme || 'light',
+    secondLogo: metadata?.secondLogo ? { url: metadata.secondLogo, key: "", preview: metadata.secondLogo } : null,
+    secondLogoTheme: metadata?.secondLogoTheme || 'dark',
   };
 
   const bannerData: BannerData = {
@@ -132,6 +145,25 @@ export function ClubEditor({
   }, [onUpdate, onRefresh]);
 
   const handleLogoSave = useCallback(async (payload: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => {
+    // Parse existing metadata
+    let existingMetadata: Record<string, unknown> = {};
+    if (club.metadata) {
+      try {
+        existingMetadata = JSON.parse(club.metadata);
+      } catch {
+        // Invalid JSON, start fresh
+        existingMetadata = {};
+      }
+    }
+    
+    // Update metadata with logo settings
+    await onUpdate("metadata", {
+      metadata: JSON.stringify({
+        ...existingMetadata,
+        ...payload.metadata,
+      }),
+    });
+    
     // Upload logo if provided
     if (payload.logo) {
       const logoFormData = new FormData();
@@ -148,18 +180,46 @@ export function ClubEditor({
         throw new Error(errorData.error || t("clubs.errors.imageUploadFailed"));
       }
     }
+    
+    // Upload second logo if provided
+    if (payload.secondLogo) {
+      const secondLogoFormData = new FormData();
+      secondLogoFormData.append("file", payload.secondLogo);
+      secondLogoFormData.append("type", "secondLogo");
+
+      const secondLogoResponse = await fetch(`/api/images/clubs/${club.id}/upload`, {
+        method: "POST",
+        body: secondLogoFormData,
+      });
+
+      if (!secondLogoResponse.ok) {
+        const errorData = await secondLogoResponse.json();
+        throw new Error(errorData.error || t("clubs.errors.imageUploadFailed"));
+      }
+    }
 
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [club.id, onRefresh, t]);
+  }, [club.id, club.metadata, onUpdate, onRefresh, t]);
 
   const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
-    // Update metadata with alignment first
+    // Parse existing metadata
+    let existingMetadata: Record<string, unknown> = {};
+    if (club.metadata) {
+      try {
+        existingMetadata = JSON.parse(club.metadata);
+      } catch {
+        // Invalid JSON, start fresh
+        existingMetadata = {};
+      }
+    }
+    
+    // Update metadata with alignment
     await onUpdate("metadata", {
-      metadata: {
-        ...(club.metadata as object || {}),
+      metadata: JSON.stringify({
+        ...existingMetadata,
         bannerAlignment: alignment,
-      },
+      }),
     });
 
     // Upload file if provided
