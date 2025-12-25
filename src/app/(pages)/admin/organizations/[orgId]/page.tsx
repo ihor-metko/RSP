@@ -73,15 +73,6 @@ export default function OrganizationDetailPage() {
   // Edit modal state
   const [isEditingDetails, setIsEditingDetails] = useState(false);
 
-  // Change owner modal
-  const [isChangeOwnerModalOpen, setIsChangeOwnerModalOpen] = useState(false);
-  const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
-  const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
-  const [userSearch, setUserSearch] = useState("");
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [changeOwnerError, setChangeOwnerError] = useState("");
-  const [changingOwner, setChangingOwner] = useState(false);
-
 
 
   // Image upload modals
@@ -162,14 +153,6 @@ export default function OrganizationDetailPage() {
       setLoadingBookings(false);
     }
   }, [orgId]);
-
-  const fetchUsers = useCallback(async (query: string = "") => {
-    try {
-      await fetchSimpleUsers(query);
-    } catch {
-      // Silent fail for user search
-    }
-  }, [fetchSimpleUsers]);
 
   useEffect(() => {
     if (!isHydrated || isLoading) return;
@@ -261,51 +244,6 @@ export default function OrganizationDetailPage() {
       const message = err instanceof Error ? err.message : t("organizations.errors.updateFailed");
       showToast(message, "error");
       throw err; // Re-throw to let the stepper handle the error
-    }
-  };
-
-  // Change owner handlers
-  const handleOpenChangeOwnerModal = () => {
-    setUserSearch("");
-    setSelectedUserId("");
-    setChangeOwnerError("");
-    setIsChangeOwnerModalOpen(true);
-    fetchUsers();
-  };
-
-  const handleChangeOwner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUserId) {
-      setChangeOwnerError(t("organizations.errors.userRequired"));
-      return;
-    }
-
-    setChangeOwnerError("");
-    setChangingOwner(true);
-
-    try {
-      const response = await fetch(`/api/admin/organizations/set-owner`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationId: orgId,
-          userId: selectedUserId
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || t("organizations.errors.changeOwnerFailed"));
-      }
-
-      showToast(t("orgDetail.ownerChanged"), "success");
-      setIsChangeOwnerModalOpen(false);
-      // Force refresh to get updated owner data
-      await fetchOrgDetail(true);
-    } catch (err) {
-      setChangeOwnerError(err instanceof Error ? err.message : t("organizations.errors.changeOwnerFailed"));
-    } finally {
-      setChangingOwner(false);
     }
   };
 
@@ -542,67 +480,6 @@ export default function OrganizationDetailPage() {
         )}
 
         <section className="im-org-detail-content">
-          {/* Organization Owner Section */}
-          {isLoadingState ? (
-            <OrgInfoCardSkeleton items={3} className="im-org-detail-content--full" />
-          ) : org && (
-            <div className="im-section-card im-org-detail-content--full">
-              <div className="im-section-header">
-                <div className="im-section-icon im-section-icon--owner">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                </div>
-                <h2 className="im-section-title">{t("orgDetail.organizationOwner")}</h2>
-                {!org.archivedAt && (
-                  <div className="im-section-actions">
-                    <Button
-                      variant="outline"
-                      size="small"
-                      onClick={handleOpenChangeOwnerModal}
-                    >
-                      {org.primaryOwner ? t("orgDetail.changeOwner") : t("orgDetail.assignOwner")}
-                    </Button>
-                  </div>
-                )}
-              </div>
-              {org.primaryOwner ? (
-                <div className="im-owner-info">
-                  <div className="im-owner-avatar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                  </div>
-                  <div className="im-owner-details">
-                    <h4 className="im-owner-name">{org.primaryOwner.name || t("orgDetail.noName")}</h4>
-                    <p className="im-owner-email">{org.primaryOwner.email}</p>
-                    <span className="im-owner-role-badge">{t("orgDetail.organizationOwner")}</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="im-owner-empty-state">
-                  <svg className="im-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  <p>{t("orgDetail.noOwnerAssigned")}</p>
-                  <Button
-                    variant="outline"
-                    size="small"
-                    onClick={handleOpenChangeOwnerModal}
-                    disabled={!!org.archivedAt}
-                  >
-                    {t("orgDetail.assignOwner")}
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-
-
-
           {/* Key Metrics */}
           {isLoadingState ? (
             <div className="im-section-card im-org-detail-content--full">
@@ -826,66 +703,6 @@ export default function OrganizationDetailPage() {
             onSave={handleStepperSave}
           />
         )}
-
-        {/* Change Owner Modal */}
-        <Modal
-          isOpen={isChangeOwnerModalOpen}
-          onClose={() => setIsChangeOwnerModalOpen(false)}
-          title={t("orgDetail.changeOwner")}
-        >
-          <form onSubmit={handleChangeOwner} className="space-y-4">
-            {changeOwnerError && (
-              <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-                {changeOwnerError}
-              </div>
-            )}
-
-            <p className="im-reassign-warning">{t("orgDetail.changeOwnerWarning")}</p>
-
-            <Input
-              label={t("organizations.searchUsers")}
-              value={userSearch}
-              onChange={(e) => setUserSearch(e.target.value)}
-              placeholder={t("organizations.searchUsersPlaceholder")}
-            />
-            <div className="im-user-list">
-              {simpleUsers.length === 0 ? (
-                <p className="im-user-list-empty">{t("organizations.noUsersFound")}</p>
-              ) : (
-                simpleUsers.map((user) => (
-                  <label
-                    key={user.id}
-                    className={`im-user-option ${selectedUserId === user.id ? "im-user-option--selected" : ""}`}
-                  >
-                    <input
-                      type="radio"
-                      name="userId"
-                      value={user.id}
-                      checked={selectedUserId === user.id}
-                      onChange={(e) => setSelectedUserId(e.target.value)}
-                    />
-                    <span className="im-user-info">
-                      <span className="im-user-name">{user.name || user.email}</span>
-                      <span className="im-user-email">{user.email}</span>
-                    </span>
-                  </label>
-                ))
-              )}
-            </div>
-
-            <div className="flex justify-end gap-2 mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsChangeOwnerModalOpen(false)}>
-                {t("common.cancel")}
-              </Button>
-              <Button
-                type="submit"
-                disabled={changingOwner || !selectedUserId}
-              >
-                {changingOwner ? t("common.processing") : t("orgDetail.changeOwner")}
-              </Button>
-            </div>
-          </form>
-        </Modal>
 
         {/* Archive Modal */}
         {/* <Modal

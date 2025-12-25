@@ -106,6 +106,69 @@
   color: var(--im-muted);
 }
 
+/* Role Selection Styles */
+.im-role-selection {
+  @apply mb-4;
+}
+
+.im-label {
+  @apply block text-sm font-medium mb-2;
+  color: var(--im-foreground);
+}
+
+.im-role-options {
+  @apply flex flex-col gap-2;
+}
+
+.im-role-option {
+  @apply flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-all;
+  background-color: var(--im-background);
+  border-color: var(--im-border);
+}
+
+.im-role-option:hover {
+  border-color: var(--im-primary);
+  background-color: var(--im-hover);
+}
+
+.im-role-option--selected {
+  border-color: var(--im-primary);
+  background-color: var(--im-primary-light);
+}
+
+.dark .im-role-option--selected {
+  background-color: rgba(102, 126, 234, 0.1);
+}
+
+.im-role-option input[type="radio"] {
+  @apply mt-1 flex-shrink-0;
+}
+
+.im-role-option-content {
+  @apply flex flex-col gap-1 flex-1;
+}
+
+.im-role-option-title {
+  @apply font-semibold text-sm;
+  color: var(--im-foreground);
+}
+
+.im-role-option-desc {
+  @apply text-xs;
+  color: var(--im-muted);
+}
+
+.im-info-message {
+  @apply text-sm p-3 rounded-lg mb-4;
+  background-color: var(--im-info-light);
+  color: var(--im-info);
+  border: 1px solid var(--im-info);
+}
+
+.dark .im-info-message {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
 /* User Name Display in List */
 .im-user-name {
   @apply font-medium;

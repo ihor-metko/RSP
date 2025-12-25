@@ -5,7 +5,7 @@
 /**
  * Admin roles that can be assigned through the wizard
  */
-export type AdminRole = "ORGANIZATION_ADMIN" | "CLUB_ADMIN";
+export type AdminRole = "ORGANIZATION_ADMIN" | "CLUB_ADMIN" | "OWNER";
 
 /**
  * Context type for admin creation

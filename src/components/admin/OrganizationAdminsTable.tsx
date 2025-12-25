@@ -45,17 +45,12 @@ export default function OrganizationAdminsTable({
   const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
   const [userSearch, setUserSearch] = useState("");
   const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"ORGANIZATION_ADMIN" | "OWNER">("ORGANIZATION_ADMIN");
   const [newAdminName, setNewAdminName] = useState("");
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [addError, setAddError] = useState("");
   const [adding, setAdding] = useState(false);
-
-  // Change owner modal state
-  const [isChangeOwnerModalOpen, setIsChangeOwnerModalOpen] = useState(false);
-  const [selectedOwnerId, setSelectedOwnerId] = useState("");
-  const [changeOwnerError, setChangeOwnerError] = useState("");
-  const [changingOwner, setChangingOwner] = useState(false);
 
   // Remove admin modal state
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
@@ -82,6 +77,7 @@ export default function OrganizationAdminsTable({
     setAddMode("existing");
     setUserSearch("");
     setSelectedUserId("");
+    setSelectedRole("ORGANIZATION_ADMIN");
     setNewAdminName("");
     setNewAdminEmail("");
     setNewAdminPassword("");
@@ -96,6 +92,26 @@ export default function OrganizationAdminsTable({
     setAdding(true);
 
     try {
+      // If role is OWNER, use the changeOwner API directly
+      if (selectedRole === "OWNER") {
+        if (addMode === "new") {
+          setAddError(t("orgAdmins.cannotCreateNewOwner"));
+          setAdding(false);
+          return;
+        }
+        
+        await changeOwner({
+          organizationId: orgId,
+          userId: selectedUserId,
+        });
+        
+        showToast(t("orgAdmins.ownerChanged"), "success");
+        setIsAddModalOpen(false);
+        onRefresh();
+        setAdding(false);
+        return;
+      }
+
       const payload =
         addMode === "new"
           ? {
@@ -113,43 +129,13 @@ export default function OrganizationAdminsTable({
 
       await addAdmin(payload);
 
-      showToast(t("orgAdmins.adminAdded"), "success");
+      showToast(t("orgAdmins.personAdded"), "success");
       setIsAddModalOpen(false);
       onRefresh();
     } catch (err) {
       setAddError(err instanceof Error ? err.message : "Failed to assign admin");
     } finally {
       setAdding(false);
-    }
-  };
-
-  // Handle change owner
-  const handleOpenChangeOwnerModal = () => {
-    setSelectedOwnerId("");
-    setChangeOwnerError("");
-    setIsChangeOwnerModalOpen(true);
-  };
-
-  const handleChangeOwner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setChangeOwnerError("");
-    setChangingOwner(true);
-
-    try {
-      await changeOwner({
-        organizationId: orgId,
-        userId: selectedOwnerId,
-      });
-
-      showToast(t("orgAdmins.ownerChanged"), "success");
-      setIsChangeOwnerModalOpen(false);
-      onRefresh();
-    } catch (err) {
-      setChangeOwnerError(
-        err instanceof Error ? err.message : "Failed to change owner"
-      );
-    } finally {
-      setChangingOwner(false);
     }
   };
 
@@ -204,6 +190,13 @@ export default function OrganizationAdminsTable({
   const isOwner = primaryOwner?.userId === user?.id;
   const canManageAdmins = isRoot || isOwner;
 
+  // Sort admins: Owner first, then Organization Admins
+  const sortedAdmins = [...admins].sort((a, b) => {
+    if (a.isPrimaryOwner) return -1;
+    if (b.isPrimaryOwner) return 1;
+    return 0;
+  });
+
   // Check if user can modify a specific admin
   const canModifyAdmin = (admin: OrgAdmin) => {
     // Root Admin can modify anyone
@@ -254,32 +247,21 @@ export default function OrganizationAdminsTable({
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
         </div>
-        <h3 className="im-section-title">{t("orgAdmins.title")}</h3>
+        <h3 className="im-section-title">{t("orgAdmins.people")}</h3>
         <div className="im-section-actions">
           {canManageAdmins && (
-            <>
-              <Button size="small" onClick={handleOpenAddModal}>
-                {t("orgAdmins.addAdmin")}
-              </Button>
-              {admins.length > 0 && (
-                <Button
-                  size="small"
-                  variant="outline"
-                  onClick={handleOpenChangeOwnerModal}
-                >
-                  {t("orgAdmins.changeOwner")}
-                </Button>
-              )}
-            </>
+            <Button size="small" onClick={handleOpenAddModal}>
+              {t("orgAdmins.addPerson")}
+            </Button>
           )}
         </div>
       </div>
 
       {admins.length === 0 ? (
-        <p className="im-empty-state">{t("orgAdmins.noAdmins")}</p>
+        <p className="im-empty-state">{t("orgAdmins.noPeople")}</p>
       ) : (
         <div className="im-admins-list">
-          {admins.map((admin) => {
+          {sortedAdmins.map((admin) => {
             const canModify = canModifyAdmin(admin);
             const tooltipMessage = !canModify && admin.isPrimaryOwner
               ? t("orgAdmins.ownerProtectionTooltip")
@@ -353,7 +335,7 @@ export default function OrganizationAdminsTable({
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        title={t("orgAdmins.addAdmin")}
+        title={t("orgAdmins.addPerson")}
       >
         <form onSubmit={handleAddAdmin} className="space-y-4">
           {addError && (
@@ -362,29 +344,43 @@ export default function OrganizationAdminsTable({
             </div>
           )}
 
-          <div className="im-assign-mode-tabs">
-            <button
-              type="button"
-              className={`im-assign-mode-tab ${
-                addMode === "existing" ? "im-assign-mode-tab--active" : ""
-              }`}
-              onClick={() => setAddMode("existing")}
-            >
-              {t("orgAdmins.existingUser")}
-            </button>
-            <button
-              type="button"
-              className={`im-assign-mode-tab ${
-                addMode === "new" ? "im-assign-mode-tab--active" : ""
-              }`}
-              onClick={() => setAddMode("new")}
-            >
-              {t("orgAdmins.newUser")}
-            </button>
+          {/* Role Selection */}
+          <div className="im-role-selection">
+            <label className="im-label">{t("orgAdmins.selectRole")}</label>
+            <div className="im-role-options">
+              <label className={`im-role-option ${selectedRole === "ORGANIZATION_ADMIN" ? "im-role-option--selected" : ""}`}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="ORGANIZATION_ADMIN"
+                  checked={selectedRole === "ORGANIZATION_ADMIN"}
+                  onChange={(e) => setSelectedRole(e.target.value as "ORGANIZATION_ADMIN" | "OWNER")}
+                />
+                <div className="im-role-option-content">
+                  <span className="im-role-option-title">{t("orgAdmins.organizationAdmin")}</span>
+                  <span className="im-role-option-desc">{t("orgAdmins.organizationAdminDesc")}</span>
+                </div>
+              </label>
+              <label className={`im-role-option ${selectedRole === "OWNER" ? "im-role-option--selected" : ""}`}>
+                <input
+                  type="radio"
+                  name="role"
+                  value="OWNER"
+                  checked={selectedRole === "OWNER"}
+                  onChange={(e) => setSelectedRole(e.target.value as "ORGANIZATION_ADMIN" | "OWNER")}
+                />
+                <div className="im-role-option-content">
+                  <span className="im-role-option-title">{t("orgAdmins.owner")}</span>
+                  <span className="im-role-option-desc">{t("orgAdmins.ownerDesc")}</span>
+                </div>
+              </label>
+            </div>
           </div>
 
-          {addMode === "existing" ? (
+          {selectedRole === "OWNER" ? (
             <>
+              {/* For Owner role, only allow selecting existing users */}
+              <p className="im-info-message">{t("orgAdmins.ownerMustBeExisting")}</p>
               <Input
                 label={t("orgAdmins.searchUsers")}
                 value={userSearch}
@@ -420,26 +416,86 @@ export default function OrganizationAdminsTable({
             </>
           ) : (
             <>
-              <Input
-                label={t("common.name")}
-                value={newAdminName}
-                onChange={(e) => setNewAdminName(e.target.value)}
-                required
-              />
-              <Input
-                label={t("common.email")}
-                type="email"
-                value={newAdminEmail}
-                onChange={(e) => setNewAdminEmail(e.target.value)}
-                required
-              />
-              <Input
-                label={t("common.password")}
-                type="password"
-                value={newAdminPassword}
-                onChange={(e) => setNewAdminPassword(e.target.value)}
-                required
-              />
+              <div className="im-assign-mode-tabs">
+                <button
+                  type="button"
+                  className={`im-assign-mode-tab ${
+                    addMode === "existing" ? "im-assign-mode-tab--active" : ""
+                  }`}
+                  onClick={() => setAddMode("existing")}
+                >
+                  {t("orgAdmins.existingUser")}
+                </button>
+                <button
+                  type="button"
+                  className={`im-assign-mode-tab ${
+                    addMode === "new" ? "im-assign-mode-tab--active" : ""
+                  }`}
+                  onClick={() => setAddMode("new")}
+                >
+                  {t("orgAdmins.newUser")}
+                </button>
+              </div>
+
+              {addMode === "existing" ? (
+                <>
+                  <Input
+                    label={t("orgAdmins.searchUsers")}
+                    value={userSearch}
+                    onChange={(e) => handleUserSearchChange(e.target.value)}
+                    placeholder={t("orgAdmins.searchUsersPlaceholder")}
+                  />
+                  <div className="im-user-list">
+                    {simpleUsers.length === 0 ? (
+                      <p className="im-user-list-empty">{t("orgAdmins.noUsersFound")}</p>
+                    ) : (
+                      simpleUsers.map((u) => (
+                        <label
+                          key={u.id}
+                          className={`im-user-option ${
+                            selectedUserId === u.id ? "im-user-option--selected" : ""
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="userId"
+                            value={u.id}
+                            checked={selectedUserId === u.id}
+                            onChange={(e) => setSelectedUserId(e.target.value)}
+                          />
+                          <span className="im-user-info">
+                            <span className="im-user-name">{u.name || u.email}</span>
+                            <span className="im-user-email">{u.email}</span>
+                          </span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Input
+                    label={t("common.name")}
+                    value={newAdminName}
+                    onChange={(e) => setNewAdminName(e.target.value)}
+                    required
+                  />
+                  <Input
+                    label={t("common.email")}
+                    type="email"
+                    value={newAdminEmail}
+                    onChange={(e) => setNewAdminEmail(e.target.value)}
+                    required
+                  />
+                  <Input
+                    label={t("common.password")}
+                    type="password"
+                    value={newAdminPassword}
+                    onChange={(e) => setNewAdminPassword(e.target.value)}
+                    required
+                  />
+                </>
+              )}
             </>
           )}
 
@@ -455,69 +511,12 @@ export default function OrganizationAdminsTable({
               type="submit"
               disabled={
                 adding ||
-                (addMode === "existing" && !selectedUserId) ||
-                (addMode === "new" &&
+                !selectedUserId ||
+                (selectedRole === "ORGANIZATION_ADMIN" && addMode === "new" &&
                   (!newAdminName || !newAdminEmail || !newAdminPassword))
               }
             >
-              {adding ? t("common.processing") : t("orgAdmins.addAdmin")}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Change Owner Modal */}
-      <Modal
-        isOpen={isChangeOwnerModalOpen}
-        onClose={() => setIsChangeOwnerModalOpen(false)}
-        title={t("orgAdmins.changeOwner")}
-      >
-        <form onSubmit={handleChangeOwner} className="space-y-4">
-          {changeOwnerError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm">
-              {changeOwnerError}
-            </div>
-          )}
-
-          <p className="im-modal-description">{t("orgAdmins.changeOwnerDescription")}</p>
-
-          <div className="im-user-list">
-            {admins
-              .filter((a) => !a.isPrimaryOwner)
-              .map((admin) => (
-                <label
-                  key={admin.id}
-                  className={`im-user-option ${
-                    selectedOwnerId === admin.userId ? "im-user-option--selected" : ""
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="ownerId"
-                    value={admin.userId}
-                    checked={selectedOwnerId === admin.userId}
-                    onChange={(e) => setSelectedOwnerId(e.target.value)}
-                  />
-                  <span className="im-user-info">
-                    <span className="im-user-name">
-                      {admin.userName || admin.userEmail}
-                    </span>
-                    <span className="im-user-email">{admin.userEmail}</span>
-                  </span>
-                </label>
-              ))}
-          </div>
-
-          <div className="flex justify-end gap-2 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsChangeOwnerModalOpen(false)}
-            >
-              {t("common.cancel")}
-            </Button>
-            <Button type="submit" disabled={changingOwner || !selectedOwnerId}>
-              {changingOwner ? t("common.processing") : t("orgAdmins.changeOwner")}
+              {adding ? t("common.processing") : (selectedRole === "OWNER" ? t("orgAdmins.assignOwner") : t("orgAdmins.addPerson"))}
             </Button>
           </div>
         </form>
