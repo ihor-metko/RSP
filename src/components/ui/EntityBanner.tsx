@@ -207,6 +207,37 @@ export function EntityBanner({
     return logoUrl;
   }, [logoUrl, logoMetadata, isDarkTheme]);
   
+  /**
+   * Determine if we need to apply contrast enhancement styles for a universal logo
+   * Returns CSS class name for contrast adjustment or empty string
+   */
+  const logoContrastClass = useMemo(() => {
+    // Only apply contrast styles when we have a single universal logo
+    if (!logoMetadata || !logoMetadata.logoTheme) {
+      return ''; // No metadata, no special styling
+    }
+    
+    // If we have two separate logos (theme-specific), no contrast adjustment needed
+    if (logoMetadata.secondLogo && logoMetadata.secondLogoTheme) {
+      return ''; // Theme-specific logos handle this themselves
+    }
+    
+    const currentTheme = isDarkTheme ? 'dark' : 'light';
+    const logoTheme = logoMetadata.logoTheme;
+    
+    // Apply contrast enhancement when logo theme doesn't match current theme
+    if (logoTheme === 'light' && currentTheme === 'dark') {
+      // Light logo on dark background needs a light background for visibility
+      return 'rsp-club-hero-logo--contrast-light';
+    } else if (logoTheme === 'dark' && currentTheme === 'light') {
+      // Dark logo on light background needs a dark background for visibility
+      return 'rsp-club-hero-logo--contrast-dark';
+    }
+    
+    // Logo theme matches current theme, no contrast adjustment needed
+    return '';
+  }, [logoMetadata, isDarkTheme]);
+  
   // Convert stored paths to display URLs
   const heroImageFullUrl = useMemo(() => getImageUrl(imageUrl), [imageUrl]);
   const logoFullUrl = useMemo(() => getImageUrl(effectiveLogoUrl), [effectiveLogoUrl]);
@@ -283,7 +314,7 @@ export function EntityBanner({
             <img
               src={logoFullUrl}
               alt={logoAlt || `${title} logo`}
-              className="rsp-club-hero-logo"
+              className={`rsp-club-hero-logo ${logoContrastClass}`.trim()}
             />
           )}
           <div className="rsp-club-hero-info">

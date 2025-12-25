@@ -454,4 +454,122 @@ describe("Organization Detail Page - Banner Component", () => {
       expect(screen.getByRole("button", { name: /edit test organization details/i })).toBeInTheDocument();
     });
   });
+
+  describe("Logo Theme and Contrast Enhancement", () => {
+    it("applies no contrast class when no logo metadata is provided", () => {
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          logoUrl="https://example.com/logo.png"
+        />
+      );
+
+      const logo = container.querySelector(".rsp-club-hero-logo");
+      expect(logo).toBeInTheDocument();
+      expect(logo).not.toHaveClass("rsp-club-hero-logo--contrast-light");
+      expect(logo).not.toHaveClass("rsp-club-hero-logo--contrast-dark");
+    });
+
+    it("applies no contrast class when logo metadata has no logoTheme", () => {
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          logoUrl="https://example.com/logo.png"
+          logoMetadata={{}}
+        />
+      );
+
+      const logo = container.querySelector(".rsp-club-hero-logo");
+      expect(logo).toBeInTheDocument();
+      expect(logo).not.toHaveClass("rsp-club-hero-logo--contrast-light");
+      expect(logo).not.toHaveClass("rsp-club-hero-logo--contrast-dark");
+    });
+
+    it("applies no contrast class when two separate logos are provided", () => {
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          logoUrl="https://example.com/logo-light.png"
+          logoMetadata={{
+            logoTheme: 'light',
+            secondLogo: 'https://example.com/logo-dark.png',
+            secondLogoTheme: 'dark',
+          }}
+        />
+      );
+
+      const logo = container.querySelector(".rsp-club-hero-logo");
+      expect(logo).toBeInTheDocument();
+      // Should not have contrast classes because theme-specific logos handle this
+      expect(logo).not.toHaveClass("rsp-club-hero-logo--contrast-light");
+      expect(logo).not.toHaveClass("rsp-club-hero-logo--contrast-dark");
+    });
+
+    it("applies light contrast class for light-themed logo in simulated dark mode", () => {
+      // Mock dark theme by adding 'dark' class to document element
+      document.documentElement.classList.add('dark');
+      
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          logoUrl="https://example.com/logo.png"
+          logoMetadata={{
+            logoTheme: 'light',
+          }}
+        />
+      );
+
+      // Wait for effect to run
+      setTimeout(() => {
+        const logo = container.querySelector(".rsp-club-hero-logo");
+        expect(logo).toBeInTheDocument();
+        expect(logo).toHaveClass("rsp-club-hero-logo--contrast-light");
+      }, 100);
+
+      // Cleanup
+      document.documentElement.classList.remove('dark');
+    });
+
+    it("applies dark contrast class for dark-themed logo in simulated light mode", () => {
+      // Ensure light theme (no 'dark' class)
+      document.documentElement.classList.remove('dark');
+      
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          logoUrl="https://example.com/logo.png"
+          logoMetadata={{
+            logoTheme: 'dark',
+          }}
+        />
+      );
+
+      // Wait for effect to run
+      setTimeout(() => {
+        const logo = container.querySelector(".rsp-club-hero-logo");
+        expect(logo).toBeInTheDocument();
+        expect(logo).toHaveClass("rsp-club-hero-logo--contrast-dark");
+      }, 100);
+    });
+
+    it("applies no contrast class when logo theme matches current theme", () => {
+      // Light mode with light-themed logo
+      document.documentElement.classList.remove('dark');
+      
+      const { container } = render(
+        <EntityBanner
+          title="Test Organization"
+          logoUrl="https://example.com/logo.png"
+          logoMetadata={{
+            logoTheme: 'light',
+          }}
+        />
+      );
+
+      const logo = container.querySelector(".rsp-club-hero-logo");
+      expect(logo).toBeInTheDocument();
+      expect(logo).not.toHaveClass("rsp-club-hero-logo--contrast-light");
+      expect(logo).not.toHaveClass("rsp-club-hero-logo--contrast-dark");
+    });
+  });
 });
