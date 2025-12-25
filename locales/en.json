@@ -1298,11 +1298,14 @@
         "slugInUse": "This slug is already in use",
         "slugConflict": "Slug conflict: Please choose a different slug",
         "createFailed": "Failed to create organization",
-        "assignOwnerFailed": "Failed to assign owner"
+        "assignOwnerFailed": "Failed to assign owner",
+        "imageUploadFailed": "Failed to upload image",
+        "secondLogoUploadFailed": "Failed to upload second logo"
       },
       "success": {
         "createdWithOwner": "Organization created and owner assigned successfully!",
         "createdOwnerFailed": "Organization created, but owner assignment failed: {message}",
+        "createdImageFailed": "Organization created, but image upload failed: {message}",
         "created": "Organization created successfully!"
       },
       "saveChanges": "Save Changes",

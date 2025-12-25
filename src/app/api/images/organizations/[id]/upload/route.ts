@@ -64,9 +64,9 @@ export async function POST(
     }
 
     // Validate image type parameter
-    if (!imageType || !["logo", "heroImage"].includes(imageType)) {
+    if (!imageType || !["logo", "heroImage", "secondLogo"].includes(imageType)) {
       return NextResponse.json(
-        { error: "Invalid image type. Must be 'logo' or 'heroImage'" },
+        { error: "Invalid image type. Must be 'logo', 'heroImage', or 'secondLogo'" },
         { status: 400 }
       );
     }
@@ -100,12 +100,35 @@ export async function POST(
     const url = getUploadedImageUrl("organizations", organizationId, filename);
 
     // Update organization record with new image URL
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: {
-        [imageType]: url,
-      },
-    });
+    if (imageType === "secondLogo") {
+      // For second logo, store URL in metadata
+      const org = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { metadata: true },
+      });
+      
+      const currentMetadata = org?.metadata ? JSON.parse(org.metadata) : {};
+      const logoMetadata = currentMetadata.logoMetadata || {};
+      logoMetadata.secondLogo = url;
+      
+      await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+          metadata: JSON.stringify({
+            ...currentMetadata,
+            logoMetadata,
+          }),
+        },
+      });
+    } else {
+      // For logo and heroImage, store in their respective columns
+      await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+          [imageType]: url,
+        },
+      });
+    }
 
     console.log(`[Organization Upload] Database updated successfully for org ${organizationId}, ${imageType}: ${url}`);
 

@@ -314,6 +314,18 @@ export function OrganizationCreationStepper() {
         metadata.socialLinks = socialLinks;
       }
 
+      // Add logo theme metadata if logos are provided
+      if (formData.logo || formData.secondLogo) {
+        metadata.logoMetadata = {
+          logoTheme: formData.logoTheme,
+          logoCount: formData.logoCount,
+        };
+        
+        if (formData.logoCount === 'two' && formData.secondLogo) {
+          metadata.logoMetadata.secondLogoTheme = formData.secondLogoTheme;
+        }
+      }
+
       // Prepare data for submission (without images - they'll be uploaded separately)
       const submitData = {
         name: formData.name.trim(),
@@ -364,6 +376,77 @@ export function OrganizationCreationStepper() {
             const errorData = await logoResponse.json();
             throw new Error(errorData.error || t("errors.imageUploadFailed"));
           }
+          
+          // Get the uploaded logo URL to update metadata
+          const logoData = await logoResponse.json();
+          
+          // Upload second logo if provided
+          if (formData.logoCount === 'two' && formData.secondLogo?.file) {
+            const secondLogoFormData = new FormData();
+            secondLogoFormData.append("file", formData.secondLogo.file);
+            secondLogoFormData.append("type", "secondLogo");
+
+            const secondLogoResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
+              method: "POST",
+              body: secondLogoFormData,
+            });
+
+            if (!secondLogoResponse.ok) {
+              const errorData = await secondLogoResponse.json();
+              throw new Error(errorData.error || t("errors.secondLogoUploadFailed"));
+            }
+            
+            const secondLogoData = await secondLogoResponse.json();
+            
+            // Update metadata with second logo URL
+            const updatedMetadata = {
+              ...metadata,
+              logoMetadata: {
+                ...metadata.logoMetadata,
+                secondLogo: secondLogoData.url,
+              }
+            };
+            
+            // Update organization with second logo metadata
+            await fetch(`/api/admin/organizations/${organization.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ metadata: updatedMetadata }),
+            });
+          }
+        } else if (formData.logoCount === 'two' && formData.secondLogo?.file) {
+          // Only second logo is provided (edge case)
+          const secondLogoFormData = new FormData();
+          secondLogoFormData.append("file", formData.secondLogo.file);
+          secondLogoFormData.append("type", "secondLogo");
+
+          const secondLogoResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
+            method: "POST",
+            body: secondLogoFormData,
+          });
+
+          if (!secondLogoResponse.ok) {
+            const errorData = await secondLogoResponse.json();
+            throw new Error(errorData.error || t("errors.secondLogoUploadFailed"));
+          }
+          
+          const secondLogoData = await secondLogoResponse.json();
+          
+          // Update metadata with second logo URL
+          const updatedMetadata = {
+            ...metadata,
+            logoMetadata: {
+              ...metadata.logoMetadata,
+              secondLogo: secondLogoData.url,
+            }
+          };
+          
+          // Update organization with second logo metadata
+          await fetch(`/api/admin/organizations/${organization.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ metadata: updatedMetadata }),
+          });
         }
       } catch (imageErr) {
         // Organization was created, but image upload failed
