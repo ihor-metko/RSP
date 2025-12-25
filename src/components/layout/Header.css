@@ -30,8 +30,9 @@
 }
 
 .im-header {
-  @apply flex items-center justify-between px-4 max-w-7xl mx-auto;
+  @apply flex items-center justify-between px-4 mx-auto;
   height: 56px;
+  max-width: 1600px;
 }
 
 @media (max-width: 768px) {

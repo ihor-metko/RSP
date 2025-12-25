@@ -27,7 +27,20 @@
   width: 240px;
   background-color: var(--im-surface);
   border-right: 1px solid var(--im-border);
-  transition: transform 0.3s ease, background-color 0.2s ease;
+  transition: left 0.3s ease, transform 0.3s ease, background-color 0.2s ease, width 0.3s ease;
+}
+
+/* On ultra-wide screens, position sidebar relative to centered container */
+@media (min-width: 1024px) {
+  .im-sidebar {
+    /* Calculate left position to align with centered 1600px container */
+    /* Formula: (viewport-width - max-content-width) / 2 */
+    left: max(0px, calc((100vw - 1600px - 240px) / 2));
+  }
+  
+  .im-sidebar--collapsed {
+    left: max(0px, calc((100vw - 1600px - 64px) / 2));
+  }
 }
 
 /* Offset for header (56px on desktop) */

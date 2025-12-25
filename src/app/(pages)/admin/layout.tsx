@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { DashboardFooter, AdminSidebar } from "@/components/layout";
 import Header from "@/components/layout/Header";
+import "./layout.css";
 
 const SIDEBAR_COLLAPSED_KEY = "admin-sidebar-collapsed";
 
@@ -36,15 +37,17 @@ export default function AdminLayout({
       {/* Sidebar - renders based on admin role */}
       <AdminSidebar hasHeader={true} onCollapsedChange={setIsCollapsed} />
 
-      {/* Main content area with sidebar offset on large screens */}
+      {/* Main content area with sidebar offset and max-width constraint */}
       <div 
         className={`flex-1 overflow-auto flex flex-col w-full transition-[padding-left] duration-300 ease-in-out ${
           isCollapsed ? "lg:pl-16" : "lg:pl-60"
         }`}
       >
-        {children}
+        <div className="im-admin-content-wrapper">
+          {children}
 
-        <DashboardFooter />
+          <DashboardFooter />
+        </div>
       </div>
     </div>
   );

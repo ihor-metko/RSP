@@ -1,0 +1,28 @@
+@reference "tailwindcss";
+
+/**
+ * Admin Layout Styles
+ *
+ * Implements centered max-width layout for admin pages on large screens.
+ * Ensures content is constrained to 1600px and centered for better readability
+ * on ultra-wide displays.
+ */
+
+/* Admin content wrapper with max-width constraint */
+.im-admin-content-wrapper {
+  @apply w-full mx-auto px-6;
+  max-width: 1600px;
+}
+
+/* Responsive padding adjustments */
+@media (max-width: 1023px) {
+  .im-admin-content-wrapper {
+    @apply px-4;
+  }
+}
+
+@media (max-width: 640px) {
+  .im-admin-content-wrapper {
+    @apply px-3;
+  }
+}
