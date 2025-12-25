@@ -48,12 +48,12 @@ export default function PriceRulesPage({
   params: Promise<{ courtId: string }>;
 }) {
   const router = useRouter();
-  
+
   // Use store for auth
   const isHydrated = useUserStore((state) => state.isHydrated);
   const isLoading = useUserStore((state) => state.isLoading);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  
+
   const [courtId, setCourtId] = useState<string | null>(null);
   const [court, setCourt] = useState<Court | null>(null);
   const [rules, setRules] = useState<PriceRule[]>([]);
@@ -96,7 +96,7 @@ export default function PriceRulesPage({
   }, [courtId]);
 
   const ensureCourtByIdFromStore = useCourtStore((state) => state.ensureCourtById);
-  
+
   const fetchCourt = useCallback(async () => {
     if (!courtId) return;
 
@@ -220,7 +220,7 @@ export default function PriceRulesPage({
 
   if (status === "loading" || loading) {
     return (
-      <main className="rsp-container p-8">
+      <main className="rsp-container p-6">
         <PageHeaderSkeleton showDescription />
         <TableSkeleton rows={5} columns={6} showHeader />
       </main>
@@ -228,7 +228,7 @@ export default function PriceRulesPage({
   }
 
   return (
-    <main className="rsp-container p-8">
+    <main className="rsp-container p-6">
       {/* Toast notification */}
       {toast && (
         <div

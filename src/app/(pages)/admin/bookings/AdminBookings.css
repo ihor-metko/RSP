@@ -1,7 +1,7 @@
 @reference "tailwindcss";
 
 .im-admin-bookings-page {
-  padding: 1.5rem 2rem;
+  padding: 1.5rem;
 }
 
 .im-admin-bookings-filters {

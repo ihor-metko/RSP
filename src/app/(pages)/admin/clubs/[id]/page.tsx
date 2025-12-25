@@ -18,6 +18,9 @@ import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
+import { EntityEditStepper } from "@/components/admin/EntityEditStepper.client";
+import { BasicInfoStep, AddressStep } from "@/components/admin/ClubSteps";
+import { LogoStep, BannerStep } from "@/components/admin/SharedSteps";
 
 import { useUserStore } from "@/stores/useUserStore";
 import "./page.css";
@@ -39,11 +42,11 @@ export default function AdminClubDetailPage({
 
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const [isEditingDetails, setIsEditingDetails] = useState(false);
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);

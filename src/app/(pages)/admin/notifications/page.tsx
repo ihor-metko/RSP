@@ -11,7 +11,7 @@ import { useUserStore } from "@/stores/useUserStore";
 export default function AdminNotificationsPage() {
   const t = useTranslations();
   const router = useRouter();
-  
+
   // Use store for auth state
   const isHydrated = useUserStore((state) => state.isHydrated);
   const isLoading = useUserStore((state) => state.isLoading);
@@ -29,7 +29,7 @@ export default function AdminNotificationsPage() {
   const shouldShowContent = user && user.isRoot;
 
   return (
-    <main className="rsp-container p-8">
+    <main className="rsp-container p-6">
       <header className="rsp-header flex items-center justify-between mb-8">
         <div>
           <h1 className="rsp-title text-3xl font-bold">{t("admin.notifications.title")}</h1>

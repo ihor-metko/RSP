@@ -3,7 +3,7 @@
 /* ===== Users Admin Page Layout ===== */
 .im-admin-users-page {
   width: 100%;
-  @apply p-6 md:p-8 max-w-7xl mx-auto;
+  @apply p-6 max-w-7xl mx-auto;
   background-color: var(--im-background);
   color: var(--im-foreground);
 }
