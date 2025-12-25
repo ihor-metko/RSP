@@ -36,7 +36,7 @@ interface StepComponentProps {
   formData: unknown;
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
-  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
+  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
 }
 
 interface EntityEditStepperProps {
@@ -88,11 +88,23 @@ export function EntityEditStepper({
     longitude: "",
   });
 
-  const [imagesData, setImagesData] = useState<{
+  const [logoData, setLogoData] = useState<{
     logo: UploadedFile | null;
-    heroImage: UploadedFile | null;
+    logoTheme: 'light' | 'dark';
+    logoBackground: 'light' | 'dark';
+    hasSecondLogo: boolean;
+    secondLogo: UploadedFile | null;
   }>({
     logo: null,
+    logoTheme: 'light',
+    logoBackground: 'light',
+    hasSecondLogo: false,
+    secondLogo: null,
+  });
+
+  const [bannerData, setBannerData] = useState<{
+    heroImage: UploadedFile | null;
+  }>({
     heroImage: null,
   });
 
@@ -129,8 +141,15 @@ export function EntityEditStepper({
       });
 
       // Set existing images as URLs (not files)
-      setImagesData({
+      setLogoData({
         logo: entityData.logo ? { url: entityData.logo, key: "", preview: entityData.logo } : null,
+        logoTheme: 'light',
+        logoBackground: 'light',
+        hasSecondLogo: false,
+        secondLogo: null,
+      });
+
+      setBannerData({
         heroImage: entityData.heroImage ? { url: entityData.heroImage, key: "", preview: entityData.heroImage } : null,
       });
 
@@ -172,9 +191,24 @@ export function EntityEditStepper({
     [fieldErrors]
   );
 
-  const handleImageChange = useCallback(
-    (field: 'logo' | 'heroImage', value: UploadedFile | null) => {
-      setImagesData((prev) => ({ ...prev, [field]: value }));
+  const handleLogoChange = useCallback(
+    (field: string, value: UploadedFile | null | boolean | string) => {
+      setLogoData((prev) => ({ ...prev, [field]: value }));
+
+      if (fieldErrors[field]) {
+        setFieldErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
+    },
+    [fieldErrors]
+  );
+
+  const handleBannerChange = useCallback(
+    (field: string, value: UploadedFile | null) => {
+      setBannerData((prev) => ({ ...prev, [field]: value }));
 
       if (fieldErrors[field]) {
         setFieldErrors((prev) => {
@@ -233,13 +267,22 @@ export function EntityEditStepper({
     }
 
     if (step === 3) {
-      // Images are optional for editing (already have existing images)
+      // Logo validation - logo is optional for editing
+      // If hasSecondLogo is checked, secondLogo is optional but can be validated if needed
+      if (logoData.hasSecondLogo && !logoData.secondLogo && !logoData.logo) {
+        // If user enabled second logo but didn't upload either logo, show a warning (optional)
+        // For now, we allow this as logos are optional
+      }
+    }
+
+    if (step === 4) {
+      // Banner is optional for editing (already have existing image)
       // No validation needed
     }
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [basicInfoData, addressData, t]);
+  }, [basicInfoData, addressData, logoData.hasSecondLogo, logoData.logo, logoData.secondLogo, t]);
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
@@ -288,8 +331,8 @@ export function EntityEditStepper({
         description: basicInfoData.description.trim() || null,
         address: fullAddress,
         metadata,
-        logo: imagesData.logo?.file || null,
-        heroImage: imagesData.heroImage?.file || null,
+        logo: logoData.logo?.file || null,
+        heroImage: bannerData.heroImage?.file || null,
       });
 
       onClose();
@@ -310,13 +353,13 @@ export function EntityEditStepper({
     if (!StepComponent) return null;
 
     // Determine which form data to pass based on step
-    // NOTE: This assumes a 3-step flow with basic info, address, and images.
+    // NOTE: This now supports a 4-step flow with basic info, address, logo, and banner.
     // For different entity types with different step structures, consider:
     // 1. Passing a data mapping configuration as a prop
     // 2. Using a more generic form state management approach
     // 3. Creating specialized stepper components per entity type
     let formData: unknown;
-    let onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
+    let onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
 
     switch (currentStep) {
       case 1:
@@ -328,8 +371,12 @@ export function EntityEditStepper({
         onChange = handleAddressChange;
         break;
       case 3:
-        formData = imagesData;
-        onChange = handleImageChange as ((field: string, value: UploadedFile | null) => void);
+        formData = logoData;
+        onChange = handleLogoChange as ((field: string, value: UploadedFile | null | boolean | string) => void);
+        break;
+      case 4:
+        formData = bannerData;
+        onChange = handleBannerChange as ((field: string, value: UploadedFile | null | boolean | string) => void);
         break;
       default:
         formData = {};

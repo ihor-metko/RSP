@@ -15,12 +15,13 @@
 
 @media (min-width: 768px) {
   .rsp-club-hero {
-    height: 400px;
+    height: 500px;
   }
 }
 
 .rsp-club-hero-image {
   @apply absolute inset-0 w-full h-full object-cover;
+  object-position: top;
 }
 
 .rsp-club-hero-overlay {

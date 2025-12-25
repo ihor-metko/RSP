@@ -13,9 +13,9 @@
     "update": "Update",
     "close": "Close",
     "back": "Back",
-    "backToHome": "← Back to Home",
-    "backToClubs": "← Back to Clubs",
-    "backToDashboard": "← Back to Dashboard",
+    "backToHome": "\u2190 Back to Home",
+    "backToClubs": "\u2190 Back to Clubs",
+    "backToDashboard": "\u2190 Back to Dashboard",
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "register": "Register",
@@ -100,11 +100,11 @@
     "openModal": "Open Modal",
     "secondaryAction": "Secondary Action",
     "quickLinks": "Quick Links",
-    "viewClubs": "View Clubs →",
+    "viewClubs": "View Clubs \u2192",
     "dashboard": "Dashboard",
-    "manageClubs": "Manage Clubs (Admin) →",
-    "manageCoaches": "Manage Coaches (Admin) →",
-    "manageNotifications": "Notifications (Admin) →",
+    "manageClubs": "Manage Clubs (Admin) \u2192",
+    "manageCoaches": "Manage Coaches (Admin) \u2192",
+    "manageNotifications": "Notifications (Admin) \u2192",
     "coaches": "Coaches",
     "exampleModal": "Example Modal",
     "exampleModalContent": "This is an example modal dialog. Press Escape or click outside to close.",
@@ -219,12 +219,12 @@
     "noCourts": "No courts defined for this club yet. Contact admin.",
     "quickBooking": "Quick booking",
     "requestTraining": "Request Training",
-    "adminCourts": "Admin → Courts",
+    "adminCourts": "Admin \u2192 Courts",
     "searchPlaceholder": "Search by name or location...",
     "cityPlaceholder": "City",
     "indoorOnly": "Indoor only",
     "clearFilters": "Clear filters",
-    "noClubsFound": "No clubs found — try other filters.",
+    "noClubsFound": "No clubs found \u2014 try other filters.",
     "trySuggestion": "Try adjusting your search or check different locations."
   },
   "clubDetail": {
@@ -294,7 +294,7 @@
       "filterBySport": "Filter by sport",
       "supportedSports": "Supported Sports",
       "smallClubs": "Small Clubs (< 3 courts)",
-      "largeClubs": "Large Clubs (≥ 5 courts)",
+      "largeClubs": "Large Clubs (\u2265 5 courts)",
       "page": "Page",
       "of": "of",
       "showing": "Showing",
@@ -627,7 +627,7 @@
         "actions": {
           "saveDraft": "Save Draft",
           "saveAndPublish": "Save & Publish",
-          "backToClubs": "← Back to Clubs"
+          "backToClubs": "\u2190 Back to Clubs"
         },
         "submitting": {
           "creating": "Creating court..."
@@ -669,9 +669,9 @@
         },
         "currencies": {
           "usd": "USD ($)",
-          "eur": "EUR (€)",
-          "gbp": "GBP (£)",
-          "uah": "UAH (₴)"
+          "eur": "EUR (\u20ac)",
+          "gbp": "GBP (\u00a3)",
+          "uah": "UAH (\u20b4)"
         }
       }
     },
@@ -705,8 +705,8 @@
       "trainingRequests": "Training Requests",
       "manageWeeklyAvailability": "Manage Weekly Availability",
       "manageTimeOff": "Manage Time Off",
-      "previousDay": "← Previous Day",
-      "nextDay": "Next Day →",
+      "previousDay": "\u2190 Previous Day",
+      "nextDay": "Next Day \u2192",
       "selectDate": "Select date",
       "schedule": "Schedule",
       "legend": {
@@ -891,7 +891,7 @@
     "ariaSlotBlockedLabel": "{dayName} {time}: {reason}",
     "modeLabel": "View mode",
     "modeRolling": "Next 7 days",
-    "modeCalendar": "Mon–Sun"
+    "modeCalendar": "Mon\u2013Sun"
   },
   "modal": {
     "closeModal": "Close modal",
@@ -1110,7 +1110,7 @@
     "roleSuperAdmin": "Super Admin",
     "roleAdmin": "Admin",
     "roleOwner": "Owner",
-    "roleOwnerTooltip": "Organization Owner — full control over this organization",
+    "roleOwnerTooltip": "Organization Owner \u2014 full control over this organization",
     "noClubAssigned": "You are not assigned to any club. Contact your SuperAdmin or RootAdmin.",
     "collapse": "Collapse",
     "collapseSidebar": "Collapse sidebar",
@@ -1169,7 +1169,7 @@
     "alreadyAdminOfThisOrg": "Already an admin of this organization",
     "assign": "Assign",
     "owner": "Owner",
-    "ownerTooltip": "Organization Owner — has full control over this organization",
+    "ownerTooltip": "Organization Owner \u2014 has full control over this organization",
     "setAsOwner": "Set as Owner",
     "remove": "Remove",
     "searchOrganizations": "Search organizations...",
@@ -1229,7 +1229,7 @@
       "latitudePlaceholder": "50.4501",
       "longitude": "Longitude *",
       "longitudePlaceholder": "30.5234",
-      "mapTip": "💡 Tip: Use a map service like Google Maps to find the exact latitude and longitude coordinates for accurate location.",
+      "mapTip": "\ud83d\udca1 Tip: Use a map service like Google Maps to find the exact latitude and longitude coordinates for accurate location.",
       "contactsTitle": "Contacts & Website / Social Media",
       "contactsDescription": "Add contact information, website, and social media links. All fields are optional.",
       "organizationEmail": "Organization Email",
@@ -1305,7 +1305,28 @@
         "created": "Organization created successfully!"
       },
       "saveChanges": "Save Changes",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "stepLogo": "Logo",
+      "stepBanner": "Banner",
+      "logoTitle": "Organization Logo & Theme",
+      "logoDescription": "Upload your organization logo and configure theme settings for optimal display.",
+      "primaryLogo": "Primary Logo",
+      "primaryLogoHelperText": "Upload a square image. SVG format recommended for best quality.",
+      "logoThemeLabel": "Logo Theme",
+      "logoThemeLight": "Light Theme",
+      "logoThemeDark": "Dark Theme",
+      "logoBackgroundLabel": "Preview Background",
+      "logoBackgroundLight": "Light Background",
+      "logoBackgroundDark": "Dark Background",
+      "logoPreview": "Logo Preview",
+      "logoPreviewAlt": "Logo preview",
+      "logoPreviewHelperText": "Preview shows how your logo will appear with the selected theme and background.",
+      "hasSecondLogoLabel": "Upload a second logo for alternate theme",
+      "hasSecondLogoHelperText": "If your logo doesn't work well on both light and dark backgrounds, upload an alternate version.",
+      "secondLogo": "Second Logo (Alternate Theme)",
+      "secondLogoHelperText": "Upload an alternate logo for the other theme.",
+      "bannerTitle": "Organization Banner",
+      "bannerDescription": "Upload a background banner image for your organization profile."
     },
     "errors": {
       "createFailed": "Failed to create organization",

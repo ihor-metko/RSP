@@ -9,7 +9,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
 import { EntityEditStepper } from "@/components/admin/EntityEditStepper.client";
-import { BasicInfoStep, AddressStep, ImagesStep } from "@/components/admin/OrganizationSteps";
+import { BasicInfoStep, AddressStep, LogoStep, BannerStep } from "@/components/admin/OrganizationSteps";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
 import "./page.css";
@@ -817,9 +817,10 @@ export default function OrganizationDetailPage() {
             steps={[
               { id: 1, label: t("organizations.stepper.stepBasicInfo") },
               { id: 2, label: t("organizations.stepper.stepAddress") },
-              { id: 3, label: t("organizations.stepper.stepImages") },
+              { id: 3, label: t("organizations.stepper.stepLogo") },
+              { id: 4, label: t("organizations.stepper.stepBanner") },
             ]}
-            stepComponents={[BasicInfoStep, AddressStep, ImagesStep]}
+            stepComponents={[BasicInfoStep, AddressStep, LogoStep, BannerStep]}
             translationNamespace="organizations.stepper"
             onSave={handleStepperSave}
           />
