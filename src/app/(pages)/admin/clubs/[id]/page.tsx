@@ -24,6 +24,7 @@ import { LogoStep, BannerStep } from "@/components/admin/SharedSteps";
 
 import { useUserStore } from "@/stores/useUserStore";
 import "./page.css";
+import "@/components/ClubDetailPage.css";
 
 export default function AdminClubDetailPage({
   params,

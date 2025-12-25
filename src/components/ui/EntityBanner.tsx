@@ -14,6 +14,7 @@
  */
 
 import React, { useMemo, useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 
 /**
@@ -164,6 +165,9 @@ export function EntityBanner({
   onEdit,
   hideAdminFeatures = false,
 }: EntityBannerProps) {
+  // Translations
+  const t = useTranslations("entityBanner");
+  
   // Detect current theme
   const [isDarkTheme, setIsDarkTheme] = useState(false);
   
@@ -224,14 +228,14 @@ export function EntityBanner({
   const effectiveStatus = useMemo(() => {
     if (hideAdminFeatures) return null; // Don't show status when hiding admin features
     if (status) return status;
-    if (isArchived) return { label: 'Archived', variant: 'archived' as const };
+    if (isArchived) return { label: t('archived'), variant: 'archived' as const };
     if (isPublished !== null && isPublished !== undefined) {
       return isPublished 
-        ? { label: 'Published', variant: 'published' as const }
-        : { label: 'Unpublished', variant: 'draft' as const };
+        ? { label: t('published'), variant: 'published' as const }
+        : { label: t('unpublished'), variant: 'draft' as const };
     }
     return null;
-  }, [status, isArchived, isPublished, hideAdminFeatures]);
+  }, [status, isArchived, isPublished, hideAdminFeatures, t]);
   
   // Determine if we should show the publish/unpublish button
   const showPublishButton = !hideAdminFeatures && !isArchived && isPublished !== null && isPublished !== undefined && onTogglePublish;
@@ -243,7 +247,7 @@ export function EntityBanner({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={heroImageFullUrl}
-            alt={imageAlt || `${title} hero image`}
+            alt={imageAlt || t('heroImageAlt', { name: title })}
             className="rsp-club-hero-image"
           />
           <div className="rsp-club-hero-overlay" />
@@ -269,9 +273,9 @@ export function EntityBanner({
               onClick={onTogglePublish}
               disabled={isTogglingPublish}
               className={`rsp-entity-banner-toggle-btn ${isPublished ? 'rsp-entity-banner-toggle-btn--unpublish' : 'rsp-entity-banner-toggle-btn--publish'}`}
-              aria-label={isPublished ? `Unpublish ${title}` : `Publish ${title}`}
+              aria-label={isPublished ? t('unpublishEntity', { name: title }) : t('publishEntity', { name: title })}
             >
-              {isTogglingPublish ? 'Processing...' : (isPublished ? 'Unpublish' : 'Publish')}
+              {isTogglingPublish ? t('processing') : (isPublished ? t('unpublish') : t('publish'))}
             </button>
           )}
           {actions}
@@ -284,7 +288,7 @@ export function EntityBanner({
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
               src={logoFullUrl}
-              alt={logoAlt || `${title} logo`}
+              alt={logoAlt || t('logoAlt', { name: title })}
               className="rsp-club-hero-logo"
             />
           )}
@@ -305,13 +309,13 @@ export function EntityBanner({
           <button
             onClick={onEdit}
             className="rsp-entity-banner-edit-btn"
-            aria-label={`Edit ${title} details`}
+            aria-label={t('editDetails', { name: title })}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
-            Edit
+            {t('edit')}
           </button>
         )}
       </div>

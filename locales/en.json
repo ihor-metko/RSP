@@ -87,6 +87,23 @@
     "unsavedChangesMessage": "You have unsaved changes. Do you want to discard them?",
     "discardChanges": "Discard Changes"
   },
+  "entityBanner": {
+    "edit": "Edit",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "processing": "Processing...",
+    "published": "Published",
+    "unpublished": "Unpublished",
+    "archived": "Archived",
+    "active": "Active",
+    "inactive": "Inactive",
+    "draft": "Draft",
+    "editDetails": "Edit {name} details",
+    "publishEntity": "Publish {name}",
+    "unpublishEntity": "Unpublish {name}",
+    "heroImageAlt": "{name} hero image",
+    "logoAlt": "{name} logo"
+  },
   "pagination": {
     "showing": "Showing {start} to {end} of {total}",
     "previous": "Previous",
