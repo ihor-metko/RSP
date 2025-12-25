@@ -23,12 +23,6 @@
   }
 }
 
-@media (min-width: 1280px) {
-  .im-operations-club-cards-grid {
-    @apply grid-cols-4;
-  }
-}
-
 /* Card Wrapper - makes card clickable and adds selection state */
 .im-operations-club-card-wrapper {
   @apply relative cursor-pointer;
@@ -65,10 +59,13 @@
 }
 
 @keyframes pulse-border {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.7;
     transform: scale(1.01);

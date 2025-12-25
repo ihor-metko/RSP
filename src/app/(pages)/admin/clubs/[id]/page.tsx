@@ -11,12 +11,16 @@ import { ClubCourtsQuickList } from "@/components/admin/club/ClubCourtsQuickList
 import { ClubGalleryView } from "@/components/admin/club/ClubGalleryView";
 import { ClubCoachesView } from "@/components/admin/club/ClubCoachesView";
 import { ClubAdminsSection } from "@/components/admin/club/ClubAdminsSection";
+import { ClubEditor } from "@/components/admin/ClubEditor.client";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { GalleryModal } from "@/components/GalleryModal";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
+import { EntityEditStepper } from "@/components/admin/EntityEditStepper.client";
+import { BasicInfoStep, AddressStep } from "@/components/admin/ClubSteps";
+import { LogoStep, BannerStep } from "@/components/admin/SharedSteps";
 
 import { useUserStore } from "@/stores/useUserStore";
 import "./page.css";
@@ -38,6 +42,7 @@ export default function AdminClubDetailPage({
 
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -157,6 +162,10 @@ export default function AdminClubDetailPage({
     }
   };
 
+  const handleOpenDetailsEdit = () => {
+    setIsEditingDetails(true);
+  };
+
   // Determine if user can delete clubs (only root admin)
   const canDelete = adminStatus?.adminType === "root_admin";
 
@@ -255,6 +264,7 @@ export default function AdminClubDetailPage({
         logoAlt={`${club.name} logo`}
         isPublished={club.isPublic}
         onTogglePublish={handleTogglePublish}
+        onEdit={handleOpenDetailsEdit}
       />
 
       {/* Main Content */}
@@ -465,6 +475,17 @@ export default function AdminClubDetailPage({
         currentIndex={galleryIndex}
         onNavigate={handleGalleryNavigate}
       />
+
+      {/* Club Editor Modal */}
+      {club && (
+        <ClubEditor
+          isOpen={isEditingDetails}
+          onClose={() => setIsEditingDetails(false)}
+          club={club}
+          onUpdate={handleSectionUpdate}
+          onRefresh={fetchClub}
+        />
+      )}
     </main>
   );
 }

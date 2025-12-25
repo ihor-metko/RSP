@@ -1,0 +1,53 @@
+.im-logo-step-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.im-logo-preview-container {
+  padding: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--im-border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  transition: background-color 0.2s ease;
+}
+
+.im-logo-preview-container--light {
+  background-color: #ffffff;
+}
+
+.im-logo-preview-container--dark {
+  background-color: #1a1a1a;
+}
+
+.im-logo-preview-image {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+.im-logo-preview-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  width: 100%;
+}
+
+.im-logo-preview-placeholder-text {
+  font-size: 0.875rem;
+  color: var(--im-text-secondary);
+  text-align: center;
+}
+
+.im-logo-helper-spacing {
+  margin-top: 0.5rem;
+}
+
+.im-logo-checkbox-helper {
+  margin-top: 0.5rem;
+  margin-left: 1.75rem;
+}

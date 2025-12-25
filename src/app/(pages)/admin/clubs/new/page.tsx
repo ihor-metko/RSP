@@ -8,7 +8,7 @@ import { useUserStore } from "@/stores/useUserStore";
 
 export default function NewClubPage() {
   const router = useRouter();
-  
+
   // Get admin status from user store
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
@@ -35,7 +35,7 @@ export default function NewClubPage() {
 
   if (isLoadingStore) {
     return (
-      <main className="rsp-container p-8">
+      <main className="rsp-container p-6">
         <FormSkeleton fields={8} showButton />
       </main>
     );

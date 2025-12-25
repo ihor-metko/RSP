@@ -17,7 +17,13 @@ interface EntityData {
   name: string;
   slug: string;
   description?: string | null;
+  shortDescription?: string | null;
   address?: string | null;
+  location?: string | null;
+  city?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   logo?: string | null;
   heroImage?: string | null;
   metadata?: Record<string, unknown> | null;
@@ -37,6 +43,7 @@ interface StepComponentProps {
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
   onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
+  translationNamespace?: string;
 }
 
 interface EntityEditStepperProps {
@@ -50,8 +57,13 @@ interface EntityEditStepperProps {
     name: string;
     slug: string;
     description: string | null;
-    address: string;
-    metadata: Record<string, unknown>;
+    address?: string;
+    location?: string;
+    city?: string;
+    country?: string;
+    latitude?: number;
+    longitude?: number;
+    metadata?: Record<string, unknown>;
     logo?: File | null;
     heroImage?: File | null;
   }) => Promise<void>;
@@ -120,35 +132,59 @@ export function EntityEditStepper({
         longitude?: number;
       } | null;
 
-      // Parse address to extract components
-      const addressParts = entityData.address?.split(", ") || [];
-      const street = metadata?.street || addressParts[0] || "";
-      const city = addressParts.length > 1 ? addressParts[1] : "";
-      const postalCode = addressParts.length > 2 ? addressParts[2] : "";
-      const country = metadata?.country || (addressParts.length > 3 ? addressParts[3] : "");
+      // Handle Organizations (use address field with components)
+      if (entityData.address) {
+        // Parse address to extract components
+        const addressParts = entityData.address?.split(", ") || [];
+        const street = metadata?.street || addressParts[0] || "";
+        const city = addressParts.length > 1 ? addressParts[1] : "";
+        const postalCode = addressParts.length > 2 ? addressParts[2] : "";
+        const country = metadata?.country || (addressParts.length > 3 ? addressParts[3] : "");
 
-      setBasicInfoData({
-        name: entityData.name,
-        slug: entityData.slug,
-        description: entityData.description || "",
-      });
+        setBasicInfoData({
+          name: entityData.name,
+          slug: entityData.slug,
+          description: entityData.description || "",
+        });
 
-      setAddressData({
-        country,
-        city,
-        postalCode,
-        street,
-        latitude: metadata?.latitude?.toString() || "",
-        longitude: metadata?.longitude?.toString() || "",
-      });
+        setAddressData({
+          country,
+          city,
+          postalCode,
+          street,
+          latitude: metadata?.latitude?.toString() || "",
+          longitude: metadata?.longitude?.toString() || "",
+        });
+      }
+      // Handle Clubs (use location, city, country fields directly)
+      else {
+        setBasicInfoData({
+          name: entityData.name,
+          slug: entityData.slug,
+          description: entityData.shortDescription || "",
+        });
+
+        setAddressData({
+          country: entityData.country || "",
+          city: entityData.city || "",
+          postalCode: "",
+          street: entityData.location || "",
+          latitude: entityData.latitude?.toString() || "",
+          longitude: entityData.longitude?.toString() || "",
+        });
+      }
 
       // Set existing images as URLs (not files)
+      // Try to get logo metadata from entity data
+      const logoMetadata = entityData.metadata as { logoMetadata?: { logoTheme?: 'light' | 'dark'; secondLogo?: string | null; secondLogoTheme?: 'light' | 'dark'; } } | null;
+
       setLogoData({
+        logoCount: logoMetadata?.logoMetadata?.secondLogo ? 'two' : 'one',
         logo: entityData.logo ? { url: entityData.logo, key: "", preview: entityData.logo } : null,
-        logoTheme: 'light',
+        logoTheme: logoMetadata?.logoMetadata?.logoTheme || 'light',
         logoBackground: 'light',
-        hasSecondLogo: false,
-        secondLogo: null,
+        secondLogo: logoMetadata?.logoMetadata?.secondLogo ? { url: logoMetadata.logoMetadata.secondLogo, key: "", preview: logoMetadata.logoMetadata.secondLogo } : null,
+        secondLogoTheme: logoMetadata?.logoMetadata?.secondLogoTheme || 'dark',
       });
 
       setBannerData({
@@ -270,8 +306,8 @@ export function EntityEditStepper({
 
     if (step === 3) {
       // Logo validation - logo is optional for editing
-      // If hasSecondLogo is checked, secondLogo is optional but can be validated if needed
-      if (logoData.hasSecondLogo && !logoData.secondLogo && !logoData.logo) {
+      // If logoCount is 'two', secondLogo is optional but can be validated if needed
+      if (logoData.logoCount === 'two' && !logoData.secondLogo && !logoData.logo) {
         // If user enabled second logo but didn't upload either logo, show a warning (optional)
         // For now, we allow this as logos are optional
       }
@@ -284,7 +320,7 @@ export function EntityEditStepper({
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [basicInfoData, addressData, logoData.hasSecondLogo, logoData.logo, logoData.secondLogo, t]);
+  }, [basicInfoData, addressData, logoData.logoCount, logoData.logo, logoData.secondLogo, t]);
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
@@ -309,33 +345,52 @@ export function EntityEditStepper({
     setError(null);
 
     try {
-      // Build full address from components
-      const addressParts = [
-        addressData.street.trim(),
-        addressData.city.trim(),
-        addressData.postalCode.trim(),
-        addressData.country.trim()
-      ].filter(Boolean);
-      const fullAddress = addressParts.join(", ");
+      // Determine if this is an organization (has 'address' field) or club (has 'location' field)
+      const isOrganization = entityData.address !== undefined;
 
-      // Prepare metadata
-      const metadata: Record<string, unknown> = {
-        country: addressData.country.trim(),
-        street: addressData.street.trim(),
-        latitude: parseFloat(addressData.latitude),
-        longitude: parseFloat(addressData.longitude),
-      };
+      if (isOrganization) {
+        // Organization: Build full address from components
+        const addressParts = [
+          addressData.street.trim(),
+          addressData.city.trim(),
+          addressData.postalCode.trim(),
+          addressData.country.trim()
+        ].filter(Boolean);
+        const fullAddress = addressParts.join(", ");
 
-      // Call the onSave callback with updated data
-      await onSave({
-        name: basicInfoData.name.trim(),
-        slug: basicInfoData.slug.trim(),
-        description: basicInfoData.description.trim() || null,
-        address: fullAddress,
-        metadata,
-        logo: logoData.logo?.file || null,
-        heroImage: bannerData.heroImage?.file || null,
-      });
+        // Prepare metadata
+        const metadata: Record<string, unknown> = {
+          country: addressData.country.trim(),
+          street: addressData.street.trim(),
+          latitude: parseFloat(addressData.latitude),
+          longitude: parseFloat(addressData.longitude),
+        };
+
+        // Call the onSave callback with updated data (Organization format)
+        await onSave({
+          name: basicInfoData.name.trim(),
+          slug: basicInfoData.slug.trim(),
+          description: basicInfoData.description.trim() || null,
+          address: fullAddress,
+          metadata,
+          logo: logoData.logo?.file || null,
+          heroImage: bannerData.heroImage?.file || null,
+        });
+      } else {
+        // Club: Pass individual location fields
+        await onSave({
+          name: basicInfoData.name.trim(),
+          slug: basicInfoData.slug.trim(),
+          description: basicInfoData.description.trim() || null,
+          location: addressData.street.trim(),
+          city: addressData.city.trim(),
+          country: addressData.country.trim(),
+          latitude: parseFloat(addressData.latitude),
+          longitude: parseFloat(addressData.longitude),
+          logo: logoData.logo?.file || null,
+          heroImage: bannerData.heroImage?.file || null,
+        });
+      }
 
       onClose();
     } catch (err) {
@@ -382,7 +437,7 @@ export function EntityEditStepper({
         break;
       default:
         formData = {};
-        onChange = () => {};
+        onChange = () => { };
     }
 
     return (
@@ -391,6 +446,7 @@ export function EntityEditStepper({
         fieldErrors={fieldErrors}
         isSubmitting={isSubmitting}
         onChange={onChange}
+        translationNamespace={translationNamespace}
       />
     );
   };

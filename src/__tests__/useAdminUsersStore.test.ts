@@ -25,6 +25,7 @@ describe("useAdminUsersStore", () => {
       pagination: null,
       filters: {},
       lastFetchedAt: null,
+      lastFetchParams: null,
       _inflightFetchUsers: null,
       _inflightFetchUserById: null,
     });
@@ -48,6 +49,7 @@ describe("useAdminUsersStore", () => {
       expect(result.current.pagination).toBeNull();
       expect(result.current.filters).toEqual({});
       expect(result.current.lastFetchedAt).toBeNull();
+      expect(result.current.lastFetchParams).toBeNull();
     });
   });
 
@@ -203,20 +205,127 @@ describe("useAdminUsersStore", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    it("should skip fetch if already loaded and not forcing", async () => {
+    it("should skip fetch if already loaded with same parameters and not forcing", async () => {
+      const mockResponse: AdminUsersListResponse = {
+        users: [
+          {
+            id: "1",
+            name: "User 1",
+            email: "user1@example.com",
+            role: "user",
+            organization: null,
+            club: null,
+            blocked: false,
+            createdAt: "2024-01-01",
+            lastActivity: "2024-01-01",
+          },
+        ],
+        pagination: {
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          totalPages: 1,
+        },
+      };
+
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockResponse,
+      });
+
       const { result } = renderHook(() => useAdminUsersStore());
 
-      // Set hasFetched to true
-      act(() => {
-        useAdminUsersStore.setState({ hasFetched: true, users: [] });
-      });
-
+      // First fetch with specific parameters
       await act(async () => {
-        await result.current.fetchUsers();
+        await result.current.fetchUsers({ page: 1, pageSize: 10, filters: { search: "test" } });
       });
 
-      // fetch should not have been called
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.hasFetched).toBe(true);
+
+      // Second fetch with SAME parameters - should not call API
+      await act(async () => {
+        await result.current.fetchUsers({ page: 1, pageSize: 10, filters: { search: "test" } });
+      });
+
+      // fetch should still only have been called once
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("should refetch when parameters change", async () => {
+      const mockResponse1: AdminUsersListResponse = {
+        users: [
+          {
+            id: "1",
+            name: "User 1",
+            email: "user1@example.com",
+            role: "user",
+            organization: null,
+            club: null,
+            blocked: false,
+            createdAt: "2024-01-01",
+            lastActivity: "2024-01-01",
+          },
+        ],
+        pagination: {
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          totalPages: 1,
+        },
+      };
+
+      const mockResponse2: AdminUsersListResponse = {
+        users: [
+          {
+            id: "2",
+            name: "User 2",
+            email: "user2@example.com",
+            role: "user",
+            organization: null,
+            club: null,
+            blocked: false,
+            createdAt: "2024-01-02",
+            lastActivity: "2024-01-02",
+          },
+        ],
+        pagination: {
+          page: 1,
+          pageSize: 10,
+          totalCount: 1,
+          totalPages: 1,
+        },
+      };
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse1,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockResponse2,
+        });
+
+      const { result } = renderHook(() => useAdminUsersStore());
+
+      // First fetch
+      await act(async () => {
+        await result.current.fetchUsers({ page: 1, pageSize: 10, filters: { search: "test" } });
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(result.current.users).toHaveLength(1);
+      expect(result.current.users[0].id).toBe("1");
+
+      // Second fetch with DIFFERENT parameters - should call API again
+      await act(async () => {
+        await result.current.fetchUsers({ page: 2, pageSize: 10, filters: { search: "test" } });
+      });
+
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+      expect(result.current.users).toHaveLength(1);
+      expect(result.current.users[0].id).toBe("2");
     });
 
     it("should force fetch when force option is true", async () => {

@@ -180,7 +180,7 @@ export default function AdminUsersPage() {
 
   // showToast function removed as we no longer show in-page toasts
 
-  const fetchUsers = useCallback(async () => {
+  const fetchUsers = useCallback(async (forceRefresh = false) => {
     try {
       await fetchUsersFromStore({
         page,
@@ -201,7 +201,8 @@ export default function AdminUsersPage() {
           showOnlyAdmins: filters.showOnlyAdmins || undefined,
           showOnlyUsers: filters.showOnlyUsers || undefined,
         },
-        force: true,
+        // Only force refresh when explicitly requested (e.g., after creating a user)
+        force: forceRefresh,
       });
       setErrorKey("");
     } catch (err) {
@@ -250,8 +251,8 @@ export default function AdminUsersPage() {
         context: "root",
         allowedRoles: ["ORGANIZATION_ADMIN", "CLUB_ADMIN"],
         onSuccess: (userId) => {
-          // Refresh users list after successful creation
-          fetchUsers();
+          // Force refresh users list after successful creation
+          fetchUsers(true);
           router.push(`/admin/users/${userId}`);
         },
       };
@@ -262,8 +263,8 @@ export default function AdminUsersPage() {
         defaultOrgId: adminStatus.managedIds[0],
         allowedRoles: ["ORGANIZATION_ADMIN", "CLUB_ADMIN"],
         onSuccess: () => {
-          // Refresh users list after successful creation
-          fetchUsers();
+          // Force refresh users list after successful creation
+          fetchUsers(true);
         },
       };
     }
@@ -273,7 +274,7 @@ export default function AdminUsersPage() {
       context: "root",
       allowedRoles: ["ORGANIZATION_ADMIN"],
       onSuccess: () => {
-        fetchUsers();
+        fetchUsers(true);
       },
     };
   }, [fetchUsers, router]);

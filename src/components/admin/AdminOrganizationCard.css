@@ -258,18 +258,6 @@
   }
 }
 
-@media (min-width: 1280px) {
-  .im-admin-orgs-grid {
-    @apply grid-cols-3;
-  }
-}
-
-@media (min-width: 1536px) {
-  .im-admin-orgs-grid {
-    @apply grid-cols-4;
-  }
-}
-
 /* ===== Loading Skeleton for Organization Cards ===== */
 .im-admin-org-card-skeleton {
   @apply flex flex-col rounded-xl overflow-hidden animate-pulse;

@@ -9,7 +9,7 @@ import { useUserStore } from "@/stores/useUserStore";
 export default function NewOrganizationPage() {
   const router = useRouter();
   const t = useTranslations("common");
-  
+
   // Get admin status from user store
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
@@ -34,7 +34,7 @@ export default function NewOrganizationPage() {
 
   if (isLoadingStore) {
     return (
-      <main className="rsp-container p-8">
+      <main className="rsp-container p-6">
         <div className="rsp-loading text-center">{t("loading")}</div>
       </main>
     );

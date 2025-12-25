@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * EntityBanner - Reusable banner/hero component for entity detail pages
  * Used for Club Detail and Organization Detail pages

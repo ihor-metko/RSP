@@ -2,7 +2,7 @@
 
 /* ===== Root Admin Dashboard Page Layout ===== */
 .im-root-dashboard-page {
-  @apply p-8 max-w-7xl mx-auto;
+  @apply p-6 max-w-7xl mx-auto;
   width: inherit;
   background-color: var(--rsp-background);
   color: var(--rsp-foreground);
