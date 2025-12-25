@@ -1,0 +1,76 @@
+/* RadioGroup Styles */
+
+.im-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.im-radio-group-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--im-text-primary);
+}
+
+.im-radio-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.75rem;
+  border: 1px solid var(--im-border-color);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  background-color: var(--im-card-bg);
+}
+
+.im-radio-option:hover {
+  border-color: var(--im-accent);
+  background-color: var(--im-hover-bg);
+}
+
+.im-radio-option--selected {
+  border-color: var(--im-accent);
+  background-color: var(--im-accent-light);
+}
+
+.im-radio-option input[type="radio"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--im-accent);
+  flex-shrink: 0;
+}
+
+.im-radio-option-content {
+  margin-left: 0.75rem;
+  flex: 1;
+}
+
+.im-radio-option-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--im-text-primary);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.im-radio-option-description {
+  font-size: 0.8125rem;
+  color: var(--im-text-secondary);
+  line-height: 1.4;
+}
+
+.im-radio-option:disabled,
+.im-radio-option--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.im-radio-option:disabled:hover,
+.im-radio-option--disabled:hover {
+  border-color: var(--im-border-color);
+  background-color: var(--im-card-bg);
+}
