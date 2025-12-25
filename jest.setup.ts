@@ -16,6 +16,23 @@ jest.mock("next-intl", () => ({
         pageSize: "Items per page",
         page: "Page",
       },
+      entityBanner: {
+        edit: "Edit",
+        publish: "Publish",
+        unpublish: "Unpublish",
+        processing: "Processing...",
+        published: "Published",
+        unpublished: "Unpublished",
+        archived: "Archived",
+        active: "Active",
+        inactive: "Inactive",
+        draft: "Draft",
+        editDetails: "Edit {name} details",
+        publishEntity: "Publish {name}",
+        unpublishEntity: "Unpublish {name}",
+        heroImageAlt: "{name} hero image",
+        logoAlt: "{name} logo",
+      },
     };
     
     // Get the translation template from the appropriate namespace
