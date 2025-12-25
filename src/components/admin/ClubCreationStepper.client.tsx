@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
@@ -94,6 +94,7 @@ const STEPS = [
 
 export function ClubCreationStepper() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const t = useTranslations("admin.clubs.stepper");
   const tNav = useTranslations("admin.clubs.stepper.navigation");
   const tErrors = useTranslations("admin.clubs.stepper.errors");
@@ -121,11 +122,23 @@ export function ClubCreationStepper() {
     setTimeout(() => setToast(null), 5000);
   }, []);
 
-  // Fetch organization for organization admin on mount
+  // Fetch organization from URL parameter or from admin status
   useEffect(() => {
     const fetchOrgForAdmin = async () => {
-      // If organization admin, fetch their organization from store
-      if (adminStatus?.adminType === "organization_admin" && adminStatus.managedIds.length > 0) {
+      // Check if organizationId is in URL parameters (from organization detail page)
+      const urlOrgId = searchParams.get("organizationId");
+      
+      if (urlOrgId) {
+        // Prefill from URL parameter (takes precedence)
+        try {
+          await fetchOrganizationById(urlOrgId);
+          // Don't access currentOrg here - let separate useEffect handle it
+        } catch {
+          // If org fetch fails, set organization ID only
+          setFormData(prev => ({ ...prev, organizationId: urlOrgId }));
+        }
+      } else if (adminStatus?.adminType === "organization_admin" && adminStatus.managedIds.length > 0) {
+        // If organization admin, fetch their organization from store
         const orgId = adminStatus.managedIds[0];
         try {
           await fetchOrganizationById(orgId);
@@ -139,16 +152,21 @@ export function ClubCreationStepper() {
     };
 
     fetchOrgForAdmin();
-  }, [adminStatus, fetchOrganizationById]);
+  }, [adminStatus, fetchOrganizationById, searchParams]);
 
-  // Update prefilledOrg when currentOrg changes (for organization admin)
+  // Update prefilledOrg when currentOrg changes
   useEffect(() => {
-    if (currentOrg && adminStatus?.adminType === "organization_admin") {
-      const userOrg = toOrganizationOption(currentOrg);
-      setPrefilledOrg(userOrg);
-      setFormData(prev => ({ ...prev, organizationId: userOrg.id }));
+    const urlOrgId = searchParams.get("organizationId");
+    
+    if (currentOrg) {
+      // If we have currentOrg loaded (either from URL or admin status)
+      if (urlOrgId === currentOrg.id || (adminStatus?.adminType === "organization_admin" && !urlOrgId)) {
+        const userOrg = toOrganizationOption(currentOrg);
+        setPrefilledOrg(userOrg);
+        setFormData(prev => ({ ...prev, organizationId: userOrg.id }));
+      }
     }
-  }, [currentOrg, adminStatus?.adminType]);
+  }, [currentOrg, adminStatus?.adminType, searchParams]);
 
   // Search organizations for root admin (use store with filtering)
   const handleOrgSearch = useCallback(async () => {
@@ -408,8 +426,10 @@ export function ClubCreationStepper() {
   // Render step content
   const renderStepContent = () => {
     // Build organization context for GeneralInfoStep
+    // If organizationId is in URL, make it non-editable (locked to that organization)
+    const urlOrgId = searchParams.get("organizationId");
     const orgContext = adminStatus ? {
-      isEditable: adminStatus.adminType === "root_admin",
+      isEditable: adminStatus.adminType === "root_admin" && !urlOrgId,
       prefilledOrg: prefilledOrg,
       isLoading: isLoadingOrgs,
       organizations: toOrganizationOptions(organizations),

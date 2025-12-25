@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, EntityBanner, MetricCardSkeleton, OrgInfoCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton, ImageUpload } from "@/components/ui";
+import { Button, Input, Modal, EntityBanner, MetricCardSkeleton, OrgInfoCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
@@ -83,14 +83,6 @@ export default function OrganizationDetailPage() {
   const [changingOwner, setChangingOwner] = useState(false);
 
 
-
-  // Image upload modals
-  const [isEditingLogo, setIsEditingLogo] = useState(false);
-  const [isEditingBanner, setIsEditingBanner] = useState(false);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
-  const [imageUploadError, setImageUploadError] = useState("");
 
   // Publication toggle
   const [isTogglingPublication, setIsTogglingPublication] = useState(false);
@@ -310,153 +302,6 @@ export default function OrganizationDetailPage() {
   };
 
 
-
-  // Image upload handlers
-  const handleOpenLogoEdit = () => {
-    if (!org) return;
-    // Initialize with current logo URL (not data URL)
-    setLogoPreview(org.logo || null);
-    setImageUploadError("");
-    setIsEditingLogo(true);
-  };
-
-  const handleOpenBannerEdit = () => {
-    if (!org) return;
-    // Initialize with current banner URL (not data URL)
-    setBannerPreview(org.heroImage || null);
-    setImageUploadError("");
-    setIsEditingBanner(true);
-  };
-
-  const handleLogoChange = (dataUrl: string | null) => {
-    setLogoPreview(dataUrl);
-    // Extract file from ImageUpload if available (we'll need to modify ImageUpload to also return the file)
-    // For now, we'll handle this by converting the data URL back to a file when saving
-  };
-
-  const handleBannerChange = (dataUrl: string | null) => {
-    setBannerPreview(dataUrl);
-    // Extract file from ImageUpload if available
-  };
-
-  const uploadImageFile = async (file: File, imageType: 'logo' | 'heroImage'): Promise<string> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("type", imageType);
-
-    const response = await fetch(`/api/images/organizations/${orgId}/upload`, {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || "Upload failed");
-    }
-
-    const result = await response.json();
-    return result.url;
-  };
-
-  const dataUrlToFile = async (dataUrl: string, mimeType: string = 'image/jpeg'): Promise<File> => {
-    const response = await fetch(dataUrl);
-    const blob = await response.blob();
-    // Determine file extension from MIME type
-    const extension = mimeType.split('/')[1] || 'jpg';
-    const filename = `image.${extension}`;
-    return new File([blob], filename, { type: blob.type });
-  };
-
-  const handleSaveLogo = async () => {
-    setImageUploadError("");
-    setUploadingImage(true);
-
-    try {
-      let logoUrl: string | null | undefined = undefined;
-
-      // Check if preview is a new data URL (indicating a new upload)
-      const isNewUpload = logoPreview && logoPreview.startsWith("data:");
-      // Check if image was removed
-      const isRemoved = !logoPreview && org?.logo;
-
-      if (isNewUpload) {
-        // New image selected - convert data URL to file and upload
-        // NOTE: This is a temporary workaround. Ideally, ImageUpload should return
-        // both the preview data URL and the original File object to avoid conversion overhead.
-        // Extract MIME type from data URL
-        const mimeMatch = logoPreview.match(/^data:([^;]+);/);
-        const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-        const file = await dataUrlToFile(logoPreview, mimeType);
-        logoUrl = await uploadImageFile(file, "logo");
-      } else if (isRemoved) {
-        // Image removed
-        logoUrl = null;
-      } else if (logoPreview !== org?.logo) {
-        // Existing URL changed (shouldn't happen, but handle it)
-        logoUrl = logoPreview;
-      }
-
-      // Only update if there's a change
-      if (logoUrl !== undefined) {
-        await updateOrganization(orgId, { logo: logoUrl });
-      }
-
-      showToast(t("orgDetail.logoUpdateSuccess"), "success");
-      setIsEditingLogo(false);
-      // Force refresh to get updated logo
-      await fetchOrgDetail(true);
-    } catch (err) {
-      setImageUploadError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleSaveBanner = async () => {
-    setImageUploadError("");
-    setUploadingImage(true);
-
-    try {
-      let bannerUrl: string | null | undefined = undefined;
-
-      // Check if preview is a new data URL (indicating a new upload)
-      const isNewUpload = bannerPreview && bannerPreview.startsWith("data:");
-      // Check if image was removed
-      const isRemoved = !bannerPreview && org?.heroImage;
-
-      if (isNewUpload) {
-        // New image selected - convert data URL to file and upload
-        // NOTE: This is a temporary workaround. Ideally, ImageUpload should return
-        // both the preview data URL and the original File object to avoid conversion overhead.
-        // Extract MIME type from data URL
-        const mimeMatch = bannerPreview.match(/^data:([^;]+);/);
-        const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-        const file = await dataUrlToFile(bannerPreview, mimeType);
-        bannerUrl = await uploadImageFile(file, "heroImage");
-      } else if (isRemoved) {
-        // Image removed
-        bannerUrl = null;
-      } else if (bannerPreview !== org?.heroImage) {
-        // Existing URL changed (shouldn't happen, but handle it)
-        bannerUrl = bannerPreview;
-      }
-
-      // Only update if there's a change
-      if (bannerUrl !== undefined) {
-        await updateOrganization(orgId, { heroImage: bannerUrl });
-      }
-
-      showToast(t("orgDetail.bannerUpdateSuccess"), "success");
-      setIsEditingBanner(false);
-      // Force refresh to get updated banner
-      await fetchOrgDetail(true);
-    } catch (err) {
-      setImageUploadError(err instanceof Error ? err.message : t("organizations.errors.updateFailed"));
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
   // Publication toggle handler
   const handleTogglePublication = async () => {
     if (!org) return;
@@ -498,40 +343,20 @@ export default function OrganizationDetailPage() {
           </Button>
         </div>
       ) : org && (
-        <>
-          <EntityBanner
-            title={org.name}
-            subtitle={org.description || null}
-            location={org.address}
-            imageUrl={org.heroImage}
-            logoUrl={org.logo}
-            imageAlt={`${org.name} banner`}
-            logoAlt={`${org.name} logo`}
-            isPublished={org.isPublic ?? true}
-            onTogglePublish={handleTogglePublication}
-            isTogglingPublish={isTogglingPublication}
-            isArchived={!!org.archivedAt}
-            onEdit={!org.archivedAt ? handleOpenDetailsEdit : undefined}
-          />
-          {!org.archivedAt && (
-            <div className="im-banner-actions">
-              <Button
-                variant="outline"
-                size="small"
-                onClick={handleOpenLogoEdit}
-              >
-                {org.logo ? t("orgDetail.updateLogo") : t("orgDetail.addLogo")}
-              </Button>
-              <Button
-                variant="outline"
-                size="small"
-                onClick={handleOpenBannerEdit}
-              >
-                {org.heroImage ? t("orgDetail.updateBanner") : t("orgDetail.addBanner")}
-              </Button>
-            </div>
-          )}
-        </>
+        <EntityBanner
+          title={org.name}
+          subtitle={org.description || null}
+          location={org.address}
+          imageUrl={org.heroImage}
+          logoUrl={org.logo}
+          imageAlt={`${org.name} banner`}
+          logoAlt={`${org.name} logo`}
+          isPublished={org.isPublic ?? true}
+          onTogglePublish={handleTogglePublication}
+          isTogglingPublish={isTogglingPublication}
+          isArchived={!!org.archivedAt}
+          onEdit={!org.archivedAt ? handleOpenDetailsEdit : undefined}
+        />
       )}
 
       <div className="rsp-club-content">
@@ -661,14 +486,48 @@ export default function OrganizationDetailPage() {
                   </svg>
                 </div>
                 <h2 className="im-section-title">{t("orgDetail.clubs")}</h2>
+                {!org.archivedAt && (
+                  <div className="im-section-actions">
+                    <Button
+                      variant="primary"
+                      size="small"
+                      onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
+                    >
+                      {t("orgDetail.createNewClub")}
+                    </Button>
+                  </div>
+                )}
               </div>
               {(org.clubsPreview ?? []).length === 0 ? (
-                <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
+                <div className="im-preview-empty-state">
+                  <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
+                  {!org.archivedAt && (
+                    <Button
+                      variant="primary"
+                      size="small"
+                      onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
+                    >
+                      {t("orgDetail.createFirstClub")}
+                    </Button>
+                  )}
+                </div>
               ) : (
                 <>
                   <div className="im-clubs-preview-list">
                     {(org.clubsPreview ?? []).map((club) => (
-                      <div key={club.id} className="im-club-preview-item">
+                      <div
+                        key={club.id}
+                        className="im-club-preview-item im-club-preview-item--clickable"
+                        onClick={() => router.push(`/admin/clubs/${club.id}`)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            router.push(`/admin/clubs/${club.id}`);
+                          }
+                        }}
+                      >
                         <div className="im-club-preview-info">
                           <span className="im-club-preview-name">{club.name}</span>
                           <span className="im-club-preview-meta">
@@ -949,64 +808,6 @@ export default function OrganizationDetailPage() {
             </div>
           </div>
         </Modal> */}
-
-        {/* Logo Upload Modal */}
-        <Modal
-          isOpen={isEditingLogo}
-          onClose={() => setIsEditingLogo(false)}
-          title={t("orgDetail.editLogo")}
-        >
-          {imageUploadError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-              {imageUploadError}
-            </div>
-          )}
-          <ImageUpload
-            currentImage={logoPreview}
-            label={t("orgDetail.organizationLogo")}
-            onChange={handleLogoChange}
-            isLoading={uploadingImage}
-            aspectRatio="1:1"
-            maxSizeMB={5}
-          />
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="outline" onClick={() => setIsEditingLogo(false)} disabled={uploadingImage}>
-              {t("common.cancel")}
-            </Button>
-            <Button onClick={handleSaveLogo} disabled={uploadingImage}>
-              {uploadingImage ? t("common.processing") : t("common.save")}
-            </Button>
-          </div>
-        </Modal>
-
-        {/* Banner Upload Modal */}
-        <Modal
-          isOpen={isEditingBanner}
-          onClose={() => setIsEditingBanner(false)}
-          title={t("orgDetail.editBanner")}
-        >
-          {imageUploadError && (
-            <div className="rsp-error bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-400 px-4 py-3 rounded-sm mb-4">
-              {imageUploadError}
-            </div>
-          )}
-          <ImageUpload
-            currentImage={bannerPreview}
-            label={t("orgDetail.organizationBanner")}
-            onChange={handleBannerChange}
-            isLoading={uploadingImage}
-            aspectRatio="16:9"
-            maxSizeMB={5}
-          />
-          <div className="flex justify-end gap-2 mt-4">
-            <Button type="button" variant="outline" onClick={() => setIsEditingBanner(false)} disabled={uploadingImage}>
-              {t("common.cancel")}
-            </Button>
-            <Button onClick={handleSaveBanner} disabled={uploadingImage}>
-              {uploadingImage ? t("common.processing") : t("common.save")}
-            </Button>
-          </div>
-        </Modal>
       </div>
     </main>
   );
