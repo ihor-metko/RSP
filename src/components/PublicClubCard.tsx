@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button, IMLink } from "@/components/ui";
+import { Button, IMLink, EntityLogo } from "@/components/ui";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import "./ClubsList.css";
 
@@ -89,14 +89,15 @@ export function PublicClubCard({ club, isRoot = false }: PublicClubCardProps) {
             alt={`${club.name} main image`}
             className="rsp-club-hero-image"
           />
-        ) : hasLogo ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={logoUrl as string}
+        ) : (
+          <EntityLogo
+            logoUrl={club.logo}
             alt={`${club.name} logo`}
             className="rsp-club-hero-image rsp-club-hero-image--logo"
           />
-        ) : (
+        )}
+
+        {!mainImage && !hasLogo && (
           <div className="rsp-club-image-placeholder" aria-hidden="true">
             <span className="rsp-club-image-placeholder-text">
               {club.name.charAt(0).toUpperCase()}

@@ -63,6 +63,8 @@ export { NotificationsDropdown } from "./NotificationsDropdown";
 export type { NotificationsDropdownProps } from "./NotificationsDropdown";
 export { EntityBanner } from "./EntityBanner";
 export type { EntityBannerProps } from "./EntityBanner";
+export { EntityLogo } from "./EntityLogo";
+export type { EntityLogoProps, EntityLogoMetadata } from "./EntityLogo";
 export { DateInput } from "./DateInput";
 export { CustomCalendar } from "./CustomCalendar";
 export { Portal } from "./Portal";
