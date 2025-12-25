@@ -1319,7 +1319,14 @@
       "firstLogo": "Перший логотип",
       "firstLogoThemeLabel": "Тема першого логотипу",
       "secondLogoThemeLabel": "Тема другого логотипу",
-      "logoThemeHelperText": "Виберіть тему для оптимального відображення логотипу"
+      "logoThemeHelperText": "Виберіть тему для оптимального відображення логотипу",
+      "bannerAlignment": "Вирівнювання банера",
+      "bannerAlignmentTop": "Верх",
+      "bannerAlignmentTopDesc": "Фокус на верхній частині зображення",
+      "bannerAlignmentCenter": "Центр",
+      "bannerAlignmentCenterDesc": "Фокус на центрі зображення",
+      "bannerAlignmentBottom": "Низ",
+      "bannerAlignmentBottomDesc": "Фокус на нижній частині зображення"
     },
     "errors": {
       "createFailed": "Не вдалося створити організацію",

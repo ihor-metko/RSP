@@ -359,10 +359,8 @@ export function OrganizationCreationStepper() {
         metadata.logoMetadata = logoMetadata;
       }
 
-      // Add banner alignment metadata
-      if (formData.heroImage || formData.bannerAlignment) {
-        metadata.bannerAlignment = formData.bannerAlignment;
-      }
+      // Add banner alignment metadata (always save, even if no image uploaded yet)
+      metadata.bannerAlignment = formData.bannerAlignment;
 
       // Prepare data for submission (without images - they'll be uploaded separately)
       const submitData = {
