@@ -118,8 +118,10 @@ export function EntityEditStepper({
 
   const [bannerData, setBannerData] = useState<{
     heroImage: UploadedFile | null;
+    bannerAlignment?: 'top' | 'center' | 'bottom';
   }>({
     heroImage: null,
+    bannerAlignment: 'center',
   });
 
   // Initialize form data when modal opens
@@ -176,19 +178,28 @@ export function EntityEditStepper({
 
       // Set existing images as URLs (not files)
       // Try to get logo metadata from entity data
-      const logoMetadata = entityData.metadata as { logoMetadata?: { logoTheme?: 'light' | 'dark'; secondLogo?: string | null; secondLogoTheme?: 'light' | 'dark'; } } | null;
+      const logoMetadata = entityData.metadata as { 
+        logoMetadata?: { 
+          logoTheme?: 'light' | 'dark'; 
+          logoBackground?: 'light' | 'dark';
+          secondLogo?: string | null; 
+          secondLogoTheme?: 'light' | 'dark'; 
+        };
+        bannerAlignment?: 'top' | 'center' | 'bottom';
+      } | null;
 
       setLogoData({
         logoCount: logoMetadata?.logoMetadata?.secondLogo ? 'two' : 'one',
         logo: entityData.logo ? { url: entityData.logo, key: "", preview: entityData.logo } : null,
         logoTheme: logoMetadata?.logoMetadata?.logoTheme || 'light',
-        logoBackground: 'light',
+        logoBackground: logoMetadata?.logoMetadata?.logoBackground || 'light',
         secondLogo: logoMetadata?.logoMetadata?.secondLogo ? { url: logoMetadata.logoMetadata.secondLogo, key: "", preview: logoMetadata.logoMetadata.secondLogo } : null,
         secondLogoTheme: logoMetadata?.logoMetadata?.secondLogoTheme || 'dark',
       });
 
       setBannerData({
         heroImage: entityData.heroImage ? { url: entityData.heroImage, key: "", preview: entityData.heroImage } : null,
+        bannerAlignment: logoMetadata?.bannerAlignment || 'center',
       });
 
       setFieldErrors({});
@@ -366,6 +377,20 @@ export function EntityEditStepper({
           longitude: parseFloat(addressData.longitude),
         };
 
+        // Add logo metadata
+        const logoMetadata: Record<string, unknown> = {
+          logoTheme: logoData.logoTheme,
+          logoCount: logoData.logoCount,
+          logoBackground: logoData.logoBackground,
+        };
+        if (logoData.logoCount === 'two' && logoData.secondLogo) {
+          logoMetadata.secondLogoTheme = logoData.secondLogoTheme;
+        }
+        metadata.logoMetadata = logoMetadata;
+
+        // Add banner alignment
+        metadata.bannerAlignment = bannerData.bannerAlignment;
+
         // Call the onSave callback with updated data (Organization format)
         await onSave({
           name: basicInfoData.name.trim(),
@@ -378,6 +403,23 @@ export function EntityEditStepper({
         });
       } else {
         // Club: Pass individual location fields
+        // Prepare metadata for club
+        const clubMetadata: Record<string, unknown> = {};
+
+        // Add logo metadata
+        const logoMetadata: Record<string, unknown> = {
+          logoTheme: logoData.logoTheme,
+          logoCount: logoData.logoCount,
+          logoBackground: logoData.logoBackground,
+        };
+        if (logoData.logoCount === 'two' && logoData.secondLogo) {
+          logoMetadata.secondLogoTheme = logoData.secondLogoTheme;
+        }
+        clubMetadata.logoMetadata = logoMetadata;
+
+        // Add banner alignment
+        clubMetadata.bannerAlignment = bannerData.bannerAlignment;
+
         await onSave({
           name: basicInfoData.name.trim(),
           slug: basicInfoData.slug.trim(),
@@ -387,6 +429,7 @@ export function EntityEditStepper({
           country: addressData.country.trim(),
           latitude: parseFloat(addressData.latitude),
           longitude: parseFloat(addressData.longitude),
+          metadata: clubMetadata,
           logo: logoData.logo?.file || null,
           heroImage: bannerData.heroImage?.file || null,
         });

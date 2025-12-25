@@ -41,8 +41,10 @@ interface StepperFormData {
   logoBackground: 'light' | 'dark';
   secondLogo: UploadedFile | null;
   secondLogoTheme: 'light' | 'dark';
+  // Step 5: Banner
   heroImage: UploadedFile | null;
-  // Step 5: Assign Owner / SuperAdmin
+  bannerAlignment: 'top' | 'center' | 'bottom';
+  // Step 6: Assign Owner / SuperAdmin
   assignOwner: boolean;
   ownerType: "existing" | "new";
   existingUserId: string;
@@ -74,6 +76,7 @@ const initialFormData: StepperFormData = {
   secondLogo: null,
   secondLogoTheme: "dark",
   heroImage: null,
+  bannerAlignment: "center",
   assignOwner: false,
   ownerType: "existing",
   existingUserId: "",
@@ -346,6 +349,7 @@ export function OrganizationCreationStepper() {
         const logoMetadata: Record<string, unknown> = {
           logoTheme: formData.logoTheme,
           logoCount: formData.logoCount,
+          logoBackground: formData.logoBackground, // Save logo background for display in banners and cards
         };
         
         if (formData.logoCount === 'two' && formData.secondLogo) {
@@ -354,6 +358,9 @@ export function OrganizationCreationStepper() {
         
         metadata.logoMetadata = logoMetadata;
       }
+
+      // Add banner alignment metadata (always save, even if no image uploaded yet)
+      metadata.bannerAlignment = formData.bannerAlignment;
 
       // Prepare data for submission (without images - they'll be uploaded separately)
       const submitData = {
