@@ -243,7 +243,7 @@ export default function AdminCourtsPage() {
 
   if (deferredLoading || isLoadingStore || !isHydrated) {
     return (
-      <main className="rsp-container p-8">
+      <main className="rsp-container p-6">
         <PageHeader
           title={t("admin.courts.title")}
           description={t("admin.courts.subtitle")}
@@ -255,7 +255,7 @@ export default function AdminCourtsPage() {
 
   return (
     <ListControllerProvider controller={controller}>
-      <main className="rsp-container p-8">
+      <main className="rsp-container p-6">
         <PageHeader
           title={t("admin.courts.title")}
           description={t("admin.courts.subtitle")}

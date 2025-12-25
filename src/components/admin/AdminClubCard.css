@@ -228,7 +228,7 @@
 
 /* ===== Admin Clubs Page Layout ===== */
 .im-admin-clubs-page {
-  @apply p-8 mx-auto w-full max-w-7xl;
+  @apply p-6 mx-auto w-full max-w-7xl;
   background-color: var(--rsp-background);
   color: var(--rsp-foreground);
 }
@@ -264,12 +264,6 @@
 @media (min-width: 1024px) {
   .im-admin-clubs-grid {
     @apply grid-cols-3;
-  }
-}
-
-@media (min-width: 1280px) {
-  .im-admin-clubs-grid {
-    @apply grid-cols-4;
   }
 }
 
