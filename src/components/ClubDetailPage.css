@@ -87,15 +87,16 @@
 }
 
 /* Contrast enhancement for universal logos that don't match current theme */
-.rsp-club-hero-logo--contrast-light {
+/* Using more specific selector to avoid !important */
+.rsp-club-hero-logo.rsp-club-hero-logo--contrast-light {
   /* Light background for logos designed for light theme when in dark mode */
-  background-color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.95);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
-.rsp-club-hero-logo--contrast-dark {
+.rsp-club-hero-logo.rsp-club-hero-logo--contrast-dark {
   /* Dark background for logos designed for dark theme when in light mode */
-  background-color: rgba(0, 0, 0, 0.85) !important;
+  background-color: rgba(0, 0, 0, 0.85);
   border-color: rgba(0, 0, 0, 0.3);
 }
 
