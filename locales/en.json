@@ -228,7 +228,98 @@
     "indoorOnly": "Indoor only",
     "clearFilters": "Clear filters",
     "noClubsFound": "No clubs found — try other filters.",
-    "trySuggestion": "Try adjusting your search or check different locations."
+    "trySuggestion": "Try adjusting your search or check different locations.",
+    "editor": {
+      "title": "Edit Club"
+    },
+    "tabs": {
+      "baseInfo": {
+        "tabLabel": "Base Information",
+        "title": "Basic Information",
+        "description": "Description",
+        "organizationName": "Club Name",
+        "organizationNamePlaceholder": "Enter club name",
+        "slug": "Slug",
+        "slugPlaceholder": "club-slug",
+        "slugHint": "Auto-generated from name if empty",
+        "descriptionPlaceholder": "Describe the club..."
+      },
+      "address": {
+        "tabLabel": "Address",
+        "title": "Location & Address",
+        "description": "Edit the club address and map coordinates",
+        "country": "Country",
+        "countryPlaceholder": "Country",
+        "city": "City",
+        "cityPlaceholder": "City",
+        "street": "Street",
+        "streetPlaceholder": "Street address",
+        "postalCode": "Postal Code",
+        "postalCodePlaceholder": "Postal code",
+        "latitude": "Latitude",
+        "latitudePlaceholder": "50.4501",
+        "longitude": "Longitude",
+        "longitudePlaceholder": "30.5234"
+      },
+      "logo": {
+        "tabLabel": "Logo",
+        "title": "Club Logo",
+        "description": "Upload and configure your club logo",
+        "logoCountLabel": "Logo Count",
+        "logoCountOne": "One logo for both themes",
+        "logoCountOneDescription": "Upload a single logo that works well on both light and dark backgrounds",
+        "logoCountTwo": "Two separate logos for different themes",
+        "logoCountTwoDescription": "Upload different logo versions optimized for light and dark themes",
+        "primaryLogo": "Primary Logo",
+        "firstLogo": "First Logo",
+        "primaryLogoHelperText": "Upload a square image. SVG format recommended for best quality.",
+        "logoThemeLabel": "Logo Theme",
+        "firstLogoThemeLabel": "First Logo Theme",
+        "logoThemeLight": "Light Theme",
+        "logoThemeDark": "Dark Theme",
+        "secondLogo": "Second Logo",
+        "secondLogoHelperText": "Upload an alternate logo for the other theme.",
+        "secondLogoThemeLabel": "Second Logo Theme",
+        "logoBackgroundLabel": "Preview Background",
+        "logoBackgroundLight": "Light Background",
+        "logoBackgroundDark": "Dark Background",
+        "logoThemeHelperText": "Select which theme (Light/Dark) this logo is designed for",
+        "logoBackgroundHelperText": "Choose the background color for the preview",
+        "logoPreview": "Logo Preview",
+        "logoPreviewAlt": "Logo preview",
+        "logoPreviewHelperText": "Preview shows how your logo will appear",
+        "noLogoForTheme": "No logo available for this theme/background combination"
+      },
+      "banner": {
+        "tabLabel": "Banner",
+        "title": "Club Banner",
+        "description": "Upload a background banner image for your club profile",
+        "heroImage": "Banner Image",
+        "heroImageHelperText": "Wide image recommended for banner display",
+        "preview": "Preview",
+        "previewAlt": "Banner preview"
+      },
+      "validation": {
+        "nameRequired": "Club name is required",
+        "countryRequired": "Country is required",
+        "cityRequired": "City is required",
+        "streetRequired": "Street is required",
+        "latitudeRequired": "Latitude is required for map location",
+        "latitudeInvalid": "Latitude must be a valid number",
+        "latitudeRange": "Latitude must be between -90 and 90",
+        "longitudeRequired": "Longitude is required for map location",
+        "longitudeInvalid": "Longitude must be a valid number",
+        "longitudeRange": "Longitude must be between -180 and 180"
+      },
+      "errors": {
+        "saveFailed": "Failed to save changes",
+        "imageUploadFailed": "Failed to upload image"
+      },
+      "common": {
+        "save": "Save",
+        "saving": "Saving..."
+      }
+    }
   },
   "clubDetail": {
     "about": "About",
