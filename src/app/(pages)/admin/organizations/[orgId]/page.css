@@ -394,11 +394,6 @@
   outline-offset: 2px;
 }
 
-.im-club-preview-item:hover {
-  border-color: var(--im-primary);
-  transform: translateX(4px);
-}
-
 .im-club-preview-info {
   @apply flex flex-col gap-1;
 }
