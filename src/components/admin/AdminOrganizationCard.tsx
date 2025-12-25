@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui";
+import { Button, EntityLogo } from "@/components/ui";
 import { getSportName, SportType } from "@/constants/sports";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 
@@ -81,30 +81,29 @@ export function AdminOrganizationCard({
               className="im-admin-org-hero-image"
             />
             {/* Logo overlayed on banner */}
-            {hasLogo && logoUrl && (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={logoUrl}
-                alt={t("organizations.imageAlt.logo", { name: organization.name })}
-                className="im-admin-org-logo-overlay"
-              />
-            )}
+            <EntityLogo
+              logoUrl={organization.logo}
+              alt={t("organizations.imageAlt.logo", { name: organization.name })}
+              className="im-admin-org-logo-overlay"
+            />
           </>
-        ) : hasLogo && logoUrl ? (
-          /* Logo as fallback when no banner */
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={logoUrl}
-            alt={t("organizations.imageAlt.logo", { name: organization.name })}
-            className="im-admin-org-hero-image im-admin-org-hero-image--logo"
-          />
         ) : (
-          /* Placeholder when no images */
-          <div className="im-admin-org-image-placeholder" aria-hidden="true">
-            <span className="im-admin-org-image-placeholder-text">
-              {organization.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          /* Logo as fallback when no banner - use hasLogo check */
+          hasLogo && logoUrl ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={logoUrl}
+              alt={t("organizations.imageAlt.logo", { name: organization.name })}
+              className="im-admin-org-hero-image im-admin-org-hero-image--logo"
+            />
+          ) : (
+            /* Placeholder when no images */
+            <div className="im-admin-org-image-placeholder" aria-hidden="true">
+              <span className="im-admin-org-image-placeholder-text">
+                {organization.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+          )
         )}
 
         {/* Status badge based on isPublic */}

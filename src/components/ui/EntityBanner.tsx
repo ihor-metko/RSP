@@ -13,9 +13,11 @@
  * - Placeholder when no image provided
  */
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
+import { EntityLogo } from "./EntityLogo";
+import type { EntityLogoMetadata } from "./EntityLogo";
 
 /**
  * Location pin icon - reusable SVG component
@@ -66,11 +68,7 @@ export interface EntityBannerProps {
    * Logo metadata for theme-aware display (optional)
    * Contains information about logo themes and alternate logos
    */
-  logoMetadata?: {
-    logoTheme?: 'light' | 'dark';
-    secondLogo?: string | null;
-    secondLogoTheme?: 'light' | 'dark';
-  } | null;
+  logoMetadata?: EntityLogoMetadata | null;
 
   /**
    * Alt text for the hero image
@@ -168,89 +166,11 @@ export function EntityBanner({
   // Translations
   const t = useTranslations("entityBanner");
 
-  // Detect current theme
-  const [isDarkTheme, setIsDarkTheme] = useState(false);
-
-  useEffect(() => {
-    // Initial theme detection
-    const checkTheme = () => {
-      setIsDarkTheme(document.documentElement.classList.contains("dark"));
-    };
-
-    checkTheme();
-
-    // Set up observer to watch for theme changes
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Determine which logo to display based on theme and metadata
-  const effectiveLogoUrl = useMemo(() => {
-    if (!logoMetadata) {
-      return logoUrl; // No metadata, use the primary logo
-    }
-
-    const currentTheme = isDarkTheme ? 'dark' : 'light';
-
-    // If we have a second logo with theme info
-    if (logoMetadata.secondLogo && logoMetadata.secondLogoTheme) {
-      // Check if second logo matches current theme
-      if (logoMetadata.secondLogoTheme === currentTheme) {
-        return logoMetadata.secondLogo;
-      }
-      // Check if primary logo matches current theme
-      if (logoMetadata.logoTheme === currentTheme) {
-        return logoUrl;
-      }
-    }
-
-    // Only one logo, or no theme match - use primary logo
-    return logoUrl;
-  }, [logoUrl, logoMetadata, isDarkTheme]);
-
-  /**
-   * Determine if we need to apply contrast enhancement styles for a universal logo
-   * Returns CSS class name for contrast adjustment or empty string
-   */
-  const logoContrastClass = useMemo(() => {
-    // Only apply contrast styles when we have a single universal logo
-    if (!logoMetadata || !logoMetadata.logoTheme) {
-      return ''; // No metadata, no special styling
-    }
-
-    // If we have two separate logos (theme-specific), no contrast adjustment needed
-    if (logoMetadata.secondLogo && logoMetadata.secondLogoTheme) {
-      return ''; // Theme-specific logos handle this themselves
-    }
-
-    const currentTheme = isDarkTheme ? 'dark' : 'light';
-    const logoTheme = logoMetadata.logoTheme;
-
-    // Apply contrast enhancement when logo theme doesn't match current theme
-    if (logoTheme === 'light' && currentTheme === 'dark') {
-      // Light logo on dark background needs a light background for visibility
-      return 'rsp-club-hero-logo--contrast-light';
-    } else if (logoTheme === 'dark' && currentTheme === 'light') {
-      // Dark logo on light background needs a dark background for visibility
-      return 'rsp-club-hero-logo--contrast-dark';
-    }
-
-    // Logo theme matches current theme, no contrast adjustment needed
-    return '';
-  }, [logoMetadata, isDarkTheme]);
-
   // Convert stored paths to display URLs
   const heroImageFullUrl = useMemo(() => getImageUrl(imageUrl), [imageUrl]);
-  const logoFullUrl = useMemo(() => getImageUrl(effectiveLogoUrl), [effectiveLogoUrl]);
 
   // Memoize validation to avoid unnecessary calls on each render
   const hasHeroImage = useMemo(() => isValidImageUrl(heroImageFullUrl), [heroImageFullUrl]);
-  const hasLogo = useMemo(() => isValidImageUrl(logoFullUrl), [logoFullUrl]);
 
   // Generate initials for placeholder if no image
   const placeholderInitial = title ? title.charAt(0).toUpperCase() : "";
@@ -316,14 +236,11 @@ export function EntityBanner({
 
       <div className="rsp-club-hero-content">
         <div className="rsp-club-hero-main">
-          {hasLogo && logoFullUrl && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img
-              src={logoFullUrl}
-              alt={logoAlt || t('logoAlt', { name: title })}
-              className={`rsp-club-hero-logo ${logoContrastClass}`.trim()}
-            />
-          )}
+          <EntityLogo
+            logoUrl={logoUrl}
+            logoMetadata={logoMetadata}
+            alt={logoAlt || t('logoAlt', { name: title })}
+          />
           <div className="rsp-club-hero-info">
             <h1 className="rsp-club-hero-name">{title}</h1>
             {location && (

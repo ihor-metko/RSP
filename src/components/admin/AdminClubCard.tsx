@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { IMLink, Button } from "@/components/ui";
+import { IMLink, Button, EntityLogo } from "@/components/ui";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { getSportName } from "@/constants/sports";
 import type { ClubWithCounts } from "@/types/club";
@@ -129,14 +129,15 @@ export function AdminClubCard({ club, showOrganization, actionButton }: AdminClu
             alt={`${club.name} main image`}
             className="im-admin-club-hero-image"
           />
-        ) : hasLogo && logoUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={logoUrl}
+        ) : (
+          <EntityLogo
+            logoUrl={club.logo}
             alt={`${club.name} logo`}
             className="im-admin-club-hero-image im-admin-club-hero-image--logo"
           />
-        ) : (
+        )}
+
+        {!mainImage && !hasLogo && (
           <div className="im-admin-club-image-placeholder" aria-hidden="true">
             <span className="im-admin-club-image-placeholder-text">
               {club.name.charAt(0).toUpperCase()}
