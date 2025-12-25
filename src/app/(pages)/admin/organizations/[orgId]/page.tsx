@@ -3,13 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Input, Modal, EntityBanner, MetricCardSkeleton, OrgInfoCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton } from "@/components/ui";
+import { Button, EntityBanner, MetricCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useUserStore } from "@/stores/useUserStore";
-import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
-import { EntityEditStepper } from "@/components/admin/EntityEditStepper.client";
-import { BasicInfoStep, AddressStep, LogoStep, BannerStep } from "@/components/admin/OrganizationSteps";
+import { OrganizationEditor } from "@/components/admin/OrganizationEditor.client";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
 import "./page.css";
@@ -171,72 +169,6 @@ export default function OrganizationDetailPage() {
   // Handler for opening edit modal
   const handleOpenDetailsEdit = () => {
     setIsEditingDetails(true);
-  };
-
-  // Stepper save handler for editing entity details with images
-  const handleStepperSave = async (data: {
-    name: string;
-    slug: string;
-    description: string | null;
-    address: string;
-    metadata: Record<string, unknown>;
-    logo?: File | null;
-    heroImage?: File | null;
-  }) => {
-    try {
-      // Update organization details first
-      await updateOrganization(orgId, {
-        name: data.name,
-        slug: data.slug,
-        description: data.description,
-        address: data.address,
-        metadata: {
-          ...(org?.metadata as object || {}),
-          ...data.metadata,
-        },
-      });
-
-      // Upload images if new files were provided
-      if (data.logo) {
-        const logoFormData = new FormData();
-        logoFormData.append("file", data.logo);
-        logoFormData.append("type", "logo");
-
-        const logoResponse = await fetch(`/api/images/organizations/${orgId}/upload`, {
-          method: "POST",
-          body: logoFormData,
-        });
-
-        if (!logoResponse.ok) {
-          const errorData = await logoResponse.json();
-          throw new Error(errorData.error || t("organizations.errors.imageUploadFailed"));
-        }
-      }
-
-      if (data.heroImage) {
-        const heroFormData = new FormData();
-        heroFormData.append("file", data.heroImage);
-        heroFormData.append("type", "heroImage");
-
-        const heroResponse = await fetch(`/api/images/organizations/${orgId}/upload`, {
-          method: "POST",
-          body: heroFormData,
-        });
-
-        if (!heroResponse.ok) {
-          const errorData = await heroResponse.json();
-          throw new Error(errorData.error || t("organizations.errors.imageUploadFailed"));
-        }
-      }
-
-      showToast(t("orgDetail.updateSuccess"), "success");
-      // Force refresh to get updated data including images
-      await fetchOrgDetail(true);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t("organizations.errors.updateFailed");
-      showToast(message, "error");
-      throw err; // Re-throw to let the stepper handle the error
-    }
   };
 
 
@@ -545,21 +477,14 @@ export default function OrganizationDetailPage() {
 
         </section>
 
-        {/* Entity Edit Stepper Modal */}
+        {/* Organization Editor Modal */}
         {org && (
-          <EntityEditStepper
+          <OrganizationEditor
             isOpen={isEditingDetails}
             onClose={() => setIsEditingDetails(false)}
-            entityData={org}
-            steps={[
-              { id: 1, label: t("organizations.stepper.stepBasicInfo") },
-              { id: 2, label: t("organizations.stepper.stepAddress") },
-              { id: 3, label: t("organizations.stepper.stepLogo") },
-              { id: 4, label: t("organizations.stepper.stepBanner") },
-            ]}
-            stepComponents={[BasicInfoStep, AddressStep, LogoStep, BannerStep]}
-            translationNamespace="organizations.stepper"
-            onSave={handleStepperSave}
+            organization={org}
+            onUpdate={updateOrganization}
+            onRefresh={() => fetchOrgDetail(true)}
           />
         )}
 

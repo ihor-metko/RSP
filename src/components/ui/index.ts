@@ -68,3 +68,5 @@ export { CustomCalendar } from "./CustomCalendar";
 export { Portal } from "./Portal";
 export { ImageUpload } from "./ImageUpload";
 export type { ImageUploadProps } from "./ImageUpload";
+export { Tabs, TabList, Tab, TabPanel } from "./Tabs";
+export type { TabsProps, TabListProps, TabProps, TabPanelProps } from "./Tabs";
