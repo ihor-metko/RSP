@@ -18,12 +18,10 @@ import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
-import { EntityEditStepper } from "@/components/admin/EntityEditStepper.client";
-import { BasicInfoStep, AddressStep } from "@/components/admin/ClubSteps";
-import { LogoStep, BannerStep } from "@/components/admin/SharedSteps";
 
 import { useUserStore } from "@/stores/useUserStore";
 import "./page.css";
+import "@/components/ClubDetailPage.css";
 
 export default function AdminClubDetailPage({
   params,
