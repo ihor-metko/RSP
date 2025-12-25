@@ -15,10 +15,11 @@ interface ContactsStepProps {
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  translationNamespace?: string;
 }
 
-export function ContactsStep({ formData, fieldErrors, isSubmitting, onChange }: ContactsStepProps) {
-  const t = useTranslations("organizations.stepper");
+export function ContactsStep({ formData, fieldErrors, isSubmitting, onChange, translationNamespace = "organizations.stepper" }: ContactsStepProps) {
+  const t = useTranslations(translationNamespace);
 
   return (
     <Card className="im-stepper-section">

@@ -21,10 +21,11 @@ interface BasicInfoStepProps {
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
   onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
+  translationNamespace?: string;
 }
 
-export function BasicInfoStep({ formData, fieldErrors, isSubmitting, onChange }: BasicInfoStepProps) {
-  const t = useTranslations("organizations.stepper");
+export function BasicInfoStep({ formData, fieldErrors, isSubmitting, onChange, translationNamespace = "organizations.stepper" }: BasicInfoStepProps) {
+  const t = useTranslations(translationNamespace);
   const data = formData as BasicInfoFormData;
   const handleChange = onChange as (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 

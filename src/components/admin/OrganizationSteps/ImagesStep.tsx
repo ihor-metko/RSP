@@ -21,10 +21,11 @@ interface ImagesStepProps {
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
   onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null) => void);
+  translationNamespace?: string;
 }
 
-export function ImagesStep({ formData, fieldErrors, isSubmitting, onChange }: ImagesStepProps) {
-  const t = useTranslations("organizations.stepper");
+export function ImagesStep({ formData, fieldErrors, isSubmitting, onChange, translationNamespace = "organizations.stepper" }: ImagesStepProps) {
+  const t = useTranslations(translationNamespace);
   const data = formData as ImagesFormData;
   const handleChange = onChange as (field: string, value: UploadedFile | null) => void;
 

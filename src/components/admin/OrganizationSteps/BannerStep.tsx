@@ -20,10 +20,11 @@ interface BannerStepProps {
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
   onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
+  translationNamespace?: string;
 }
 
-export function BannerStep({ formData, fieldErrors, isSubmitting, onChange }: BannerStepProps) {
-  const t = useTranslations("organizations.stepper");
+export function BannerStep({ formData, fieldErrors, isSubmitting, onChange, translationNamespace = "organizations.stepper" }: BannerStepProps) {
+  const t = useTranslations(translationNamespace);
   const data = formData as BannerFormData;
   const handleChange = onChange as (field: string, value: UploadedFile | null) => void;
 

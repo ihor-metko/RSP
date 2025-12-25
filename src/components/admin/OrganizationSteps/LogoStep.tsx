@@ -28,10 +28,11 @@ interface LogoStepProps {
   fieldErrors: Record<string, string>;
   isSubmitting: boolean;
   onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
+  translationNamespace?: string;
 }
 
-export function LogoStep({ formData, fieldErrors, isSubmitting, onChange }: LogoStepProps) {
-  const t = useTranslations("organizations.stepper");
+export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, translationNamespace = "organizations.stepper" }: LogoStepProps) {
+  const t = useTranslations(translationNamespace);
   const data = formData as LogoFormData;
   const handleChange = onChange as (field: string, value: UploadedFile | null | boolean | string) => void;
 
