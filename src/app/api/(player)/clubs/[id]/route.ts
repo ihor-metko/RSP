@@ -78,6 +78,7 @@ export async function GET(
       openingHours: club.openingHours,
       logo: club.logo,
       heroImage: club.heroImage,
+      metadata: club.metadata,
       defaultCurrency: club.defaultCurrency,
       timezone: club.timezone,
       tags: club.tags,

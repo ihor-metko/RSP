@@ -136,6 +136,7 @@ export interface ClubDetail {
   openingHours: string | null;
   logo: string | null;
   heroImage: string | null;
+  metadata: string | null;
   defaultCurrency: string | null;
   timezone: string | null;
   isPublic: boolean;

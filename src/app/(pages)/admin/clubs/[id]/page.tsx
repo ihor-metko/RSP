@@ -259,6 +259,7 @@ export default function AdminClubDetailPage({
         imageUrl={club.heroImage}
         bannerAlignment={(club.metadata as { bannerAlignment?: 'top' | 'center' | 'bottom' })?.bannerAlignment || 'center'}
         logoUrl={club.logo}
+        logoMetadata={club.metadata as { logoTheme?: 'light' | 'dark'; secondLogo?: string | null; secondLogoTheme?: 'light' | 'dark'; }}
         imageAlt={`${club.name} hero image`}
         logoAlt={`${club.name} logo`}
         isPublished={club.isPublic}
