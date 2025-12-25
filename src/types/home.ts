@@ -9,9 +9,13 @@ export interface ClubWithCounts {
   id: string;
   name: string;
   location: string;
+  city?: string | null;
   contactInfo?: string | null;
   openingHours?: string | null;
   logo?: string | null;
+  heroImage?: string | null;
+  metadata?: string | null;
+  tags?: string | null;
   indoorCount: number;
   outdoorCount: number;
   shortDescription: string | null;
