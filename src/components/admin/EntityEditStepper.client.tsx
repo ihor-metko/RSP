@@ -89,17 +89,19 @@ export function EntityEditStepper({
   });
 
   const [logoData, setLogoData] = useState<{
+    logoCount: 'one' | 'two';
     logo: UploadedFile | null;
     logoTheme: 'light' | 'dark';
     logoBackground: 'light' | 'dark';
-    hasSecondLogo: boolean;
     secondLogo: UploadedFile | null;
+    secondLogoTheme: 'light' | 'dark';
   }>({
+    logoCount: 'one',
     logo: null,
     logoTheme: 'light',
     logoBackground: 'light',
-    hasSecondLogo: false,
     secondLogo: null,
+    secondLogoTheme: 'dark',
   });
 
   const [bannerData, setBannerData] = useState<{

@@ -505,6 +505,7 @@ export default function OrganizationDetailPage() {
             location={org.address}
             imageUrl={org.heroImage}
             logoUrl={org.logo}
+            logoMetadata={org.metadata && typeof org.metadata === 'object' && 'logoMetadata' in org.metadata ? org.metadata.logoMetadata as { logoTheme?: 'light' | 'dark'; secondLogo?: string | null; secondLogoTheme?: 'light' | 'dark'; } : undefined}
             imageAlt={`${org.name} banner`}
             logoAlt={`${org.name} logo`}
             isPublished={org.isPublic ?? true}

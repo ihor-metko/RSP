@@ -11,7 +11,7 @@
  * - Placeholder when no image provided
  */
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 
 /**
@@ -55,8 +55,19 @@ export interface EntityBannerProps {
   
   /**
    * Logo image URL (optional)
+   * If logoMetadata is provided, this may be overridden based on current theme
    */
   logoUrl?: string | null;
+  
+  /**
+   * Logo metadata for theme-aware display (optional)
+   * Contains information about logo themes and alternate logos
+   */
+  logoMetadata?: {
+    logoTheme?: 'light' | 'dark';
+    secondLogo?: string | null;
+    secondLogoTheme?: 'light' | 'dark';
+  } | null;
   
   /**
    * Alt text for the hero image
@@ -130,6 +141,7 @@ export interface EntityBannerProps {
  * EntityBanner component
  * Displays a hero/banner section with background image, logo, title, subtitle, and location
  * Includes built-in publish/unpublish functionality when isPublished prop is provided
+ * Supports theme-aware logo display when logoMetadata is provided
  */
 export function EntityBanner({
   title,
@@ -137,6 +149,7 @@ export function EntityBanner({
   location,
   imageUrl,
   logoUrl,
+  logoMetadata,
   imageAlt,
   logoAlt,
   isPublished,
@@ -149,9 +162,54 @@ export function EntityBanner({
   onEdit,
   hideAdminFeatures = false,
 }: EntityBannerProps) {
+  // Detect current theme
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  
+  useEffect(() => {
+    // Initial theme detection
+    const checkTheme = () => {
+      setIsDarkTheme(document.documentElement.classList.contains("dark"));
+    };
+    
+    checkTheme();
+    
+    // Set up observer to watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    return () => observer.disconnect();
+  }, []);
+  
+  // Determine which logo to display based on theme and metadata
+  const effectiveLogoUrl = useMemo(() => {
+    if (!logoMetadata) {
+      return logoUrl; // No metadata, use the primary logo
+    }
+    
+    const currentTheme = isDarkTheme ? 'dark' : 'light';
+    
+    // If we have a second logo with theme info
+    if (logoMetadata.secondLogo && logoMetadata.secondLogoTheme) {
+      // Check if second logo matches current theme
+      if (logoMetadata.secondLogoTheme === currentTheme) {
+        return logoMetadata.secondLogo;
+      }
+      // Check if primary logo matches current theme
+      if (logoMetadata.logoTheme === currentTheme) {
+        return logoUrl;
+      }
+    }
+    
+    // Only one logo, or no theme match - use primary logo
+    return logoUrl;
+  }, [logoUrl, logoMetadata, isDarkTheme]);
+  
   // Convert stored paths to display URLs
   const heroImageFullUrl = useMemo(() => getImageUrl(imageUrl), [imageUrl]);
-  const logoFullUrl = useMemo(() => getImageUrl(logoUrl), [logoUrl]);
+  const logoFullUrl = useMemo(() => getImageUrl(effectiveLogoUrl), [effectiveLogoUrl]);
   
   // Memoize validation to avoid unnecessary calls on each render
   const hasHeroImage = useMemo(() => isValidImageUrl(heroImageFullUrl), [heroImageFullUrl]);

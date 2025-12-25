@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, Input, Textarea } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
-import { UploadField } from "./UploadField.client";
+import { LogoStep, BannerStep } from "./OrganizationSteps";
 import "./ClubCreationStepper.css";
 
 interface UploadedFile {
@@ -35,7 +35,12 @@ interface StepperFormData {
   instagram: string;
   linkedin: string;
   // Step 4: Images & Logo
+  logoCount: 'one' | 'two';
   logo: UploadedFile | null;
+  logoTheme: 'light' | 'dark';
+  logoBackground: 'light' | 'dark';
+  secondLogo: UploadedFile | null;
+  secondLogoTheme: 'light' | 'dark';
   heroImage: UploadedFile | null;
   // Step 5: Assign Owner / SuperAdmin
   assignOwner: boolean;
@@ -62,7 +67,12 @@ const initialFormData: StepperFormData = {
   facebook: "",
   instagram: "",
   linkedin: "",
+  logoCount: "one",
   logo: null,
+  logoTheme: "light",
+  logoBackground: "light",
+  secondLogo: null,
+  secondLogoTheme: "dark",
   heroImage: null,
   assignOwner: false,
   ownerType: "existing",
@@ -88,8 +98,9 @@ export function OrganizationCreationStepper() {
     { id: 1, label: t("stepBasicInfo") },
     { id: 2, label: t("stepAddress") },
     { id: 3, label: t("stepContacts") },
-    { id: 4, label: t("stepImages") },
-    { id: 5, label: t("stepOwner") },
+    { id: 4, label: t("stepLogo") },
+    { id: 5, label: t("stepBanner") },
+    { id: 6, label: t("stepOwner") },
   ];
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
@@ -107,6 +118,22 @@ export function OrganizationCreationStepper() {
         setFieldErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors[name];
+          return newErrors;
+        });
+      }
+    },
+    [fieldErrors]
+  );
+
+  const handleFieldChange = useCallback(
+    (field: string, value: UploadedFile | null | boolean | string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+
+      // Clear error for this field
+      if (fieldErrors[field]) {
+        setFieldErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
           return newErrors;
         });
       }
@@ -168,15 +195,27 @@ export function OrganizationCreationStepper() {
       }
     }
 
-    // Step 4: Images & Logo (heroImage mandatory, logo optional)
+    // Step 4: Logo (optional, but if two logos selected, both required)
     if (step === 4) {
+      if (formData.logoCount === 'two') {
+        if (formData.logo && !formData.secondLogo) {
+          errors.secondLogo = t("validation.secondLogoRequired");
+        }
+        if (!formData.logo && formData.secondLogo) {
+          errors.logo = t("validation.primaryLogoRequired");
+        }
+      }
+    }
+
+    // Step 5: Banner (heroImage mandatory)
+    if (step === 5) {
       if (!formData.heroImage) {
         errors.heroImage = t("validation.backgroundRequired");
       }
     }
 
-    // Step 5: Owner assignment (optional, but if choosing to assign, validate fields)
-    if (step === 5 && formData.assignOwner) {
+    // Step 6: Owner assignment (optional, but if choosing to assign, validate fields)
+    if (step === 6 && formData.assignOwner) {
       if (formData.ownerType === "existing" && !formData.existingUserId) {
         errors.existingUserId = t("validation.userRequired");
       }
@@ -223,6 +262,28 @@ export function OrganizationCreationStepper() {
       .replace(/[\s_-]+/g, "-")
       .replace(/^-+|-+$/g, "");
   }, []);
+
+  // Helper function to update metadata with second logo URL
+  const updateMetadataWithSecondLogo = async (
+    organizationId: string,
+    baseMetadata: Record<string, unknown>,
+    secondLogoUrl: string
+  ) => {
+    const currentLogoMetadata = baseMetadata.logoMetadata as Record<string, unknown> || {};
+    const updatedMetadata = {
+      ...baseMetadata,
+      logoMetadata: {
+        ...currentLogoMetadata,
+        secondLogo: secondLogoUrl,
+      }
+    };
+    
+    await fetch(`/api/admin/organizations/${organizationId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ metadata: updatedMetadata }),
+    });
+  };
 
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) {
@@ -280,6 +341,20 @@ export function OrganizationCreationStepper() {
         metadata.socialLinks = socialLinks;
       }
 
+      // Add logo theme metadata if logos are provided
+      if (formData.logo || formData.secondLogo) {
+        const logoMetadata: Record<string, unknown> = {
+          logoTheme: formData.logoTheme,
+          logoCount: formData.logoCount,
+        };
+        
+        if (formData.logoCount === 'two' && formData.secondLogo) {
+          logoMetadata.secondLogoTheme = formData.secondLogoTheme;
+        }
+        
+        metadata.logoMetadata = logoMetadata;
+      }
+
       // Prepare data for submission (without images - they'll be uploaded separately)
       const submitData = {
         name: formData.name.trim(),
@@ -329,6 +404,28 @@ export function OrganizationCreationStepper() {
           if (!logoResponse.ok) {
             const errorData = await logoResponse.json();
             throw new Error(errorData.error || t("errors.imageUploadFailed"));
+          }
+          
+          // Upload second logo if provided
+          if (formData.logoCount === 'two' && formData.secondLogo?.file) {
+            const secondLogoFormData = new FormData();
+            secondLogoFormData.append("file", formData.secondLogo.file);
+            secondLogoFormData.append("type", "secondLogo");
+
+            const secondLogoResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
+              method: "POST",
+              body: secondLogoFormData,
+            });
+
+            if (!secondLogoResponse.ok) {
+              const errorData = await secondLogoResponse.json();
+              throw new Error(errorData.error || t("errors.secondLogoUploadFailed"));
+            }
+            
+            const secondLogoData = await secondLogoResponse.json();
+            
+            // Update metadata with second logo URL using helper
+            await updateMetadataWithSecondLogo(organization.id, metadata, secondLogoData.url);
           }
         }
       } catch (imageErr) {
@@ -729,49 +826,29 @@ export function OrganizationCreationStepper() {
         );
 
       case 4:
-        // Step 4: Images & Logo
+        // Step 4: Logo & Theme
         return (
-          <Card className="im-stepper-section">
-            <h2 className="im-stepper-section-title">{t("imagesTitle")}</h2>
-            <p className="im-stepper-section-description">
-              {t("imagesDescription")}
-            </p>
-            <div className="im-step-content">
-              <div className="im-stepper-row">
-                <div className="im-stepper-field im-stepper-field--full">
-                  <UploadField
-                    label={t("organizationLogo")}
-                    value={formData.logo}
-                    onChange={(file) => setFormData((prev) => ({ ...prev, logo: file }))}
-                    aspectRatio="square"
-                    helperText={t("logoHelperText")}
-                    disabled={isSubmitting}
-                  />
-                </div>
-              </div>
-
-              <div className="im-stepper-row">
-                <div className="im-stepper-field im-stepper-field--full">
-                  <UploadField
-                    label={t("backgroundImage")}
-                    value={formData.heroImage}
-                    onChange={(file) => setFormData((prev) => ({ ...prev, heroImage: file }))}
-                    aspectRatio="wide"
-                    required
-                    helperText={t("backgroundHelperText")}
-                    disabled={isSubmitting}
-                  />
-                  {fieldErrors.heroImage && (
-                    <span className="im-stepper-field-error">{fieldErrors.heroImage}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </Card>
+          <LogoStep
+            formData={formData}
+            fieldErrors={fieldErrors}
+            isSubmitting={isSubmitting}
+            onChange={handleFieldChange}
+          />
         );
 
       case 5:
-        // Step 5: Assign Owner / SuperAdmin
+        // Step 5: Banner
+        return (
+          <BannerStep
+            formData={formData}
+            fieldErrors={fieldErrors}
+            isSubmitting={isSubmitting}
+            onChange={handleFieldChange}
+          />
+        );
+
+      case 6:
+        // Step 6: Assign Owner / SuperAdmin
         return (
           <Card className="im-stepper-section">
             <h2 className="im-stepper-section-title">{t("ownerTitle")}</h2>

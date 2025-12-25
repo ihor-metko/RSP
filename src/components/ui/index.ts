@@ -2,6 +2,8 @@ export { Button } from "./Button";
 export { Input } from "./Input";
 export { Textarea } from "./Textarea";
 export { Checkbox } from "./Checkbox";
+export { RadioGroup } from "./RadioGroup";
+export type { RadioOption, RadioGroupProps } from "./RadioGroup";
 export { Modal } from "./Modal";
 export { ConfirmationModal } from "./ConfirmationModal";
 export { Card } from "./Card";

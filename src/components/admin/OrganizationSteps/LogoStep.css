@@ -29,6 +29,20 @@
   object-fit: contain;
 }
 
+.im-logo-preview-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  width: 100%;
+}
+
+.im-logo-preview-placeholder-text {
+  font-size: 0.875rem;
+  color: var(--im-text-secondary);
+  text-align: center;
+}
+
 .im-logo-helper-spacing {
   margin-top: 0.5rem;
 }
