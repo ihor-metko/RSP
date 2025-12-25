@@ -1,0 +1,135 @@
+/* Entity Tab Card */
+.im-entity-tab-card {
+  @apply p-0;
+}
+
+/* Tab Header */
+.im-entity-tab-header {
+  @apply flex items-start justify-between gap-4 p-6 border-b;
+  border-color: var(--border-color);
+}
+
+.im-entity-tab-title {
+  @apply text-xl font-semibold m-0;
+  color: var(--text-primary);
+}
+
+.im-entity-tab-description {
+  @apply mt-1 text-sm m-0;
+  color: var(--text-secondary);
+}
+
+/* Tab Content */
+.im-entity-tab-content {
+  @apply p-6 space-y-6;
+}
+
+/* Tab Fields */
+.im-entity-tab-field {
+  @apply flex flex-col gap-2;
+}
+
+.im-entity-tab-field--half {
+  @apply flex-1;
+}
+
+.im-entity-tab-row {
+  @apply flex gap-4;
+}
+
+@media (max-width: 768px) {
+  .im-entity-tab-row {
+    @apply flex-col;
+  }
+}
+
+/* Field Hints and Errors */
+.im-field-hint {
+  @apply text-sm;
+  color: var(--text-secondary);
+}
+
+.im-field-error {
+  @apply text-sm;
+  color: var(--error-color, #ef4444);
+}
+
+/* Tab Error Banner */
+.im-entity-tab-error {
+  @apply mx-6 mt-4 p-4 rounded-lg;
+  background-color: var(--error-bg, #fef2f2);
+  border: 1px solid var(--error-border, #fecaca);
+  color: var(--error-color, #dc2626);
+}
+
+/* Logo Preview */
+.im-logo-preview-container {
+  @apply flex items-center justify-center p-8 rounded-lg border-2;
+  min-height: 200px;
+  border-color: var(--border-color);
+}
+
+.im-logo-preview-container--light {
+  background-color: #ffffff;
+}
+
+.im-logo-preview-container--dark {
+  background-color: #1f2937;
+}
+
+.im-logo-preview-image {
+  @apply max-w-full max-h-48 object-contain;
+}
+
+.im-logo-preview-placeholder {
+  @apply flex items-center justify-center;
+  color: var(--text-secondary);
+}
+
+.im-logo-preview-placeholder-text {
+  @apply text-sm font-medium;
+}
+
+/* Banner Preview */
+.im-banner-preview-container {
+  @apply rounded-lg overflow-hidden border;
+  border-color: var(--border-color);
+}
+
+.im-banner-preview-image {
+  @apply w-full h-auto object-cover;
+  max-height: 400px;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .im-entity-tab-header {
+    border-color: var(--border-color, #374151);
+  }
+
+  .im-entity-tab-title {
+    color: var(--text-primary, #f9fafb);
+  }
+
+  .im-entity-tab-description {
+    color: var(--text-secondary, #9ca3af);
+  }
+
+  .im-field-hint {
+    color: var(--text-secondary, #9ca3af);
+  }
+
+  .im-entity-tab-error {
+    background-color: var(--error-bg, rgba(239, 68, 68, 0.1));
+    border-color: var(--error-border, rgba(239, 68, 68, 0.3));
+    color: var(--error-color, #fca5a5);
+  }
+
+  .im-logo-preview-container {
+    border-color: var(--border-color, #374151);
+  }
+
+  .im-banner-preview-container {
+    border-color: var(--border-color, #374151);
+  }
+}

@@ -13,9 +13,9 @@
     "update": "Update",
     "close": "Close",
     "back": "Back",
-    "backToHome": "\u2190 Back to Home",
-    "backToClubs": "\u2190 Back to Clubs",
-    "backToDashboard": "\u2190 Back to Dashboard",
+    "backToHome": "← Back to Home",
+    "backToClubs": "← Back to Clubs",
+    "backToDashboard": "← Back to Dashboard",
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "register": "Register",
@@ -82,7 +82,10 @@
     "viewProfile": "View Profile",
     "from": "From",
     "to": "To",
-    "selected": "selected"
+    "selected": "selected",
+    "unsavedChanges": "Unsaved Changes",
+    "unsavedChangesMessage": "You have unsaved changes. Do you want to discard them?",
+    "discardChanges": "Discard Changes"
   },
   "pagination": {
     "showing": "Showing {start} to {end} of {total}",
@@ -100,11 +103,11 @@
     "openModal": "Open Modal",
     "secondaryAction": "Secondary Action",
     "quickLinks": "Quick Links",
-    "viewClubs": "View Clubs \u2192",
+    "viewClubs": "View Clubs →",
     "dashboard": "Dashboard",
-    "manageClubs": "Manage Clubs (Admin) \u2192",
-    "manageCoaches": "Manage Coaches (Admin) \u2192",
-    "manageNotifications": "Notifications (Admin) \u2192",
+    "manageClubs": "Manage Clubs (Admin) →",
+    "manageCoaches": "Manage Coaches (Admin) →",
+    "manageNotifications": "Notifications (Admin) →",
     "coaches": "Coaches",
     "exampleModal": "Example Modal",
     "exampleModalContent": "This is an example modal dialog. Press Escape or click outside to close.",
@@ -219,12 +222,12 @@
     "noCourts": "No courts defined for this club yet. Contact admin.",
     "quickBooking": "Quick booking",
     "requestTraining": "Request Training",
-    "adminCourts": "Admin \u2192 Courts",
+    "adminCourts": "Admin → Courts",
     "searchPlaceholder": "Search by name or location...",
     "cityPlaceholder": "City",
     "indoorOnly": "Indoor only",
     "clearFilters": "Clear filters",
-    "noClubsFound": "No clubs found \u2014 try other filters.",
+    "noClubsFound": "No clubs found — try other filters.",
     "trySuggestion": "Try adjusting your search or check different locations."
   },
   "clubDetail": {
@@ -294,7 +297,7 @@
       "filterBySport": "Filter by sport",
       "supportedSports": "Supported Sports",
       "smallClubs": "Small Clubs (< 3 courts)",
-      "largeClubs": "Large Clubs (\u2265 5 courts)",
+      "largeClubs": "Large Clubs (≥ 5 courts)",
       "page": "Page",
       "of": "of",
       "showing": "Showing",
@@ -627,7 +630,7 @@
         "actions": {
           "saveDraft": "Save Draft",
           "saveAndPublish": "Save & Publish",
-          "backToClubs": "\u2190 Back to Clubs"
+          "backToClubs": "← Back to Clubs"
         },
         "submitting": {
           "creating": "Creating court..."
@@ -669,9 +672,9 @@
         },
         "currencies": {
           "usd": "USD ($)",
-          "eur": "EUR (\u20ac)",
-          "gbp": "GBP (\u00a3)",
-          "uah": "UAH (\u20b4)"
+          "eur": "EUR (€)",
+          "gbp": "GBP (£)",
+          "uah": "UAH (₴)"
         }
       }
     },
@@ -705,8 +708,8 @@
       "trainingRequests": "Training Requests",
       "manageWeeklyAvailability": "Manage Weekly Availability",
       "manageTimeOff": "Manage Time Off",
-      "previousDay": "\u2190 Previous Day",
-      "nextDay": "Next Day \u2192",
+      "previousDay": "← Previous Day",
+      "nextDay": "Next Day →",
       "selectDate": "Select date",
       "schedule": "Schedule",
       "legend": {
@@ -891,7 +894,7 @@
     "ariaSlotBlockedLabel": "{dayName} {time}: {reason}",
     "modeLabel": "View mode",
     "modeRolling": "Next 7 days",
-    "modeCalendar": "Mon\u2013Sun"
+    "modeCalendar": "Mon–Sun"
   },
   "modal": {
     "closeModal": "Close modal",
@@ -1110,7 +1113,7 @@
     "roleSuperAdmin": "Super Admin",
     "roleAdmin": "Admin",
     "roleOwner": "Owner",
-    "roleOwnerTooltip": "Organization Owner \u2014 full control over this organization",
+    "roleOwnerTooltip": "Organization Owner — full control over this organization",
     "noClubAssigned": "You are not assigned to any club. Contact your SuperAdmin or RootAdmin.",
     "collapse": "Collapse",
     "collapseSidebar": "Collapse sidebar",
@@ -1169,7 +1172,7 @@
     "alreadyAdminOfThisOrg": "Already an admin of this organization",
     "assign": "Assign",
     "owner": "Owner",
-    "ownerTooltip": "Organization Owner \u2014 has full control over this organization",
+    "ownerTooltip": "Organization Owner — has full control over this organization",
     "setAsOwner": "Set as Owner",
     "remove": "Remove",
     "searchOrganizations": "Search organizations...",
@@ -1229,7 +1232,7 @@
       "latitudePlaceholder": "50.4501",
       "longitude": "Longitude *",
       "longitudePlaceholder": "30.5234",
-      "mapTip": "\ud83d\udca1 Tip: Use a map service like Google Maps to find the exact latitude and longitude coordinates for accurate location.",
+      "mapTip": "💡 Tip: Use a map service like Google Maps to find the exact latitude and longitude coordinates for accurate location.",
       "contactsTitle": "Contacts & Website / Social Media",
       "contactsDescription": "Add contact information, website, and social media links. All fields are optional.",
       "organizationEmail": "Organization Email",
@@ -1362,6 +1365,96 @@
     "imageAlt": {
       "heroImage": "Hero image for {name}",
       "logo": "Logo for {name}"
+    },
+    "editor": {
+      "title": "Edit Organization"
+    },
+    "tabs": {
+      "baseInfo": {
+        "tabLabel": "Base Information",
+        "title": "Basic Information",
+        "description": "Description",
+        "organizationName": "Organization Name",
+        "organizationNamePlaceholder": "Enter organization name",
+        "slug": "Slug",
+        "slugPlaceholder": "organization-slug",
+        "slugHint": "Auto-generated from name if empty",
+        "descriptionPlaceholder": "Describe the organization..."
+      },
+      "address": {
+        "tabLabel": "Address",
+        "title": "Location & Address",
+        "description": "Edit the organization address and map coordinates",
+        "country": "Country",
+        "countryPlaceholder": "Country",
+        "city": "City",
+        "cityPlaceholder": "City",
+        "street": "Street",
+        "streetPlaceholder": "Street address",
+        "postalCode": "Postal Code",
+        "postalCodePlaceholder": "Postal code",
+        "latitude": "Latitude",
+        "latitudePlaceholder": "50.4501",
+        "longitude": "Longitude",
+        "longitudePlaceholder": "30.5234"
+      },
+      "logo": {
+        "tabLabel": "Logo",
+        "title": "Organization Logo",
+        "description": "Upload and configure your organization logo",
+        "logoCountLabel": "Logo Count",
+        "logoCountOne": "One logo for both themes",
+        "logoCountOneDescription": "Upload a single logo that works well on both light and dark backgrounds",
+        "logoCountTwo": "Two separate logos for different themes",
+        "logoCountTwoDescription": "Upload different logo versions optimized for light and dark themes",
+        "primaryLogo": "Primary Logo",
+        "firstLogo": "First Logo",
+        "primaryLogoHelperText": "Upload a square image. SVG format recommended for best quality.",
+        "logoThemeLabel": "Logo Theme",
+        "firstLogoThemeLabel": "First Logo Theme",
+        "logoThemeLight": "Light Theme",
+        "logoThemeDark": "Dark Theme",
+        "secondLogo": "Second Logo",
+        "secondLogoHelperText": "Upload an alternate logo for the other theme.",
+        "secondLogoThemeLabel": "Second Logo Theme",
+        "logoBackgroundLabel": "Preview Background",
+        "logoBackgroundLight": "Light Background",
+        "logoBackgroundDark": "Dark Background",
+        "logoThemeHelperText": "Select which theme (Light/Dark) this logo is designed for",
+        "logoBackgroundHelperText": "Choose the background color for the preview",
+        "logoPreview": "Logo Preview",
+        "logoPreviewAlt": "Logo preview",
+        "logoPreviewHelperText": "Preview shows how your logo will appear",
+        "noLogoForTheme": "No logo available for this theme/background combination"
+      },
+      "banner": {
+        "tabLabel": "Banner",
+        "title": "Organization Banner",
+        "description": "Upload a background banner image for your organization profile",
+        "heroImage": "Banner Image",
+        "heroImageHelperText": "Wide image recommended for banner display",
+        "preview": "Preview",
+        "previewAlt": "Banner preview"
+      },
+      "validation": {
+        "nameRequired": "Organization name is required",
+        "countryRequired": "Country is required",
+        "cityRequired": "City is required",
+        "streetRequired": "Street is required",
+        "latitudeRequired": "Latitude is required for map location",
+        "latitudeInvalid": "Latitude must be a valid number",
+        "latitudeRange": "Latitude must be between -90 and 90",
+        "longitudeRequired": "Longitude is required for map location",
+        "longitudeInvalid": "Longitude must be a valid number",
+        "longitudeRange": "Longitude must be between -180 and 180"
+      },
+      "errors": {
+        "saveFailed": "Failed to save changes"
+      },
+      "common": {
+        "save": "Save",
+        "saving": "Saving..."
+      }
     }
   },
   "operations": {

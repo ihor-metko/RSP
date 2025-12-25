@@ -1,0 +1,77 @@
+/* Tabs Container */
+.im-tabs {
+  @apply w-full;
+}
+
+/* Tab List */
+.im-tab-list {
+  @apply flex gap-1 border-b overflow-x-auto;
+  border-color: var(--border-color);
+}
+
+/* Individual Tab */
+.im-tab {
+  @apply flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all;
+  @apply border-b-2 border-transparent whitespace-nowrap;
+  color: var(--text-secondary);
+  background: transparent;
+  cursor: pointer;
+}
+
+.im-tab:hover:not(.im-tab--disabled) {
+  color: var(--text-primary);
+  background: var(--background-hover);
+}
+
+.im-tab:focus-visible {
+  @apply outline-none ring-2 ring-offset-2;
+  ring-color: var(--primary-color);
+}
+
+.im-tab--active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.im-tab--disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* Tab Icon */
+.im-tab-icon {
+  @apply flex items-center justify-center w-5 h-5;
+}
+
+.im-tab-icon svg {
+  @apply w-full h-full;
+}
+
+/* Tab Label */
+.im-tab-label {
+  @apply leading-none;
+}
+
+/* Tab Panel */
+.im-tab-panel {
+  @apply py-6;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .im-tab-list {
+    border-color: var(--border-color, #374151);
+  }
+
+  .im-tab {
+    color: var(--text-secondary, #9ca3af);
+  }
+
+  .im-tab:hover:not(.im-tab--disabled) {
+    color: var(--text-primary, #f9fafb);
+    background: var(--background-hover, rgba(255, 255, 255, 0.05));
+  }
+
+  .im-tab--active {
+    color: var(--primary-color, #3b82f6);
+  }
+}
