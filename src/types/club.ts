@@ -140,6 +140,16 @@ export interface ClubDetail {
   isPublic: boolean;
   status: string;
   tags: string | null;
+  /**
+   * Flexible metadata field for storing additional club configuration.
+   * Common uses include:
+   * - bannerAlignment: 'top' | 'center' | 'bottom' (controls hero image positioning)
+   * - logoTheme: 'light' | 'dark' (for theme-aware logo display)
+   * - secondLogo: string | null (alternate logo URL)
+   * - secondLogoTheme: 'light' | 'dark'
+   * - Any other custom club-specific settings
+   */
+  metadata?: Record<string, unknown> | null;
   supportedSports?: SportType[];
   createdAt: string;
   updatedAt: string;

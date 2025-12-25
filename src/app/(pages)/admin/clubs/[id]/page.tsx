@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Card, Modal, IMLink, Breadcrumbs, ImageCarousel, EntityBanner } from "@/components/ui";
+import { Button, Card, Modal, IMLink, Breadcrumbs, ImageCarousel, EntityBanner, DangerZone } from "@/components/ui";
+import type { DangerAction } from "@/components/ui";
 import { ClubHeaderView } from "@/components/admin/club/ClubHeaderView";
 import { ClubContactsView } from "@/components/admin/club/ClubContactsView";
 import { ClubHoursView } from "@/components/admin/club/ClubHoursView";
@@ -40,8 +41,10 @@ export default function AdminClubDetailPage({
 
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isTogglingPublish, setIsTogglingPublish] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -148,6 +151,7 @@ export default function AdminClubDetailPage({
   const handleTogglePublish = async () => {
     if (!club) return;
 
+    setIsTogglingPublish(true);
     try {
       await handleSectionUpdate("header", {
         name: club.name,
@@ -155,9 +159,17 @@ export default function AdminClubDetailPage({
         shortDescription: club.shortDescription,
         isPublic: !club.isPublic,
       });
+      setIsPublishModalOpen(false);
+      showToast("success", club.isPublic ? "Club unpublished successfully" : "Club published successfully");
     } catch {
       // Error already handled in handleSectionUpdate
+    } finally {
+      setIsTogglingPublish(false);
     }
+  };
+
+  const handleOpenPublishModal = () => {
+    setIsPublishModalOpen(true);
   };
 
   const handleOpenDetailsEdit = () => {
@@ -166,6 +178,32 @@ export default function AdminClubDetailPage({
 
   // Determine if user can delete clubs (only root admin)
   const canDelete = adminStatus?.adminType === "root_admin";
+
+  // Prepare DangerZone actions
+  const dangerActions: DangerAction[] = [
+    {
+      id: 'publish',
+      title: club?.isPublic ? t("clubs.unpublish") : t("clubs.publish"),
+      description: club?.isPublic 
+        ? t("dangerZone.unpublishClubDescription")
+        : t("dangerZone.publishClubDescription"),
+      buttonLabel: club?.isPublic ? t("clubs.unpublish") : t("clubs.publish"),
+      onAction: handleOpenPublishModal,
+      isProcessing: isTogglingPublish,
+      variant: club?.isPublic ? 'danger' : 'warning',
+      show: true,
+    },
+    {
+      id: 'delete',
+      title: t("clubs.deleteClub"),
+      description: t("dangerZone.deleteClubDescription"),
+      buttonLabel: t("common.delete"),
+      onAction: () => setIsDeleteModalOpen(true),
+      isProcessing: submitting,
+      variant: 'danger',
+      show: canDelete,
+    },
+  ];
 
   // Loading skeleton
   if (loading || isLoadingStore) {
@@ -262,7 +300,6 @@ export default function AdminClubDetailPage({
         imageAlt={`${club.name} hero image`}
         logoAlt={`${club.name} logo`}
         isPublished={club.isPublic}
-        onTogglePublish={handleTogglePublish}
         onEdit={handleOpenDetailsEdit}
       />
 
@@ -279,17 +316,6 @@ export default function AdminClubDetailPage({
               ]}
               ariaLabel={t("breadcrumbs.navigation")}
             />
-          </div>
-          <div className="im-admin-club-actions">
-            {canDelete && (
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="im-admin-club-delete-btn"
-              >
-                Delete Club
-              </Button>
-            )}
           </div>
         </div>
 
@@ -439,29 +465,62 @@ export default function AdminClubDetailPage({
             onRefresh={fetchClub}
           />
         </section>
+
+        {/* Danger Zone Section - At the very bottom */}
+        <section className="im-admin-club-danger-zone-section">
+          <DangerZone actions={dangerActions} />
+        </section>
       </div>
 
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
-        title="Delete Club"
+        title={t("clubs.deleteClub")}
       >
         <p className="mb-4">
-          Are you sure you want to delete &quot;{club.name}&quot;? This action
-          cannot be undone and will also delete all associated courts, gallery
+          {t("clubs.deleteConfirm", { name: club.name })}
+        </p>
+        <p className="mb-4 text-sm opacity-70">
+          This action cannot be undone and will also delete all associated courts, gallery
           images, and business hours.
         </p>
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={handleDelete}
             disabled={submitting}
             className="bg-red-500 hover:bg-red-600"
           >
-            {submitting ? "Deleting..." : "Delete"}
+            {submitting ? t("common.processing") : t("common.delete")}
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Publish/Unpublish Confirmation Modal */}
+      <Modal
+        isOpen={isPublishModalOpen}
+        onClose={() => setIsPublishModalOpen(false)}
+        title={club.isPublic ? t("clubs.unpublish") : t("clubs.publish")}
+      >
+        <p className="mb-4">
+          {club.isPublic 
+            ? t("dangerZone.unpublishClubConfirm", { name: club.name })
+            : t("dangerZone.publishClubConfirm", { name: club.name })
+          }
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setIsPublishModalOpen(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            onClick={handleTogglePublish}
+            disabled={isTogglingPublish}
+            className={club.isPublic ? "bg-red-500 hover:bg-red-600" : ""}
+          >
+            {isTogglingPublish ? t("common.processing") : (club.isPublic ? t("clubs.unpublish") : t("clubs.publish"))}
           </Button>
         </div>
       </Modal>

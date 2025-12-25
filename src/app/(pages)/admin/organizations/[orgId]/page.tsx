@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, EntityBanner, MetricCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton } from "@/components/ui";
+import { Button, EntityBanner, MetricCardSkeleton, ClubsPreviewSkeleton, TableSkeleton, BookingsPreviewSkeleton, DangerZone, Modal } from "@/components/ui";
+import type { DangerAction } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useUserStore } from "@/stores/useUserStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
@@ -60,6 +61,7 @@ export default function OrganizationDetailPage() {
   const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [error, setError] = useState("");
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -186,12 +188,33 @@ export default function OrganizationDetailPage() {
       );
       // Force refresh to get updated publication status
       await fetchOrgDetail(true);
+      setIsPublishModalOpen(false);
     } catch (err) {
       showToast(err instanceof Error ? err.message : t("organizations.errors.updateFailed"), "error");
     } finally {
       setIsTogglingPublication(false);
     }
   };
+
+  const handleOpenPublishModal = () => {
+    setIsPublishModalOpen(true);
+  };
+
+  // Prepare DangerZone actions
+  const dangerActions: DangerAction[] = org ? [
+    {
+      id: 'publish',
+      title: org.isPublic ? t("orgDetail.unpublish") : t("orgDetail.publish"),
+      description: org.isPublic 
+        ? t("dangerZone.unpublishOrgDescription")
+        : t("dangerZone.publishOrgDescription"),
+      buttonLabel: org.isPublic ? t("orgDetail.unpublish") : t("orgDetail.publish"),
+      onAction: handleOpenPublishModal,
+      isProcessing: isTogglingPublication,
+      variant: org.isPublic ? 'danger' : 'warning',
+      show: !org.archivedAt,
+    },
+  ] : [];
 
 
 
@@ -224,8 +247,6 @@ export default function OrganizationDetailPage() {
           imageAlt={`${org.name} banner`}
           logoAlt={`${org.name} logo`}
           isPublished={org.isPublic ?? true}
-          onTogglePublish={handleTogglePublication}
-          isTogglingPublish={isTogglingPublication}
           isArchived={!!org.archivedAt}
           onEdit={!org.archivedAt ? handleOpenDetailsEdit : undefined}
         />
@@ -478,6 +499,13 @@ export default function OrganizationDetailPage() {
 
         </section>
 
+        {/* Danger Zone Section - At the very bottom */}
+        {org && !org.archivedAt && (
+          <section className="im-org-detail-danger-zone-section" style={{ gridColumn: '1 / -1' }}>
+            <DangerZone actions={dangerActions} />
+          </section>
+        )}
+
         {/* Organization Editor Modal */}
         {org && (
           <OrganizationEditor
@@ -487,6 +515,34 @@ export default function OrganizationDetailPage() {
             onUpdate={updateOrganization}
             onRefresh={() => fetchOrgDetail(true)}
           />
+        )}
+
+        {/* Publish/Unpublish Confirmation Modal */}
+        {org && (
+          <Modal
+            isOpen={isPublishModalOpen}
+            onClose={() => setIsPublishModalOpen(false)}
+            title={org.isPublic ? t("orgDetail.unpublish") : t("orgDetail.publish")}
+          >
+            <p className="mb-4">
+              {org.isPublic 
+                ? t("dangerZone.unpublishOrgConfirm", { name: org.name })
+                : t("dangerZone.publishOrgConfirm", { name: org.name })
+              }
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsPublishModalOpen(false)}>
+                {t("common.cancel")}
+              </Button>
+              <Button
+                onClick={handleTogglePublication}
+                disabled={isTogglingPublication}
+                className={org.isPublic ? "bg-red-500 hover:bg-red-600" : ""}
+              >
+                {isTogglingPublication ? t("common.processing") : (org.isPublic ? t("orgDetail.unpublish") : t("orgDetail.publish"))}
+              </Button>
+            </div>
+          </Modal>
         )}
 
         {/* Archive Modal */}

@@ -67,6 +67,7 @@ interface ClubWithDetails {
   defaultCurrency?: string | null;
   timezone?: string | null;
   tags?: string | null;
+  metadata?: Record<string, unknown> | null;
   courts: Court[];
   coaches: Coach[];
   businessHours?: BusinessHours[];

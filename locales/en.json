@@ -2347,5 +2347,18 @@
       "verificationComplete": "Payment account verified successfully!",
       "verificationFailed": "Verification failed. Please try again."
     }
+  },
+  "dangerZone": {
+    "title": "Danger Zone",
+    "processing": "Processing...",
+    "publishClubDescription": "Make this club visible to the public. Players will be able to view and book courts.",
+    "unpublishClubDescription": "Hide this club from public view. Players will not be able to see or book courts. This action is reversible.",
+    "deleteClubDescription": "Permanently delete this club and all associated data (courts, bookings, gallery images). This action cannot be undone.",
+    "publishClubConfirm": "Are you sure you want to publish \"{name}\"? It will become visible to all players.",
+    "unpublishClubConfirm": "Are you sure you want to unpublish \"{name}\"? It will be hidden from public view.",
+    "publishOrgDescription": "Make this organization visible to the public. Clubs under this organization can be accessed by players.",
+    "unpublishOrgDescription": "Hide this organization from public view. Players will not be able to access clubs under this organization. This action is reversible.",
+    "publishOrgConfirm": "Are you sure you want to publish \"{name}\"? It will become visible to all players.",
+    "unpublishOrgConfirm": "Are you sure you want to unpublish \"{name}\"? It will be hidden from public view."
   }
 }
