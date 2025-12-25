@@ -224,6 +224,7 @@ export function ClubEditor({
             <BaseInfoTab
               initialData={baseInfoData}
               onSave={handleBaseInfoSave}
+              translationNamespace="clubs.tabs"
             />
           </TabPanel>
 
@@ -231,6 +232,7 @@ export function ClubEditor({
             <AddressTab
               initialData={addressData}
               onSave={handleAddressSave}
+              translationNamespace="clubs.tabs"
             />
           </TabPanel>
 
@@ -238,6 +240,7 @@ export function ClubEditor({
             <LogoTab
               initialData={logoData}
               onSave={handleLogoSave}
+              translationNamespace="clubs.tabs"
             />
           </TabPanel>
 
@@ -245,6 +248,7 @@ export function ClubEditor({
             <BannerTab
               initialData={bannerData}
               onSave={handleBannerSave}
+              translationNamespace="clubs.tabs"
             />
           </TabPanel>
         </Tabs>

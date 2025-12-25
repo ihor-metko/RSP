@@ -14,10 +14,11 @@ interface BaseInfoTabProps {
   initialData: BaseInfoData;
   onSave: (data: BaseInfoData) => Promise<void>;
   disabled?: boolean;
+  translationNamespace?: string;
 }
 
-export function BaseInfoTab({ initialData, onSave, disabled = false }: BaseInfoTabProps) {
-  const t = useTranslations("organizations.tabs");
+export function BaseInfoTab({ initialData, onSave, disabled = false, translationNamespace = "organizations.tabs" }: BaseInfoTabProps) {
+  const t = useTranslations(translationNamespace);
   const [formData, setFormData] = useState<BaseInfoData>(initialData);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);

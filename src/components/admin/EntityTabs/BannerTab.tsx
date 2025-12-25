@@ -20,10 +20,11 @@ interface BannerTabProps {
   initialData: BannerData;
   onSave: (file: File | null) => Promise<void>;
   disabled?: boolean;
+  translationNamespace?: string;
 }
 
-export function BannerTab({ initialData, onSave, disabled = false }: BannerTabProps) {
-  const t = useTranslations("organizations.tabs");
+export function BannerTab({ initialData, onSave, disabled = false, translationNamespace = "organizations.tabs" }: BannerTabProps) {
+  const t = useTranslations(translationNamespace);
   const [formData, setFormData] = useState<BannerData>(initialData);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

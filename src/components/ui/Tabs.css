@@ -9,7 +9,7 @@
   gap: 0.25rem;
   border-bottom-width: 1px;
   overflow-x: auto;
-  border-color: var(--border-color);
+  border-color: var(--border-color, #e5e7eb);
 }
 
 /* Individual Tab */
@@ -37,10 +37,8 @@
 }
 
 .im-tab:focus-visible {
-  outline: none;
-  ring: 2px;
-  ring-offset: 2px;
-  ring-color: var(--primary-color);
+  outline: 2px solid var(--primary-color, #3b82f6);
+  outline-offset: 2px;
 }
 
 .im-tab--active {

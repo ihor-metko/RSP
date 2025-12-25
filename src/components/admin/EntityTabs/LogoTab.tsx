@@ -26,10 +26,11 @@ interface LogoTabProps {
   initialData: LogoData;
   onSave: (files: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => Promise<void>;
   disabled?: boolean;
+  translationNamespace?: string;
 }
 
-export function LogoTab({ initialData, onSave, disabled = false }: LogoTabProps) {
-  const t = useTranslations("organizations.tabs");
+export function LogoTab({ initialData, onSave, disabled = false, translationNamespace = "organizations.tabs" }: LogoTabProps) {
+  const t = useTranslations(translationNamespace);
   const [formData, setFormData] = useState<LogoData>(initialData);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

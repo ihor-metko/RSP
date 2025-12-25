@@ -17,10 +17,11 @@ interface AddressTabProps {
   initialData: AddressData;
   onSave: (data: AddressData) => Promise<void>;
   disabled?: boolean;
+  translationNamespace?: string;
 }
 
-export function AddressTab({ initialData, onSave, disabled = false }: AddressTabProps) {
-  const t = useTranslations("organizations.tabs");
+export function AddressTab({ initialData, onSave, disabled = false, translationNamespace = "organizations.tabs" }: AddressTabProps) {
+  const t = useTranslations(translationNamespace);
   const [formData, setFormData] = useState({
     country: initialData.country,
     city: initialData.city,
