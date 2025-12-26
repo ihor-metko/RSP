@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Modal, Badge, Tooltip } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { UserProfileModal } from "./UserProfileModal";
 import { CreateAdminModal } from "./admin-wizard";
-import type { CreateAdminWizardConfig } from "@/types/adminWizard";
 import "./OrganizationAdminsTable.css";
 
 interface OrgAdmin {
@@ -59,19 +58,6 @@ export default function OrganizationAdminsTable({
     setToast({ message, type });
     setTimeout(() => setToast(null), 5000);
   };
-
-  // Get wizard configuration for organization context
-  const getWizardConfig = useCallback((): CreateAdminWizardConfig => {
-    return {
-      context: "organization",
-      defaultOrgId: orgId,
-      allowedRoles: ["ORGANIZATION_ADMIN"],
-      onSuccess: () => {
-        // Refresh the admins list after successful creation
-        onRefresh();
-      },
-    };
-  }, [orgId, onRefresh]);
 
   // Handle create admin modal
   const handleOpenCreateAdminModal = () => {
@@ -262,7 +248,15 @@ export default function OrganizationAdminsTable({
       <CreateAdminModal
         isOpen={isCreateAdminModalOpen}
         onClose={handleCloseCreateAdminModal}
-        config={getWizardConfig()}
+        config={{
+          context: "organization",
+          defaultOrgId: orgId,
+          allowedRoles: ["ORGANIZATION_ADMIN"],
+          onSuccess: () => {
+            // Refresh the admins list after successful creation
+            onRefresh();
+          },
+        }}
       />
 
       {/* Remove Admin Modal */}
