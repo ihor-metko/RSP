@@ -5,8 +5,11 @@ import { Button, Card } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { SelectContextStep } from "./SelectContextStep";
+import { UserSourceStep } from "./UserSourceStep";
+import { ExistingUserSearchStep } from "./ExistingUserSearchStep";
 import { UserDataStep } from "./UserDataStep";
 import { ReviewStep } from "./ReviewStep";
+import { ConfirmStep } from "./ConfirmStep";
 import type {
   CreateAdminWizardConfig,
   AdminCreationData,
@@ -17,9 +20,11 @@ import type {
 import "./CreateAdminWizard.css";
 
 const STEPS = [
-  { id: 1, label: "Select Context" },
-  { id: 2, label: "User Details" },
-  { id: 3, label: "Review & Confirm" },
+  { id: 1, label: "Context & Role" },
+  { id: 2, label: "User Source" },
+  { id: 3, label: "User Details" },
+  { id: 4, label: "Review" },
+  { id: 5, label: "Confirm" },
 ];
 
 interface CreateAdminWizardProps {
@@ -31,15 +36,15 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<AdminWizardErrors>({});
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [confirmSuccess, setConfirmSuccess] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState("");
 
   // Initialize form data with defaults from config
   const [formData, setFormData] = useState<AdminCreationData>({
     organizationId: config.defaultOrgId || "",
     clubId: config.defaultClubId,
     role: config.allowedRoles[0] || "ORGANIZATION_ADMIN",
-    name: "",
-    email: "",
-    phone: "",
+    userSource: "new",
   });
 
   // Get organizations and clubs from stores
@@ -98,7 +103,21 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
     });
   }, [errors]);
 
-  const handleUserDataChange = useCallback((data: Partial<Pick<AdminCreationData, "name" | "email" | "phone">>) => {
+  const handleUserSourceChange = useCallback((data: Partial<Pick<AdminCreationData, "userSource">>) => {
+    setFormData((prev) => ({ 
+      ...prev, 
+      ...data,
+      // Clear user-related fields when changing source
+      userId: undefined,
+      name: undefined,
+      email: undefined,
+      phone: undefined,
+    }));
+    // Clear related errors
+    setErrors({});
+  }, []);
+
+  const handleUserDataChange = useCallback((data: Partial<Pick<AdminCreationData, "name" | "email" | "phone" | "userId">>) => {
     setFormData((prev) => ({ ...prev, ...data }));
     // Clear related errors
     Object.keys(data).forEach((key) => {
@@ -117,30 +136,42 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
     const newErrors: AdminWizardErrors = {};
 
     if (step === 1) {
-      // Validate context selection
+      // Validate context & role selection
       if (!formData.organizationId) {
         newErrors.organizationId = "Organization is required";
       }
       if (!formData.role) {
         newErrors.role = "Role is required";
       }
-      if (formData.role === "CLUB_ADMIN" && !formData.clubId) {
-        newErrors.clubId = "Club is required for Club Admin role";
+      if ((formData.role === "CLUB_ADMIN" || formData.role === "CLUB_OWNER") && !formData.clubId) {
+        newErrors.clubId = "Club is required for Club roles";
       }
     } else if (step === 2) {
-      // Validate user data
-      if (!formData.name.trim()) {
-        newErrors.name = "Name is required";
+      // Validate user source
+      if (!formData.userSource) {
+        newErrors.userSource = "Please select how to add the user";
       }
-      if (!formData.email.trim()) {
-        newErrors.email = "Email is required";
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = "Invalid email format";
-      }
-      if (!formData.phone.trim()) {
-        newErrors.phone = "Phone is required";
-      } else if (!/^\+?[0-9\s\-\(\)]+$/.test(formData.phone)) {
-        newErrors.phone = "Invalid phone format";
+    } else if (step === 3) {
+      // Validate user details based on source
+      if (formData.userSource === "existing") {
+        if (!formData.userId) {
+          newErrors.userId = "Please select an existing user";
+        }
+      } else {
+        // New user validation
+        if (!formData.name || !formData.name.trim()) {
+          newErrors.name = "Name is required";
+        }
+        if (!formData.email || !formData.email.trim()) {
+          newErrors.email = "Email is required";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.email = "Invalid email format";
+        }
+        if (!formData.phone || !formData.phone.trim()) {
+          newErrors.phone = "Phone is required";
+        } else if (!/^\+?[0-9\s\-\(\)]+$/.test(formData.phone)) {
+          newErrors.phone = "Invalid phone format";
+        }
       }
     }
 
@@ -150,43 +181,62 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
 
   const handleNext = useCallback(() => {
     if (validateStep(currentStep)) {
-      if (currentStep < STEPS.length) {
+      if (currentStep < STEPS.length - 1) { // Changed to -1 because step 5 is confirm, not a navigation step
         setCurrentStep((prev) => prev + 1);
       }
     }
   }, [currentStep, validateStep]);
 
   const handleBack = useCallback(() => {
-    if (currentStep > 1) {
+    if (currentStep > 1 && currentStep < STEPS.length) { // Can't go back from confirm step
       setCurrentStep((prev) => prev - 1);
     }
   }, [currentStep]);
 
   const handleSubmit = async () => {
-    if (!validateStep(currentStep)) {
+    // Validate step 4 (Review)
+    if (!validateStep(4)) {
       return;
     }
 
-    // Final validation
-    if (!formData.organizationId || !formData.role || !formData.name || !formData.email || !formData.phone) {
-      setErrors({ general: "Please fill in all required fields" });
-      return;
+    // Final validation based on user source
+    if (formData.userSource === "existing") {
+      if (!formData.organizationId || !formData.role || !formData.userId) {
+        setErrors({ general: "Please complete all required fields" });
+        return;
+      }
+    } else {
+      if (!formData.organizationId || !formData.role || !formData.name || !formData.email || !formData.phone) {
+        setErrors({ general: "Please complete all required fields" });
+        return;
+      }
     }
 
     setIsSubmitting(true);
     setErrors({});
 
     try {
-      // Prepare payload based on role
-      const payload = {
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        phone: formData.phone.trim(),
+      // Prepare payload based on user source and role
+      const payload: Record<string, unknown> = {
         role: formData.role,
-        ...(formData.role === "ORGANIZATION_ADMIN"
-          ? { organizationId: formData.organizationId }
-          : { clubId: formData.clubId }),
+        userSource: formData.userSource,
       };
+
+      // Add context (org or club)
+      if (formData.role === "ORGANIZATION_OWNER" || formData.role === "ORGANIZATION_ADMIN") {
+        payload.organizationId = formData.organizationId;
+      } else {
+        payload.clubId = formData.clubId;
+      }
+
+      // Add user data based on source
+      if (formData.userSource === "existing") {
+        payload.userId = formData.userId;
+      } else {
+        payload.name = formData.name?.trim();
+        payload.email = formData.email?.trim().toLowerCase();
+        payload.phone = formData.phone?.trim();
+      }
 
       const response = await fetch("/api/admin/admins/create", {
         method: "POST",
@@ -201,12 +251,15 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
         if (response.status === 409) {
           if (data.field === "email") {
             setErrors({ email: data.error || "Email is already in use" });
-            setCurrentStep(2); // Go back to user data step
+            setCurrentStep(3); // Go back to user details step
           } else if (data.field === "phone") {
             setErrors({ phone: data.error || "Phone is already in use" });
-            setCurrentStep(2);
+            setCurrentStep(3);
+          } else if (data.field === "owner") {
+            setErrors({ general: data.error || "An owner already exists" });
           } else {
-            setErrors({ general: data.error || "A user with this email or phone already exists" });
+            setErrors({ general: data.error || "A conflict occurred" });
+          }
           }
         } else if (response.status === 403) {
           setErrors({ general: data.error || "You don't have permission to create this admin" });
@@ -214,19 +267,35 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
           setErrors({ general: data.error || "Failed to create admin" });
         }
         showToast("error", data.error || "Failed to create admin");
+        setConfirmSuccess(false);
+        setConfirmMessage(data.error || "Failed to create admin");
+        setCurrentStep(5); // Move to confirm step to show error
         return;
       }
 
-      showToast("success", "Admin created successfully!");
+      // Success! Move to confirm step
+      setConfirmSuccess(true);
+      setConfirmMessage(
+        formData.userSource === "existing"
+          ? "Role assigned successfully!"
+          : "Admin created successfully! An invitation email will be sent."
+      );
+      setCurrentStep(5);
+      showToast("success", "Operation completed successfully!");
 
-      // Call success callback if provided
-      if (config.onSuccess) {
-        config.onSuccess(data.userId);
-      }
+      // Call success callback after a short delay
+      setTimeout(() => {
+        if (config.onSuccess) {
+          config.onSuccess(data.userId);
+        }
+      }, 2000);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create admin";
       setErrors({ general: message });
       showToast("error", message);
+      setConfirmSuccess(false);
+      setConfirmMessage(message);
+      setCurrentStep(5);
     } finally {
       setIsSubmitting(false);
     }
@@ -244,9 +313,9 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
       case 1:
         return (
           <Card className="im-wizard-section">
-            <h2 className="im-wizard-section-title">Select Context</h2>
+            <h2 className="im-wizard-section-title">Context & Role Selection</h2>
             <p className="im-wizard-section-description">
-              Choose the organization and role for the new admin.
+              Choose the organization, club (if applicable), and role for the admin.
             </p>
             <SelectContextStep
               data={{
@@ -271,17 +340,13 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
       case 2:
         return (
           <Card className="im-wizard-section">
-            <h2 className="im-wizard-section-title">User Details</h2>
+            <h2 className="im-wizard-section-title">User Source Selection</h2>
             <p className="im-wizard-section-description">
-              Enter the admin&apos;s personal information.
+              Choose whether to assign a role to an existing user or create a new user.
             </p>
-            <UserDataStep
-              data={{
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-              }}
-              onChange={handleUserDataChange}
+            <UserSourceStep
+              data={{ userSource: formData.userSource }}
+              onChange={handleUserSourceChange}
               errors={errors}
               disabled={isSubmitting}
             />
@@ -291,15 +356,60 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
       case 3:
         return (
           <Card className="im-wizard-section">
+            <h2 className="im-wizard-section-title">User Details</h2>
+            <p className="im-wizard-section-description">
+              {formData.userSource === "existing"
+                ? "Search for and select an existing user."
+                : "Enter the new user's information."}
+            </p>
+            {formData.userSource === "existing" ? (
+              <ExistingUserSearchStep
+                data={{
+                  userId: formData.userId,
+                  email: formData.email,
+                  name: formData.name,
+                }}
+                onChange={handleUserDataChange}
+                errors={errors}
+                disabled={isSubmitting}
+              />
+            ) : (
+              <UserDataStep
+                data={{
+                  name: formData.name,
+                  email: formData.email,
+                  phone: formData.phone,
+                }}
+                onChange={handleUserDataChange}
+                errors={errors}
+                disabled={isSubmitting}
+              />
+            )}
+          </Card>
+        );
+
+      case 4:
+        return (
+          <Card className="im-wizard-section">
             <h2 className="im-wizard-section-title">Review & Confirm</h2>
             <p className="im-wizard-section-description">
-              Please review the information before creating the admin.
+              Please review the information before proceeding.
             </p>
             <ReviewStep
               data={formData}
               organizations={orgOptions}
               clubs={clubOptions}
             />
+          </Card>
+        );
+
+      case 5:
+        return (
+          <Card className="im-wizard-section">
+            <h2 className="im-wizard-section-title">
+              {confirmSuccess ? "Success" : "Error"}
+            </h2>
+            <ConfirmStep success={confirmSuccess} message={confirmMessage} />
           </Card>
         );
 
@@ -351,17 +461,27 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
       {/* Navigation */}
       <div className="im-wizard-navigation">
         <div className="im-wizard-navigation-left">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCancel}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
+          {currentStep < 5 && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+          )}
+          {currentStep === 5 && (
+            <Button
+              type="button"
+              onClick={handleCancel}
+            >
+              Close
+            </Button>
+          )}
         </div>
         <div className="im-wizard-navigation-right">
-          {currentStep > 1 && (
+          {currentStep > 1 && currentStep < 5 && (
             <Button
               type="button"
               variant="outline"
@@ -371,7 +491,7 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
               Back
             </Button>
           )}
-          {currentStep < STEPS.length ? (
+          {currentStep < 4 && (
             <Button
               type="button"
               onClick={handleNext}
@@ -379,13 +499,14 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
             >
               Next
             </Button>
-          ) : (
+          )}
+          {currentStep === 4 && (
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Creating..." : "Create Admin"}
+              {isSubmitting ? "Processing..." : formData.userSource === "existing" ? "Assign Role" : "Create Admin"}
             </Button>
           )}
         </div>

@@ -15,7 +15,32 @@ export function ReviewStep({
 }: ReviewStepProps) {
   const organization = organizations.find(org => org.id === data.organizationId);
   const club = data.clubId ? clubs.find(c => c.id === data.clubId) : null;
-  const roleLabel = data.role === "ORGANIZATION_ADMIN" ? "Organization Admin" : "Club Admin";
+  
+  let roleLabel = "";
+  let actionText = "";
+  
+  switch (data.role) {
+    case "ORGANIZATION_OWNER":
+      roleLabel = "Organization Owner";
+      break;
+    case "ORGANIZATION_ADMIN":
+      roleLabel = "Organization Admin";
+      break;
+    case "CLUB_OWNER":
+      roleLabel = "Club Owner";
+      break;
+    case "CLUB_ADMIN":
+      roleLabel = "Club Admin";
+      break;
+    default:
+      roleLabel = data.role;
+  }
+
+  if (data.userSource === "existing") {
+    actionText = "The selected user will be assigned the role.";
+  } else {
+    actionText = "A new user will be created and an invitation email will be sent.";
+  }
 
   return (
     <div className="im-wizard-step-content">
@@ -44,26 +69,34 @@ export function ReviewStep({
       </div>
 
       <div className="im-review-section">
-        <h3 className="im-review-section-title">Admin Details</h3>
+        <h3 className="im-review-section-title">User Information</h3>
         <dl className="im-review-list">
           <div className="im-review-item">
+            <dt className="im-review-label">User Source:</dt>
+            <dd className="im-review-value">
+              {data.userSource === "existing" ? "Existing User" : "New User"}
+            </dd>
+          </div>
+          <div className="im-review-item">
             <dt className="im-review-label">Full Name:</dt>
-            <dd className="im-review-value">{data.name}</dd>
+            <dd className="im-review-value">{data.name || "N/A"}</dd>
           </div>
           <div className="im-review-item">
             <dt className="im-review-label">Email:</dt>
-            <dd className="im-review-value">{data.email}</dd>
+            <dd className="im-review-value">{data.email || "N/A"}</dd>
           </div>
-          <div className="im-review-item">
-            <dt className="im-review-label">Phone:</dt>
-            <dd className="im-review-value">{data.phone}</dd>
-          </div>
+          {data.userSource === "new" && data.phone && (
+            <div className="im-review-item">
+              <dt className="im-review-label">Phone:</dt>
+              <dd className="im-review-value">{data.phone}</dd>
+            </div>
+          )}
         </dl>
       </div>
 
       <div className="im-review-note">
         <p>
-          <strong>Note:</strong> An invitation email will be sent to the admin with instructions to set up their account.
+          <strong>Action:</strong> {actionText}
         </p>
       </div>
     </div>

@@ -40,10 +40,29 @@ export function SelectContextStep({
     label: club.name,
   }));
 
-  const roleOptions: SelectOption[] = allowedRoles.map(role => ({
-    value: role,
-    label: role === "ORGANIZATION_ADMIN" ? "Organization Admin" : "Club Admin",
-  }));
+  const roleOptions: SelectOption[] = allowedRoles.map(role => {
+    let label = "";
+    switch (role) {
+      case "ORGANIZATION_OWNER":
+        label = "Organization Owner";
+        break;
+      case "ORGANIZATION_ADMIN":
+        label = "Organization Admin";
+        break;
+      case "CLUB_OWNER":
+        label = "Club Owner";
+        break;
+      case "CLUB_ADMIN":
+        label = "Club Admin";
+        break;
+      default:
+        label = role;
+    }
+    return {
+      value: role,
+      label,
+    };
+  });
 
   // Filter clubs by selected organization
   // When an organization is selected, only show clubs belonging to that organization
@@ -112,7 +131,7 @@ export function SelectContextStep({
         )}
       </div>
 
-      {showClubSelector && data.role === "CLUB_ADMIN" && (
+      {showClubSelector && (data.role === "CLUB_ADMIN" || data.role === "CLUB_OWNER") && (
         <div className="im-form-field">
           <Select
             id="club"

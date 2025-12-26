@@ -5,7 +5,7 @@
 /**
  * Admin roles that can be assigned through the wizard
  */
-export type AdminRole = "ORGANIZATION_ADMIN" | "CLUB_ADMIN" | "OWNER";
+export type AdminRole = "ORGANIZATION_OWNER" | "ORGANIZATION_ADMIN" | "CLUB_OWNER" | "CLUB_ADMIN";
 
 /**
  * Context type for admin creation
@@ -57,21 +57,54 @@ export interface ContextSelectionData {
 }
 
 /**
- * Step 2: User data entry
+ * User source type
  */
-export interface UserData {
+export type UserSource = "existing" | "new";
+
+/**
+ * Step 2: User source selection
+ */
+export interface UserSourceData {
+  userSource: UserSource;
+}
+
+/**
+ * Step 3: User data (for existing user search)
+ */
+export interface ExistingUserData {
+  userId: string;
+  email: string;
+  name: string;
+}
+
+/**
+ * Step 3: User data (for new user)
+ */
+export interface NewUserData {
   name: string;
   email: string;
   phone: string;
 }
 
 /**
+ * Combined user data for the wizard
+ */
+export type UserData = ExistingUserData | NewUserData;
+
+/**
  * Complete form data for admin creation
  */
-export interface AdminCreationData extends UserData {
+export interface AdminCreationData {
   organizationId: string;
   clubId?: string;
   role: AdminRole;
+  userSource: UserSource;
+  // For existing users
+  userId?: string;
+  // For new users
+  name?: string;
+  email?: string;
+  phone?: string;
 }
 
 /**
@@ -99,6 +132,8 @@ export interface AdminWizardErrors {
   organizationId?: string;
   clubId?: string;
   role?: string;
+  userSource?: string;
+  userId?: string;
   name?: string;
   email?: string;
   phone?: string;

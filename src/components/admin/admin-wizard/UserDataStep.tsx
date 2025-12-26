@@ -1,11 +1,11 @@
 "use client";
 
 import { Input } from "@/components/ui";
-import type { UserData, AdminWizardErrors } from "@/types/adminWizard";
+import type { NewUserData, AdminWizardErrors } from "@/types/adminWizard";
 
 interface UserDataStepProps {
-  data: UserData;
-  onChange: (data: Partial<UserData>) => void;
+  data: Partial<NewUserData>;
+  onChange: (data: Partial<NewUserData>) => void;
   errors: AdminWizardErrors;
   disabled: boolean;
 }
@@ -18,14 +18,18 @@ export function UserDataStep({
 }: UserDataStepProps) {
   return (
     <div className="im-wizard-step-content">
+      <p className="im-field-hint im-mb-4">
+        Enter the new user&apos;s information. They will receive an invitation email to set up their account.
+      </p>
+      
       <div className="im-form-field">
         <Input
           id="name"
           label="Full Name *"
           type="text"
-          value={data.name}
+          value={data.name || ""}
           onChange={(e) => onChange({ name: e.target.value })}
-          placeholder="Enter admin's full name"
+          placeholder="Enter user's full name"
           disabled={disabled}
           required
           aria-describedby={errors.name ? "name-error" : undefined}
@@ -42,9 +46,9 @@ export function UserDataStep({
           id="email"
           label="Email Address *"
           type="email"
-          value={data.email}
+          value={data.email || ""}
           onChange={(e) => onChange({ email: e.target.value })}
-          placeholder="admin@example.com"
+          placeholder="user@example.com"
           disabled={disabled}
           required
           aria-describedby={errors.email ? "email-error" : undefined}
@@ -55,7 +59,7 @@ export function UserDataStep({
           </span>
         )}
         <p className="im-field-hint">
-          We&apos;ll check if this email is already registered
+          An invitation will be sent to this email address
         </p>
       </div>
 
@@ -64,7 +68,7 @@ export function UserDataStep({
           id="phone"
           label="Phone Number *"
           type="tel"
-          value={data.phone}
+          value={data.phone || ""}
           onChange={(e) => onChange({ phone: e.target.value })}
           placeholder="+380501234567"
           disabled={disabled}
