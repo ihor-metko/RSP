@@ -259,6 +259,36 @@ export default function OrganizationDetailPage() {
         )}
 
         <section className="im-org-detail-content">
+          {/* Organization Admins Management - People Block */}
+          {loading || !org ? (
+            <div className="im-section-card im-org-detail-content--full">
+              <div className="im-section-header">
+                <div className="im-skeleton im-skeleton-icon--round w-10 h-10" />
+                <div className="im-skeleton h-6 w-48 rounded" />
+              </div>
+              <TableSkeleton rows={3} columns={4} showHeader={true} />
+            </div>
+          ) : (
+            <div className="im-section-card im-org-detail-content--full">
+              <OrganizationAdminsTable
+                orgId={orgId}
+                admins={(org.superAdmins || []).map(admin => ({
+                  id: admin.membershipId,
+                  type: "superadmin" as const,
+                  userId: admin.id,
+                  userName: admin.name,
+                  userEmail: admin.email,
+                  isPrimaryOwner: admin.isPrimaryOwner,
+                  // Note: lastLoginAt is not available from organization detail endpoint
+                  // Consider enhancing the store to fetch this data separately if needed
+                  lastLoginAt: null,
+                  createdAt: new Date(), // Placeholder, not displayed in UI
+                }))}
+                onRefresh={() => fetchOrgDetail(true)}
+              />
+            </div>
+          )}
+
           {/* Key Metrics */}
           {isLoadingState ? (
             <div className="im-section-card im-org-detail-content--full">
@@ -370,7 +400,7 @@ export default function OrganizationDetailPage() {
                           <span
                             className={`im-status-badge ${club.isPublic ? "im-status-badge--active" : "im-status-badge--draft"}`}
                           >
-                            {club.isPublic ? t("common.published") : t("common.draft")}
+                            {club.isPublic ? t("common.published") : t("common.unpublished")}
                           </span>
                         </div>
                       </div>
@@ -388,36 +418,6 @@ export default function OrganizationDetailPage() {
                   )}
                 </>
               )}
-            </div>
-          )}
-
-          {/* Organization Admins Management */}
-          {loading || !org ? (
-            <div className="im-section-card im-org-detail-content--full">
-              <div className="im-section-header">
-                <div className="im-skeleton im-skeleton-icon--round w-10 h-10" />
-                <div className="im-skeleton h-6 w-48 rounded" />
-              </div>
-              <TableSkeleton rows={3} columns={4} showHeader={true} />
-            </div>
-          ) : (
-            <div className="im-section-card im-org-detail-content--full">
-              <OrganizationAdminsTable
-                orgId={orgId}
-                admins={(org.superAdmins || []).map(admin => ({
-                  id: admin.membershipId,
-                  type: "superadmin" as const,
-                  userId: admin.id,
-                  userName: admin.name,
-                  userEmail: admin.email,
-                  isPrimaryOwner: admin.isPrimaryOwner,
-                  // Note: lastLoginAt is not available from organization detail endpoint
-                  // Consider enhancing the store to fetch this data separately if needed
-                  lastLoginAt: null,
-                  createdAt: new Date(), // Placeholder, not displayed in UI
-                }))}
-                onRefresh={() => fetchOrgDetail(true)}
-              />
             </div>
           )}
 
