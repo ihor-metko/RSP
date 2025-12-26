@@ -155,11 +155,12 @@ export function EntityLogo({
     return null;
   }
 
-  // Build complete class list: base logo class + contrast class + custom className
+  // Build complete class list
+  // If custom className is provided (e.g., for card overlays), use it instead of base class
+  // Otherwise, use the base rsp-club-hero-logo class for EntityBanner context
   const logoClasses = [
-    'rsp-club-hero-logo', // Base logo styles
-    logoContrastClass,    // Contrast enhancement if needed
-    className             // Custom classes from parent
+    className || 'rsp-club-hero-logo', // Custom class OR base logo styles
+    logoContrastClass,                  // Contrast enhancement if needed
   ].filter(Boolean).join(' ');
 
   return (
