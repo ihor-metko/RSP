@@ -74,7 +74,14 @@ export default function OrganizationAdminsTable({
   };
 
   // Check if organization has an owner
-  const hasOwner = admins.some((a) => a.isPrimaryOwner);
+  const hasOwner = Array.isArray(admins) && admins.some((a) => a.isPrimaryOwner);
+
+  // Reset selectedRole to ORGANIZATION_ADMIN if owner exists and OWNER is selected
+  useEffect(() => {
+    if (hasOwner && selectedRole === "OWNER") {
+      setSelectedRole("ORGANIZATION_ADMIN");
+    }
+  }, [hasOwner, selectedRole]);
 
   // Handle add admin
   const handleOpenAddModal = async () => {
