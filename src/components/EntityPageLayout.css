@@ -5,13 +5,17 @@
 
 .entity-page-content {
   /* Base padding - responsive horizontal and vertical spacing */
-  @apply px-4 md:px-8 py-6 md:py-8;
-  
+  @apply p-6;
+
   /* Max width constraint for readability and layout consistency */
   max-width: 1400px;
-  
+
   /* Center the content */
   margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 /* ===== Modifier Classes for Page-Specific Overrides ===== */
