@@ -1,6 +1,7 @@
+/* Main page wrapper - sets background for the entire court detail page */
 .im-court-detail-page {
   background-color: var(--im-background);
-  /* Padding removed - now handled by .entity-page-content */
+  /* Note: Padding has been removed and is now handled by .entity-page-content */
 }
 
 /* DEPRECATED: Use .entity-page-content.entity-page-content--narrow from EntityPageLayout.css instead */
