@@ -252,8 +252,75 @@
     "indoor": "Критий",
     "outdoor": "Відкритий",
     "location": "Розташування",
+    "editor": {
+      "title": "Редагувати клуб"
+    },
     "tabs": {
+      "baseInfo": {
+        "tabLabel": "Основна інформація",
+        "title": "Основна інформація",
+        "description": "Опис",
+        "organizationName": "Назва клубу",
+        "organizationNamePlaceholder": "Введіть назву клубу",
+        "slug": "Ідентифікатор",
+        "slugPlaceholder": "club-slug",
+        "slugHint": "Автоматично генерується з назви, якщо порожній",
+        "descriptionPlaceholder": "Опишіть клуб..."
+      },
+      "address": {
+        "tabLabel": "Адреса",
+        "title": "Місцезнаходження та адреса",
+        "description": "Редагуйте адресу клубу та координати на карті",
+        "country": "Країна",
+        "countryPlaceholder": "Країна",
+        "city": "Місто",
+        "cityPlaceholder": "Місто",
+        "street": "Вулиця",
+        "streetPlaceholder": "Адреса вулиці",
+        "postalCode": "Поштовий індекс",
+        "postalCodePlaceholder": "Поштовий індекс",
+        "latitude": "Широта",
+        "latitudePlaceholder": "50.4501",
+        "longitude": "Довгота",
+        "longitudePlaceholder": "30.5234"
+      },
+      "logo": {
+        "tabLabel": "Логотип",
+        "title": "Логотип клубу",
+        "description": "Завантажте та налаштуйте логотип вашого клубу",
+        "logoCountLabel": "Кількість логотипів",
+        "logoCountOne": "Один логотип для обох тем",
+        "logoCountOneDescription": "Завантажте один логотип, який добре виглядає на світлому та темному фоні",
+        "logoCountTwo": "Два окремі логотипи для різних тем",
+        "logoCountTwoDescription": "Завантажте різні версії логотипу, оптимізовані для світлої та темної теми",
+        "primaryLogo": "Основний логотип",
+        "firstLogo": "Перший логотип",
+        "primaryLogoHelperText": "Завантажте квадратне зображення. Рекомендується формат SVG для найкращої якості.",
+        "logoThemeLabel": "Тема логотипу",
+        "firstLogoThemeLabel": "Тема першого логотипу",
+        "logoThemeLight": "Світла тема",
+        "logoThemeDark": "Темна тема",
+        "secondLogo": "Другий логотип",
+        "secondLogoHelperText": "Завантажте альтернативний логотип для іншої теми.",
+        "secondLogoThemeLabel": "Тема другого логотипу",
+        "logoBackgroundLabel": "Фон попереднього перегляду",
+        "logoBackgroundLight": "Світлий фон",
+        "logoBackgroundDark": "Темний фон",
+        "logoThemeHelperText": "Виберіть тему (Світла/Темна), для якої призначений цей логотип",
+        "logoBackgroundHelperText": "Виберіть колір фону для попереднього перегляду",
+        "logoPreview": "Попередній перегляд логотипу",
+        "logoPreviewAlt": "Попередній перегляд логотипу",
+        "logoPreviewHelperText": "Попередній перегляд показує, як виглядатиме ваш логотип",
+        "noLogoForTheme": "Немає логотипу для цієї комбінації теми/фону"
+      },
       "banner": {
+        "tabLabel": "Банер",
+        "title": "Банер клубу",
+        "description": "Завантажте фонове зображення банера для профілю вашого клубу",
+        "heroImage": "Зображення банера",
+        "heroImageHelperText": "Рекомендується широке зображення для відображення банера",
+        "preview": "Попередній перегляд",
+        "previewAlt": "Попередній перегляд банера",
         "alignment": "Вирівнювання банера",
         "alignmentTop": "Верх",
         "alignmentTopDesc": "Фокус на верхній частині зображення",
@@ -261,6 +328,26 @@
         "alignmentCenterDesc": "Фокус на центрі зображення",
         "alignmentBottom": "Низ",
         "alignmentBottomDesc": "Фокус на нижній частині зображення"
+      },
+      "validation": {
+        "nameRequired": "Назва клубу обов'язкова",
+        "countryRequired": "Країна обов'язкова",
+        "cityRequired": "Місто обов'язкове",
+        "streetRequired": "Вулиця обов'язкова",
+        "latitudeRequired": "Широта обов'язкова для визначення місця на карті",
+        "latitudeInvalid": "Широта має бути дійсним числом",
+        "latitudeRange": "Широта має бути між -90 та 90",
+        "longitudeRequired": "Довгота обов'язкова для визначення місця на карті",
+        "longitudeInvalid": "Довгота має бути дійсним числом",
+        "longitudeRange": "Довгота має бути між -180 та 180"
+      },
+      "errors": {
+        "saveFailed": "Не вдалося зберегти зміни",
+        "imageUploadFailed": "Не вдалося завантажити зображення"
+      },
+      "common": {
+        "save": "Зберегти",
+        "saving": "Збереження..."
       }
     }
   },
@@ -1379,8 +1466,75 @@
       "heroImage": "Головне зображення для {name}",
       "logo": "Логотип для {name}"
     },
+    "editor": {
+      "title": "Редагувати організацію"
+    },
     "tabs": {
+      "baseInfo": {
+        "tabLabel": "Основна інформація",
+        "title": "Основна інформація",
+        "description": "Опис",
+        "organizationName": "Назва організації",
+        "organizationNamePlaceholder": "Введіть назву організації",
+        "slug": "Ідентифікатор",
+        "slugPlaceholder": "organization-slug",
+        "slugHint": "Автоматично генерується з назви, якщо порожній",
+        "descriptionPlaceholder": "Опишіть організацію..."
+      },
+      "address": {
+        "tabLabel": "Адреса",
+        "title": "Місцезнаходження та адреса",
+        "description": "Редагуйте адресу організації та координати на карті",
+        "country": "Країна",
+        "countryPlaceholder": "Країна",
+        "city": "Місто",
+        "cityPlaceholder": "Місто",
+        "street": "Вулиця",
+        "streetPlaceholder": "Адреса вулиці",
+        "postalCode": "Поштовий індекс",
+        "postalCodePlaceholder": "Поштовий індекс",
+        "latitude": "Широта",
+        "latitudePlaceholder": "50.4501",
+        "longitude": "Довгота",
+        "longitudePlaceholder": "30.5234"
+      },
+      "logo": {
+        "tabLabel": "Логотип",
+        "title": "Логотип організації",
+        "description": "Завантажте та налаштуйте логотип вашої організації",
+        "logoCountLabel": "Кількість логотипів",
+        "logoCountOne": "Один логотип для обох тем",
+        "logoCountOneDescription": "Завантажте один логотип, який добре виглядає на світлому та темному фоні",
+        "logoCountTwo": "Два окремі логотипи для різних тем",
+        "logoCountTwoDescription": "Завантажте різні версії логотипу, оптимізовані для світлої та темної теми",
+        "primaryLogo": "Основний логотип",
+        "firstLogo": "Перший логотип",
+        "primaryLogoHelperText": "Завантажте квадратне зображення. Рекомендується формат SVG для найкращої якості.",
+        "logoThemeLabel": "Тема логотипу",
+        "firstLogoThemeLabel": "Тема першого логотипу",
+        "logoThemeLight": "Світла тема",
+        "logoThemeDark": "Темна тема",
+        "secondLogo": "Другий логотип",
+        "secondLogoHelperText": "Завантажте альтернативний логотип для іншої теми.",
+        "secondLogoThemeLabel": "Тема другого логотипу",
+        "logoBackgroundLabel": "Фон попереднього перегляду",
+        "logoBackgroundLight": "Світлий фон",
+        "logoBackgroundDark": "Темний фон",
+        "logoThemeHelperText": "Виберіть тему (Світла/Темна), для якої призначений цей логотип",
+        "logoBackgroundHelperText": "Виберіть колір фону для попереднього перегляду",
+        "logoPreview": "Попередній перегляд логотипу",
+        "logoPreviewAlt": "Попередній перегляд логотипу",
+        "logoPreviewHelperText": "Попередній перегляд показує, як виглядатиме ваш логотип",
+        "noLogoForTheme": "Немає логотипу для цієї комбінації теми/фону"
+      },
       "banner": {
+        "tabLabel": "Банер",
+        "title": "Банер організації",
+        "description": "Завантажте фонове зображення банера для профілю вашої організації",
+        "heroImage": "Зображення банера",
+        "heroImageHelperText": "Рекомендується широке зображення для відображення банера",
+        "preview": "Попередній перегляд",
+        "previewAlt": "Попередній перегляд банера",
         "alignment": "Вирівнювання банера",
         "alignmentTop": "Верх",
         "alignmentTopDesc": "Фокус на верхній частині зображення",
@@ -1388,6 +1542,25 @@
         "alignmentCenterDesc": "Фокус на центрі зображення",
         "alignmentBottom": "Низ",
         "alignmentBottomDesc": "Фокус на нижній частині зображення"
+      },
+      "validation": {
+        "nameRequired": "Назва організації обов'язкова",
+        "countryRequired": "Країна обов'язкова",
+        "cityRequired": "Місто обов'язкове",
+        "streetRequired": "Вулиця обов'язкова",
+        "latitudeRequired": "Широта обов'язкова для визначення місця на карті",
+        "latitudeInvalid": "Широта має бути дійсним числом",
+        "latitudeRange": "Широта має бути між -90 та 90",
+        "longitudeRequired": "Довгота обов'язкова для визначення місця на карті",
+        "longitudeInvalid": "Довгота має бути дійсним числом",
+        "longitudeRange": "Довгота має бути між -180 та 180"
+      },
+      "errors": {
+        "saveFailed": "Не вдалося зберегти зміни"
+      },
+      "common": {
+        "save": "Зберегти",
+        "saving": "Збереження..."
       }
     }
   },
