@@ -81,7 +81,8 @@ export default function OrganizationAdminsTable({
     if (hasOwner && selectedRole === "OWNER") {
       setSelectedRole("ORGANIZATION_ADMIN");
     }
-  }, [hasOwner, selectedRole]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasOwner]);
 
   // Handle add admin
   const handleOpenAddModal = async () => {
