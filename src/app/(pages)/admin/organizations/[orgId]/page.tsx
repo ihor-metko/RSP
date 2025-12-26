@@ -13,6 +13,7 @@ import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
 import "./page.css";
 import "@/components/ClubDetailPage.css";
+import "@/components/EntityPageLayout.css";
 
 // Basic interfaces for this component
 // Note: Defined locally to avoid coupling with full User model from Prisma
@@ -205,7 +206,7 @@ export default function OrganizationDetailPage() {
     {
       id: 'publish',
       title: org.isPublic ? t("orgDetail.unpublish") : t("orgDetail.publish"),
-      description: org.isPublic 
+      description: org.isPublic
         ? t("dangerZone.unpublishOrgDescription")
         : t("dangerZone.publishOrgDescription"),
       buttonLabel: org.isPublic ? t("orgDetail.unpublish") : t("orgDetail.publish"),
@@ -252,252 +253,248 @@ export default function OrganizationDetailPage() {
         />
       )}
 
-      <div className="rsp-club-content">
+      <div className="entity-page-content">
         {/* Toast */}
         {toast && (
           <div className={`im-toast im-toast--${toast.type}`}>{toast.message}</div>
         )}
 
-        <section className="im-org-detail-content">
-          {/* Organization Admins Management - People Block */}
-          {loading || !org ? (
-            <div className="im-section-card im-org-detail-content--full">
-              <div className="im-section-header">
-                <div className="im-skeleton im-skeleton-icon--round w-10 h-10" />
-                <div className="im-skeleton h-6 w-48 rounded" />
-              </div>
-              <TableSkeleton rows={3} columns={4} showHeader={true} />
+        {/* Organization Admins Management - People Block */}
+        {loading || !org ? (
+          <div className="im-section-card im-org-detail-content--full">
+            <div className="im-section-header">
+              <div className="im-skeleton im-skeleton-icon--round w-10 h-10" />
+              <div className="im-skeleton h-6 w-48 rounded" />
             </div>
-          ) : (
-            <div className="im-section-card im-org-detail-content--full">
-              <OrganizationAdminsTable
-                orgId={orgId}
-                admins={(org.superAdmins || []).map(admin => ({
-                  id: admin.membershipId,
-                  type: "superadmin" as const,
-                  userId: admin.id,
-                  userName: admin.name,
-                  userEmail: admin.email,
-                  isPrimaryOwner: admin.isPrimaryOwner,
-                  // Note: lastLoginAt is not available from organization detail endpoint
-                  // Consider enhancing the store to fetch this data separately if needed
-                  lastLoginAt: null,
-                  createdAt: new Date(), // Placeholder, not displayed in UI
-                }))}
-                onRefresh={() => fetchOrgDetail(true)}
-              />
-            </div>
-          )}
+            <TableSkeleton rows={3} columns={4} showHeader={true} />
+          </div>
+        ) : (
+          <div className="im-section-card im-org-detail-content--full">
+            <OrganizationAdminsTable
+              orgId={orgId}
+              admins={(org.superAdmins || []).map(admin => ({
+                id: admin.membershipId,
+                type: "superadmin" as const,
+                userId: admin.id,
+                userName: admin.name,
+                userEmail: admin.email,
+                isPrimaryOwner: admin.isPrimaryOwner,
+                // Note: lastLoginAt is not available from organization detail endpoint
+                // Consider enhancing the store to fetch this data separately if needed
+                lastLoginAt: null,
+                createdAt: new Date(), // Placeholder, not displayed in UI
+              }))}
+              onRefresh={() => fetchOrgDetail(true)}
+            />
+          </div>
+        )}
 
-          {/* Key Metrics */}
-          {isLoadingState ? (
-            <div className="im-section-card im-org-detail-content--full">
-              <div className="im-section-header">
-                <div className="im-skeleton im-skeleton-icon--round w-10 h-10" />
-                <div className="im-skeleton h-6 w-48 rounded" />
+        {/* Key Metrics */}
+        {isLoadingState ? (
+          <div className="im-section-card im-org-detail-content--full">
+            <div className="im-section-header">
+              <div className="im-skeleton im-skeleton-icon--round w-10 h-10" />
+              <div className="im-skeleton h-6 w-48 rounded" />
+            </div>
+            <div className="im-metrics-grid">
+              <MetricCardSkeleton size="md" />
+              <MetricCardSkeleton size="md" />
+              <MetricCardSkeleton size="md" />
+              <MetricCardSkeleton size="md" />
+            </div>
+          </div>
+        ) : org && (
+          <div className="im-section-card im-org-detail-content--full">
+            <div className="im-section-header">
+              <div className="im-section-icon im-section-icon--metrics">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
+                  <path d="M22 12A10 10 0 0 0 12 2v10z" />
+                </svg>
               </div>
-              <div className="im-metrics-grid">
-                <MetricCardSkeleton size="md" />
-                <MetricCardSkeleton size="md" />
-                <MetricCardSkeleton size="md" />
-                <MetricCardSkeleton size="md" />
+              <h2 className="im-section-title">{t("orgDetail.keyMetrics")}</h2>
+            </div>
+            <div className="im-metrics-grid">
+              <div className="im-metric-card im-metric-card--clubs">
+                <div className="im-metric-value">{org.metrics?.totalClubs ?? 0}</div>
+                <div className="im-metric-label">{t("orgDetail.totalClubs")}</div>
+              </div>
+              <div className="im-metric-card im-metric-card--courts">
+                <div className="im-metric-value">{org.metrics?.totalCourts ?? 0}</div>
+                <div className="im-metric-label">{t("orgDetail.totalCourts")}</div>
+              </div>
+              <div className="im-metric-card im-metric-card--bookings">
+                <div className="im-metric-value">{org.metrics?.activeBookings ?? 0}</div>
+                <div className="im-metric-label">{t("orgDetail.activeBookings")}</div>
+              </div>
+              <div className="im-metric-card im-metric-card--users">
+                <div className="im-metric-value">{org.metrics?.activeUsers ?? 0}</div>
+                <div className="im-metric-label">{t("orgDetail.activeUsers")}</div>
               </div>
             </div>
-          ) : org && (
-            <div className="im-section-card im-org-detail-content--full">
-              <div className="im-section-header">
-                <div className="im-section-icon im-section-icon--metrics">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
-                    <path d="M22 12A10 10 0 0 0 12 2v10z" />
-                  </svg>
-                </div>
-                <h2 className="im-section-title">{t("orgDetail.keyMetrics")}</h2>
-              </div>
-              <div className="im-metrics-grid">
-                <div className="im-metric-card im-metric-card--clubs">
-                  <div className="im-metric-value">{org.metrics?.totalClubs ?? 0}</div>
-                  <div className="im-metric-label">{t("orgDetail.totalClubs")}</div>
-                </div>
-                <div className="im-metric-card im-metric-card--courts">
-                  <div className="im-metric-value">{org.metrics?.totalCourts ?? 0}</div>
-                  <div className="im-metric-label">{t("orgDetail.totalCourts")}</div>
-                </div>
-                <div className="im-metric-card im-metric-card--bookings">
-                  <div className="im-metric-value">{org.metrics?.activeBookings ?? 0}</div>
-                  <div className="im-metric-label">{t("orgDetail.activeBookings")}</div>
-                </div>
-                <div className="im-metric-card im-metric-card--users">
-                  <div className="im-metric-value">{org.metrics?.activeUsers ?? 0}</div>
-                  <div className="im-metric-label">{t("orgDetail.activeUsers")}</div>
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
+        )}
 
-          {/* Clubs Preview */}
-          {isLoadingState ? (
-            <ClubsPreviewSkeleton count={3} />
-          ) : org && (
-            <div className="im-section-card">
-              <div className="im-section-header">
-                <div className="im-section-icon im-section-icon--clubs">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                </div>
-                <h2 className="im-section-title">{t("orgDetail.clubs")}</h2>
-                {!org.archivedAt && (
-                  <div className="im-section-actions">
-                    <Button
-                      variant="primary"
-                      size="small"
-                      onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
-                    >
-                      {t("orgDetail.createNewClub")}
-                    </Button>
-                  </div>
-                )}
+        {/* Clubs Preview */}
+        {isLoadingState ? (
+          <ClubsPreviewSkeleton count={3} />
+        ) : org && (
+          <div className="im-section-card">
+            <div className="im-section-header">
+              <div className="im-section-icon im-section-icon--clubs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
               </div>
-              {(org.clubsPreview ?? []).length === 0 ? (
-                <div className="im-preview-empty-state">
-                  <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
-                  {!org.archivedAt && (
-                    <Button
-                      variant="primary"
-                      size="small"
-                      onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
-                    >
-                      {t("orgDetail.createFirstClub")}
-                    </Button>
-                  )}
+              <h2 className="im-section-title">{t("orgDetail.clubs")}</h2>
+              {!org.archivedAt && (
+                <div className="im-section-actions">
+                  <Button
+                    variant="primary"
+                    size="small"
+                    onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
+                  >
+                    {t("orgDetail.createNewClub")}
+                  </Button>
                 </div>
-              ) : (
-                <>
-                  <div className="im-clubs-preview-list">
-                    {(org.clubsPreview ?? []).map((club) => (
-                      <div
-                        key={club.id}
-                        className="im-club-preview-item im-club-preview-item--clickable"
-                        onClick={() => router.push(`/admin/clubs/${club.id}`)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            router.push(`/admin/clubs/${club.id}`);
-                          }
-                        }}
-                      >
-                        <div className="im-club-preview-info">
-                          <span className="im-club-preview-name">{club.name}</span>
-                          <span className="im-club-preview-meta">
-                            {club.city || club.slug} · {club.courtCount} {t("orgDetail.courts")}
-                          </span>
-                        </div>
-                        <div className="im-club-preview-status">
-                          <span
-                            className={`im-status-badge ${club.isPublic ? "im-status-badge--active" : "im-status-badge--draft"}`}
-                          >
-                            {club.isPublic ? t("common.published") : t("common.unpublished")}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  {(org.metrics?.totalClubs ?? 0) > (org.clubsPreview ?? []).length && (
-                    <Button
-                      variant="outline"
-                      size="small"
-                      onClick={() => router.push(`/admin/organizations/${orgId}/clubs`)}
-                      className="im-view-all-btn"
-                    >
-                      {t("orgDetail.viewAllClubs")} ({org.metrics?.totalClubs})
-                    </Button>
-                  )}
-                </>
               )}
             </div>
-          )}
-
-          {/* Bookings Summary */}
-          {loadingBookings ? (
-            <BookingsPreviewSkeleton count={5} className="im-org-detail-content--full" />
-          ) : bookingsPreview && (
-            <div className="im-section-card im-org-detail-content--full">
-              <div className="im-section-header">
-                <div className="im-section-icon im-section-icon--bookings">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                    <line x1="16" y1="2" x2="16" y2="6" />
-                    <line x1="8" y1="2" x2="8" y2="6" />
-                    <line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
+            {(org.clubsPreview ?? []).length === 0 ? (
+              <div className="im-preview-empty-state">
+                <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
+                {!org.archivedAt && (
+                  <Button
+                    variant="primary"
+                    size="small"
+                    onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
+                  >
+                    {t("orgDetail.createFirstClub")}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="im-clubs-preview-list">
+                  {(org.clubsPreview ?? []).map((club) => (
+                    <div
+                      key={club.id}
+                      className="im-club-preview-item im-club-preview-item--clickable"
+                      onClick={() => router.push(`/admin/clubs/${club.id}`)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          router.push(`/admin/clubs/${club.id}`);
+                        }
+                      }}
+                    >
+                      <div className="im-club-preview-info">
+                        <span className="im-club-preview-name">{club.name}</span>
+                        <span className="im-club-preview-meta">
+                          {club.city || club.slug} · {club.courtCount} {t("orgDetail.courts")}
+                        </span>
+                      </div>
+                      <div className="im-club-preview-status">
+                        <span
+                          className={`im-status-badge ${club.isPublic ? "im-status-badge--active" : "im-status-badge--draft"}`}
+                        >
+                          {club.isPublic ? t("common.published") : t("common.unpublished")}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <h2 className="im-section-title">{t("orgDetail.bookingsOverview")}</h2>
-                <div className="im-section-actions">
+                {(org.metrics?.totalClubs ?? 0) > (org.clubsPreview ?? []).length && (
                   <Button
                     variant="outline"
                     size="small"
-                    onClick={() => router.push(`/admin/bookings?orgId=${orgId}`)}
+                    onClick={() => router.push(`/admin/organizations/${orgId}/clubs`)}
+                    className="im-view-all-btn"
                   >
-                    {t("orgDetail.viewAllBookings")}
+                    {t("orgDetail.viewAllClubs")} ({org.metrics?.totalClubs})
                   </Button>
-                </div>
-              </div>
-              <div className="im-bookings-summary">
-                <div className="im-bookings-summary-item">
-                  <span className="im-bookings-summary-value">{bookingsPreview.summary.todayCount}</span>
-                  <span className="im-bookings-summary-label">{t("orgDetail.bookingsToday")}</span>
-                </div>
-                <div className="im-bookings-summary-item">
-                  <span className="im-bookings-summary-value">{bookingsPreview.summary.weekCount}</span>
-                  <span className="im-bookings-summary-label">{t("orgDetail.bookingsThisWeek")}</span>
-                </div>
-                <div className="im-bookings-summary-item">
-                  <span className="im-bookings-summary-value">{bookingsPreview.summary.totalUpcoming}</span>
-                  <span className="im-bookings-summary-label">{t("orgDetail.totalUpcoming")}</span>
-                </div>
-              </div>
-              {bookingsPreview.items.length === 0 ? (
-                <p className="im-preview-empty">{t("orgDetail.noBookings")}</p>
-              ) : (
-                <div className="im-bookings-preview-list">
-                  <h4 className="im-bookings-preview-title">{t("orgDetail.upcomingBookings")}</h4>
-                  {bookingsPreview.items.map((booking) => {
-                    const startDate = new Date(booking.start);
-                    const endDate = new Date(booking.end);
+                )}
+              </>
+            )}
+          </div>
+        )}
 
-                    return (
-                      <div key={booking.id} className="im-booking-preview-item">
-                        <div className="im-booking-preview-info">
-                          <span className="im-booking-preview-court">{booking.clubName} - {booking.courtName}</span>
-                          <span className="im-booking-preview-meta">
-                            {booking.userName || booking.userEmail} · {booking.sportType}
-                          </span>
-                        </div>
-                        <div className="im-booking-preview-time">
-                          <span className="im-booking-preview-date">
-                            {startDate.toLocaleDateString()}
-                          </span>
-                          <span className="im-booking-preview-hours">
-                            {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                        <span className={`im-status-badge im-status-badge--${booking.status.toLowerCase()}`}>
-                          {booking.status}
+        {/* Bookings Summary */}
+        {loadingBookings ? (
+          <BookingsPreviewSkeleton count={5} className="im-org-detail-content--full" />
+        ) : bookingsPreview && (
+          <div className="im-section-card im-org-detail-content--full">
+            <div className="im-section-header">
+              <div className="im-section-icon im-section-icon--bookings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </div>
+              <h2 className="im-section-title">{t("orgDetail.bookingsOverview")}</h2>
+              <div className="im-section-actions">
+                <Button
+                  variant="outline"
+                  size="small"
+                  onClick={() => router.push(`/admin/bookings?orgId=${orgId}`)}
+                >
+                  {t("orgDetail.viewAllBookings")}
+                </Button>
+              </div>
+            </div>
+            <div className="im-bookings-summary">
+              <div className="im-bookings-summary-item">
+                <span className="im-bookings-summary-value">{bookingsPreview.summary.todayCount}</span>
+                <span className="im-bookings-summary-label">{t("orgDetail.bookingsToday")}</span>
+              </div>
+              <div className="im-bookings-summary-item">
+                <span className="im-bookings-summary-value">{bookingsPreview.summary.weekCount}</span>
+                <span className="im-bookings-summary-label">{t("orgDetail.bookingsThisWeek")}</span>
+              </div>
+              <div className="im-bookings-summary-item">
+                <span className="im-bookings-summary-value">{bookingsPreview.summary.totalUpcoming}</span>
+                <span className="im-bookings-summary-label">{t("orgDetail.totalUpcoming")}</span>
+              </div>
+            </div>
+            {bookingsPreview.items.length === 0 ? (
+              <p className="im-preview-empty">{t("orgDetail.noBookings")}</p>
+            ) : (
+              <div className="im-bookings-preview-list">
+                <h4 className="im-bookings-preview-title">{t("orgDetail.upcomingBookings")}</h4>
+                {bookingsPreview.items.map((booking) => {
+                  const startDate = new Date(booking.start);
+                  const endDate = new Date(booking.end);
+
+                  return (
+                    <div key={booking.id} className="im-booking-preview-item">
+                      <div className="im-booking-preview-info">
+                        <span className="im-booking-preview-court">{booking.clubName} - {booking.courtName}</span>
+                        <span className="im-booking-preview-meta">
+                          {booking.userName || booking.userEmail} · {booking.sportType}
                         </span>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-
-        </section>
+                      <div className="im-booking-preview-time">
+                        <span className="im-booking-preview-date">
+                          {startDate.toLocaleDateString()}
+                        </span>
+                        <span className="im-booking-preview-hours">
+                          {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <span className={`im-status-badge im-status-badge--${booking.status.toLowerCase()}`}>
+                        {booking.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Danger Zone Section - At the very bottom */}
         {org && !org.archivedAt && (
@@ -525,7 +522,7 @@ export default function OrganizationDetailPage() {
             title={org.isPublic ? t("orgDetail.unpublish") : t("orgDetail.publish")}
           >
             <p className="mb-4">
-              {org.isPublic 
+              {org.isPublic
                 ? t("dangerZone.unpublishOrgConfirm", { name: org.name })
                 : t("dangerZone.publishOrgConfirm", { name: org.name })
               }

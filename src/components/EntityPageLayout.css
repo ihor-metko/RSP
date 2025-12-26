@@ -1,0 +1,41 @@
+@reference "tailwindcss";
+
+/* ===== Entity Page Content Layout ===== */
+/* Shared base layout class for all entity detail pages (Organization, Club, Court) */
+
+.entity-page-content {
+  /* Base padding - responsive horizontal and vertical spacing */
+  @apply p-6;
+
+  /* Max width constraint for readability and layout consistency */
+  max-width: 1400px;
+
+  /* Center the content */
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== Modifier Classes for Page-Specific Overrides ===== */
+
+/* Compact variant - for pages that need tighter spacing */
+.entity-page-content--compact {
+  @apply py-4 md:py-6;
+}
+
+/* Wide variant - for pages that need more width */
+.entity-page-content--wide {
+  max-width: 1600px;
+}
+
+/* Narrow variant - for pages that need less width */
+.entity-page-content--narrow {
+  max-width: 1200px;
+}
+
+/* Full width variant - for pages that need to span the full width */
+.entity-page-content--full {
+  max-width: none;
+}

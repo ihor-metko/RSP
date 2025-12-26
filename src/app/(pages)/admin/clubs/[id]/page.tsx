@@ -21,6 +21,7 @@ import { parseClubMetadata } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
 import "./page.css";
 import "@/components/ClubDetailPage.css";
+import "@/components/EntityPageLayout.css";
 
 export default function AdminClubDetailPage({
   params,
@@ -306,7 +307,7 @@ export default function AdminClubDetailPage({
       />
 
       {/* Main Content */}
-      <div className="im-admin-club-content">
+      <div className="entity-page-content">
         {/* Court Availability Section */}
         {club.courts.length > 0 && (
           <section className="im-admin-club-availability-section">

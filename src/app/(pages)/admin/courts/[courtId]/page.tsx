@@ -15,6 +15,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import type { CourtDetail as StoreCourtDetail } from "@/types/court";
 
 import "./page.css";
+import "@/components/EntityPageLayout.css";
 
 export default function CourtDetailPage({
   params,
@@ -188,7 +189,7 @@ export default function CourtDetailPage({
         </div>
       )}
 
-      <div className="im-court-detail-container">
+      <div className="entity-page-content entity-page-content--narrow">
         {/* Toolbar */}
         <div className="im-court-detail-toolbar">
           <div className="im-court-detail-toolbar-left">

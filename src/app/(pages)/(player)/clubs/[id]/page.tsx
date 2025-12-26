@@ -20,6 +20,7 @@ import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { parseClubMetadata } from "@/types/club";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
+import "@/components/EntityPageLayout.css";
 
 // Lazy load the ClubMap component for performance optimization
 const ClubMap = dynamic(() => import("@/components/ClubMap").then((mod) => mod.ClubMap), {
@@ -401,7 +402,7 @@ export default function ClubDetailPage({
       />
 
       {/* Main Content */}
-      <div className="rsp-club-content">
+      <div className="entity-page-content">
         {/* Breadcrumbs */}
         <Breadcrumbs
           items={[
