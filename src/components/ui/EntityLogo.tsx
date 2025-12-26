@@ -155,12 +155,19 @@ export function EntityLogo({
     return null;
   }
 
+  // Build complete class list: base logo class + contrast class + custom className
+  const logoClasses = [
+    'rsp-club-hero-logo', // Base logo styles
+    logoContrastClass,    // Contrast enhancement if needed
+    className             // Custom classes from parent
+  ].filter(Boolean).join(' ');
+
   return (
     /* eslint-disable-next-line @next/next/no-img-element */
     <img
       src={logoFullUrl}
       alt={alt}
-      className={`${logoContrastClass} ${className}`.trim()}
+      className={logoClasses}
     />
   );
 }
