@@ -112,8 +112,6 @@ export default function OrganizationAdminsTable({
     }
   };
 
-  // Debounced user search - REMOVED (no longer needed)
-
   // Root Admin or Organization Owner (isPrimaryOwner) can manage org admins
   const primaryOwner = admins.find((a) => a.isPrimaryOwner);
   const isOwner = primaryOwner?.userId === user?.id;
