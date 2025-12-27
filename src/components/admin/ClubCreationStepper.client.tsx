@@ -7,6 +7,7 @@ import { Button, Card } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { toOrganizationOptions, toOrganizationOption } from "@/utils/organization";
+import { createAddressFromForm } from "@/types/address";
 import {
   GeneralInfoStep,
   ContactsStep,
@@ -335,12 +336,22 @@ export function ClubCreationStepper() {
 
     try {
       // Prepare data for submission (without images - they'll be uploaded after club creation)
+      // Build Address object from form data
+      const address = createAddressFromForm({
+        street: formData.address,
+        city: formData.city,
+        country: formData.country,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+      });
+
       const submitData = {
         organizationId: formData.organizationId,
         name: formData.name.trim(),
         slug: formData.slug.trim() || generateSlug(formData.name),
         shortDescription: formData.shortDescription.trim() || `${formData.name} - Sports Club`,
-        location: formData.address.trim() || "Address not provided",
+        location: formData.address.trim() || "Address not provided", // Legacy field for backward compatibility
+        address, // New Address object
         city: formData.city.trim() || null,
         country: formData.country.trim() || null,
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,

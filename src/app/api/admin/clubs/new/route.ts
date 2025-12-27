@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { SportType } from "@/constants/sports";
+import type { Address } from "@/types/address";
 
 interface BusinessHourInput {
   dayOfWeek: number;
@@ -30,7 +31,8 @@ interface CreateClubRequest {
   slug?: string;
   shortDescription: string;
   longDescription?: string;
-  location: string;
+  location: string; // Legacy field
+  address?: Address; // New Address object
   city?: string | null;
   country?: string | null;
   latitude?: number | null;
@@ -148,6 +150,20 @@ export async function POST(request: Request) {
 
     // Create club with related records in a transaction
     const club = await prisma.$transaction(async (tx) => {
+      // Handle addressData - support both Address object and legacy string
+      let addressDataJson: string | null = null;
+      let legacyLocation: string = body.location?.trim() || "Address not provided";
+
+      if (body.address && typeof body.address === 'object' && 'street' in body.address && 'city' in body.address) {
+        // New Address object format
+        addressDataJson = JSON.stringify(body.address);
+        // Update legacy location for backward compatibility
+        const parts = [body.address.street, body.address.city, body.address.zip, body.address.country].filter(Boolean);
+        if (parts.length > 0) {
+          legacyLocation = parts.join(', ');
+        }
+      }
+
       // Create the club
       const newClub = await tx.club.create({
         data: {
@@ -157,7 +173,8 @@ export async function POST(request: Request) {
           createdById: authResult.userId,
           shortDescription: body.shortDescription.trim(),
           longDescription: body.longDescription?.trim() || null,
-          location: body.location.trim(),
+          location: legacyLocation,
+          addressData: addressDataJson,
           city: body.city || null,
           country: body.country || null,
           latitude: body.latitude || null,
@@ -219,7 +236,17 @@ export async function POST(request: Request) {
       return newClub;
     });
 
-    return NextResponse.json(club, { status: 201 });
+    // Parse addressData for response
+    let responseClub = { ...club };
+    if (club.addressData) {
+      try {
+        responseClub.address = JSON.parse(club.addressData);
+      } catch {
+        // Keep legacy location if parsing fails
+      }
+    }
+
+    return NextResponse.json(responseClub, { status: 201 });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error creating club:", error);
