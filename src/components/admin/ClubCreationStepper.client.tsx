@@ -340,6 +340,7 @@ export function ClubCreationStepper() {
       const address = createAddressFromForm({
         street: formData.address,
         city: formData.city,
+        postalCode: formData.postalCode, // Include postalCode from formData
         country: formData.country,
         latitude: formData.latitude,
         longitude: formData.longitude,
