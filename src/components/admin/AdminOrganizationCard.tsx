@@ -16,12 +16,8 @@ export interface AdminOrganizationCardProps {
     createdAt: string;
     clubCount?: number;
     supportedSports?: SportType[];
-    // New structure
     logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
     bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
-    // Deprecated - kept for backward compatibility
-    logo?: string | null;
-    heroImage?: string | null;
     metadata?: Record<string, unknown> | null;
     isPublic: boolean;
     createdBy?: {
@@ -62,9 +58,8 @@ export function AdminOrganizationCard({
   // Format date for display
   const formattedDate = new Date(organization.createdAt).toLocaleDateString();
 
-  // Use new structure with fallback to old fields
-  const logoUrl = organization.logoData?.url || organization.logo;
-  const bannerUrl = organization.bannerData?.url || organization.heroImage;
+  const logoUrl = organization.logoData?.url;
+  const bannerUrl = organization.bannerData?.url;
 
   // Convert stored paths to display URLs
   const heroImageUrl = getImageUrl(bannerUrl);

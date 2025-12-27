@@ -220,9 +220,9 @@ export default function OrganizationDetailPage() {
           title={org.name}
           subtitle={org.description || null}
           location={org.address}
-          imageUrl={org.heroImage}
+          imageUrl={org.bannerData?.url}
           bannerAlignment={orgMetadata?.bannerAlignment || 'center'}
-          logoUrl={org.logo}
+          logoUrl={org.logoData?.url}
           logoMetadata={orgMetadata}
           imageAlt={`${org.name} banner`}
           logoAlt={`${org.name} logo`}

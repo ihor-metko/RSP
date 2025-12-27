@@ -64,8 +64,8 @@ interface ClubWithDetails {
   socialLinks?: string | null;
   contactInfo?: string | null;
   openingHours?: string | null;
-  logo?: string | null;
-  heroImage?: string | null;
+  logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
+  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
   metadata?: string | null;
   defaultCurrency?: string | null;
   timezone?: string | null;
@@ -392,9 +392,9 @@ export default function ClubDetailPage({
         title={club.name}
         subtitle={club.shortDescription}
         location={locationDisplay}
-        imageUrl={club.heroImage}
+        imageUrl={club.bannerData?.url}
         bannerAlignment={clubMetadata?.bannerAlignment || 'center'}
-        logoUrl={club.logo}
+        logoUrl={club.logoData?.url}
         logoMetadata={clubMetadata}
         imageAlt={`${club.name} hero image`}
         logoAlt={`${club.name} logo`}

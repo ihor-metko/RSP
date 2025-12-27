@@ -15,12 +15,8 @@ export interface PublicClubCardProps {
     city?: string | null;
     contactInfo?: string | null;
     openingHours?: string | null;
-    // New structure
     logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
     bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
-    // Deprecated - kept for backward compatibility
-    logo?: string | null;
-    heroImage?: string | null;
     metadata?: string | null;
     tags?: string | null;
     indoorCount?: number;
@@ -67,8 +63,8 @@ export function PublicClubCard({ club, isRoot = false }: PublicClubCardProps) {
   const t = useTranslations();
   
   // Use new structure with fallback to old fields
-  const logoUrl = club.logoData?.url || club.logo;
-  const bannerUrl = club.bannerData?.url || club.heroImage;
+  const logoUrl = club.logoData?.url;
+  const bannerUrl = club.bannerData?.url;
   
   // Convert stored paths to display URLs
   const heroImageUrl = getImageUrl(bannerUrl);

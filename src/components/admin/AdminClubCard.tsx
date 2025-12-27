@@ -109,9 +109,8 @@ function renderActionButton(
 export function AdminClubCard({ club, showOrganization, actionButton }: AdminClubCardProps) {
   const t = useTranslations();
 
-  // Use new structure with fallback to old fields
-  const logoUrl = club.logoData?.url || club.logo;
-  const bannerUrl = club.bannerData?.url || club.heroImage;
+  const logoUrl = club.logoData?.url;
+  const bannerUrl = club.bannerData?.url;
   
   // Convert stored paths to display URLs
   const heroImageUrl = getImageUrl(bannerUrl);

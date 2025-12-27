@@ -381,9 +381,9 @@ export default function AdminClubDetailPage({
         title={club.name}
         subtitle={club.shortDescription}
         location={locationDisplay}
-        imageUrl={club.heroImage}
+        imageUrl={club.bannerData?.url}
         bannerAlignment={clubMetadata?.bannerAlignment || 'center'}
-        logoUrl={club.logo}
+        logoUrl={club.logoData?.url}
         logoMetadata={clubMetadata}
         imageAlt={`${club.name} hero image`}
         logoAlt={`${club.name} logo`}
