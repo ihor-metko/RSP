@@ -281,7 +281,16 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
 
       if (!response.ok) {
         // Handle validation errors
-        const errorData = data as { error?: string; field?: string; existingInviteId?: string };
+        // Type guard for error response structure
+        interface ErrorResponse {
+          error?: string;
+          field?: string;
+          existingInviteId?: string;
+        }
+        
+        const errorData = (typeof data === 'object' && data !== null) 
+          ? data as ErrorResponse 
+          : { error: 'Unknown error' };
         
         if (response.status === 409) {
           if (errorData.field === "email") {
@@ -320,12 +329,27 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
       setCurrentStep(5);
       showToast("success", t("messages.operationSuccess"));
 
-      // Call success callback
+      // Call success callback if provided
       if (config.onSuccess) {
-        const responseData = data as { userId?: string; invite?: { id: string } };
-        // For invites, we might not have a userId yet, but we can pass the invite ID
+        // Type guard for success response structure
+        interface SuccessResponse {
+          userId?: string;
+          invite?: { id: string };
+        }
+        
+        const responseData = (typeof data === 'object' && data !== null)
+          ? data as SuccessResponse
+          : {};
+        
+        // For existing users, we get userId directly
+        // For invites, we get invite.id
+        // Default to empty string if neither is available (though this shouldn't happen in normal flow)
         const resultId = responseData.userId || responseData.invite?.id || "";
-        config.onSuccess(resultId);
+        
+        // Only call callback if we have a valid ID
+        if (resultId) {
+          config.onSuccess(resultId);
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : t("errors.createFailed");
