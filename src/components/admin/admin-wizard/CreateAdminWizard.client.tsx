@@ -200,13 +200,13 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
         setCurrentStep((prev) => prev + 1);
       }
     }
-  }, [currentStep, validateStep]);
+  }, [currentStep, validateStep, STEPS.length]);
 
   const handleBack = useCallback(() => {
     if (currentStep > 1 && currentStep < STEPS.length) { // Can't go back from confirm step
       setCurrentStep((prev) => prev - 1);
     }
-  }, [currentStep]);
+  }, [currentStep, STEPS.length]);
 
   const handleSubmit = async () => {
     // Validate step 4 (Review)
