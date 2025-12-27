@@ -93,16 +93,16 @@ export default function AdminClubDetailPage({
       await fetchClubById(clubId);
       setError("");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to load club";
+      const errorMessage = err instanceof Error ? err.message : t("clubDetail.failedToLoadClub");
       if (errorMessage.includes("404") || errorMessage.includes("not found")) {
-        setError("Club not found");
+        setError(t("clubDetail.clubNotFoundError"));
       } else if (errorMessage.includes("401") || errorMessage.includes("403")) {
         router.push("/auth/sign-in");
       } else {
         setError(errorMessage);
       }
     }
-  }, [clubId, fetchClubById, router]);
+  }, [clubId, fetchClubById, router, t]);
 
   const fetchBookingsPreview = useCallback(async () => {
     if (!clubId) return;
@@ -209,14 +209,14 @@ export default function AdminClubDetailPage({
       const updatedClub = await response.json();
       // Refresh club data from store to keep it in sync
       await fetchClubById(clubId);
-      showToast("success", "Changes saved successfully");
+      showToast("success", t("clubDetail.changesSavedSuccess"));
       return updatedClub;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to save changes";
+      const message = err instanceof Error ? err.message : t("clubDetail.failedToSaveChanges");
       showToast("error", message);
       throw err;
     }
-  }, [clubId, fetchClubById, showToast]);
+  }, [clubId, fetchClubById, showToast, t]);
 
   const handleDelete = async () => {
     if (!clubId) return;
@@ -226,7 +226,7 @@ export default function AdminClubDetailPage({
       await deleteClub(clubId);
       router.push("/admin/clubs");
     } catch (err) {
-      showToast("error", err instanceof Error ? err.message : "Failed to delete club");
+      showToast("error", err instanceof Error ? err.message : t("clubDetail.failedToDeleteClub"));
     } finally {
       setSubmitting(false);
     }
@@ -244,7 +244,7 @@ export default function AdminClubDetailPage({
         isPublic: !club.isPublic,
       });
       setIsPublishModalOpen(false);
-      showToast("success", club.isPublic ? "Club unpublished successfully" : "Club published successfully");
+      showToast("success", club.isPublic ? t("clubDetail.clubUnpublishedSuccess") : t("clubDetail.clubPublishedSuccess"));
     } catch {
       // Error already handled in handleSectionUpdate
     } finally {
