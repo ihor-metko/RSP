@@ -2499,7 +2499,8 @@
     "messages": {
       "successExisting": "Role assigned successfully!",
       "successNew": "Admin created successfully! An invitation email will be sent.",
-      "operationSuccess": "Operation completed successfully!"
+      "operationSuccess": "Operation completed successfully!",
+      "successInvite": "Invitation sent successfully! The user will receive an email to accept their role."
     },
     "errors": {
       "organizationRequired": "Organization is required",
@@ -2518,7 +2519,8 @@
       "ownerExists": "An owner already exists",
       "conflictOccurred": "A conflict occurred",
       "permissionDenied": "You don't have permission to create this admin",
-      "createFailed": "Failed to create admin"
+      "createFailed": "Failed to create admin",
+      "inviteExists": "An invitation for this email and role already exists"
     },
     "modal": {
       "titleClub": "Create Club Admin",

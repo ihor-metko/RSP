@@ -231,58 +231,83 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
     setErrors({});
 
     try {
-      // Prepare payload based on user source and role
-      const payload: Record<string, unknown> = {
-        role: formData.role,
-        userSource: formData.userSource,
-      };
+      let response: Response;
+      let data: unknown;
 
-      // Add context (org or club)
-      if (formData.role === "ORGANIZATION_OWNER" || formData.role === "ORGANIZATION_ADMIN") {
-        payload.organizationId = formData.organizationId;
+      // For new users, use the Invite API to send email invitations
+      // For existing users, use the admin creation API for direct role assignment
+      if (formData.userSource === "new") {
+        // Prepare invite payload
+        const invitePayload: Record<string, unknown> = {
+          email: formData.email?.trim().toLowerCase(),
+          role: formData.role,
+        };
+
+        // Add context (org or club)
+        if (formData.role === "ORGANIZATION_OWNER" || formData.role === "ORGANIZATION_ADMIN") {
+          invitePayload.organizationId = formData.organizationId;
+        } else {
+          invitePayload.clubId = formData.clubId;
+        }
+
+        response = await fetch("/api/invites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(invitePayload),
+        });
+
+        data = await response.json();
       } else {
-        payload.clubId = formData.clubId;
+        // Existing user: direct role assignment
+        const payload: Record<string, unknown> = {
+          role: formData.role,
+          userSource: formData.userSource,
+          userId: formData.userId,
+        };
+
+        // Add context (org or club)
+        if (formData.role === "ORGANIZATION_OWNER" || formData.role === "ORGANIZATION_ADMIN") {
+          payload.organizationId = formData.organizationId;
+        } else {
+          payload.clubId = formData.clubId;
+        }
+
+        response = await fetch("/api/admin/admins/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        data = await response.json();
       }
-
-      // Add user data based on source
-      if (formData.userSource === "existing") {
-        payload.userId = formData.userId;
-      } else {
-        payload.name = formData.name?.trim();
-        payload.email = formData.email?.trim().toLowerCase();
-        payload.phone = formData.phone?.trim();
-      }
-
-      const response = await fetch("/api/admin/admins/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
 
       if (!response.ok) {
         // Handle validation errors
+        const errorData = data as { error?: string; field?: string; existingInviteId?: string };
+        
         if (response.status === 409) {
-          if (data.field === "email") {
-            setErrors({ email: data.error || t("errors.emailInUse") });
+          if (errorData.field === "email") {
+            setErrors({ email: errorData.error || t("errors.emailInUse") });
             setCurrentStep(3); // Go back to user details step
-          } else if (data.field === "phone") {
-            setErrors({ phone: data.error || t("errors.phoneInUse") });
+          } else if (errorData.field === "phone") {
+            setErrors({ phone: errorData.error || t("errors.phoneInUse") });
             setCurrentStep(3);
-          } else if (data.field === "owner") {
-            setErrors({ general: data.error || t("errors.ownerExists") });
+          } else if (errorData.field === "owner") {
+            setErrors({ general: errorData.error || t("errors.ownerExists") });
+          } else if (errorData.existingInviteId) {
+            // Handle existing active invite
+            setErrors({ general: errorData.error || t("errors.inviteExists") });
           } else {
-            setErrors({ general: data.error || t("errors.conflictOccurred") });
+            setErrors({ general: errorData.error || t("errors.conflictOccurred") });
           }
         } else if (response.status === 403) {
-          setErrors({ general: data.error || t("errors.permissionDenied") });
+          setErrors({ general: errorData.error || t("errors.permissionDenied") });
         } else {
-          setErrors({ general: data.error || t("errors.createFailed") });
+          setErrors({ general: errorData.error || t("errors.createFailed") });
         }
-        showToast("error", data.error || t("errors.createFailed"));
+        showToast("error", errorData.error || t("errors.createFailed"));
         setConfirmSuccess(false);
-        setConfirmMessage(data.error || t("errors.createFailed"));
+        setConfirmMessage(errorData.error || t("errors.createFailed"));
         setCurrentStep(5); // Move to confirm step to show error
         return;
       }
@@ -292,14 +317,17 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
       setConfirmMessage(
         formData.userSource === "existing"
           ? t("messages.successExisting")
-          : t("messages.successNew")
+          : t("messages.successInvite")
       );
       setCurrentStep(5);
       showToast("success", t("messages.operationSuccess"));
 
-      // Call success callback immediately
+      // Call success callback
       if (config.onSuccess) {
-        config.onSuccess(data.userId);
+        const responseData = data as { userId?: string; invite?: { id: string } };
+        // For invites, we might not have a userId yet, but we can pass the invite ID
+        const resultId = responseData.userId || responseData.invite?.id || "";
+        config.onSuccess(resultId);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : t("errors.createFailed");
