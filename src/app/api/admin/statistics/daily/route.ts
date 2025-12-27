@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
+import { calculateAndStoreDailyStatistics } from "@/services/statisticsService";
 
 /**
  * GET /api/admin/statistics/daily
@@ -92,7 +93,10 @@ export async function GET(request: Request) {
 /**
  * POST /api/admin/statistics/daily
  * Create or update daily statistics for a club
- * Body: { clubId, date, bookedSlots, totalSlots }
+ * Body: { clubId, date, bookedSlots?, totalSlots? }
+ * 
+ * If bookedSlots and totalSlots are provided, they will be used directly.
+ * If not provided, they will be calculated automatically from bookings and club hours.
  */
 export async function POST(request: Request) {
   const authResult = await requireAnyAdmin(request);
@@ -106,33 +110,9 @@ export async function POST(request: Request) {
     const { clubId, date, bookedSlots, totalSlots } = body;
 
     // Validate required fields
-    if (!clubId || !date || bookedSlots === undefined || totalSlots === undefined) {
+    if (!clubId || !date) {
       return NextResponse.json(
-        { error: "Missing required fields: clubId, date, bookedSlots, totalSlots" },
-        { status: 400 }
-      );
-    }
-
-    // Validate that bookedSlots and totalSlots are non-negative numbers
-    if (bookedSlots < 0 || totalSlots < 0) {
-      return NextResponse.json(
-        { error: "bookedSlots and totalSlots must be non-negative numbers" },
-        { status: 400 }
-      );
-    }
-
-    // Validate that totalSlots is not zero to avoid division by zero
-    if (totalSlots === 0) {
-      return NextResponse.json(
-        { error: "totalSlots must be greater than zero" },
-        { status: 400 }
-      );
-    }
-
-    // Validate that bookedSlots does not exceed totalSlots
-    if (bookedSlots > totalSlots) {
-      return NextResponse.json(
-        { error: "bookedSlots cannot exceed totalSlots" },
+        { error: "Missing required fields: clubId, date" },
         { status: 400 }
       );
     }
@@ -160,30 +140,62 @@ export async function POST(request: Request) {
       }
     }
 
-    // Calculate occupancy percentage
-    const occupancyPercentage = (bookedSlots / totalSlots) * 100;
+    // If manual values provided, validate and use them
+    if (bookedSlots !== undefined && totalSlots !== undefined) {
+      // Validate that bookedSlots and totalSlots are non-negative numbers
+      if (bookedSlots < 0 || totalSlots < 0) {
+        return NextResponse.json(
+          { error: "bookedSlots and totalSlots must be non-negative numbers" },
+          { status: 400 }
+        );
+      }
 
-    // Upsert the statistics (create or update if already exists for this club and date)
-    const statistics = await prisma.clubDailyStatistics.upsert({
-      where: {
-        clubId_date: {
+      // Validate that totalSlots is not zero to avoid division by zero
+      if (totalSlots === 0) {
+        return NextResponse.json(
+          { error: "totalSlots must be greater than zero" },
+          { status: 400 }
+        );
+      }
+
+      // Validate that bookedSlots does not exceed totalSlots
+      if (bookedSlots > totalSlots) {
+        return NextResponse.json(
+          { error: "bookedSlots cannot exceed totalSlots" },
+          { status: 400 }
+        );
+      }
+
+      // Calculate occupancy percentage
+      const occupancyPercentage = (bookedSlots / totalSlots) * 100;
+
+      // Upsert the statistics (create or update if already exists for this club and date)
+      const statistics = await prisma.clubDailyStatistics.upsert({
+        where: {
+          clubId_date: {
+            clubId,
+            date: new Date(date),
+          },
+        },
+        update: {
+          bookedSlots,
+          totalSlots,
+          occupancyPercentage,
+        },
+        create: {
           clubId,
           date: new Date(date),
+          bookedSlots,
+          totalSlots,
+          occupancyPercentage,
         },
-      },
-      update: {
-        bookedSlots,
-        totalSlots,
-        occupancyPercentage,
-      },
-      create: {
-        clubId,
-        date: new Date(date),
-        bookedSlots,
-        totalSlots,
-        occupancyPercentage,
-      },
-    });
+      });
+
+      return NextResponse.json(statistics, { status: 201 });
+    }
+
+    // Auto-calculate mode: Use service to calculate from bookings
+    const statistics = await calculateAndStoreDailyStatistics(clubId, new Date(date));
 
     return NextResponse.json(statistics, { status: 201 });
   } catch (error) {
