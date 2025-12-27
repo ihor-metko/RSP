@@ -21,6 +21,16 @@ import { MembershipRole, ClubMembershipRole } from "@/constants/roles";
 import type { InviteRole } from "@prisma/client";
 
 /**
+ * Valid organization invite roles.
+ */
+const ORGANIZATION_INVITE_ROLES: InviteRole[] = ["ORGANIZATION_OWNER", "ORGANIZATION_ADMIN"];
+
+/**
+ * Valid club invite roles.
+ */
+const CLUB_INVITE_ROLES: InviteRole[] = ["CLUB_OWNER", "CLUB_ADMIN"];
+
+/**
  * User interface for permission checks.
  * Can be a session user or a minimal user object.
  */
@@ -197,7 +207,7 @@ export async function canInviteToOrganization(
   }
 
   // Only organization roles are valid for organization invites
-  if (inviteRole !== "ORGANIZATION_OWNER" && inviteRole !== "ORGANIZATION_ADMIN") {
+  if (!ORGANIZATION_INVITE_ROLES.includes(inviteRole)) {
     return false;
   }
 
@@ -290,7 +300,7 @@ export async function canInviteToClub(
   }
 
   // Only club roles are valid for club invites
-  if (inviteRole !== "CLUB_OWNER" && inviteRole !== "CLUB_ADMIN") {
+  if (!CLUB_INVITE_ROLES.includes(inviteRole)) {
     return false;
   }
 
