@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
@@ -73,6 +73,9 @@ export default function AdminOrganizationsPage() {
   const isHydrated = useUserStore((state) => state.isHydrated);
   const isLoading = useUserStore((state) => state.isLoading);
   const user = useUserStore((state) => state.user);
+
+  // Track if we've performed the initial auth check to prevent redirects on page reload
+  const hasPerformedAuthCheck = useRef(false);
 
   // Use Zustand store for organizations with auto-fetch
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
@@ -324,9 +327,14 @@ export default function AdminOrganizationsPage() {
 
     if (isLoading) return;
 
-    if (!user || !user.isRoot) {
-      router.push("/auth/sign-in");
-      return;
+    // Only perform auth redirect on the first check, not on page reloads
+    if (!hasPerformedAuthCheck.current) {
+      hasPerformedAuthCheck.current = true;
+      
+      if (!user || !user.isRoot) {
+        router.push("/auth/sign-in");
+        return;
+      }
     }
 
     // No need to manually fetch - auto-fetch selector will handle it

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IMLink, PageHeader, Select } from "@/components/ui";
@@ -50,6 +50,9 @@ export default function AdminClubsPage() {
   const isLoadingStore = useUserStore((state) => state.isLoading);
   const isHydrated = useUserStore((state) => state.isHydrated);
 
+  // Track if we've performed the initial auth check to prevent redirects on page reload
+  const hasPerformedAuthCheck = useRef(false);
+
   // Use list controller hook for persistent filters
   const controller = useListController<ClubFilters>({
     entityKey: "clubs",
@@ -73,9 +76,20 @@ export default function AdminClubsPage() {
     // Wait for hydration before checking auth
     if (!isHydrated || isLoadingStore) return;
 
-    if (!isLoggedIn) {
-      router.push("/auth/sign-in");
-      return;
+    // Only perform auth redirect on the first check, not on page reloads
+    if (!hasPerformedAuthCheck.current) {
+      hasPerformedAuthCheck.current = true;
+      
+      if (!isLoggedIn) {
+        router.push("/auth/sign-in");
+        return;
+      }
+
+      // User is not an admin, redirect
+      if (!adminStatus?.isAdmin) {
+        router.push("/auth/sign-in");
+        return;
+      }
     }
 
     // Fetch clubs if user is admin
@@ -85,9 +99,6 @@ export default function AdminClubsPage() {
       }).catch((err) => {
         console.error("Failed to fetch clubs:", err);
       });
-    } else {
-      // User is not an admin, redirect
-      router.push("/auth/sign-in");
     }
   }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchClubsIfNeeded, controller.filters.organizationFilter, isHydrated]);
 

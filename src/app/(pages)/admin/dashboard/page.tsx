@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui";
@@ -117,6 +117,9 @@ export default function AdminDashboardPage() {
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoading = useUserStore((state) => state.isLoading);
 
+  // Track if we've performed the initial auth check to prevent redirects on page reload
+  const hasPerformedAuthCheck = useRef(false);
+
   const fetchDashboard = useCallback(async () => {
     try {
       const data = await fetchUnifiedDashboard();
@@ -142,10 +145,15 @@ export default function AdminDashboardPage() {
     // Wait for hydration and store initialization
     if (!isHydrated || isLoading) return;
 
-    // Redirect to sign-in if not logged in
-    if (!isLoggedIn) {
-      router.push("/auth/sign-in");
-      return;
+    // Only perform auth redirect on the first check, not on page reloads
+    if (!hasPerformedAuthCheck.current) {
+      hasPerformedAuthCheck.current = true;
+      
+      // Redirect to sign-in if not logged in
+      if (!isLoggedIn) {
+        router.push("/auth/sign-in");
+        return;
+      }
     }
 
     const initializeDashboard = async () => {

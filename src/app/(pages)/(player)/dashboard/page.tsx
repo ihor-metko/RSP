@@ -8,8 +8,8 @@ import { UserRoleIndicator } from "@/components/UserRoleIndicator";
 import { QuickBookingModal } from "@/components/QuickBookingModal";
 import { DarkModeToggle, LanguageSwitcher } from "@/components/ui";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
-import { useUserStore } from "@/stores/useUserStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
+import { useAuthGuardOnce } from "@/hooks";
 import { formatPrice } from "@/utils/price";
 import "./player-dashboard.css";
 
@@ -96,11 +96,18 @@ export default function PlayerDashboardPage() {
   const t = useTranslations();
   const currentLocale = useCurrentLocale();
   
-  // Use store for auth
-  const isHydrated = useUserStore((state) => state.isHydrated);
-  const isLoading = useUserStore((state) => state.isLoading);
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  const user = useUserStore((state) => state.user);
+  // Auth guard: Require authentication, redirect root admins to admin dashboard
+  const { isHydrated, isLoading, isLoggedIn, user } = useAuthGuardOnce({
+    requireAuth: true,
+  });
+
+  // Redirect root admins to admin dashboard (separate effect since it needs user data)
+  useEffect(() => {
+    if (!isHydrated || isLoading) return;
+    if (user?.isRoot) {
+      router.push("/admin/dashboard");
+    }
+  }, [isHydrated, isLoading, user, router]);
 
   // Use centralized player club store
   const clubsFromStore = usePlayerClubStore((state) => state.clubs);
@@ -143,21 +150,6 @@ export default function PlayerDashboardPage() {
   // Get user info
   const userName = user?.name || t("playerDashboard.player");
   const userId = user?.id || "";
-
-  // Redirect logic for authentication and role
-  useEffect(() => {
-    if (!isHydrated || isLoading) return;
-
-    if (!isLoggedIn) {
-      router.push("/auth/sign-in");
-      return;
-    }
-
-    // Root admins should go to admin dashboard
-    if (user?.isRoot) {
-      router.push("/admin/dashboard");
-    }
-  }, [isLoggedIn, isLoading, router, user, isHydrated]);
 
   // Fetch clubs from store
   const fetchClubs = useCallback(async () => {
