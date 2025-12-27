@@ -82,7 +82,16 @@
     "next": "Наступна",
     "from": "Від",
     "to": "До",
-    "selected": "вибрано"
+    "selected": "вибрано",
+    "sunday": "Неділя",
+    "monday": "Понеділок",
+    "tuesday": "Вівторок",
+    "wednesday": "Середа",
+    "thursday": "Четвер",
+    "friday": "П'ятниця",
+    "saturday": "Субота",
+    "loadingMap": "Завантаження карти...",
+    "mapHiddenInDev": "Карта прихована в режимі розробки"
   },
   "entityBanner": {
     "edit": "Редагувати",
@@ -376,7 +385,14 @@
     "address": "Адреса",
     "closed": "Зачинено",
     "limited": "Обмежено",
-    "viewImage": "Переглянути зображення"
+    "viewImage": "Переглянути зображення",
+    "failedToLoadClub": "Не вдалося завантажити клуб",
+    "clubNotFoundError": "Клуб не знайдено",
+    "changesSavedSuccess": "Зміни успішно збережено",
+    "failedToSaveChanges": "Не вдалося зберегти зміни",
+    "failedToDeleteClub": "Не вдалося видалити клуб",
+    "clubPublishedSuccess": "Клуб успішно опубліковано",
+    "clubUnpublishedSuccess": "Клуб успішно знято з публікації"
   },
   "admin": {
     "club": "Клуб",

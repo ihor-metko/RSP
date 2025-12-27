@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -22,10 +22,18 @@ import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilitySt
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
 
+// Create a loading component wrapper
+function MapLoadingPlaceholder({ message }: { message: string }) {
+  return (
+    <div className="rsp-club-map-placeholder">
+      <span className="rsp-club-map-placeholder-text">{message}</span>
+    </div>
+  );
+}
+
 // Lazy load the ClubMap component for performance optimization
 const ClubMap = dynamic(() => import("@/components/ClubMap").then((mod) => mod.ClubMap), {
   ssr: false,
-  loading: () => <div className="rsp-club-map-placeholder"><span className="rsp-club-map-placeholder-text">Loading map...</span></div>,
 });
 
 interface Coach {
@@ -81,9 +89,6 @@ interface Slot {
   endTime: string;
 }
 
-// Day names for business hours
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
 // Helper to get today's date in YYYY-MM-DD format
 function getTodayDateString(): string {
   return new Date().toISOString().split("T")[0];
@@ -97,6 +102,17 @@ export default function ClubDetailPage({
   const pathname = usePathname();
   const t = useTranslations();
   const { setActiveClubId } = useActiveClub();
+
+  // Day names for business hours
+  const DAY_NAMES = [
+    t("common.sunday"),
+    t("common.monday"),
+    t("common.tuesday"),
+    t("common.wednesday"),
+    t("common.thursday"),
+    t("common.friday"),
+    t("common.saturday")
+  ];
 
   // Use store for auth
   const user = useUserStore((state) => state.user);
@@ -608,13 +624,15 @@ export default function ClubDetailPage({
               {t("clubDetail.location")}
             </h2>
             {process.env.NODE_ENV === "production" ? (
-              <ClubMap
-                latitude={club.latitude as number}
-                longitude={club.longitude as number}
-                clubName={club.name}
-              />
+              <Suspense fallback={<MapLoadingPlaceholder message={t("common.loadingMap")} />}>
+                <ClubMap
+                  latitude={club.latitude as number}
+                  longitude={club.longitude as number}
+                  clubName={club.name}
+                />
+              </Suspense>
             ) : (
-              <div>Map hidden in development</div>
+              <div>{t("common.mapHiddenInDev")}</div>
             )}
             <p className="mt-3 text-sm opacity-70">{club.location}</p>
           </div>

@@ -85,7 +85,16 @@
     "selected": "selected",
     "unsavedChanges": "Unsaved Changes",
     "unsavedChangesMessage": "You have unsaved changes. Do you want to discard them?",
-    "discardChanges": "Discard Changes"
+    "discardChanges": "Discard Changes",
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "loadingMap": "Loading map...",
+    "mapHiddenInDev": "Map hidden in development"
   },
   "entityBanner": {
     "edit": "Edit",
@@ -370,7 +379,14 @@
     "address": "Address",
     "closed": "Closed",
     "limited": "Limited",
-    "viewImage": "View image"
+    "viewImage": "View image",
+    "failedToLoadClub": "Failed to load club",
+    "clubNotFoundError": "Club not found",
+    "changesSavedSuccess": "Changes saved successfully",
+    "failedToSaveChanges": "Failed to save changes",
+    "failedToDeleteClub": "Failed to delete club",
+    "clubPublishedSuccess": "Club published successfully",
+    "clubUnpublishedSuccess": "Club unpublished successfully"
   },
   "admin": {
     "club": "Club",
