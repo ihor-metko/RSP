@@ -109,16 +109,20 @@ function renderActionButton(
 export function AdminClubCard({ club, showOrganization, actionButton }: AdminClubCardProps) {
   const t = useTranslations();
 
+  // Use new structure with fallback to old fields
+  const logoUrl = club.logoData?.url || club.logo;
+  const bannerUrl = club.bannerData?.url || club.heroImage;
+  
   // Convert stored paths to display URLs
-  const heroImageUrl = getImageUrl(club.heroImage);
-  const logoUrl = getImageUrl(club.logo);
+  const heroImageUrl = getImageUrl(bannerUrl);
+  const logoDisplayUrl = getImageUrl(logoUrl);
 
   // Parse logo metadata if available
   const logoMetadata = parseClubMetadata(club.metadata);
 
   // Determine the main image: heroImage first, then logo as fallback
   const mainImage = isValidImageUrl(heroImageUrl) ? heroImageUrl : null;
-  const hasLogo = isValidImageUrl(logoUrl);
+  const hasLogo = isValidImageUrl(logoDisplayUrl);
   const formattedAddress = formatAddress(club.city, club.location);
   const clubTags = parseTags(club.tags);
 
@@ -138,7 +142,7 @@ export function AdminClubCard({ club, showOrganization, actionButton }: AdminClu
             {/* Logo overlayed on banner */}
             {hasLogo && (
               <EntityLogo
-                logoUrl={club.logo}
+                logoUrl={logoUrl}
                 logoMetadata={logoMetadata}
                 alt={`${club.name} logo`}
                 className="im-admin-club-logo-overlay"
@@ -148,7 +152,7 @@ export function AdminClubCard({ club, showOrganization, actionButton }: AdminClu
         ) : hasLogo ? (
           /* Logo as fallback when no banner */
           <EntityLogo
-            logoUrl={club.logo}
+            logoUrl={logoUrl}
             logoMetadata={logoMetadata}
             alt={`${club.name} logo`}
             className="im-admin-club-hero-image im-admin-club-hero-image--logo"

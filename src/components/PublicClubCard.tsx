@@ -15,6 +15,10 @@ export interface PublicClubCardProps {
     city?: string | null;
     contactInfo?: string | null;
     openingHours?: string | null;
+    // New structure
+    logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
+    bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+    // Deprecated - kept for backward compatibility
     logo?: string | null;
     heroImage?: string | null;
     metadata?: string | null;
@@ -62,16 +66,20 @@ function parseTags(tags: string | null | undefined): string[] {
 export function PublicClubCard({ club, isRoot = false }: PublicClubCardProps) {
   const t = useTranslations();
   
+  // Use new structure with fallback to old fields
+  const logoUrl = club.logoData?.url || club.logo;
+  const bannerUrl = club.bannerData?.url || club.heroImage;
+  
   // Convert stored paths to display URLs
-  const heroImageUrl = getImageUrl(club.heroImage);
-  const logoUrl = getImageUrl(club.logo);
+  const heroImageUrl = getImageUrl(bannerUrl);
+  const logoDisplayUrl = getImageUrl(logoUrl);
   
   // Parse logo metadata if available
   const logoMetadata = parseClubMetadata(club.metadata);
   
   // Determine the main image: heroImage first, then logo as fallback
   const mainImage = isValidImageUrl(heroImageUrl) ? heroImageUrl : null;
-  const hasLogo = isValidImageUrl(logoUrl);
+  const hasLogo = isValidImageUrl(logoDisplayUrl);
   const formattedAddress = formatAddress(club.city, club.location);
   const clubTags = parseTags(club.tags);
 
@@ -99,7 +107,7 @@ export function PublicClubCard({ club, isRoot = false }: PublicClubCardProps) {
             {/* Logo overlayed on banner */}
             {hasLogo && (
               <EntityLogo
-                logoUrl={club.logo}
+                logoUrl={logoUrl}
                 logoMetadata={logoMetadata}
                 alt={`${club.name} logo`}
                 className="rsp-club-logo-overlay"
@@ -109,7 +117,7 @@ export function PublicClubCard({ club, isRoot = false }: PublicClubCardProps) {
         ) : hasLogo ? (
           /* Logo as fallback when no banner */
           <EntityLogo
-            logoUrl={club.logo}
+            logoUrl={logoUrl}
             logoMetadata={logoMetadata}
             alt={`${club.name} logo`}
             className="rsp-club-hero-image rsp-club-hero-image--logo"
