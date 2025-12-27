@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Button, Card, Modal, IMLink, ImageCarousel, EntityBanner, DangerZone } from "@/components/ui";
+import { Button, Card, Modal, IMLink, ImageCarousel, EntityBanner, DangerZone, BookingsPreviewSkeleton } from "@/components/ui";
 import type { DangerAction } from "@/components/ui";
 import { ClubContactsView } from "@/components/admin/club/ClubContactsView";
 import { ClubHoursView } from "@/components/admin/club/ClubHoursView";
@@ -19,9 +19,32 @@ import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
 import { parseClubMetadata } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
+import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import "./page.css";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
+
+// Basic interfaces for bookings preview
+interface BookingPreview {
+  id: string;
+  courtName: string;
+  clubName: string;
+  userName: string | null;
+  userEmail: string;
+  start: string;
+  end: string;
+  status: string;
+  sportType: string;
+}
+
+interface BookingsPreviewData {
+  items: BookingPreview[];
+  summary: {
+    todayCount: number;
+    weekCount: number;
+    totalUpcoming: number;
+  };
+}
 
 export default function AdminClubDetailPage({
   params,
@@ -47,6 +70,8 @@ export default function AdminClubDetailPage({
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
+  const [loadingBookings, setLoadingBookings] = useState(true);
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
@@ -79,6 +104,65 @@ export default function AdminClubDetailPage({
     }
   }, [clubId, fetchClubById, router]);
 
+  const fetchBookingsPreview = useCallback(async () => {
+    if (!clubId) return;
+
+    try {
+      setLoadingBookings(true);
+      // Constants for booking limits
+      const MAX_SUMMARY_BOOKINGS = 100;
+      const PREVIEW_BOOKINGS_LIMIT = 10;
+
+      // Get today's date range
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      // Get week range
+      const weekFromNow = new Date(today);
+      weekFromNow.setDate(weekFromNow.getDate() + 7);
+
+      // Fetch bookings for the club
+      const [todayResponse, weekResponse, upcomingResponse] = await Promise.all([
+        fetch(`/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&dateTo=${tomorrow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
+        fetch(`/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&dateTo=${weekFromNow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
+        fetch(`/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&perPage=${PREVIEW_BOOKINGS_LIMIT}`)
+      ]);
+
+      if (todayResponse.ok && weekResponse.ok && upcomingResponse.ok) {
+        const [todayData, weekData, upcomingData] = await Promise.all([
+          todayResponse.json(),
+          weekResponse.json(),
+          upcomingResponse.json()
+        ]);
+
+        setBookingsPreview({
+          items: upcomingData.bookings.map((b: AdminBookingResponse) => ({
+            id: b.id,
+            courtName: b.courtName,
+            clubName: b.clubName,
+            userName: b.userName,
+            userEmail: b.userEmail,
+            start: b.start,
+            end: b.end,
+            status: b.bookingStatus,
+            sportType: b.sportType,
+          })),
+          summary: {
+            todayCount: todayData.total,
+            weekCount: weekData.total,
+            totalUpcoming: upcomingData.total,
+          },
+        });
+      }
+    } catch {
+      // Silent fail
+    } finally {
+      setLoadingBookings(false);
+    }
+  }, [clubId]);
+
   useEffect(() => {
     if (isLoadingStore) return;
 
@@ -92,12 +176,13 @@ export default function AdminClubDetailPage({
       // User is an admin (root, organization, or club admin)
       if (clubId) {
         fetchClub();
+        fetchBookingsPreview();
       }
     } else if (!isLoadingStore) {
       // User is not an admin, redirect
       router.push("/auth/sign-in");
     }
-  }, [isLoggedIn, isLoadingStore, adminStatus, router, clubId, fetchClub]);
+  }, [isLoggedIn, isLoadingStore, adminStatus, router, clubId, fetchClub, fetchBookingsPreview]);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -438,6 +523,82 @@ export default function AdminClubDetailPage({
             onRefresh={fetchClub}
           />
         </section>
+
+        {/* Bookings Summary */}
+        {loadingBookings ? (
+          <BookingsPreviewSkeleton count={5} className="im-admin-club-bookings-section" />
+        ) : bookingsPreview && club && (
+          <section className="im-admin-club-bookings-section">
+            <div className="im-section-card">
+              <div className="im-section-header">
+                <div className="im-section-icon im-section-icon--bookings">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
+                </div>
+                <h2 className="im-section-title">{t("orgDetail.bookingsOverview")}</h2>
+                <div className="im-section-actions">
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/admin/bookings?clubId=${club.id}`)}
+                  >
+                    {t("orgDetail.viewAllBookings")}
+                  </Button>
+                </div>
+              </div>
+              <div className="im-bookings-summary">
+                <div className="im-bookings-summary-item">
+                  <span className="im-bookings-summary-value">{bookingsPreview.summary.todayCount}</span>
+                  <span className="im-bookings-summary-label">{t("orgDetail.bookingsToday")}</span>
+                </div>
+                <div className="im-bookings-summary-item">
+                  <span className="im-bookings-summary-value">{bookingsPreview.summary.weekCount}</span>
+                  <span className="im-bookings-summary-label">{t("orgDetail.bookingsThisWeek")}</span>
+                </div>
+                <div className="im-bookings-summary-item">
+                  <span className="im-bookings-summary-value">{bookingsPreview.summary.totalUpcoming}</span>
+                  <span className="im-bookings-summary-label">{t("orgDetail.totalUpcoming")}</span>
+                </div>
+              </div>
+              {bookingsPreview.items.length === 0 ? (
+                <p className="im-preview-empty">{t("orgDetail.noBookings")}</p>
+              ) : (
+                <div className="im-bookings-preview-list">
+                  <h4 className="im-bookings-preview-title">{t("orgDetail.upcomingBookings")}</h4>
+                  {bookingsPreview.items.map((booking) => {
+                    const startDate = new Date(booking.start);
+                    const endDate = new Date(booking.end);
+
+                    return (
+                      <div key={booking.id} className="im-booking-preview-item">
+                        <div className="im-booking-preview-info">
+                          <span className="im-booking-preview-court">{booking.courtName}</span>
+                          <span className="im-booking-preview-meta">
+                            {booking.userName || booking.userEmail} · {booking.sportType}
+                          </span>
+                        </div>
+                        <div className="im-booking-preview-time">
+                          <span className="im-booking-preview-date">
+                            {startDate.toLocaleDateString()}
+                          </span>
+                          <span className="im-booking-preview-hours">
+                            {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <span className={`im-status-badge im-status-badge--${booking.status.toLowerCase()}`}>
+                          {booking.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Danger Zone Section - At the very bottom */}
         <section className="im-admin-club-danger-zone-section">

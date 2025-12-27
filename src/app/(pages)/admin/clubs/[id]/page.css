@@ -501,3 +501,11 @@
   background-color: rgba(146, 64, 14, 0.4);
   color: #fcd34d;
 }
+/* ===== Bookings Section ===== */
+.im-admin-club-bookings-section {
+  grid-column: 1 / -1;
+}
+
+.im-admin-club-bookings-section .im-section-card {
+  width: 100%;
+}
