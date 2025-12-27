@@ -13,12 +13,12 @@ export function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  const variantClass = variant === "outline" 
-    ? "rsp-button--outline" 
-    : variant === "danger" 
-    ? "rsp-button--danger" 
-    : "";
-  const sizeClass = size === "small" ? "rsp-button--small" : "";
+  const variantClass = variant === "outline"
+    ? "rsp-button--outline"
+    : variant === "danger"
+      ? "rsp-button--danger"
+      : "";
+  const sizeClass = size === "small" ? "" : ""; //"rsp-button--small"
 
   return (
     <button

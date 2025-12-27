@@ -65,7 +65,7 @@ export function AdminOrganizationCard({
   // Use new structure with fallback to old fields
   const logoUrl = organization.logoData?.url || organization.logo;
   const bannerUrl = organization.bannerData?.url || organization.heroImage;
-  
+
   // Convert stored paths to display URLs
   const heroImageUrl = getImageUrl(bannerUrl);
   const logoDisplayUrl = getImageUrl(logoUrl);
@@ -123,11 +123,10 @@ export function AdminOrganizationCard({
         {/* Status badge based on isPublic */}
         <div className="im-admin-org-status">
           <span
-            className={`im-admin-org-status-badge ${
-              organization.isPublic
+            className={`im-admin-org-status-badge ${organization.isPublic
                 ? "im-admin-org-status-badge--active"
                 : "im-admin-org-status-badge--inactive"
-            }`}
+              }`}
           >
             {organization.isPublic
               ? t("common.published")
@@ -254,7 +253,7 @@ export function AdminOrganizationCard({
         </div>
 
         {/* Supported Sports */}
-        {organization.supportedSports && organization.supportedSports.length > 0 && (
+        {/* {organization.supportedSports && organization.supportedSports.length > 0 && (
           <div className="im-admin-org-sports">
             <span className="im-admin-org-sports-label">{t("organizations.supportedSports")}:</span>
             <div className="im-admin-org-sports-badges">
@@ -265,7 +264,7 @@ export function AdminOrganizationCard({
               ))}
             </div>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Action Buttons */}
