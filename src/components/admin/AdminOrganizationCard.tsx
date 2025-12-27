@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Button, EntityLogo } from "@/components/ui";
 import { getSportName, SportType } from "@/constants/sports";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
+import { parseOrganizationMetadata } from "@/types/organization";
 
 export interface AdminOrganizationCardProps {
   organization: {
@@ -17,6 +18,7 @@ export interface AdminOrganizationCardProps {
     supportedSports?: SportType[];
     logo?: string | null;
     heroImage?: string | null;
+    metadata?: Record<string, unknown> | null;
     isPublic: boolean;
     createdBy?: {
       id: string;
@@ -60,6 +62,9 @@ export function AdminOrganizationCard({
   const heroImageUrl = getImageUrl(organization.heroImage);
   const logoUrl = getImageUrl(organization.logo);
 
+  // Parse logo metadata if available
+  const logoMetadata = parseOrganizationMetadata(organization.metadata);
+
   // Validate both images (isValidImageUrl checks for null/undefined/empty and valid URL format)
   const hasHeroImage = isValidImageUrl(heroImageUrl);
   const hasLogo = isValidImageUrl(logoUrl);
@@ -83,6 +88,7 @@ export function AdminOrganizationCard({
             {/* Logo overlayed on banner */}
             <EntityLogo
               logoUrl={organization.logo}
+              logoMetadata={logoMetadata}
               alt={t("organizations.imageAlt.logo", { name: organization.name })}
               className="im-admin-org-logo-overlay"
             />

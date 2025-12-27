@@ -78,6 +78,7 @@ export async function GET(request: Request) {
         superAdmin: superAdmins.find((a) => a.isPrimaryOwner) || superAdmins[0] || null,
         logo: org.logo,
         heroImage: org.heroImage,
+        metadata: org.metadata ? JSON.parse(org.metadata) : null,
         supportedSports: org.supportedSports,
         isPublic: org.isPublic,
       };
@@ -185,6 +186,7 @@ export async function POST(request: Request) {
         supportedSports: organization.supportedSports,
         logo: organization.logo,
         heroImage: organization.heroImage,
+        metadata: organization.metadata ? JSON.parse(organization.metadata) : null,
         isPublic: organization.isPublic,
       },
       { status: 201 }

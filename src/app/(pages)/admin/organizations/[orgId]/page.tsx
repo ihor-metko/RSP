@@ -9,6 +9,7 @@ import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useUserStore } from "@/stores/useUserStore";
 import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
 import { OrganizationEditor } from "@/components/admin/OrganizationEditor.client";
+import { parseOrganizationMetadata } from "@/types/organization";
 import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 
 import "./page.css";
@@ -222,6 +223,9 @@ export default function OrganizationDetailPage() {
   // Show loading spinner while checking authentication or loading org
   const isLoadingState = !isHydrated || isLoading || loading;
 
+  // Parse organization metadata for logo handling
+  const orgMetadata = org ? parseOrganizationMetadata(org.metadata) : undefined;
+
   return (
     <main className="im-org-detail-page">
       {/* Organization Banner */}
@@ -242,9 +246,9 @@ export default function OrganizationDetailPage() {
           subtitle={org.description || null}
           location={org.address}
           imageUrl={org.heroImage}
-          bannerAlignment={(org.metadata as { bannerAlignment?: 'top' | 'center' | 'bottom' })?.bannerAlignment || 'center'}
+          bannerAlignment={orgMetadata?.bannerAlignment || 'center'}
           logoUrl={org.logo}
-          logoMetadata={org.metadata as { logoTheme?: 'light' | 'dark'; secondLogo?: string | null; secondLogoTheme?: 'light' | 'dark'; }}
+          logoMetadata={orgMetadata}
           imageAlt={`${org.name} banner`}
           logoAlt={`${org.name} logo`}
           isPublished={org.isPublic ?? true}
