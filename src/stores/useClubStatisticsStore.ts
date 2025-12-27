@@ -77,13 +77,21 @@ export const useClubStatisticsStore = create<ClubStatisticsState>((set, get) => 
    */
   fetchDailyStatisticsIfNeeded: async (options = {}) => {
     const { force = false, clubId } = options;
+    
+    // Atomically check and update clubId context
+    set((state) => {
+      if (clubId && clubId !== state.lastClubId) {
+        return {
+          dailyStatistics: [],
+          monthlyStatistics: [],
+          lastFetchedAt: null,
+          lastClubId: clubId,
+        };
+      }
+      return state;
+    });
+    
     const state = get();
-
-    // If clubId changed, invalidate cache (only if not already done)
-    if (clubId && clubId !== state.lastClubId) {
-      get().invalidateStatistics();
-      set({ lastClubId: clubId });
-    }
 
     // If not forcing and stats are already loaded for this club, return immediately
     if (!force && state.dailyStatistics.length > 0 && (!clubId || clubId === state.lastClubId)) {
@@ -144,13 +152,21 @@ export const useClubStatisticsStore = create<ClubStatisticsState>((set, get) => 
    */
   fetchMonthlyStatisticsIfNeeded: async (options = {}) => {
     const { force = false, clubId } = options;
+    
+    // Atomically check and update clubId context
+    set((state) => {
+      if (clubId && clubId !== state.lastClubId) {
+        return {
+          dailyStatistics: [],
+          monthlyStatistics: [],
+          lastFetchedAt: null,
+          lastClubId: clubId,
+        };
+      }
+      return state;
+    });
+    
     const state = get();
-
-    // If clubId changed, invalidate cache (only if not already done)
-    if (clubId && clubId !== state.lastClubId) {
-      get().invalidateStatistics();
-      set({ lastClubId: clubId });
-    }
 
     // If not forcing and stats are already loaded for this club, return immediately
     if (!force && state.monthlyStatistics.length > 0 && (!clubId || clubId === state.lastClubId)) {
