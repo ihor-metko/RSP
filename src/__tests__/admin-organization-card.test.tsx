@@ -219,4 +219,38 @@ describe("AdminOrganizationCard", () => {
     const logoImage = screen.getByAltText("Logo for Test Organization");
     expect(logoImage).toHaveClass("im-admin-org-logo-overlay");
   });
+
+  it("should pass logo metadata to EntityLogo when metadata is provided", () => {
+    const orgWithMetadata = {
+      ...mockOrganization,
+      heroImage: "organizations/org-hero.jpg",
+      logo: "organizations/org-logo.png",
+      metadata: {
+        logoTheme: "dark" as const,
+        secondLogo: "organizations/org-logo-light.png",
+        secondLogoTheme: "light" as const,
+      },
+    };
+    
+    // The EntityLogo component will receive the metadata and apply appropriate styling
+    // We're just verifying the component renders without errors when metadata is present
+    render(<AdminOrganizationCard organization={orgWithMetadata} />);
+    
+    const logoImage = screen.getByAltText("Logo for Test Organization");
+    expect(logoImage).toBeInTheDocument();
+  });
+
+  it("should handle organization without metadata gracefully", () => {
+    const orgWithoutMetadata = {
+      ...mockOrganization,
+      heroImage: "organizations/org-hero.jpg",
+      logo: "organizations/org-logo.png",
+      metadata: null,
+    };
+    
+    render(<AdminOrganizationCard organization={orgWithoutMetadata} />);
+    
+    const logoImage = screen.getByAltText("Logo for Test Organization");
+    expect(logoImage).toBeInTheDocument();
+  });
 });
