@@ -48,7 +48,12 @@ interface StepperFormData {
   // Step 4: Courts
   courts: InlineCourt[];
   // Step 5: Gallery / Images
+  logoCount: 'one' | 'two';
   logo: UploadedFile | null;
+  logoTheme: 'light' | 'dark';
+  logoBackground: 'light' | 'dark';
+  secondLogo: UploadedFile | null;
+  secondLogoTheme: 'light' | 'dark';
   gallery: UploadedFile[];
 }
 
@@ -80,7 +85,12 @@ const initialFormData: StepperFormData = {
   website: "https://padelpulsearena.ua",
   businessHours: initialBusinessHours,
   courts: [],
+  logoCount: "one",
   logo: null,
+  logoTheme: "light",
+  logoBackground: "light",
+  secondLogo: null,
+  secondLogoTheme: "dark",
   gallery: [],
 };
 
@@ -334,6 +344,23 @@ export function ClubCreationStepper() {
     setError(null);
 
     try {
+      // Prepare metadata for logo theme information
+      const metadata: Record<string, unknown> = {};
+
+      if (formData.logo || formData.secondLogo) {
+        const logoMetadata: Record<string, unknown> = {
+          logoTheme: formData.logoTheme,
+          logoCount: formData.logoCount,
+          logoBackground: formData.logoBackground,
+        };
+        
+        if (formData.logoCount === 'two' && formData.secondLogo) {
+          logoMetadata.secondLogoTheme = formData.secondLogoTheme;
+        }
+        
+        metadata.logoMetadata = logoMetadata;
+      }
+
       // Prepare data for submission (without images - they'll be uploaded after club creation)
       const submitData = {
         organizationId: formData.organizationId,
@@ -358,6 +385,7 @@ export function ClubCreationStepper() {
           defaultPriceCents: court.defaultPriceCents,
         })),
         tags: formData.clubType ? JSON.stringify([formData.clubType]) : null,
+        metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
       };
 
       // Create club first
@@ -385,6 +413,11 @@ export function ClubCreationStepper() {
         // Upload logo if provided
         if (formData.logo?.file) {
           await uploadFile(clubId, formData.logo.file, "logo");
+        }
+
+        // Upload second logo if provided
+        if (formData.logoCount === 'two' && formData.secondLogo?.file) {
+          await uploadFile(clubId, formData.secondLogo.file, "secondLogo");
         }
 
         // For now, we'll skip gallery uploads as they need a different approach
@@ -527,7 +560,15 @@ export function ClubCreationStepper() {
               {t("gallery.description")}
             </p>
             <GalleryStep
-              data={{ logo: formData.logo, gallery: formData.gallery }}
+              data={{ 
+                logoCount: formData.logoCount,
+                logo: formData.logo,
+                logoTheme: formData.logoTheme,
+                logoBackground: formData.logoBackground,
+                secondLogo: formData.secondLogo,
+                secondLogoTheme: formData.secondLogoTheme,
+                gallery: formData.gallery 
+              }}
               onChange={handleGalleryChange}
               errors={fieldErrors}
               disabled={isSubmitting}

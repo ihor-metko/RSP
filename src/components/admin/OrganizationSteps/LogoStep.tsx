@@ -54,6 +54,19 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
     { value: 'dark', label: t("logoThemeDark") },
   ];
 
+  const backgroundOptions: RadioOption[] = [
+    { 
+      value: 'light', 
+      label: t("logoBackgroundLight"),
+      description: t("logoBackgroundLightDescription")
+    },
+    { 
+      value: 'dark', 
+      label: t("logoBackgroundDark"),
+      description: t("logoBackgroundDarkDescription")
+    },
+  ];
+
   return (
     <Card className="im-stepper-section">
       <h2 className="im-stepper-section-title">{t("logoTitle")}</h2>
@@ -86,13 +99,32 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
               helperText={t("primaryLogoHelperText")}
               disabled={isSubmitting}
               allowSVG={true}
-              themeBackground={data.logoTheme}
+              themeBackground={data.logoCount === 'one' ? data.logoBackground : data.logoTheme}
             />
             {fieldErrors.logo && (
               <span className="im-stepper-field-error">{fieldErrors.logo}</span>
             )}
           </div>
         </div>
+
+        {/* Background Preview Switcher - Only show for single logo */}
+        {data.logoCount === 'one' && (
+          <div className="im-stepper-row">
+            <div className="im-stepper-field im-stepper-field--full">
+              <RadioGroup
+                label={t("logoBackgroundLabel")}
+                name="logoBackground"
+                options={backgroundOptions}
+                value={data.logoBackground}
+                onChange={(value) => handleChange('logoBackground', value as 'light' | 'dark')}
+                disabled={isSubmitting}
+              />
+              <p className="im-upload-field-helper im-logo-helper-spacing">
+                {t("logoBackgroundHelperText")}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Theme Selection for Primary Logo - Only show for dual logos */}
         {data.logoCount === 'two' && (

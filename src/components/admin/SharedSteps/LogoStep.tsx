@@ -99,7 +99,7 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
               helperText={t("primaryLogoHelperText")}
               disabled={isSubmitting}
               allowSVG={true}
-              themeBackground={data.logoTheme}
+              themeBackground={data.logoCount === 'one' ? data.logoBackground : data.logoTheme}
             />
             {fieldErrors.logo && (
               <span className="im-stepper-field-error">{fieldErrors.logo}</span>
@@ -107,22 +107,24 @@ export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, transl
           </div>
         </div>
 
-        {/* Logo Background Selection - for display in banners and cards */}
-        <div className="im-stepper-row">
-          <div className="im-stepper-field im-stepper-field--full">
-            <RadioGroup
-              label={t("logoBackgroundLabel")}
-              name="logoBackground"
-              options={backgroundOptions}
-              value={data.logoBackground}
-              onChange={(value) => handleChange('logoBackground', value as 'light' | 'dark')}
-              disabled={isSubmitting}
-            />
-            <p className="im-upload-field-helper im-logo-helper-spacing">
-              {t("logoBackgroundHelperText")}
-            </p>
+        {/* Background Preview Switcher - Only show for single logo */}
+        {data.logoCount === 'one' && (
+          <div className="im-stepper-row">
+            <div className="im-stepper-field im-stepper-field--full">
+              <RadioGroup
+                label={t("logoBackgroundLabel")}
+                name="logoBackground"
+                options={backgroundOptions}
+                value={data.logoBackground}
+                onChange={(value) => handleChange('logoBackground', value as 'light' | 'dark')}
+                disabled={isSubmitting}
+              />
+              <p className="im-upload-field-helper im-logo-helper-spacing">
+                {t("logoBackgroundHelperText")}
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Theme Selection for Primary Logo - Only show for dual logos */}
         {data.logoCount === 'two' && (
