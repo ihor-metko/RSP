@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button, Card } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
+import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { SelectContextStep } from "./SelectContextStep";
 import { UserSourceStep } from "./UserSourceStep";
 import { ExistingUserSearchStep } from "./ExistingUserSearchStep";
@@ -24,6 +25,18 @@ interface CreateAdminWizardProps {
   config: CreateAdminWizardConfig;
 }
 
+// Type definitions for API responses
+interface ErrorResponse {
+  error?: string;
+  field?: string;
+  existingInviteId?: string;
+}
+
+interface SuccessResponse {
+  userId?: string;
+  invite?: { id: string };
+}
+
 export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   const t = useTranslations("createAdminWizard");
   const [currentStep, setCurrentStep] = useState(1);
@@ -32,6 +45,8 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [confirmSuccess, setConfirmSuccess] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState("");
+  const [lastSubmitPayload, setLastSubmitPayload] = useState<unknown>(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
   
   const STEPS = [
     { id: 1, label: t("steps.contextRole") },
@@ -55,6 +70,9 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
   const isLoadingOrgs = useOrganizationStore((state) => state.loading);
   const isLoadingClubs = useAdminClubStore((state) => state.loadingClubs);
+  
+  // Get admin users store actions for refreshing data after success
+  const refetchAdminUsers = useAdminUsersStore((state) => state.refetch);
 
   // Fetch clubs on mount to ensure the dropdown has data
   // This is required for the Club dropdown to be populated when creating a Club Admin
@@ -227,37 +245,41 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
 
     setIsSubmitting(true);
     setErrors({});
+    setIsNetworkError(false);
 
     try {
       let response: Response;
       let data: unknown;
+      let payload: Record<string, unknown>;
 
       // For new users, use the Invite API to send email invitations
       // For existing users, use the admin creation API for direct role assignment
       if (formData.userSource === "new") {
         // Prepare invite payload
-        const invitePayload: Record<string, unknown> = {
+        payload = {
           email: formData.email?.trim().toLowerCase(),
           role: formData.role,
         };
 
         // Add context (org or club)
         if (formData.role === "ORGANIZATION_OWNER" || formData.role === "ORGANIZATION_ADMIN") {
-          invitePayload.organizationId = formData.organizationId;
+          payload.organizationId = formData.organizationId;
         } else {
-          invitePayload.clubId = formData.clubId;
+          payload.clubId = formData.clubId;
         }
+
+        setLastSubmitPayload(payload);
 
         response = await fetch("/api/invites", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(invitePayload),
+          body: JSON.stringify(payload),
         });
 
         data = await response.json();
       } else {
         // Existing user: direct role assignment
-        const payload: Record<string, unknown> = {
+        payload = {
           role: formData.role,
           userSource: formData.userSource,
           userId: formData.userId,
@@ -270,6 +292,8 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
           payload.clubId = formData.clubId;
         }
 
+        setLastSubmitPayload(payload);
+
         response = await fetch("/api/admin/admins/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -281,83 +305,29 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
 
       if (!response.ok) {
         // Handle validation errors
-        // Type guard for error response structure
-        interface ErrorResponse {
-          error?: string;
-          field?: string;
-          existingInviteId?: string;
-        }
-        
         const errorData = (typeof data === 'object' && data !== null) 
           ? data as ErrorResponse 
           : { error: 'Unknown error' };
         
-        if (response.status === 409) {
-          if (errorData.field === "email") {
-            setErrors({ email: errorData.error || t("errors.emailInUse") });
-            setCurrentStep(3); // Go back to user details step
-          } else if (errorData.field === "phone") {
-            setErrors({ phone: errorData.error || t("errors.phoneInUse") });
-            setCurrentStep(3);
-          } else if (errorData.field === "owner") {
-            setErrors({ general: errorData.error || t("errors.ownerExists") });
-          } else if (errorData.existingInviteId) {
-            // Handle existing active invite
-            setErrors({ general: errorData.error || t("errors.inviteExists") });
-          } else {
-            setErrors({ general: errorData.error || t("errors.conflictOccurred") });
-          }
-        } else if (response.status === 403) {
-          setErrors({ general: errorData.error || t("errors.permissionDenied") });
-        } else {
-          setErrors({ general: errorData.error || t("errors.createFailed") });
-        }
-        showToast("error", errorData.error || t("errors.createFailed"));
-        setConfirmSuccess(false);
-        setConfirmMessage(errorData.error || t("errors.createFailed"));
-        setCurrentStep(5); // Move to confirm step to show error
+        handleApiError(response, errorData);
         return;
       }
 
-      // Success! Move to confirm step
-      setConfirmSuccess(true);
-      setConfirmMessage(
-        formData.userSource === "existing"
-          ? t("messages.successExisting")
-          : t("messages.successInvite")
-      );
-      setCurrentStep(5);
-      showToast("success", t("messages.operationSuccess"));
-
-      // Call success callback if provided
-      if (config.onSuccess) {
-        // Type guard for success response structure
-        interface SuccessResponse {
-          userId?: string;
-          invite?: { id: string };
-        }
-        
-        const responseData = (typeof data === 'object' && data !== null)
-          ? data as SuccessResponse
-          : {};
-        
-        // For existing users, we get userId directly
-        // For invites, we get invite.id
-        // Default to empty string if neither is available (though this shouldn't happen in normal flow)
-        const resultId = responseData.userId || responseData.invite?.id || "";
-        
-        // Only call callback if we have a valid ID
-        if (resultId) {
-          config.onSuccess(resultId);
-        }
-      }
+      // Success!
+      const responseData = (typeof data === 'object' && data !== null)
+        ? data as SuccessResponse
+        : {};
+      
+      await handleApiSuccess(responseData);
     } catch (err) {
+      // Network error or other unexpected error
       const message = err instanceof Error ? err.message : t("errors.createFailed");
       setErrors({ general: message });
       showToast("error", message);
       setConfirmSuccess(false);
       setConfirmMessage(message);
       setCurrentStep(5);
+      setIsNetworkError(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -366,6 +336,143 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   const handleCancel = () => {
     if (config.onCancel) {
       config.onCancel();
+    }
+  };
+
+  // Helper function for handling API errors
+  const handleApiError = useCallback((
+    response: Response,
+    errorData: ErrorResponse
+  ) => {
+    if (response.status === 409) {
+      if (errorData.field === "email") {
+        setErrors({ email: errorData.error || t("errors.emailInUse") });
+        setCurrentStep(3); // Go back to user details step
+        showToast("error", errorData.error || t("errors.emailInUse"));
+      } else if (errorData.field === "phone") {
+        setErrors({ phone: errorData.error || t("errors.phoneInUse") });
+        setCurrentStep(3);
+        showToast("error", errorData.error || t("errors.phoneInUse"));
+      } else if (errorData.field === "owner") {
+        setErrors({ general: errorData.error || t("errors.ownerExists") });
+        showToast("error", errorData.error || t("errors.ownerExists"));
+        setConfirmSuccess(false);
+        setConfirmMessage(errorData.error || t("errors.ownerExists"));
+        setCurrentStep(5);
+      } else if (errorData.existingInviteId) {
+        // Handle existing active invite - show warning
+        const inviteExistsMessage = errorData.error || t("errors.inviteExists");
+        setErrors({ general: inviteExistsMessage });
+        showToast("error", inviteExistsMessage);
+        setConfirmSuccess(false);
+        setConfirmMessage(inviteExistsMessage);
+        setCurrentStep(5);
+      } else {
+        const conflictMessage = errorData.error || t("errors.conflictOccurred");
+        setErrors({ general: conflictMessage });
+        showToast("error", conflictMessage);
+        setConfirmSuccess(false);
+        setConfirmMessage(conflictMessage);
+        setCurrentStep(5);
+      }
+    } else if (response.status === 403) {
+      // Permission denied - show clear error message
+      const permissionMessage = errorData.error || t("errors.permissionDenied");
+      setErrors({ general: permissionMessage });
+      showToast("error", permissionMessage);
+      setConfirmSuccess(false);
+      setConfirmMessage(permissionMessage);
+      setCurrentStep(5);
+    } else {
+      const errorMessage = errorData.error || t("errors.createFailed");
+      setErrors({ general: errorMessage });
+      showToast("error", errorMessage);
+      setConfirmSuccess(false);
+      setConfirmMessage(errorMessage);
+      setCurrentStep(5);
+    }
+  }, [t, showToast]);
+
+  // Helper function for handling successful API response
+  const handleApiSuccess = useCallback(async (responseData: SuccessResponse) => {
+    // Success! Move to or stay on confirm step
+    setConfirmSuccess(true);
+    setConfirmMessage(
+      formData.userSource === "existing"
+        ? t("messages.successExisting")
+        : t("messages.successInvite")
+    );
+    setCurrentStep(5);
+    showToast("success", t("messages.operationSuccess"));
+
+    // Refresh admin users store to show newly added users
+    try {
+      await refetchAdminUsers();
+    } catch (refreshError) {
+      // Log but don't fail - the user was created successfully
+      console.error("Failed to refresh admin users:", refreshError);
+    }
+
+    // Call success callback if provided
+    if (config.onSuccess) {
+      // For existing users, we get userId directly
+      // For invites, we get invite.id
+      const resultId = responseData.userId || responseData.invite?.id || "";
+      
+      // Only call callback if we have a valid ID
+      if (resultId) {
+        config.onSuccess(resultId);
+      }
+    }
+  }, [formData.userSource, t, showToast, refetchAdminUsers, config]);
+
+  const handleRetry = async () => {
+    if (!lastSubmitPayload) {
+      // No payload to retry, just go back to review step
+      setCurrentStep(4);
+      setIsNetworkError(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+    setIsNetworkError(false);
+
+    try {
+      const endpoint = formData.userSource === "new" ? "/api/invites" : "/api/admin/admins/create";
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(lastSubmitPayload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle errors using the same comprehensive error handling
+        const errorData = (typeof data === 'object' && data !== null) 
+          ? data as ErrorResponse 
+          : { error: 'Unknown error' };
+        
+        handleApiError(response, errorData);
+        return;
+      }
+
+      // Success!
+      const responseData = (typeof data === 'object' && data !== null)
+        ? data as SuccessResponse
+        : {};
+      
+      await handleApiSuccess(responseData);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t("errors.createFailed");
+      setErrors({ general: message });
+      showToast("error", message);
+      setConfirmSuccess(false);
+      setConfirmMessage(message);
+      setIsNetworkError(true);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -533,7 +640,16 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
               {t("navigation.cancel")}
             </Button>
           )}
-          {currentStep === 5 && (
+          {currentStep === 5 && !confirmSuccess && isNetworkError && (
+            <Button
+              type="button"
+              onClick={handleRetry}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? t("navigation.retrying") : t("navigation.retry")}
+            </Button>
+          )}
+          {currentStep === 5 && (confirmSuccess || !isNetworkError) && (
             <Button
               type="button"
               onClick={handleCancel}
@@ -569,6 +685,15 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
               disabled={isSubmitting}
             >
               {isSubmitting ? t("navigation.processing") : formData.userSource === "existing" ? t("navigation.assignRole") : t("navigation.createAdmin")}
+            </Button>
+          )}
+          {currentStep === 5 && !confirmSuccess && !isNetworkError && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCurrentStep(4)}
+            >
+              {t("navigation.backToReview")}
             </Button>
           )}
         </div>
