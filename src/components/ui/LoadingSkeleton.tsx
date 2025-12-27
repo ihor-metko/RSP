@@ -2,6 +2,8 @@
  * Reusable loading skeleton components for Suspense fallbacks
  */
 
+import "./EntityLogo.styles.css";
+
 interface SkeletonProps {
   className?: string;
 }
