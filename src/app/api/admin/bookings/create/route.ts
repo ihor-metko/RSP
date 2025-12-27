@@ -5,6 +5,7 @@ import { emitBookingCreated } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
 import { migrateLegacyStatus } from "@/utils/bookingStatus";
 import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
+import { updateStatisticsForBooking } from "@/services/reactiveStatistics";
 
 /**
  * POST /api/admin/bookings/create
@@ -250,6 +251,16 @@ export async function POST(request: Request) {
       booking: operationsBooking,
       clubId: booking.court.club.id,
       courtId: booking.courtId,
+    });
+
+    // Reactively update statistics for affected dates
+    // This runs asynchronously and won't block the response
+    updateStatisticsForBooking(
+      booking.court.club.id,
+      booking.start,
+      booking.end
+    ).catch(() => {
+      // Errors are already logged in the reactive service
     });
 
     return NextResponse.json(

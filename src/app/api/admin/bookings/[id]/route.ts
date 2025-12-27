@@ -4,6 +4,7 @@ import { requireAnyAdmin } from "@/lib/requireRole";
 import { calculateBookingStatus, toBookingStatus, migrateLegacyStatus } from "@/utils/bookingStatus";
 import { emitBookingUpdated, emitBookingDeleted } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
+import { updateStatisticsForBooking } from "@/services/reactiveStatistics";
 
 /**
  * Booking detail response type
@@ -404,6 +405,16 @@ export async function PATCH(
       previousStatus: existingBooking.status,
     });
 
+    // Reactively update statistics for affected dates
+    // This runs asynchronously and won't block the response
+    updateStatisticsForBooking(
+      updatedBooking.court.clubId,
+      updatedBooking.start,
+      updatedBooking.end
+    ).catch(() => {
+      // Errors are already logged in the reactive service
+    });
+
     const response: AdminBookingDetailResponse = {
       id: updatedBooking.id,
       userId: updatedBooking.userId,
@@ -490,6 +501,16 @@ export async function DELETE(
       bookingId: id,
       clubId,
       courtId,
+    });
+
+    // Reactively update statistics for affected dates
+    // This runs asynchronously and won't block the response
+    updateStatisticsForBooking(
+      clubId,
+      booking.start,
+      booking.end
+    ).catch(() => {
+      // Errors are already logged in the reactive service
     });
 
     return NextResponse.json({ success: true });

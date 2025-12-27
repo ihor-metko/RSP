@@ -5,6 +5,7 @@ import { getResolvedPriceForSlot } from "@/lib/priceRules";
 import { emitBookingCreated } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
 import { migrateLegacyStatus } from "@/utils/bookingStatus";
+import { updateStatisticsForBooking } from "@/services/reactiveStatistics";
 
 interface BookingRequest {
   courtId: string;
@@ -193,6 +194,16 @@ export async function POST(request: Request) {
       booking: operationsBooking,
       clubId: booking.court.clubId,
       courtId: booking.courtId,
+    });
+
+    // Reactively update statistics for affected dates
+    // This runs asynchronously and won't block the response
+    updateStatisticsForBooking(
+      booking.court.clubId,
+      booking.start,
+      booking.end
+    ).catch(() => {
+      // Errors are already logged in the reactive service
     });
 
     // Return successful response with price
