@@ -40,6 +40,7 @@ export default function OrganizationDetailPage() {
   const monthlyStatistics = useClubStatisticsStore((state) => state.monthlyStatistics);
   const statisticsLoading = useClubStatisticsStore((state) => state.loading);
   const statisticsError = useClubStatisticsStore((state) => state.error);
+  const setMonthlyStatistics = useClubStatisticsStore((state) => state.setMonthlyStatistics);
 
   const [error, setError] = useState("");
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -105,11 +106,26 @@ export default function OrganizationDetailPage() {
           const data = await response.json();
           // Data is an array of { clubId, clubName, statistics }
           // Extract statistics and update store
-          const stats = data
-            .filter((item: { statistics: unknown }) => item.statistics !== null)
-            .map((item: { statistics: unknown }) => item.statistics);
+          interface OrganizationStatisticsResponse {
+            clubId: string;
+            clubName: string;
+            statistics: {
+              id: string;
+              clubId: string;
+              month: number;
+              year: number;
+              averageOccupancy: number;
+              previousMonthOccupancy: number | null;
+              occupancyChangePercent: number | null;
+              createdAt: string;
+              updatedAt: string;
+            } | null;
+          }
+          const stats = (data as OrganizationStatisticsResponse[])
+            .filter((item) => item.statistics !== null)
+            .map((item) => item.statistics!);
           
-          useClubStatisticsStore.getState().setMonthlyStatistics(stats);
+          setMonthlyStatistics(stats);
         }
       } catch (err) {
         console.error("Failed to fetch organization statistics:", err);
@@ -117,7 +133,7 @@ export default function OrganizationDetailPage() {
     };
 
     fetchStats();
-  }, [org, orgId]);
+  }, [org, orgId, setMonthlyStatistics]);
 
   // Debounced user search
   // useEffect(() => {
