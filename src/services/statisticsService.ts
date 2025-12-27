@@ -216,14 +216,16 @@ export async function calculateAndStoreDailyStatistics(
  * Calculate daily statistics for all clubs for a given date
  * 
  * This can be called from a cron job to update statistics daily.
+ * When called from the cron endpoint, it runs in fallback mode by default,
+ * which only recalculates missing statistics to avoid redundant work.
  * 
  * @param date - The date to calculate statistics for (defaults to yesterday)
- * @param fallbackMode - If true, only recalculate for missing statistics (default: false)
+ * @param fallbackMode - If true (default), only recalculate for missing statistics; if false, recalculate all
  * @returns Array of created/updated statistics
  */
 export async function calculateDailyStatisticsForAllClubs(
   date: Date = new Date(Date.now() - MILLISECONDS_PER_DAY), // Default to yesterday
-  fallbackMode: boolean = false
+  fallbackMode: boolean = true
 ) {
   // Get all active clubs
   const clubs = await prisma.club.findMany({
@@ -276,10 +278,13 @@ export async function calculateDailyStatisticsForAllClubs(
         statistics: stats,
       });
     } catch (error) {
-      console.error(
-        `Failed to calculate statistics for club ${club.id}:`,
-        error
-      );
+      // Log error in development mode for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.error(
+          `Failed to calculate statistics for club ${club.id}:`,
+          error
+        );
+      }
       results.push({
         clubId: club.id,
         clubName: club.name,
@@ -462,10 +467,13 @@ export async function getOrganizationMonthlyStatistics(
         statistics: stats,
       });
     } catch (error) {
-      console.error(
-        `Failed to get monthly statistics for club ${club.id}:`,
-        error
-      );
+      // Log error in development mode for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.error(
+          `Failed to get monthly statistics for club ${club.id}:`,
+          error
+        );
+      }
       results.push({
         clubId: club.id,
         clubName: club.name,
@@ -519,10 +527,13 @@ export async function updateStatisticsForBooking(
       const stats = await calculateAndStoreDailyStatistics(clubId, date);
       results.push(stats);
     } catch (error) {
-      console.error(
-        `Failed to update statistics for club ${clubId} on ${date.toISOString()}:`,
-        error
-      );
+      // Log error in development mode for debugging
+      if (process.env.NODE_ENV === "development") {
+        console.error(
+          `Failed to update statistics for club ${clubId} on ${date.toISOString()}:`,
+          error
+        );
+      }
       // Continue updating other dates even if one fails
     }
   }

@@ -341,9 +341,6 @@ describe("Reactive Statistics Integration", () => {
       
       (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
 
-      const bookingStart = new Date("2024-01-15T10:00:00");
-      const bookingEnd = new Date("2024-01-15T11:00:00");
-
       // In a real transaction, if the booking creation fails,
       // the statistics update should also be rolled back
       // This is guaranteed by wrapping both operations in prisma.$transaction
@@ -351,7 +348,7 @@ describe("Reactive Statistics Integration", () => {
       try {
         // Simulate a failed booking creation
         throw new Error("CONFLICT");
-      } catch (error) {
+      } catch {
         // Statistics update should not have persisted
         // because it was in the same transaction
         expect(prisma.clubDailyStatistics.upsert).not.toHaveBeenCalled();
@@ -410,13 +407,19 @@ describe("Reactive Statistics Integration", () => {
         new Error("Database error")
       );
 
-      // The function catches errors internally and continues, so we check the error was logged
+      // Set NODE_ENV to development to enable error logging
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+      
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       
       await updateStatisticsForBooking(clubId, bookingStart, bookingEnd);
       
       expect(consoleErrorSpy).toHaveBeenCalled();
       consoleErrorSpy.mockRestore();
+      
+      // Restore original NODE_ENV
+      process.env.NODE_ENV = originalEnv;
     });
   });
 });
