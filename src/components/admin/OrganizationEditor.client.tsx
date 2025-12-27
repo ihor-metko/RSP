@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/components/ui";
 import { BaseInfoTab, AddressTab, LogoTab, BannerTab } from "@/components/admin/EntityTabs";
 import type { BaseInfoData, AddressData, LogoData, BannerData } from "@/components/admin/EntityTabs";
+import type { Address } from "@/types/address";
+import { createAddressFromForm } from "@/types/address";
 import "@/components/admin/EntityTabs/EntityTabs.css";
 
 interface OrganizationData {
@@ -52,10 +54,32 @@ export function OrganizationEditor({
   } | null;
 
   const addressParts = organization.address?.split(", ") || [];
-  const street = metadata?.street || addressParts[0] || "";
-  const city = addressParts.length > 1 ? addressParts[1] : "";
-  const postalCode = addressParts.length > 2 ? addressParts[2] : "";
-  const country = metadata?.country || (addressParts.length > 3 ? addressParts[3] : "");
+  
+  // Try to parse address from new format or metadata
+  let street = addressParts[0] || "";
+  let city = addressParts.length > 1 ? addressParts[1] : "";
+  let postalCode = addressParts.length > 2 ? addressParts[2] : "";
+  let country = metadata?.country || (addressParts.length > 3 ? addressParts[3] : "");
+  let latitude = metadata?.latitude || null;
+  let longitude = metadata?.longitude || null;
+
+  // Check if organization has Address object in metadata
+  if (metadata?.address && typeof metadata.address === 'object') {
+    const addr = metadata.address as { street?: string; city?: string; zip?: string; country?: string; coords?: { lat: number; lng: number } };
+    street = addr.street || street;
+    city = addr.city || city;
+    postalCode = addr.zip || postalCode;
+    country = addr.country || country;
+    if (addr.coords) {
+      latitude = addr.coords.lat;
+      longitude = addr.coords.lng;
+    }
+  } else if (metadata?.street && metadata?.city) {
+    street = metadata.street as string;
+    city = addressParts.length > 1 ? addressParts[1] : "";
+    postalCode = addressParts.length > 2 ? addressParts[2] : "";
+    country = metadata.country as string || country;
+  }
 
   const baseInfoData: BaseInfoData = {
     name: organization.name,
@@ -63,12 +87,12 @@ export function OrganizationEditor({
   };
 
   const addressData: AddressData = {
-    country,
+    street,
     city,
     postalCode,
-    street,
-    latitude: metadata?.latitude || null,
-    longitude: metadata?.longitude || null,
+    country,
+    latitude,
+    longitude,
   };
 
   const logoData: LogoData = {
@@ -128,23 +152,12 @@ export function OrganizationEditor({
     setHasUnsavedChanges(false);
   }, [organization.id, onUpdate, onRefresh]);
 
-  const handleAddressSave = useCallback(async (data: AddressData) => {
-    const addressParts = [
-      data.street.trim(),
-      data.city.trim(),
-      data.postalCode.trim(),
-      data.country.trim()
-    ].filter(Boolean);
-    const fullAddress = addressParts.join(", ");
-
+  const handleAddressSave = useCallback(async (data: Address) => {
     await onUpdate(organization.id, {
-      address: fullAddress,
+      address: data, // Send Address object, API will handle both formats
       metadata: {
         ...(organization.metadata as object || {}),
-        country: data.country,
-        street: data.street,
-        latitude: data.latitude,
-        longitude: data.longitude,
+        address: data, // Also store in metadata
       },
     });
     await onRefresh();
