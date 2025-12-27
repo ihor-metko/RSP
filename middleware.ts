@@ -14,7 +14,10 @@ interface AuthRequest extends NextRequest {
 }
 
 /**
- * Middleware to redirect ALL admin users from the landing page to admin dashboard
+ * Middleware to redirect ALL admin users from the landing page to admin dashboard.
+ * 
+ * Uses centralized role-checking utilities from @/utils/roleRedirect which follow
+ * the unified authorization model.
  *
  * - Unauthenticated users: See public landing page
  * - Regular users (non-admin): See public landing page

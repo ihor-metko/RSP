@@ -4,6 +4,9 @@ import { MembershipRole, ClubMembershipRole } from "@/constants/roles";
 /**
  * Role-based redirect utilities for the application.
  * Handles all admin types: Root Admin, Organization Admin, Club Admin.
+ * 
+ * This module uses centralized role definitions from @/constants/roles
+ * and follows the unified authorization model.
  */
 
 /**
