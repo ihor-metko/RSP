@@ -143,7 +143,8 @@ model Organization {
   contactEmail String?
   contactPhone String?
   website     String?
-  address     String?
+  address     String?      // Legacy address field (backward compatibility)
+  addressData String?      @db.Text // JSON: Address object { street, city, zip?, country?, coords? }
   logoData    String?      @db.Text // JSON: { url: string; altText?: string; thumbnailUrl?: string }
   bannerData  String?      @db.Text // JSON: { url: string; altText?: string; description?: string; position?: string }
   metadata    String?      @db.Text // JSON string for additional metadata (non-media related)
@@ -237,7 +238,8 @@ model Club {
   createdBy        User?            @relation("ClubCreator", fields: [createdById], references: [id])
   shortDescription String?
   longDescription  String?          @db.Text
-  location         String
+  location         String           // Legacy field (backward compatibility)
+  addressData      String?          @db.Text // JSON: Address object { street, city, zip?, country?, coords? }
   city             String?
   country          String?
   latitude         Float?

@@ -4,6 +4,7 @@
 
 import { SportType } from "@/constants/sports";
 import type { EntityLogoMetadata } from "@/components/ui/EntityLogo";
+import type { Address } from "./address";
 
 /**
  * Logo data structure
@@ -38,7 +39,7 @@ export interface Organization {
   contactEmail?: string | null;
   contactPhone?: string | null;
   website?: string | null;
-  address?: string | null;
+  address?: Address | string | null; // Support both new Address object and legacy string
   metadata?: Record<string, unknown> | null;
   isPublic: boolean;
   supportedSports?: SportType[];
@@ -74,7 +75,7 @@ export interface CreateOrganizationPayload {
   contactEmail?: string;
   contactPhone?: string;
   website?: string;
-  address?: string;
+  address?: Address | string; // Support both new Address object and legacy string
   logoData?: LogoData;
   bannerData?: BannerData;
   metadata?: Record<string, unknown>;
@@ -91,7 +92,7 @@ export interface UpdateOrganizationPayload {
   contactEmail?: string | null;
   contactPhone?: string | null;
   website?: string | null;
-  address?: string | null;
+  address?: Address | string | null; // Support both new Address object and legacy string
   logoData?: LogoData | null;
   bannerData?: BannerData | null;
   metadata?: Record<string, unknown> | null;

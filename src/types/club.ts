@@ -1,5 +1,6 @@
 import { SportType } from "@/constants/sports";
 import type { EntityLogoMetadata } from "@/components/ui/EntityLogo";
+import type { Address } from "./address";
 
 /**
  * Logo data structure
@@ -143,7 +144,8 @@ export interface ClubDetail {
   slug: string | null;
   shortDescription: string | null;
   longDescription: string | null;
-  location: string;
+  location: string; // Legacy field - will be deprecated in favor of address
+  address?: Address | null; // New structured address field
   city: string | null;
   country: string | null;
   latitude: number | null;
@@ -190,7 +192,8 @@ export interface CreateClubPayload {
   slug?: string;
   shortDescription: string;
   longDescription?: string;
-  location: string;
+  location: string; // Legacy field - for backward compatibility
+  address?: Address; // New structured address field
   city?: string | null;
   country?: string | null;
   latitude?: number | null;
@@ -231,7 +234,8 @@ export interface CreateClubPayload {
  */
 export interface UpdateClubPayload {
   name?: string;
-  location?: string;
+  location?: string; // Legacy field - for backward compatibility
+  address?: Address | null; // New structured address field
   contactInfo?: string | null;
   openingHours?: string | null;
   logoData?: LogoData | null;
