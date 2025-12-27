@@ -2,17 +2,31 @@
 
 ## Overview
 
-The Club Statistics System provides automated calculation and storage of occupancy statistics for clubs at daily and monthly intervals. It implements a lazy calculation pattern for monthly statistics to minimize database load while providing real-time data when requested.
+The Club Statistics System provides **real-time reactive calculation** of occupancy statistics for clubs at daily and monthly intervals. Statistics are automatically updated whenever bookings are created, updated, or deleted, ensuring data is always accurate without waiting for batch jobs.
 
 ## Features
 
-- **Daily Statistics**: Automatic calculation of daily occupancy rates based on bookings and court availability
+- **Reactive Daily Statistics**: Automatic real-time calculation when bookings change
+- **Transactional Consistency**: Statistics updates are atomic with booking operations
+- **Fallback Automation**: Cron job fills gaps for historical or missing data
 - **Monthly Statistics**: Lazy-calculated monthly aggregates with trend analysis
 - **Organization-Level Views**: Fetch statistics for all clubs in an organization
-- **Automated Cron Jobs**: Daily scheduled calculation of statistics
 - **Permission-Based Access**: Role-based filtering for ROOT, Organization, and Club admins
 
 ## Architecture
+
+### Real-Time Reactive Updates
+
+Statistics are calculated immediately when bookings are modified:
+
+1. **Booking Created**: Statistics for the booking's date(s) are recalculated
+2. **Booking Updated**: Statistics are recalculated (e.g., when status changes to/from cancelled)
+3. **Booking Deleted**: Statistics are recalculated to reflect the removal
+
+All updates occur **within the same database transaction** as the booking operation, ensuring:
+- Atomicity: Statistics and bookings stay in sync
+- Consistency: No race conditions or stale data
+- Immediate availability: No waiting for batch jobs
 
 ### Database Schema
 
@@ -75,6 +89,48 @@ The statistics service (`src/services/statisticsService.ts`) provides core calcu
    - Calculates total and booked slots
    - Computes occupancy percentage
    - Upserts to database (no duplicates)
+
+4. **updateStatisticsForBooking(clubId, bookingStart, bookingEnd)**: Reactive update helper
+   - Called automatically when bookings are created/updated/deleted
+   - Handles multi-day bookings
+   - Runs within the same transaction as booking operations
+   - **Primary method for keeping statistics current**
+
+5. **getOrCalculateMonthlyStatistics(clubId, month, year)**: Lazy calculation
+   - Checks if statistics already exist
+   - If missing, calculates from daily data
+   - Compares with previous month
+   - Stores result for future use
+
+6. **calculateDailyStatisticsForAllClubs(date, fallbackMode)**: Bulk calculation
+   - Processes all active clubs
+   - In fallback mode: only fills missing statistics
+   - Returns success/failure results
+   - Used by cron job as a safety net
+
+### Reactive Statistics Flow
+
+When a booking operation occurs:
+
+```
+User Action → API Endpoint → Transaction Begin
+   ↓
+Create/Update/Delete Booking
+   ↓
+updateStatisticsForBooking(clubId, start, end)
+   ↓
+Recalculate Statistics for Affected Dates
+   ↓
+Transaction Commit → Real-time Statistics Available
+   ↓
+Socket.IO Event → UI Updates
+```
+
+**Benefits:**
+- Zero latency: Statistics update immediately
+- Transactional safety: No inconsistencies
+- No stale data: Always reflects current bookings
+- Scalable: Only affected dates are recalculated
 
 4. **getOrCalculateMonthlyStatistics(clubId, month, year)**: Lazy calculation
    - Checks if statistics already exist
@@ -236,11 +292,17 @@ Fetch monthly statistics with optional lazy calculation.
 ]
 ```
 
-### Cron Job
+### Cron Job (Fallback Mechanism)
 
 #### POST `/api/cron/calculate-daily-statistics`
 
-Automated endpoint for calculating daily statistics for all clubs.
+Automated endpoint that acts as a **fallback mechanism** to ensure no statistics are missing.
+
+**Purpose:**
+- Fill historical gaps in statistics data
+- Provide redundancy for reactive updates
+- Support initial population of statistics
+- **NOT the primary calculation method** (reactive updates handle real-time)
 
 **Authentication:**
 Requires `CRON_SECRET` in Authorization header:
@@ -250,14 +312,17 @@ Authorization: Bearer <CRON_SECRET>
 
 **Query Parameters:**
 - `date` (optional): Date to calculate for (ISO format). Defaults to yesterday.
+- `fallbackMode` (optional): Boolean. If true (default), only calculates missing statistics.
 
 **Response:**
 ```json
 {
   "success": true,
   "date": "2024-01-15T00:00:00Z",
+  "fallbackMode": true,
   "totalClubs": 10,
   "successCount": 9,
+  "skippedCount": 8,
   "failureCount": 1,
   "results": [
     {
@@ -278,17 +343,63 @@ Authorization: Bearer <CRON_SECRET>
 
 ## Usage Examples
 
-### Daily Statistics Workflow
+### Real-Time Statistics (Primary Method)
 
-1. **Automatic Calculation via Cron (Recommended)**
+Statistics are **automatically updated** when bookings are created, updated, or deleted:
+
+```typescript
+// Player creates a booking
+POST /api/bookings
+{
+  "courtId": "court-123",
+  "startTime": "2024-01-15T10:00:00Z",
+  "endTime": "2024-01-15T11:00:00Z",
+  "userId": "user-456"
+}
+// → Statistics for 2024-01-15 are automatically recalculated
+
+// Admin updates booking status
+PATCH /api/admin/bookings/booking-789
+{
+  "status": "cancelled"
+}
+// → Statistics are automatically recalculated
+
+// Admin deletes a booking
+DELETE /api/admin/bookings/booking-789
+// → Statistics are automatically recalculated
+```
+
+### Fallback Statistics via Cron
+
+1. **Daily Fallback (Default Mode)**
 
 ```bash
 # Called by cron scheduler at midnight
+# Only fills missing statistics (skips existing ones)
 POST /api/cron/calculate-daily-statistics
 Authorization: Bearer <CRON_SECRET>
 ```
 
-2. **Manual Calculation for Specific Club**
+2. **Force Recalculation Mode**
+
+```bash
+# Recalculate all statistics regardless of existence
+POST /api/cron/calculate-daily-statistics?fallbackMode=false
+Authorization: Bearer <CRON_SECRET>
+```
+
+3. **Historical Data Population**
+
+```bash
+# Calculate for a specific past date
+POST /api/cron/calculate-daily-statistics?date=2024-01-01&fallbackMode=false
+Authorization: Bearer <CRON_SECRET>
+```
+
+### Manual Statistics Management
+
+1. **Manual Calculation for Specific Club**
 
 ```bash
 POST /api/admin/statistics/daily

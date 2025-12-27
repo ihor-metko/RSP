@@ -5,6 +5,7 @@ import { getResolvedPriceForSlot } from "@/lib/priceRules";
 import { emitBookingCreated } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
 import { migrateLegacyStatus } from "@/utils/bookingStatus";
+import { updateStatisticsForBooking } from "@/services/statisticsService";
 
 interface BookingRequest {
   courtId: string;
@@ -164,6 +165,9 @@ export async function POST(request: Request) {
           },
         },
       });
+
+      // Update daily statistics reactively within the transaction
+      await updateStatisticsForBooking(court.clubId, startTime, endTime);
 
       return { ...newBooking, court };
     });

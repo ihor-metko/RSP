@@ -4,6 +4,7 @@ import { requireAnyAdmin } from "@/lib/requireRole";
 import { calculateBookingStatus, toBookingStatus, migrateLegacyStatus } from "@/utils/bookingStatus";
 import { emitBookingUpdated, emitBookingDeleted } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
+import { updateStatisticsForBooking } from "@/services/statisticsService";
 
 /**
  * Booking detail response type
@@ -307,63 +308,71 @@ export async function PATCH(
       );
     }
 
-    // Update the booking
-    const updatedBooking = await prisma.booking.update({
-      where: { id },
-      data: {
-        ...(status && { status }),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+    // Update the booking and recalculate statistics within a transaction
+    const updatedBooking = await prisma.$transaction(async (tx) => {
+      const updated = await tx.booking.update({
+        where: { id },
+        data: {
+          ...(status && { status }),
         },
-        court: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            surface: true,
-            clubId: true,
-            club: {
-              select: {
-                id: true,
-                name: true,
-                organizationId: true,
-                organization: {
-                  select: {
-                    id: true,
-                    name: true,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          court: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+              surface: true,
+              clubId: true,
+              club: {
+                select: {
+                  id: true,
+                  name: true,
+                  organizationId: true,
+                  organization: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
                   },
                 },
               },
             },
           },
-        },
-        coach: {
-          select: {
-            id: true,
-            user: {
-              select: {
-                name: true,
+          coach: {
+            select: {
+              id: true,
+              user: {
+                select: {
+                  name: true,
+                },
               },
             },
           },
-        },
-        payments: {
-          select: {
-            id: true,
-            provider: true,
-            status: true,
-            amount: true,
-            createdAt: true,
+          payments: {
+            select: {
+              id: true,
+              provider: true,
+              status: true,
+              amount: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: "desc" },
           },
-          orderBy: { createdAt: "desc" },
         },
-      },
+      });
+
+      // Update daily statistics reactively within the transaction
+      // This is important when status changes (e.g., to/from cancelled)
+      await updateStatisticsForBooking(updated.court.clubId, updated.start, updated.end);
+
+      return updated;
     });
 
     const startISO = updatedBooking.start.toISOString();
@@ -476,13 +485,20 @@ export async function DELETE(
       );
     }
 
-    // Store club and court IDs before deletion
+    // Store club and court IDs and dates before deletion
     const clubId = booking.court.clubId;
     const courtId = booking.courtId;
+    const bookingStart = booking.start;
+    const bookingEnd = booking.end;
 
-    // Delete the booking
-    await prisma.booking.delete({
-      where: { id },
+    // Delete the booking and update statistics within a transaction
+    await prisma.$transaction(async (tx) => {
+      await tx.booking.delete({
+        where: { id },
+      });
+
+      // Update daily statistics reactively within the transaction
+      await updateStatisticsForBooking(clubId, bookingStart, bookingEnd);
     });
 
     // Emit Socket.IO event for real-time updates (after deletion)

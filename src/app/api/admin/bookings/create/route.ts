@@ -5,6 +5,7 @@ import { emitBookingCreated } from "@/lib/socketEmitters";
 import type { OperationsBooking } from "@/types/booking";
 import { migrateLegacyStatus } from "@/utils/bookingStatus";
 import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
+import { updateStatisticsForBooking } from "@/services/statisticsService";
 
 /**
  * POST /api/admin/bookings/create
@@ -194,35 +195,43 @@ export async function POST(request: Request) {
     }
 
     // Create booking with 'reserved' status (admin bookings don't require payment)
-    const booking = await prisma.booking.create({
-      data: {
-        userId,
-        courtId,
-        start,
-        end,
-        price: priceCents,
-        sportType: court.sportType || "PADEL",
-        status: "reserved", // Admin bookings are automatically reserved
-      },
-      include: {
-        court: {
-          select: {
-            name: true,
-            club: {
-              select: {
-                name: true,
-                id: true,
+    // and update statistics within a transaction
+    const booking = await prisma.$transaction(async (tx) => {
+      const newBooking = await tx.booking.create({
+        data: {
+          userId,
+          courtId,
+          start,
+          end,
+          price: priceCents,
+          sportType: court.sportType || "PADEL",
+          status: "reserved", // Admin bookings are automatically reserved
+        },
+        include: {
+          court: {
+            select: {
+              name: true,
+              club: {
+                select: {
+                  name: true,
+                  id: true,
+                },
               },
             },
           },
-        },
-        user: {
-          select: {
-            name: true,
-            email: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
           },
         },
-      },
+      });
+
+      // Update daily statistics reactively within the transaction
+      await updateStatisticsForBooking(court.club.id, start, end);
+
+      return newBooking;
     });
 
     // Emit Socket.IO event for real-time updates

@@ -10,6 +10,8 @@ import {
   calculateAndStoreDailyStatistics,
   calculateAverageOccupancyForMonth,
   getOrCalculateMonthlyStatistics,
+  updateStatisticsForBooking,
+  calculateDailyStatisticsForAllClubs,
 } from "@/services/statisticsService";
 import { prisma } from "@/lib/prisma";
 
@@ -31,10 +33,14 @@ jest.mock("@/lib/prisma", () => ({
     clubDailyStatistics: {
       upsert: jest.fn(),
       findMany: jest.fn(),
+      findUnique: jest.fn(),
     },
     clubMonthlyStatistics: {
       findUnique: jest.fn(),
       create: jest.fn(),
+    },
+    club: {
+      findMany: jest.fn(),
     },
   },
 }));
@@ -476,6 +482,216 @@ describe("Statistics Service", () => {
 
       expect(createCall.data.previousMonthOccupancy).toBeNull();
       expect(createCall.data.occupancyChangePercent).toBeNull();
+    });
+  });
+
+  describe("updateStatisticsForBooking", () => {
+    const clubId = "club-123";
+
+    beforeEach(() => {
+      // Setup default mocks for calculateAndStoreDailyStatistics
+      (prisma.court.findMany as jest.Mock).mockResolvedValue([
+        { id: "court-1" },
+        { id: "court-2" },
+      ]);
+      (prisma.clubSpecialHours.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.clubBusinessHours.findUnique as jest.Mock).mockResolvedValue({
+        isClosed: false,
+        openTime: "08:00",
+        closeTime: "22:00",
+      });
+      (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubDailyStatistics.upsert as jest.Mock).mockResolvedValue({
+        id: "stats-123",
+        clubId,
+        date: new Date("2024-01-15"),
+        bookedSlots: 0,
+        totalSlots: 28,
+        occupancyPercentage: 0,
+      });
+    });
+
+    it("should update statistics for a single-day booking", async () => {
+      const bookingStart = new Date("2024-01-15T10:00:00");
+      const bookingEnd = new Date("2024-01-15T11:00:00");
+
+      const result = await updateStatisticsForBooking(
+        clubId,
+        bookingStart,
+        bookingEnd
+      );
+
+      expect(result).toHaveLength(1);
+      expect(prisma.clubDailyStatistics.upsert).toHaveBeenCalledTimes(1);
+    });
+
+    it("should update statistics for a multi-day booking", async () => {
+      const bookingStart = new Date("2024-01-15T10:00:00");
+      const bookingEnd = new Date("2024-01-17T11:00:00"); // 3 days
+
+      const result = await updateStatisticsForBooking(
+        clubId,
+        bookingStart,
+        bookingEnd
+      );
+
+      expect(result).toHaveLength(3); // Jan 15, 16, 17
+      expect(prisma.clubDailyStatistics.upsert).toHaveBeenCalledTimes(3);
+    });
+
+    it("should handle same-day booking (start and end on same day)", async () => {
+      const bookingStart = new Date("2024-01-15T10:00:00");
+      // No bookingEnd provided, should default to same day
+
+      const result = await updateStatisticsForBooking(clubId, bookingStart);
+
+      expect(result).toHaveLength(1);
+      expect(prisma.clubDailyStatistics.upsert).toHaveBeenCalledTimes(1);
+    });
+
+    it("should normalize dates to start of day", async () => {
+      const bookingStart = new Date("2024-01-15T23:30:00"); // Late at night
+      const bookingEnd = new Date("2024-01-16T00:30:00"); // Early next day
+
+      await updateStatisticsForBooking(clubId, bookingStart, bookingEnd);
+
+      // Should update both Jan 15 and Jan 16
+      expect(prisma.clubDailyStatistics.upsert).toHaveBeenCalledTimes(2);
+    });
+
+    it("should continue updating other dates if one fails", async () => {
+      const bookingStart = new Date("2024-01-15T10:00:00");
+      const bookingEnd = new Date("2024-01-17T11:00:00");
+
+      // Make the second call fail
+      (prisma.clubDailyStatistics.upsert as jest.Mock)
+        .mockResolvedValueOnce({ id: "stats-1" })
+        .mockRejectedValueOnce(new Error("Database error"))
+        .mockResolvedValueOnce({ id: "stats-3" });
+
+      const result = await updateStatisticsForBooking(
+        clubId,
+        bookingStart,
+        bookingEnd
+      );
+
+      // Should still have results for successful updates
+      expect(result).toHaveLength(2); // First and third succeeded
+      expect(prisma.clubDailyStatistics.upsert).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe("calculateDailyStatisticsForAllClubs", () => {
+    beforeEach(() => {
+      // Setup mocks
+      (prisma.club.findMany as jest.Mock).mockResolvedValue([
+        { id: "club-1", name: "Club One" },
+        { id: "club-2", name: "Club Two" },
+      ]);
+      (prisma.court.findMany as jest.Mock).mockResolvedValue([
+        { id: "court-1" },
+      ]);
+      (prisma.clubSpecialHours.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.clubBusinessHours.findUnique as jest.Mock).mockResolvedValue({
+        isClosed: false,
+        openTime: "08:00",
+        closeTime: "22:00",
+      });
+      (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubDailyStatistics.upsert as jest.Mock).mockResolvedValue({
+        id: "stats-123",
+        bookedSlots: 0,
+        totalSlots: 14,
+        occupancyPercentage: 0,
+      });
+    });
+
+    it("should calculate statistics for all clubs in normal mode", async () => {
+      const date = new Date("2024-01-15");
+      const results = await calculateDailyStatisticsForAllClubs(date, false);
+
+      expect(results).toHaveLength(2);
+      expect(results[0].success).toBe(true);
+      expect(results[0].skipped).toBe(false);
+      expect(results[1].success).toBe(true);
+      expect(results[1].skipped).toBe(false);
+    });
+
+    it("should skip existing statistics in fallback mode", async () => {
+      const date = new Date("2024-01-15");
+      const normalizedDate = new Date(date);
+      normalizedDate.setHours(0, 0, 0, 0);
+
+      // First club has existing stats, second doesn't
+      (prisma.clubDailyStatistics.findUnique as jest.Mock)
+        .mockResolvedValueOnce({
+          id: "existing-stats",
+          clubId: "club-1",
+          date: normalizedDate,
+          bookedSlots: 5,
+          totalSlots: 14,
+          occupancyPercentage: 35.7,
+        })
+        .mockResolvedValueOnce(null);
+
+      const results = await calculateDailyStatisticsForAllClubs(date, true);
+
+      expect(results).toHaveLength(2);
+      expect(results[0].skipped).toBe(true); // Club 1 skipped
+      expect(results[1].skipped).toBe(false); // Club 2 calculated
+      
+      // Only one upsert for the missing statistics
+      expect(prisma.clubDailyStatistics.upsert).toHaveBeenCalledTimes(1);
+    });
+
+    it("should recalculate all in non-fallback mode", async () => {
+      const date = new Date("2024-01-15");
+
+      // Both clubs have existing stats
+      (prisma.clubDailyStatistics.findUnique as jest.Mock).mockResolvedValue({
+        id: "existing-stats",
+        bookedSlots: 5,
+        totalSlots: 14,
+        occupancyPercentage: 35.7,
+      });
+
+      const results = await calculateDailyStatisticsForAllClubs(date, false);
+
+      expect(results).toHaveLength(2);
+      // In non-fallback mode, we don't check for existing stats
+      expect(prisma.clubDailyStatistics.upsert).toHaveBeenCalledTimes(2);
+    });
+
+    it("should handle club calculation failures gracefully", async () => {
+      (prisma.clubDailyStatistics.upsert as jest.Mock)
+        .mockResolvedValueOnce({ id: "stats-1" })
+        .mockRejectedValueOnce(new Error("Calculation error"));
+
+      const date = new Date("2024-01-15");
+      const results = await calculateDailyStatisticsForAllClubs(date, false);
+
+      expect(results).toHaveLength(2);
+      expect(results[0].success).toBe(true);
+      expect(results[1].success).toBe(false);
+      expect(results[1].error).toBe("Calculation error");
+    });
+
+    it("should normalize date to start of day", async () => {
+      const date = new Date("2024-01-15T15:30:00"); // Afternoon
+      
+      (prisma.clubDailyStatistics.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await calculateDailyStatisticsForAllClubs(date, true);
+
+      // Check that findUnique was called with normalized date
+      const findUniqueCall = (prisma.clubDailyStatistics.findUnique as jest.Mock)
+        .mock.calls[0][0];
+      const normalizedDate = findUniqueCall.where.clubId_date.date;
+      
+      expect(normalizedDate.getHours()).toBe(0);
+      expect(normalizedDate.getMinutes()).toBe(0);
+      expect(normalizedDate.getSeconds()).toBe(0);
+      expect(normalizedDate.getMilliseconds()).toBe(0);
     });
   });
 });

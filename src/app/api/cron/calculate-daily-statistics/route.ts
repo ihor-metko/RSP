@@ -36,10 +36,12 @@ function validateCronAuth(request: Request): boolean {
  * Cron job endpoint to calculate daily statistics for all clubs.
  * This should be called once per day (e.g., at midnight) to:
  * - Calculate occupancy statistics for the previous day
+ * - Act as a fallback to fill any missing statistics
  * - Store results in ClubDailyStatistics table
  * 
  * Query params:
  * - date: Optional date to calculate statistics for (ISO format, defaults to yesterday)
+ * - fallbackMode: Optional boolean to only fill missing statistics (defaults to true)
  * 
  * Security: Check for CRON_SECRET in headers to prevent unauthorized access
  */
@@ -55,6 +57,7 @@ export async function POST(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const dateParam = searchParams.get("date");
+    const fallbackModeParam = searchParams.get("fallbackMode");
 
     // Parse date or use default (yesterday)
     let date: Date;
@@ -71,24 +74,30 @@ export async function POST(request: Request) {
       date = new Date(Date.now() - MILLISECONDS_PER_DAY);
     }
 
+    // Parse fallbackMode parameter (defaults to true for reactive updates)
+    const fallbackMode = fallbackModeParam !== "false";
+
     // Calculate statistics for all clubs
-    const results = await calculateDailyStatisticsForAllClubs(date);
+    const results = await calculateDailyStatisticsForAllClubs(date, fallbackMode);
 
     const successCount = results.filter((r) => r.success).length;
     const failureCount = results.filter((r) => !r.success).length;
+    const skippedCount = results.filter((r) => r.success && r.skipped === true).length;
 
     // Log results
     if (process.env.NODE_ENV === "development") {
       console.log(
-        `[Cron] Daily statistics calculation completed. Success: ${successCount}, Failed: ${failureCount}`
+        `[Cron] Daily statistics calculation completed. Success: ${successCount}, Skipped: ${skippedCount}, Failed: ${failureCount}`
       );
     }
 
     return NextResponse.json({
       success: true,
       date: date.toISOString(),
+      fallbackMode,
       totalClubs: results.length,
       successCount,
+      skippedCount,
       failureCount,
       results,
       timestamp: new Date().toISOString(),
