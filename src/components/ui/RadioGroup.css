@@ -14,6 +14,12 @@
   color: var(--im-text-primary);
 }
 
+.im-radio-group-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .im-radio-option {
   display: flex;
   align-items: center;
@@ -23,11 +29,19 @@
   border-radius: 0.5rem;
   transition: all 0.2s ease;
   background-color: var(--im-card-bg);
+  position: relative;
+  outline: none;
 }
 
-.im-radio-option:hover {
+.im-radio-option:hover:not(.im-radio-option--disabled) {
   border-color: var(--im-primary);
   background-color: var(--color-hover-bg);
+}
+
+.im-radio-option:focus-visible {
+  border-color: var(--im-primary);
+  box-shadow: var(--shadow-focus);
+  outline: none;
 }
 
 .im-radio-option--selected {
@@ -35,13 +49,65 @@
   background-color: var(--color-primary-bg);
 }
 
-.im-radio-option input[type="radio"] {
+.im-radio-option--disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.im-radio-option--disabled:hover {
+  border-color: var(--im-border-color);
+  background-color: var(--im-card-bg);
+}
+
+/* Hide native radio input */
+.im-radio-native-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Custom radio control */
+.im-radio-custom-control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 1.25rem;
   height: 1.25rem;
-  margin: 0;
-  cursor: pointer;
-  accent-color: var(--im-primary);
+  border: 2px solid var(--im-border-color);
+  border-radius: 50%;
+  background-color: var(--im-surface);
   flex-shrink: 0;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.im-radio-option:hover:not(.im-radio-option--disabled) .im-radio-custom-control {
+  border-color: var(--im-primary);
+}
+
+.im-radio-option--selected .im-radio-custom-control {
+  border-color: var(--im-primary);
+  background-color: var(--im-primary);
+}
+
+.im-radio-option--disabled .im-radio-custom-control {
+  opacity: 0.5;
+}
+
+/* Inner dot for selected state */
+.im-radio-custom-control-inner {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--im-surface);
+  transform: scale(0);
+  transition: transform 0.15s ease;
+}
+
+.im-radio-option--selected .im-radio-custom-control-inner {
+  transform: scale(1);
 }
 
 .im-radio-option-content {
@@ -61,16 +127,5 @@
   font-size: 0.8125rem;
   color: var(--im-text-secondary);
   line-height: 1.4;
-}
-
-.im-radio-option:disabled,
-.im-radio-option--disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.im-radio-option:disabled:hover,
-.im-radio-option--disabled:hover {
-  border-color: var(--im-border-color);
-  background-color: var(--im-card-bg);
+  display: block;
 }
