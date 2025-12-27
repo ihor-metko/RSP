@@ -2,7 +2,7 @@
 
 /**
  * EntityLogo Styles
- * 
+ *
  * Centralized styles for the EntityLogo component.
  * This component is used across the application in:
  * - EntityBanner (club/organization detail pages)
@@ -30,15 +30,15 @@
  */
 
 /* Light background for logos designed for light theme when in dark mode */
-.rsp-club-hero-logo.rsp-club-hero-logo--contrast-light {
-  background-color: rgba(255, 255, 255, 0.95);
-  border-color: rgba(255, 255, 255, 0.3);
+.rsp-club-hero-logo--contrast-light {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Dark background for logos designed for dark theme when in light mode */
-.rsp-club-hero-logo.rsp-club-hero-logo--contrast-dark {
-  background-color: rgba(0, 0, 0, 0.85);
-  border-color: rgba(0, 0, 0, 0.3);
+.rsp-club-hero-logo--contrast-dark {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  border-color: rgba(0, 0, 0, 0.3) !important;
 }
 
 /* ===== Logo Overlay Styles ===== */
