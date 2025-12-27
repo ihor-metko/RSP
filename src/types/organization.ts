@@ -43,12 +43,8 @@ export interface Organization {
   isPublic: boolean;
   supportedSports?: SportType[];
   clubCount?: number;
-  // New structure
   logoData?: LogoData | null;
   bannerData?: BannerData | null;
-  // Deprecated - kept for backward compatibility
-  logo?: string | null;
-  heroImage?: string | null;
   createdBy?: {
     id: string;
     name: string | null;
@@ -79,12 +75,8 @@ export interface CreateOrganizationPayload {
   contactPhone?: string;
   website?: string;
   address?: string;
-  // New structure
   logoData?: LogoData;
   bannerData?: BannerData;
-  // Deprecated - kept for backward compatibility
-  logo?: string;
-  heroImage?: string;
   metadata?: Record<string, unknown>;
   supportedSports?: SportType[];
 }
@@ -100,12 +92,8 @@ export interface UpdateOrganizationPayload {
   contactPhone?: string | null;
   website?: string | null;
   address?: string | null;
-  // New structure
   logoData?: LogoData | null;
   bannerData?: BannerData | null;
-  // Deprecated - kept for backward compatibility
-  logo?: string | null;
-  heroImage?: string | null;
   metadata?: Record<string, unknown> | null;
   supportedSports?: SportType[];
   isPublic?: boolean;

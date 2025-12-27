@@ -27,10 +27,7 @@ export interface Club {
   location: string;
   contactInfo: string | null;
   openingHours: string | null;
-  // New structure
   logoData?: LogoData | null;
-  // Deprecated - kept for backward compatibility
-  logo: string | null;
   status: string;
   supportedSports?: SportType[];
   createdAt: string;
@@ -54,10 +51,7 @@ export interface ClubWithCounts extends Club {
   organizationId: string;
   shortDescription?: string | null;
   city?: string | null;
-  // New structure
   bannerData?: BannerData | null;
-  // Deprecated - kept for backward compatibility
-  heroImage?: string | null;
   metadata?: string | null;
   tags?: string | null;
   isPublic?: boolean;
@@ -160,12 +154,8 @@ export interface ClubDetail {
   socialLinks: string | null;
   contactInfo: string | null;
   openingHours: string | null;
-  // New structure
   logoData?: LogoData | null;
   bannerData?: BannerData | null;
-  // Deprecated - kept for backward compatibility
-  logo: string | null;
-  heroImage: string | null;
   metadata: string | null;
   defaultCurrency: string | null;
   timezone: string | null;
@@ -214,12 +204,8 @@ export interface CreateClubPayload {
   isPublic?: boolean;
   tags?: string | null;
   supportedSports?: SportType[];
-  // New structure
   logoData?: LogoData;
   bannerData?: BannerData;
-  // Deprecated - kept for backward compatibility
-  heroImage?: string;
-  logo?: string;
   gallery?: Array<{
     url: string;
     key: string;
@@ -248,12 +234,8 @@ export interface UpdateClubPayload {
   location?: string;
   contactInfo?: string | null;
   openingHours?: string | null;
-  // New structure
   logoData?: LogoData | null;
   bannerData?: BannerData | null;
-  // Deprecated - kept for backward compatibility
-  logo?: string | null;
-  heroImage?: string | null;
   supportedSports?: SportType[];
 }
 

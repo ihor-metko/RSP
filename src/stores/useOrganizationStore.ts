@@ -33,8 +33,6 @@ export interface ChangeOwnerPayload {
  */
 export interface OrganizationDetail extends Organization {
   description?: string | null;
-  logo?: string | null;
-  heroImage?: string | null;
   metadata?: Record<string, unknown> | null;
   createdBy?: {
     id: string;

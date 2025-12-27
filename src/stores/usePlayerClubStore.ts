@@ -44,8 +44,8 @@ export interface PlayerClub {
   city?: string | null;
   contactInfo?: string | null;
   openingHours?: string | null;
-  logo?: string | null;
-  heroImage?: string | null;
+  logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
+  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
   tags?: string | null;
   createdAt: string;
   indoorCount: number;
@@ -72,8 +72,8 @@ export interface PlayerClubDetail {
   socialLinks?: string | null;
   contactInfo?: string | null;
   openingHours?: string | null;
-  logo?: string | null;
-  heroImage?: string | null;
+  logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
+  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
   defaultCurrency?: string | null;
   timezone?: string | null;
   tags?: string | null;
