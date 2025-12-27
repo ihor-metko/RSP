@@ -830,7 +830,6 @@ describe("Admin Organizations API", () => {
         totalClubs: 2,
         totalCourts: 5,
         activeBookings: 10,
-        activeUsers: 2,
       });
       expect(data.superAdmins).toHaveLength(1);
       expect(data.primaryOwner).toEqual({

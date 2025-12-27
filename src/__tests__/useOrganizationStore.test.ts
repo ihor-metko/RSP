@@ -278,7 +278,6 @@ describe("useOrganizationStore", () => {
           totalClubs: 5,
           totalCourts: 20,
           activeBookings: 100,
-          activeUsers: 50,
         },
       };
 

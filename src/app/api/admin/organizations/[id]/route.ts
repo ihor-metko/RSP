@@ -80,7 +80,7 @@ export async function GET(
     }
 
     // Fetch metrics in parallel
-    const [clubCount, courtCount, activeBookingsCount, userCount, clubsPreview, recentActivity] =
+    const [clubCount, courtCount, activeBookingsCount, clubsPreview, recentActivity] =
       await Promise.all([
         // Total clubs
         prisma.club.count({
@@ -106,17 +106,6 @@ export async function GET(
             start: { gte: new Date() },
           },
         }),
-        // Count of unique users with bookings in this org's clubs
-        prisma.booking.groupBy({
-          by: ["userId"],
-          where: {
-            court: {
-              club: {
-                organizationId: id,
-              },
-            },
-          },
-        }).then((groups) => groups.length),
         // Clubs preview (first 5)
         prisma.club.findMany({
           where: { organizationId: id },
@@ -233,7 +222,6 @@ export async function GET(
         totalClubs: clubCount,
         totalCourts: courtCount,
         activeBookings: activeBookingsCount,
-        activeUsers: userCount,
       },
       clubsPreview: formattedClubsPreview,
       clubAdmins: formattedClubAdmins,

@@ -59,7 +59,6 @@ export interface OrganizationDetail extends Organization {
     totalClubs: number;
     totalCourts: number;
     activeBookings: number;
-    activeUsers: number;
   };
   clubsPreview?: Array<{
     id: string;

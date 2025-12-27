@@ -304,7 +304,6 @@ export default function OrganizationDetailPage() {
               <MetricCardSkeleton size="md" />
               <MetricCardSkeleton size="md" />
               <MetricCardSkeleton size="md" />
-              <MetricCardSkeleton size="md" />
             </div>
           </div>
         ) : org && (
@@ -330,10 +329,6 @@ export default function OrganizationDetailPage() {
               <div className="im-metric-card im-metric-card--bookings">
                 <div className="im-metric-value">{org.metrics?.activeBookings ?? 0}</div>
                 <div className="im-metric-label">{t("orgDetail.activeBookings")}</div>
-              </div>
-              <div className="im-metric-card im-metric-card--users">
-                <div className="im-metric-value">{org.metrics?.activeUsers ?? 0}</div>
-                <div className="im-metric-label">{t("orgDetail.activeUsers")}</div>
               </div>
             </div>
           </div>
