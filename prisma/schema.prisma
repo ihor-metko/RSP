@@ -270,6 +270,8 @@ model Club {
   clubMemberships  ClubMembership[]
   paymentAccounts  PaymentAccount[] // Club-level payment accounts
   invites          Invite[]         // Invites for club roles
+  dailyStatistics  ClubDailyStatistics[] // Daily occupancy statistics
+  monthlyStatistics ClubMonthlyStatistics[] // Monthly occupancy statistics
 
   @@index([organizationId])
 }
@@ -594,4 +596,42 @@ model VerificationPayment {
   @@index([orderReference])
   @@index([status])
   @@index([createdAt])
+}
+
+// Club Daily Statistics - stores daily occupancy data
+model ClubDailyStatistics {
+  id                  String   @id @default(uuid())
+  clubId              String
+  club                Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  date                DateTime @db.Date // Specific day for the statistics
+  bookedSlots         Int      // Number of slots booked on this day
+  totalSlots          Int      // Total available slots for this day
+  occupancyPercentage Float    // Calculated as bookedSlots / totalSlots * 100
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([clubId, date])
+  @@index([clubId])
+  @@index([date])
+  @@index([clubId, date])
+}
+
+// Club Monthly Statistics - stores monthly aggregated occupancy data
+model ClubMonthlyStatistics {
+  id                      String   @id @default(uuid())
+  clubId                  String
+  club                    Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  month                   Int      // Month (1-12)
+  year                    Int      // Year
+  averageOccupancy        Float    // Average daily occupancy for the month
+  previousMonthOccupancy  Float?   // Previous month's average occupancy for comparison
+  occupancyChangePercent  Float?   // Percentage difference from previous month
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@unique([clubId, month, year])
+  @@index([clubId])
+  @@index([month])
+  @@index([year])
+  @@index([clubId, month, year])
 }
