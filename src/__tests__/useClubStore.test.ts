@@ -53,6 +53,7 @@ describe("useClubStore", () => {
           logo: null, 
           status: "active", 
           createdAt: "2024-01-01",
+          organizationId: "org-1",
           courtCount: 5,
         },
         { 
@@ -65,6 +66,7 @@ describe("useClubStore", () => {
           logo: null, 
           status: "active", 
           createdAt: "2024-01-02",
+          organizationId: "org-2",
           courtCount: 3,
         },
       ];
@@ -450,7 +452,6 @@ describe("useClubStore", () => {
 
     it("should handle create error", async () => {
       const payload = { 
-        organizationId: "org-1",
         name: "New Club",
         shortDescription: "Test",
         location: "Test Location" 

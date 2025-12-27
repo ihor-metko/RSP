@@ -203,6 +203,7 @@ export async function GET(request: Request) {
         status: club.status,
         supportedSports: club.supportedSports,
         createdAt: club.createdAt,
+        organizationId: club.organizationId,
         indoorCount,
         outdoorCount,
         courtCount: club.courts.length,
