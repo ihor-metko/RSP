@@ -23,6 +23,22 @@ enum ClubMembershipRole {
   MEMBER
 }
 
+// Invite status for managing invite lifecycle
+enum InviteStatus {
+  PENDING   // Invite is active and awaiting acceptance
+  ACCEPTED  // Invite has been accepted
+  REVOKED   // Invite was revoked by admin
+  EXPIRED   // Invite has expired
+}
+
+// Invite roles - maps to organization and club roles
+enum InviteRole {
+  ORGANIZATION_OWNER  // Maps to ORGANIZATION_ADMIN with isPrimaryOwner=true
+  ORGANIZATION_ADMIN  // Maps to ORGANIZATION_ADMIN with isPrimaryOwner=false
+  CLUB_OWNER          // Maps to CLUB_OWNER
+  CLUB_ADMIN          // Maps to CLUB_ADMIN
+}
+
 // Sport types supported by the platform
 enum SportType {
   PADEL
@@ -79,6 +95,44 @@ model User {
   clubMemberships ClubMembership[]
   createdOrganizations Organization[] @relation("OrganizationCreator")
   createdClubs    Club[]           @relation("ClubCreator")
+  sentInvites     Invite[]         @relation("InviteSender")
+}
+
+// Invite model - unified invite system for organization and club roles
+model Invite {
+  id             String       @id @default(uuid())
+  email          String       // Email of the invitee (normalized to lowercase)
+  role           InviteRole   // Role to assign on acceptance
+  
+  // Scope - exactly one must be set (mutually exclusive)
+  organizationId String?      // Set for organization-level invites
+  clubId         String?      // Set for club-level invites
+  
+  status         InviteStatus @default(PENDING)
+  tokenHash      String       @unique  // SHA-256 hash of the invite token (never store raw token)
+  expiresAt      DateTime     // Invite expiration timestamp (typically 7 days from creation)
+  
+  invitedByUserId String      // User who created this invite
+  invitedBy      User         @relation("InviteSender", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  
+  acceptedAt     DateTime?    // Timestamp when invite was accepted
+  acceptedByUserId String?    // User who accepted the invite (may differ from email if user already exists)
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  // Relations
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  club           Club?         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  
+  // Constraints
+  @@unique([email, organizationId, clubId, status], name: "unique_active_invite")
+  @@index([email])
+  @@index([organizationId])
+  @@index([clubId])
+  @@index([status])
+  @@index([tokenHash])
+  @@index([expiresAt])
 }
 
 model Organization {
@@ -103,6 +157,7 @@ model Organization {
   memberships Membership[]
   clubs       Club[]
   paymentAccounts PaymentAccount[] // Organization-level payment accounts
+  invites     Invite[]     // Invites for organization roles
 }
 
 model Membership {
@@ -214,6 +269,7 @@ model Club {
   specialHours     ClubSpecialHours[]
   clubMemberships  ClubMembership[]
   paymentAccounts  PaymentAccount[] // Club-level payment accounts
+  invites          Invite[]         // Invites for club roles
 
   @@index([organizationId])
 }
