@@ -527,7 +527,7 @@ export default function AdminClubDetailPage({
         {/* Bookings Summary */}
         {loadingBookings ? (
           <BookingsPreviewSkeleton count={5} className="im-admin-club-bookings-section" />
-        ) : bookingsPreview && (
+        ) : bookingsPreview && club && (
           <section className="im-admin-club-bookings-section">
             <div className="im-section-card">
               <div className="im-section-header">
