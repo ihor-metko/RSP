@@ -31,6 +31,13 @@ export interface EntityLogoMetadata {
    * Theme that the secondary logo is designed for
    */
   secondLogoTheme?: 'light' | 'dark';
+
+  /**
+   * Preview background selection for single logo mode
+   * - Used in logo upload to preview how the logo looks on different backgrounds
+   * - When a single logo is used for both themes, this determines which background to show
+   */
+  previewBackground?: 'light' | 'dark';
 }
 
 export interface EntityLogoProps {

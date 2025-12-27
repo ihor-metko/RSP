@@ -48,7 +48,6 @@ export function ClubEditor({
 
   const baseInfoData: BaseInfoData = {
     name: club.name,
-    slug: club.slug || "",
     description: club.shortDescription || null,
   };
 
@@ -113,7 +112,6 @@ export function ClubEditor({
   const handleBaseInfoSave = useCallback(async (data: BaseInfoData) => {
     await onUpdate("header", {
       name: data.name,
-      slug: data.slug,
       shortDescription: data.description,
     });
     await onRefresh();

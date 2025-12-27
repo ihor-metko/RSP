@@ -48,6 +48,7 @@ export function OrganizationEditor({
     secondLogoTheme?: 'light' | 'dark';
     logoCount?: 'one' | 'two';
     secondLogo?: string | null;
+    previewBackground?: 'light' | 'dark';
     bannerAlignment?: 'top' | 'center' | 'bottom';
   } | null;
 
@@ -59,7 +60,6 @@ export function OrganizationEditor({
 
   const baseInfoData: BaseInfoData = {
     name: organization.name,
-    slug: organization.slug,
     description: organization.description || null,
   };
 
@@ -124,7 +124,6 @@ export function OrganizationEditor({
   const handleBaseInfoSave = useCallback(async (data: BaseInfoData) => {
     await onUpdate(organization.id, {
       name: data.name,
-      slug: data.slug,
       description: data.description,
     });
     await onRefresh();
