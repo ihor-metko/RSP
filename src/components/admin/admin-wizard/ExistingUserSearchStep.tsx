@@ -61,7 +61,7 @@ export function ExistingUserSearchStep({
       } else {
         setSearchError(t("errors.noResults"));
       }
-    } catch (error) {
+    } catch {
       setSearchError(t("errors.searchError"));
     } finally {
       setIsSearching(false);
