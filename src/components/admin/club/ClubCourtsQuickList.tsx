@@ -3,7 +3,6 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Modal, IMLink } from "@/components/ui";
-import { CourtForm, CourtFormData } from "@/components/admin/CourtForm";
 import type { ClubDetail, ClubCourt } from "@/types/club";
 import "./ClubCourtsQuickList.css";
 
@@ -13,36 +12,14 @@ interface ClubCourtsQuickListProps {
 
 export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
   const router = useRouter();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingCourt, setDeletingCourt] = useState<ClubCourt | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const handleAddCourt = useCallback(async (formData: CourtFormData) => {
-    setSubmitting(true);
-    setError("");
-    try {
-      const response = await fetch(`/api/clubs/${club.id}/courts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to add court");
-      }
-
-      setIsAddModalOpen(false);
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add court");
-      throw err;
-    } finally {
-      setSubmitting(false);
-    }
-  }, [club.id, router]);
+  const handleAddCourtClick = useCallback(() => {
+    router.push("/admin/clubs/new");
+  }, [router]);
 
   const handleDeleteCourt = useCallback(async () => {
     if (!deletingCourt) return;
@@ -82,7 +59,7 @@ export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
         <div className="im-courts-quick-actions">
           <Button
             variant="outline"
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={handleAddCourtClick}
             className="im-section-edit-btn"
           >
             + Add Court
@@ -138,19 +115,6 @@ export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
           <p className="im-section-view-value--empty">No courts added yet</p>
         )}
       </div>
-
-      {/* Add Court Modal */}
-      <Modal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        title="Add Court"
-      >
-        <CourtForm
-          onSubmit={handleAddCourt}
-          onCancel={() => setIsAddModalOpen(false)}
-          isSubmitting={submitting}
-        />
-      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal
