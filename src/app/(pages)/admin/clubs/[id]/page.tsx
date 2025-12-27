@@ -539,35 +539,35 @@ export default function AdminClubDetailPage({
                     <line x1="3" y1="10" x2="21" y2="10" />
                   </svg>
                 </div>
-                <h2 className="im-section-title">{t("clubDetail.bookingsOverview")}</h2>
+                <h2 className="im-section-title">{t("orgDetail.bookingsOverview")}</h2>
                 <div className="im-section-actions">
                   <Button
                     variant="outline"
                     onClick={() => router.push(`/admin/bookings?clubId=${club.id}`)}
                   >
-                    {t("clubDetail.viewAllBookings")}
+                    {t("orgDetail.viewAllBookings")}
                   </Button>
                 </div>
               </div>
               <div className="im-bookings-summary">
                 <div className="im-bookings-summary-item">
                   <span className="im-bookings-summary-value">{bookingsPreview.summary.todayCount}</span>
-                  <span className="im-bookings-summary-label">{t("clubDetail.bookingsToday")}</span>
+                  <span className="im-bookings-summary-label">{t("orgDetail.bookingsToday")}</span>
                 </div>
                 <div className="im-bookings-summary-item">
                   <span className="im-bookings-summary-value">{bookingsPreview.summary.weekCount}</span>
-                  <span className="im-bookings-summary-label">{t("clubDetail.bookingsThisWeek")}</span>
+                  <span className="im-bookings-summary-label">{t("orgDetail.bookingsThisWeek")}</span>
                 </div>
                 <div className="im-bookings-summary-item">
                   <span className="im-bookings-summary-value">{bookingsPreview.summary.totalUpcoming}</span>
-                  <span className="im-bookings-summary-label">{t("clubDetail.totalUpcoming")}</span>
+                  <span className="im-bookings-summary-label">{t("orgDetail.totalUpcoming")}</span>
                 </div>
               </div>
               {bookingsPreview.items.length === 0 ? (
-                <p className="im-preview-empty">{t("clubDetail.noBookings")}</p>
+                <p className="im-preview-empty">{t("orgDetail.noBookings")}</p>
               ) : (
                 <div className="im-bookings-preview-list">
-                  <h4 className="im-bookings-preview-title">{t("clubDetail.upcomingBookings")}</h4>
+                  <h4 className="im-bookings-preview-title">{t("orgDetail.upcomingBookings")}</h4>
                   {bookingsPreview.items.map((booking) => {
                     const startDate = new Date(booking.start);
                     const endDate = new Date(booking.end);
