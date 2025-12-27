@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, type TableColumn, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui";
@@ -54,6 +54,9 @@ export default function AdminBookingsPage() {
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoading = useUserStore((state) => state.isLoading);
   const isHydrated = useUserStore((state) => state.isHydrated);
+
+  // Track if we've performed the initial auth check to prevent redirects on page reload
+  const hasPerformedAuthCheck = useRef(false);
 
   // Bookings data
   const [bookingsData, setBookingsData] = useState<AdminBookingsListResponse | null>(null);
@@ -217,9 +220,15 @@ export default function AdminBookingsPage() {
     ];
   };
 
-  // Redirect if not logged in or not admin (only after hydration)
+  // Redirect if not logged in or not admin (only on initial mount, not on reload)
   useEffect(() => {
-    if (isHydrated && (!isLoggedIn || !adminStatus?.isAdmin)) {
+    if (!isHydrated) return;
+    
+    // Only perform auth redirect on the first check, not on page reloads
+    if (hasPerformedAuthCheck.current) return;
+    hasPerformedAuthCheck.current = true;
+    
+    if (!isLoggedIn || !adminStatus?.isAdmin) {
       router.push("/auth/sign-in");
     }
   }, [isHydrated, isLoggedIn, adminStatus, router]);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal, IMLink, Select } from "@/components/ui";
@@ -144,9 +144,16 @@ export default function PlayerDashboardPage() {
   const userName = user?.name || t("playerDashboard.player");
   const userId = user?.id || "";
 
-  // Redirect logic for authentication and role
+  // Track if we've performed the initial auth check to prevent redirects on page reload
+  const hasPerformedAuthCheck = useRef(false);
+
+  // Redirect logic for authentication and role (only on initial mount, not on reload)
   useEffect(() => {
     if (!isHydrated || isLoading) return;
+
+    // Only perform auth redirect on the first check, not on page reloads
+    if (hasPerformedAuthCheck.current) return;
+    hasPerformedAuthCheck.current = true;
 
     if (!isLoggedIn) {
       router.push("/auth/sign-in");
