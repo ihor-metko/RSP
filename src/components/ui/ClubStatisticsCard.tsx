@@ -13,7 +13,6 @@ export interface ClubStatisticsCardProps {
   clubName: string;
   currentOccupancy: number; // Average % for current month
   changePercent: number | null; // Change compared to previous month
-  loading?: boolean;
   onClick?: () => void;
 }
 
@@ -43,11 +42,9 @@ function getChangeIndicator(changePercent: number | null): { symbol: string; cla
 }
 
 export function ClubStatisticsCard({
-  clubId,
   clubName,
   currentOccupancy,
   changePercent,
-  loading = false,
   onClick,
 }: ClubStatisticsCardProps) {
   const t = useTranslations("orgDetail");

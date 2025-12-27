@@ -37,7 +37,6 @@ export default function OrganizationDetailPage() {
   // Archive/Delete modals can be re-added later if needed via the Danger Zone section
 
   // Statistics store
-  const fetchMonthlyStatisticsIfNeeded = useClubStatisticsStore((state) => state.fetchMonthlyStatisticsIfNeeded);
   const monthlyStatistics = useClubStatisticsStore((state) => state.monthlyStatistics);
   const statisticsLoading = useClubStatisticsStore((state) => state.loading);
   const statisticsError = useClubStatisticsStore((state) => state.error);
