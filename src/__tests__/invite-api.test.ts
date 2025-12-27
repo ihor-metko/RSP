@@ -50,7 +50,6 @@ const mockPrismaMembershipFindUnique = prisma.membership.findUnique as jest.Mock
 const mockPrismaMembershipFindFirst = prisma.membership.findFirst as jest.MockedFunction<typeof prisma.membership.findFirst>;
 const mockPrismaClubMembershipFindFirst = prisma.clubMembership.findFirst as jest.MockedFunction<typeof prisma.clubMembership.findFirst>;
 const mockPrismaUserFindUnique = prisma.user.findUnique as jest.MockedFunction<typeof prisma.user.findUnique>;
-const mockPrismaClubFindUnique = prisma.club.findUnique as jest.MockedFunction<typeof prisma.club.findUnique>;
 const mockPrismaTransaction = prisma.$transaction as jest.MockedFunction<typeof prisma.$transaction>;
 
 describe("Invite API Endpoints", () => {
