@@ -26,6 +26,16 @@ jest.mock("@/lib/requireRole", () => ({
   }),
 }));
 
+// Mock socket emitters
+jest.mock("@/lib/socketEmitters", () => ({
+  emitBookingCreated: jest.fn(),
+}));
+
+// Mock reactive statistics
+jest.mock("@/services/reactiveStatistics", () => ({
+  updateStatisticsForBooking: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe("POST /api/bookings", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -143,6 +153,17 @@ describe("POST /api/bookings", () => {
 
   describe("Overlap detection", () => {
     it("should return 409 Conflict when overlapping booking exists", async () => {
+      const mockCourt = {
+        id: "court-123",
+        sportType: "PADEL",
+        name: "Court 1",
+        clubId: "club-123",
+        club: {
+          id: "club-123",
+          name: "Test Club",
+        },
+      };
+
       const mockTx = {
         booking: {
           findFirst: jest.fn().mockResolvedValue({
@@ -154,7 +175,7 @@ describe("POST /api/bookings", () => {
           }),
         },
         court: {
-          findUnique: jest.fn(),
+          findUnique: jest.fn().mockResolvedValue(mockCourt),
         },
       };
 
