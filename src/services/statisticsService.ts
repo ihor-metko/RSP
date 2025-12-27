@@ -8,6 +8,9 @@
 
 import { prisma } from "@/lib/prisma";
 
+// Constants
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
 /**
  * Calculate total available slots for a club on a given day
  * 
@@ -122,7 +125,8 @@ export async function calculateBookedSlots(
   startOfDay.setHours(0, 0, 0, 0);
 
   const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  endOfDay.setHours(0, 0, 0, 0);
+  endOfDay.setDate(endOfDay.getDate() + 1); // Next day at midnight
 
   // Get all bookings for this club on this date
   const bookings = await prisma.booking.findMany({
@@ -132,7 +136,7 @@ export async function calculateBookedSlots(
       },
       start: {
         gte: startOfDay,
-        lt: endOfDay,
+        lt: endOfDay, // Exclusive upper bound
       },
       // Don't count cancelled bookings
       bookingStatus: {
@@ -217,7 +221,7 @@ export async function calculateAndStoreDailyStatistics(
  * @returns Array of created/updated statistics
  */
 export async function calculateDailyStatisticsForAllClubs(
-  date: Date = new Date(Date.now() - 24 * 60 * 60 * 1000) // Default to yesterday
+  date: Date = new Date(Date.now() - MILLISECONDS_PER_DAY) // Default to yesterday
 ) {
   // Get all active clubs
   const clubs = await prisma.club.findMany({

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { calculateDailyStatisticsForAllClubs } from "@/services/statisticsService";
 
+// Constants
+const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
+
 /**
  * Validate cron authentication
  * 
@@ -65,7 +68,7 @@ export async function POST(request: Request) {
       }
     } else {
       // Default to yesterday
-      date = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      date = new Date(Date.now() - MILLISECONDS_PER_DAY);
     }
 
     // Calculate statistics for all clubs
