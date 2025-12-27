@@ -6,6 +6,7 @@ import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { getSportName } from "@/constants/sports";
 import type { ClubWithCounts } from "@/types/club";
 import { parseClubMetadata } from "@/types/club";
+import { formatAddress as formatAddressObject, parseAddressFromMetadata, type Address } from "@/types/address";
 import "./AdminClubCard.css";
 
 export interface AdminClubCardProps {
@@ -24,17 +25,42 @@ export interface AdminClubCardProps {
 }
 
 /**
- * Formats the address for display as "City, Street Address"
- * Returns the full location if city is not available
+ * Formats the address for display from various sources
+ * Supports both new Address object and legacy location string
  */
-function formatAddress(city: string | null | undefined, location: string): string {
-  if (city && location) {
-    if (location.toLowerCase().startsWith(city.toLowerCase())) {
-      return location;
-    }
-    return `${city}, ${location}`;
+function getClubAddress(club: ClubWithCounts): string {
+  // Try new Address object first (from club.address or metadata)
+  if (club.address && typeof club.address === 'object' && 'street' in club.address) {
+    return formatAddressObject(club.address as Address);
   }
-  return location;
+  
+  // Try parsing from metadata
+  if (club.metadata) {
+    try {
+      const metadata = typeof club.metadata === 'string' ? JSON.parse(club.metadata) : club.metadata;
+      const addressFromMeta = parseAddressFromMetadata(metadata, {
+        street: club.location,
+        city: club.city || undefined,
+        country: club.country || undefined,
+        latitude: club.latitude || undefined,
+        longitude: club.longitude || undefined,
+      });
+      if (addressFromMeta) {
+        return formatAddressObject(addressFromMeta);
+      }
+    } catch {
+      // Fall through to legacy format
+    }
+  }
+  
+  // Fall back to legacy city + location format
+  if (club.city && club.location) {
+    if (club.location.toLowerCase().startsWith(club.city.toLowerCase())) {
+      return club.location;
+    }
+    return `${club.city}, ${club.location}`;
+  }
+  return club.location;
 }
 
 /**
@@ -122,7 +148,7 @@ export function AdminClubCard({ club, showOrganization, actionButton }: AdminClu
   // Determine the main image: heroImage first, then logo as fallback
   const mainImage = isValidImageUrl(heroImageUrl) ? heroImageUrl : null;
   const hasLogo = isValidImageUrl(logoDisplayUrl);
-  const formattedAddress = formatAddress(club.city, club.location);
+  const formattedAddress = getClubAddress(club);
   const clubTags = parseTags(club.tags);
 
   return (

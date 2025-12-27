@@ -5,6 +5,7 @@ import { Button, EntityLogo } from "@/components/ui";
 import { getSportName, SportType } from "@/constants/sports";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { parseOrganizationMetadata } from "@/types/organization";
+import { formatAddress, parseAddressFromMetadata } from "@/types/address";
 
 export interface AdminOrganizationCardProps {
   organization: {
@@ -149,26 +150,45 @@ export function AdminOrganizationCard({
         )}
 
         {/* Address */}
-        {organization.address && (
-          <div className="im-admin-org-address">
-            <svg
-              className="im-admin-org-icon"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
-            >
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            <span className="im-admin-org-address-text">
-              {organization.address}
-            </span>
-          </div>
-        )}
+        {(() => {
+          // Try to get address from multiple sources
+          let addressDisplay = '';
+          
+          if (typeof organization.address === 'object' && organization.address !== null) {
+            // New Address object format
+            addressDisplay = formatAddress(organization.address);
+          } else if (typeof organization.address === 'string') {
+            // Legacy string format
+            addressDisplay = organization.address;
+          } else if (organization.metadata) {
+            // Try to parse from metadata
+            const addressFromMeta = parseAddressFromMetadata(organization.metadata);
+            if (addressFromMeta) {
+              addressDisplay = formatAddress(addressFromMeta);
+            }
+          }
+
+          return addressDisplay ? (
+            <div className="im-admin-org-address">
+              <svg
+                className="im-admin-org-icon"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span className="im-admin-org-address-text">
+                {addressDisplay}
+              </span>
+            </div>
+          ) : null;
+        })()}
 
         {/* Owner Information */}
         <div className="im-admin-org-owner">
