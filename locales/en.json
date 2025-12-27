@@ -2403,7 +2403,10 @@
       "close": "Close",
       "assignRole": "Assign Role",
       "createAdmin": "Create Admin",
-      "processing": "Processing..."
+      "processing": "Processing...",
+      "retry": "Retry",
+      "retrying": "Retrying...",
+      "backToReview": "Back to Review"
     },
     "contextStep": {
       "title": "Context & Role Selection",
