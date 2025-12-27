@@ -6,6 +6,25 @@ import { SportType } from "@/constants/sports";
 import type { EntityLogoMetadata } from "@/components/ui/EntityLogo";
 
 /**
+ * Logo data structure
+ */
+export interface LogoData {
+  url: string;
+  altText?: string;
+  thumbnailUrl?: string;
+}
+
+/**
+ * Banner data structure
+ */
+export interface BannerData {
+  url: string;
+  altText?: string;
+  description?: string;
+  position?: 'top' | 'center' | 'bottom';
+}
+
+/**
  * Organization entity
  */
 export interface Organization {
@@ -24,6 +43,10 @@ export interface Organization {
   isPublic: boolean;
   supportedSports?: SportType[];
   clubCount?: number;
+  // New structure
+  logoData?: LogoData | null;
+  bannerData?: BannerData | null;
+  // Deprecated - kept for backward compatibility
   logo?: string | null;
   heroImage?: string | null;
   createdBy?: {
@@ -56,6 +79,10 @@ export interface CreateOrganizationPayload {
   contactPhone?: string;
   website?: string;
   address?: string;
+  // New structure
+  logoData?: LogoData;
+  bannerData?: BannerData;
+  // Deprecated - kept for backward compatibility
   logo?: string;
   heroImage?: string;
   metadata?: Record<string, unknown>;
@@ -73,6 +100,10 @@ export interface UpdateOrganizationPayload {
   contactPhone?: string | null;
   website?: string | null;
   address?: string | null;
+  // New structure
+  logoData?: LogoData | null;
+  bannerData?: BannerData | null;
+  // Deprecated - kept for backward compatibility
   logo?: string | null;
   heroImage?: string | null;
   metadata?: Record<string, unknown> | null;
@@ -113,6 +144,42 @@ export function parseOrganizationMetadata(metadata: string | Record<string, unkn
     return JSON.parse(metadata) as OrganizationMetadata;
   } catch {
     // Invalid JSON
+    return undefined;
+  }
+}
+
+/**
+ * Helper function to parse logo data from JSON string
+ * 
+ * @param logoData - JSON string from database
+ * @returns Parsed logo data or undefined if invalid
+ */
+export function parseLogoData(logoData: string | null | undefined): LogoData | undefined {
+  if (!logoData) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(logoData) as LogoData;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Helper function to parse banner data from JSON string
+ * 
+ * @param bannerData - JSON string from database
+ * @returns Parsed banner data or undefined if invalid
+ */
+export function parseBannerData(bannerData: string | null | undefined): BannerData | undefined {
+  if (!bannerData) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(bannerData) as BannerData;
+  } catch {
     return undefined;
   }
 }

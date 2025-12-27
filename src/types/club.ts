@@ -1,6 +1,25 @@
 import { SportType } from "@/constants/sports";
 import type { EntityLogoMetadata } from "@/components/ui/EntityLogo";
 
+/**
+ * Logo data structure
+ */
+export interface LogoData {
+  url: string;
+  altText?: string;
+  thumbnailUrl?: string;
+}
+
+/**
+ * Banner data structure
+ */
+export interface BannerData {
+  url: string;
+  altText?: string;
+  description?: string;
+  position?: 'top' | 'center' | 'bottom';
+}
+
 export interface Club {
   id: string;
   name: string;
@@ -8,6 +27,9 @@ export interface Club {
   location: string;
   contactInfo: string | null;
   openingHours: string | null;
+  // New structure
+  logoData?: LogoData | null;
+  // Deprecated - kept for backward compatibility
   logo: string | null;
   status: string;
   supportedSports?: SportType[];
@@ -32,6 +54,9 @@ export interface ClubWithCounts extends Club {
   organizationId: string;
   shortDescription?: string | null;
   city?: string | null;
+  // New structure
+  bannerData?: BannerData | null;
+  // Deprecated - kept for backward compatibility
   heroImage?: string | null;
   metadata?: string | null;
   tags?: string | null;
@@ -135,6 +160,10 @@ export interface ClubDetail {
   socialLinks: string | null;
   contactInfo: string | null;
   openingHours: string | null;
+  // New structure
+  logoData?: LogoData | null;
+  bannerData?: BannerData | null;
+  // Deprecated - kept for backward compatibility
   logo: string | null;
   heroImage: string | null;
   metadata: string | null;
@@ -185,6 +214,10 @@ export interface CreateClubPayload {
   isPublic?: boolean;
   tags?: string | null;
   supportedSports?: SportType[];
+  // New structure
+  logoData?: LogoData;
+  bannerData?: BannerData;
+  // Deprecated - kept for backward compatibility
   heroImage?: string;
   logo?: string;
   gallery?: Array<{
@@ -215,7 +248,12 @@ export interface UpdateClubPayload {
   location?: string;
   contactInfo?: string | null;
   openingHours?: string | null;
+  // New structure
+  logoData?: LogoData | null;
+  bannerData?: BannerData | null;
+  // Deprecated - kept for backward compatibility
   logo?: string | null;
+  heroImage?: string | null;
   supportedSports?: SportType[];
 }
 
@@ -239,6 +277,42 @@ export function parseClubMetadata(metadataString: string | null | undefined): Cl
     return JSON.parse(metadataString) as ClubMetadata;
   } catch {
     // Invalid JSON
+    return undefined;
+  }
+}
+
+/**
+ * Helper function to parse logo data from JSON string
+ * 
+ * @param logoData - JSON string from database
+ * @returns Parsed logo data or undefined if invalid
+ */
+export function parseLogoData(logoData: string | null | undefined): LogoData | undefined {
+  if (!logoData) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(logoData) as LogoData;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Helper function to parse banner data from JSON string
+ * 
+ * @param bannerData - JSON string from database
+ * @returns Parsed banner data or undefined if invalid
+ */
+export function parseBannerData(bannerData: string | null | undefined): BannerData | undefined {
+  if (!bannerData) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(bannerData) as BannerData;
+  } catch {
     return undefined;
   }
 }
