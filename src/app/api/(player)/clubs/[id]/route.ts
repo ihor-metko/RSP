@@ -76,6 +76,10 @@ export async function GET(
       socialLinks: club.socialLinks,
       contactInfo: club.contactInfo,
       openingHours: club.openingHours,
+      // New structure
+      logoData: club.logoData ? JSON.parse(club.logoData) : null,
+      bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
+      // Deprecated - kept for backward compatibility
       logo: club.logo,
       heroImage: club.heroImage,
       metadata: club.metadata,

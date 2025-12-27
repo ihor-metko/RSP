@@ -16,6 +16,10 @@ export interface AdminOrganizationCardProps {
     createdAt: string;
     clubCount?: number;
     supportedSports?: SportType[];
+    // New structure
+    logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
+    bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+    // Deprecated - kept for backward compatibility
     logo?: string | null;
     heroImage?: string | null;
     metadata?: Record<string, unknown> | null;
@@ -58,16 +62,20 @@ export function AdminOrganizationCard({
   // Format date for display
   const formattedDate = new Date(organization.createdAt).toLocaleDateString();
 
+  // Use new structure with fallback to old fields
+  const logoUrl = organization.logoData?.url || organization.logo;
+  const bannerUrl = organization.bannerData?.url || organization.heroImage;
+  
   // Convert stored paths to display URLs
-  const heroImageUrl = getImageUrl(organization.heroImage);
-  const logoUrl = getImageUrl(organization.logo);
+  const heroImageUrl = getImageUrl(bannerUrl);
+  const logoDisplayUrl = getImageUrl(logoUrl);
 
   // Parse logo metadata if available
   const logoMetadata = parseOrganizationMetadata(organization.metadata);
 
   // Validate both images (isValidImageUrl checks for null/undefined/empty and valid URL format)
   const hasHeroImage = isValidImageUrl(heroImageUrl);
-  const hasLogo = isValidImageUrl(logoUrl);
+  const hasLogo = isValidImageUrl(logoDisplayUrl);
 
   return (
     <article
@@ -87,7 +95,7 @@ export function AdminOrganizationCard({
             />
             {/* Logo overlayed on banner */}
             <EntityLogo
-              logoUrl={organization.logo}
+              logoUrl={logoUrl}
               logoMetadata={logoMetadata}
               alt={t("organizations.imageAlt.logo", { name: organization.name })}
               className="im-admin-org-logo-overlay"
@@ -95,10 +103,10 @@ export function AdminOrganizationCard({
           </>
         ) : (
           /* Logo as fallback when no banner - use hasLogo check */
-          hasLogo && logoUrl ? (
+          hasLogo && logoDisplayUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
             <img
-              src={logoUrl}
+              src={logoDisplayUrl}
               alt={t("organizations.imageAlt.logo", { name: organization.name })}
               className="im-admin-org-hero-image im-admin-org-hero-image--logo"
             />

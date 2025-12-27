@@ -93,7 +93,14 @@ export async function GET(
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
-    return NextResponse.json(club);
+    // Parse JSON fields
+    const formattedClub = {
+      ...club,
+      logoData: club.logoData ? JSON.parse(club.logoData) : null,
+      bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
+    };
+
+    return NextResponse.json(formattedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error fetching club:", error);
@@ -145,7 +152,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, location, contactInfo, openingHours, logo } = body;
+    const { name, location, contactInfo, openingHours, logo, logoData, bannerData } = body;
 
     if (!name || !location) {
       return NextResponse.json(
@@ -161,11 +168,22 @@ export async function PUT(
         location,
         contactInfo: contactInfo || null,
         openingHours: openingHours || null,
+        // Deprecated - kept for backward compatibility
         logo: logo || null,
+        // New structure
+        logoData: logoData ? JSON.stringify(logoData) : null,
+        bannerData: bannerData ? JSON.stringify(bannerData) : null,
       },
     });
 
-    return NextResponse.json(updatedClub);
+    // Parse JSON fields for response
+    const formattedClub = {
+      ...updatedClub,
+      logoData: updatedClub.logoData ? JSON.parse(updatedClub.logoData) : null,
+      bannerData: updatedClub.bannerData ? JSON.parse(updatedClub.bannerData) : null,
+    };
+
+    return NextResponse.json(formattedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club:", error);

@@ -187,6 +187,10 @@ export async function GET(
       contactPhone: organization.contactPhone,
       website: organization.website,
       address: organization.address,
+      // New structure
+      logoData: organization.logoData ? JSON.parse(organization.logoData) : null,
+      bannerData: organization.bannerData ? JSON.parse(organization.bannerData) : null,
+      // Deprecated - kept for backward compatibility
       logo: organization.logo,
       heroImage: organization.heroImage,
       metadata: organization.metadata ? JSON.parse(organization.metadata) : null,
