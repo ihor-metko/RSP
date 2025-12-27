@@ -80,6 +80,7 @@ export function useAuthGuardOnce(options: {
   }, [
     isHydrated,
     isLoading,
+    sessionStatus, // Include sessionStatus for clarity
     isAuthenticated,
     user,
     adminStatus,
