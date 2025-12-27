@@ -82,7 +82,7 @@ export async function POST(request: Request) {
 
     const successCount = results.filter((r) => r.success).length;
     const failureCount = results.filter((r) => !r.success).length;
-    const skippedCount = results.filter((r) => r.success && (r as any).skipped).length;
+    const skippedCount = results.filter((r) => r.success && 'skipped' in r && r.skipped).length;
 
     // Log results
     if (process.env.NODE_ENV === "development") {
