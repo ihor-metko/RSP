@@ -2198,8 +2198,11 @@
   "orgAdmins": {
     "title": "Адміністратори організації",
     "people": "Люди",
-    "addAdmin": "Додати адміна",
+    "administratorsAndOwners": "Адміністратори та власники",
+    "addAdmin": "Додати адміністратора",
+    "addAdminOrOwner": "Додати адміністратора / власника",
     "addPerson": "Додати особу",
+    "you": "Ви",
     "removeAdmin": "Видалити адміна",
     "changeOwner": "Змінити власника",
     "owner": "Власник",

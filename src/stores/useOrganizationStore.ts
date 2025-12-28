@@ -45,6 +45,7 @@ export interface OrganizationDetail extends Organization {
     email: string;
     isPrimaryOwner: boolean;
     membershipId: string;
+    lastLoginAt?: Date | string | null;
   }>;
   primaryOwner?: {
     id: string;
@@ -52,6 +53,7 @@ export interface OrganizationDetail extends Organization {
     email: string;
     isPrimaryOwner: boolean;
     membershipId: string;
+    lastLoginAt?: Date | string | null;
   } | null;
   metrics?: {
     totalClubs: number;

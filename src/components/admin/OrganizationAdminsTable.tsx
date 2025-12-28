@@ -16,7 +16,7 @@ interface OrgAdmin {
   userName: string | null;
   userEmail: string;
   isPrimaryOwner: boolean;
-  lastLoginAt: Date | null;
+  lastLoginAt: Date | string | null;
   createdAt: Date;
 }
 
@@ -170,11 +170,11 @@ export default function OrganizationAdminsTable({
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
         </div>
-        <h3 className="im-section-title">{t("orgAdmins.people")}</h3>
+        <h3 className="im-section-title">{t("orgAdmins.administratorsAndOwners")}</h3>
         <div className="im-section-actions">
           {canManageAdmins && (
             <Button onClick={handleOpenCreateAdminModal}>
-              {t("orgAdmins.addPerson")}
+              {isRoot ? t("orgAdmins.addAdminOrOwner") : t("orgAdmins.addAdmin")}
             </Button>
           )}
         </div>
@@ -199,6 +199,9 @@ export default function OrganizationAdminsTable({
                   <div className="im-admin-name-row">
                     <span className="im-admin-name">
                       {admin.userName || admin.userEmail}
+                      {admin.isPrimaryOwner && admin.userId === user?.id && (
+                        <span className="im-admin-you-indicator"> ({t("orgAdmins.you")})</span>
+                      )}
                     </span>
                     {admin.isPrimaryOwner ? (
                       <Badge variant="success" size="small">
@@ -211,12 +214,14 @@ export default function OrganizationAdminsTable({
                     )}
                   </div>
                   <span className="im-admin-email">{admin.userEmail}</span>
-                  <span className="im-admin-meta">
-                    {t("orgAdmins.lastLogin")}:{" "}
-                    {admin.lastLoginAt
-                      ? new Date(admin.lastLoginAt).toLocaleDateString()
-                      : t("common.never")}
-                  </span>
+                  {isRoot && (
+                    <span className="im-admin-meta">
+                      {t("orgAdmins.lastLogin")}:{" "}
+                      {admin.lastLoginAt
+                        ? new Date(admin.lastLoginAt).toLocaleDateString()
+                        : t("common.never")}
+                    </span>
+                  )}
                 </div>
                 <div className="im-admin-actions">
                   <Button

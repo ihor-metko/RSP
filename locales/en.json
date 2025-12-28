@@ -2260,8 +2260,11 @@
   "orgAdmins": {
     "title": "Organization Admins",
     "people": "People",
+    "administratorsAndOwners": "Administrators and Owners",
     "addAdmin": "Add Admin",
+    "addAdminOrOwner": "Add Admin / Owner",
     "addPerson": "Add Person",
+    "you": "You",
     "removeAdmin": "Remove Admin",
     "changeOwner": "Change Owner",
     "owner": "Owner",

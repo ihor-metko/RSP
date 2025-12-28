@@ -64,6 +64,7 @@ export async function GET(
                 id: true,
                 name: true,
                 email: true,
+                lastLoginAt: true,
               },
             },
           },
@@ -166,6 +167,7 @@ export async function GET(
       email: m.user.email,
       isPrimaryOwner: m.isPrimaryOwner,
       membershipId: m.id,
+      lastLoginAt: m.user.lastLoginAt,
     }));
 
     // Format clubs preview
