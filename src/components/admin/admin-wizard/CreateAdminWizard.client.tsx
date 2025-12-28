@@ -219,8 +219,8 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   }, [currentStep]);
 
   const handleSubmit = async () => {
-    // Validate step 3 (final confirmation)
-    if (!validateStep(3)) {
+    // Validate final step (confirmation)
+    if (!validateStep(STEPS.length)) {
       return;
     }
 
@@ -481,7 +481,7 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
               {t("navigation.back")}
             </Button>
           )}
-          {currentStep < 3 && (
+          {currentStep < STEPS.length && (
             <Button
               type="button"
               onClick={handleNext}
@@ -490,7 +490,7 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
               {t("navigation.next")}
             </Button>
           )}
-          {currentStep === 3 && (
+          {currentStep === STEPS.length && (
             <Button
               type="button"
               onClick={handleSubmit}
