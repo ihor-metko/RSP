@@ -509,3 +509,43 @@
 .im-admin-club-bookings-section .im-section-card {
   width: 100%;
 }
+
+/* ===== Organization Context Banner ===== */
+.im-club-org-context {
+  @apply w-full border-b;
+  background-color: var(--rsp-card-bg);
+  border-color: var(--rsp-border);
+  padding: 0.75rem 0;
+}
+
+.im-club-org-context-content {
+  @apply max-w-7xl mx-auto px-4 md:px-8 flex items-center gap-2;
+  font-size: 0.875rem;
+  color: var(--rsp-foreground);
+  opacity: 0.85;
+}
+
+.im-club-org-context-icon {
+  @apply flex-shrink-0;
+  opacity: 0.6;
+}
+
+.im-club-org-context-label {
+  @apply flex-shrink-0;
+  opacity: 0.7;
+}
+
+.im-club-org-context-name {
+  @apply font-medium;
+  color: var(--rsp-foreground);
+}
+
+.im-club-org-context-link {
+  @apply font-medium underline-offset-4;
+  color: var(--rsp-primary);
+  text-decoration: none;
+}
+
+.im-club-org-context-link:hover {
+  @apply underline;
+}

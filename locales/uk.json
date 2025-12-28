@@ -417,7 +417,8 @@
     "failedToSaveChanges": "Не вдалося зберегти зміни",
     "failedToDeleteClub": "Не вдалося видалити клуб",
     "clubPublishedSuccess": "Клуб успішно опубліковано",
-    "clubUnpublishedSuccess": "Клуб успішно знято з публікації"
+    "clubUnpublishedSuccess": "Клуб успішно знято з публікації",
+    "partOfOrganization": "Частина організації"
   },
   "admin": {
     "club": "Клуб",
