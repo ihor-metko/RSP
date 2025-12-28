@@ -1,20 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Modal, Badge } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
-import { useClubAdminsStore } from "@/stores/useClubAdminsStore";
-import { UserProfileModal } from "../UserProfileModal";
-import { CreateAdminModal } from "../admin-wizard";
-import type { AdminRole } from "@/types/adminWizard";
-
-interface ClubAdmin {
-  id: string;
-  name: string | null;
-  email: string;
-  role: "CLUB_OWNER" | "CLUB_ADMIN";
-}
+import UnifiedAdminsTable from "../UnifiedAdminsTable";
 
 interface ClubAdminsSectionProps {
   clubId: string;
@@ -41,63 +29,22 @@ interface ClubAdminsSectionProps {
 
 export function ClubAdminsSection({
   clubId,
-  onRefresh,
   clubData,
   organizationData,
 }: ClubAdminsSectionProps) {
   const t = useTranslations();
-  const hasAnyRole = useUserStore((state) => state.hasAnyRole);
-  
-  // Use club admins store
-  const getClubAdmins = useClubAdminsStore((state) => state.getClubAdmins);
-  const fetchClubAdminsIfNeeded = useClubAdminsStore((state) => state.fetchClubAdminsIfNeeded);
-  const storeLoading = useClubAdminsStore((state) => state.isLoading(clubId));
-  const storeError = useClubAdminsStore((state) => state.error);
 
-  // Get admins from store
-  const admins = getClubAdmins(clubId) || [];
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // Create Admin modal state
-  const [isCreateAdminModalOpen, setIsCreateAdminModalOpen] = useState(false);
-
-  // Remove club admin modal state
-  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
-  const [adminToRemove, setAdminToRemove] = useState<ClubAdmin | null>(null);
-  const [removeError, setRemoveError] = useState("");
-  const [removing, setRemoving] = useState(false);
-
-  // View profile modal state
-  const [isViewProfileModalOpen, setIsViewProfileModalOpen] = useState(false);
-  const [selectedAdminUserId, setSelectedAdminUserId] = useState<string | null>(null);
-
-  const [toast, setToast] = useState<{
-    message: string;
-    type: "success" | "error";
-  } | null>(null);
-
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
-  };
-
-  // Check if user can manage club admins (Root Admin or Organization Admin)
-  const canManageClubAdmins = hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN"]);
-
-  // Check if a club owner already exists to determine allowed roles
-  const clubOwner = admins.find((admin) => admin.role === "CLUB_OWNER");
-  const hasOwner = !!clubOwner;
-  const allowedRoles: AdminRole[] = hasOwner 
-    ? ["CLUB_ADMIN"] 
-    : ["CLUB_OWNER", "CLUB_ADMIN"];
-
-  // Fetch club admins from store - FIXED: Remove fetchClubAdminsIfNeeded from dependencies
-  const fetchClubAdmins = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    
+  return (
+    <div className="im-section-card">
+      <UnifiedAdminsTable
+        containerType="club"
+        containerId={clubId}
+        containerName={clubData?.name}
+        clubData={clubData}
+      />
+    </div>
+  );
+}
     try {
       await fetchClubAdminsIfNeeded(clubId, { force: true });
     } catch (err) {

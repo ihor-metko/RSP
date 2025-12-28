@@ -8,7 +8,7 @@ import type { DangerAction } from "@/components/ui";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useClubStatisticsStore } from "@/stores/useClubStatisticsStore";
-import OrganizationAdminsTable from "@/components/admin/OrganizationAdminsTable";
+import UnifiedAdminsTable from "@/components/admin/UnifiedAdminsTable";
 import { OrganizationEditor } from "@/components/admin/OrganizationEditor.client";
 import { parseOrganizationMetadata } from "@/types/organization";
 
@@ -249,21 +249,15 @@ export default function OrganizationDetailPage() {
           </div>
         ) : (
           <div className="im-section-card im-org-detail-content--full">
-            <OrganizationAdminsTable
-              orgId={orgId}
-              admins={(org.superAdmins || []).map(admin => ({
-                id: admin.membershipId,
-                type: "superadmin" as const,
-                userId: admin.id,
-                userName: admin.name,
-                userEmail: admin.email,
-                isPrimaryOwner: admin.isPrimaryOwner,
-                // Note: lastLoginAt is not available from organization detail endpoint
-                // Consider enhancing the store to fetch this data separately if needed
-                lastLoginAt: null,
-                createdAt: new Date(), // Placeholder, not displayed in UI
-              }))}
-              onRefresh={() => fetchOrgDetail(true)}
+            <UnifiedAdminsTable
+              containerType="organization"
+              containerId={orgId}
+              containerName={org.name}
+              organizationData={{
+                id: org.id,
+                name: org.name,
+                slug: org.slug,
+              }}
             />
           </div>
         )}
