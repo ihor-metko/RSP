@@ -14,37 +14,15 @@ import { ClubEditor } from "@/components/admin/ClubEditor.client";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { GalleryModal } from "@/components/GalleryModal";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
+import { useClubPageData } from "@/hooks/useClubPageData";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
 import { parseClubMetadata } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
-import type { AdminBookingResponse } from "@/app/api/admin/bookings/route";
 import "./page.css";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
-
-// Basic interfaces for bookings preview
-interface BookingPreview {
-  id: string;
-  courtName: string;
-  clubName: string;
-  userName: string | null;
-  userEmail: string;
-  start: string;
-  end: string;
-  status: string;
-  sportType: string;
-}
-
-interface BookingsPreviewData {
-  items: BookingPreview[];
-  summary: {
-    todayCount: number;
-    weekCount: number;
-    totalUpcoming: number;
-  };
-}
 
 export default function AdminClubDetailPage({
   params,
@@ -55,12 +33,20 @@ export default function AdminClubDetailPage({
   const t = useTranslations();
   const [clubId, setClubId] = useState<string | null>(null);
 
-  // Use centralized admin club store
-  const currentClub = useAdminClubStore((state) => state.currentClub);
-  const loading = useAdminClubStore((state) => state.loading);
-  const fetchClubById = useAdminClubStore((state) => state.fetchClubById);
+  // Use orchestration hook for all club data
+  const {
+    club,
+    bookingsPreview,
+    loading: dataLoading,
+    bookingsLoading,
+    error: dataError,
+    refetchClub,
+  } = useClubPageData(clubId);
+
+  // Store actions for mutations
   const deleteClub = useAdminClubStore((state) => state.deleteClub);
 
+  // UI-only state
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -70,14 +56,9 @@ export default function AdminClubDetailPage({
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const [bookingsPreview, setBookingsPreview] = useState<BookingsPreviewData | null>(null);
-  const [loadingBookings, setLoadingBookings] = useState(true);
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
-
-  // Get club from store (currentClub is set by fetchClubById)
-  const club = currentClub;
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -85,84 +66,22 @@ export default function AdminClubDetailPage({
     });
   }, [params]);
 
-  // Admin status is loaded from store via UserStoreInitializer
-  const fetchClub = useCallback(async () => {
-    if (!clubId) return;
-
-    try {
-      await fetchClubById(clubId);
-      setError("");
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : t("clubDetail.failedToLoadClub");
-      if (errorMessage.includes("404") || errorMessage.includes("not found")) {
+  // Handle errors from data fetching
+  useEffect(() => {
+    if (dataError) {
+      if (dataError.includes("404") || dataError.includes("not found")) {
         setError(t("clubDetail.clubNotFoundError"));
-      } else if (errorMessage.includes("401") || errorMessage.includes("403")) {
+      } else if (dataError.includes("401") || dataError.includes("403")) {
         router.push("/auth/sign-in");
       } else {
-        setError(errorMessage);
+        setError(dataError);
       }
+    } else {
+      setError("");
     }
-  }, [clubId, fetchClubById, router, t]);
+  }, [dataError, router, t]);
 
-  const fetchBookingsPreview = useCallback(async () => {
-    if (!clubId) return;
-
-    try {
-      setLoadingBookings(true);
-      // Constants for booking limits
-      const MAX_SUMMARY_BOOKINGS = 100;
-      const PREVIEW_BOOKINGS_LIMIT = 10;
-
-      // Get today's date range
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      // Get week range
-      const weekFromNow = new Date(today);
-      weekFromNow.setDate(weekFromNow.getDate() + 7);
-
-      // Fetch bookings for the club
-      const [todayResponse, weekResponse, upcomingResponse] = await Promise.all([
-        fetch(`/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&dateTo=${tomorrow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
-        fetch(`/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&dateTo=${weekFromNow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`),
-        fetch(`/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&perPage=${PREVIEW_BOOKINGS_LIMIT}`)
-      ]);
-
-      if (todayResponse.ok && weekResponse.ok && upcomingResponse.ok) {
-        const [todayData, weekData, upcomingData] = await Promise.all([
-          todayResponse.json(),
-          weekResponse.json(),
-          upcomingResponse.json()
-        ]);
-
-        setBookingsPreview({
-          items: upcomingData.bookings.map((b: AdminBookingResponse) => ({
-            id: b.id,
-            courtName: b.courtName,
-            clubName: b.clubName,
-            userName: b.userName,
-            userEmail: b.userEmail,
-            start: b.start,
-            end: b.end,
-            status: b.bookingStatus,
-            sportType: b.sportType,
-          })),
-          summary: {
-            todayCount: todayData.total,
-            weekCount: weekData.total,
-            totalUpcoming: upcomingData.total,
-          },
-        });
-      }
-    } catch {
-      // Silent fail
-    } finally {
-      setLoadingBookings(false);
-    }
-  }, [clubId]);
-
+  // Admin status is loaded from store via UserStoreInitializer
   useEffect(() => {
     if (isLoadingStore) return;
 
@@ -171,18 +90,12 @@ export default function AdminClubDetailPage({
       return;
     }
 
-    // Check admin status and fetch data
-    if (adminStatus?.isAdmin) {
-      // User is an admin (root, organization, or club admin)
-      if (clubId) {
-        fetchClub();
-        fetchBookingsPreview();
-      }
-    } else if (!isLoadingStore) {
+    // Check admin status
+    if (!adminStatus?.isAdmin && !isLoadingStore) {
       // User is not an admin, redirect
       router.push("/auth/sign-in");
     }
-  }, [isLoggedIn, isLoadingStore, adminStatus, router, clubId, fetchClub, fetchBookingsPreview]);
+  }, [isLoggedIn, isLoadingStore, adminStatus, router]);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -208,7 +121,7 @@ export default function AdminClubDetailPage({
 
       const updatedClub = await response.json();
       // Refresh club data from store to keep it in sync
-      await fetchClubById(clubId);
+      await refetchClub();
       showToast("success", t("clubDetail.changesSavedSuccess"));
       return updatedClub;
     } catch (err) {
@@ -216,7 +129,7 @@ export default function AdminClubDetailPage({
       showToast("error", message);
       throw err;
     }
-  }, [clubId, fetchClubById, showToast, t]);
+  }, [clubId, refetchClub, showToast, t]);
 
   const handleDelete = async () => {
     if (!clubId) return;
@@ -290,7 +203,7 @@ export default function AdminClubDetailPage({
   ];
 
   // Loading skeleton
-  if (loading || isLoadingStore) {
+  if (dataLoading || isLoadingStore) {
     return (
       <main className="im-admin-club-detail-page">
         <div className="im-admin-club-skeleton-hero" />
@@ -520,12 +433,12 @@ export default function AdminClubDetailPage({
         <section className="im-admin-club-admins-section">
           <ClubAdminsSection
             clubId={club.id}
-            onRefresh={fetchClub}
+            onRefresh={refetchClub}
           />
         </section>
 
         {/* Bookings Summary */}
-        {loadingBookings ? (
+        {bookingsLoading ? (
           <BookingsPreviewSkeleton count={5} className="im-admin-club-bookings-section" />
         ) : bookingsPreview && club && (
           <section className="im-admin-club-bookings-section">
@@ -674,7 +587,7 @@ export default function AdminClubDetailPage({
           onClose={() => setIsEditingDetails(false)}
           club={club}
           onUpdate={handleSectionUpdate}
-          onRefresh={fetchClub}
+          onRefresh={refetchClub}
         />
       )}
     </main>

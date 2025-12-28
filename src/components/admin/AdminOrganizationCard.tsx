@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Button, EntityLogo } from "@/components/ui";
-import { getSportName, SportType } from "@/constants/sports";
+import { SportType } from "@/constants/sports";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { parseOrganizationMetadata } from "@/types/organization";
 

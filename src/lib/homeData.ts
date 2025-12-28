@@ -17,7 +17,7 @@ export async function getPopularClubs(limit: number = 4): Promise<ClubWithCounts
         contactInfo: true,
         openingHours: true,
         shortDescription: true,
-        logo: true,
+        logoData: true,
         courts: {
           select: {
             id: true,

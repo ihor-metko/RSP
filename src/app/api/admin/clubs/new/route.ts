@@ -44,8 +44,8 @@ interface CreateClubRequest {
   isPublic?: boolean;
   tags?: string | null;
   supportedSports?: SportType[];
-  heroImage?: string;
-  logo?: string;
+  bannerData?: { url: string; altText?: string; description?: string; position?: string };
+  logoData?: { url: string; altText?: string; thumbnailUrl?: string };
   gallery?: GalleryInput[];
   businessHours?: BusinessHourInput[];
   courts?: CourtInput[];
@@ -171,8 +171,8 @@ export async function POST(request: Request) {
           isPublic: body.isPublic ?? true,
           tags: body.tags || null,
           supportedSports: body.supportedSports || ["PADEL"],
-          heroImage: body.heroImage || null,
-          logo: body.logo || null,
+          bannerData: body.bannerData ? JSON.stringify(body.bannerData) : null,
+          logoData: body.logoData ? JSON.stringify(body.logoData) : null,
         },
       });
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Modal, Badge } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
+import { useClubAdminsStore } from "@/stores/useClubAdminsStore";
 import { UserProfileModal } from "../UserProfileModal";
 import { CreateAdminModal } from "../admin-wizard";
 import type { AdminRole } from "@/types/adminWizard";
@@ -27,8 +28,16 @@ export function ClubAdminsSection({
   const t = useTranslations();
   const hasAnyRole = useUserStore((state) => state.hasAnyRole);
   
-  const [admins, setAdmins] = useState<ClubAdmin[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Use club admins store
+  const getClubAdmins = useClubAdminsStore((state) => state.getClubAdmins);
+  const fetchClubAdminsIfNeeded = useClubAdminsStore((state) => state.fetchClubAdminsIfNeeded);
+  const storeLoading = useClubAdminsStore((state) => state.isLoading(clubId));
+  const storeError = useClubAdminsStore((state) => state.error);
+
+  // Get admins from store
+  const admins = getClubAdmins(clubId) || [];
+  
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   // Create Admin modal state
@@ -64,30 +73,31 @@ export function ClubAdminsSection({
     ? ["CLUB_ADMIN"] 
     : ["CLUB_OWNER", "CLUB_ADMIN"];
 
-  // Fetch club admins
+  // Fetch club admins from store
   const fetchClubAdmins = useCallback(async () => {
     setLoading(true);
     setError("");
     
     try {
-      const response = await fetch(`/api/admin/clubs/${clubId}/admins`);
-      
-      if (!response.ok) {
-        if (response.status === 403) {
-          setError(t("common.forbidden"));
-          return;
-        }
-        throw new Error("Failed to fetch club admins");
-      }
-
-      const data = await response.json();
-      setAdmins(data);
+      await fetchClubAdminsIfNeeded(clubId, { force: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load club admins");
+      const errorMessage = err instanceof Error ? err.message : "Failed to load club admins";
+      if (errorMessage.includes("403")) {
+        setError(t("common.forbidden"));
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
-  }, [clubId, t]);
+  }, [clubId, fetchClubAdminsIfNeeded, t]);
+
+  // Sync store error with local error state
+  useEffect(() => {
+    if (storeError) {
+      setError(storeError);
+    }
+  }, [storeError]);
 
   useEffect(() => {
     fetchClubAdmins();
@@ -130,6 +140,8 @@ export function ClubAdminsSection({
       showToast(t("clubAdmins.adminRemoved"), "success");
       setIsRemoveModalOpen(false);
       setAdminToRemove(null);
+      
+      // Force refetch to get updated admins list
       fetchClubAdmins();
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -154,7 +166,7 @@ export function ClubAdminsSection({
     return 0;
   });
 
-  if (loading) {
+  if (loading || storeLoading) {
     return (
       <div className="im-section-card">
         <div className="im-section-header">
@@ -270,7 +282,7 @@ export function ClubAdminsSection({
           defaultClubId: clubId,
           allowedRoles: allowedRoles,
           onSuccess: () => {
-            // Refresh the admins list after successful creation
+            // Force refresh the admins list after successful creation
             fetchClubAdmins();
             if (onRefresh) onRefresh();
           },

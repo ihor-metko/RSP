@@ -6,27 +6,13 @@ import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/compon
 import { BaseInfoTab, AddressTab, LogoTab, BannerTab } from "@/components/admin/EntityTabs";
 import type { BaseInfoData, AddressData, LogoData, BannerData } from "@/components/admin/EntityTabs";
 import { parseClubMetadata } from "@/types/club";
+import type { ClubDetail } from "@/types/club";
 import "@/components/admin/EntityTabs/EntityTabs.css";
-
-interface ClubData {
-  id: string;
-  name: string;
-  slug: string | null;
-  shortDescription: string | null;
-  location: string;
-  city: string | null;
-  country: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  logo: string | null;
-  heroImage: string | null;
-  metadata?: string | null;
-}
 
 interface ClubEditorProps {
   isOpen: boolean;
   onClose: () => void;
-  club: ClubData;
+  club: ClubDetail;
   onUpdate: (section: string, payload: Record<string, unknown>) => Promise<unknown>;
   onRefresh: () => Promise<void>;
 }
@@ -62,14 +48,14 @@ export function ClubEditor({
 
   const logoData: LogoData = {
     logoCount: metadata?.secondLogo ? 'two' : 'one',
-    logo: club.logo ? { url: club.logo, key: "", preview: club.logo } : null,
+    logo: club.logoData?.url ? { url: club.logoData.url, key: "", preview: club.logoData.url } : null,
     logoTheme: metadata?.logoTheme || 'light',
     secondLogo: metadata?.secondLogo ? { url: metadata.secondLogo, key: "", preview: metadata.secondLogo } : null,
     secondLogoTheme: metadata?.secondLogoTheme || 'dark',
   };
 
   const bannerData: BannerData = {
-    heroImage: club.heroImage ? { url: club.heroImage, key: "", preview: club.heroImage } : null,
+    heroImage: club.bannerData?.url ? { url: club.bannerData.url, key: "", preview: club.bannerData.url } : null,
     bannerAlignment: metadata?.bannerAlignment || 'center',
   };
 

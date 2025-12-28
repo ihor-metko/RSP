@@ -152,7 +152,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, location, contactInfo, openingHours, logo, logoData, bannerData } = body;
+    const { name, location, contactInfo, openingHours, logoData, bannerData } = body;
 
     if (!name || !location) {
       return NextResponse.json(
@@ -168,9 +168,6 @@ export async function PUT(
         location,
         contactInfo: contactInfo || null,
         openingHours: openingHours || null,
-        // Deprecated - kept for backward compatibility
-        logo: logo || null,
-        // New structure
         logoData: logoData ? JSON.stringify(logoData) : null,
         bannerData: bannerData ? JSON.stringify(bannerData) : null,
       },
