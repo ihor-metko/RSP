@@ -244,14 +244,14 @@ describe("Organization Admins API", () => {
     });
   });
 
-  describe("POST /api/admin/organizations/remove-admin", () => {
+  describe("DELETE /api/admin/organizations/[id]/admins", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue(null);
 
       const request = new Request(
         "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
-          method: "POST",
+          method: "DELETE",
           body: JSON.stringify({
             userId: "user-1",
           }),
@@ -286,7 +286,7 @@ describe("Organization Admins API", () => {
       const request = new Request(
         "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
-          method: "POST",
+          method: "DELETE",
           body: JSON.stringify({
             userId: "user-1",
           }),
@@ -321,7 +321,7 @@ describe("Organization Admins API", () => {
       const request = new Request(
         "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
-          method: "POST",
+          method: "DELETE",
           body: JSON.stringify({
             userId: "user-1",
           }),

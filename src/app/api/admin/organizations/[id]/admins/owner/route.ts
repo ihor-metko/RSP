@@ -139,6 +139,7 @@ export async function PATCH(
             id: organizationId,
             name: organization.name,
           },
+          membershipId: targetMembership.id,
         },
       },
       { status: 200 }

@@ -677,13 +677,13 @@ describe("Admin Organizations API", () => {
     });
   });
 
-  describe("POST /api/admin/organizations/remove-admin", () => {
+  describe("DELETE /api/admin/organizations/[id]/admins", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue(null);
 
       const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
-        method: "POST",
-        body: JSON.stringify({ organizationId: "org-1", userId: "user-1" }),
+        method: "DELETE",
+        body: JSON.stringify({ userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
@@ -694,32 +694,14 @@ describe("Admin Organizations API", () => {
       expect(data.error).toBe("Unauthorized");
     });
 
-    it("should return 400 when organizationId is missing", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "admin-123", isRoot: true },
-      });
-
-      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
-        method: "POST",
-        body: JSON.stringify({ userId: "user-1" }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await DELETE(request, { params: Promise.resolve({ id: "org-1" }) });
-      const data = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(data.error).toBe("Organization ID is required");
-    });
-
     it("should return 400 when userId is missing", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: true },
       });
 
       const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
-        method: "POST",
-        body: JSON.stringify({ organizationId: "org-1" }),
+        method: "DELETE",
+        body: JSON.stringify({}),
         headers: { "Content-Type": "application/json" },
       });
 
@@ -738,8 +720,8 @@ describe("Admin Organizations API", () => {
       (prisma.organization.findUnique as jest.Mock).mockResolvedValue(null);
 
       const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
-        method: "POST",
-        body: JSON.stringify({ organizationId: "non-existent", userId: "user-1" }),
+        method: "DELETE",
+        body: JSON.stringify({ userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
