@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useClubBookingsStore } from "@/stores/useClubBookingsStore";
-import { useClubAdminsStore } from "@/stores/useClubAdminsStore";
+import { useAdminsStore } from "@/stores/useAdminsStore";
 import type { ClubDetail } from "@/types/club";
 
 /**
@@ -29,7 +29,7 @@ interface UseClubPageDataOptions {
  * 
  * This hook coordinates fetching and caching of all club-related data:
  * - Club basic info (from useAdminClubStore)
- * - Club admins (from useClubAdminsStore)
+ * - Club admins (from useAdminsStore)
  * - Bookings preview (from useClubBookingsStore)
  * 
  * Features:
@@ -78,13 +78,11 @@ export function useClubPageData(
   const ensureClubById = useAdminClubStore((state) => state.ensureClubById);
   const fetchClubById = useAdminClubStore((state) => state.fetchClubById);
 
-  // Admins store
-  const getClubAdmins = useClubAdminsStore((state) => state.getClubAdmins);
-  const adminsLoading = useClubAdminsStore((state) => state.loading);
-  const adminsError = useClubAdminsStore((state) => state.error);
-  const fetchClubAdminsIfNeeded = useClubAdminsStore(
-    (state) => state.fetchClubAdminsIfNeeded
-  );
+  // Admins store (unified)
+  const getAdmins = useAdminsStore((state) => state.getAdmins);
+  const adminsLoading = useAdminsStore((state) => state.isLoading("club", clubId || ""));
+  const adminsError = useAdminsStore((state) => state.error);
+  const fetchAdminsIfNeeded = useAdminsStore((state) => state.fetchAdminsIfNeeded);
 
   // Bookings store
   const getBookingsPreview = useClubBookingsStore((state) => state.getBookingsPreview);
@@ -95,7 +93,7 @@ export function useClubPageData(
   );
 
   // Get data from stores
-  const admins = clubId ? getClubAdmins(clubId) : null;
+  const admins = clubId ? getAdmins("club", clubId) : null;
   const bookingsPreview = clubId ? getBookingsPreview(clubId) : null;
 
   // Fetch club data on mount or when clubId changes
@@ -137,14 +135,14 @@ export function useClubPageData(
 
     const fetchAdmins = async () => {
       try {
-        await fetchClubAdminsIfNeeded(clubId, { force: forceRefresh });
+        await fetchAdminsIfNeeded("club", clubId, { force: forceRefresh });
       } catch (error) {
         console.error("Failed to fetch club admins:", error);
       }
     };
 
     fetchAdmins();
-    // Note: fetchClubAdminsIfNeeded is a Zustand store action with a stable reference.
+    // Note: fetchAdminsIfNeeded is a Zustand store action with a stable reference.
     // Including it would not change behavior but could trigger unnecessary re-renders.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clubId, hasLoadedAdmins, forceRefresh]);
@@ -202,11 +200,11 @@ export function useClubPageData(
     try {
       // Reset fetch trigger to allow refetch
       adminsFetchTriggeredRef.current = null;
-      await fetchClubAdminsIfNeeded(clubId, { force: true });
+      await fetchAdminsIfNeeded("club", clubId, { force: true });
     } catch (error) {
       console.error("Failed to refetch admins:", error);
     }
-    // Note: fetchClubAdminsIfNeeded is a Zustand store action with a stable reference.
+    // Note: fetchAdminsIfNeeded is a Zustand store action with a stable reference.
     // Including it would not change behavior.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clubId]);
