@@ -240,8 +240,8 @@ export function ExistingUserSearchStep({
         </>
       ) : (
         <SelectedUserCard
-          name={data.name || ""}
-          email={data.email || ""}
+          name={data.name}
+          email={data.email}
           onChangeUser={handleClearSelection}
           disabled={disabled}
         />
