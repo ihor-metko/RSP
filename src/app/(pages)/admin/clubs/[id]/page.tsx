@@ -38,7 +38,6 @@ export default function AdminClubDetailPage({
     club,
     bookingsPreview,
     isClubLoading,
-    adminsLoading,
     bookingsLoading,
     error: dataError,
     refetchClub,
