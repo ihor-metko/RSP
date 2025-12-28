@@ -37,7 +37,7 @@ export default function AdminClubDetailPage({
   const {
     club,
     bookingsPreview,
-    loading: dataLoading,
+    isClubLoading,
     bookingsLoading,
     error: dataError,
     refetchClub,
@@ -202,8 +202,8 @@ export default function AdminClubDetailPage({
     },
   ];
 
-  // Loading skeleton
-  if (dataLoading || isLoadingStore) {
+  // Loading skeleton - Only show while club base data is loading
+  if (isClubLoading || isLoadingStore) {
     return (
       <main className="im-admin-club-detail-page">
         <div className="im-admin-club-skeleton-hero" />

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useClubBookingsStore } from "@/stores/useClubBookingsStore";
 import { useClubAdminsStore } from "@/stores/useClubAdminsStore";
@@ -65,6 +65,11 @@ export function useClubPageData(
   const [hasLoadedAdmins, setHasLoadedAdmins] = useState(loadAdmins);
   const [hasLoadedBookings, setHasLoadedBookings] = useState(loadBookings);
 
+  // Track if initial fetch has been triggered for each data type
+  const clubFetchTriggeredRef = useRef<string | null>(null);
+  const adminsFetchTriggeredRef = useRef<string | null>(null);
+  const bookingsFetchTriggeredRef = useRef<string | null>(null);
+
   // Club store
   const club = useAdminClubStore((state) => state.currentClub);
   const clubsById = useAdminClubStore((state) => state.clubsById);
@@ -97,6 +102,10 @@ export function useClubPageData(
   useEffect(() => {
     if (!clubId) return;
 
+    // Prevent duplicate fetches for the same clubId
+    if (clubFetchTriggeredRef.current === clubId && !forceRefresh) return;
+    clubFetchTriggeredRef.current = clubId;
+
     const fetchClubData = async () => {
       try {
         // Fetch club info and cache it
@@ -112,11 +121,19 @@ export function useClubPageData(
     };
 
     fetchClubData();
-  }, [clubId, forceRefresh, ensureClubById, fetchClubById, club]);
+    // Note: ensureClubById and fetchClubById are Zustand store actions with stable references
+    // that don't change between renders. Including them would not change behavior.
+    // The club dependency is intentionally omitted to prevent fetching on every club update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clubId, forceRefresh]);
 
   // Fetch admins if requested
   useEffect(() => {
     if (!clubId || !hasLoadedAdmins) return;
+
+    // Prevent duplicate fetches for the same clubId
+    if (adminsFetchTriggeredRef.current === clubId && !forceRefresh) return;
+    adminsFetchTriggeredRef.current = clubId;
 
     const fetchAdmins = async () => {
       try {
@@ -127,11 +144,18 @@ export function useClubPageData(
     };
 
     fetchAdmins();
-  }, [clubId, hasLoadedAdmins, forceRefresh, fetchClubAdminsIfNeeded]);
+    // Note: fetchClubAdminsIfNeeded is a Zustand store action with a stable reference.
+    // Including it would not change behavior but could trigger unnecessary re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clubId, hasLoadedAdmins, forceRefresh]);
 
   // Fetch bookings if requested
   useEffect(() => {
     if (!clubId || !hasLoadedBookings) return;
+
+    // Prevent duplicate fetches for the same clubId
+    if (bookingsFetchTriggeredRef.current === clubId && !forceRefresh) return;
+    bookingsFetchTriggeredRef.current = clubId;
 
     const fetchBookings = async () => {
       try {
@@ -142,7 +166,10 @@ export function useClubPageData(
     };
 
     fetchBookings();
-  }, [clubId, hasLoadedBookings, forceRefresh, fetchBookingsPreviewIfNeeded]);
+    // Note: fetchBookingsPreviewIfNeeded is a Zustand store action with a stable reference.
+    // Including it would not change behavior but could trigger unnecessary re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clubId, hasLoadedBookings, forceRefresh]);
 
   // Lazy load functions for tabs/sections
   const loadAdminsData = useCallback(async () => {
@@ -159,32 +186,54 @@ export function useClubPageData(
   const refetchClub = useCallback(async () => {
     if (!clubId) return;
     try {
+      // Reset fetch trigger to allow refetch
+      clubFetchTriggeredRef.current = null;
       await fetchClubById(clubId);
     } catch (error) {
       console.error("Failed to refetch club:", error);
     }
-  }, [clubId, fetchClubById]);
+    // Note: fetchClubById is a Zustand store action with a stable reference.
+    // Including it would not change behavior.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clubId]);
 
   const refetchAdmins = useCallback(async () => {
     if (!clubId) return;
     try {
+      // Reset fetch trigger to allow refetch
+      adminsFetchTriggeredRef.current = null;
       await fetchClubAdminsIfNeeded(clubId, { force: true });
     } catch (error) {
       console.error("Failed to refetch admins:", error);
     }
-  }, [clubId, fetchClubAdminsIfNeeded]);
+    // Note: fetchClubAdminsIfNeeded is a Zustand store action with a stable reference.
+    // Including it would not change behavior.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clubId]);
 
   const refetchBookings = useCallback(async () => {
     if (!clubId) return;
     try {
+      // Reset fetch trigger to allow refetch
+      bookingsFetchTriggeredRef.current = null;
       await fetchBookingsPreviewIfNeeded(clubId, { force: true });
     } catch (error) {
       console.error("Failed to refetch bookings:", error);
     }
-  }, [clubId, fetchBookingsPreviewIfNeeded]);
+    // Note: fetchBookingsPreviewIfNeeded is a Zustand store action with a stable reference.
+    // Including it would not change behavior.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clubId]);
 
-  // Unified loading state (true if any data is loading)
-  const loading = clubLoading || (hasLoadedAdmins && adminsLoading) || (hasLoadedBookings && bookingsLoading);
+  // Page-level loading depends only on club data (base data)
+  const isClubLoading = clubLoading;
+  
+  // Section-specific loading states
+  const isAdminsLoading = hasLoadedAdmins && adminsLoading;
+  const isBookingsLoading = hasLoadedBookings && bookingsLoading;
+
+  // Unified loading state (true if any data is loading) - DEPRECATED, use specific states
+  const loading = isClubLoading || isAdminsLoading || isBookingsLoading;
 
   // Unified error state (first error encountered)
   const error = clubError || adminsError || bookingsError;
@@ -198,11 +247,12 @@ export function useClubPageData(
     admins,
     bookingsPreview,
 
-    // Loading states
-    loading,
-    clubLoading,
-    adminsLoading,
-    bookingsLoading,
+    // Loading states - IMPORTANT: Use specific states, not unified 'loading'
+    loading, // DEPRECATED: Only for backward compatibility
+    isClubLoading, // Use this for page-level loader
+    clubLoading: isClubLoading, // Alias for consistency
+    adminsLoading: isAdminsLoading, // Use this for admins section skeleton
+    bookingsLoading: isBookingsLoading, // Use this for bookings section skeleton
 
     // Error states
     error,
