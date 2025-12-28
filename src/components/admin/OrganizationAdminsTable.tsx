@@ -35,7 +35,7 @@ export default function OrganizationAdminsTable({
   const user = useUserStore((state) => state.user);
   const isRoot = user?.isRoot ?? false;
   const removeAdmin = useOrganizationStore((state) => state.removeAdmin);
-  
+
   // Get organization detail from store to pass to modal (avoids fetching)
   const getOrganizationDetailById = useOrganizationStore((state) => state.getOrganizationDetailById);
   const org = getOrganizationDetailById(orgId);
@@ -109,8 +109,8 @@ export default function OrganizationAdminsTable({
 
   // Check if an owner already exists to determine allowed roles
   const hasOwner = !!primaryOwner;
-  const allowedRoles: import("@/types/adminWizard").AdminRole[] = hasOwner 
-    ? ["ORGANIZATION_ADMIN"] 
+  const allowedRoles: import("@/types/adminWizard").AdminRole[] = hasOwner
+    ? ["ORGANIZATION_ADMIN"]
     : ["ORGANIZATION_OWNER", "ORGANIZATION_ADMIN"];
 
   // Sort admins: Owner first, then Organization Admins
@@ -226,7 +226,7 @@ export default function OrganizationAdminsTable({
                   >
                     {t("common.viewProfile")}
                   </Button>
-                  {canModify ? (
+                  {canModify ?? (
                     <Button
                       size="small"
                       variant="danger"
@@ -234,18 +234,6 @@ export default function OrganizationAdminsTable({
                     >
                       {t("common.remove")}
                     </Button>
-                  ) : (
-                    <Tooltip content={tooltipMessage}>
-                      <span>
-                        <Button
-                          size="small"
-                          variant="danger"
-                          disabled
-                        >
-                          {t("common.remove")}
-                        </Button>
-                      </span>
-                    </Tooltip>
                   )}
                 </div>
               </div>

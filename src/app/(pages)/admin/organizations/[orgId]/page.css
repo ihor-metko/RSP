@@ -267,7 +267,7 @@
 
 @media (min-width: 640px) {
   .im-metrics-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
