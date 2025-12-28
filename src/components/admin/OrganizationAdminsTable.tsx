@@ -189,6 +189,7 @@ export default function OrganizationAdminsTable({
             const tooltipMessage = !canModify && admin.isPrimaryOwner
               ? t("orgAdmins.ownerProtectionTooltip")
               : "";
+            const isCurrentUserOwner = admin.isPrimaryOwner && admin.userId === user?.id;
 
             return (
               <div key={admin.id} className="im-admin-row">
@@ -199,7 +200,7 @@ export default function OrganizationAdminsTable({
                   <div className="im-admin-name-row">
                     <span className="im-admin-name">
                       {admin.userName || admin.userEmail}
-                      {admin.isPrimaryOwner && admin.userId === user?.id && (
+                      {isCurrentUserOwner && (
                         <span className="im-admin-you-indicator"> ({t("orgAdmins.you")})</span>
                       )}
                     </span>

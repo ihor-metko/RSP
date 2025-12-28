@@ -2259,7 +2259,6 @@
   },
   "orgAdmins": {
     "title": "Organization Admins",
-    "people": "People",
     "administratorsAndOwners": "Administrators and Owners",
     "addAdmin": "Add Admin",
     "addAdminOrOwner": "Add Admin / Owner",
