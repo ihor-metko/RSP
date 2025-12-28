@@ -11,6 +11,7 @@
  */
 
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { requireAuth } from "@/lib/requireRole";
 import { prisma } from "@/lib/prisma";
 import { isInviteExpired } from "@/lib/inviteUtils";
@@ -128,7 +129,6 @@ export async function POST(request: Request, { params }: RouteParams) {
     // 5. Build invite link (need to recreate from tokenHash)
     // Note: We can't retrieve the original token, so we need to generate a new one
     // and update the invite with the new tokenHash
-    const crypto = await import("crypto");
     const newToken = crypto.randomBytes(32)
       .toString("base64")
       .replace(/\+/g, "-")
