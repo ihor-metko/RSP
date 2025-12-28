@@ -7,9 +7,7 @@ import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { SelectContextStep } from "./SelectContextStep";
-import { UserSourceStep } from "./UserSourceStep";
 import { ExistingUserSearchStep } from "./ExistingUserSearchStep";
-import { UserDataStep } from "./UserDataStep";
 import { ReviewStep } from "./ReviewStep";
 import type {
   CreateAdminWizardConfig,
@@ -46,17 +44,17 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   
   const STEPS = [
     { id: 1, label: t("steps.contextRole") },
-    { id: 2, label: t("steps.userSource") },
-    { id: 3, label: t("steps.userDetails") },
-    { id: 4, label: t("steps.confirm") },
+    { id: 2, label: t("steps.userDetails") },
+    { id: 3, label: t("steps.confirm") },
   ];
 
   // Initialize form data with defaults from config
+  // MVP: userSource is always "existing" - we only work with existing users
   const [formData, setFormData] = useState<AdminCreationData>({
     organizationId: config.defaultOrgId || "",
     clubId: config.defaultClubId,
     role: config.allowedRoles[0] || "ORGANIZATION_ADMIN",
-    userSource: "new",
+    userSource: "existing",
   });
 
   // Get organizations and clubs from stores
@@ -164,20 +162,6 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
     });
   }, [errors, fetchClubsIfNeeded]);
 
-  const handleUserSourceChange = useCallback((data: Partial<Pick<AdminCreationData, "userSource">>) => {
-    setFormData((prev) => ({
-      ...prev,
-      ...data,
-      // Clear user-related fields when changing source
-      userId: undefined,
-      name: undefined,
-      email: undefined,
-      phone: undefined,
-    }));
-    // Clear related errors
-    setErrors({});
-  }, []);
-
   const handleUserDataChange = useCallback((data: Partial<Pick<AdminCreationData, "name" | "email" | "phone" | "userId">>) => {
     setFormData((prev) => ({ ...prev, ...data }));
     // Clear related errors
@@ -208,28 +192,9 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
         newErrors.clubId = t("errors.clubRequired");
       }
     } else if (step === 2) {
-      // Validate user source
-      if (!formData.userSource) {
-        newErrors.userSource = t("errors.userSourceRequired");
-      }
-    } else if (step === 3) {
-      // Validate user details based on source
-      if (formData.userSource === "existing") {
-        if (!formData.userId) {
-          newErrors.userId = t("errors.userRequired");
-        }
-      } else {
-        // New user validation - only email is required for invite flow
-        // Name and phone are optional metadata for admin's reference
-        if (!formData.email || !formData.email.trim()) {
-          newErrors.email = t("errors.emailRequired");
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          newErrors.email = t("errors.emailInvalid");
-        }
-        // Optional fields - validate format if provided
-        if (formData.phone && formData.phone.trim() && !/^\+?[0-9\s\-\(\)]+$/.test(formData.phone)) {
-          newErrors.phone = t("errors.phoneInvalid");
-        }
+      // MVP: Only validate existing user selection
+      if (!formData.userId) {
+        newErrors.userId = t("errors.userRequired");
       }
     }
 
@@ -254,23 +219,15 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   }, [currentStep]);
 
   const handleSubmit = async () => {
-    // Validate step 4 (final confirmation)
-    if (!validateStep(4)) {
+    // Validate step 3 (final confirmation)
+    if (!validateStep(3)) {
       return;
     }
 
-    // Final validation based on user source
-    if (formData.userSource === "existing") {
-      if (!formData.organizationId || !formData.role || !formData.userId) {
-        setErrors({ general: t("errors.allFieldsRequired") });
-        return;
-      }
-    } else {
-      // For new users (invite flow), only email and role are required
-      if (!formData.organizationId || !formData.role || !formData.email) {
-        setErrors({ general: t("errors.allFieldsRequired") });
-        return;
-      }
+    // MVP: Only handle existing users
+    if (!formData.organizationId || !formData.role || !formData.userId) {
+      setErrors({ general: t("errors.allFieldsRequired") });
+      return;
     }
 
     setIsSubmitting(true);
@@ -278,56 +235,27 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
     setSubmitError(null);
 
     try {
-      let response: Response;
-      let data: unknown;
-      let payload: Record<string, unknown>;
+      // Existing user: direct role assignment
+      const payload: Record<string, unknown> = {
+        role: formData.role,
+        userSource: formData.userSource,
+        userId: formData.userId,
+      };
 
-      // For new users, use the Invite API to send email invitations
-      // For existing users, use the admin creation API for direct role assignment
-      if (formData.userSource === "new") {
-        // Prepare invite payload
-        payload = {
-          email: formData.email?.trim().toLowerCase(),
-          role: formData.role,
-        };
-
-        // Add context (org or club)
-        if (formData.role === "ORGANIZATION_OWNER" || formData.role === "ORGANIZATION_ADMIN") {
-          payload.organizationId = formData.organizationId;
-        } else {
-          payload.clubId = formData.clubId;
-        }
-
-        response = await fetch("/api/invites", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        data = await response.json();
+      // Add context (org or club)
+      if (formData.role === "ORGANIZATION_OWNER" || formData.role === "ORGANIZATION_ADMIN") {
+        payload.organizationId = formData.organizationId;
       } else {
-        // Existing user: direct role assignment
-        payload = {
-          role: formData.role,
-          userSource: formData.userSource,
-          userId: formData.userId,
-        };
-
-        // Add context (org or club)
-        if (formData.role === "ORGANIZATION_OWNER" || formData.role === "ORGANIZATION_ADMIN") {
-          payload.organizationId = formData.organizationId;
-        } else {
-          payload.clubId = formData.clubId;
-        }
-
-        response = await fetch("/api/admin/admins/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        data = await response.json();
+        payload.clubId = formData.clubId;
       }
+
+      const response = await fetch("/api/admin/admins/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
 
       if (!response.ok) {
         // Handle validation errors
@@ -367,23 +295,10 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
     errorData: ErrorResponse
   ) => {
     if (response.status === 409) {
-      if (errorData.field === "email") {
-        setErrors({ email: errorData.error || t("errors.emailInUse") });
-        setCurrentStep(3); // Go back to user details step
-        showToast("error", errorData.error || t("errors.emailInUse"));
-      } else if (errorData.field === "phone") {
-        setErrors({ phone: errorData.error || t("errors.phoneInUse") });
-        setCurrentStep(3);
-        showToast("error", errorData.error || t("errors.phoneInUse"));
-      } else if (errorData.field === "owner") {
+      if (errorData.field === "owner") {
         const errorMessage = errorData.error || t("errors.ownerExists");
         setSubmitError(errorMessage);
         showToast("error", errorMessage);
-      } else if (errorData.existingInviteId) {
-        // Handle existing active invite - show warning
-        const inviteExistsMessage = errorData.error || t("errors.inviteExists");
-        setSubmitError(inviteExistsMessage);
-        showToast("error", inviteExistsMessage);
       } else {
         const conflictMessage = errorData.error || t("errors.conflictOccurred");
         setSubmitError(conflictMessage);
@@ -404,9 +319,8 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   // Helper function for handling successful API response
   const handleApiSuccess = useCallback(async (responseData: SuccessResponse) => {
     // Success! Show toast notification
-    const successMessage = formData.userSource === "existing"
-      ? t("messages.successExisting")
-      : t("messages.successInvite");
+    // MVP: Always show success message for existing user assignment
+    const successMessage = t("messages.successExisting");
     
     showToast("success", successMessage);
 
@@ -421,14 +335,13 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
     // Call success callback if provided (this will close the modal)
     if (config.onSuccess) {
       // For existing users, we get userId directly
-      // For invites, we get invite.id
-      const resultId = responseData.userId || responseData.invite?.id;
+      const resultId = responseData.userId;
       
       // Always call the callback to close the modal
       // Pass empty string if no specific ID is available (operation still succeeded)
       config.onSuccess(resultId || "");
     }
-  }, [formData.userSource, t, showToast, refetchAdminUsers, config]);
+  }, [t, showToast, refetchAdminUsers, config]);
 
   // Render step content
   const renderStepContent = () => {
@@ -463,13 +376,17 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
       case 2:
         return (
           <Card className="im-wizard-section">
-            <h2 className="im-wizard-section-title">{t("userSourceStep.title")}</h2>
+            <h2 className="im-wizard-section-title">{t("userDataStep.title")}</h2>
             <p className="im-wizard-section-description">
-              {t("userSourceStep.description")}
+              {t("userDataStep.descriptionExisting")}
             </p>
-            <UserSourceStep
-              data={{ userSource: formData.userSource }}
-              onChange={handleUserSourceChange}
+            <ExistingUserSearchStep
+              data={{
+                userId: formData.userId,
+                email: formData.email,
+                name: formData.name,
+              }}
+              onChange={handleUserDataChange}
               errors={errors}
               disabled={isSubmitting}
             />
@@ -477,41 +394,6 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
         );
 
       case 3:
-        return (
-          <Card className="im-wizard-section">
-            <h2 className="im-wizard-section-title">{t("userDataStep.title")}</h2>
-            <p className="im-wizard-section-description">
-              {formData.userSource === "existing"
-                ? t("userDataStep.descriptionExisting")
-                : t("userDataStep.descriptionNew")}
-            </p>
-            {formData.userSource === "existing" ? (
-              <ExistingUserSearchStep
-                data={{
-                  userId: formData.userId,
-                  email: formData.email,
-                  name: formData.name,
-                }}
-                onChange={handleUserDataChange}
-                errors={errors}
-                disabled={isSubmitting}
-              />
-            ) : (
-              <UserDataStep
-                data={{
-                  name: formData.name,
-                  email: formData.email,
-                  phone: formData.phone,
-                }}
-                onChange={handleUserDataChange}
-                errors={errors}
-                disabled={isSubmitting}
-              />
-            )}
-          </Card>
-        );
-
-      case 4:
         return (
           <Card className="im-wizard-section">
             <h2 className="im-wizard-section-title">{t("confirmStep.title")}</h2>
@@ -599,7 +481,7 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
               {t("navigation.back")}
             </Button>
           )}
-          {currentStep < 4 && (
+          {currentStep < 3 && (
             <Button
               type="button"
               onClick={handleNext}
@@ -608,13 +490,13 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
               {t("navigation.next")}
             </Button>
           )}
-          {currentStep === 4 && (
+          {currentStep === 3 && (
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
             >
-              {isSubmitting ? t("navigation.processing") : formData.userSource === "existing" ? t("navigation.assignRole") : t("navigation.sendInvite")}
+              {isSubmitting ? t("navigation.processing") : t("navigation.assignRole")}
             </Button>
           )}
         </div>

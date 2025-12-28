@@ -60,24 +60,12 @@ jest.mock("@/components/admin/admin-wizard/SelectContextStep", () => ({
   SelectContextStep: () => <div>Select Context Step</div>,
 }));
 
-jest.mock("@/components/admin/admin-wizard/UserSourceStep", () => ({
-  UserSourceStep: () => <div>User Source Step</div>,
-}));
-
 jest.mock("@/components/admin/admin-wizard/ExistingUserSearchStep", () => ({
   ExistingUserSearchStep: () => <div>Existing User Search Step</div>,
 }));
 
-jest.mock("@/components/admin/admin-wizard/UserDataStep", () => ({
-  UserDataStep: () => <div>User Data Step</div>,
-}));
-
 jest.mock("@/components/admin/admin-wizard/ReviewStep", () => ({
   ReviewStep: () => <div>Review Step</div>,
-}));
-
-jest.mock("@/components/admin/admin-wizard/ConfirmStep", () => ({
-  ConfirmStep: () => <div>Confirm Step</div>,
 }));
 
 describe("CreateAdminWizard - Clubs Fetching", () => {
