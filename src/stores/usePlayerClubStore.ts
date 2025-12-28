@@ -243,7 +243,7 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
 
         const club: PlayerClubDetail = await response.json();
 
-        // Update clubsById cache
+        // Update clubsById cache and set as currentClub
         set((state) => {
           const newInflight = { ...(state._inflightFetchClubById || {}) };
           delete newInflight[id];

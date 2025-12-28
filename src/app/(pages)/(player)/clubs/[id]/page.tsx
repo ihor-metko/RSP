@@ -121,11 +121,11 @@ export default function ClubDetailPage({
   // Use centralized player club store
   const currentClub = usePlayerClubStore((state) => state.currentClub);
   const ensureClubById = usePlayerClubStore((state) => state.ensureClubById);
+  const loadingClubs = usePlayerClubStore((state) => state.loadingClubs);
+  const clubsError = usePlayerClubStore((state) => state.clubsError);
 
   // Map currentClub to ClubWithDetails (they should be compatible)
   const club = currentClub as ClubWithDetails | null;
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
   const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
@@ -188,20 +188,12 @@ export default function ClubDetailPage({
         setActiveClubId(resolvedParams.id);
 
         await ensureClubById(resolvedParams.id);
-        setError(null);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : t("clubs.failedToLoadClub");
-        if (errorMessage.includes("404") || errorMessage.includes("not found")) {
-          setError(t("clubs.clubNotFound"));
-        } else {
-          setError(errorMessage);
-        }
-      } finally {
-        setIsLoading(false);
+        console.error("Failed to fetch club:", err);
       }
     }
     fetchClubData();
-  }, [params, ensureClubById, t, setActiveClubId]);
+  }, [params, ensureClubById, setActiveClubId]);
 
   // Fetch availability when club data is loaded
   useEffect(() => {
@@ -351,7 +343,7 @@ export default function ClubDetailPage({
   };
 
   // Loading skeleton
-  if (isLoading) {
+  if (loadingClubs && !club) {
     return (
       <main className="rsp-club-detail-page">
         <div className="rsp-club-skeleton-hero" />
@@ -369,17 +361,27 @@ export default function ClubDetailPage({
   }
 
   // Error state
-  if (error || !club) {
+  if (clubsError || (!loadingClubs && !club)) {
+    const errorMessage = clubsError 
+      ? (clubsError.includes("404") || clubsError.includes("not found") 
+          ? t("clubs.clubNotFound") 
+          : clubsError)
+      : t("clubs.clubNotFound");
+    
     return (
       <main className="rsp-club-detail-page p-8">
         <div className="tm-error-banner text-center p-6 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl">
-          {error || t("clubs.clubNotFound")}
+          {errorMessage}
         </div>
         <div className="mt-4 text-center">
           <IMLink href="/clubs">{t("common.backToClubs")}</IMLink>
         </div>
       </main>
     );
+  }
+
+  if (!club) {
+    return null;
   }
 
   // Prepare derived data

@@ -238,13 +238,14 @@ export const useAdminClubStore = create<AdminClubState>((set, get) => ({
 
         const club: ClubDetail = await response.json();
         
-        // Update clubsById cache
+        // Update clubsById cache and set as currentClub
         set((state) => {
           const newInflight = { ...(state._inflightFetchClubById || {}) };
           delete newInflight[id];
           
           return {
             clubsById: { ...state.clubsById, [id]: club },
+            currentClub: club,
             loadingClubs: false,
             clubsError: null,
             _inflightFetchClubById: Object.keys(newInflight).length > 0 ? newInflight : null,

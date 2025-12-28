@@ -106,21 +106,16 @@ export function useClubPageData(
 
     const fetchClubData = async () => {
       try {
-        // Fetch club info and cache it
+        // Fetch club info, cache it, and set as currentClub
         await ensureClubById(clubId, { force: forceRefresh });
-        
-        // Also update currentClub for consistency with existing code
-        if (!club || club.id !== clubId) {
-          await fetchClubById(clubId);
-        }
       } catch (error) {
         console.error("Failed to fetch club data:", error);
       }
     };
 
     fetchClubData();
-    // Note: ensureClubById and fetchClubById are Zustand store actions with stable references
-    // that don't change between renders. Including them would not change behavior.
+    // Note: ensureClubById is a Zustand store action with stable reference
+    // that doesn't change between renders. Including it would not change behavior.
     // The club dependency is intentionally omitted to prevent fetching on every club update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clubId, forceRefresh]);
