@@ -599,6 +599,8 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
         id: "my-organization",
         href: `/admin/organizations/${orgId}`,
         labelKey: "sidebar.organization",
+        // Display organization name when available; when undefined, getLabel falls back to labelKey translation
+        dynamicLabel: currentOrg?.name,
         icon: <OrganizationsIcon />,
       };
 
@@ -690,7 +692,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
     }
 
     return filteredItems;
-  }, [isRoot, isClubAdmin, isOrgAdmin, adminStatus?.assignedClub, adminStatus?.managedIds, adminStatus?.isPrimaryOwner]);
+  }, [isRoot, isClubAdmin, isOrgAdmin, adminStatus?.assignedClub, adminStatus?.managedIds, adminStatus?.isPrimaryOwner, currentOrg?.name]);
 
   // Close sidebar when clicking outside on mobile
   const handleClickOutside = useCallback(
