@@ -98,27 +98,32 @@ export function ExistingUserSearchStep({
     setSearchQuery("");
     setSearchResults([]);
     setShowDropdown(false);
+    setFocusedIndex(-1);
   }, [onChange]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!showDropdown || searchResults.length === 0) return;
-
     switch (e.key) {
       case "ArrowDown":
-        e.preventDefault();
-        setFocusedIndex((prev) => 
-          prev < searchResults.length - 1 ? prev + 1 : prev
-        );
+        if (showDropdown && searchResults.length > 0) {
+          e.preventDefault();
+          setFocusedIndex((prev) => 
+            prev < searchResults.length - 1 ? prev + 1 : prev
+          );
+        }
         break;
       case "ArrowUp":
-        e.preventDefault();
-        setFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+        if (showDropdown && searchResults.length > 0) {
+          e.preventDefault();
+          setFocusedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+        }
         break;
       case "Enter":
-        e.preventDefault();
-        if (focusedIndex >= 0 && focusedIndex < searchResults.length) {
-          handleSelectUser(searchResults[focusedIndex]);
+        if (showDropdown && searchResults.length > 0) {
+          e.preventDefault();
+          if (focusedIndex >= 0 && focusedIndex < searchResults.length) {
+            handleSelectUser(searchResults[focusedIndex]);
+          }
         }
         break;
       case "Escape":

@@ -35,13 +35,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ users: [] }, { status: 200 });
     }
 
+    const trimmedQuery = query.trim().toLowerCase();
+
     // Search for users with name or email containing the query (case-insensitive)
     const users = await prisma.user.findMany({
       where: {
         OR: [
           {
             email: {
-              contains: query.toLowerCase(),
+              contains: trimmedQuery,
               mode: "insensitive",
             },
           },
@@ -58,14 +60,27 @@ export async function GET(request: Request) {
         name: true,
         email: true,
       },
-      take: 10, // Limit results to 10
-      orderBy: [
-        // Prioritize exact email matches
-        { email: "asc" },
-      ],
+      take: 50, // Fetch more initially to allow proper sorting
     });
 
-    return NextResponse.json({ users }, { status: 200 });
+    // Sort results: exact email match first, then email starts with query, then other matches
+    const sortedUsers = users.sort((a, b) => {
+      const aEmailLower = a.email.toLowerCase();
+      const bEmailLower = b.email.toLowerCase();
+      
+      // Prioritize exact email matches
+      if (aEmailLower === trimmedQuery && bEmailLower !== trimmedQuery) return -1;
+      if (bEmailLower === trimmedQuery && aEmailLower !== trimmedQuery) return 1;
+      
+      // Then prioritize emails that start with the query
+      if (aEmailLower.startsWith(trimmedQuery) && !bEmailLower.startsWith(trimmedQuery)) return -1;
+      if (bEmailLower.startsWith(trimmedQuery) && !aEmailLower.startsWith(trimmedQuery)) return 1;
+      
+      // Finally, sort alphabetically by email
+      return aEmailLower.localeCompare(bEmailLower);
+    }).slice(0, 10); // Return top 10 results
+
+    return NextResponse.json({ users: sortedUsers }, { status: 200 });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error searching users:", error);
