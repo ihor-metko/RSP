@@ -28,7 +28,7 @@ export async function GET(
     // Verify club exists
     const club = await prisma.club.findUnique({
       where: { id: clubId },
-      select: { id: true, organizationId: true },
+      select: { id: true, name: true, organizationId: true },
     });
 
     if (!club) {

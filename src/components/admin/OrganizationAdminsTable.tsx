@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Modal, Badge, Tooltip } from "@/components/ui";
+import { Button, Modal, Badge } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminsStore } from "@/stores/useAdminsStore";
@@ -13,7 +13,6 @@ import "./OrganizationAdminsTable.css";
 
 interface OrganizationAdminsTableProps {
   orgId: string;
-  onRefresh?: () => void;
   /**
    * Optional organization data to avoid fetching when already available
    * Passed from parent to prevent unnecessary network requests
@@ -27,14 +26,11 @@ interface OrganizationAdminsTableProps {
 
 export default function OrganizationAdminsTable({
   orgId,
-  onRefresh,
   organizationData,
 }: OrganizationAdminsTableProps) {
   const t = useTranslations();
   const user = useUserStore((state) => state.user);
   const isRoot = user?.isRoot ?? false;
-  const removeAdmin = useOrganizationStore((state) => state.removeAdmin);
-
   // Get organization detail from store to pass to modal (avoids fetching)
   const getOrganizationDetailById = useOrganizationStore((state) => state.getOrganizationDetailById);
   const org = organizationData || getOrganizationDetailById(orgId);
@@ -42,6 +38,7 @@ export default function OrganizationAdminsTable({
   // Use unified admins store
   const getAdmins = useAdminsStore((state) => state.getAdmins);
   const fetchAdminsIfNeeded = useAdminsStore((state) => state.fetchAdminsIfNeeded);
+  const removeAdminFromStore = useAdminsStore((state) => state.removeAdmin);
   const storeLoading = useAdminsStore((state) => state.isLoading("organization", orgId));
   const storeError = useAdminsStore((state) => state.error);
 
@@ -129,18 +126,27 @@ export default function OrganizationAdminsTable({
     setRemoving(true);
 
     try {
-      await removeAdmin({
-        organizationId: orgId,
-        userId: adminToRemove.id,
+      // Call API to remove admin
+      const response = await fetch(`/api/admin/organizations/${orgId}/admins`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: adminToRemove.id }),
       });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Failed to remove admin" }));
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      // Update store optimistically - remove admin from local cache
+      removeAdminFromStore("organization", orgId, adminToRemove.id);
 
       showToast(t("orgAdmins.adminRemoved"), "success");
       setIsRemoveModalOpen(false);
       setAdminToRemove(null);
       
-      // Force refetch to get updated admins list
-      fetchOrgAdmins();
-      if (onRefresh) onRefresh();
+      // DO NOT refetch organization details or admins list
+      // The store has been updated optimistically and will reflect the changes
     } catch (err) {
       setRemoveError(err instanceof Error ? err.message : "Failed to remove admin");
     } finally {
@@ -269,9 +275,6 @@ export default function OrganizationAdminsTable({
         <div className="im-admins-list">
           {sortedAdmins.map((admin) => {
             const canModify = canModifyAdmin(admin);
-            const tooltipMessage = !canModify && admin.role === "ORGANIZATION_OWNER"
-              ? t("orgAdmins.ownerProtectionTooltip")
-              : "";
             const isCurrentUserOwner = admin.role === "ORGANIZATION_OWNER" && admin.id === user?.id;
 
             return (
@@ -344,10 +347,16 @@ export default function OrganizationAdminsTable({
             slug: org.slug,
           } : undefined,
           allowedRoles: allowedRoles,
-          onSuccess: () => {
-            // Force refresh the admins list after successful creation
-            fetchOrgAdmins();
-            if (onRefresh) onRefresh();
+          onSuccess: async () => {
+            // Optimistically add the admin to the store
+            // We need to refetch to get the complete admin data with membershipId
+            // but we do this silently without triggering page refresh
+            try {
+              await fetchAdminsIfNeeded("organization", orgId, { force: true });
+            } catch (err) {
+              console.error("Failed to refresh admins after creation:", err);
+            }
+            // DO NOT call onRefresh - we only update the admin list
           },
         }}
       />

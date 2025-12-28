@@ -277,7 +277,6 @@ export default function OrganizationDetailPage() {
                 name: org.name,
                 slug: org.slug,
               }}
-              onRefresh={() => fetchOrgDetail(true)}
             />
           </div>
         )}

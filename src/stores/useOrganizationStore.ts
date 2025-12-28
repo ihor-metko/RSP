@@ -39,22 +39,8 @@ export interface OrganizationDetail extends Organization {
     name: string | null;
     email: string;
   };
-  superAdmins?: Array<{
-    id: string;
-    name: string | null;
-    email: string;
-    isPrimaryOwner: boolean;
-    membershipId: string;
-    lastLoginAt?: Date | string | null;
-  }>;
-  primaryOwner?: {
-    id: string;
-    name: string | null;
-    email: string;
-    isPrimaryOwner: boolean;
-    membershipId: string;
-    lastLoginAt?: Date | string | null;
-  } | null;
+  // Admins are no longer part of organization detail
+  // They are fetched independently via useAdminsStore
   metrics?: {
     totalClubs: number;
     totalCourts: number;
