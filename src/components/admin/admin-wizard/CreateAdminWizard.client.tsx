@@ -74,15 +74,18 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   // Get admin users store actions for refreshing data after success
   const refetchAdminUsers = useAdminUsersStore((state) => state.refetch);
 
-  // Fetch clubs on mount to ensure the dropdown has data
-  // This is required for the Club dropdown to be populated when creating a Club Admin
+  // When club context, fetch clubs and set organization from club
+  // This is only triggered when the modal is opened in club context
   useEffect(() => {
-    fetchClubsIfNeeded().catch((error) => {
-      console.error("Failed to fetch clubs:", error);
-    });
-  }, [fetchClubsIfNeeded]);
+    if (config.context === "club" && config.defaultClubId) {
+      // Fetch clubs only when in club context
+      fetchClubsIfNeeded().catch((error) => {
+        console.error("Failed to fetch clubs:", error);
+      });
+    }
+  }, [config.context, config.defaultClubId, fetchClubsIfNeeded]);
 
-  // When club context, set organization from club
+  // Set organization from club when clubs are loaded in club context
   useEffect(() => {
     if (config.context === "club" && config.defaultClubId && clubs.length > 0) {
       const club = clubs.find(c => c.id === config.defaultClubId);
@@ -124,6 +127,15 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   // Update form handlers
   const handleContextChange = useCallback((data: Partial<Pick<AdminCreationData, "organizationId" | "clubId" | "role">>) => {
     setFormData((prev) => ({ ...prev, ...data }));
+    
+    // Fetch clubs only when a club-level role is selected
+    // This ensures clubs are loaded on-demand and not for organization-level admin creation
+    if (data.role && (data.role === "CLUB_ADMIN" || data.role === "CLUB_OWNER")) {
+      fetchClubsIfNeeded().catch((error) => {
+        console.error("Failed to fetch clubs:", error);
+      });
+    }
+    
     // Clear related errors
     Object.keys(data).forEach((key) => {
       if (errors[key as keyof AdminWizardErrors]) {
@@ -134,7 +146,7 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
         });
       }
     });
-  }, [errors]);
+  }, [errors, fetchClubsIfNeeded]);
 
   const handleUserSourceChange = useCallback((data: Partial<Pick<AdminCreationData, "userSource">>) => {
     setFormData((prev) => ({
