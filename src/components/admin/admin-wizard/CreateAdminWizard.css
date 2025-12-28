@@ -199,6 +199,7 @@
 }
 
 .im-autocomplete-item {
+  background: #000;
   padding: 0.75rem 1rem;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -207,11 +208,6 @@
 
 .im-autocomplete-item:last-child {
   border-bottom: none;
-}
-
-.im-autocomplete-item:hover,
-.im-autocomplete-item.im-focused {
-  background: var(--im-item-hover-bg, var(--color-surface-tertiary));
 }
 
 .im-autocomplete-item-name {
