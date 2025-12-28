@@ -4,12 +4,14 @@ import { auth } from "@/lib/auth";
 import { MembershipRole } from "@/constants/roles";
 
 /**
- * POST /api/admin/organizations/remove-admin
- * Removes a SuperAdmin from an organization.
+ * PATCH /api/admin/organizations/[id]/admins/owner
+ * Sets an admin as the primary owner of an organization.
  * Only Root Admin or current Primary Owner can perform this action.
- * Cannot remove the primary owner unless they are the last admin.
  */
-export async function POST(request: Request) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const session = await auth();
 
@@ -20,15 +22,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
-    const { organizationId, userId } = body;
+    const resolvedParams = await params;
+    const organizationId = resolvedParams.id;
 
-    if (!organizationId) {
-      return NextResponse.json(
-        { error: "Organization ID is required" },
-        { status: 400 }
-      );
-    }
+    const body = await request.json();
+    const { userId } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -68,21 +66,13 @@ export async function POST(request: Request) {
         !currentUserMembership.isPrimaryOwner
       ) {
         return NextResponse.json(
-          { error: "Only Root Admin or Organization Owner can remove SuperAdmins" },
+          { error: "Only Root Admin or Organization Owner can transfer ownership" },
           { status: 403 }
-        );
-      }
-
-      // Prevent owner from removing themselves
-      if (userId === session.user.id) {
-        return NextResponse.json(
-          { error: "Cannot remove yourself as owner. Transfer ownership first." },
-          { status: 400 }
         );
       }
     }
 
-    // Find the membership to remove
+    // Verify target user is an admin of this organization
     const targetMembership = await prisma.membership.findUnique({
       where: {
         userId_organizationId: {
@@ -94,54 +84,69 @@ export async function POST(request: Request) {
 
     if (!targetMembership || targetMembership.role !== MembershipRole.ORGANIZATION_ADMIN) {
       return NextResponse.json(
-        { error: "User is not a SuperAdmin of this organization" },
+        { error: "Target user must be an admin of this organization" },
         { status: 400 }
       );
     }
 
-    // Check if this is the primary owner
+    // If already primary owner, nothing to do
     if (targetMembership.isPrimaryOwner) {
-      // Only root admin can remove the primary owner
-      if (!isRoot) {
-        return NextResponse.json(
-          { error: "Only root admin can remove the organization owner" },
-          { status: 403 }
-        );
-      }
+      return NextResponse.json(
+        { error: "User is already the primary owner" },
+        { status: 400 }
+      );
+    }
 
-      // Count remaining admins
-      const adminCount = await prisma.membership.count({
+    // Use transaction to ensure consistency
+    await prisma.$transaction([
+      // Remove primary owner status from current owner
+      prisma.membership.updateMany({
         where: {
           organizationId,
           role: MembershipRole.ORGANIZATION_ADMIN,
+          isPrimaryOwner: true,
         },
-      });
+        data: { isPrimaryOwner: false },
+      }),
+      // Set new primary owner
+      prisma.membership.update({
+        where: { id: targetMembership.id },
+        data: { isPrimaryOwner: true },
+      }),
+    ]);
 
-      // Cannot remove primary owner if there are other admins - must transfer ownership first
-      if (adminCount > 1) {
-        return NextResponse.json(
-          { error: "Cannot remove the primary owner. Transfer ownership first." },
-          { status: 400 }
-        );
-      }
-      // If only one admin remains (the owner), they can be removed by root admin
-    }
-
-    // Delete the membership
-    await prisma.membership.delete({
-      where: { id: targetMembership.id },
+    // Fetch updated user info
+    const newOwner = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
     });
 
     return NextResponse.json(
       {
         success: true,
-        message: "SuperAdmin removed successfully",
+        message: "Primary owner updated successfully",
+        owner: {
+          id: newOwner!.id,
+          name: newOwner!.name,
+          email: newOwner!.email,
+          role: "owner" as const,
+          entity: {
+            type: "organization" as const,
+            id: organizationId,
+            name: organization.name,
+          },
+          membershipId: targetMembership.id,
+        },
       },
       { status: 200 }
     );
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Error removing SuperAdmin:", error);
+      console.error("Error setting primary owner:", error);
     }
     return NextResponse.json(
       { error: "Internal server error" },

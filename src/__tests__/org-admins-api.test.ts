@@ -42,10 +42,8 @@ jest.mock("bcryptjs", () => ({
   hash: jest.fn(() => Promise.resolve("hashed-password")),
 }));
 
-import { GET } from "@/app/api/orgs/[orgId]/admins/route";
-import { POST as AssignAdmin } from "@/app/api/admin/organizations/assign-admin/route";
-import { POST as RemoveAdmin } from "@/app/api/admin/organizations/remove-admin/route";
-import { PATCH as SetOwner } from "@/app/api/admin/organizations/set-owner/route";
+import { GET, POST, DELETE } from "@/app/api/admin/organizations/[id]/admins/route";
+import { PATCH as SetOwner } from "@/app/api/admin/organizations/[id]/admins/owner/route";
 import { prisma } from "@/lib/prisma";
 import { MembershipRole } from "@/constants/roles";
 
@@ -54,7 +52,7 @@ describe("Organization Admins API", () => {
     jest.clearAllMocks();
   });
 
-  describe("GET /api/orgs/[orgId]/admins", () => {
+  describe("GET /api/admin/organizations/[id]/admins", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue(null);
 
@@ -105,45 +103,37 @@ describe("Organization Admins API", () => {
             id: "user-1",
             name: "Owner User",
             email: "owner@test.com",
-            lastLoginAt: new Date(),
           },
         },
       ]);
 
-      (prisma.club.findMany as jest.Mock).mockResolvedValue([
-        { id: "club-1", name: "Club A" },
-      ]);
-
-      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
-
-      const request = new Request("http://localhost:3000/api/orgs/org-1/admins");
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins");
       const response = await GET(request, {
-        params: Promise.resolve({ orgId: "org-1" }),
+        params: Promise.resolve({ id: "org-1" }),
       });
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.superAdmins).toHaveLength(1);
-      expect(data.superAdmins[0].isPrimaryOwner).toBe(true);
-      expect(data.summary.totalClubs).toBe(1);
+      expect(data).toHaveLength(1);
+      expect(data[0].role).toBe("owner");
+      expect(data[0].entity.type).toBe("organization");
     });
   });
 
-  describe("POST /api/admin/organizations/assign-admin", () => {
+  describe("POST /api/admin/organizations/[id]/admins", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue(null);
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/assign-admin",
+        "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
           method: "POST",
           body: JSON.stringify({
-            organizationId: "org-1",
             userId: "user-1",
           }),
         }
       );
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -156,16 +146,15 @@ describe("Organization Admins API", () => {
       });
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/assign-admin",
+        "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
           method: "POST",
           body: JSON.stringify({
-            organizationId: "org-1",
             userId: "user-1",
           }),
         }
       );
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(403);
@@ -193,23 +182,21 @@ describe("Organization Admins API", () => {
       (prisma.membership.create as jest.Mock).mockResolvedValue({
         id: "member-1",
         userId: "user-1",
-        organizationId: "org-1",
         role: MembershipRole.ORGANIZATION_ADMIN,
         isPrimaryOwner: true,
       });
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/assign-admin",
+        "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
           method: "POST",
           body: JSON.stringify({
-            organizationId: "org-1",
             createNew: false,
             userId: "user-1",
           }),
         }
       );
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -236,22 +223,20 @@ describe("Organization Admins API", () => {
       (prisma.membership.findUnique as jest.Mock).mockResolvedValue({
         id: "member-1",
         userId: "user-1",
-        organizationId: "org-1",
         role: MembershipRole.ORGANIZATION_ADMIN,
       });
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/assign-admin",
+        "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
           method: "POST",
           body: JSON.stringify({
-            organizationId: "org-1",
             createNew: false,
             userId: "user-1",
           }),
         }
       );
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(409);
@@ -259,21 +244,20 @@ describe("Organization Admins API", () => {
     });
   });
 
-  describe("POST /api/admin/organizations/remove-admin", () => {
+  describe("DELETE /api/admin/organizations/[id]/admins", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue(null);
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/remove-admin",
+        "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
-          method: "POST",
+          method: "DELETE",
           body: JSON.stringify({
-            organizationId: "org-1",
             userId: "user-1",
           }),
         }
       );
-      const response = await RemoveAdmin(request);
+      const response = await DELETE(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -293,7 +277,6 @@ describe("Organization Admins API", () => {
       (prisma.membership.findUnique as jest.Mock).mockResolvedValue({
         id: "member-1",
         userId: "user-1",
-        organizationId: "org-1",
         role: MembershipRole.ORGANIZATION_ADMIN,
         isPrimaryOwner: false,
       });
@@ -301,16 +284,15 @@ describe("Organization Admins API", () => {
       (prisma.membership.delete as jest.Mock).mockResolvedValue({});
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/remove-admin",
+        "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
-          method: "POST",
+          method: "DELETE",
           body: JSON.stringify({
-            organizationId: "org-1",
             userId: "user-1",
           }),
         }
       );
-      const response = await RemoveAdmin(request);
+      const response = await DELETE(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -330,7 +312,6 @@ describe("Organization Admins API", () => {
       (prisma.membership.findUnique as jest.Mock).mockResolvedValue({
         id: "member-1",
         userId: "user-1",
-        organizationId: "org-1",
         role: MembershipRole.ORGANIZATION_ADMIN,
         isPrimaryOwner: true,
       });
@@ -338,16 +319,15 @@ describe("Organization Admins API", () => {
       (prisma.membership.count as jest.Mock).mockResolvedValue(2); // Multiple admins
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/remove-admin",
+        "http://localhost:3000/api/admin/organizations/org-1/admins",
         {
-          method: "POST",
+          method: "DELETE",
           body: JSON.stringify({
-            organizationId: "org-1",
             userId: "user-1",
           }),
         }
       );
-      const response = await RemoveAdmin(request);
+      const response = await DELETE(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -360,16 +340,15 @@ describe("Organization Admins API", () => {
       mockAuth.mockResolvedValue(null);
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/set-owner",
+        "http://localhost:3000/api/admin/organizations/org-1/admins/owner",
         {
           method: "PATCH",
           body: JSON.stringify({
-            organizationId: "org-1",
             userId: "user-2",
           }),
         }
       );
-      const response = await SetOwner(request);
+      const response = await SetOwner(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -389,7 +368,6 @@ describe("Organization Admins API", () => {
       (prisma.membership.findUnique as jest.Mock).mockResolvedValue({
         id: "member-2",
         userId: "user-2",
-        organizationId: "org-1",
         role: MembershipRole.ORGANIZATION_ADMIN,
         isPrimaryOwner: false,
       });
@@ -403,16 +381,15 @@ describe("Organization Admins API", () => {
       });
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/set-owner",
+        "http://localhost:3000/api/admin/organizations/org-1/admins/owner",
         {
           method: "PATCH",
           body: JSON.stringify({
-            organizationId: "org-1",
             userId: "user-2",
           }),
         }
       );
-      const response = await SetOwner(request);
+      const response = await SetOwner(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -433,16 +410,15 @@ describe("Organization Admins API", () => {
       (prisma.membership.findUnique as jest.Mock).mockResolvedValue(null);
 
       const request = new Request(
-        "http://localhost:3000/api/admin/organizations/set-owner",
+        "http://localhost:3000/api/admin/organizations/org-1/admins/owner",
         {
           method: "PATCH",
           body: JSON.stringify({
-            organizationId: "org-1",
             userId: "user-2",
           }),
         }
       );
-      const response = await SetOwner(request);
+      const response = await SetOwner(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);

@@ -89,7 +89,7 @@ const fetchAdminsFromAPI = async (
 ): Promise<Admin[]> => {
   const endpoint =
     contextType === "organization"
-      ? `/api/orgs/${contextId}/admins`
+      ? `/api/admin/organizations/${contextId}/admins`
       : `/api/admin/clubs/${contextId}/admins`;
 
   const response = await fetch(endpoint);
@@ -105,38 +105,35 @@ const fetchAdminsFromAPI = async (
 
   // Transform response to unified Admin format
   if (contextType === "organization") {
-    // Organization response has superAdmins array
-    const superAdmins = data.superAdmins || [];
-    return superAdmins.map((admin: {
-      id: string;
-      userId: string;
-      userName: string | null;
-      userEmail: string;
-      isPrimaryOwner: boolean;
-      lastLoginAt: Date | string | null;
-      createdAt: Date | string;
-    }) => ({
-      id: admin.userId,
-      name: admin.userName,
-      email: admin.userEmail,
-      role: admin.isPrimaryOwner ? ("ORGANIZATION_OWNER" as const) : ("ORGANIZATION_ADMIN" as const),
-      membershipId: admin.id,
-      lastLoginAt: admin.lastLoginAt,
-      createdAt: admin.createdAt,
-    }));
-  } else {
-    // Club response is an array of club admins
+    // New unified format
     return data.map((admin: {
       id: string;
       name: string | null;
       email: string;
-      role: "CLUB_OWNER" | "CLUB_ADMIN";
+      role: "owner" | "admin";
+      membershipId: string;
     }) => ({
       id: admin.id,
       name: admin.name,
       email: admin.email,
-      role: admin.role,
-      membershipId: admin.id, // For clubs, user ID is the primary identifier
+      role: admin.role === "owner" ? ("ORGANIZATION_OWNER" as const) : ("ORGANIZATION_ADMIN" as const),
+      membershipId: admin.membershipId,
+      lastLoginAt: null,
+    }));
+  } else {
+    // Club response is already in unified format
+    return data.map((admin: {
+      id: string;
+      name: string | null;
+      email: string;
+      role: "owner" | "admin";
+      membershipId: string;
+    }) => ({
+      id: admin.id,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role === "owner" ? ("CLUB_OWNER" as const) : ("CLUB_ADMIN" as const),
+      membershipId: admin.membershipId,
       lastLoginAt: null,
     }));
   }

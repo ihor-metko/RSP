@@ -430,7 +430,7 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   addAdmin: async (payload: AddAdminPayload) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("/api/admin/organizations/assign-admin", {
+      const response = await fetch(`/api/admin/organizations/${payload.organizationId}/admins`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -453,10 +453,10 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   removeAdmin: async (payload: RemoveAdminPayload) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("/api/admin/organizations/remove-admin", {
-        method: "POST",
+      const response = await fetch(`/api/admin/organizations/${payload.organizationId}/admins`, {
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ userId: payload.userId }),
       });
 
       if (!response.ok) {
@@ -476,10 +476,10 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   changeOwner: async (payload: ChangeOwnerPayload) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("/api/admin/organizations/set-owner", {
+      const response = await fetch(`/api/admin/organizations/${payload.organizationId}/admins/owner`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ userId: payload.userId }),
       });
 
       if (!response.ok) {

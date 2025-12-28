@@ -59,9 +59,8 @@ jest.mock("@/lib/auth", () => ({
 
 import { GET, POST } from "@/app/api/admin/organizations/route";
 import { GET as GetOrganization, PATCH as UpdateOrganization, DELETE as DeleteOrganization } from "@/app/api/admin/organizations/[id]/route";
-import { POST as AssignAdmin } from "@/app/api/admin/organizations/assign-admin/route";
-import { PATCH as SetOwner } from "@/app/api/admin/organizations/set-owner/route";
-import { POST as RemoveAdmin } from "@/app/api/admin/organizations/remove-admin/route";
+import { POST, DELETE } from "@/app/api/admin/organizations/[id]/admins/route";
+import { PATCH as SetOwner } from "@/app/api/admin/organizations/[id]/admins/owner/route";
 import { GET as GetUsers } from "@/app/api/admin/users/route";
 import { prisma } from "@/lib/prisma";
 
@@ -253,13 +252,13 @@ describe("Admin Organizations API", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({ organizationId: "org-1", userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -271,13 +270,13 @@ describe("Admin Organizations API", () => {
         user: { id: "admin-123", isRoot: true },
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({ userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -291,13 +290,13 @@ describe("Admin Organizations API", () => {
 
       (prisma.organization.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({ organizationId: "non-existent", userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -325,18 +324,17 @@ describe("Admin Organizations API", () => {
       (prisma.membership.create as jest.Mock).mockResolvedValue({
         id: "membership-1",
         userId: "user-1",
-        organizationId: "org-1",
         role: "ORGANIZATION_ADMIN",
         isPrimaryOwner: true,
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({ organizationId: "org-1", userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -363,17 +361,16 @@ describe("Admin Organizations API", () => {
       (prisma.membership.findUnique as jest.Mock).mockResolvedValue({
         id: "membership-1",
         userId: "user-1",
-        organizationId: "org-1",
         role: "ORGANIZATION_ADMIN",
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({ organizationId: "org-1", userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(409);
@@ -410,15 +407,13 @@ describe("Admin Organizations API", () => {
       (prisma.membership.create as jest.Mock).mockResolvedValue({
         id: "membership-1",
         userId: "new-user-id",
-        organizationId: "org-1",
         role: "ORGANIZATION_ADMIN",
         isPrimaryOwner: true,
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({
-          organizationId: "org-1",
           createNew: true,
           name: "New Admin",
           email: "newadmin@test.com",
@@ -427,7 +422,7 @@ describe("Admin Organizations API", () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -450,10 +445,9 @@ describe("Admin Organizations API", () => {
         email: "existing@test.com",
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({
-          organizationId: "org-1",
           createNew: true,
           name: "New Admin",
           email: "existing@test.com",
@@ -462,7 +456,7 @@ describe("Admin Organizations API", () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(409);
@@ -479,10 +473,9 @@ describe("Admin Organizations API", () => {
         name: "Test Org",
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({
-          organizationId: "org-1",
           createNew: true,
           name: "New Admin",
           email: "invalid-email",
@@ -491,7 +484,7 @@ describe("Admin Organizations API", () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -511,10 +504,9 @@ describe("Admin Organizations API", () => {
       // No existing user with this email
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/assign-admin", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
         method: "POST",
         body: JSON.stringify({
-          organizationId: "org-1",
           createNew: true,
           name: "New Admin",
           email: "newadmin@test.com",
@@ -523,7 +515,7 @@ describe("Admin Organizations API", () => {
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await AssignAdmin(request);
+      const response = await POST(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -615,13 +607,13 @@ describe("Admin Organizations API", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/set-owner", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins/owner", {
         method: "PATCH",
         body: JSON.stringify({ organizationId: "org-1", userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await SetOwner(request);
+      const response = await SetOwner(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(401);
@@ -633,13 +625,13 @@ describe("Admin Organizations API", () => {
         user: { id: "admin-123", isRoot: true },
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/set-owner", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins/owner", {
         method: "PATCH",
         body: JSON.stringify({ userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await SetOwner(request);
+      const response = await SetOwner(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -651,13 +643,13 @@ describe("Admin Organizations API", () => {
         user: { id: "admin-123", isRoot: true },
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/set-owner", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins/owner", {
         method: "PATCH",
         body: JSON.stringify({ organizationId: "org-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await SetOwner(request);
+      const response = await SetOwner(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -671,13 +663,13 @@ describe("Admin Organizations API", () => {
 
       (prisma.organization.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/set-owner", {
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins/owner", {
         method: "PATCH",
         body: JSON.stringify({ organizationId: "non-existent", userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await SetOwner(request);
+      const response = await SetOwner(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
@@ -685,39 +677,21 @@ describe("Admin Organizations API", () => {
     });
   });
 
-  describe("POST /api/admin/organizations/remove-admin", () => {
+  describe("DELETE /api/admin/organizations/[id]/admins", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/remove-admin", {
-        method: "POST",
-        body: JSON.stringify({ organizationId: "org-1", userId: "user-1" }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const response = await RemoveAdmin(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(data.error).toBe("Unauthorized");
-    });
-
-    it("should return 400 when organizationId is missing", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "admin-123", isRoot: true },
-      });
-
-      const request = new Request("http://localhost:3000/api/admin/organizations/remove-admin", {
-        method: "POST",
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
+        method: "DELETE",
         body: JSON.stringify({ userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await RemoveAdmin(request);
+      const response = await DELETE(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(data.error).toBe("Organization ID is required");
+      expect(response.status).toBe(401);
+      expect(data.error).toBe("Unauthorized");
     });
 
     it("should return 400 when userId is missing", async () => {
@@ -725,13 +699,13 @@ describe("Admin Organizations API", () => {
         user: { id: "admin-123", isRoot: true },
       });
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/remove-admin", {
-        method: "POST",
-        body: JSON.stringify({ organizationId: "org-1" }),
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
+        method: "DELETE",
+        body: JSON.stringify({}),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await RemoveAdmin(request);
+      const response = await DELETE(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -745,13 +719,13 @@ describe("Admin Organizations API", () => {
 
       (prisma.organization.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const request = new Request("http://localhost:3000/api/admin/organizations/remove-admin", {
-        method: "POST",
-        body: JSON.stringify({ organizationId: "non-existent", userId: "user-1" }),
+      const request = new Request("http://localhost:3000/api/admin/organizations/org-1/admins", {
+        method: "DELETE",
+        body: JSON.stringify({ userId: "user-1" }),
         headers: { "Content-Type": "application/json" },
       });
 
-      const response = await RemoveAdmin(request);
+      const response = await DELETE(request, { params: Promise.resolve({ id: "org-1" }) });
       const data = await response.json();
 
       expect(response.status).toBe(404);
