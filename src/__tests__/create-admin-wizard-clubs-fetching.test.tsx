@@ -148,7 +148,7 @@ describe("CreateAdminWizard - Clubs Fetching", () => {
 
     mockFetchClubsIfNeeded.mockResolvedValue(undefined);
 
-    const { container } = render(<CreateAdminWizard config={config} />);
+    render(<CreateAdminWizard config={config} />);
 
     // Initially clubs should NOT be fetched
     expect(mockFetchClubsIfNeeded).not.toHaveBeenCalled();

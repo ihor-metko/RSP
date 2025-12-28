@@ -91,12 +91,25 @@ export default function InviteAcceptPage() {
   useEffect(() => {
     if (!inviteDetails || loadingState || showConfirmation) return;
 
+    // Function to check user exists and redirect
+    const checkUserExists = async (email: string) => {
+      try {
+        // We'll redirect to sign-up with email pre-filled
+        // If user exists, they'll be prompted to sign in instead
+        const redirectUrl = `/auth/sign-up?email=${encodeURIComponent(email)}&inviteToken=${encodeURIComponent(token!)}&redirectTo=${encodeURIComponent(`/invites/accept?token=${token}`)}`;
+        router.push(redirectUrl);
+      } catch (error) {
+        console.error("Error checking user:", error);
+        setErrorState("server_error");
+      }
+    };
+
     // If user is not authenticated, redirect to sign-in/sign-up with token
     if (sessionStatus === "unauthenticated") {
       const inviteEmail = inviteDetails.email;
       // Check if user with this email exists
       checkUserExists(inviteEmail);
-    } else if (sessionStatus === "authenticated" && user) {
+    } else if (sessionStatus === "authenticated" && user && user.email) {
       // If authenticated, check if email matches
       if (user.email.toLowerCase() !== inviteDetails.email.toLowerCase()) {
         setErrorState("email_mismatch");
@@ -105,19 +118,7 @@ export default function InviteAcceptPage() {
         setShowConfirmation(true);
       }
     }
-  }, [inviteDetails, sessionStatus, user, loadingState, showConfirmation]);
-
-  const checkUserExists = async (email: string) => {
-    try {
-      // We'll redirect to sign-up with email pre-filled
-      // If user exists, they'll be prompted to sign in instead
-      const redirectUrl = `/auth/sign-up?email=${encodeURIComponent(email)}&inviteToken=${encodeURIComponent(token!)}&redirectTo=${encodeURIComponent(`/invites/accept?token=${token}`)}`;
-      router.push(redirectUrl);
-    } catch (error) {
-      console.error("Error checking user:", error);
-      setErrorState("server_error");
-    }
-  };
+  }, [inviteDetails, sessionStatus, user, loadingState, showConfirmation, router, token]);
 
   const handleAcceptInvite = async () => {
     if (!token) return;
