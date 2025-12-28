@@ -114,7 +114,7 @@
 }
 
 .im-wizard-section {
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 .im-wizard-section-title {
@@ -164,7 +164,6 @@
   color: var(--im-notice-text, var(--color-text-primary));
   font-size: 0.875rem;
   line-height: 1.5;
-  margin-bottom: 1.25rem;
 }
 
 /* Autocomplete Search */
@@ -244,9 +243,7 @@
 }
 
 /* Review Step */
-.im-review-section {
-  margin-bottom: 1.5rem;
-}
+.im-review-section {}
 
 .im-review-section:last-child {
   margin-bottom: 0;
@@ -304,7 +301,6 @@
 }
 
 .im-review-note {
-  margin-top: 1.5rem;
   padding: 1rem;
   border-radius: 0.5rem;
   background: var(--im-note-bg, var(--color-info-bg));
@@ -326,8 +322,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 1rem;
-  border-top: 1px solid var(--im-nav-border, var(--color-border));
 }
 
 .im-wizard-navigation-left,
