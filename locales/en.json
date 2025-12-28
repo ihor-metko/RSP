@@ -2113,6 +2113,7 @@
     "clubStatistics": "Club Statistics",
     "clubStatisticsDescription": "Occupancy and performance metrics for all clubs",
     "currentOccupancy": "Current Occupancy",
+    "occupancy": "Occupancy",
     "vsLastMonth": "vs. last month",
     "noStatisticsAvailable": "No statistics available yet. Statistics are calculated automatically.",
     "statisticsError": "Failed to load statistics. Please try again later."

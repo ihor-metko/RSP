@@ -374,7 +374,7 @@
 }
 
 .im-club-preview-item {
-  @apply flex justify-between items-center p-4 rounded-lg;
+  @apply flex justify-between items-center p-4 rounded-lg gap-4;
   background-color: var(--im-background);
   border: 1px solid var(--im-border);
   transition: border-color 0.2s ease, transform 0.2s ease;
@@ -395,7 +395,7 @@
 }
 
 .im-club-preview-info {
-  @apply flex flex-col gap-1;
+  @apply flex flex-col gap-1 flex-1 min-w-0;
 }
 
 .im-club-preview-name {
@@ -406,6 +406,69 @@
 .im-club-preview-meta {
   @apply text-xs;
   color: var(--im-muted);
+}
+
+/* ===== Inline Statistics in Clubs Preview ===== */
+.im-club-preview-stats {
+  @apply flex items-center gap-3;
+}
+
+.im-club-preview-occupancy {
+  @apply flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg;
+  background-color: var(--im-card-bg);
+  border: 1px solid var(--im-border);
+}
+
+.im-club-preview-occupancy-value {
+  @apply text-lg font-bold leading-tight;
+  color: var(--im-foreground);
+}
+
+.im-club-preview-occupancy-label {
+  @apply text-xs uppercase tracking-wide;
+  color: var(--im-muted);
+}
+
+.im-club-preview-trend {
+  @apply inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-sm font-semibold;
+}
+
+.im-club-preview-trend--up {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.dark .im-club-preview-trend--up {
+  background-color: rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+.im-club-preview-trend--down {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.dark .im-club-preview-trend--down {
+  background-color: rgba(239, 68, 68, 0.25);
+  color: #f87171;
+}
+
+.im-club-preview-trend--neutral {
+  background-color: rgba(107, 114, 128, 0.15);
+  color: #6b7280;
+}
+
+.dark .im-club-preview-trend--neutral {
+  background-color: rgba(107, 114, 128, 0.25);
+  color: #9ca3af;
+}
+
+.im-club-preview-trend-arrow {
+  @apply text-base leading-none;
+}
+
+.im-club-preview-trend-value {
+  @apply text-sm;
 }
 
 .im-status-badge {
@@ -961,5 +1024,22 @@
 
   .im-bookings-summary-item {
     @apply items-center text-center;
+  }
+
+  /* ===== Clubs Preview Responsive ===== */
+  .im-club-preview-item {
+    @apply flex-wrap gap-3;
+  }
+
+  .im-club-preview-info {
+    @apply w-full;
+  }
+
+  .im-club-preview-stats {
+    @apply w-full justify-between;
+  }
+
+  .im-club-preview-status {
+    @apply w-full;
   }
 }
