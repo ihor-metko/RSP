@@ -250,6 +250,8 @@ export async function POST(
       });
     }
 
+    let membershipId: string;
+
     if (existingMembership) {
       // Update existing membership to ORGANIZATION_ADMIN
       await prisma.membership.update({
@@ -259,9 +261,10 @@ export async function POST(
           isPrimaryOwner: shouldBePrimaryOwner,
         },
       });
+      membershipId = existingMembership.id;
     } else {
       // Create new membership
-      await prisma.membership.create({
+      const newMembership = await prisma.membership.create({
         data: {
           userId: targetUserId,
           organizationId,
@@ -269,6 +272,7 @@ export async function POST(
           isPrimaryOwner: shouldBePrimaryOwner,
         },
       });
+      membershipId = newMembership.id;
     }
 
     // Fetch the updated user info
@@ -295,6 +299,7 @@ export async function POST(
             id: organizationId,
             name: organization.name,
           },
+          membershipId,
         },
       },
       { status: 200 }
