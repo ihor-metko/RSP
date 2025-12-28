@@ -411,7 +411,8 @@
     "failedToSaveChanges": "Failed to save changes",
     "failedToDeleteClub": "Failed to delete club",
     "clubPublishedSuccess": "Club published successfully",
-    "clubUnpublishedSuccess": "Club unpublished successfully"
+    "clubUnpublishedSuccess": "Club unpublished successfully",
+    "partOfOrganization": "Part of organization"
   },
   "admin": {
     "club": "Club",

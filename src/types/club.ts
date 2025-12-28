@@ -174,6 +174,7 @@ export interface ClubDetail {
   supportedSports?: SportType[];
   createdAt: string;
   updatedAt: string;
+  organization?: ClubOrganizationInfo | null;
   courts: ClubCourt[];
   coaches: ClubCoach[];
   gallery: ClubGalleryImage[];
