@@ -307,7 +307,7 @@ export default function OrganizationAdminsTable({
                   >
                     {t("common.viewProfile")}
                   </Button>
-                  {canModify ?? (
+                  {canModify && (
                     <Button
                       size="small"
                       variant="danger"
