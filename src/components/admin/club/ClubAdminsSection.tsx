@@ -45,6 +45,7 @@ export function ClubAdminsSection({
   // Use unified admins store
   const getAdmins = useAdminsStore((state) => state.getAdmins);
   const fetchAdminsIfNeeded = useAdminsStore((state) => state.fetchAdminsIfNeeded);
+  const removeAdminFromStore = useAdminsStore((state) => state.removeAdmin);
   const storeLoading = useAdminsStore((state) => state.isLoading("club", clubId));
   const storeError = useAdminsStore((state) => state.error);
 
@@ -153,13 +154,15 @@ export function ClubAdminsSection({
         throw new Error(data.error || "Failed to remove club admin");
       }
 
+      // Update store optimistically - remove admin from local cache
+      removeAdminFromStore("club", clubId, adminToRemove.id);
+
       showToast(t("clubAdmins.adminRemoved"), "success");
       setIsRemoveModalOpen(false);
       setAdminToRemove(null);
       
-      // Force refetch to get updated admins list
-      fetchClubAdmins();
-      if (onRefresh) onRefresh();
+      // DO NOT refetch club details or admins list
+      // The store has been updated optimistically and will reflect the changes
     } catch (err) {
       setRemoveError(
         err instanceof Error ? err.message : "Failed to remove club admin"
@@ -299,10 +302,16 @@ export function ClubAdminsSection({
           clubData: clubData,
           organizationData: organizationData,
           allowedRoles: allowedRoles,
-          onSuccess: () => {
-            // Force refresh the admins list after successful creation
-            fetchClubAdmins();
-            if (onRefresh) onRefresh();
+          onSuccess: async (userId) => {
+            // Optimistically update the admin list in the store
+            // We need to refetch to get the complete admin data with membershipId
+            // but we do this silently without triggering page refresh
+            try {
+              await fetchAdminsIfNeeded("club", clubId, { force: true });
+            } catch (err) {
+              console.error("Failed to refresh admins after creation:", err);
+            }
+            // DO NOT call onRefresh - we only update the admin list
           },
         }}
       />

@@ -33,8 +33,6 @@ export default function OrganizationAdminsTable({
   const t = useTranslations();
   const user = useUserStore((state) => state.user);
   const isRoot = user?.isRoot ?? false;
-  const removeAdmin = useOrganizationStore((state) => state.removeAdmin);
-
   // Get organization detail from store to pass to modal (avoids fetching)
   const getOrganizationDetailById = useOrganizationStore((state) => state.getOrganizationDetailById);
   const org = organizationData || getOrganizationDetailById(orgId);
@@ -42,6 +40,8 @@ export default function OrganizationAdminsTable({
   // Use unified admins store
   const getAdmins = useAdminsStore((state) => state.getAdmins);
   const fetchAdminsIfNeeded = useAdminsStore((state) => state.fetchAdminsIfNeeded);
+  const addAdminToStore = useAdminsStore((state) => state.addAdmin);
+  const removeAdminFromStore = useAdminsStore((state) => state.removeAdmin);
   const storeLoading = useAdminsStore((state) => state.isLoading("organization", orgId));
   const storeError = useAdminsStore((state) => state.error);
 
@@ -129,18 +129,27 @@ export default function OrganizationAdminsTable({
     setRemoving(true);
 
     try {
-      await removeAdmin({
-        organizationId: orgId,
-        userId: adminToRemove.id,
+      // Call API to remove admin
+      const response = await fetch(`/api/admin/organizations/${orgId}/admins`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: adminToRemove.id }),
       });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Failed to remove admin" }));
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      // Update store optimistically - remove admin from local cache
+      removeAdminFromStore("organization", orgId, adminToRemove.id);
 
       showToast(t("orgAdmins.adminRemoved"), "success");
       setIsRemoveModalOpen(false);
       setAdminToRemove(null);
       
-      // Force refetch to get updated admins list
-      fetchOrgAdmins();
-      if (onRefresh) onRefresh();
+      // DO NOT refetch organization details or admins list
+      // The store has been updated optimistically and will reflect the changes
     } catch (err) {
       setRemoveError(err instanceof Error ? err.message : "Failed to remove admin");
     } finally {
@@ -333,10 +342,16 @@ export default function OrganizationAdminsTable({
             slug: org.slug,
           } : undefined,
           allowedRoles: allowedRoles,
-          onSuccess: () => {
-            // Force refresh the admins list after successful creation
-            fetchOrgAdmins();
-            if (onRefresh) onRefresh();
+          onSuccess: async (userId) => {
+            // Optimistically add the admin to the store
+            // We need to refetch to get the complete admin data with membershipId
+            // but we do this silently without triggering page refresh
+            try {
+              await fetchAdminsIfNeeded("organization", orgId, { force: true });
+            } catch (err) {
+              console.error("Failed to refresh admins after creation:", err);
+            }
+            // DO NOT call onRefresh - we only update the admin list
           },
         }}
       />

@@ -54,22 +54,6 @@ export async function GET(
             email: true,
           },
         },
-        memberships: {
-          where: {
-            role: MembershipRole.ORGANIZATION_ADMIN,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                lastLoginAt: true,
-              },
-            },
-          },
-          orderBy: [{ isPrimaryOwner: "desc" }, { createdAt: "asc" }],
-        },
       },
     });
 
@@ -160,16 +144,6 @@ export async function GET(
           })
         : [];
 
-    // Format super admins
-    const superAdmins = organization.memberships.map((m) => ({
-      id: m.user.id,
-      name: m.user.name,
-      email: m.user.email,
-      isPrimaryOwner: m.isPrimaryOwner,
-      membershipId: m.id,
-      lastLoginAt: m.user.lastLoginAt,
-    }));
-
     // Format clubs preview
     const formattedClubsPreview = clubsPreview.map((club) => ({
       id: club.id,
@@ -218,8 +192,8 @@ export async function GET(
       createdAt: organization.createdAt,
       updatedAt: organization.updatedAt,
       createdBy: organization.createdBy,
-      superAdmins,
-      primaryOwner: superAdmins.find((a) => a.isPrimaryOwner) || superAdmins[0] || null,
+      // Admins are no longer part of organization detail response
+      // They are fetched independently via /api/admin/organizations/:id/admins
       metrics: {
         totalClubs: clubCount,
         totalCourts: courtCount,
