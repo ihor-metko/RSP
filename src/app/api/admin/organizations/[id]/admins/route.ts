@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { ClubMembershipRole, MembershipRole } from "@/constants/roles";
+import { requireRootAdmin } from "@/lib/requireRole";
+import { MembershipRole } from "@/constants/roles";
 import { hash } from "bcryptjs";
 
 /**
- * GET /api/admin/clubs/[id]/admins
- * Returns list of Club Admins for a specific club.
+ * GET /api/admin/organizations/[id]/admins
+ * Returns list of admins for a specific organization.
  */
 export async function GET(
   request: Request,
@@ -23,30 +24,29 @@ export async function GET(
     }
 
     const resolvedParams = await params;
-    const clubId = resolvedParams.id;
+    const organizationId = resolvedParams.id;
 
-    // Verify club exists
-    const club = await prisma.club.findUnique({
-      where: { id: clubId },
-      select: { id: true, organizationId: true },
+    // Verify organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
     });
 
-    if (!club) {
+    if (!organization) {
       return NextResponse.json(
-        { error: "Club not found" },
+        { error: "Organization not found" },
         { status: 404 }
       );
     }
 
     const isRoot = session.user.isRoot ?? false;
 
-    // Check if user has permission (Root, Organization Owner, or Organization Admin)
-    if (!isRoot && club.organizationId) {
+    // Check if user has permission (Root or Organization Admin)
+    if (!isRoot) {
       const orgMembership = await prisma.membership.findUnique({
         where: {
           userId_organizationId: {
             userId: session.user.id,
-            organizationId: club.organizationId,
+            organizationId,
           },
         },
       });
@@ -59,12 +59,10 @@ export async function GET(
       }
     }
 
-    const clubAdmins = await prisma.clubMembership.findMany({
+    const admins = await prisma.membership.findMany({
       where: {
-        clubId,
-        role: {
-          in: [ClubMembershipRole.CLUB_OWNER, ClubMembershipRole.CLUB_ADMIN],
-        },
+        organizationId,
+        role: MembershipRole.ORGANIZATION_ADMIN,
       },
       include: {
         user: {
@@ -75,29 +73,26 @@ export async function GET(
           },
         },
       },
-      orderBy: [
-        { role: "asc" }, // CLUB_OWNER before CLUB_ADMIN
-        { createdAt: "asc" }
-      ],
+      orderBy: [{ isPrimaryOwner: "desc" }, { createdAt: "asc" }],
     });
 
-    const formattedAdmins = clubAdmins.map((cm) => ({
-      id: cm.user.id,
-      name: cm.user.name,
-      email: cm.user.email,
-      role: cm.role === ClubMembershipRole.CLUB_OWNER ? ("owner" as const) : ("admin" as const),
+    const formattedAdmins = admins.map((m) => ({
+      id: m.user.id,
+      name: m.user.name,
+      email: m.user.email,
+      role: m.isPrimaryOwner ? ("owner" as const) : ("admin" as const),
       entity: {
-        type: "club" as const,
-        id: clubId,
-        name: club.name,
+        type: "organization" as const,
+        id: organizationId,
+        name: organization.name,
       },
-      membershipId: cm.id,
+      membershipId: m.id,
     }));
 
     return NextResponse.json(formattedAdmins);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Error fetching club admins:", error);
+      console.error("Error fetching organization admins:", error);
     }
     return NextResponse.json(
       { error: "Internal server error" },
@@ -107,67 +102,43 @@ export async function GET(
 }
 
 /**
- * POST /api/admin/clubs/[id]/admins
- * Adds a Club Admin to a specific club.
+ * POST /api/admin/organizations/[id]/admins
+ * Adds an admin to a specific organization.
  */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authResult = await requireRootAdmin(request);
+
+  if (!authResult.authorized) {
+    return authResult.response;
+  }
+
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const resolvedParams = await params;
-    const clubId = resolvedParams.id;
+    const organizationId = resolvedParams.id;
 
     const body = await request.json();
     const { userId, createNew, name, email, password } = body;
+    const setAsPrimaryOwner = body.setAsPrimaryOwner === true;
 
-    // Verify club exists
-    const club = await prisma.club.findUnique({
-      where: { id: clubId },
-      select: { id: true, name: true, organizationId: true },
+    // Verify organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
     });
 
-    if (!club) {
+    if (!organization) {
       return NextResponse.json(
-        { error: "Club not found" },
+        { error: "Organization not found" },
         { status: 404 }
       );
-    }
-
-    const isRoot = session.user.isRoot ?? false;
-
-    // Check if user has permission (Root or Organization Admin)
-    if (!isRoot && club.organizationId) {
-      const orgMembership = await prisma.membership.findUnique({
-        where: {
-          userId_organizationId: {
-            userId: session.user.id,
-            organizationId: club.organizationId,
-          },
-        },
-      });
-
-      if (!orgMembership || orgMembership.role !== MembershipRole.ORGANIZATION_ADMIN) {
-        return NextResponse.json(
-          { error: "Forbidden" },
-          { status: 403 }
-        );
-      }
     }
 
     let targetUserId: string;
 
     if (createNew) {
-      // Create a new user as Club Admin
+      // Create a new user as admin
       if (!name || !email || !password) {
         return NextResponse.json(
           { error: "Name, email, and password are required for new user" },
@@ -239,36 +210,63 @@ export async function POST(
       targetUserId = userId;
     }
 
-    // Check if already assigned to this club as CLUB_ADMIN
-    const existingMembership = await prisma.clubMembership.findUnique({
+    // Check if already assigned to this organization as ORGANIZATION_ADMIN
+    const existingMembership = await prisma.membership.findUnique({
       where: {
-        userId_clubId: {
+        userId_organizationId: {
           userId: targetUserId,
-          clubId,
+          organizationId,
         },
       },
     });
 
-    if (existingMembership && existingMembership.role === ClubMembershipRole.CLUB_ADMIN) {
+    if (existingMembership && existingMembership.role === MembershipRole.ORGANIZATION_ADMIN) {
       return NextResponse.json(
-        { error: "User is already a Club Admin of this club" },
+        { error: "User is already an admin of this organization" },
         { status: 409 }
       );
     }
 
+    // Check if there are existing admins for this organization
+    const existingAdminsCount = await prisma.membership.count({
+      where: {
+        organizationId,
+        role: MembershipRole.ORGANIZATION_ADMIN,
+      },
+    });
+
+    // First admin becomes primary owner by default
+    const shouldBePrimaryOwner = existingAdminsCount === 0 || setAsPrimaryOwner === true;
+
+    // If setting as primary owner, remove primary owner status from others
+    if (shouldBePrimaryOwner && existingAdminsCount > 0) {
+      await prisma.membership.updateMany({
+        where: {
+          organizationId,
+          role: MembershipRole.ORGANIZATION_ADMIN,
+          isPrimaryOwner: true,
+        },
+        data: { isPrimaryOwner: false },
+      });
+    }
+
     if (existingMembership) {
-      // Update existing membership to CLUB_ADMIN
-      await prisma.clubMembership.update({
+      // Update existing membership to ORGANIZATION_ADMIN
+      await prisma.membership.update({
         where: { id: existingMembership.id },
-        data: { role: ClubMembershipRole.CLUB_ADMIN },
+        data: { 
+          role: MembershipRole.ORGANIZATION_ADMIN,
+          isPrimaryOwner: shouldBePrimaryOwner,
+        },
       });
     } else {
       // Create new membership
-      await prisma.clubMembership.create({
+      await prisma.membership.create({
         data: {
           userId: targetUserId,
-          clubId,
-          role: ClubMembershipRole.CLUB_ADMIN,
+          organizationId,
+          role: MembershipRole.ORGANIZATION_ADMIN,
+          isPrimaryOwner: shouldBePrimaryOwner,
         },
       });
     }
@@ -286,16 +284,16 @@ export async function POST(
     return NextResponse.json(
       {
         success: true,
-        message: "Club Admin assigned successfully",
+        message: "Admin assigned successfully",
         admin: {
           id: assignedUser!.id,
           name: assignedUser!.name,
           email: assignedUser!.email,
-          role: "admin" as const,
+          role: shouldBePrimaryOwner ? ("owner" as const) : ("admin" as const),
           entity: {
-            type: "club" as const,
-            id: clubId,
-            name: club.name,
+            type: "organization" as const,
+            id: organizationId,
+            name: organization.name,
           },
         },
       },
@@ -303,7 +301,7 @@ export async function POST(
     );
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Error assigning Club Admin:", error);
+      console.error("Error assigning admin:", error);
     }
     return NextResponse.json(
       { error: "Internal server error" },
@@ -313,8 +311,8 @@ export async function POST(
 }
 
 /**
- * DELETE /api/admin/clubs/[id]/admins
- * Removes a Club Admin from a specific club.
+ * DELETE /api/admin/organizations/[id]/admins
+ * Removes an admin from a specific organization.
  */
 export async function DELETE(
   request: Request,
@@ -331,7 +329,7 @@ export async function DELETE(
     }
 
     const resolvedParams = await params;
-    const clubId = resolvedParams.id;
+    const organizationId = resolvedParams.id;
 
     const body = await request.json();
     const { userId } = body;
@@ -343,72 +341,111 @@ export async function DELETE(
       );
     }
 
-    // Verify club exists
-    const club = await prisma.club.findUnique({
-      where: { id: clubId },
-      select: { id: true, organizationId: true },
+    // Verify organization exists
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
     });
 
-    if (!club) {
+    if (!organization) {
       return NextResponse.json(
-        { error: "Club not found" },
+        { error: "Organization not found" },
         { status: 404 }
       );
     }
 
     const isRoot = session.user.isRoot ?? false;
 
-    // Check if user has permission (Root or Organization Admin)
-    if (!isRoot && club.organizationId) {
-      const orgMembership = await prisma.membership.findUnique({
+    // If not root, check if the current user is the primary owner
+    if (!isRoot) {
+      const currentUserMembership = await prisma.membership.findUnique({
         where: {
           userId_organizationId: {
             userId: session.user.id,
-            organizationId: club.organizationId,
+            organizationId,
           },
         },
       });
 
-      if (!orgMembership || orgMembership.role !== MembershipRole.ORGANIZATION_ADMIN) {
+      if (
+        !currentUserMembership ||
+        currentUserMembership.role !== MembershipRole.ORGANIZATION_ADMIN ||
+        !currentUserMembership.isPrimaryOwner
+      ) {
         return NextResponse.json(
-          { error: "Forbidden" },
+          { error: "Only Root Admin or Organization Owner can remove admins" },
           { status: 403 }
+        );
+      }
+
+      // Prevent owner from removing themselves
+      if (userId === session.user.id) {
+        return NextResponse.json(
+          { error: "Cannot remove yourself as owner. Transfer ownership first." },
+          { status: 400 }
         );
       }
     }
 
     // Find the membership to remove
-    const targetMembership = await prisma.clubMembership.findUnique({
+    const targetMembership = await prisma.membership.findUnique({
       where: {
-        userId_clubId: {
+        userId_organizationId: {
           userId,
-          clubId,
+          organizationId,
         },
       },
     });
 
-    if (!targetMembership || targetMembership.role !== ClubMembershipRole.CLUB_ADMIN) {
+    if (!targetMembership || targetMembership.role !== MembershipRole.ORGANIZATION_ADMIN) {
       return NextResponse.json(
-        { error: "User is not a Club Admin of this club" },
+        { error: "User is not an admin of this organization" },
         { status: 400 }
       );
     }
 
+    // Check if this is the primary owner
+    if (targetMembership.isPrimaryOwner) {
+      // Only root admin can remove the primary owner
+      if (!isRoot) {
+        return NextResponse.json(
+          { error: "Only root admin can remove the organization owner" },
+          { status: 403 }
+        );
+      }
+
+      // Count remaining admins
+      const adminCount = await prisma.membership.count({
+        where: {
+          organizationId,
+          role: MembershipRole.ORGANIZATION_ADMIN,
+        },
+      });
+
+      // Cannot remove primary owner if there are other admins - must transfer ownership first
+      if (adminCount > 1) {
+        return NextResponse.json(
+          { error: "Cannot remove the primary owner. Transfer ownership first." },
+          { status: 400 }
+        );
+      }
+      // If only one admin remains (the owner), they can be removed by root admin
+    }
+
     // Delete the membership
-    await prisma.clubMembership.delete({
+    await prisma.membership.delete({
       where: { id: targetMembership.id },
     });
 
     return NextResponse.json(
       {
         success: true,
-        message: "Club Admin removed successfully",
+        message: "Admin removed successfully",
       },
       { status: 200 }
     );
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
-      console.error("Error removing Club Admin:", error);
+      console.error("Error removing admin:", error);
     }
     return NextResponse.json(
       { error: "Internal server error" },

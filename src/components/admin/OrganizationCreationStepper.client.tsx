@@ -461,7 +461,7 @@ export function OrganizationCreationStepper() {
             assignPayload.password = formData.newOwnerPassword;
           }
 
-          const assignResponse = await fetch("/api/admin/organizations/assign-admin", {
+          const assignResponse = await fetch(`/api/admin/organizations/${newOrgId}/admins`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(assignPayload),

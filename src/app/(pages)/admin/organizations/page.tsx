@@ -409,7 +409,7 @@ export default function AdminOrganizationsPage() {
             userId: selectedUserId,
           };
 
-      const response = await fetch("/api/admin/organizations/assign-admin", {
+      const response = await fetch(`/api/admin/organizations/${selectedOrg?.id}/admins`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
