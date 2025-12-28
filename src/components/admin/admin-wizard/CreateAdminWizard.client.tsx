@@ -115,7 +115,7 @@ export function CreateAdminWizard({ config }: CreateAdminWizardProps) {
   // Use pre-provided organization data when available to avoid unnecessary fetching
   const orgOptions: OrganizationOption[] = config.organizationData
     ? [config.organizationData]
-    : storeOrganizations.map(org => ({
+    : (storeOrganizations || []).map(org => ({
         id: org.id,
         name: org.name,
         slug: org.slug,

@@ -434,16 +434,6 @@ export default function AdminClubDetailPage({
           <ClubAdminsSection
             clubId={club.id}
             onRefresh={refetchClub}
-            clubData={{
-              id: club.id,
-              name: club.name,
-              organizationId: club.organizationId,
-            }}
-            organizationData={club.organization ? {
-              id: club.organization.id,
-              name: club.organization.name,
-              slug: club.organization.slug,
-            } : undefined}
           />
         </section>
 

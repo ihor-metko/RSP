@@ -92,6 +92,11 @@ describe("CreateAdminWizard - Clubs Fetching", () => {
     const config: CreateAdminWizardConfig = {
       context: "organization",
       defaultOrgId: "org-1",
+      organizationData: {
+        id: "org-1",
+        name: "Test Org",
+        slug: "test-org",
+      },
       allowedRoles: ["ORGANIZATION_ADMIN", "ORGANIZATION_OWNER"],
     };
 
@@ -99,7 +104,8 @@ describe("CreateAdminWizard - Clubs Fetching", () => {
 
     // Wait for initial render
     await waitFor(() => {
-      expect(mockGetOrganizationsWithAutoFetch).toHaveBeenCalled();
+      // With organizationData provided, should NOT fetch organizations
+      expect(mockGetOrganizationsWithAutoFetch).not.toHaveBeenCalled();
     });
 
     // Verify that clubs were NOT fetched on mount
@@ -148,7 +154,7 @@ describe("CreateAdminWizard - Clubs Fetching", () => {
 
     mockFetchClubsIfNeeded.mockResolvedValue(undefined);
 
-    const { container } = render(<CreateAdminWizard config={config} />);
+    render(<CreateAdminWizard config={config} />);
 
     // Initially clubs should NOT be fetched
     expect(mockFetchClubsIfNeeded).not.toHaveBeenCalled();
