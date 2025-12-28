@@ -387,9 +387,19 @@ export async function DELETE(
       },
     });
 
-    if (!targetMembership || targetMembership.role !== ClubMembershipRole.CLUB_ADMIN) {
+    if (!targetMembership || !targetMembership.role || 
+        (targetMembership.role !== ClubMembershipRole.CLUB_ADMIN && 
+         targetMembership.role !== ClubMembershipRole.CLUB_OWNER)) {
       return NextResponse.json(
         { error: "User is not a Club Admin of this club" },
+        { status: 400 }
+      );
+    }
+
+    // Prevent club owner from removing themselves
+    if (targetMembership.role === ClubMembershipRole.CLUB_OWNER && userId === session.user.id) {
+      return NextResponse.json(
+        { error: "Club owners cannot remove themselves" },
         { status: 400 }
       );
     }

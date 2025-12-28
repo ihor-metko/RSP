@@ -41,6 +41,7 @@ export function ClubAdminsSection({
 }: ClubAdminsSectionProps) {
   const t = useTranslations();
   const hasAnyRole = useUserStore((state) => state.hasAnyRole);
+  const user = useUserStore((state) => state.user);
   
   // Use unified admins store
   const getAdmins = useAdminsStore((state) => state.getAdmins);
@@ -182,6 +183,17 @@ export function ClubAdminsSection({
     return 0;
   });
 
+  // Check if user can modify a specific club admin
+  const canModifyClubAdmin = (admin: Admin) => {
+    // Owner cannot remove themselves
+    if (admin.role === "CLUB_OWNER" && admin.id === user?.id) {
+      return false;
+    }
+    
+    // Can manage if has permission and it's not self-removal
+    return canManageClubAdmins;
+  };
+
   if (loading || storeLoading) {
     return (
       <div className="im-section-card">
@@ -275,7 +287,7 @@ export function ClubAdminsSection({
                           size="small"
                           variant="danger"
                           onClick={() => handleOpenRemoveModal(admin)}
-                          disabled={admin.role === "CLUB_OWNER"}
+                          disabled={!canModifyClubAdmin(admin)}
                         >
                           {t("common.remove")}
                         </Button>

@@ -168,17 +168,28 @@ export default function OrganizationAdminsTable({
 
   // Check if user can modify a specific admin
   const canModifyAdmin = (admin: Admin) => {
-    // Root Admin can modify anyone
-    if (isRoot) return true;
+    // Root Admin can modify anyone except prevent owner self-removal
+    if (isRoot) {
+      // Prevent owner from removing themselves
+      if (admin.role === "ORGANIZATION_OWNER" && admin.id === user?.id) {
+        return false;
+      }
+      return true;
+    }
 
-    // Owner cannot be modified by non-root users (including by owner themselves in some cases)
-    if (admin.role === "ORGANIZATION_OWNER") {
-      // Owner can only remove themselves if they want to transfer ownership first
+    // Owner cannot remove themselves
+    if (admin.id === user?.id && admin.role === "ORGANIZATION_OWNER") {
       return false;
     }
 
-    // Organization Owner can modify other admins
-    if (isOwner) return true;
+    // Organization Owner can modify other admins (not themselves)
+    if (isOwner && admin.id !== user?.id) {
+      // Owner can remove other admins, but not other owners (only root can do that)
+      if (admin.role === "ORGANIZATION_OWNER") {
+        return false;
+      }
+      return true;
+    }
 
     return false;
   };
@@ -304,7 +315,7 @@ export default function OrganizationAdminsTable({
                   >
                     {t("common.viewProfile")}
                   </Button>
-                  {canModify ?? (
+                  {canModify && (
                     <Button
                       size="small"
                       variant="danger"
