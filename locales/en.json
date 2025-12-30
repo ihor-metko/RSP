@@ -4,6 +4,7 @@
     "loadingDashboard": "Loading dashboard...",
     "noData": "No data available",
     "error": "Error",
+    "forbidden": "Access forbidden",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "save": "Save",
@@ -1618,7 +1619,8 @@
       "deleteFailed": "Failed to delete organization",
       "fetchFailed": "Failed to fetch organization",
       "changeOwnerFailed": "Failed to change owner",
-      "userRequired": "Please select a user"
+      "userRequired": "Please select a user",
+      "imageUploadFailed": "Failed to upload image"
     },
     "imageAlt": {
       "heroImage": "Hero image for {name}",
@@ -2035,6 +2037,8 @@
     "activeBookings": "Active Bookings",
     "clubs": "Clubs",
     "noClubs": "No clubs yet. Create your first club.",
+    "createNewClub": "Create New Club",
+    "createFirstClub": "Create First Club",
     "courts": "courts",
     "viewAllClubs": "View All Clubs",
     "admins": "Administrators",
