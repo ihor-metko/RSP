@@ -14,6 +14,25 @@
   }
 }
 
+/* Map loading placeholder */
+.rsp-club-map-placeholder {
+  @apply w-full rounded-xl overflow-hidden flex items-center justify-center;
+  height: 200px;
+  border: 1px solid var(--rsp-border);
+  background-color: var(--rsp-card-bg);
+}
+
+@media (min-width: 768px) {
+  .rsp-club-map-placeholder {
+    height: 240px;
+  }
+}
+
+.rsp-club-map-placeholder-text {
+  @apply text-sm opacity-70;
+  color: var(--rsp-foreground);
+}
+
 /* Ensure Leaflet controls work properly with the design system */
 .rsp-club-map .leaflet-control-zoom {
   border: 1px solid var(--rsp-border);
