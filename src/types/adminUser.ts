@@ -208,14 +208,23 @@ export interface UsersFilters {
 }
 
 /**
+ * User role assignment info
+ */
+export interface UserRoleAssignment {
+  type: "organization" | "club";
+  role: "owner" | "admin";
+  contextId: string;
+  contextName: string;
+}
+
+/**
  * Simple user for autocomplete/search (from /api/admin/users)
  */
 export interface SimpleUser {
   id: string;
   name: string | null;
   email: string | null;
-  isOrgAdmin?: boolean;
-  organizationName?: string | null;
+  roles: UserRoleAssignment[];
 }
 
 /**

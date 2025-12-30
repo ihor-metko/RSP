@@ -2017,7 +2017,9 @@
     "lastLogin": "Last Login",
     "noAdmins": "No club admins assigned yet.",
     "owner": "Club Owner",
-    "admin": "Club Admin"
+    "admin": "Club Admin",
+    "alreadyOwnerOf": "Already Owner of {context}",
+    "alreadyAdminOf": "Already Admin in {context}"
   },
   "orgDetail": {
     "title": "Organization Details",

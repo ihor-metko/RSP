@@ -52,50 +52,34 @@ export function ExistingUserSearchStep({
 
   // Check if a user should be disabled based on their existing roles
   const getUserDisabledInfo = useCallback((user: SearchResult): { disabled: boolean; reason?: string } => {
-    if (!role || !user.roles || user.roles.length === 0) {
+    if (!user.roles || user.roles.length === 0) {
       return { disabled: false };
     }
 
-    // Check for organization-level roles
-    if (role === "ORGANIZATION_OWNER" || role === "ORGANIZATION_ADMIN") {
-      if (!organizationId) {
-        return { disabled: false };
-      }
+    // According to requirements: "Identify users who already have a role (either Admin or Owner) 
+    // in any Organization or Club" and "Disable selection for these users so they cannot be added 
+    // again in a conflicting role"
+    // This means users with ANY admin/owner role should be disabled
 
-      // Check if user already has a role in this organization
-      const existingOrgRole = user.roles.find(
-        r => r.type === "organization" && r.contextId === organizationId
-      );
-
-      if (existingOrgRole) {
-        const roleLabel = existingOrgRole.role === "owner" 
-          ? t("alreadyOwnerOf", { context: existingOrgRole.contextName })
-          : t("alreadyAdminOf", { context: existingOrgRole.contextName });
+    // Check if user has any admin/owner role in any organization or club
+    for (const existingRole of user.roles) {
+      if (existingRole.type === "organization") {
+        const roleLabel = existingRole.role === "owner" 
+          ? t("alreadyOwnerOf", { context: existingRole.contextName })
+          : t("alreadyAdminOf", { context: existingRole.contextName });
         return { disabled: true, reason: roleLabel };
       }
-    }
-
-    // Check for club-level roles
-    if (role === "CLUB_OWNER" || role === "CLUB_ADMIN") {
-      if (!clubId) {
-        return { disabled: false };
-      }
-
-      // Check if user already has a role in this club
-      const existingClubRole = user.roles.find(
-        r => r.type === "club" && r.contextId === clubId
-      );
-
-      if (existingClubRole) {
-        const roleLabel = existingClubRole.role === "owner"
-          ? t("alreadyOwnerOf", { context: existingClubRole.contextName })
-          : t("alreadyAdminOf", { context: existingClubRole.contextName });
+      
+      if (existingRole.type === "club") {
+        const roleLabel = existingRole.role === "owner"
+          ? t("alreadyOwnerOf", { context: existingRole.contextName })
+          : t("alreadyAdminOf", { context: existingRole.contextName });
         return { disabled: true, reason: roleLabel };
       }
     }
 
     return { disabled: false };
-  }, [role, organizationId, clubId, t]);
+  }, [t]);
 
   // Debounced search function
   const performSearch = useCallback(async (query: string) => {
