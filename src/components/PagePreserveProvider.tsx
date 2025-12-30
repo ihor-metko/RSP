@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useUserStore } from "@/stores/useUserStore";
 
@@ -20,10 +20,10 @@ const EXCLUDED_PATHS = [
 ];
 
 /**
- * Paths from which we restore preserved pages
- * These are typically entry points where users land after reload
+ * Entry point paths that trigger restoration on reload
+ * These are typically root-level paths users might land on
  */
-const RESTORE_FROM_PATHS = [
+const ENTRY_PATHS = [
   "/",
   "/admin/dashboard",
 ];
@@ -36,16 +36,58 @@ function shouldExcludePath(pathname: string): boolean {
 }
 
 /**
+ * Check if a path is an entry point
+ */
+function isEntryPath(pathname: string): boolean {
+  return ENTRY_PATHS.includes(pathname);
+}
+
+/**
+ * Global Loading Gate Component
+ * Displays a skeleton loader while authentication state is being verified
+ */
+function GlobalLoadingGate({ children }: { children: React.ReactNode }) {
+  const isHydrated = useUserStore((state) => state.isHydrated);
+  const isLoading = useUserStore((state) => state.isLoading);
+  const sessionStatus = useUserStore((state) => state.sessionStatus);
+  
+  // Show loading gate while auth is being verified
+  const isAuthVerifying = !isHydrated || isLoading || sessionStatus === "loading";
+  
+  if (isAuthVerifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  return <>{children}</>;
+}
+
+/**
  * PagePreserveProvider
  * 
- * Universal solution for preserving the current page across reloads.
+ * Global mechanism for preserving the current page across reloads.
  * 
  * Features:
+ * - Prevents flickers and unintended redirects during page reload
  * - Saves current page (pathname + query params) to sessionStorage on navigation
  * - Restores last page on app initialization (after auth check completes)
- * - Excludes auth pages and other special routes
+ * - Excludes auth pages and other special routes from preservation
  * - Includes timestamp-based expiration (30 minutes)
- * - Works globally without per-page code
+ * - Shows loading skeleton during auth verification
+ * - Works globally for all routes without per-page code
+ * 
+ * How it works:
+ * 1. Blocks rendering with loading gate until auth state is confirmed
+ * 2. On initial load, checks if there's a preserved page to restore
+ * 3. If user is authenticated and on an entry path, restores the preserved page
+ * 4. Saves current page as user navigates (except excluded paths)
+ * 5. All content renders only after auth status is verified
  * 
  * Integration:
  * - Add to root layout after AuthProvider
@@ -62,6 +104,7 @@ export function PagePreserveProvider({ children }: { children: React.ReactNode }
   
   const hasRestoredPage = useRef(false);
   const isInitialMount = useRef(true);
+  const [isRestorationComplete, setIsRestorationComplete] = useState(false);
 
   // Restore page on initial mount after authentication completes
   useEffect(() => {
@@ -74,26 +117,39 @@ export function PagePreserveProvider({ children }: { children: React.ReactNode }
     isInitialMount.current = false;
     
     // Only restore if we haven't already done so
-    if (hasRestoredPage.current) return;
+    if (hasRestoredPage.current) {
+      setIsRestorationComplete(true);
+      return;
+    }
     hasRestoredPage.current = true;
     
     // Skip restoration if user is not authenticated
-    if (sessionStatus !== "authenticated") return;
+    if (sessionStatus !== "authenticated") {
+      setIsRestorationComplete(true);
+      return;
+    }
     
     // Skip restoration if we're already on an excluded path
-    if (shouldExcludePath(pathname)) return;
+    if (shouldExcludePath(pathname)) {
+      setIsRestorationComplete(true);
+      return;
+    }
     
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       const timestamp = sessionStorage.getItem(STORAGE_TIMESTAMP_KEY);
       
-      if (!stored || !timestamp) return;
+      if (!stored || !timestamp) {
+        setIsRestorationComplete(true);
+        return;
+      }
       
       // Check if stored page has expired
       const age = Date.now() - parseInt(timestamp, 10);
       if (age > MAX_AGE_MS) {
         sessionStorage.removeItem(STORAGE_KEY);
         sessionStorage.removeItem(STORAGE_TIMESTAMP_KEY);
+        setIsRestorationComplete(true);
         return;
       }
       
@@ -106,19 +162,28 @@ export function PagePreserveProvider({ children }: { children: React.ReactNode }
       
       // Don't restore if we're already on the stored page
       if (stored === currentFullPath) {
+        setIsRestorationComplete(true);
         return;
       }
       
       // Don't restore if stored page is an excluded path
-      if (shouldExcludePath(storedUrl.pathname)) return;
+      if (shouldExcludePath(storedUrl.pathname)) {
+        setIsRestorationComplete(true);
+        return;
+      }
       
-      // Only restore if current page is in the restore-from list
-      // This prevents interrupting intentional navigation
-      if (RESTORE_FROM_PATHS.includes(pathname)) {
+      // Restore from entry paths OR if current path exactly matches the stored path
+      // This allows restoration when reloading directly on a specific page
+      const shouldRestore = isEntryPath(pathname) || pathname === storedUrl.pathname;
+      
+      if (shouldRestore) {
         router.push(stored);
       }
+      
+      setIsRestorationComplete(true);
     } catch (error) {
       console.warn("Failed to restore page:", error);
+      setIsRestorationComplete(true);
     }
   }, [isHydrated, isLoading, sessionStatus, pathname, searchParams, router]);
 
@@ -133,8 +198,8 @@ export function PagePreserveProvider({ children }: { children: React.ReactNode }
     // Skip excluded paths
     if (shouldExcludePath(pathname)) return;
     
-    // Skip paths that we restore from
-    if (RESTORE_FROM_PATHS.includes(pathname)) return;
+    // Skip entry paths (we restore TO these, not FROM them)
+    if (isEntryPath(pathname)) return;
     
     // Build full URL with query params
     const search = searchParams.toString();
@@ -148,5 +213,9 @@ export function PagePreserveProvider({ children }: { children: React.ReactNode }
     }
   }, [pathname, searchParams, isHydrated]);
 
-  return <>{children}</>;
+  return (
+    <GlobalLoadingGate>
+      {children}
+    </GlobalLoadingGate>
+  );
 }

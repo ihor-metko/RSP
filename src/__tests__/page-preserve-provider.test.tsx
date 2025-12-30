@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { render, waitFor, screen } from "@testing-library/react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { PagePreserveProvider } from "@/components/PagePreserveProvider";
 import { useUserStore } from "@/stores/useUserStore";
@@ -49,14 +49,49 @@ describe("PagePreserveProvider", () => {
     jest.clearAllMocks();
   });
 
-  it("should render children without errors", () => {
+  it("should show loading gate while auth is being verified", () => {
+    mockUseUserStore.mockImplementation((selector) => {
+      const state = {
+        isHydrated: false,
+        isLoading: true,
+        sessionStatus: "loading",
+      };
+      return selector(state);
+    });
+
+    render(
+      <PagePreserveProvider>
+        <div>Test Content</div>
+      </PagePreserveProvider>
+    );
+
+    // Should show loading indicator, not content
+    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    expect(screen.queryByText("Test Content")).not.toBeInTheDocument();
+  });
+
+  it("should render children after auth is verified", async () => {
     const { container } = render(
       <PagePreserveProvider>
         <div>Test Content</div>
       </PagePreserveProvider>
     );
 
-    expect(container.textContent).toBe("Test Content");
+    await waitFor(() => {
+      expect(container.textContent).toContain("Test Content");
+    });
+  });
+
+  it("should render children after auth is verified", async () => {
+    const { container } = render(
+      <PagePreserveProvider>
+        <div>Test Content</div>
+      </PagePreserveProvider>
+    );
+
+    await waitFor(() => {
+      expect(container.textContent).toContain("Test Content");
+    });
   });
 
   it("should save current page to sessionStorage on navigation", async () => {
@@ -91,8 +126,8 @@ describe("PagePreserveProvider", () => {
     });
   });
 
-  it("should not save root path", async () => {
-    mockUsePathname.mockReturnValue("/");
+  it("should not save entry paths", async () => {
+    mockUsePathname.mockReturnValue("/admin/dashboard");
 
     render(
       <PagePreserveProvider>
@@ -106,12 +141,12 @@ describe("PagePreserveProvider", () => {
     });
   });
 
-  it("should restore page from sessionStorage on initial mount", async () => {
+  it("should restore page from sessionStorage on initial mount from entry path", async () => {
     // Pre-populate sessionStorage
     sessionStorage.setItem("arenaone_last_page", "/admin/clubs?page=5");
     sessionStorage.setItem("arenaone_last_page_timestamp", Date.now().toString());
 
-    // Current page is dashboard (a page we restore from)
+    // Current page is dashboard (an entry path)
     mockUsePathname.mockReturnValue("/admin/dashboard");
 
     render(
@@ -122,6 +157,26 @@ describe("PagePreserveProvider", () => {
 
     await waitFor(() => {
       expect(mockRouter.push).toHaveBeenCalledWith("/admin/clubs?page=5");
+    });
+  });
+
+  it("should restore page when reloading directly on the preserved page", async () => {
+    // Pre-populate sessionStorage with a club detail page
+    sessionStorage.setItem("arenaone_last_page", "/admin/clubs/123?tab=details");
+    sessionStorage.setItem("arenaone_last_page_timestamp", Date.now().toString());
+
+    // User reloads directly on the same club page but without query params
+    mockUsePathname.mockReturnValue("/admin/clubs/123");
+
+    render(
+      <PagePreserveProvider>
+        <div>Test</div>
+      </PagePreserveProvider>
+    );
+
+    await waitFor(() => {
+      // Should restore the full URL with query params
+      expect(mockRouter.push).toHaveBeenCalledWith("/admin/clubs/123?tab=details");
     });
   });
 
@@ -172,8 +227,7 @@ describe("PagePreserveProvider", () => {
     });
     
     // The expired page should be removed during restoration check
-    // But new dashboard path will be saved after initial mount completes
-    // So we just verify restoration didn't happen
+    expect(sessionStorage.getItem("arenaone_last_page")).toBeNull();
   });
 
   it("should not restore if already on the stored page", async () => {
@@ -194,11 +248,11 @@ describe("PagePreserveProvider", () => {
     });
   });
 
-  it("should not restore if current page is not dashboard or root", async () => {
+  it("should not restore if current page is not an entry path and doesn't match stored path", async () => {
     sessionStorage.setItem("arenaone_last_page", "/admin/clubs");
     sessionStorage.setItem("arenaone_last_page_timestamp", Date.now().toString());
 
-    // Current page is a specific page (user intentionally navigated)
+    // Current page is a different specific page (user intentionally navigated)
     mockUsePathname.mockReturnValue("/admin/organizations");
 
     render(
