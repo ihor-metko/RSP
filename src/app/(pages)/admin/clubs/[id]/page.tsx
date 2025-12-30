@@ -182,7 +182,7 @@ export default function AdminClubDetailPage({
     {
       id: 'publish',
       title: club?.isPublic ? t("entityBanner.unpublish") : t("entityBanner.publish"),
-      description: club?.isPublic 
+      description: club?.isPublic
         ? t("dangerZone.unpublishClubDescription")
         : t("dangerZone.publishClubDescription"),
       buttonLabel: club?.isPublic ? t("entityBanner.unpublish") : t("entityBanner.publish"),
@@ -307,6 +307,11 @@ export default function AdminClubDetailPage({
 
       {/* Main Content */}
       <div className="entity-page-content">
+        {/* Club Admins Section */}
+        <section className="im-admin-club-admins-section">
+          <ClubAdminsSection clubId={club.id} />
+        </section>
+
         {/* Court Availability Section */}
         {club.courts.length > 0 && (
           <section className="im-admin-club-availability-section">
@@ -430,13 +435,6 @@ export default function AdminClubDetailPage({
           )}
         </section>
 
-        {/* Club Admins Section */}
-        <section className="im-admin-club-admins-section">
-          <ClubAdminsSection
-            clubId={club.id}
-          />
-        </section>
-
         {/* Bookings Summary */}
         {bookingsLoading ? (
           <BookingsPreviewSkeleton count={5} className="im-admin-club-bookings-section" />
@@ -552,7 +550,7 @@ export default function AdminClubDetailPage({
         title={club.isPublic ? t("entityBanner.unpublish") : t("entityBanner.publish")}
       >
         <p className="mb-4">
-          {club.isPublic 
+          {club.isPublic
             ? t("dangerZone.unpublishClubConfirm", { name: club.name })
             : t("dangerZone.publishClubConfirm", { name: club.name })
           }
