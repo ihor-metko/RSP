@@ -127,11 +127,16 @@ export async function POST(
         },
       });
     } else {
-      // For logo and heroImage, update the direct columns
+      // Map image types to their correct field names
+      const fieldName = imageType === "logo" ? "logoData" : "bannerData";
+      
+      // Store as JSON object with url property to support metadata
+      const imageData = JSON.stringify({ url });
+
       await prisma.club.update({
         where: { id: clubId },
         data: {
-          [imageType]: url,
+          [fieldName]: imageData,
         },
       });
     }

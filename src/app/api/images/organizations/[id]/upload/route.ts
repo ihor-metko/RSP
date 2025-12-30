@@ -129,11 +129,16 @@ export async function POST(
         },
       });
     } else {
-      // For logo and heroImage, store in their respective columns
+      // Map image types to their correct field names
+      const fieldName = imageType === "logo" ? "logoData" : "bannerData";
+      
+      // Store as JSON object with url property to support metadata
+      const imageData = JSON.stringify({ url });
+
       await prisma.organization.update({
         where: { id: organizationId },
         data: {
-          [imageType]: url,
+          [fieldName]: imageData,
         },
       });
     }
