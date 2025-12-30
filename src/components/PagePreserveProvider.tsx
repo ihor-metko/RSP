@@ -88,14 +88,15 @@ export function PagePreserveProvider({ children }: { children: React.ReactNode }
         return;
       }
       
+      // Parse the stored path
       const storedUrl = new URL(stored, window.location.origin);
-      const currentUrl = new URL(window.location.href);
+      
+      // Build current full path
+      const search = searchParams.toString();
+      const currentFullPath = search ? `${pathname}?${search}` : pathname;
       
       // Don't restore if we're already on the stored page
-      if (
-        storedUrl.pathname === currentUrl.pathname &&
-        storedUrl.search === currentUrl.search
-      ) {
+      if (stored === currentFullPath) {
         return;
       }
       
@@ -104,18 +105,19 @@ export function PagePreserveProvider({ children }: { children: React.ReactNode }
       
       // Only restore if current page is root or dashboard
       // This prevents interrupting intentional navigation
-      const currentPath = currentUrl.pathname;
-      if (currentPath === "/" || currentPath === "/admin/dashboard") {
-        const restorePath = storedUrl.pathname + storedUrl.search;
-        router.push(restorePath);
+      if (pathname === "/" || pathname === "/admin/dashboard") {
+        router.push(stored);
       }
     } catch (error) {
       console.warn("Failed to restore page:", error);
     }
-  }, [isHydrated, isLoading, sessionStatus, pathname, router]);
+  }, [isHydrated, isLoading, sessionStatus, pathname, searchParams, router]);
 
   // Save current page on navigation (excluding auth pages)
   useEffect(() => {
+    // Don't save on initial mount (wait for restore to complete first)
+    if (isInitialMount.current) return;
+    
     // Skip if not hydrated or still loading
     if (!isHydrated) return;
     
