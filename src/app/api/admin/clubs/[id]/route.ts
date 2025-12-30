@@ -62,6 +62,13 @@ export async function GET(
     const club = await prisma.club.findUnique({
       where: { id: clubId },
       include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
         courts: {
           orderBy: { name: "asc" },
         },

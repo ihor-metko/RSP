@@ -113,31 +113,6 @@ export function SelectContextStep({
         </div>
       )}
 
-      <div className="im-form-field">
-        <Select
-          id="role"
-          label={t("role")}
-          options={roleOptions}
-          value={data.role}
-          onChange={(value) => {
-            onChange({ 
-              role: value as AdminRole,
-              // Clear club if role is org admin
-              clubId: value === "ORGANIZATION_ADMIN" ? undefined : data.clubId,
-            });
-          }}
-          placeholder={t("rolePlaceholder")}
-          disabled={disabled || !isRoleEditable || allowedRoles.length === 1}
-          required
-          aria-describedby={errors.role ? "role-error" : undefined}
-        />
-        {errors.role && (
-          <span id="role-error" className="im-field-error" role="alert">
-            {errors.role}
-          </span>
-        )}
-      </div>
-
       {/* In club context: always show club selector (disabled)
           In other contexts: only show when role is CLUB_ADMIN or CLUB_OWNER */}
       {(!showClubSelector || (showClubSelector && (data.role === "CLUB_ADMIN" || data.role === "CLUB_OWNER"))) && (
@@ -170,6 +145,31 @@ export function SelectContextStep({
           )}
         </div>
       )}
+
+      <div className="im-form-field">
+        <Select
+          id="role"
+          label={t("role")}
+          options={roleOptions}
+          value={data.role}
+          onChange={(value) => {
+            onChange({ 
+              role: value as AdminRole,
+              // Clear club if role is org admin
+              clubId: value === "ORGANIZATION_ADMIN" ? undefined : data.clubId,
+            });
+          }}
+          placeholder={t("rolePlaceholder")}
+          disabled={disabled || !isRoleEditable || allowedRoles.length === 1}
+          required
+          aria-describedby={errors.role ? "role-error" : undefined}
+        />
+        {errors.role && (
+          <span id="role-error" className="im-field-error" role="alert">
+            {errors.role}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

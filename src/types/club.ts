@@ -37,6 +37,7 @@ export interface Club {
 export interface ClubOrganizationInfo {
   id: string;
   name: string;
+  slug: string;
 }
 
 /** Club admin reference info */
@@ -139,6 +140,8 @@ export interface ClubCoach {
 
 export interface ClubDetail {
   id: string;
+  organizationId: string;
+  organization?: ClubOrganizationInfo;
   name: string;
   slug: string | null;
   shortDescription: string | null;

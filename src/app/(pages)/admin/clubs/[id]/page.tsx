@@ -310,7 +310,15 @@ export default function AdminClubDetailPage({
       <div className="entity-page-content">
         {/* Club Admins Section */}
         <section className="im-admin-club-admins-section">
-          <ClubAdminsSection clubId={club.id} />
+          <ClubAdminsSection 
+            clubId={club.id} 
+            clubData={{
+              id: club.id,
+              name: club.name,
+              organizationId: club.organizationId,
+            }}
+            organizationData={club.organization}
+          />
         </section>
 
         {/* Court Availability Section */}
