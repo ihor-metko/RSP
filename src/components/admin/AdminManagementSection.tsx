@@ -141,6 +141,20 @@ export default function AdminManagementSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextId]);
 
+  // Early validation - for club context, we need clubData
+  if (context === "club" && !clubData) {
+    return (
+      <div className="im-org-admins-section">
+        <div className="im-section-header">
+          <h3 className="im-section-title">{t("clubAdmins.title")}</h3>
+        </div>
+        <div className="im-error-state">
+          {t("common.error")}: Club data is required for club admin management
+        </div>
+      </div>
+    );
+  }
+
   // Handle create admin modal
   const handleOpenCreateAdminModal = () => {
     setIsCreateAdminModalOpen(true);
@@ -426,7 +440,7 @@ export default function AdminManagementSection({
         onClose={handleCloseCreateAdminModal}
         config={{
           context: context,
-          defaultOrgId: context === "organization" ? contextId : clubData?.organizationId,
+          defaultOrgId: context === "organization" ? contextId : clubData!.organizationId,
           defaultClubId: context === "club" ? contextId : undefined,
           organizationData: org ? {
             id: org.id,
