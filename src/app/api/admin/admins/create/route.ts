@@ -250,6 +250,32 @@ export async function POST(request: Request) {
           );
         }
       } else {
+        // For club roles, prevent Organization Owners from being assigned as Club Owners
+        if (role === "CLUB_OWNER") {
+          // Check if user is an Organization Owner in any organization
+          const orgOwnerMembership = await prisma.membership.findFirst({
+            where: {
+              userId: targetUserId,
+              isPrimaryOwner: true,
+            },
+            select: {
+              organization: {
+                select: { name: true },
+              },
+            },
+          });
+
+          if (orgOwnerMembership) {
+            return NextResponse.json(
+              { 
+                error: `This user is an Organization Owner of "${orgOwnerMembership.organization.name}" and cannot be assigned as a Club Owner`,
+                field: "userId"
+              },
+              { status: 409 }
+            );
+          }
+        }
+
         const existingMembership = await prisma.clubMembership.findUnique({
           where: {
             userId_clubId: {
