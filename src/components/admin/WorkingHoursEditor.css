@@ -1,0 +1,18 @@
+.im-working-hours-editor {
+  width: 100%;
+}
+
+.im-working-hours-section {
+  margin-bottom: 1.5rem;
+}
+
+.im-working-hours-section:last-child {
+  margin-bottom: 0;
+}
+
+.im-working-hours-section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem 0;
+  color: var(--rsp-foreground);
+}

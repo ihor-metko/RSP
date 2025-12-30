@@ -1,0 +1,100 @@
+.im-special-hours {
+  width: 100%;
+}
+
+.im-special-hours-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.im-special-hours-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--rsp-foreground);
+}
+
+.im-special-hours-add-btn {
+  font-size: 0.875rem;
+}
+
+.im-special-hours-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.im-special-hours-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--rsp-background);
+  border: 1px solid var(--rsp-border);
+  border-radius: 0.75rem;
+}
+
+.im-special-hours-times {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.im-special-hours-input {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--rsp-border);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background-color: var(--rsp-background);
+  color: var(--rsp-foreground);
+}
+
+.im-special-hours-input:focus {
+  outline: none;
+  border-color: var(--rsp-primary);
+}
+
+.im-special-hours-separator {
+  font-size: 0.875rem;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+}
+
+.im-special-hours-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: var(--rsp-foreground);
+}
+
+.im-special-hours-closed-text {
+  font-size: 0.875rem;
+  color: var(--rsp-foreground);
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.im-special-hours-remove-btn {
+  padding: 0.25rem 0.5rem;
+  color: #ef4444;
+}
+
+.dark .im-special-hours-remove-btn {
+  color: #f87171;
+}
+
+.im-special-hours-empty {
+  font-size: 0.875rem;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+}

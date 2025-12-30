@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button, Input } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
+import { WorkingHoursEditor, validateWorkingHours } from "../WorkingHoursEditor.client";
+import type { SpecialHour } from "../SpecialHoursField.client";
+import type { BusinessHour } from "@/types/admin";
 import type { ClubDetail, ClubBusinessHours, ClubSpecialHours } from "@/types/club";
 import "./ClubHoursView.css";
 
@@ -15,22 +18,6 @@ const DAY_NAMES = [
   "Friday",
   "Saturday",
 ];
-
-interface BusinessHour {
-  dayOfWeek: number;
-  openTime: string | null;
-  closeTime: string | null;
-  isClosed: boolean;
-}
-
-interface SpecialHour {
-  id?: string;
-  date: string;
-  openTime: string | null;
-  closeTime: string | null;
-  isClosed: boolean;
-  reason: string;
-}
 
 interface ClubHoursViewProps {
   club: ClubDetail;
@@ -106,100 +93,12 @@ export function ClubHoursView({ club, onUpdate }: ClubHoursViewProps) {
     setError("");
   }, []);
 
-  const handleTimeChange = useCallback(
-    (dayOfWeek: number, field: "openTime" | "closeTime", value: string) => {
-      setBusinessHours((prev) =>
-        prev.map((hour) =>
-          hour.dayOfWeek === dayOfWeek ? { ...hour, [field]: value || null } : hour
-        )
-      );
-    },
-    []
-  );
-
-  const handleClosedToggle = useCallback((dayOfWeek: number) => {
-    setBusinessHours((prev) =>
-      prev.map((hour) =>
-        hour.dayOfWeek === dayOfWeek
-          ? {
-              ...hour,
-              isClosed: !hour.isClosed,
-              openTime: !hour.isClosed ? null : "09:00",
-              closeTime: !hour.isClosed ? null : "21:00",
-            }
-          : hour
-      )
-    );
-  }, []);
-
-  const handleAddSpecialHour = useCallback(() => {
-    const today = new Date().toISOString().split("T")[0];
-    setSpecialHours((prev) => [
-      ...prev,
-      {
-        date: today,
-        openTime: null,
-        closeTime: null,
-        isClosed: true,
-        reason: "",
-      },
-    ]);
-  }, []);
-
-  const handleRemoveSpecialHour = useCallback((index: number) => {
-    setSpecialHours((prev) => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const handleSpecialHourChange = useCallback(
-    (index: number, field: keyof SpecialHour, value: string | boolean) => {
-      setSpecialHours((prev) =>
-        prev.map((hour, i) => {
-          if (i !== index) return hour;
-          if (field === "isClosed") {
-            return {
-              ...hour,
-              isClosed: value as boolean,
-              openTime: value ? null : "09:00",
-              closeTime: value ? null : "21:00",
-            };
-          }
-          return { ...hour, [field]: value || null };
-        })
-      );
-    },
-    []
-  );
-
   const handleSave = useCallback(async () => {
-    // Validate business hours
-    for (const hour of businessHours) {
-      if (!hour.isClosed && hour.openTime && hour.closeTime) {
-        if (hour.openTime >= hour.closeTime) {
-          setError(
-            `Invalid hours for ${DAY_NAMES[hour.dayOfWeek]}: opening time must be before closing time`
-          );
-          return;
-        }
-      }
-    }
-
-    // Validate special hours
-    const dates = specialHours.map((h) => h.date);
-    const uniqueDates = new Set(dates);
-    if (dates.length !== uniqueDates.size) {
-      setError("Duplicate dates in special hours");
+    // Validate working hours
+    const validationError = validateWorkingHours(businessHours, specialHours);
+    if (validationError) {
+      setError(validationError);
       return;
-    }
-
-    for (const hour of specialHours) {
-      if (!hour.isClosed && hour.openTime && hour.closeTime) {
-        if (hour.openTime >= hour.closeTime) {
-          setError(
-            `Invalid special hours for ${hour.date}: opening time must be before closing time`
-          );
-          return;
-        }
-      }
     }
 
     setIsSaving(true);
@@ -279,143 +178,15 @@ export function ClubHoursView({ club, onUpdate }: ClubHoursViewProps) {
         isSaving={isSaving}
       >
         {error && <div className="im-section-edit-modal-error">{error}</div>}
-
-        <div className="im-hours-edit-section">
-          <h3 className="im-hours-edit-section-title">Weekly Schedule</h3>
-          <div className="im-hours-edit-grid">
-            {businessHours.map((hour) => (
-              <div key={hour.dayOfWeek} className="im-hours-edit-row">
-                <span className="im-hours-edit-day">
-                  {DAY_NAMES[hour.dayOfWeek]}
-                </span>
-                <div className="im-hours-edit-times">
-                  {hour.isClosed ? (
-                    <span className="im-hours-edit-closed-text">Closed</span>
-                  ) : (
-                    <>
-                      <input
-                        type="time"
-                        value={hour.openTime || ""}
-                        onChange={(e) =>
-                          handleTimeChange(hour.dayOfWeek, "openTime", e.target.value)
-                        }
-                        className="im-hours-edit-input"
-                        disabled={isSaving}
-                      />
-                      <span className="im-hours-edit-separator">to</span>
-                      <input
-                        type="time"
-                        value={hour.closeTime || ""}
-                        onChange={(e) =>
-                          handleTimeChange(hour.dayOfWeek, "closeTime", e.target.value)
-                        }
-                        className="im-hours-edit-input"
-                        disabled={isSaving}
-                      />
-                    </>
-                  )}
-                </div>
-                <label className="im-hours-edit-toggle">
-                  <input
-                    type="checkbox"
-                    checked={hour.isClosed}
-                    onChange={() => handleClosedToggle(hour.dayOfWeek)}
-                    disabled={isSaving}
-                  />
-                  <span>Closed</span>
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="im-hours-edit-section">
-          <div className="im-hours-edit-section-header">
-            <h3 className="im-hours-edit-section-title">Special Date Overrides</h3>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleAddSpecialHour}
-              disabled={isSaving}
-              className="im-section-edit-btn"
-            >
-              + Add Date
-            </Button>
-          </div>
-          {specialHours.length > 0 ? (
-            <div className="im-hours-edit-special-list">
-              {specialHours.map((hour, index) => (
-                <div key={index} className="im-hours-edit-special-row">
-                  <Input
-                    type="date"
-                    value={hour.date}
-                    onChange={(e) =>
-                      handleSpecialHourChange(index, "date", e.target.value)
-                    }
-                    disabled={isSaving}
-                  />
-                  <div className="im-hours-edit-times">
-                    {hour.isClosed ? (
-                      <span className="im-hours-edit-closed-text">Closed</span>
-                    ) : (
-                      <>
-                        <input
-                          type="time"
-                          value={hour.openTime || ""}
-                          onChange={(e) =>
-                            handleSpecialHourChange(index, "openTime", e.target.value)
-                          }
-                          className="im-hours-edit-input"
-                          disabled={isSaving}
-                        />
-                        <span className="im-hours-edit-separator">to</span>
-                        <input
-                          type="time"
-                          value={hour.closeTime || ""}
-                          onChange={(e) =>
-                            handleSpecialHourChange(index, "closeTime", e.target.value)
-                          }
-                          className="im-hours-edit-input"
-                          disabled={isSaving}
-                        />
-                      </>
-                    )}
-                  </div>
-                  <label className="im-hours-edit-toggle">
-                    <input
-                      type="checkbox"
-                      checked={hour.isClosed}
-                      onChange={(e) =>
-                        handleSpecialHourChange(index, "isClosed", e.target.checked)
-                      }
-                      disabled={isSaving}
-                    />
-                    <span>Closed</span>
-                  </label>
-                  <Input
-                    placeholder="Reason (optional)"
-                    value={hour.reason}
-                    onChange={(e) =>
-                      handleSpecialHourChange(index, "reason", e.target.value)
-                    }
-                    disabled={isSaving}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => handleRemoveSpecialHour(index)}
-                    disabled={isSaving}
-                    className="im-hours-edit-remove-btn"
-                  >
-                    ✕
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="im-section-view-value--empty">No special hours set</p>
-          )}
-        </div>
+        
+        <WorkingHoursEditor
+          businessHours={businessHours}
+          specialHours={specialHours}
+          onBusinessHoursChange={setBusinessHours}
+          onSpecialHoursChange={setSpecialHours}
+          disabled={isSaving}
+          showSpecialHours={true}
+        />
       </SectionEditModal>
     </>
   );

@@ -36,9 +36,6 @@ export function ExistingUserSearchStep({
   onChange,
   errors,
   disabled,
-  organizationId,
-  clubId,
-  role,
 }: ExistingUserSearchStepProps) {
   const t = useTranslations("createAdminWizard.existingUserSearchStep");
   const [searchQuery, setSearchQuery] = useState("");
