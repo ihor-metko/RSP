@@ -140,7 +140,7 @@ export function SelectContextStep({
 
       {/* In club context: always show club selector (disabled)
           In other contexts: only show when role is CLUB_ADMIN or CLUB_OWNER */}
-      {(!showClubSelector || (data.role === "CLUB_ADMIN" || data.role === "CLUB_OWNER")) && (
+      {(!showClubSelector || (showClubSelector && (data.role === "CLUB_ADMIN" || data.role === "CLUB_OWNER"))) && (
         <div className="im-form-field">
           <Select
             id="club"
