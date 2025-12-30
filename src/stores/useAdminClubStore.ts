@@ -347,7 +347,6 @@ export const useAdminClubStore = create<AdminClubState>((set, get) => ({
         indoorCount: 0,
         outdoorCount: 0,
         courtCount: 0,
-        bookingCount: 0,
       };
       
       set((state) => ({

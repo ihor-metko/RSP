@@ -465,7 +465,7 @@
       "sortNameAsc": "Назва (А-Я)",
       "sortNameDesc": "Назва (Я-А)",
       "sortCityAsc": "Місто (А-Я)",
-      "sortBookings": "Найбільше бронювань",
+      "sortCourts": "Найбільше кортів",
       "allStatuses": "Усі статуси",
       "filterByStatus": "Фільтр за статусом",
       "statusActive": "Активний",

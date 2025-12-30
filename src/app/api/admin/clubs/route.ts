@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
-import { ClubMembershipRole } from "@/constants/roles";
 import type { Prisma, SportType } from "@prisma/client";
 
 export async function GET(request: Request) {
@@ -139,25 +138,6 @@ export async function GET(request: Request) {
           select: {
             id: true,
             indoor: true,
-            bookings: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-        clubMemberships: {
-          where: {
-            role: ClubMembershipRole.CLUB_ADMIN,
-          },
-          select: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
           },
         },
       },
@@ -165,17 +145,16 @@ export async function GET(request: Request) {
 
     // Process clubs to add counts and transform data
     let clubsWithCounts = clubs.map((club) => {
-      const { indoorCount, outdoorCount, bookingCount } = club.courts.reduce(
+      const { indoorCount, outdoorCount } = club.courts.reduce(
         (acc, court) => {
           if (court.indoor) {
             acc.indoorCount++;
           } else {
             acc.outdoorCount++;
           }
-          acc.bookingCount += court.bookings.length;
           return acc;
         },
-        { indoorCount: 0, outdoorCount: 0, bookingCount: 0 }
+        { indoorCount: 0, outdoorCount: 0 }
       );
 
       return {
@@ -198,13 +177,7 @@ export async function GET(request: Request) {
         indoorCount,
         outdoorCount,
         courtCount: club.courts.length,
-        bookingCount,
         organization: club.organization,
-        admins: club.clubMemberships.map((m) => ({
-          id: m.user.id,
-          name: m.user.name,
-          email: m.user.email,
-        })),
       };
     });
 

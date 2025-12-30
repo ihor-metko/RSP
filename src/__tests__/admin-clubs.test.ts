@@ -93,10 +93,9 @@ describe("Admin Clubs API", () => {
           organizationId: null,
           organization: null,
           courts: [
-            { id: "court-1", indoor: true, bookings: [{ id: "booking-1" }] },
-            { id: "court-2", indoor: false, bookings: [] },
+            { id: "court-1", indoor: true },
+            { id: "court-2", indoor: false },
           ],
-          clubMemberships: [],
         },
         {
           id: "club-2",
@@ -114,9 +113,6 @@ describe("Admin Clubs API", () => {
           organizationId: "org-1",
           organization: { id: "org-1", name: "Test Org" },
           courts: [],
-          clubMemberships: [
-            { user: { id: "admin-1", name: "Admin User", email: "admin@test.com" } },
-          ],
         },
       ];
 
@@ -137,12 +133,10 @@ describe("Admin Clubs API", () => {
       expect(data.clubs[0].indoorCount).toBe(1);
       expect(data.clubs[0].outdoorCount).toBe(1);
       expect(data.clubs[0].courtCount).toBe(2);
-      expect(data.clubs[0].bookingCount).toBe(1);
       expect(data.clubs[1].indoorCount).toBe(0);
       expect(data.clubs[1].outdoorCount).toBe(0);
       expect(data.clubs[1].courtCount).toBe(0);
       expect(data.clubs[1].organization?.name).toBe("Test Org");
-      expect(data.clubs[1].admins).toHaveLength(1);
     });
 
     it("should return clubs only from managed organizations for organization admin", async () => {
@@ -172,7 +166,6 @@ describe("Admin Clubs API", () => {
           organizationId: "org-1",
           organization: { id: "org-1", name: "My Org" },
           courts: [],
-          clubMemberships: [],
         },
       ];
 
@@ -225,7 +218,6 @@ describe("Admin Clubs API", () => {
           organizationId: null,
           organization: null,
           courts: [],
-          clubMemberships: [],
         },
       ];
 
@@ -292,10 +284,9 @@ describe("Admin Clubs API", () => {
           organizationId: null,
           organization: null,
           courts: [
-            { id: "court-1", indoor: true, bookings: [] },
-            { id: "court-2", indoor: false, bookings: [] },
+            { id: "court-1", indoor: true },
+            { id: "court-2", indoor: false },
           ],
-          clubMemberships: [],
         },
         {
           id: "club-2",
@@ -313,13 +304,12 @@ describe("Admin Clubs API", () => {
           organizationId: null,
           organization: null,
           courts: [
-            { id: "court-3", indoor: true, bookings: [] },
-            { id: "court-4", indoor: true, bookings: [] },
-            { id: "court-5", indoor: false, bookings: [] },
-            { id: "court-6", indoor: false, bookings: [] },
-            { id: "court-7", indoor: true, bookings: [] },
+            { id: "court-3", indoor: true },
+            { id: "court-4", indoor: true },
+            { id: "court-5", indoor: false },
+            { id: "court-6", indoor: false },
+            { id: "court-7", indoor: true },
           ],
-          clubMemberships: [],
         },
       ];
 

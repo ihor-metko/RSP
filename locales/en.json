@@ -451,7 +451,7 @@
       "sortNameAsc": "Name (A-Z)",
       "sortNameDesc": "Name (Z-A)",
       "sortCityAsc": "City (A-Z)",
-      "sortBookings": "Most bookings",
+      "sortCourts": "Most courts",
       "allStatuses": "All Statuses",
       "filterByStatus": "Filter by status",
       "statusActive": "Active",
