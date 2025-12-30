@@ -31,7 +31,7 @@ export default function AdminClubDetailPage({
 }) {
   const router = useRouter();
   const t = useTranslations();
-  const [clubId, setClubId] = useState<string>("");
+  const [clubId, setClubId] = useState<string | null>(null);
 
   // Use orchestration hook for all club data
   // Note: loadAdmins is false because ClubAdminsSection fetches independently
@@ -42,7 +42,7 @@ export default function AdminClubDetailPage({
     bookingsLoading,
     error: dataError,
     refetchClub,
-  } = useClubPageData(clubId || null, { loadAdmins: false });
+  } = useClubPageData(clubId, { loadAdmins: false });
 
   // Store actions for mutations
   const deleteClub = useAdminClubStore((state) => state.deleteClub);
