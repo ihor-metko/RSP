@@ -75,12 +75,26 @@ export async function GET(request: Request) {
         name: true,
         email: true,
         memberships: {
-          where: {
-            role: "ORGANIZATION_ADMIN",
-          },
           select: {
+            id: true,
+            organizationId: true,
+            isPrimaryOwner: true,
             organization: {
               select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        clubMemberships: {
+          select: {
+            id: true,
+            clubId: true,
+            role: true,
+            club: {
+              select: {
+                id: true,
                 name: true,
               },
             },
@@ -91,13 +105,42 @@ export async function GET(request: Request) {
       take: 50,
     });
 
-    const formattedUsers = users.map((user) => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      isOrgAdmin: user.memberships.length > 0,
-      organizationName: user.memberships[0]?.organization.name || null,
-    }));
+    // Transform users to include role information in the same format as /api/admin/users/search
+    const formattedUsers = users.map((user) => {
+      const roles: Array<{
+        type: "organization" | "club";
+        role: "owner" | "admin";
+        contextId: string;
+        contextName: string;
+      }> = [];
+
+      // Add organization roles
+      user.memberships.forEach((membership) => {
+        roles.push({
+          type: "organization",
+          role: membership.isPrimaryOwner ? "owner" : "admin",
+          contextId: membership.organizationId,
+          contextName: membership.organization.name,
+        });
+      });
+
+      // Add club roles
+      user.clubMemberships.forEach((membership) => {
+        roles.push({
+          type: "club",
+          role: membership.role === "CLUB_OWNER" ? "owner" : "admin",
+          contextId: membership.clubId,
+          contextName: membership.club.name,
+        });
+      });
+
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        roles,
+      };
+    });
 
     return NextResponse.json(formattedUsers);
   } catch (error) {

@@ -1905,7 +1905,9 @@
     "reassignToClub": "Перепризначити до клубу",
     "inviteUser": "Запросити користувача",
     "lastLogin": "Останній вхід",
-    "noAdmins": "Адмінів клубів ще не призначено."
+    "noAdmins": "Адмінів клубів ще не призначено.",
+    "alreadyOwnerOf": "Вже власник {context}",
+    "alreadyAdminOf": "Вже адмін {context}"
   },
   "orgDetail": {
     "title": "Деталі організації",

@@ -99,6 +99,33 @@ export default function ClubAdminsTable({
     await fetchSimpleUsers();
   };
 
+  // Check if a user should be disabled based on their existing roles
+  const getUserDisabledInfo = (user: SimpleUser): { disabled: boolean; reason?: string } => {
+    if (!user.roles || user.roles.length === 0) {
+      return { disabled: false };
+    }
+
+    // A user with any admin/owner role (organization or club) should be disabled
+    // to prevent conflicting role assignments
+    for (const role of user.roles) {
+      if (role.type === "organization") {
+        const roleLabel = role.role === "owner" 
+          ? t("clubAdmins.alreadyOwnerOf", { context: role.contextName })
+          : t("clubAdmins.alreadyAdminOf", { context: role.contextName });
+        return { disabled: true, reason: roleLabel };
+      }
+      
+      if (role.type === "club") {
+        const roleLabel = role.role === "owner"
+          ? t("clubAdmins.alreadyOwnerOf", { context: role.contextName })
+          : t("clubAdmins.alreadyAdminOf", { context: role.contextName });
+        return { disabled: true, reason: roleLabel };
+      }
+    }
+
+    return { disabled: false };
+  };
+
   const handleAddClubAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError("");
@@ -386,26 +413,36 @@ export default function ClubAdminsTable({
                 {simpleUsers.length === 0 ? (
                   <p className="im-user-list-empty">{t("clubAdmins.noUsersFound")}</p>
                 ) : (
-                  simpleUsers.map((u) => (
-                    <label
-                      key={u.id}
-                      className={`im-user-option ${
-                        selectedUserId === u.id ? "im-user-option--selected" : ""
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="userId"
-                        value={u.id}
-                        checked={selectedUserId === u.id}
-                        onChange={(e) => setSelectedUserId(e.target.value)}
-                      />
-                      <span className="im-user-info">
-                        <span className="im-user-name">{u.name || u.email}</span>
-                        <span className="im-user-email">{u.email}</span>
-                      </span>
-                    </label>
-                  ))
+                  simpleUsers.map((u) => {
+                    const disabledInfo = getUserDisabledInfo(u);
+                    return (
+                      <label
+                        key={u.id}
+                        className={`im-user-option ${
+                          selectedUserId === u.id ? "im-user-option--selected" : ""
+                        } ${disabledInfo.disabled ? "im-user-option--disabled" : ""}`}
+                        title={disabledInfo.reason}
+                      >
+                        <input
+                          type="radio"
+                          name="userId"
+                          value={u.id}
+                          checked={selectedUserId === u.id}
+                          onChange={(e) => !disabledInfo.disabled && setSelectedUserId(e.target.value)}
+                          disabled={disabledInfo.disabled}
+                        />
+                        <span className="im-user-info">
+                          <span className="im-user-name">{u.name || u.email}</span>
+                          <span className="im-user-email">{u.email}</span>
+                          {disabledInfo.disabled && disabledInfo.reason && (
+                            <span className="im-user-role-indicator">
+                              {disabledInfo.reason}
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })
                 )}
               </div>
             </>
