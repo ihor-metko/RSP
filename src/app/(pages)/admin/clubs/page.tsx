@@ -154,8 +154,8 @@ export default function AdminClubsPage() {
         case "createdAt":
           comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
           break;
-        case "bookingCount":
-          comparison = (a.bookingCount || 0) - (b.bookingCount || 0);
+        case "courtCount":
+          comparison = (a.courtCount || 0) - (b.courtCount || 0);
           break;
       }
       return controller.sortOrder === "asc" ? comparison : -comparison;
@@ -199,7 +199,7 @@ export default function AdminClubsPage() {
     { key: "name", label: t("admin.clubs.sortNameDesc"), direction: "desc" as const },
     { key: "createdAt", label: t("admin.clubs.sortNewest"), direction: "desc" as const },
     { key: "createdAt", label: t("admin.clubs.sortOldest"), direction: "asc" as const },
-    { key: "bookingCount", label: t("admin.clubs.sortBookings"), direction: "desc" as const },
+    { key: "courtCount", label: t("admin.clubs.sortCourts"), direction: "desc" as const },
   ];
 
   // Quick filter presets for court count
