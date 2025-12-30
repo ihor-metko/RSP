@@ -7,11 +7,10 @@ import { IMLink, PageHeader } from "@/components/ui";
 import { CardListSkeleton } from "@/components/ui/skeletons";
 import { CourtCard } from "@/components/courts/CourtCard";
 import type { AdminType } from "@/app/api/me/admin-status/route";
-import { useUserStore } from "@/stores/useUserStore";
 import { SPORT_TYPE_OPTIONS, type SportType } from "@/constants/sports";
 import type { Club } from "@/types/club";
 import type { Organization } from "@/types/organization";
-import { useListController, useDeferredLoading } from "@/hooks";
+import { useListController, useDeferredLoading, useAuthGuardOnce } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -69,10 +68,11 @@ export default function AdminCourtsPage() {
   // Use deferred loading to prevent flicker on fast responses
   const deferredLoading = useDeferredLoading(loading);
 
-  const adminStatus = useUserStore((state) => state.adminStatus);
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  const isLoadingStore = useUserStore((state) => state.isLoading);
-  const isHydrated = useUserStore((state) => state.isHydrated);
+  // Use auth guard hook (prevents redirect on page reload)
+  const { isLoading: isAuthLoading, adminStatus } = useAuthGuardOnce({
+    requireAuth: true,
+    requireAdmin: true,
+  });
 
   // Use list controller hook for persistent filters
   const controller = useListController<CourtFilters>({
@@ -144,24 +144,17 @@ export default function AdminCourtsPage() {
     }
   }, [controller]);
 
+  // Fetch courts when filters change or on mount
   useEffect(() => {
-    // Wait for hydration before checking auth
-    if (!isHydrated || isLoadingStore) return;
+    // Wait for auth to complete
+    if (isAuthLoading) return;
 
-    if (!isLoggedIn) {
-      router.push("/auth/sign-in");
-      return;
-    }
-
-    // Check admin status and fetch data
+    // Fetch data if user is admin
     if (adminStatus?.isAdmin) {
       fetchCourts();
-    } else if (!isLoadingStore) {
-      // User is not an admin, redirect
-      router.push("/auth/sign-in");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchCourts, isHydrated]);
+  }, [isAuthLoading, adminStatus, fetchCourts]);
 
   // Determine permissions based on admin type
   const canCreate = (adminType: AdminType | undefined): boolean =>
@@ -241,7 +234,8 @@ export default function AdminCourtsPage() {
     router.push(`/admin/courts/${courtId}`);
   };
 
-  if (deferredLoading || isLoadingStore || !isHydrated) {
+  // Show skeleton during auth or data loading
+  if (isAuthLoading || deferredLoading) {
     return (
       <main className="rsp-container p-6">
         <PageHeader

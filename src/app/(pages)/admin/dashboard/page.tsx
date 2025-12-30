@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui";
@@ -11,7 +11,7 @@ import DashboardShell from "@/components/admin/DashboardShell";
 import { DashboardPlaceholder } from "@/components/ui/skeletons";
 import type { UnifiedDashboardResponse } from "@/app/api/admin/unified-dashboard/route";
 import { fetchUnifiedDashboard } from "@/services/dashboard";
-import { useUserStore } from "@/stores/useUserStore";
+import { useAuthGuardOnce } from "@/hooks";
 import "./RootDashboard.css";
 
 /**
@@ -112,13 +112,10 @@ export default function AdminDashboardPage() {
   const [dashboardData, setDashboardData] = useState<UnifiedDashboardResponse | null>(null);
   const [error, setError] = useState("");
   
-  // Use store instead of session
-  const isHydrated = useUserStore((state) => state.isHydrated);
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  const isLoading = useUserStore((state) => state.isLoading);
-
-  // Track if we've performed the initial auth check to prevent redirects on page reload
-  const hasPerformedAuthCheck = useRef(false);
+  // Use auth guard hook (prevents redirect on page reload)
+  const { isLoading: isAuthLoading } = useAuthGuardOnce({
+    requireAuth: true,
+  });
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -142,19 +139,8 @@ export default function AdminDashboardPage() {
   }, [fetchDashboard]);
 
   useEffect(() => {
-    // Wait for hydration and store initialization
-    if (!isHydrated || isLoading) return;
-
-    // Only perform auth redirect on the first check, not on page reloads
-    if (!hasPerformedAuthCheck.current) {
-      hasPerformedAuthCheck.current = true;
-      
-      // Redirect to sign-in if not logged in
-      if (!isLoggedIn) {
-        router.push("/auth/sign-in");
-        return;
-      }
-    }
+    // Wait for auth to complete
+    if (isAuthLoading) return;
 
     const initializeDashboard = async () => {
       setError("");
@@ -170,7 +156,7 @@ export default function AdminDashboardPage() {
     };
 
     initializeDashboard();
-  }, [isLoggedIn, isLoading, router, fetchDashboard, t, isHydrated]);
+  }, [isAuthLoading, fetchDashboard, t]);
 
   // Helper to get dashboard title based on admin type
   const getDashboardTitle = () => {
@@ -200,8 +186,8 @@ export default function AdminDashboardPage() {
     return t("admin.dashboard.subtitle");
   };
 
-  // Show skeleton while hydrating or loading
-  const isLoadingState = !isHydrated || isLoading || !dashboardData;
+  // Show skeleton while loading or no data yet
+  const isLoadingState = isAuthLoading || !dashboardData;
 
   if (isLoadingState && !error) {
     return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, PageHeader, Select } from "@/components/ui";
@@ -9,10 +9,9 @@ import { AdminOrganizationCard } from "@/components/admin/AdminOrganizationCard"
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
-import { useUserStore } from "@/stores/useUserStore";
 import type { Organization } from "@/types/organization";
 import { SportType, SPORT_TYPE_OPTIONS } from "@/constants/sports";
-import { useListController } from "@/hooks";
+import { useListController, useAuthGuardOnce } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -69,13 +68,11 @@ export default function AdminOrganizationsPage() {
   const t = useTranslations();
   const router = useRouter();
   
-  // Use store for auth state
-  const isHydrated = useUserStore((state) => state.isHydrated);
-  const isLoading = useUserStore((state) => state.isLoading);
-  const user = useUserStore((state) => state.user);
-
-  // Track if we've performed the initial auth check to prevent redirects on page reload
-  const hasPerformedAuthCheck = useRef(false);
+  // Use auth guard hook (prevents redirect on page reload)
+  const { isLoading: isAuthLoading } = useAuthGuardOnce({
+    requireAuth: true,
+    requireRoot: true,
+  });
 
   // Use Zustand store for organizations with auto-fetch
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
@@ -321,28 +318,16 @@ export default function AdminOrganizationsPage() {
     }
   }, [fetchSimpleUsers]);
 
+  // Auth check for error conditions (e.g., session expired)
   useEffect(() => {
-    // Wait for hydration before checking auth
-    if (!isHydrated) return;
+    // Wait for auth to complete
+    if (isAuthLoading) return;
 
-    if (isLoading) return;
-
-    // Only perform auth redirect on the first check, not on page reloads
-    if (!hasPerformedAuthCheck.current) {
-      hasPerformedAuthCheck.current = true;
-      
-      if (!user || !user.isRoot) {
-        router.push("/auth/sign-in");
-        return;
-      }
-    }
-
-    // No need to manually fetch - auto-fetch selector will handle it
-    // Only check for auth errors if present
+    // Check for auth errors if present
     if (storeError && (storeError.includes("401") || storeError.includes("403"))) {
       router.push("/auth/sign-in");
     }
-  }, [user, isLoading, router, storeError, isHydrated]);
+  }, [isAuthLoading, router, storeError]);
 
   // Debounced user search
   useEffect(() => {
@@ -674,9 +659,8 @@ export default function AdminOrganizationsPage() {
   };
 
 
-
-  // Combined loading state for consistent loading UI (includes hydration state)
-  const isLoadingState = !isHydrated || isLoading || loading;
+  // Combined loading state for consistent loading UI
+  const isLoadingState = isAuthLoading || loading;
 
   return (
     <ListControllerProvider controller={controller}>

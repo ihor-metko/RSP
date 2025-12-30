@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { IMLink, PageHeader, Select } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import { CardListSkeleton } from "@/components/ui/skeletons";
-import { useListController, useDeferredLoading } from "@/hooks";
+import { useListController, useDeferredLoading, useAuthGuardOnce } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -16,7 +15,6 @@ import {
   PaginationControls,
   QuickPresets,
 } from "@/components/list-controls";
-import { useUserStore } from "@/stores/useUserStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { SPORT_TYPE_OPTIONS, SportType } from "@/constants/sports";
 import "@/components/admin/AdminClubCard.css";
@@ -34,7 +32,12 @@ interface ClubFilters extends Record<string, unknown> {
 
 export default function AdminClubsPage() {
   const t = useTranslations();
-  const router = useRouter();
+
+  // Use auth guard hook (prevents redirect on page reload)
+  const { isLoading: isAuthLoading, adminStatus } = useAuthGuardOnce({
+    requireAuth: true,
+    requireAdmin: true,
+  });
 
   // Use deferred loading to prevent flicker on fast responses
   const clubs = useAdminClubStore((state) => state.clubs);
@@ -43,15 +46,6 @@ export default function AdminClubsPage() {
   const fetchClubsIfNeeded = useAdminClubStore((state) => state.fetchClubsIfNeeded);
 
   const deferredLoading = useDeferredLoading(loadingClubs);
-
-  // Get admin status from user store
-  const adminStatus = useUserStore((state) => state.adminStatus);
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  const isLoadingStore = useUserStore((state) => state.isLoading);
-  const isHydrated = useUserStore((state) => state.isHydrated);
-
-  // Track if we've performed the initial auth check to prevent redirects on page reload
-  const hasPerformedAuthCheck = useRef(false);
 
   // Use list controller hook for persistent filters
   const controller = useListController<ClubFilters>({
@@ -73,24 +67,8 @@ export default function AdminClubsPage() {
 
   // Fetch clubs from store when component mounts or organizationFilter changes
   useEffect(() => {
-    // Wait for hydration before checking auth
-    if (!isHydrated || isLoadingStore) return;
-
-    // Only perform auth redirect on the first check, not on page reloads
-    if (!hasPerformedAuthCheck.current) {
-      hasPerformedAuthCheck.current = true;
-      
-      if (!isLoggedIn) {
-        router.push("/auth/sign-in");
-        return;
-      }
-
-      // User is not an admin, redirect
-      if (!adminStatus?.isAdmin) {
-        router.push("/auth/sign-in");
-        return;
-      }
-    }
+    // Wait for auth to complete
+    if (isAuthLoading) return;
 
     // Fetch clubs if user is admin
     if (adminStatus?.isAdmin) {
@@ -100,7 +78,7 @@ export default function AdminClubsPage() {
         console.error("Failed to fetch clubs:", err);
       });
     }
-  }, [isLoggedIn, isLoadingStore, adminStatus, router, fetchClubsIfNeeded, controller.filters.organizationFilter, isHydrated]);
+  }, [isAuthLoading, adminStatus, fetchClubsIfNeeded, controller.filters.organizationFilter]);
 
   // Client-side filtering and sorting
   const filteredAndSortedClubs = useMemo(() => {
@@ -190,8 +168,8 @@ export default function AdminClubsPage() {
   // Determine permissions based on admin type
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
 
-  // Show skeleton loaders instead of blocking spinner (include hydration state)
-  const isLoading = !isHydrated || isLoadingStore || deferredLoading;
+  // Show skeleton loaders instead of blocking spinner
+  const isLoading = isAuthLoading || deferredLoading;
 
   // Sort options for SortSelect component
   const sortOptions = [

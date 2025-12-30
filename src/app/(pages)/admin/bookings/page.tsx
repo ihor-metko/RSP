@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, Button, type TableColumn, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui";
 import { TableSkeleton } from "@/components/ui/skeletons";
-import { useUserStore } from "@/stores/useUserStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import { BookingDetailsModal } from "@/components/admin/BookingDetailsModal";
 import { formatDateTime, calculateDuration, getInitials } from "@/utils/bookingFormatters";
-import { useListController, useDeferredLoading } from "@/hooks";
+import { useListController, useDeferredLoading, useAuthGuardOnce } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -49,14 +48,11 @@ export default function AdminBookingsPage() {
   const t = useTranslations();
   const router = useRouter();
 
-  // Get admin status from user store
-  const adminStatus = useUserStore((state) => state.adminStatus);
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  const isLoading = useUserStore((state) => state.isLoading);
-  const isHydrated = useUserStore((state) => state.isHydrated);
-
-  // Track if we've performed the initial auth check to prevent redirects on page reload
-  const hasPerformedAuthCheck = useRef(false);
+  // Use auth guard hook (prevents redirect on page reload)
+  const { isLoading: isAuthLoading, adminStatus } = useAuthGuardOnce({
+    requireAuth: true,
+    requireAdmin: true,
+  });
 
   // Bookings data
   const [bookingsData, setBookingsData] = useState<AdminBookingsListResponse | null>(null);
@@ -220,23 +216,10 @@ export default function AdminBookingsPage() {
     ];
   };
 
-  // Redirect if not logged in or not admin (only on initial mount, not on reload)
-  useEffect(() => {
-    if (!isHydrated) return;
-    
-    // Only perform auth redirect on the first check, not on page reloads
-    if (hasPerformedAuthCheck.current) return;
-    hasPerformedAuthCheck.current = true;
-    
-    if (!isLoggedIn || !adminStatus?.isAdmin) {
-      router.push("/auth/sign-in");
-    }
-  }, [isHydrated, isLoggedIn, adminStatus, router]);
-
-  const isLoadingState = !isHydrated || isLoading;
+  const isLoadingState = isAuthLoading;
 
   // Check if should show content
-  const shouldShowContent = isHydrated && isLoggedIn && adminStatus?.isAdmin;
+  const shouldShowContent = !isAuthLoading && adminStatus?.isAdmin;
 
   const handleOpenBookingWizard = async () => {
     // Determine predefined data based on admin context
