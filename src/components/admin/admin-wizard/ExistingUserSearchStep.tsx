@@ -4,19 +4,31 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui";
 import { SelectedUserCard } from "./SelectedUserCard";
-import type { ExistingUserData, AdminWizardErrors } from "@/types/adminWizard";
+import type { ExistingUserData, AdminWizardErrors, AdminRole } from "@/types/adminWizard";
 
 interface ExistingUserSearchStepProps {
   data: Partial<ExistingUserData>;
   onChange: (data: Partial<ExistingUserData>) => void;
   errors: AdminWizardErrors;
   disabled: boolean;
+  // Context information to determine which users should be disabled
+  organizationId?: string;
+  clubId?: string;
+  role?: AdminRole;
+}
+
+interface UserRole {
+  type: "organization" | "club";
+  role: "owner" | "admin";
+  contextId: string;
+  contextName: string;
 }
 
 interface SearchResult {
   id: string;
   name: string;
   email: string;
+  roles: UserRole[];
 }
 
 export function ExistingUserSearchStep({
@@ -24,6 +36,9 @@ export function ExistingUserSearchStep({
   onChange,
   errors,
   disabled,
+  organizationId,
+  clubId,
+  role,
 }: ExistingUserSearchStepProps) {
   const t = useTranslations("createAdminWizard.existingUserSearchStep");
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,6 +49,53 @@ export function ExistingUserSearchStep({
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if a user should be disabled based on their existing roles
+  const getUserDisabledInfo = useCallback((user: SearchResult): { disabled: boolean; reason?: string } => {
+    if (!role || !user.roles || user.roles.length === 0) {
+      return { disabled: false };
+    }
+
+    // Check for organization-level roles
+    if (role === "ORGANIZATION_OWNER" || role === "ORGANIZATION_ADMIN") {
+      if (!organizationId) {
+        return { disabled: false };
+      }
+
+      // Check if user already has a role in this organization
+      const existingOrgRole = user.roles.find(
+        r => r.type === "organization" && r.contextId === organizationId
+      );
+
+      if (existingOrgRole) {
+        const roleLabel = existingOrgRole.role === "owner" 
+          ? t("alreadyOwnerOf", { context: existingOrgRole.contextName })
+          : t("alreadyAdminOf", { context: existingOrgRole.contextName });
+        return { disabled: true, reason: roleLabel };
+      }
+    }
+
+    // Check for club-level roles
+    if (role === "CLUB_OWNER" || role === "CLUB_ADMIN") {
+      if (!clubId) {
+        return { disabled: false };
+      }
+
+      // Check if user already has a role in this club
+      const existingClubRole = user.roles.find(
+        r => r.type === "club" && r.contextId === clubId
+      );
+
+      if (existingClubRole) {
+        const roleLabel = existingClubRole.role === "owner"
+          ? t("alreadyOwnerOf", { context: existingClubRole.contextName })
+          : t("alreadyAdminOf", { context: existingClubRole.contextName });
+        return { disabled: true, reason: roleLabel };
+      }
+    }
+
+    return { disabled: false };
+  }, [role, organizationId, clubId, t]);
 
   // Debounced search function
   const performSearch = useCallback(async (query: string) => {
@@ -91,6 +153,13 @@ export function ExistingUserSearchStep({
 
   // Handle user selection
   const handleSelectUser = useCallback((user: SearchResult) => {
+    // Check if user should be disabled
+    const disabledInfo = getUserDisabledInfo(user);
+    if (disabledInfo.disabled) {
+      // Don't allow selection of disabled users
+      return;
+    }
+
     onChange({
       userId: user.id,
       email: user.email,
@@ -100,7 +169,7 @@ export function ExistingUserSearchStep({
     setSearchResults([]);
     setShowDropdown(false);
     setFocusedIndex(-1);
-  }, [onChange]);
+  }, [onChange, getUserDisabledInfo]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -213,21 +282,35 @@ export function ExistingUserSearchStep({
                   className="im-autocomplete-dropdown"
                   role="listbox"
                 >
-                  {searchResults.map((user, index) => (
-                    <div
-                      key={user.id}
-                      role="option"
-                      aria-selected={index === focusedIndex}
-                      className={`im-autocomplete-item ${index === focusedIndex ? "im-focused" : ""}`}
-                      onClick={() => handleSelectUser(user)}
-                      onMouseEnter={() => setFocusedIndex(index)}
-                    >
-                      <div className="im-autocomplete-item-name">
-                        {user.name || t("noName")}
+                  {searchResults.map((user, index) => {
+                    const disabledInfo = getUserDisabledInfo(user);
+                    return (
+                      <div
+                        key={user.id}
+                        role="option"
+                        aria-selected={index === focusedIndex}
+                        aria-disabled={disabledInfo.disabled}
+                        className={`im-autocomplete-item ${
+                          index === focusedIndex ? "im-focused" : ""
+                        } ${disabledInfo.disabled ? "im-autocomplete-item--disabled" : ""}`}
+                        onClick={() => handleSelectUser(user)}
+                        onMouseEnter={() => setFocusedIndex(index)}
+                        title={disabledInfo.reason}
+                      >
+                        <div className="im-autocomplete-item-content">
+                          <div className="im-autocomplete-item-name">
+                            {user.name || t("noName")}
+                          </div>
+                          <div className="im-autocomplete-item-email">{user.email}</div>
+                          {disabledInfo.disabled && disabledInfo.reason && (
+                            <div className="im-autocomplete-item-role-indicator">
+                              {disabledInfo.reason}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="im-autocomplete-item-email">{user.email}</div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

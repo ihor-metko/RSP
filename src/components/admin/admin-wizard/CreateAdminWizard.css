@@ -198,7 +198,7 @@
 }
 
 .im-autocomplete-item {
-  background: #000;
+  background: var(--im-item-bg, var(--color-surface-secondary));
   padding: 0.75rem 1rem;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -209,16 +209,39 @@
   border-bottom: none;
 }
 
+.im-autocomplete-item:hover:not(.im-autocomplete-item--disabled),
+.im-autocomplete-item.im-focused:not(.im-autocomplete-item--disabled) {
+  background: var(--im-item-hover-bg, var(--color-surface-tertiary));
+}
+
+.im-autocomplete-item--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: var(--im-item-disabled-bg, var(--color-surface-tertiary));
+}
+
+.im-autocomplete-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .im-autocomplete-item-name {
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--im-item-name, var(--color-text-primary));
-  margin-bottom: 0.25rem;
 }
 
 .im-autocomplete-item-email {
   font-size: 0.75rem;
   color: var(--im-item-email, var(--color-text-secondary));
+}
+
+.im-autocomplete-item-role-indicator {
+  font-size: 0.75rem;
+  color: var(--im-role-indicator, var(--color-warning));
+  font-style: italic;
+  margin-top: 0.125rem;
 }
 
 /* Selected User Display */

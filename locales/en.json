@@ -2521,6 +2521,8 @@
       "changeUser": "Change User",
       "noName": "No name",
       "registrationNotice": "To assign an administrator, please select an existing user. If the user does not exist, they must register first.",
+      "alreadyOwnerOf": "Already Owner of {context}",
+      "alreadyAdminOf": "Already Admin in {context}",
       "errors": {
         "enterEmail": "Please enter an email address to search",
         "invalidEmail": "Please enter a valid email address",
