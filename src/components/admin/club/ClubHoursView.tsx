@@ -7,17 +7,8 @@ import { WorkingHoursEditor, validateWorkingHours } from "../WorkingHoursEditor.
 import type { SpecialHour } from "../SpecialHoursField.client";
 import type { BusinessHour } from "@/types/admin";
 import type { ClubDetail, ClubBusinessHours, ClubSpecialHours } from "@/types/club";
+import { DAY_NAMES } from "@/constants/workingHours";
 import "./ClubHoursView.css";
-
-const DAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
 
 interface ClubHoursViewProps {
   club: ClubDetail;

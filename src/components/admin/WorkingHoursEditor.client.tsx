@@ -3,17 +3,8 @@
 import { BusinessHoursField } from "./BusinessHoursField.client";
 import { SpecialHoursField, type SpecialHour } from "./SpecialHoursField.client";
 import type { BusinessHour } from "@/types/admin";
+import { DAY_NAMES } from "@/constants/workingHours";
 import "./WorkingHoursEditor.css";
-
-const DAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
 
 export interface WorkingHoursEditorProps {
   businessHours: BusinessHour[];

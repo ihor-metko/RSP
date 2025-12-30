@@ -2,30 +2,15 @@
 
 import { useCallback } from "react";
 import { Checkbox } from "@/components/ui";
+import type { BusinessHour } from "@/types/admin";
+import { DAY_NAMES } from "@/constants/workingHours";
 import "./BusinessHoursField.css";
-
-interface BusinessHour {
-  dayOfWeek: number;
-  openTime: string | null;
-  closeTime: string | null;
-  isClosed: boolean;
-}
 
 interface BusinessHoursFieldProps {
   value: BusinessHour[];
   onChange: (hours: BusinessHour[]) => void;
   disabled?: boolean;
 }
-
-const DAY_NAMES = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
 
 export function BusinessHoursField({ value, onChange, disabled }: BusinessHoursFieldProps) {
   const handleTimeChange = useCallback((dayOfWeek: number, field: "openTime" | "closeTime", time: string) => {
