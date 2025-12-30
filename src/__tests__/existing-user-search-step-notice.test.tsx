@@ -66,6 +66,9 @@ describe("ExistingUserSearchStep - Registration Notice", () => {
     onChange: mockOnChange,
     errors: {},
     disabled: false,
+    organizationId: undefined,
+    clubId: undefined,
+    role: undefined,
   };
 
   beforeEach(() => {
