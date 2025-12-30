@@ -4,17 +4,13 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui";
 import { SelectedUserCard } from "./SelectedUserCard";
-import type { ExistingUserData, AdminWizardErrors, AdminRole } from "@/types/adminWizard";
+import type { ExistingUserData, AdminWizardErrors } from "@/types/adminWizard";
 
 interface ExistingUserSearchStepProps {
   data: Partial<ExistingUserData>;
   onChange: (data: Partial<ExistingUserData>) => void;
   errors: AdminWizardErrors;
   disabled: boolean;
-  // Context information to determine which users should be disabled
-  organizationId?: string;
-  clubId?: string;
-  role?: AdminRole;
 }
 
 interface UserRole {

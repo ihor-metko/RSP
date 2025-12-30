@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal, IMLink, ImageCarousel, EntityBanner, DangerZone, BookingsPreviewSkeleton } from "@/components/ui";
 import type { DangerAction } from "@/components/ui";
@@ -17,12 +18,26 @@ import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useClubPageData } from "@/hooks/useClubPageData";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
-import { parseTags, getPriceRange, getCourtCounts, getGoogleMapsEmbedUrl } from "@/utils/club";
+import { parseTags, getPriceRange, getCourtCounts } from "@/utils/club";
 import { parseClubMetadata } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
 import "./page.css";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
+
+// Create a loading component wrapper for map
+function MapLoadingPlaceholder({ message }: { message: string }) {
+  return (
+    <div className="rsp-club-map-placeholder">
+      <span className="rsp-club-map-placeholder-text">{message}</span>
+    </div>
+  );
+}
+
+// Lazy load the ClubMap component for performance optimization
+const ClubMap = dynamic(() => import("@/components/ClubMap").then((mod) => mod.ClubMap), {
+  ssr: false,
+});
 
 export default function AdminClubDetailPage({
   params,
@@ -244,10 +259,6 @@ export default function AdminClubDetailPage({
   const priceRange = getPriceRange(club.courts);
   const courtCounts = getCourtCounts(club.courts);
   const hasValidCoordinates = club.latitude != null && club.longitude != null;
-  const mapsEmbedUrl = hasValidCoordinates
-    ? getGoogleMapsEmbedUrl(club.latitude as number, club.longitude as number, process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
-    : null;
-  const hasMap = mapsEmbedUrl !== null;
 
   // Format location display
   const locationDisplay = [club.city, club.country].filter(Boolean).join(", ") || club.location;
@@ -374,7 +385,7 @@ export default function AdminClubDetailPage({
             </Card>
 
             {/* Map Section */}
-            {hasMap && (
+            {hasValidCoordinates && (
               <Card className="im-admin-club-info-card">
                 <div className="im-admin-club-section-header">
                   <h2 className="im-admin-club-section-title">
@@ -386,17 +397,17 @@ export default function AdminClubDetailPage({
                     {t("clubs.location")}
                   </h2>
                 </div>
-                <div className="im-admin-club-map-container">
-                  <iframe
-                    title={`${club.name} location map`}
-                    width="100%"
-                    height="100%"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    src={mapsEmbedUrl as string}
-                  />
-                </div>
+                {process.env.NODE_ENV === "production" ? (
+                  <Suspense fallback={<MapLoadingPlaceholder message={t("common.loadingMap")} />}>
+                    <ClubMap
+                      latitude={club.latitude!}
+                      longitude={club.longitude!}
+                      clubName={club.name}
+                    />
+                  </Suspense>
+                ) : (
+                  <div>{t("common.mapHiddenInDev")}</div>
+                )}
                 <p className="im-admin-club-map-address">{club.location}</p>
               </Card>
             )}

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Modal, Input, Select } from "@/components/ui";
+import { Button, Modal, Input, Select, UserSearchDropdown } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { UserProfileModal } from "./UserProfileModal";
 import type { SimpleUser } from "@/types/adminUser";
+import "@/components/admin/admin-wizard/CreateAdminWizard.css";
 
 interface ClubAdmin {
   id: string;
@@ -47,7 +48,7 @@ export default function ClubAdminsTable({
   const [addMode, setAddMode] = useState<"existing" | "invite">("existing");
   const simpleUsers = useAdminUsersStore((state) => state.simpleUsers);
   const fetchSimpleUsers = useAdminUsersStore((state) => state.fetchSimpleUsers);
-  const [userSearch, setUserSearch] = useState("");
+  const isSearching = useAdminUsersStore((state) => state.loading);
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedClubId, setSelectedClubId] = useState("");
   const [inviteName, setInviteName] = useState("");
@@ -90,7 +91,6 @@ export default function ClubAdminsTable({
   // Handle add club admin
   const handleOpenAddModal = async () => {
     setAddMode("existing");
-    setUserSearch("");
     setSelectedUserId("");
     setSelectedClubId("");
     setInviteName("");
@@ -110,12 +110,12 @@ export default function ClubAdminsTable({
     // to prevent conflicting role assignments
     for (const role of user.roles) {
       if (role.type === "organization") {
-        const roleLabel = role.role === "owner" 
+        const roleLabel = role.role === "owner"
           ? t("clubAdmins.alreadyOwnerOf", { context: role.contextName })
           : t("clubAdmins.alreadyAdminOf", { context: role.contextName });
         return { disabled: true, reason: roleLabel };
       }
-      
+
       if (role.type === "club") {
         const roleLabel = role.role === "owner"
           ? t("clubAdmins.alreadyOwnerOf", { context: role.contextName })
@@ -128,10 +128,8 @@ export default function ClubAdminsTable({
   };
 
   // Handle user selection (only if not disabled)
-  const handleUserSelect = (userId: string, disabled: boolean) => {
-    if (!disabled) {
-      setSelectedUserId(userId);
-    }
+  const handleUserSelect = (userId: string) => {
+    setSelectedUserId(userId);
   };
 
   const handleAddClubAdmin = async (e: React.FormEvent) => {
@@ -143,14 +141,14 @@ export default function ClubAdminsTable({
       const payload =
         addMode === "invite"
           ? {
-              email: inviteEmail,
-              name: inviteName,
-              clubId: selectedClubId,
-            }
+            email: inviteEmail,
+            name: inviteName,
+            clubId: selectedClubId,
+          }
           : {
-              userId: selectedUserId,
-              clubId: selectedClubId,
-            };
+            userId: selectedUserId,
+            clubId: selectedClubId,
+          };
 
       const response = await fetch(`/api/orgs/${orgId}/club-admins`, {
         method: "POST",
@@ -266,22 +264,6 @@ export default function ClubAdminsTable({
     }
   };
 
-  // Debounced user search
-  const handleUserSearchChange = (value: string) => {
-    setUserSearch(value);
-  };
-
-  // Debounce user search
-  useEffect(() => {
-    if (!isAddModalOpen || addMode !== "existing") return;
-
-    const timer = setTimeout(() => {
-      fetchSimpleUsers(userSearch);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [userSearch, isAddModalOpen, addMode, fetchSimpleUsers]);
-
   // Root Admin or Organization Admin can manage club admins
   const canManageClubAdmins = isRoot || isOrgAdmin(orgId);
 
@@ -391,18 +373,16 @@ export default function ClubAdminsTable({
           <div className="im-assign-mode-tabs">
             <button
               type="button"
-              className={`im-assign-mode-tab ${
-                addMode === "existing" ? "im-assign-mode-tab--active" : ""
-              }`}
+              className={`im-assign-mode-tab ${addMode === "existing" ? "im-assign-mode-tab--active" : ""
+                }`}
               onClick={() => setAddMode("existing")}
             >
               {t("clubAdmins.existingUser")}
             </button>
             <button
               type="button"
-              className={`im-assign-mode-tab ${
-                addMode === "invite" ? "im-assign-mode-tab--active" : ""
-              }`}
+              className={`im-assign-mode-tab ${addMode === "invite" ? "im-assign-mode-tab--active" : ""
+                }`}
               onClick={() => setAddMode("invite")}
             >
               {t("clubAdmins.inviteUser")}
@@ -410,50 +390,17 @@ export default function ClubAdminsTable({
           </div>
 
           {addMode === "existing" ? (
-            <>
-              <Input
-                label={t("clubAdmins.searchUsers")}
-                value={userSearch}
-                onChange={(e) => handleUserSearchChange(e.target.value)}
-                placeholder={t("clubAdmins.searchUsersPlaceholder")}
-              />
-              <div className="im-user-list">
-                {simpleUsers.length === 0 ? (
-                  <p className="im-user-list-empty">{t("clubAdmins.noUsersFound")}</p>
-                ) : (
-                  simpleUsers.map((u) => {
-                    const disabledInfo = getUserDisabledInfo(u);
-                    return (
-                      <label
-                        key={u.id}
-                        className={`im-user-option ${
-                          selectedUserId === u.id ? "im-user-option--selected" : ""
-                        } ${disabledInfo.disabled ? "im-user-option--disabled" : ""}`}
-                        title={disabledInfo.reason}
-                      >
-                        <input
-                          type="radio"
-                          name="userId"
-                          value={u.id}
-                          checked={selectedUserId === u.id}
-                          onChange={(e) => handleUserSelect(e.target.value, disabledInfo.disabled)}
-                          disabled={disabledInfo.disabled}
-                        />
-                        <span className="im-user-info">
-                          <span className="im-user-name">{u.name || u.email}</span>
-                          <span className="im-user-email">{u.email}</span>
-                          {disabledInfo.disabled && disabledInfo.reason && (
-                            <span className="im-user-role-indicator">
-                              {disabledInfo.reason}
-                            </span>
-                          )}
-                        </span>
-                      </label>
-                    );
-                  })
-                )}
-              </div>
-            </>
+            <UserSearchDropdown
+              onSelect={handleUserSelect}
+              users={simpleUsers}
+              onSearchChange={fetchSimpleUsers}
+              isSearching={isSearching}
+              placeholder={t("clubAdmins.searchUsersPlaceholder")}
+              label={t("clubAdmins.searchUsers")}
+              disabled={adding}
+              getUserDisabledInfo={getUserDisabledInfo}
+              translationPrefix="clubAdmins"
+            />
           ) : (
             <>
               <Input
