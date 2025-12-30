@@ -126,6 +126,13 @@ export default function ClubAdminsTable({
     return { disabled: false };
   };
 
+  // Handle user selection (only if not disabled)
+  const handleUserSelect = (userId: string, disabled: boolean) => {
+    if (!disabled) {
+      setSelectedUserId(userId);
+    }
+  };
+
   const handleAddClubAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError("");
@@ -428,7 +435,7 @@ export default function ClubAdminsTable({
                           name="userId"
                           value={u.id}
                           checked={selectedUserId === u.id}
-                          onChange={(e) => !disabledInfo.disabled && setSelectedUserId(e.target.value)}
+                          onChange={(e) => handleUserSelect(e.target.value, disabledInfo.disabled)}
                           disabled={disabledInfo.disabled}
                         />
                         <span className="im-user-info">

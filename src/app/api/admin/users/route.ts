@@ -75,6 +75,9 @@ export async function GET(request: Request) {
         name: true,
         email: true,
         memberships: {
+          where: {
+            role: "ORGANIZATION_ADMIN",
+          },
           select: {
             id: true,
             organizationId: true,
@@ -88,6 +91,11 @@ export async function GET(request: Request) {
           },
         },
         clubMemberships: {
+          where: {
+            role: {
+              in: ["CLUB_OWNER", "CLUB_ADMIN"],
+            },
+          },
           select: {
             id: true,
             clubId: true,
@@ -114,7 +122,7 @@ export async function GET(request: Request) {
         contextName: string;
       }> = [];
 
-      // Add organization roles
+      // Add organization admin roles (already filtered to ORGANIZATION_ADMIN)
       user.memberships.forEach((membership) => {
         roles.push({
           type: "organization",
@@ -124,7 +132,7 @@ export async function GET(request: Request) {
         });
       });
 
-      // Add club roles
+      // Add club admin/owner roles (already filtered to CLUB_OWNER and CLUB_ADMIN)
       user.clubMemberships.forEach((membership) => {
         roles.push({
           type: "club",
