@@ -116,24 +116,62 @@ export async function POST(
         currentMetadata = {};
       }
       
-      const logoMetadata = currentMetadata.logoMetadata as Record<string, unknown> || {};
-      logoMetadata.secondLogo = url;
+      currentMetadata.secondLogo = url;
       
       await prisma.organization.update({
         where: { id: organizationId },
         data: {
-          metadata: JSON.stringify({
-            ...currentMetadata,
-            logoMetadata,
-          }),
+          metadata: JSON.stringify(currentMetadata),
         },
       });
-    } else {
-      // For logo and heroImage, store in their respective columns
+    } else if (imageType === "logo") {
+      // For logo, update logoData JSON field
+      const org = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { logoData: true },
+      });
+
+      let logoData: { url: string; altText?: string; thumbnailUrl?: string } = { url };
+      if (org?.logoData) {
+        try {
+          const existing = JSON.parse(org.logoData);
+          // Preserve existing metadata, update URL
+          logoData = { ...existing, url };
+        } catch {
+          // Invalid JSON, use new data
+          logoData = { url };
+        }
+      }
+
       await prisma.organization.update({
         where: { id: organizationId },
         data: {
-          [imageType]: url,
+          logoData: JSON.stringify(logoData),
+        },
+      });
+    } else if (imageType === "heroImage") {
+      // For heroImage, update bannerData JSON field
+      const org = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { bannerData: true },
+      });
+
+      let bannerData: { url: string; altText?: string; description?: string; position?: string } = { url };
+      if (org?.bannerData) {
+        try {
+          const existing = JSON.parse(org.bannerData);
+          // Preserve existing metadata, update URL
+          bannerData = { ...existing, url };
+        } catch {
+          // Invalid JSON, use new data
+          bannerData = { url };
+        }
+      }
+
+      await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+          bannerData: JSON.stringify(bannerData),
         },
       });
     }

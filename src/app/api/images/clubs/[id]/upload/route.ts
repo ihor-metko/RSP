@@ -126,12 +126,54 @@ export async function POST(
           metadata: JSON.stringify(metadata),
         },
       });
-    } else {
-      // For logo and heroImage, update the direct columns
+    } else if (imageType === "logo") {
+      // For logo, update logoData JSON field
+      const club = await prisma.club.findUnique({
+        where: { id: clubId },
+        select: { logoData: true },
+      });
+
+      let logoData: { url: string; altText?: string; thumbnailUrl?: string } = { url };
+      if (club?.logoData) {
+        try {
+          const existing = JSON.parse(club.logoData);
+          // Preserve existing metadata, update URL
+          logoData = { ...existing, url };
+        } catch {
+          // Invalid JSON, use new data
+          logoData = { url };
+        }
+      }
+
       await prisma.club.update({
         where: { id: clubId },
         data: {
-          [imageType]: url,
+          logoData: JSON.stringify(logoData),
+        },
+      });
+    } else if (imageType === "heroImage") {
+      // For heroImage, update bannerData JSON field
+      const club = await prisma.club.findUnique({
+        where: { id: clubId },
+        select: { bannerData: true },
+      });
+
+      let bannerData: { url: string; altText?: string; description?: string; position?: string } = { url };
+      if (club?.bannerData) {
+        try {
+          const existing = JSON.parse(club.bannerData);
+          // Preserve existing metadata, update URL
+          bannerData = { ...existing, url };
+        } catch {
+          // Invalid JSON, use new data
+          bannerData = { url };
+        }
+      }
+
+      await prisma.club.update({
+        where: { id: clubId },
+        data: {
+          bannerData: JSON.stringify(bannerData),
         },
       });
     }
