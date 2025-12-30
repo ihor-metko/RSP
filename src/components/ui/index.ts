@@ -77,3 +77,5 @@ export { DangerZone } from "./DangerZone";
 export type { DangerZoneProps, DangerAction } from "./DangerZone";
 export { ClubStatisticsCard } from "./ClubStatisticsCard";
 export type { ClubStatisticsCardProps } from "./ClubStatisticsCard";
+export { UserSearchDropdown } from "./UserSearchDropdown";
+export type { UserSearchDropdownProps } from "./UserSearchDropdown";
