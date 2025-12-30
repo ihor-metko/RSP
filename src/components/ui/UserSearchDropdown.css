@@ -1,0 +1,105 @@
+/* User Search Dropdown Component Styles */
+
+.im-user-search-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.im-user-search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.im-user-search-loading {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: var(--im-loading-text, var(--color-text-tertiary));
+  pointer-events: none;
+  margin-top: 0.75rem; /* Adjust for label height */
+}
+
+/* Dropdown overlay (rendered in portal) */
+.im-user-search-dropdown {
+  background: var(--im-dropdown-bg, var(--color-surface-secondary));
+  border: 1px solid var(--im-dropdown-border, var(--color-border));
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.dark .im-user-search-dropdown {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+/* Dropdown option */
+.im-user-search-option {
+  background: var(--im-option-bg, var(--color-surface-secondary));
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid var(--im-option-border, var(--color-border));
+}
+
+.im-user-search-option:last-child {
+  border-bottom: none;
+}
+
+.im-user-search-option:hover:not(.im-user-search-option--disabled),
+.im-user-search-option--focused:not(.im-user-search-option--disabled) {
+  background: var(--im-option-hover-bg, var(--color-surface-tertiary));
+}
+
+.im-user-search-option--selected {
+  background: rgba(108, 99, 255, 0.1);
+}
+
+.dark .im-user-search-option--selected {
+  background: rgba(108, 99, 255, 0.15);
+}
+
+.im-user-search-option--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: var(--im-option-disabled-bg, var(--color-surface-tertiary));
+}
+
+/* Option content */
+.im-user-search-option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.im-user-search-option-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--im-option-name, var(--color-text-primary));
+}
+
+.im-user-search-option-email {
+  font-size: 0.75rem;
+  color: var(--im-option-email, var(--color-text-secondary));
+}
+
+.im-user-search-option-role-indicator {
+  font-size: 0.75rem;
+  color: var(--im-role-indicator, var(--color-warning));
+  font-style: italic;
+  margin-top: 0.125rem;
+}
+
+/* Empty state */
+.im-user-search-empty {
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--im-empty-text, var(--color-text-secondary));
+  background: var(--im-empty-bg, var(--color-surface-secondary));
+  border: 1px solid var(--im-empty-border, var(--color-border));
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+}

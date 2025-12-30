@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Modal, Input, Select } from "@/components/ui";
+import { Button, Modal, Input, Select, UserSearchDropdown } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { UserProfileModal } from "./UserProfileModal";
+import type { SimpleUser } from "@/types/adminUser";
 
 interface ClubAdmin {
   id: string;
@@ -124,13 +125,6 @@ export default function ClubAdminsTable({
     }
 
     return { disabled: false };
-  };
-
-  // Handle user selection (only if not disabled)
-  const handleUserSelect = (userId: string, disabled: boolean) => {
-    if (!disabled) {
-      setSelectedUserId(userId);
-    }
   };
 
   const handleAddClubAdmin = async (e: React.FormEvent) => {
@@ -410,48 +404,18 @@ export default function ClubAdminsTable({
 
           {addMode === "existing" ? (
             <>
-              <Input
+              <UserSearchDropdown
                 label={t("clubAdmins.searchUsers")}
-                value={userSearch}
-                onChange={(e) => handleUserSearchChange(e.target.value)}
                 placeholder={t("clubAdmins.searchUsersPlaceholder")}
+                searchQuery={userSearch}
+                onSearchChange={handleUserSearchChange}
+                users={simpleUsers}
+                selectedUserId={selectedUserId}
+                onUserSelect={(userId) => setSelectedUserId(userId)}
+                disabled={adding}
+                getUserDisabledInfo={getUserDisabledInfo}
+                emptyMessage={t("clubAdmins.noUsersFound")}
               />
-              <div className="im-user-list">
-                {simpleUsers.length === 0 ? (
-                  <p className="im-user-list-empty">{t("clubAdmins.noUsersFound")}</p>
-                ) : (
-                  simpleUsers.map((u) => {
-                    const disabledInfo = getUserDisabledInfo(u);
-                    return (
-                      <label
-                        key={u.id}
-                        className={`im-user-option ${
-                          selectedUserId === u.id ? "im-user-option--selected" : ""
-                        } ${disabledInfo.disabled ? "im-user-option--disabled" : ""}`}
-                        title={disabledInfo.reason}
-                      >
-                        <input
-                          type="radio"
-                          name="userId"
-                          value={u.id}
-                          checked={selectedUserId === u.id}
-                          onChange={(e) => handleUserSelect(e.target.value, disabledInfo.disabled)}
-                          disabled={disabledInfo.disabled}
-                        />
-                        <span className="im-user-info">
-                          <span className="im-user-name">{u.name || u.email}</span>
-                          <span className="im-user-email">{u.email}</span>
-                          {disabledInfo.disabled && disabledInfo.reason && (
-                            <span className="im-user-role-indicator">
-                              {disabledInfo.reason}
-                            </span>
-                          )}
-                        </span>
-                      </label>
-                    );
-                  })
-                )}
-              </div>
             </>
           ) : (
             <>
