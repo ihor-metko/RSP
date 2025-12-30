@@ -93,7 +93,8 @@ export function ClubAdminsSection({
     setError("");
     
     try {
-      await fetchAdminsIfNeeded("club", clubId, { force: true });
+      // Use cached data if available; only fetch if not cached or stale
+      await fetchAdminsIfNeeded("club", clubId);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to load club admins";
       if (errorMessage.includes("403")) {

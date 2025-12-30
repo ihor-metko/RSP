@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { use, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, Modal, IMLink, ImageCarousel, EntityBanner, DangerZone, BookingsPreviewSkeleton } from "@/components/ui";
@@ -31,7 +31,9 @@ export default function AdminClubDetailPage({
 }) {
   const router = useRouter();
   const t = useTranslations();
-  const [clubId, setClubId] = useState<string | null>(null);
+  
+  // Unwrap params synchronously using React.use()
+  const { id: clubId } = use(params);
 
   // Use orchestration hook for all club data
   // Note: loadAdmins is false because ClubAdminsSection fetches independently
@@ -60,12 +62,6 @@ export default function AdminClubDetailPage({
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
-
-  useEffect(() => {
-    params.then((resolvedParams) => {
-      setClubId(resolvedParams.id);
-    });
-  }, [params]);
 
   // Handle errors from data fetching
   useEffect(() => {
