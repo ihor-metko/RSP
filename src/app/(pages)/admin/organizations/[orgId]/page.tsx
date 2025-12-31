@@ -90,6 +90,7 @@ export default function OrganizationDetailPage() {
       setError(t("orgDetail.failedToLoad"));
       console.error("Failed to load organization:", err);
     }
+    // ensureOrganizationById is a stable Zustand action and doesn't need to be in dependencies
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgId, t]);
 
