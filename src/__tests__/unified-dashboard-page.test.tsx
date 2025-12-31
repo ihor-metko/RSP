@@ -59,6 +59,10 @@ jest.mock("next-intl", () => ({
         "unifiedDashboard.clubAdminStatsTitle": "Overview",
         "unifiedDashboard.clubAdminStatsDescription": "Summary of courts and bookings across your clubs",
         "unifiedDashboard.totalCourts": "Total Courts",
+        "rootAdmin.dashboard.platformStatsTitle": "Platform Statistics",
+        "rootAdmin.dashboard.platformStatsDescription": "Overview of the entire platform",
+        "rootAdmin.dashboard.registeredUsersTitle": "Registered Users",
+        "rootAdmin.dashboard.registeredUsersDescription": "Total registered players",
       };
       return translations[key] || key;
     };
@@ -143,17 +147,42 @@ jest.mock("@/components/admin/BookingsOverview", () => {
 
 // Mock RegisteredUsersCard component
 jest.mock("@/components/admin/RegisteredUsersCard", () => ({
-  RegisteredUsersCard: () => <div data-testid="registered-users-card">Registered Users</div>,
+  RegisteredUsersCard: ({ data }: { data?: any }) => (
+    <div data-testid="registered-users-card">
+      {data && <div>Registered Users: {data.totalUsers}</div>}
+    </div>
+  ),
 }));
 
 // Mock DashboardGraphs component
 jest.mock("@/components/admin/DashboardGraphs", () => {
-  const MockDashboardGraphs = () => <div data-testid="dashboard-graphs">Dashboard Graphs</div>;
+  const MockDashboardGraphs = ({ initialData }: { initialData?: any }) => (
+    <div data-testid="dashboard-graphs">
+      Dashboard Graphs
+      {initialData && <div data-testid="graphs-data">Graphs loaded</div>}
+    </div>
+  );
   MockDashboardGraphs.displayName = "MockDashboardGraphs";
   return MockDashboardGraphs;
 });
 
-const mockUseSession = useSession as jest.Mock;
+// Mock DashboardShell component
+jest.mock("@/components/admin/DashboardShell", () => {
+  const MockDashboardShell = ({ header, children }: { header: React.ReactNode; children: React.ReactNode }) => (
+    <div data-testid="dashboard-shell">
+      {header}
+      {children}
+    </div>
+  );
+  MockDashboardShell.displayName = "MockDashboardShell";
+  return MockDashboardShell;
+});
+
+// Mock DashboardPlaceholder component
+jest.mock("@/components/ui/skeletons", () => ({
+  DashboardPlaceholder: () => <div data-testid="dashboard-placeholder">Loading...</div>,
+}));
+
 const mockUseRouter = useRouter as jest.Mock;
 
 describe("AdminDashboardPage (Unified)", () => {
@@ -170,38 +199,16 @@ describe("AdminDashboardPage (Unified)", () => {
     jest.clearAllTimers();
   });
 
-  it("should show loading state while session is loading", () => {
-    mockUseSession.mockReturnValue({
-      data: null,
-      status: "loading",
-    });
+  it("should show loading state initially", () => {
+    // Mock fetch to delay so we can see loading state
+    (global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {}));
 
     render(<AdminDashboardPage />);
 
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
-  });
-
-  it("should redirect to sign-in when not authenticated", async () => {
-    mockUseSession.mockReturnValue({
-      data: null,
-      status: "unauthenticated",
-    });
-
-    render(<AdminDashboardPage />);
-
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/auth/sign-in");
-    });
+    expect(screen.getByTestId("dashboard-placeholder")).toBeInTheDocument();
   });
 
   it("should redirect to sign-in on 401 error", async () => {
-    mockUseSession.mockReturnValue({
-      data: {
-        user: { id: "user-123", name: "Test User" },
-      },
-      status: "authenticated",
-    });
-
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 401,
@@ -215,13 +222,6 @@ describe("AdminDashboardPage (Unified)", () => {
   });
 
   it("should redirect to sign-in on 403 error", async () => {
-    mockUseSession.mockReturnValue({
-      data: {
-        user: { id: "user-123", name: "Test User" },
-      },
-      status: "authenticated",
-    });
-
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: false,
       status: 403,
@@ -235,13 +235,6 @@ describe("AdminDashboardPage (Unified)", () => {
   });
 
   it("should display root admin dashboard with platform statistics", async () => {
-    mockUseSession.mockReturnValue({
-      data: {
-        user: { id: "user-123", name: "Root Admin", isRoot: true },
-      },
-      status: "authenticated",
-    });
-
     const mockDashboardData = {
       adminType: "root_admin",
       isRoot: true,
@@ -252,6 +245,15 @@ describe("AdminDashboardPage (Unified)", () => {
         activeBookings: 25,
         activeBookingsCount: 20,
         pastBookingsCount: 50,
+      },
+      registeredUsers: {
+        totalUsers: 100,
+        trend: [],
+      },
+      graphsData: {
+        bookingTrends: [],
+        activeUsers: [],
+        timeRange: "week",
       },
     };
 
@@ -268,29 +270,21 @@ describe("AdminDashboardPage (Unified)", () => {
   });
 
   it("should display organization admin dashboard with org metrics", async () => {
-    mockUseSession.mockReturnValue({
-      data: {
-        user: { id: "user-456", name: "Org Admin" },
-      },
-      status: "authenticated",
-    });
-
     const mockDashboardData = {
       adminType: "organization_admin",
       isRoot: false,
-      organizations: [
-        {
-          id: "org-1",
-          name: "Test Organization",
-          slug: "test-org",
-          clubsCount: 2,
-          courtsCount: 6,
-          bookingsToday: 10,
-          clubAdminsCount: 3,
-          activeBookings: 15,
-          pastBookings: 25,
-        },
-      ],
+      stats: {
+        clubsCount: 2,
+        courtsCount: 6,
+        bookingsToday: 10,
+        activeBookings: 15,
+        pastBookings: 25,
+      },
+      graphsData: {
+        bookingTrends: [],
+        activeUsers: [],
+        timeRange: "week",
+      },
     };
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -307,29 +301,20 @@ describe("AdminDashboardPage (Unified)", () => {
   });
 
   it("should display club admin dashboard with club metrics", async () => {
-    mockUseSession.mockReturnValue({
-      data: {
-        user: { id: "user-789", name: "Club Admin" },
-      },
-      status: "authenticated",
-    });
-
     const mockDashboardData = {
       adminType: "club_admin",
       isRoot: false,
-      clubs: [
-        {
-          id: "club-1",
-          name: "Test Club",
-          slug: "test-club",
-          organizationId: "org-1",
-          organizationName: "Parent Org",
-          courtsCount: 4,
-          bookingsToday: 8,
-          activeBookings: 12,
-          pastBookings: 30,
-        },
-      ],
+      stats: {
+        courtsCount: 4,
+        bookingsToday: 8,
+        activeBookings: 12,
+        pastBookings: 30,
+      },
+      graphsData: {
+        bookingTrends: [],
+        activeUsers: [],
+        timeRange: "week",
+      },
     };
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
@@ -340,45 +325,26 @@ describe("AdminDashboardPage (Unified)", () => {
     render(<AdminDashboardPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Test Club")).toBeInTheDocument();
+      expect(screen.getByText("Total Courts")).toBeInTheDocument();
     }, { timeout: 5000 });
   });
 
-  it("should display multiple organizations for org admins", async () => {
-    mockUseSession.mockReturnValue({
-      data: {
-        user: { id: "user-456", name: "Multi-Org Admin" },
-      },
-      status: "authenticated",
-    });
-
+  it("should display aggregated stats for org admins", async () => {
     const mockDashboardData = {
       adminType: "organization_admin",
       isRoot: false,
-      organizations: [
-        {
-          id: "org-1",
-          name: "Organization One",
-          slug: "org-one",
-          clubsCount: 2,
-          courtsCount: 4,
-          bookingsToday: 5,
-          clubAdminsCount: 1,
-          activeBookings: 8,
-          pastBookings: 20,
-        },
-        {
-          id: "org-2",
-          name: "Organization Two",
-          slug: "org-two",
-          clubsCount: 3,
-          courtsCount: 8,
-          bookingsToday: 12,
-          clubAdminsCount: 2,
-          activeBookings: 18,
-          pastBookings: 35,
-        },
-      ],
+      stats: {
+        clubsCount: 5,  // 2 + 3 = 5 clubs total
+        courtsCount: 12,  // 4 + 8 = 12 courts total
+        bookingsToday: 17,  // 5 + 12 = 17 bookings today
+        activeBookings: 26,  // 8 + 18 = 26 active bookings
+        pastBookings: 55,  // 20 + 35 = 55 past bookings
+      },
+      graphsData: {
+        bookingTrends: [],
+        activeUsers: [],
+        timeRange: "week",
+      },
     };
 
     (global.fetch as jest.Mock).mockResolvedValueOnce({
