@@ -6,6 +6,9 @@
  * Provides a single persistent notification socket connection for the entire application.
  * This socket is always active during the user session and independent of the current page.
  * 
+ * This is now a thin wrapper around useSocketStore for backward compatibility.
+ * The actual socket management is handled by the centralized Zustand store.
+ * 
  * Features:
  * - Singleton notification socket connection (always active)
  * - Authentication via JWT token
@@ -13,18 +16,16 @@
  * - Connection state tracking
  * - Role-based notification delivery (Root Admin, Org Admin, Club Admin, Player)
  * - Safe cleanup on logout
- * 
- * Note: This is the Notification Socket. Booking Socket (club-specific) is not implemented yet.
  */
 
-import React, { createContext, useContext, useEffect, useRef, useState, useMemo } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { useAuthStore } from '@/stores/useAuthStore';
+import React, { createContext, useContext, useEffect, useMemo } from 'react';
+import { useSocketStore } from '@/stores/useSocketStore';
 import { useUserStore } from '@/stores/useUserStore';
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from '@/types/socket';
+import { Socket } from 'socket.io-client';
 
 /**
  * Typed Socket.IO client
@@ -62,22 +63,13 @@ interface SocketProviderProps {
  * Notification Socket Provider
  * 
  * Wraps the application and provides a single notification socket connection.
- * Should be placed high in the component tree (e.g., root layout).
- * Requires authentication - will only connect when user is authenticated.
+ * This is now a thin wrapper around useSocketStore for backward compatibility.
  * 
- * Notification Socket Behavior:
- * - Connects once per user session
- * - Remains active regardless of page navigation or club changes
- * - Delivers role-scoped notifications (Root Admin, Org Admin, Club Admin, Player)
- * - Automatically joins appropriate rooms based on user role and memberships:
- *   - Players: player:{playerId} room for personal notifications
- *   - Club Admins: club:{clubId} rooms for each club they manage
- *   - Organization Admins: organization:{orgId} rooms for each organization they manage
- *   - Root Admins: root_admin room for platform-wide notifications
- * - Disconnects only on logout
- * 
- * Note: Booking Socket (club-specific, connects/disconnects on club changes) 
- * will be implemented in a future task.
+ * The actual socket management happens in the centralized Zustand store,
+ * which ensures:
+ * - Single instance per session (no duplicates)
+ * - React StrictMode safety (development mode)
+ * - Proper cleanup on logout
  * 
  * @example
  * ```tsx
@@ -87,124 +79,59 @@ interface SocketProviderProps {
  * ```
  */
 export function SocketProvider({ children }: SocketProviderProps) {
-  const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef<TypedSocket | null>(null);
   const sessionStatus = useUserStore(state => state.sessionStatus);
   const user = useUserStore(state => state.user);
-  const getSocketToken = useAuthStore(state => state.getSocketToken);
-  const clearSocketToken = useAuthStore(state => state.clearSocketToken);
+  
+  // Get store actions and state
+  const initializeNotificationSocket = useSocketStore(state => state.initializeNotificationSocket);
+  const disconnectNotificationSocket = useSocketStore(state => state.disconnectNotificationSocket);
+  const getSocketToken = useSocketStore(state => state.getSocketToken);
+  const clearSocketToken = useSocketStore(state => state.clearSocketToken);
+  const notificationSocket = useSocketStore(state => state.notificationSocket);
+  const notificationConnected = useSocketStore(state => state.notificationConnected);
 
   useEffect(() => {
     // Only initialize socket if user is authenticated
     if (sessionStatus !== 'authenticated' || !user) {
-      // If socket exists and user is no longer authenticated, disconnect
-      if (socketRef.current) {
-        console.log('[NotificationSocket] User logged out, disconnecting socket');
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        setIsConnected(false);
-      }
-      // Clear cached socket token on logout
+      // Disconnect if user logged out
+      disconnectNotificationSocket();
       clearSocketToken();
       return;
     }
 
-    // Prevent multiple socket instances
-    if (socketRef.current) {
-      console.log('[NotificationSocket] Socket already initialized, skipping');
-      return;
-    }
-
-    console.log('[NotificationSocket] Initializing notification socket connection');
-
     // Initialize socket connection with authentication
     const initializeSocket = async () => {
-      // Get token from auth store (cached and deduplicated)
+      // Get token from store (cached and deduplicated)
       const token = await getSocketToken();
 
       // Validate token before initializing socket
-      if (!token) {
-        console.error('[NotificationSocket] Cannot initialize socket: no token available');
-        return;
-      }
-
-      // Validate token is a non-empty string
-      if (typeof token !== 'string') {
-        console.error('[NotificationSocket] Cannot initialize socket: token is not a string, got:', typeof token);
-        return;
-      }
-
-      if (token.trim() === '') {
-        console.error('[NotificationSocket] Cannot initialize socket: token is empty');
+      if (!token || typeof token !== 'string' || token.trim() === '') {
+        console.error('[NotificationSocket] Invalid token, cannot initialize socket');
         return;
       }
 
       console.log('[NotificationSocket] Token validated, initializing socket connection');
-
-      // Initialize Socket.IO client with authentication
-      // Note: No clubId is passed - this is a notification-only socket
-      const socket: TypedSocket = io({
-        path: '/socket.io',
-        auth: {
-          token,
-          // No clubId - notification socket is independent of active club
-        },
-      });
-
-      socketRef.current = socket;
-
-      // Connection event handlers
-      socket.on('connect', () => {
-        console.log('[NotificationSocket] Notification socket connected:', socket.id);
-        setIsConnected(true);
-      });
-
-      socket.on('disconnect', (reason) => {
-        console.log('[NotificationSocket] Notification socket disconnected:', reason);
-        setIsConnected(false);
-      });
-
-      socket.on('connect_error', (error) => {
-        console.error('[NotificationSocket] Connection error:', error.message);
-        // If authentication fails, don't retry
-        if (error.message.includes('Authentication')) {
-          console.error('[NotificationSocket] Authentication failed, disconnecting');
-          socket.disconnect();
-        }
-      });
-
-      // Reconnection handler
-      socket.io.on('reconnect', (attemptNumber) => {
-        console.log('[NotificationSocket] Socket reconnected after', attemptNumber, 'attempts');
-        setIsConnected(true);
-      });
+      
+      // Initialize via store (store handles duplicate prevention)
+      initializeNotificationSocket(token);
     };
 
     initializeSocket();
 
     // Cleanup on unmount or when session changes
     return () => {
-      if (!socketRef.current) return;
-      
-      console.log('[NotificationSocket] Cleaning up notification socket connection');
-      
-      const socket = socketRef.current;
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('connect_error');
-      socket.io.off('reconnect');
-      
-      socket.disconnect();
-      socketRef.current = null;
+      // Note: We don't disconnect here because the socket should persist
+      // across component re-mounts in development mode (React StrictMode)
+      // The socket will be cleaned up when user logs out (handled above)
     };
-  }, [sessionStatus, user, getSocketToken, clearSocketToken]); // Only re-initialize when session changes
+  }, [sessionStatus, user, getSocketToken, clearSocketToken, initializeNotificationSocket, disconnectNotificationSocket]);
 
   const value: SocketContextValue = useMemo(
     () => ({
-      socket: socketRef.current,
-      isConnected,
+      socket: notificationSocket,
+      isConnected: notificationConnected,
     }),
-    [isConnected]
+    [notificationSocket, notificationConnected]
   );
 
   return (

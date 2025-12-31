@@ -28,12 +28,125 @@ For complete guidelines on data fetching, see:
 ✅ Clubs data  
 ✅ Bookings data (operations/calendar)  
 ✅ User session & auth  
+✅ WebSocket connections and state  
 
 #### When NOT to Use Stores  
 ❌ Specialized operations (image uploads, admin assignments)  
 ❌ Public endpoints with server-side filtering  
 ❌ User-specific queries (player bookings, notifications)  
 ❌ Reporting endpoints (admin lists with pagination)
+
+## useSocketStore
+
+A centralized Zustand store for managing all WebSocket connections and their state.
+
+### Features
+
+- **Single source of truth**: All socket connections managed in one place
+- **Prevents duplicates**: Ensures only one instance of each socket type
+- **React StrictMode safe**: Handles development mode double-mounting
+- **Automatic reconnection**: Built-in reconnection handling
+- **Token management**: Cached and deduplicated socket token fetching
+- **Type-safe**: Full TypeScript support with proper type definitions
+
+### Architecture
+
+The store manages two types of socket connections:
+
+1. **NotificationSocket**: Always active during user session (all roles)
+   - Platform-wide notifications
+   - Role-based room targeting
+   - Independent of page navigation
+
+2. **BookingSocket**: Active only when club is selected (admin roles only)
+   - Club-specific real-time booking updates
+   - Calendar synchronization
+   - Connects/disconnects on club selection changes
+
+### Usage
+
+```typescript
+import { useSocketStore } from '@/stores/useSocketStore';
+
+// Initialize notification socket
+function MyComponent() {
+  const initializeNotificationSocket = useSocketStore(state => state.initializeNotificationSocket);
+  const notificationSocket = useSocketStore(state => state.notificationSocket);
+  const isConnected = useSocketStore(state => state.notificationConnected);
+
+  useEffect(() => {
+    const init = async () => {
+      const token = await useSocketStore.getState().getSocketToken();
+      if (token) {
+        initializeNotificationSocket(token);
+      }
+    };
+    init();
+  }, []);
+
+  return (
+    <div>
+      Connection: {isConnected ? 'Connected' : 'Disconnected'}
+    </div>
+  );
+}
+```
+
+### State
+
+- `notificationSocket: Socket | null` - Notification socket instance
+- `notificationConnected: boolean` - Notification socket connection state
+- `bookingSocket: Socket | null` - Booking socket instance
+- `bookingConnected: boolean` - Booking socket connection state
+- `activeClubId: string | null` - Currently active club ID
+- `socketToken: string | null` - Cached socket authentication token
+- `isLoadingToken: boolean` - Token loading state
+- `tokenError: string | null` - Token error state
+
+### Actions
+
+- `initializeNotificationSocket(token)` - Initialize notification socket
+- `disconnectNotificationSocket()` - Disconnect notification socket
+- `initializeBookingSocket(token, clubId)` - Initialize booking socket for club
+- `disconnectBookingSocket()` - Disconnect booking socket
+- `setActiveClubId(clubId)` - Set active club ID
+- `getSocketToken()` - Get socket token (cached and deduplicated)
+- `clearSocketToken()` - Clear cached socket token
+
+### Integration
+
+The socket store is used by:
+- **SocketContext**: Notification socket provider (thin wrapper)
+- **BookingSocketContext**: Booking socket provider (thin wrapper)
+- **GlobalSocketListener**: Event dispatcher that updates domain stores
+- **useCourtAvailability**: Hook for reactive court availability
+
+### Best Practices
+
+1. **Use Context Providers**: Don't initialize sockets directly in components
+2. **Single Initialization**: Store prevents duplicates, but use contexts for consistency
+3. **Automatic Cleanup**: Store handles cleanup, but contexts manage lifecycle
+4. **Token Management**: Use `getSocketToken()` - it's cached and deduplicated
+5. **Development Mode**: Store is StrictMode-safe, handles double-mounting correctly
+
+### Migration from Direct Socket Usage
+
+Before (multiple subscriptions):
+```typescript
+// ❌ Direct socket usage in components
+const { socket } = useSocket();
+useEffect(() => {
+  socket?.on('booking_created', handleBooking);
+  return () => socket?.off('booking_created', handleBooking);
+}, [socket]);
+```
+
+After (centralized store):
+```typescript
+// ✅ Use store state (updated by GlobalSocketListener)
+const bookings = useBookingStore(state => state.bookings);
+// Bookings automatically update via GlobalSocketListener
+```
 
 ## useNotificationStore
 
