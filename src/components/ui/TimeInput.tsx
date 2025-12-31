@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect, useId, useCallback } from "react";
 import { Portal } from "./Portal";
 import { useDropdownPosition } from "@/hooks/useDropdownPosition";
 import "./TimeInput.css";
@@ -213,7 +213,7 @@ export function TimeInput({
   };
 
   // Handle dropdown selection
-  const handleTimeSelect = (hours: string, minutes: string) => {
+  const handleTimeSelect = useCallback((hours: string, minutes: string) => {
     const newValue = `${hours}:${minutes}`;
     setInputValue(newValue);
     
@@ -230,7 +230,7 @@ export function TimeInput({
       justClosedRef.current = false;
     }, DROPDOWN_CLOSE_DEBOUNCE_MS);
     inputRef.current?.focus();
-  };
+  }, [onChange]);
 
   // Handle input focus
   const handleInputFocus = () => {
@@ -269,7 +269,7 @@ export function TimeInput({
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isOpen, pendingHours, pendingMinutes]);
+  }, [isOpen, pendingHours, pendingMinutes, handleTimeSelect]);
 
   // Handle escape key
   useEffect(() => {
@@ -347,8 +347,6 @@ export function TimeInput({
             }}
           >
             <TimePickerDropdown
-              currentHours={currentHours}
-              currentMinutes={currentMinutes}
               selectedHours={pendingHours || currentHours}
               selectedMinutes={pendingMinutes || currentMinutes}
               onHourChange={setPendingHours}
@@ -363,8 +361,6 @@ export function TimeInput({
 }
 
 interface TimePickerDropdownProps {
-  currentHours: string;
-  currentMinutes: string;
   selectedHours: string;
   selectedMinutes: string;
   onHourChange: (hour: string) => void;
@@ -383,8 +379,6 @@ function scrollToSelectedOption(ref: React.RefObject<HTMLDivElement>) {
 }
 
 function TimePickerDropdown({ 
-  currentHours, 
-  currentMinutes, 
   selectedHours,
   selectedMinutes,
   onHourChange,

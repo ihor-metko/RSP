@@ -293,7 +293,7 @@ describe("TimeInput", () => {
 
     it("applies time when clicking outside dropdown", async () => {
       const handleChange = jest.fn();
-      const { container } = render(
+      render(
         <div>
           <TimeInput value="09:30" onChange={handleChange} label="Start Time" />
           <div data-testid="outside">Outside</div>
