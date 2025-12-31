@@ -189,7 +189,8 @@ export function TimeInput({
     const { hours, minutes } = parseTime(timeValue);
     
     // Determine if cursor is in hours or minutes section
-    const isInHoursSection = cursorPosition <= 2;
+    // Position 0-1: hours, Position 2: colon, Position 3-4: minutes
+    const isInHoursSection = cursorPosition < 3;
     const increment = e.key === "ArrowUp" ? 1 : -1;
     
     let newHours = parseInt(hours, 10);
