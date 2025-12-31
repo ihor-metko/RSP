@@ -15,34 +15,13 @@ export async function GET(
       include: {
         organization: {
           select: {
-            isPublic: true,
-          },
-        },
-        courts: {
-          select: {
             id: true,
             name: true,
-            type: true,
-            surface: true,
-            indoor: true,
-            defaultPriceCents: true,
-          },
-        },
-        coaches: {
-          include: {
-            user: {
-              select: {
-                name: true,
-              },
-            },
+            isPublic: true,
           },
         },
         businessHours: {
           orderBy: { dayOfWeek: "asc" },
-        },
-        gallery: {
-          orderBy: { sortOrder: "asc" },
-          take: 6,
         },
       },
     });
@@ -52,13 +31,10 @@ export async function GET(
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
-    // Transform coaches to include name from user
-    const coaches = club.coaches.map((coach) => ({
-      id: coach.id,
-      name: coach.user.name || "Unknown Coach",
-    }));
-
-    // Return full club details for the redesigned player page
+    // Return optimized club details (without courts, coaches, and gallery)
+    // Courts: Available via /api/(player)/clubs/[id]/courts
+    // Gallery: Available via /api/(player)/clubs/[id]/gallery
+    // Coaches: Removed per requirements
     return NextResponse.json({
       id: club.id,
       name: club.name,
@@ -82,10 +58,11 @@ export async function GET(
       defaultCurrency: club.defaultCurrency,
       timezone: club.timezone,
       tags: club.tags,
-      courts: club.courts,
-      coaches,
+      organization: club.organization ? {
+        id: club.organization.id,
+        name: club.organization.name,
+      } : null,
       businessHours: club.businessHours,
-      gallery: club.gallery,
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

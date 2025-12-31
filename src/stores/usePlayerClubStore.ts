@@ -53,7 +53,10 @@ export interface PlayerClub {
 }
 
 /**
- * Detailed player club info with courts, coaches, etc.
+ * Detailed player club info (without courts, coaches, and gallery)
+ * Courts: Fetch separately via /api/(player)/clubs/[id]/courts
+ * Gallery: Fetch separately via /api/(player)/clubs/[id]/gallery
+ * Coaches: Removed per requirements
  */
 export interface PlayerClubDetail {
   id: string;
@@ -77,10 +80,8 @@ export interface PlayerClubDetail {
   defaultCurrency?: string | null;
   timezone?: string | null;
   tags?: string | null;
-  courts: PlayerClubCourt[];
-  coaches: PlayerClubCoach[];
+  organization?: { id: string; name: string } | null;
   businessHours?: PlayerClubBusinessHours[];
-  gallery?: PlayerClubGalleryImage[];
 }
 
 /**
@@ -97,9 +98,17 @@ interface PlayerClubState {
   error: string | null;
   lastFetchedAt: number | null;
 
+  // Courts and gallery state
+  courtsByClubId: Record<string, PlayerClubCourt[]>;
+  galleryByClubId: Record<string, PlayerClubGalleryImage[]>;
+  loadingCourts: boolean;
+  loadingGallery: boolean;
+
   // Internal inflight Promise guards (not exposed)
   _inflightFetchClubs: Promise<void> | null;
   _inflightFetchClubById: Record<string, Promise<PlayerClubDetail>> | null;
+  _inflightFetchCourts: Record<string, Promise<PlayerClubCourt[]>> | null;
+  _inflightFetchGallery: Record<string, Promise<PlayerClubGalleryImage[]>> | null;
 
   // Actions
   setClubs: (clubs: PlayerClub[]) => void;
@@ -111,11 +120,15 @@ interface PlayerClubState {
   // New idempotent, concurrency-safe methods
   fetchClubsIfNeeded: (options?: { force?: boolean; search?: string; city?: string }) => Promise<void>;
   ensureClubById: (id: string, options?: { force?: boolean }) => Promise<PlayerClubDetail>;
+  ensureCourtsByClubId: (clubId: string, options?: { force?: boolean }) => Promise<PlayerClubCourt[]>;
+  ensureGalleryByClubId: (clubId: string, options?: { force?: boolean }) => Promise<PlayerClubGalleryImage[]>;
   invalidateClubs: () => void;
 
   // Selectors
   getClubById: (id: string) => PlayerClub | undefined;
   isClubSelected: (id: string) => boolean;
+  getCourtsForClub: (clubId: string) => PlayerClubCourt[];
+  getGalleryForClub: (clubId: string) => PlayerClubGalleryImage[];
 }
 
 /**
@@ -132,8 +145,14 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
   clubsError: null,
   error: null,
   lastFetchedAt: null,
+  courtsByClubId: {},
+  galleryByClubId: {},
+  loadingCourts: false,
+  loadingGallery: false,
   _inflightFetchClubs: null,
   _inflightFetchClubById: null,
+  _inflightFetchCourts: null,
+  _inflightFetchGallery: null,
 
   // State setters
   setClubs: (clubs) => set({ clubs }),
@@ -263,8 +282,18 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
         if (clubIndex >= 0) {
           const updatedClubs = [...currentClubs];
           // Update with all shared fields from the detail view
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { courts: _courts, coaches: _coaches, businessHours: _businessHours, gallery: _gallery, ...publicFields } = club;
+          const publicFields = {
+            id: club.id,
+            name: club.name,
+            shortDescription: club.shortDescription,
+            location: club.location,
+            city: club.city,
+            contactInfo: club.contactInfo,
+            openingHours: club.openingHours,
+            logoData: club.logoData,
+            bannerData: club.bannerData,
+            tags: club.tags,
+          };
           updatedClubs[clubIndex] = {
             ...updatedClubs[clubIndex],
             ...publicFields,
@@ -316,6 +345,158 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
     });
   },
 
+  /**
+   * Ensure courts are loaded for a club with inflight guard
+   * - If !force and courtsByClubId[clubId] exists, returns cached courts
+   * - If an inflight request for this club exists, returns that Promise
+   * - Otherwise, performs a new network request
+   */
+  ensureCourtsByClubId: async (clubId: string, options = {}) => {
+    const { force = false } = options;
+    const state = get();
+
+    // If not forcing and courts are already cached, return them
+    if (!force && state.courtsByClubId[clubId]) {
+      return Promise.resolve(state.courtsByClubId[clubId]);
+    }
+
+    // If there's already an inflight request for this club, return it
+    if (state._inflightFetchCourts && clubId in state._inflightFetchCourts) {
+      return state._inflightFetchCourts[clubId];
+    }
+
+    // Create new inflight request
+    const inflightPromise = (async (): Promise<PlayerClubCourt[]> => {
+      set({ loadingCourts: true });
+      try {
+        const response = await fetch(`/api/clubs/${clubId}/courts`);
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: "Failed to fetch courts" }));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const courts: PlayerClubCourt[] = data.courts || [];
+
+        // Update courtsByClubId cache
+        set((state) => {
+          const newInflight = { ...(state._inflightFetchCourts || {}) };
+          delete newInflight[clubId];
+
+          return {
+            courtsByClubId: { ...state.courtsByClubId, [clubId]: courts },
+            loadingCourts: false,
+            _inflightFetchCourts: Object.keys(newInflight).length > 0 ? newInflight : null,
+          };
+        });
+
+        return courts;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch courts";
+
+        // Clear inflight for this club
+        set((state) => {
+          const newInflight = { ...(state._inflightFetchCourts || {}) };
+          delete newInflight[clubId];
+
+          return {
+            loadingCourts: false,
+            _inflightFetchCourts: Object.keys(newInflight).length > 0 ? newInflight : null,
+          };
+        });
+
+        throw new Error(errorMessage);
+      }
+    })();
+
+    // Store inflight promise
+    set((state) => ({
+      _inflightFetchCourts: {
+        ...(state._inflightFetchCourts || {}),
+        [clubId]: inflightPromise,
+      },
+    }));
+
+    return inflightPromise;
+  },
+
+  /**
+   * Ensure gallery is loaded for a club with inflight guard
+   * - If !force and galleryByClubId[clubId] exists, returns cached gallery
+   * - If an inflight request for this club exists, returns that Promise
+   * - Otherwise, performs a new network request
+   */
+  ensureGalleryByClubId: async (clubId: string, options = {}) => {
+    const { force = false } = options;
+    const state = get();
+
+    // If not forcing and gallery is already cached, return it
+    if (!force && state.galleryByClubId[clubId]) {
+      return Promise.resolve(state.galleryByClubId[clubId]);
+    }
+
+    // If there's already an inflight request for this club, return it
+    if (state._inflightFetchGallery && clubId in state._inflightFetchGallery) {
+      return state._inflightFetchGallery[clubId];
+    }
+
+    // Create new inflight request
+    const inflightPromise = (async (): Promise<PlayerClubGalleryImage[]> => {
+      set({ loadingGallery: true });
+      try {
+        const response = await fetch(`/api/clubs/${clubId}/gallery`);
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: "Failed to fetch gallery" }));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const gallery: PlayerClubGalleryImage[] = data.gallery || [];
+
+        // Update galleryByClubId cache
+        set((state) => {
+          const newInflight = { ...(state._inflightFetchGallery || {}) };
+          delete newInflight[clubId];
+
+          return {
+            galleryByClubId: { ...state.galleryByClubId, [clubId]: gallery },
+            loadingGallery: false,
+            _inflightFetchGallery: Object.keys(newInflight).length > 0 ? newInflight : null,
+          };
+        });
+
+        return gallery;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch gallery";
+
+        // Clear inflight for this club
+        set((state) => {
+          const newInflight = { ...(state._inflightFetchGallery || {}) };
+          delete newInflight[clubId];
+
+          return {
+            loadingGallery: false,
+            _inflightFetchGallery: Object.keys(newInflight).length > 0 ? newInflight : null,
+          };
+        });
+
+        throw new Error(errorMessage);
+      }
+    })();
+
+    // Store inflight promise
+    set((state) => ({
+      _inflightFetchGallery: {
+        ...(state._inflightFetchGallery || {}),
+        [clubId]: inflightPromise,
+      },
+    }));
+
+    return inflightPromise;
+  },
+
   // Selector: Get club by ID from the store
   getClubById: (id: string) => {
     return get().clubs.find((club) => club.id === id);
@@ -324,5 +505,15 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
   // Selector: Check if a club is currently selected
   isClubSelected: (id: string) => {
     return get().currentClub?.id === id;
+  },
+
+  // Selector: Get courts for a club
+  getCourtsForClub: (clubId: string) => {
+    return get().courtsByClubId[clubId] || [];
+  },
+
+  // Selector: Get gallery for a club
+  getGalleryForClub: (clubId: string) => {
+    return get().galleryByClubId[clubId] || [];
   },
 }));

@@ -36,11 +36,6 @@ const ClubMap = dynamic(() => import("@/components/ClubMap").then((mod) => mod.C
   ssr: false,
 });
 
-interface Coach {
-  id: string;
-  name: string;
-}
-
 interface BusinessHours {
   id: string;
   dayOfWeek: number;
@@ -78,10 +73,7 @@ interface ClubWithDetails {
   defaultCurrency?: string | null;
   timezone?: string | null;
   tags?: string | null;
-  courts: Court[];
-  coaches: Coach[];
   businessHours?: BusinessHours[];
-  gallery?: GalleryImage[];
 }
 
 interface Slot {
@@ -121,11 +113,21 @@ export default function ClubDetailPage({
   // Use centralized player club store
   const currentClub = usePlayerClubStore((state) => state.currentClub);
   const ensureClubById = usePlayerClubStore((state) => state.ensureClubById);
+  const ensureCourtsByClubId = usePlayerClubStore((state) => state.ensureCourtsByClubId);
+  const ensureGalleryByClubId = usePlayerClubStore((state) => state.ensureGalleryByClubId);
+  const getCourtsForClub = usePlayerClubStore((state) => state.getCourtsForClub);
+  const getGalleryForClub = usePlayerClubStore((state) => state.getGalleryForClub);
   const loadingClubs = usePlayerClubStore((state) => state.loadingClubs);
+  const loadingCourts = usePlayerClubStore((state) => state.loadingCourts);
+  const loadingGallery = usePlayerClubStore((state) => state.loadingGallery);
   const clubsError = usePlayerClubStore((state) => state.clubsError);
 
   // Map currentClub to ClubWithDetails (they should be compatible)
   const club = currentClub as ClubWithDetails | null;
+  
+  // Get courts and gallery from store
+  const courts = club ? getCourtsForClub(club.id) : [];
+  const gallery = club ? getGalleryForClub(club.id) : [];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
   const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
@@ -188,21 +190,27 @@ export default function ClubDetailPage({
         setActiveClubId(resolvedParams.id);
 
         await ensureClubById(resolvedParams.id);
+        
+        // Fetch courts and gallery separately after club is loaded
+        await Promise.all([
+          ensureCourtsByClubId(resolvedParams.id),
+          ensureGalleryByClubId(resolvedParams.id),
+        ]);
       } catch (err) {
         console.error("Failed to fetch club:", err);
       }
     }
     fetchClubData();
-  }, [params, ensureClubById, setActiveClubId]);
+  }, [params, ensureClubById, ensureCourtsByClubId, ensureGalleryByClubId, setActiveClubId]);
 
-  // Fetch availability when club data is loaded
+  // Fetch availability when courts are loaded
   useEffect(() => {
-    if (club?.courts && club.courts.length > 0) {
-      fetchAvailability(club.courts);
-    } else if (club) {
+    if (courts && courts.length > 0) {
+      fetchAvailability(courts);
+    } else if (club && !loadingCourts) {
       setAvailabilityLoading(false);
     }
-  }, [club, fetchAvailability]);
+  }, [courts, club, loadingCourts, fetchAvailability]);
 
   const handleBookClick = (courtId: string) => {
     if (!isAuthenticated) {
@@ -215,7 +223,7 @@ export default function ClubDetailPage({
 
   const handleViewSchedule = (courtId: string) => {
     // Open schedule modal instead of navigating
-    const court = club?.courts.find(c => c.id === courtId);
+    const court = courts.find(c => c.id === courtId);
     if (court) {
       setScheduleModalCourt(court);
       setIsScheduleModalOpen(true);
@@ -245,8 +253,8 @@ export default function ClubDetailPage({
   };
 
   const handleBookingSuccess = () => {
-    if (club?.courts) {
-      fetchAvailability(club.courts);
+    if (courts && courts.length > 0) {
+      fetchAvailability(courts);
     }
     setPreselectedSlot(null);
     setTimelineKey((prev) => prev + 1);
@@ -272,8 +280,8 @@ export default function ClubDetailPage({
 
   const handleQuickBookingComplete = () => {
     // Refresh availability data after successful booking
-    if (club?.courts) {
-      fetchAvailability(club.courts);
+    if (courts && courts.length > 0) {
+      fetchAvailability(courts);
     }
     setTimelineKey((prev) => prev + 1);
   };
@@ -394,7 +402,7 @@ export default function ClubDetailPage({
   const clubMetadata = parseClubMetadata(club.metadata);
 
   // Prepare gallery images for modal
-  const galleryImages = (club.gallery || [])
+  const galleryImages = (gallery || [])
     .map((image) => {
       const imageUrl = getImageUrl(image.imageUrl);
       return isValidImageUrl(imageUrl)
@@ -458,7 +466,7 @@ export default function ClubDetailPage({
         </div>
 
         {/* Weekly Availability Timeline */}
-        {club.courts.length > 0 && (
+        {courts.length > 0 && (
           <section className="rsp-club-timeline-section mt-8">
             <WeeklyAvailabilityTimeline
               key={timelineKey}
@@ -645,14 +653,18 @@ export default function ClubDetailPage({
           <div className="rsp-club-courts-header">
             <h2 className="rsp-club-courts-title">{t("clubDetail.availableCourts")}</h2>
           </div>
-          {club.courts.length === 0 ? (
+          {loadingCourts ? (
+            <div className="rsp-club-loading-courts">
+              <p className="rsp-club-loading-text">{t("common.loading")}</p>
+            </div>
+          ) : courts.length === 0 ? (
             <div className="rsp-club-empty-courts">
               <p className="rsp-club-empty-courts-text">{t("clubs.noCourts")}</p>
             </div>
           ) : (
             <div className="im-court-carousel-section">
               <CourtCarousel
-                items={club.courts}
+                items={courts}
                 itemKeyExtractor={(court) => court.id}
                 mobileVisible={1}
                 tabletVisible={2}
@@ -689,7 +701,7 @@ export default function ClubDetailPage({
         <BookingModal
           courtId={selectedCourtId}
           availableSlots={getSlotsForBookingModal(selectedCourtId)}
-          coachList={club.coaches}
+          coachList={[]}
           isOpen={isModalOpen}
           onClose={handleCloseBookingModal}
           userId={userId}

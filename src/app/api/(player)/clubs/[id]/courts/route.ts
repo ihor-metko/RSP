@@ -12,12 +12,20 @@ export async function GET(
     const clubId = resolvedParams.id;
 
 
-    // Check if club exists
+    // Check if club exists and is public
     const club = await prisma.club.findUnique({
       where: { id: clubId },
+      select: {
+        isPublic: true,
+        organization: {
+          select: {
+            isPublic: true,
+          },
+        },
+      },
     });
 
-    if (!club) {
+    if (!club || !club.isPublic || !club.organization?.isPublic) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
