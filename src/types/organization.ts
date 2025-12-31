@@ -52,6 +52,7 @@ export interface Organization {
   metadata?: Record<string, unknown> | null;
   isPublic: boolean;
   supportedSports?: SportType[];
+  maxClubs?: number;
   clubCount?: number;
   logoData?: LogoData | null;
   bannerData?: BannerData | null;

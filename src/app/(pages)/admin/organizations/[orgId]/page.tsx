@@ -359,27 +359,67 @@ export default function OrganizationDetailPage() {
               <h2 className="im-section-title">{t("orgDetail.clubs")}</h2>
               {!org.archivedAt && (
                 <div className="im-section-actions">
-                  <Button
-                    variant="primary"
-                    onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
-                  >
-                    {t("orgDetail.createNewClub")}
-                  </Button>
+                  {(() => {
+                    const currentClubCount = clubsData?.pagination?.totalCount ?? 0;
+                    const maxClubs = org.maxClubs ?? 3;
+                    const limitReached = currentClubCount >= maxClubs;
+                    
+                    return (
+                      <div style={{ position: 'relative', display: 'inline-block' }}>
+                        <Button
+                          variant="primary"
+                          onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
+                          disabled={limitReached}
+                          title={limitReached ? t("orgDetail.clubLimitReached", { maxClubs }) : undefined}
+                        >
+                          {t("orgDetail.createNewClub")}
+                        </Button>
+                        {limitReached && (
+                          <div style={{ 
+                            marginTop: '0.5rem', 
+                            fontSize: '0.875rem', 
+                            color: 'var(--color-text-secondary)' 
+                          }}>
+                            {t("orgDetail.clubLimitReachedMessage", { current: currentClubCount, max: maxClubs })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
             {!clubsData || clubsData.clubs.length === 0 ? (
               <div className="im-preview-empty-state">
                 <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
-                {!org.archivedAt && (
-                  <Button
-                    variant="primary"
-                    size="small"
-                    onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
-                  >
-                    {t("orgDetail.createFirstClub")}
-                  </Button>
-                )}
+                {!org.archivedAt && (() => {
+                  const currentClubCount = clubsData?.pagination?.totalCount ?? 0;
+                  const maxClubs = org.maxClubs ?? 3;
+                  const limitReached = currentClubCount >= maxClubs;
+                  
+                  return (
+                    <>
+                      <Button
+                        variant="primary"
+                        size="small"
+                        onClick={() => router.push(`/admin/clubs/new?organizationId=${orgId}`)}
+                        disabled={limitReached}
+                        title={limitReached ? t("orgDetail.clubLimitReached", { maxClubs }) : undefined}
+                      >
+                        {t("orgDetail.createFirstClub")}
+                      </Button>
+                      {limitReached && (
+                        <div style={{ 
+                          marginTop: '0.5rem', 
+                          fontSize: '0.875rem', 
+                          color: 'var(--color-text-secondary)' 
+                        }}>
+                          {t("orgDetail.clubLimitReachedMessage", { current: currentClubCount, max: maxClubs })}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <>

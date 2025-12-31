@@ -140,6 +140,22 @@ export async function POST(request: Request) {
       }
     }
 
+    // Check if organization has reached club creation limit
+    const currentClubCount = await prisma.club.count({
+      where: { organizationId: body.organizationId },
+    });
+
+    if (currentClubCount >= organization.maxClubs) {
+      return NextResponse.json(
+        { 
+          error: `Organization has reached the maximum limit of ${organization.maxClubs} clubs`,
+          maxClubs: organization.maxClubs,
+          currentCount: currentClubCount,
+        },
+        { status: 403 }
+      );
+    }
+
     // Generate or validate slug
     const slug = body.slug?.trim() || generateSlug(body.name);
 

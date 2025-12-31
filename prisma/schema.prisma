@@ -149,6 +149,7 @@ model Organization {
   metadata    String?      @db.Text // JSON string for additional metadata (non-media related)
   isPublic    Boolean      @default(true) // Whether organization is publicly visible
   supportedSports SportType[] @default([PADEL]) // Sports supported by this organization
+  maxClubs    Int          @default(3) // Maximum number of clubs allowed for this organization
   createdById String
   createdBy   User         @relation("OrganizationCreator", fields: [createdById], references: [id])
   archivedAt  DateTime?    // Soft-delete timestamp
