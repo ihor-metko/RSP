@@ -328,6 +328,20 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         }
         
         const data = await response.json();
+        
+        // Validate response structure
+        if (!data || typeof data.token !== 'string' || !data.token.trim()) {
+          const errorMsg = 'Invalid token response from server';
+          console.error('[SocketStore]', errorMsg);
+          set({
+            socketToken: null,
+            isLoadingToken: false,
+            tokenError: errorMsg,
+            tokenPromise: null,
+          });
+          return null;
+        }
+        
         const token = data.token;
         
         set({
@@ -339,6 +353,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         
         return token;
       } catch (error) {
+        // Handle network failures and other errors
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         console.error('[SocketStore] Error getting socket token:', errorMsg);
         

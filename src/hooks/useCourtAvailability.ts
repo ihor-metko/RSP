@@ -32,6 +32,10 @@ export function useCourtAvailability(
   const [refreshKey, setRefreshKey] = useState(0);
   
   // Get socket connection state from store
+  // We use OR because either socket (notification or booking) being connected
+  // means we can receive real-time updates. NotificationSocket is always active
+  // for general updates, while BookingSocket provides club-specific updates when
+  // viewing the operations page.
   const isConnected = useSocketStore((state) => 
     state.notificationConnected || state.bookingConnected
   );
