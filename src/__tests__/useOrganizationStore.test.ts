@@ -16,11 +16,13 @@ describe("useOrganizationStore", () => {
     useOrganizationStore.setState({
       organizations: [],
       organizationsById: {},
+      organizationSummariesById: {},
       currentOrg: null,
       loading: false,
       error: null,
       hasFetched: false,
       _inflightFetchById: {},
+      _inflightFetchSummaryById: {},
     });
     // Clear fetch mock
     jest.clearAllMocks();
@@ -886,6 +888,243 @@ describe("useOrganizationStore", () => {
 
       // Should only have called fetch once
       expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("Organization Summary", () => {
+    describe("fetchOrganizationSummary", () => {
+      it("should fetch organization summary successfully", async () => {
+        const mockSummary = {
+          id: "1",
+          name: "Test Org",
+          slug: "test-org",
+        };
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockSummary,
+        });
+
+        const { result } = renderHook(() => useOrganizationStore());
+
+        await act(async () => {
+          await result.current.fetchOrganizationSummary("1");
+        });
+
+        expect(result.current.getOrganizationSummaryById("1")).toEqual(mockSummary);
+        expect(result.current.loading).toBe(false);
+        expect(result.current.error).toBeNull();
+        expect(global.fetch).toHaveBeenCalledWith("/api/admin/organizations/1/summary");
+      });
+
+      it("should handle fetch summary error", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+          json: async () => ({ error: "Organization not found" }),
+        });
+
+        const { result } = renderHook(() => useOrganizationStore());
+
+        await act(async () => {
+          try {
+            await result.current.fetchOrganizationSummary("999");
+          } catch {
+            // Expected to throw
+          }
+        });
+
+        expect(result.current.loading).toBe(false);
+        expect(result.current.error).toBe("Organization not found");
+        expect(result.current.getOrganizationSummaryById("999")).toBeUndefined();
+      });
+    });
+
+    describe("ensureOrganizationSummary", () => {
+      it("should fetch summary and cache it", async () => {
+        const mockSummary = {
+          id: "1",
+          name: "Test Org",
+          slug: "test-org",
+        };
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockSummary,
+        });
+
+        const { result } = renderHook(() => useOrganizationStore());
+
+        let fetchedSummary;
+        await act(async () => {
+          fetchedSummary = await result.current.ensureOrganizationSummary("1");
+        });
+
+        expect(fetchedSummary).toEqual(mockSummary);
+        expect(result.current.getOrganizationSummaryById("1")).toEqual(mockSummary);
+        expect(global.fetch).toHaveBeenCalledWith("/api/admin/organizations/1/summary");
+      });
+
+      it("should return cached summary without fetching", async () => {
+        const mockSummary = {
+          id: "1",
+          name: "Test Org",
+          slug: "test-org",
+        };
+
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockSummary,
+        });
+
+        const { result } = renderHook(() => useOrganizationStore());
+
+        // First call - should fetch
+        await act(async () => {
+          await result.current.ensureOrganizationSummary("1");
+        });
+
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+
+        // Second call - should use cache
+        let cachedSummary;
+        await act(async () => {
+          cachedSummary = await result.current.ensureOrganizationSummary("1");
+        });
+
+        expect(cachedSummary).toEqual(mockSummary);
+        expect(global.fetch).toHaveBeenCalledTimes(1); // Still 1, not called again
+      });
+
+      it("should force refetch when force option is true", async () => {
+        const mockSummary1 = {
+          id: "1",
+          name: "Original Name",
+          slug: "original",
+        };
+
+        const mockSummary2 = {
+          id: "1",
+          name: "Updated Name",
+          slug: "updated",
+        };
+
+        (global.fetch as jest.Mock)
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockSummary1,
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => mockSummary2,
+          });
+
+        const { result } = renderHook(() => useOrganizationStore());
+
+        // First call
+        await act(async () => {
+          await result.current.ensureOrganizationSummary("1");
+        });
+
+        expect(result.current.getOrganizationSummaryById("1")?.name).toBe("Original Name");
+
+        // Force refetch
+        await act(async () => {
+          await result.current.ensureOrganizationSummary("1", { force: true });
+        });
+
+        expect(result.current.getOrganizationSummaryById("1")?.name).toBe("Updated Name");
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+      });
+
+      it("should prevent duplicate concurrent fetches", async () => {
+        const mockSummary = {
+          id: "1",
+          name: "Test Org",
+          slug: "test-org",
+        };
+
+        let resolvePromise: ((value: { ok: boolean; json: () => Promise<unknown> }) => void) | null = null;
+        const fetchPromise = new Promise<{ ok: boolean; json: () => Promise<unknown> }>((resolve) => {
+          resolvePromise = resolve;
+        });
+
+        (global.fetch as jest.Mock).mockReturnValueOnce(fetchPromise);
+
+        const { result } = renderHook(() => useOrganizationStore());
+
+        // Start first fetch
+        const promise1 = result.current.ensureOrganizationSummary("1");
+
+        // Start second fetch while first is still pending
+        const promise2 = result.current.ensureOrganizationSummary("1");
+
+        // Resolve the fetch
+        if (resolvePromise) {
+          resolvePromise({
+            ok: true,
+            json: async () => mockSummary,
+          });
+        }
+
+        // Wait for both to complete
+        await act(async () => {
+          const [summary1, summary2] = await Promise.all([promise1, promise2]);
+          expect(summary1).toEqual(mockSummary);
+          expect(summary2).toEqual(mockSummary);
+        });
+
+        expect(global.fetch).toHaveBeenCalledTimes(1); // Only called once despite two ensureOrganizationSummary calls
+      });
+
+      it("should handle fetch error", async () => {
+        (global.fetch as jest.Mock).mockResolvedValueOnce({
+          ok: false,
+          status: 404,
+          json: async () => ({ error: "Organization not found" }),
+        });
+
+        const { result } = renderHook(() => useOrganizationStore());
+
+        await act(async () => {
+          try {
+            await result.current.ensureOrganizationSummary("999");
+          } catch (error) {
+            expect(error).toBeInstanceOf(Error);
+            expect((error as Error).message).toBe("Organization not found");
+          }
+        });
+
+        expect(result.current.loading).toBe(false);
+        expect(result.current.error).toBe("Organization not found");
+        expect(result.current.getOrganizationSummaryById("999")).toBeUndefined();
+      });
+    });
+
+    describe("getOrganizationSummaryById selector", () => {
+      it("should return summary by ID", () => {
+        const mockSummary = {
+          id: "1",
+          name: "Test Org",
+          slug: "test-org",
+        };
+
+        const { result } = renderHook(() => useOrganizationStore());
+
+        act(() => {
+          useOrganizationStore.setState({
+            organizationSummariesById: { "1": mockSummary },
+          });
+        });
+
+        expect(result.current.getOrganizationSummaryById("1")).toEqual(mockSummary);
+      });
+
+      it("should return undefined for non-existent summary", () => {
+        const { result } = renderHook(() => useOrganizationStore());
+
+        expect(result.current.getOrganizationSummaryById("999")).toBeUndefined();
+      });
     });
   });
 });
