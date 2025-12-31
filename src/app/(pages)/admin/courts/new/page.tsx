@@ -118,7 +118,7 @@ export default function CreateCourtPage({
   
   // Organization and Club stores
   const { organizations, fetchOrganizations, loading: orgsLoading } = useOrganizationStore();
-  const { clubs, fetchClubsIfNeeded, loadingClubs: clubsLoading } = useAdminClubStore();
+  const { clubs, fetchClubsIfNeeded, loadingClubs: clubsLoading, ensureClubById } = useAdminClubStore();
   
   const [clubIdFromUrl, setClubIdFromUrl] = useState<string | null>(null);
   const [club, setClub] = useState<Club | null>(null);
@@ -272,48 +272,50 @@ export default function CreateCourtPage({
     }
   }, [isOrgAdmin, isClubAdmin, adminStatus, setValue]);
 
-  // Fetch club data when clubId is set
+  // Fetch club data when clubId is set using Zustand store
   const selectedClubId = watch("clubId") || clubIdFromUrl;
   
   useEffect(() => {
     if (!selectedClubId) {
       setLoading(false);
+      setClub(null);
       return;
     }
 
-    const fetchClub = async () => {
+    const loadClub = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/clubs/${selectedClubId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError(t("admin.courts.new.errors.clubNotFound"));
-            return;
-          }
-          throw new Error(t("admin.courts.new.errors.failedToLoadClub"));
-        }
-        const data = await response.json();
-        setClub(data);
+        setError(null);
+        
+        // Use Zustand store to get club data (cache-first, prevents redundant requests)
+        const clubData = await ensureClubById(selectedClubId);
+        setClub(clubData);
         
         // Set default currency from club
-        if (data.defaultCurrency) {
-          setValue("currency", data.defaultCurrency);
+        if (clubData.defaultCurrency) {
+          setValue("currency", clubData.defaultCurrency);
         }
         
         // Set organization ID from club if not already set
-        if (data.organizationId && !getValues("organizationId")) {
-          setValue("organizationId", data.organizationId);
+        if (clubData.organizationId && !getValues("organizationId")) {
+          setValue("organizationId", clubData.organizationId);
         }
       } catch (err) {
         console.error("Failed to load club:", err);
-        setError(t("admin.courts.new.errors.failedToLoadClub"));
+        const errorMessage = err instanceof Error ? err.message : t("admin.courts.new.errors.failedToLoadClub");
+        if (errorMessage.includes("404") || errorMessage.includes("not found")) {
+          setError(t("admin.courts.new.errors.clubNotFound"));
+        } else {
+          setError(t("admin.courts.new.errors.failedToLoadClub"));
+        }
+        setClub(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchClub();
-  }, [selectedClubId, setValue, getValues, t]);
+    loadClub();
+  }, [selectedClubId, ensureClubById, setValue, getValues, t]);
 
   // Auth check - allow any admin
   useEffect(() => {
