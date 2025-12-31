@@ -119,17 +119,43 @@ export function parseOrganizationMetadata(metadata: string | Record<string, unkn
   }
 
   try {
-    // If metadata is already an object (from API response), validate and return it
+    let parsed: Record<string, unknown>;
+    
+    // If metadata is already an object (from API response), validate and use it
     if (typeof metadata === 'object') {
       // Basic validation - ensure it's a plain object
       if (Object.prototype.toString.call(metadata) === '[object Object]') {
-        return metadata as OrganizationMetadata;
+        parsed = metadata;
+      } else {
+        return undefined;
       }
-      return undefined;
+    } else {
+      // If metadata is a string (from database), parse it
+      parsed = JSON.parse(metadata) as Record<string, unknown>;
     }
     
-    // If metadata is a string (from database), parse it
-    return JSON.parse(metadata) as OrganizationMetadata;
+    // Handle backward compatibility: migrate old nested logoMetadata structure
+    // Old format: { logoMetadata: { secondLogo, logoTheme, secondLogoTheme } }
+    // New format: { secondLogo, logoTheme, secondLogoTheme } (at top level)
+    if (parsed.logoMetadata && typeof parsed.logoMetadata === 'object') {
+      const logoMetadata = parsed.logoMetadata as Record<string, unknown>;
+      
+      // Migrate nested properties to top level if not already there
+      if (logoMetadata.secondLogo && !parsed.secondLogo) {
+        parsed.secondLogo = logoMetadata.secondLogo;
+      }
+      if (logoMetadata.logoTheme && !parsed.logoTheme) {
+        parsed.logoTheme = logoMetadata.logoTheme;
+      }
+      if (logoMetadata.secondLogoTheme && !parsed.secondLogoTheme) {
+        parsed.secondLogoTheme = logoMetadata.secondLogoTheme;
+      }
+      if (logoMetadata.logoCount && !parsed.logoCount) {
+        parsed.logoCount = logoMetadata.logoCount;
+      }
+    }
+    
+    return parsed as OrganizationMetadata;
   } catch {
     // Invalid JSON
     return undefined;

@@ -101,7 +101,7 @@ export async function POST(
 
     // Update organization record with new image URL
     if (imageType === "secondLogo") {
-      // For second logo, store URL in metadata
+      // For second logo, store URL in metadata at top level (aligned with EntityLogoMetadata interface)
       const org = await prisma.organization.findUnique({
         where: { id: organizationId },
         select: { metadata: true },
@@ -116,16 +116,13 @@ export async function POST(
         currentMetadata = {};
       }
       
-      const logoMetadata = currentMetadata.logoMetadata as Record<string, unknown> || {};
-      logoMetadata.secondLogo = url;
+      // Store secondLogo at top level of metadata (not nested under logoMetadata)
+      currentMetadata.secondLogo = url;
       
       await prisma.organization.update({
         where: { id: organizationId },
         data: {
-          metadata: JSON.stringify({
-            ...currentMetadata,
-            logoMetadata,
-          }),
+          metadata: JSON.stringify(currentMetadata),
         },
       });
     } else {

@@ -116,16 +116,8 @@ export function ClubEditor({
   }, [onUpdate, onRefresh]);
 
   const handleLogoSave = useCallback(async (payload: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => {
-    // Parse existing metadata
-    let existingMetadata: Record<string, unknown> = {};
-    if (club.metadata) {
-      try {
-        existingMetadata = JSON.parse(club.metadata);
-      } catch {
-        // Invalid JSON, start fresh
-        existingMetadata = {};
-      }
-    }
+    // Use parsed metadata helper for consistency
+    const existingMetadata = parseClubMetadata(club.metadata) || {};
 
     // Update metadata with logo settings - send as object, API will stringify
     await onUpdate("metadata", {
@@ -174,16 +166,8 @@ export function ClubEditor({
   }, [club.id, club.metadata, onUpdate, onRefresh, t]);
 
   const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
-    // Parse existing metadata
-    let existingMetadata: Record<string, unknown> = {};
-    if (club.metadata) {
-      try {
-        existingMetadata = JSON.parse(club.metadata);
-      } catch {
-        // Invalid JSON, start fresh
-        existingMetadata = {};
-      }
-    }
+    // Use parsed metadata helper for consistency
+    const existingMetadata = parseClubMetadata(club.metadata) || {};
 
     // Update metadata with alignment - send as object, API will stringify
     await onUpdate("metadata", {

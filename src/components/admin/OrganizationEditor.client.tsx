@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/components/ui";
 import { BaseInfoTab, AddressTab, LogoTab, BannerTab } from "@/components/admin/EntityTabs";
 import type { BaseInfoData, AddressData, LogoData, BannerData } from "@/components/admin/EntityTabs";
+import { parseOrganizationMetadata } from "@/types/organization";
 import "@/components/admin/EntityTabs/EntityTabs.css";
 
 interface OrganizationData {
@@ -38,18 +39,8 @@ export function OrganizationEditor({
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingTabId, setPendingTabId] = useState<string | null>(null);
 
-  // Parse existing data
-  const metadata = organization.metadata as {
-    country?: string;
-    street?: string;
-    latitude?: number;
-    longitude?: number;
-    logoTheme?: 'light' | 'dark';
-    secondLogoTheme?: 'light' | 'dark';
-    logoCount?: 'one' | 'two';
-    secondLogo?: string | null;
-    bannerAlignment?: 'top' | 'center' | 'bottom';
-  } | null;
+  // Parse existing data using the helper to handle backward compatibility
+  const metadata = parseOrganizationMetadata(organization.metadata);
 
   const addressParts = organization.address?.split(", ") || [];
   const street = metadata?.street || addressParts[0] || "";
@@ -137,10 +128,13 @@ export function OrganizationEditor({
     ].filter(Boolean);
     const fullAddress = addressParts.join(", ");
 
+    // Use parsed metadata (plain object) to avoid issues with non-enumerable properties
+    const currentMetadata = parseOrganizationMetadata(organization.metadata) || {};
+
     await onUpdate(organization.id, {
       address: fullAddress,
       metadata: {
-        ...(organization.metadata as object || {}),
+        ...currentMetadata,
         country: data.country,
         street: data.street,
         latitude: data.latitude,
@@ -152,10 +146,13 @@ export function OrganizationEditor({
   }, [organization.id, organization.metadata, onUpdate, onRefresh]);
 
   const handleLogoSave = useCallback(async (payload: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => {
+    // Use parsed metadata (plain object) to avoid issues with non-enumerable properties
+    const currentMetadata = parseOrganizationMetadata(organization.metadata) || {};
+
     // Update metadata first
     await onUpdate(organization.id, {
       metadata: {
-        ...(organization.metadata as object || {}),
+        ...currentMetadata,
         ...payload.metadata,
       },
     });
@@ -199,10 +196,13 @@ export function OrganizationEditor({
   }, [organization.id, organization.metadata, onUpdate, onRefresh, t]);
 
   const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
+    // Use parsed metadata (plain object) to avoid issues with non-enumerable properties
+    const currentMetadata = parseOrganizationMetadata(organization.metadata) || {};
+
     // Update metadata with alignment first
     await onUpdate(organization.id, {
       metadata: {
-        ...(organization.metadata as object || {}),
+        ...currentMetadata,
         bannerAlignment: alignment,
       },
     });

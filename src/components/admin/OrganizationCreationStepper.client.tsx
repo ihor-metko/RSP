@@ -272,13 +272,10 @@ export function OrganizationCreationStepper() {
     baseMetadata: Record<string, unknown>,
     secondLogoUrl: string
   ) => {
-    const currentLogoMetadata = baseMetadata.logoMetadata as Record<string, unknown> || {};
+    // Store secondLogo at top level of metadata (aligned with EntityLogoMetadata interface)
     const updatedMetadata = {
       ...baseMetadata,
-      logoMetadata: {
-        ...currentLogoMetadata,
-        secondLogo: secondLogoUrl,
-      }
+      secondLogo: secondLogoUrl,
     };
     
     await fetch(`/api/admin/organizations/${organizationId}`, {
@@ -344,19 +341,15 @@ export function OrganizationCreationStepper() {
         metadata.socialLinks = socialLinks;
       }
 
-      // Add logo theme metadata if logos are provided
+      // Add logo theme metadata if logos are provided (at top level, aligned with EntityLogoMetadata)
       if (formData.logo || formData.secondLogo) {
-        const logoMetadata: Record<string, unknown> = {
-          logoTheme: formData.logoTheme,
-          logoCount: formData.logoCount,
-          logoBackground: formData.logoBackground, // Save logo background for display in banners and cards
-        };
+        metadata.logoTheme = formData.logoTheme;
+        metadata.logoCount = formData.logoCount;
+        metadata.logoBackground = formData.logoBackground; // Save logo background for display in banners and cards
         
         if (formData.logoCount === 'two' && formData.secondLogo) {
-          logoMetadata.secondLogoTheme = formData.secondLogoTheme;
+          metadata.secondLogoTheme = formData.secondLogoTheme;
         }
-        
-        metadata.logoMetadata = logoMetadata;
       }
 
       // Add banner alignment metadata (always save, even if no image uploaded yet)

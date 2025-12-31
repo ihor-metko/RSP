@@ -177,8 +177,12 @@ export function EntityEditStepper({
       }
 
       // Set existing images as URLs (not files)
-      // Try to get logo metadata from entity data
+      // Try to get logo metadata from entity data (with backward compatibility)
       const logoMetadata = entityData.metadata as { 
+        logoTheme?: 'light' | 'dark'; 
+        logoBackground?: 'light' | 'dark';
+        secondLogo?: string | null; 
+        secondLogoTheme?: 'light' | 'dark'; 
         logoMetadata?: { 
           logoTheme?: 'light' | 'dark'; 
           logoBackground?: 'light' | 'dark';
@@ -188,13 +192,19 @@ export function EntityEditStepper({
         bannerAlignment?: 'top' | 'center' | 'bottom';
       } | null;
 
+      // Prefer top-level metadata, fall back to nested logoMetadata for backward compatibility
+      const effectiveLogoTheme = logoMetadata?.logoTheme || logoMetadata?.logoMetadata?.logoTheme || 'light';
+      const effectiveLogoBackground = logoMetadata?.logoBackground || logoMetadata?.logoMetadata?.logoBackground || 'light';
+      const effectiveSecondLogo = logoMetadata?.secondLogo || logoMetadata?.logoMetadata?.secondLogo;
+      const effectiveSecondLogoTheme = logoMetadata?.secondLogoTheme || logoMetadata?.logoMetadata?.secondLogoTheme || 'dark';
+
       setLogoData({
-        logoCount: logoMetadata?.logoMetadata?.secondLogo ? 'two' : 'one',
+        logoCount: effectiveSecondLogo ? 'two' : 'one',
         logo: entityData.logo ? { url: entityData.logo, key: "", preview: entityData.logo } : null,
-        logoTheme: logoMetadata?.logoMetadata?.logoTheme || 'light',
-        logoBackground: logoMetadata?.logoMetadata?.logoBackground || 'light',
-        secondLogo: logoMetadata?.logoMetadata?.secondLogo ? { url: logoMetadata.logoMetadata.secondLogo, key: "", preview: logoMetadata.logoMetadata.secondLogo } : null,
-        secondLogoTheme: logoMetadata?.logoMetadata?.secondLogoTheme || 'dark',
+        logoTheme: effectiveLogoTheme,
+        logoBackground: effectiveLogoBackground,
+        secondLogo: effectiveSecondLogo ? { url: effectiveSecondLogo, key: "", preview: effectiveSecondLogo } : null,
+        secondLogoTheme: effectiveSecondLogoTheme,
       });
 
       setBannerData({
@@ -377,16 +387,13 @@ export function EntityEditStepper({
           longitude: parseFloat(addressData.longitude),
         };
 
-        // Add logo metadata
-        const logoMetadata: Record<string, unknown> = {
-          logoTheme: logoData.logoTheme,
-          logoCount: logoData.logoCount,
-          logoBackground: logoData.logoBackground,
-        };
+        // Add logo metadata at top level (aligned with EntityLogoMetadata)
+        metadata.logoTheme = logoData.logoTheme;
+        metadata.logoCount = logoData.logoCount;
+        metadata.logoBackground = logoData.logoBackground;
         if (logoData.logoCount === 'two' && logoData.secondLogo) {
-          logoMetadata.secondLogoTheme = logoData.secondLogoTheme;
+          metadata.secondLogoTheme = logoData.secondLogoTheme;
         }
-        metadata.logoMetadata = logoMetadata;
 
         // Add banner alignment
         metadata.bannerAlignment = bannerData.bannerAlignment;
@@ -406,16 +413,13 @@ export function EntityEditStepper({
         // Prepare metadata for club
         const clubMetadata: Record<string, unknown> = {};
 
-        // Add logo metadata
-        const logoMetadata: Record<string, unknown> = {
-          logoTheme: logoData.logoTheme,
-          logoCount: logoData.logoCount,
-          logoBackground: logoData.logoBackground,
-        };
+        // Add logo metadata at top level (aligned with EntityLogoMetadata)
+        clubMetadata.logoTheme = logoData.logoTheme;
+        clubMetadata.logoCount = logoData.logoCount;
+        clubMetadata.logoBackground = logoData.logoBackground;
         if (logoData.logoCount === 'two' && logoData.secondLogo) {
-          logoMetadata.secondLogoTheme = logoData.secondLogoTheme;
+          clubMetadata.secondLogoTheme = logoData.secondLogoTheme;
         }
-        clubMetadata.logoMetadata = logoMetadata;
 
         // Add banner alignment
         clubMetadata.bannerAlignment = bannerData.bannerAlignment;
