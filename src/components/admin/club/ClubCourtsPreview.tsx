@@ -47,15 +47,6 @@ export function ClubCourtsPreview({ club, disabled = false }: ClubCourtsPreviewP
       {!club.courts || club.courts.length === 0 ? (
         <div className="im-preview-empty-state">
           <p className="im-preview-empty">{t("clubDetail.noCourts")}</p>
-          {!disabled && (
-            <Button
-              variant="primary"
-              size="small"
-              onClick={handleAddCourt}
-            >
-              {t("clubDetail.addFirstCourt")}
-            </Button>
-          )}
         </div>
       ) : (
         <>
