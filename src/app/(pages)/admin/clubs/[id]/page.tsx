@@ -225,7 +225,7 @@ export default function AdminClubDetailPage({
   ];
 
   // Loading skeleton - Show while params are being resolved OR while club data is loading
-  if (!clubId || isClubLoading || isLoadingStore) {
+  if (!club || isClubLoading || isLoadingStore) {
     return (
       <main className="im-admin-club-detail-page">
         <div className="im-admin-club-skeleton-hero" />
@@ -253,10 +253,6 @@ export default function AdminClubDetailPage({
         </div>
       </main>
     );
-  }
-
-  if (!club) {
-    return null;
   }
 
   // Prepare derived data
@@ -352,8 +348,8 @@ export default function AdminClubDetailPage({
           <div className="im-admin-club-info-column">
             {/* Courts Summary with Edit */}
             <Card className="im-admin-club-info-card">
-              <ClubCourtsQuickList 
-                club={club} 
+              <ClubCourtsQuickList
+                club={club}
                 disabled={!canEdit}
                 disabledTooltip={editDisabledTooltip}
               />
