@@ -36,15 +36,13 @@ export function OrganizationEditor({
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingTabId, setPendingTabId] = useState<string | null>(null);
 
-  // Parse existing data
+  const addressParts = organization.address?.split(", ") || [];
   const metadata = organization.metadata as {
     country?: string;
     street?: string;
     latitude?: number;
     longitude?: number;
   } | null;
-
-  const addressParts = organization.address?.split(", ") || [];
   const street = metadata?.street || addressParts[0] || "";
   const city = addressParts.length > 1 ? addressParts[1] : "";
   const postalCode = addressParts.length > 2 ? addressParts[2] : "";

@@ -3,27 +3,15 @@
 import { Card } from "@/components/ui";
 import { useTranslations } from "next-intl";
 
-interface UploadedFile {
-  url: string;
-  key: string;
-  file?: File;
-  preview?: string;
-}
-
-interface BannerFormData {
-  heroImage: UploadedFile | null;
-  bannerAlignment?: 'top' | 'center' | 'bottom';
-}
-
 interface BannerStepProps {
-  formData: unknown;
-  fieldErrors: Record<string, string>;
-  isSubmitting: boolean;
-  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
+  formData?: unknown;
+  fieldErrors?: Record<string, string>;
+  isSubmitting?: boolean;
+  onChange?: unknown;
   translationNamespace?: string;
 }
 
-export function BannerStep({ formData, fieldErrors, isSubmitting, onChange, translationNamespace = "organizations.stepper" }: BannerStepProps) {
+export function BannerStep({ translationNamespace = "organizations.stepper" }: BannerStepProps) {
   const t = useTranslations(translationNamespace);
 
   return (

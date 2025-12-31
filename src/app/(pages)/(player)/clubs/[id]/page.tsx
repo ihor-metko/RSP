@@ -17,7 +17,6 @@ import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
-import { parseClubMetadata } from "@/types/club";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
@@ -72,8 +71,6 @@ interface ClubWithDetails {
   socialLinks?: string | null;
   contactInfo?: string | null;
   openingHours?: string | null;
-  logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
-  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
   metadata?: string | null;
   defaultCurrency?: string | null;
   timezone?: string | null;
@@ -390,9 +387,6 @@ export default function ClubDetailPage({
   // Format location display
   const locationDisplay = [club.city, club.country].filter(Boolean).join(", ") || club.location;
 
-  // Parse club metadata for logo and banner settings
-  const clubMetadata = parseClubMetadata(club.metadata);
-
   // Prepare gallery images for modal
   const galleryImages = (club.gallery || [])
     .map((image) => {
@@ -410,10 +404,6 @@ export default function ClubDetailPage({
         title={club.name}
         subtitle={club.shortDescription}
         location={locationDisplay}
-        imageUrl={club.bannerData?.url}
-        bannerAlignment={clubMetadata?.bannerAlignment || 'center'}
-        logoUrl={club.logoData?.url}
-        logoMetadata={clubMetadata}
         imageAlt={`${club.name} hero image`}
         logoAlt={`${club.name} logo`}
         hideAdminFeatures={true}

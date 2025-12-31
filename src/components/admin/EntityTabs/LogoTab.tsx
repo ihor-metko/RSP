@@ -1,32 +1,24 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Card } from "@/components/ui";
 import { useTranslations } from "next-intl";
-import { Card, Button } from "@/components/ui";
-
-interface UploadedFile {
-  url: string;
-  key: string;
-  file?: File;
-  preview?: string;
-}
 
 export interface LogoData {
   logoCount: 'one' | 'two';
-  logo: UploadedFile | null;
+  logo: { url: string; key: string; file?: File; preview?: string } | null;
   logoTheme: 'light' | 'dark';
-  secondLogo: UploadedFile | null;
+  secondLogo: { url: string; key: string; file?: File; preview?: string } | null;
   secondLogoTheme: 'light' | 'dark';
 }
 
 interface LogoTabProps {
-  initialData: LogoData;
-  onSave: (files: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => Promise<void>;
+  initialData?: LogoData;
+  onSave?: () => Promise<void>;
   disabled?: boolean;
   translationNamespace?: string;
 }
 
-export function LogoTab({ initialData, onSave, disabled = false, translationNamespace = "organizations.tabs" }: LogoTabProps) {
+export function LogoTab({ translationNamespace = "organizations.tabs" }: LogoTabProps) {
   const t = useTranslations(translationNamespace);
 
   return (

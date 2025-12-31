@@ -4,31 +4,15 @@ import { Card } from "@/components/ui";
 import { useTranslations } from "next-intl";
 import "./LogoStep.css";
 
-interface UploadedFile {
-  url: string;
-  key: string;
-  file?: File;
-  preview?: string;
-}
-
-interface LogoFormData {
-  logoCount: 'one' | 'two';
-  logo: UploadedFile | null;
-  logoTheme: 'light' | 'dark';
-  logoBackground: 'light' | 'dark';
-  secondLogo: UploadedFile | null;
-  secondLogoTheme: 'light' | 'dark';
-}
-
 interface LogoStepProps {
-  formData: unknown;
-  fieldErrors: Record<string, string>;
-  isSubmitting: boolean;
-  onChange: ((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void) | ((field: string, value: UploadedFile | null | boolean | string) => void);
+  formData?: unknown;
+  fieldErrors?: Record<string, string>;
+  isSubmitting?: boolean;
+  onChange?: unknown;
   translationNamespace?: string;
 }
 
-export function LogoStep({ formData, fieldErrors, isSubmitting, onChange, translationNamespace = "organizations.stepper" }: LogoStepProps) {
+export function LogoStep({ translationNamespace = "organizations.stepper" }: LogoStepProps) {
   const t = useTranslations(translationNamespace);
 
   return (

@@ -1,31 +1,23 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Card } from "@/components/ui";
 import { useTranslations } from "next-intl";
-import { Card, Button } from "@/components/ui";
-
-interface UploadedFile {
-  url: string;
-  key: string;
-  file?: File;
-  preview?: string;
-}
 
 export type BannerAlignment = 'top' | 'center' | 'bottom';
 
 export interface BannerData {
-  heroImage: UploadedFile | null;
+  heroImage: { url: string; key: string; file?: File; preview?: string } | null;
   bannerAlignment?: BannerAlignment;
 }
 
 interface BannerTabProps {
-  initialData: BannerData;
-  onSave: (file: File | null, alignment: BannerAlignment) => Promise<void>;
+  initialData?: BannerData;
+  onSave?: () => Promise<void>;
   disabled?: boolean;
   translationNamespace?: string;
 }
 
-export function BannerTab({ initialData, onSave, disabled = false, translationNamespace = "organizations.tabs" }: BannerTabProps) {
+export function BannerTab({ translationNamespace = "organizations.tabs" }: BannerTabProps) {
   const t = useTranslations(translationNamespace);
 
   return (

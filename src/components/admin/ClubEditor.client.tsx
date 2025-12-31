@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/components/ui";
 import { BaseInfoTab, AddressTab, LogoTab, BannerTab } from "@/components/admin/EntityTabs";
 import type { BaseInfoData, AddressData, LogoData, BannerData } from "@/components/admin/EntityTabs";
-import { parseClubMetadata } from "@/types/club";
 import type { ClubDetail } from "@/types/club";
 import "@/components/admin/EntityTabs/EntityTabs.css";
 
@@ -28,9 +27,6 @@ export function ClubEditor({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingTabId, setPendingTabId] = useState<string | null>(null);
-
-  // Parse metadata from JSON string
-  const metadata = parseClubMetadata(club.metadata);
 
   const baseInfoData: BaseInfoData = {
     name: club.name,
