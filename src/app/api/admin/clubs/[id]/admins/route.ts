@@ -5,6 +5,24 @@ import { ClubMembershipRole, MembershipRole } from "@/constants/roles";
 import { hash } from "bcryptjs";
 
 /**
+ * Helper function to check if a user has Club Owner or Club Admin role
+ */
+async function hasClubAdminAccess(userId: string, clubId: string): Promise<boolean> {
+  const clubMembership = await prisma.clubMembership.findUnique({
+    where: {
+      userId_clubId: {
+        userId,
+        clubId,
+      },
+    },
+  });
+
+  return clubMembership !== null && 
+    (clubMembership.role === ClubMembershipRole.CLUB_OWNER || 
+     clubMembership.role === ClubMembershipRole.CLUB_ADMIN);
+}
+
+/**
  * GET /api/admin/clubs/[id]/admins
  * Returns list of Club Admins for a specific club.
  */
@@ -59,18 +77,8 @@ export async function GET(
           // Authorized - continue to fetch admins
         } else {
           // Check if user is a Club Owner or Club Admin for this club
-          const clubMembership = await prisma.clubMembership.findUnique({
-            where: {
-              userId_clubId: {
-                userId: session.user.id,
-                clubId,
-              },
-            },
-          });
-
-          // Allow Club Owner and Club Admin read access
-          if (!clubMembership || 
-              ![ClubMembershipRole.CLUB_OWNER, ClubMembershipRole.CLUB_ADMIN].includes(clubMembership.role as ClubMembershipRole)) {
+          const hasAccess = await hasClubAdminAccess(session.user.id, clubId);
+          if (!hasAccess) {
             return NextResponse.json(
               { error: "Forbidden" },
               { status: 403 }
@@ -79,17 +87,8 @@ export async function GET(
         }
       } else {
         // No organization - check club membership only
-        const clubMembership = await prisma.clubMembership.findUnique({
-          where: {
-            userId_clubId: {
-              userId: session.user.id,
-              clubId,
-            },
-          },
-        });
-
-        if (!clubMembership || 
-            ![ClubMembershipRole.CLUB_OWNER, ClubMembershipRole.CLUB_ADMIN].includes(clubMembership.role as ClubMembershipRole)) {
+        const hasAccess = await hasClubAdminAccess(session.user.id, clubId);
+        if (!hasAccess) {
           return NextResponse.json(
             { error: "Forbidden" },
             { status: 403 }
