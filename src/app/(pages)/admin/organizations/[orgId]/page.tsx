@@ -16,29 +16,11 @@ import "./page.css";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
 
-/**
- * Club with statistics from the new clubs endpoint
- */
-interface ClubWithStatistics {
-  id: string;
-  name: string;
-  slug: string | null;
-  city: string | null;
-  isPublic: boolean;
-  createdAt: string;
-  statistics: {
-    courtCount: number;
-    activeUpcomingBookings: number;
-    pastBookings: number;
-  };
-}
+// Constants
+const CLUBS_PREVIEW_LIMIT = 5;
 
 /**
  * Helper function to get trend information based on occupancy change percentage
- * @param changePercent - The percentage change in occupancy compared to previous month (null if no data)
- * @returns Object with:
- *   - className: CSS class for trend styling ('im-club-preview-trend--up' for positive, 'im-club-preview-trend--down' for negative, 'im-club-preview-trend--neutral' for zero/null)
- *   - arrow: Visual indicator ('↑' for increase, '↓' for decrease, '→' for no change)
  */
 function getTrendInfo(changePercent: number | null): {
   className: string;
@@ -56,9 +38,6 @@ function getTrendInfo(changePercent: number | null): {
   return { className: 'im-club-preview-trend--neutral', arrow: '→' };
 }
 
-// Constants
-const CLUBS_PREVIEW_LIMIT = 5;
-
 export default function OrganizationDetailPage() {
   const t = useTranslations();
   const router = useRouter();
@@ -70,23 +49,23 @@ export default function OrganizationDetailPage() {
   const isLoading = useUserStore((state) => state.isLoading);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
 
-  // Use Zustand store
+  // Use Zustand store for organization
   const ensureOrganizationById = useOrganizationStore((state) => state.ensureOrganizationById);
   const org = useOrganizationStore((state) => state.getOrganizationDetailById(orgId));
   const updateOrganization = useOrganizationStore((state) => state.updateOrganization);
   const loading = useOrganizationStore((state) => state.loading);
   const storeError = useOrganizationStore((state) => state.error);
-  // Note: deleteOrganization and archive functionality removed as per requirement to simplify the page
-  // Archive/Delete modals can be re-added later if needed via the Danger Zone section
+  
+  // Use Zustand store for organization clubs
+  const ensureOrganizationClubs = useOrganizationStore((state) => state.ensureOrganizationClubs);
+  const clubsData = useOrganizationStore((state) => state.getOrganizationClubsById(orgId));
 
   // Statistics store
   const monthlyStatistics = useClubStatisticsStore((state) => state.monthlyStatistics);
   const setMonthlyStatistics = useClubStatisticsStore((state) => state.setMonthlyStatistics);
 
-  // Clubs state - fetched separately from new endpoint
-  const [clubs, setClubs] = useState<ClubWithStatistics[]>([]);
+  // Local state
   const [clubsLoading, setClubsLoading] = useState(false);
-
   const [error, setError] = useState("");
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
 
@@ -99,8 +78,6 @@ export default function OrganizationDetailPage() {
 
   // Edit modal state
   const [isEditingDetails, setIsEditingDetails] = useState(false);
-
-
 
   // Publication toggle
   const [isTogglingPublication, setIsTogglingPublication] = useState(false);
@@ -116,26 +93,17 @@ export default function OrganizationDetailPage() {
     }
   }, [orgId, ensureOrganizationById, t]);
 
-  // Fetch clubs from new separate endpoint
-  const fetchClubs = useCallback(async () => {
+  // Fetch clubs from store
+  const fetchClubs = useCallback(async (force = false) => {
     try {
       setClubsLoading(true);
-      
-      const response = await fetch(`/api/admin/organizations/${orgId}/clubs?limit=${CLUBS_PREVIEW_LIMIT}`);
-      
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({ error: "Invalid response format when fetching clubs" }));
-        throw new Error(data.error || `HTTP ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setClubs(data.clubs || []);
+      await ensureOrganizationClubs(orgId, { force, limit: CLUBS_PREVIEW_LIMIT });
     } catch (err) {
       console.error("Failed to load clubs:", err);
     } finally {
       setClubsLoading(false);
     }
-  }, [orgId]);
+  }, [orgId, ensureOrganizationClubs]);
 
   useEffect(() => {
     if (!isHydrated || isLoading) return;
@@ -400,7 +368,7 @@ export default function OrganizationDetailPage() {
                 </div>
               )}
             </div>
-            {clubs.length === 0 ? (
+            {!clubsData || clubsData.clubs.length === 0 ? (
               <div className="im-preview-empty-state">
                 <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
                 {!org.archivedAt && (
@@ -416,13 +384,16 @@ export default function OrganizationDetailPage() {
             ) : (
               <>
                 <div className="im-clubs-preview-list">
-                  {clubs.map((club) => {
+                  {clubsData.clubs.map((club) => {
                     // Find statistics for this club
                     const clubStats = monthlyStatistics.find(stat => stat.clubId === club.id);
                     // Get trend info if statistics are available
                     const trendInfo = clubStats?.occupancyChangePercent !== null && clubStats
                       ? getTrendInfo(clubStats.occupancyChangePercent)
                       : null;
+
+                    // Format address display - prioritize location (full address), fall back to city
+                    const addressDisplay = club.location || club.city || club.slug || "";
 
                     return (
                       <div
@@ -441,7 +412,7 @@ export default function OrganizationDetailPage() {
                         <div className="im-club-preview-info">
                           <span className="im-club-preview-name">{club.name}</span>
                           <span className="im-club-preview-meta">
-                            {club.city || club.slug} · {club.statistics.courtCount} {t("orgDetail.courts")}
+                            {addressDisplay} · {club.statistics.courtCount} {t("orgDetail.courts")}
                           </span>
                         </div>
 
@@ -480,7 +451,7 @@ export default function OrganizationDetailPage() {
                     );
                   })}
                 </div>
-                {(org.metrics?.totalClubs ?? 0) > clubs.length && (
+                {(org.metrics?.totalClubs ?? 0) > clubsData.clubs.length && (
                   <Button
                     variant="outline"
                     size="small"

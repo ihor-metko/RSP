@@ -76,7 +76,9 @@ describe("GET /api/admin/organizations/[id]/clubs", () => {
         id: "club-1",
         name: "Club 1",
         slug: "club-1",
+        location: "123 Main St",
         city: "City 1",
+        country: "Country 1",
         isPublic: true,
         createdAt: new Date("2024-01-01"),
         _count: {
@@ -87,7 +89,9 @@ describe("GET /api/admin/organizations/[id]/clubs", () => {
         id: "club-2",
         name: "Club 2",
         slug: "club-2",
+        location: "456 Oak Ave",
         city: "City 2",
+        country: "Country 2",
         isPublic: false,
         createdAt: new Date("2024-01-02"),
         _count: {
@@ -141,7 +145,9 @@ describe("GET /api/admin/organizations/[id]/clubs", () => {
       id: "club-1",
       name: "Club 1",
       slug: "club-1",
+      location: "123 Main St",
       city: "City 1",
+      country: "Country 1",
       isPublic: true,
       createdAt: expect.any(String),
       statistics: {
@@ -155,7 +161,9 @@ describe("GET /api/admin/organizations/[id]/clubs", () => {
       id: "club-2",
       name: "Club 2",
       slug: "club-2",
+      location: "456 Oak Ave",
       city: "City 2",
+      country: "Country 2",
       isPublic: false,
       createdAt: expect.any(String),
       statistics: {

@@ -138,7 +138,9 @@ export async function GET(
       id: club.id,
       name: club.name,
       slug: club.slug,
+      location: club.location,
       city: club.city,
+      country: club.country,
       isPublic: club.isPublic,
       createdAt: club.createdAt,
       statistics: {
