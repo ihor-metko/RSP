@@ -85,7 +85,7 @@
 .im-time-input::-webkit-calendar-picker-indicator {
   opacity: 0;
   position: absolute;
-  right: 0.5rem;
+  right: 0.75rem;
   width: 2rem;
   height: 100%;
   cursor: pointer;
@@ -94,9 +94,4 @@
 /* Firefox time picker */
 .im-time-input::-moz-calendar-picker-indicator {
   opacity: 0;
-}
-
-/* When used in forms or grids */
-.im-time-input-wrapper + .im-time-input-wrapper {
-  margin-top: 0;
 }

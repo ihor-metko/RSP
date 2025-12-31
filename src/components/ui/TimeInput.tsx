@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useId } from "react";
 import "./TimeInput.css";
 
 interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
@@ -27,7 +27,8 @@ interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  */
 export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
   function TimeInput({ label, className = "", id, "aria-label": ariaLabel, ...props }, ref) {
-    const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
+    const generatedId = useId();
+    const inputId = id || generatedId;
 
     return (
       <div className={`im-time-input-wrapper ${className}`.trim()}>
