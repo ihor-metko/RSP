@@ -759,8 +759,8 @@ describe("Admin Organizations API", () => {
         contactPhone: "123-456-7890",
         website: "https://test.com",
         address: "123 Test St",
-        logo: null,
-        heroImage: null,
+        logoData: null,
+        bannerData: null,
         metadata: null,
         isPublic: true,
         archivedAt: null,
@@ -771,27 +771,12 @@ describe("Admin Organizations API", () => {
           name: "Creator",
           email: "creator@test.com",
         },
-        memberships: [
-          {
-            id: "membership-1",
-            isPrimaryOwner: true,
-            user: {
-              id: "owner-1",
-              name: "Owner",
-              email: "owner@test.com",
-            },
-          },
-        ],
       };
 
       (prisma.organization.findUnique as jest.Mock).mockResolvedValue(mockOrg);
       (prisma.club.count as jest.Mock).mockResolvedValue(2);
       (prisma.court.count as jest.Mock).mockResolvedValue(5);
       (prisma.booking.count as jest.Mock).mockResolvedValue(10);
-      (prisma.booking.groupBy as jest.Mock).mockResolvedValue([{ userId: "user-1" }, { userId: "user-2" }]);
-      (prisma.club.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.auditLog.findMany as jest.Mock).mockResolvedValue([]);
 
       const request = new Request("http://localhost:3000/api/admin/organizations/org-1");
       const response = await GetOrganization(request, { params: Promise.resolve({ id: "org-1" }) });
@@ -805,14 +790,10 @@ describe("Admin Organizations API", () => {
         totalCourts: 5,
         activeBookings: 10,
       });
-      expect(data.superAdmins).toHaveLength(1);
-      expect(data.primaryOwner).toEqual({
-        id: "owner-1",
-        name: "Owner",
-        email: "owner@test.com",
-        isPrimaryOwner: true,
-        membershipId: "membership-1",
-      });
+      // Verify that old fields are not returned
+      expect(data.clubsPreview).toBeUndefined();
+      expect(data.clubAdmins).toBeUndefined();
+      expect(data.recentActivity).toBeUndefined();
     });
 
     it("should return 404 when organization not found", async () => {

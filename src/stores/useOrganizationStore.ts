@@ -40,38 +40,11 @@ export interface OrganizationDetail extends Organization {
     name: string | null;
     email: string;
   };
-  // Admins are no longer part of organization detail
-  // They are fetched independently via useAdminsStore
   metrics?: {
     totalClubs: number;
     totalCourts: number;
     activeBookings: number;
   };
-  clubsPreview?: Array<{
-    id: string;
-    name: string;
-    slug: string | null;
-    city: string | null;
-    isPublic: boolean;
-    courtCount: number;
-    adminCount: number;
-    createdAt: string;
-  }>;
-  clubAdmins?: Array<{
-    id: string;
-    userId: string;
-    userName: string | null;
-    userEmail: string;
-    clubId: string;
-    clubName: string;
-  }>;
-  recentActivity?: Array<{
-    id: string;
-    action: string;
-    actorId: string;
-    detail: unknown;
-    createdAt: Date;
-  }>;
 }
 
 /**

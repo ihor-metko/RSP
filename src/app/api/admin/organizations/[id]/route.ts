@@ -26,7 +26,8 @@ function generateSlug(name: string): string {
 
 /**
  * GET /api/admin/organizations/[id]
- * Returns full org detail payload including metrics, clubs preview, admins, and recent activity.
+ * Returns organization detail payload with metrics only.
+ * Clubs are fetched separately via /api/admin/organizations/:id/clubs
  * Allowed: isRoot OR ORGANIZATION_ADMIN of this org
  */
 export async function GET(
@@ -64,7 +65,7 @@ export async function GET(
     }
 
     // Fetch metrics in parallel
-    const [clubCount, courtCount, activeBookingsCount, clubsPreview, recentActivity] =
+    const [clubCount, courtCount, activeBookingsCount] =
       await Promise.all([
         // Total clubs
         prisma.club.count({
@@ -90,89 +91,7 @@ export async function GET(
             start: { gte: new Date() },
           },
         }),
-        // Clubs preview (first 5)
-        prisma.club.findMany({
-          where: { organizationId: id },
-          take: 5,
-          orderBy: { createdAt: "desc" },
-          include: {
-            _count: {
-              select: {
-                courts: true,
-                clubMemberships: true,
-              },
-            },
-          },
-        }),
-        // Recent activity (audit logs)
-        prisma.auditLog.findMany({
-          where: {
-            targetType: TargetType.ORGANIZATION,
-            targetId: id,
-          },
-          take: 10,
-          orderBy: { createdAt: "desc" },
-        }),
       ]);
-
-    // Get club admins for preview
-    const clubIds = clubsPreview.map((c) => c.id);
-    const clubAdmins =
-      clubIds.length > 0
-        ? await prisma.clubMembership.findMany({
-            where: {
-              clubId: { in: clubIds },
-              role: "CLUB_ADMIN",
-            },
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                },
-              },
-              club: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-            take: 10,
-          })
-        : [];
-
-    // Format clubs preview
-    const formattedClubsPreview = clubsPreview.map((club) => ({
-      id: club.id,
-      name: club.name,
-      slug: club.slug,
-      city: club.city,
-      isPublic: club.isPublic,
-      courtCount: club._count.courts,
-      adminCount: club._count.clubMemberships,
-      createdAt: club.createdAt,
-    }));
-
-    // Format club admins
-    const formattedClubAdmins = clubAdmins.map((ca) => ({
-      id: ca.id,
-      userId: ca.user.id,
-      userName: ca.user.name,
-      userEmail: ca.user.email,
-      clubId: ca.club.id,
-      clubName: ca.club.name,
-    }));
-
-    // Format activity
-    const formattedActivity = recentActivity.map((log) => ({
-      id: log.id,
-      action: log.action,
-      actorId: log.actorId,
-      detail: log.detail ? JSON.parse(log.detail) : null,
-      createdAt: log.createdAt,
-    }));
 
     return NextResponse.json({
       id: organization.id,
@@ -191,16 +110,11 @@ export async function GET(
       createdAt: organization.createdAt,
       updatedAt: organization.updatedAt,
       createdBy: organization.createdBy,
-      // Admins are no longer part of organization detail response
-      // They are fetched independently via /api/admin/organizations/:id/admins
       metrics: {
         totalClubs: clubCount,
         totalCourts: courtCount,
         activeBookings: activeBookingsCount,
       },
-      clubsPreview: formattedClubsPreview,
-      clubAdmins: formattedClubAdmins,
-      recentActivity: formattedActivity,
     });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

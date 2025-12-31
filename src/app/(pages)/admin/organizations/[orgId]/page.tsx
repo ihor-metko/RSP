@@ -17,6 +17,23 @@ import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
 
 /**
+ * Club with statistics from the new clubs endpoint
+ */
+interface ClubWithStatistics {
+  id: string;
+  name: string;
+  slug: string | null;
+  city: string | null;
+  isPublic: boolean;
+  createdAt: string;
+  statistics: {
+    courtCount: number;
+    activeUpcomingBookings: number;
+    pastBookings: number;
+  };
+}
+
+/**
  * Helper function to get trend information based on occupancy change percentage
  * @param changePercent - The percentage change in occupancy compared to previous month (null if no data)
  * @returns Object with:
@@ -38,6 +55,9 @@ function getTrendInfo(changePercent: number | null): {
   }
   return { className: 'im-club-preview-trend--neutral', arrow: '→' };
 }
+
+// Constants
+const CLUBS_PREVIEW_LIMIT = 5;
 
 export default function OrganizationDetailPage() {
   const t = useTranslations();
@@ -62,6 +82,10 @@ export default function OrganizationDetailPage() {
   // Statistics store
   const monthlyStatistics = useClubStatisticsStore((state) => state.monthlyStatistics);
   const setMonthlyStatistics = useClubStatisticsStore((state) => state.setMonthlyStatistics);
+
+  // Clubs state - fetched separately from new endpoint
+  const [clubs, setClubs] = useState<ClubWithStatistics[]>([]);
+  const [clubsLoading, setClubsLoading] = useState(false);
 
   const [error, setError] = useState("");
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
@@ -92,6 +116,27 @@ export default function OrganizationDetailPage() {
     }
   }, [orgId, ensureOrganizationById, t]);
 
+  // Fetch clubs from new separate endpoint
+  const fetchClubs = useCallback(async () => {
+    try {
+      setClubsLoading(true);
+      
+      const response = await fetch(`/api/admin/organizations/${orgId}/clubs?limit=${CLUBS_PREVIEW_LIMIT}`);
+      
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Invalid response format when fetching clubs" }));
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setClubs(data.clubs || []);
+    } catch (err) {
+      console.error("Failed to load clubs:", err);
+    } finally {
+      setClubsLoading(false);
+    }
+  }, [orgId]);
+
   useEffect(() => {
     if (!isHydrated || isLoading) return;
     if (!isLoggedIn) {
@@ -102,6 +147,14 @@ export default function OrganizationDetailPage() {
     // Fetch organization data from store (will use cache if available)
     fetchOrgDetail();
   }, [isLoggedIn, isLoading, router, orgId, fetchOrgDetail, isHydrated]);
+
+  // Fetch clubs when organization is loaded
+  useEffect(() => {
+    if (!org) return;
+    
+    // Fetch clubs separately from the new endpoint
+    fetchClubs();
+  }, [org, fetchClubs]);
 
   // Fetch monthly statistics for organization's clubs (current month with lazy calculation)
   useEffect(() => {
@@ -324,7 +377,7 @@ export default function OrganizationDetailPage() {
         )}
 
         {/* Clubs Preview */}
-        {isLoadingState ? (
+        {clubsLoading || isLoadingState ? (
           <ClubsPreviewSkeleton count={3} />
         ) : org && (
           <div className="im-section-card">
@@ -347,7 +400,7 @@ export default function OrganizationDetailPage() {
                 </div>
               )}
             </div>
-            {(org.clubsPreview ?? []).length === 0 ? (
+            {clubs.length === 0 ? (
               <div className="im-preview-empty-state">
                 <p className="im-preview-empty">{t("orgDetail.noClubs")}</p>
                 {!org.archivedAt && (
@@ -363,7 +416,7 @@ export default function OrganizationDetailPage() {
             ) : (
               <>
                 <div className="im-clubs-preview-list">
-                  {(org.clubsPreview ?? []).map((club) => {
+                  {clubs.map((club) => {
                     // Find statistics for this club
                     const clubStats = monthlyStatistics.find(stat => stat.clubId === club.id);
                     // Get trend info if statistics are available
@@ -388,7 +441,7 @@ export default function OrganizationDetailPage() {
                         <div className="im-club-preview-info">
                           <span className="im-club-preview-name">{club.name}</span>
                           <span className="im-club-preview-meta">
-                            {club.city || club.slug} · {club.courtCount} {t("orgDetail.courts")}
+                            {club.city || club.slug} · {club.statistics.courtCount} {t("orgDetail.courts")}
                           </span>
                         </div>
 
@@ -427,7 +480,7 @@ export default function OrganizationDetailPage() {
                     );
                   })}
                 </div>
-                {(org.metrics?.totalClubs ?? 0) > (org.clubsPreview ?? []).length && (
+                {(org.metrics?.totalClubs ?? 0) > clubs.length && (
                   <Button
                     variant="outline"
                     size="small"
