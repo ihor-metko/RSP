@@ -172,16 +172,42 @@ export default function AdminClubDetailPage({
 
     setIsTogglingPublish(true);
     try {
-      await handleSectionUpdate("header", {
-        name: club.name,
-        slug: club.slug,
-        shortDescription: club.shortDescription,
-        isPublic: !club.isPublic,
-      });
-      setIsPublishModalOpen(false);
-      showToast("success", club.isPublic ? t("clubDetail.clubUnpublishedSuccess") : t("clubDetail.clubPublishedSuccess"));
-    } catch {
-      // Error already handled in handleSectionUpdate
+      // Check if user is root admin
+      const isRootAdmin = adminStatus?.adminType === "root_admin";
+      
+      if (isRootAdmin) {
+        // Root admins can publish/unpublish directly
+        await handleSectionUpdate("header", {
+          name: club.name,
+          slug: club.slug,
+          shortDescription: club.shortDescription,
+          isPublic: !club.isPublic,
+        });
+        setIsPublishModalOpen(false);
+        showToast("success", club.isPublic ? t("clubDetail.clubUnpublishedSuccess") : t("clubDetail.clubPublishedSuccess"));
+      } else {
+        // Org admins can only request publication for unpublished clubs
+        if (!club.isPublic) {
+          // Request publication
+          const response = await fetch(`/api/admin/clubs/${club.id}/request-publication`, {
+            method: "POST",
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || "Failed to request publication");
+          }
+
+          setIsPublishModalOpen(false);
+          showToast("success", t("clubDetail.publicationRequestSubmitted"));
+        } else {
+          // Org admins cannot unpublish
+          showToast("error", t("clubDetail.onlyRootAdminCanPublish"));
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t("clubDetail.failedToSaveChanges");
+      showToast("error", message);
     } finally {
       setIsTogglingPublish(false);
     }
@@ -197,20 +223,25 @@ export default function AdminClubDetailPage({
 
   // Determine if user can delete clubs (only root admin)
   const canDelete = adminStatus?.adminType === "root_admin";
+  const isRootAdmin = adminStatus?.adminType === "root_admin";
 
   // Prepare DangerZone actions
   const dangerActions: DangerAction[] = [
     {
       id: 'publish',
-      title: club?.isPublic ? t("entityBanner.unpublish") : t("entityBanner.publish"),
+      title: club?.isPublic 
+        ? t("entityBanner.unpublish") 
+        : (isRootAdmin ? t("entityBanner.publish") : t("clubDetail.requestPublicationTitle")),
       description: club?.isPublic
-        ? t("dangerZone.unpublishClubDescription")
-        : t("dangerZone.publishClubDescription"),
-      buttonLabel: club?.isPublic ? t("entityBanner.unpublish") : t("entityBanner.publish"),
+        ? (isRootAdmin ? t("dangerZone.unpublishClubDescription") : t("clubDetail.onlyRootAdminCanPublish"))
+        : (isRootAdmin ? t("dangerZone.publishClubDescription") : t("clubDetail.requestPublicationDescription")),
+      buttonLabel: club?.isPublic 
+        ? t("entityBanner.unpublish") 
+        : (isRootAdmin ? t("entityBanner.publish") : t("clubDetail.requestPublicationButton")),
       onAction: handleOpenPublishModal,
       isProcessing: isTogglingPublish,
       variant: club?.isPublic ? 'danger' : 'warning',
-      show: true,
+      show: isRootAdmin || !club?.isPublic, // Hide unpublish for non-root admins
     },
     {
       id: 'delete',
@@ -576,16 +607,23 @@ export default function AdminClubDetailPage({
         </div>
       </Modal>
 
-      {/* Publish/Unpublish Confirmation Modal */}
+      {/* Publish/Unpublish/Request Publication Confirmation Modal */}
       <Modal
         isOpen={isPublishModalOpen}
         onClose={() => setIsPublishModalOpen(false)}
-        title={club.isPublic ? t("entityBanner.unpublish") : t("entityBanner.publish")}
+        title={
+          club.isPublic 
+            ? t("entityBanner.unpublish") 
+            : (isRootAdmin ? t("entityBanner.publish") : t("clubDetail.requestPublicationTitle"))
+        }
       >
         <p className="mb-4">
           {club.isPublic
             ? t("dangerZone.unpublishClubConfirm", { name: club.name })
-            : t("dangerZone.publishClubConfirm", { name: club.name })
+            : (isRootAdmin 
+              ? t("dangerZone.publishClubConfirm", { name: club.name })
+              : t("clubDetail.requestPublicationConfirm", { name: club.name })
+            )
           }
         </p>
         <div className="flex justify-end gap-2">
@@ -597,7 +635,13 @@ export default function AdminClubDetailPage({
             disabled={isTogglingPublish}
             className={club.isPublic ? "bg-red-500 hover:bg-red-600" : ""}
           >
-            {isTogglingPublish ? t("common.processing") : (club.isPublic ? t("entityBanner.unpublish") : t("entityBanner.publish"))}
+            {isTogglingPublish 
+              ? t("common.processing") 
+              : (club.isPublic 
+                ? t("entityBanner.unpublish") 
+                : (isRootAdmin ? t("entityBanner.publish") : t("clubDetail.requestPublicationButton"))
+              )
+            }
           </Button>
         </div>
       </Modal>

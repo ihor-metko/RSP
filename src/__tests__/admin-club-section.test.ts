@@ -264,6 +264,83 @@ describe("Admin Club Section API", () => {
         expect(response.status).toBe(200);
         expect(data.name).toBe("Updated Club");
       });
+
+      it("should reject isPublic change when user is not root admin", async () => {
+        mockAuth.mockResolvedValue({
+          user: { id: "admin-123", isRoot: false },
+        });
+
+        (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+
+        const request = new Request(
+          "http://localhost:3000/api/admin/clubs/club-123/section",
+          {
+            method: "PATCH",
+            body: JSON.stringify({
+              section: "header",
+              payload: {
+                name: "Updated Club",
+                slug: "test-club",
+                shortDescription: "Updated description",
+                isPublic: false, // Trying to change from true to false
+              },
+            }),
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        const response = await PATCH(request, { params: mockParams });
+        const data = await response.json();
+
+        expect(response.status).toBe(403);
+        expect(data.error).toContain("Root Admin");
+      });
+
+      it("should allow non-root admin to update header without changing isPublic", async () => {
+        mockAuth.mockResolvedValue({
+          user: { id: "admin-123", isRoot: false },
+        });
+
+        (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+        (prisma.club.findFirst as jest.Mock).mockResolvedValue(null);
+
+        const updatedClub = {
+          ...mockClub,
+          name: "Updated Club",
+          slug: "updated-club",
+          shortDescription: "Updated description",
+          courts: [],
+          coaches: [],
+          gallery: [],
+          businessHours: [],
+          specialHours: [],
+        };
+
+        (prisma.club.update as jest.Mock).mockResolvedValue(updatedClub);
+
+        const request = new Request(
+          "http://localhost:3000/api/admin/clubs/club-123/section",
+          {
+            method: "PATCH",
+            body: JSON.stringify({
+              section: "header",
+              payload: {
+                name: "Updated Club",
+                slug: "updated-club",
+                shortDescription: "Updated description",
+                isPublic: true, // Same as existing, so no change
+              },
+            }),
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        const response = await PATCH(request, { params: mockParams });
+        const data = await response.json();
+
+        expect(response.status).toBe(200);
+        expect(data.name).toBe("Updated Club");
+      });
     });
 
     describe("contacts section", () => {
