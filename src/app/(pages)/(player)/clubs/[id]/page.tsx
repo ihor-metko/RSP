@@ -694,7 +694,7 @@ export default function ClubDetailPage({
         <BookingModal
           courtId={selectedCourtId}
           availableSlots={getSlotsForBookingModal(selectedCourtId)}
-          coachList={[]}
+          coachList={[]} // Coaches removed per requirements - trainers should be fetched separately if needed
           isOpen={isModalOpen}
           onClose={handleCloseBookingModal}
           userId={userId}
