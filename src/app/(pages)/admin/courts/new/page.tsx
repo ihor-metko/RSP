@@ -233,7 +233,7 @@ export default function CreateCourtPage() {
     };
   }, [watchedValues]);
 
-  // Initialize clubId from URL query params (if accessing from club context)
+  // Initialize clubId from URL search parameters (when navigating from club detail page)
   useEffect(() => {
     const clubIdParam = searchParams.get("clubId");
     if (clubIdParam) {
