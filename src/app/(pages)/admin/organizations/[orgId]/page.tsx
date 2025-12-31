@@ -38,6 +38,13 @@ function getTrendInfo(changePercent: number | null): {
   return { className: 'im-club-preview-trend--neutral', arrow: '→' };
 }
 
+/**
+ * Helper function to check if organization has reached club creation limit
+ */
+function isClubLimitReached(currentClubCount: number, maxClubs?: number): boolean {
+  return currentClubCount >= (maxClubs ?? 3);
+}
+
 export default function OrganizationDetailPage() {
   const t = useTranslations();
   const router = useRouter();
@@ -362,7 +369,7 @@ export default function OrganizationDetailPage() {
                   {(() => {
                     const currentClubCount = clubsData?.pagination?.totalCount ?? 0;
                     const maxClubs = org.maxClubs ?? 3;
-                    const limitReached = currentClubCount >= maxClubs;
+                    const limitReached = isClubLimitReached(currentClubCount, org.maxClubs);
                     
                     return (
                       <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -395,7 +402,7 @@ export default function OrganizationDetailPage() {
                 {!org.archivedAt && (() => {
                   const currentClubCount = clubsData?.pagination?.totalCount ?? 0;
                   const maxClubs = org.maxClubs ?? 3;
-                  const limitReached = currentClubCount >= maxClubs;
+                  const limitReached = isClubLimitReached(currentClubCount, org.maxClubs);
                   
                   return (
                     <>

@@ -145,11 +145,12 @@ export async function POST(request: Request) {
       where: { organizationId: body.organizationId },
     });
 
-    if (currentClubCount >= organization.maxClubs) {
+    const maxClubs = organization.maxClubs ?? 3;
+    if (currentClubCount >= maxClubs) {
       return NextResponse.json(
         { 
-          error: `Organization has reached the maximum limit of ${organization.maxClubs} clubs`,
-          maxClubs: organization.maxClubs,
+          error: `Organization has reached the maximum limit of ${maxClubs} clubs`,
+          maxClubs,
           currentCount: currentClubCount,
         },
         { status: 403 }
