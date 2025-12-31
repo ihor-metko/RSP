@@ -29,6 +29,20 @@ interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  * platform styles with im-* classes and dark theme support.
  * Does not use native browser time pickers for consistent cross-browser UI.
  * 
+ * Features:
+ * - Custom dropdown with hour (00-23) and minute (00-59) selection
+ * - Keyboard input with auto-formatting (type time in HH:MM format)
+ * - Full dark theme support using im-* CSS variables
+ * - Accessible with proper ARIA attributes
+ * - Portal-based dropdown positioning
+ * 
+ * Keyboard Accessibility:
+ * - Tab to focus the input
+ * - Type time directly in HH:MM format
+ * - Escape key closes the dropdown
+ * - Focus/click input to open dropdown
+ * - Tab through dropdown buttons
+ * 
  * @example
  * ```tsx
  * <TimeInput
