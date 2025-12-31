@@ -413,7 +413,12 @@
     "failedToDeleteClub": "Failed to delete club",
     "clubPublishedSuccess": "Club published successfully",
     "clubUnpublishedSuccess": "Club unpublished successfully",
-    "onlyClubAdminCanEdit": "Only Club Owner or Club Admin can perform this action"
+    "onlyClubAdminCanEdit": "Only Club Owner or Club Admin can perform this action",
+    "addCourt": "Add Court",
+    "noCourts": "No courts available yet",
+    "addFirstCourt": "Add Your First Court",
+    "viewAllCourts": "View All Courts",
+    "details": "Details"
   },
   "admin": {
     "club": "Club",

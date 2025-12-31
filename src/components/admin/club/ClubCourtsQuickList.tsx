@@ -20,8 +20,8 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
   const [error, setError] = useState("");
 
   const handleAddCourtClick = useCallback(() => {
-    router.push("/admin/clubs/new");
-  }, [router]);
+    router.push(`/admin/courts/new?clubId=${club.id}`);
+  }, [router, club.id]);
 
   const handleDeleteCourt = useCallback(async () => {
     if (!deletingCourt) return;
