@@ -92,18 +92,23 @@ export default function DashboardGraphs({
   minPointsToRender = DEFAULT_MIN_POINTS_TO_RENDER,
 }: DashboardGraphsProps) {
   const t = useTranslations();
+  // Initialize state with initialData directly to avoid unnecessary useEffect
   const [data, setData] = useState<DashboardGraphsResponse | null>(initialData ?? null);
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
   const [timeRange, setTimeRange] = useState<TimeRange>("week");
+  const [hasInitialized, setHasInitialized] = useState(!!initialData);
 
-  // Set initial data when it becomes available (only runs once when initialData is provided)
+  // Set initial data when it becomes available
+  // Uses hasInitialized flag to prevent redundant updates when parent re-renders with same data
   useEffect(() => {
-    if (initialData) {
+    // Only set data if we haven't initialized yet and initialData is now available
+    if (!hasInitialized && initialData) {
       setData(initialData);
       setLoading(false);
+      setHasInitialized(true);
     }
-  }, [initialData]);
+  }, [initialData, hasInitialized]);
 
   const fetchGraphData = useCallback(async (range: TimeRange) => {
     try {

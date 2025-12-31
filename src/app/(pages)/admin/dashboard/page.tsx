@@ -111,43 +111,57 @@ export default function AdminDashboardPage() {
   const [dashboardData, setDashboardData] = useState<UnifiedDashboardResponse | null>(null);
   const [error, setError] = useState("");
 
-  const fetchDashboard = useCallback(async () => {
+  // Refresh dashboard data
+  const refreshDashboard = useCallback(async () => {
     try {
       const data = await fetchUnifiedDashboard();
-      return data;
+      if (data) {
+        setDashboardData(data);
+      }
     } catch (error) {
       // Handle unauthorized errors
       if (error instanceof Error && error.message === "Unauthorized") {
         router.push("/auth/sign-in");
       }
-      return null;
     }
   }, [router]);
 
-  // Refresh dashboard data
-  const refreshDashboard = useCallback(async () => {
-    const data = await fetchDashboard();
-    if (data) {
-      setDashboardData(data);
-    }
-  }, [fetchDashboard]);
-
   useEffect(() => {
+    let isMounted = true;
+
     const initializeDashboard = async () => {
       setError("");
 
-      const data = await fetchDashboard();
+      try {
+        const data = await fetchUnifiedDashboard();
 
-      if (!data) {
-        setError(t("unifiedDashboard.failedToLoad"));
-        return;
+        // Only update state if component is still mounted
+        if (isMounted) {
+          if (!data) {
+            setError(t("unifiedDashboard.failedToLoad"));
+            return;
+          }
+
+          setDashboardData(data);
+        }
+      } catch (error) {
+        // Handle unauthorized errors
+        if (error instanceof Error && error.message === "Unauthorized") {
+          router.push("/auth/sign-in");
+        } else if (isMounted) {
+          setError(t("unifiedDashboard.failedToLoad"));
+        }
       }
-
-      setDashboardData(data);
     };
 
     initializeDashboard();
-  }, [fetchDashboard, t]);
+
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - fetch only once on mount, preventing multiple calls
+         // Router and translation function are stable and don't need to be dependencies
 
   // Helper to get dashboard title based on admin type
   const getDashboardTitle = () => {
