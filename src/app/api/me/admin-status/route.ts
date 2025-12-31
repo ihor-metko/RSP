@@ -109,11 +109,13 @@ export async function GET(): Promise<NextResponse<AdminStatusResponse | { error:
     return NextResponse.json(response);
   }
 
-  // Check if user is a club admin
+  // Check if user is a club admin or club owner
   const clubMemberships = await prisma.clubMembership.findMany({
     where: {
       userId,
-      role: ClubMembershipRole.CLUB_ADMIN,
+      role: {
+        in: [ClubMembershipRole.CLUB_ADMIN, ClubMembershipRole.CLUB_OWNER],
+      },
     },
     select: {
       clubId: true,

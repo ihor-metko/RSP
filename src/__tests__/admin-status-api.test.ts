@@ -132,6 +132,28 @@ describe("Admin Status API", () => {
       });
     });
 
+    it("should return club_admin status for club owners", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "club-owner-1", isRoot: false },
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      mockClubMembershipFindMany.mockResolvedValue([
+        { clubId: "club-1", club: { id: "club-1", name: "Owner Club" } },
+      ] as never[]);
+
+      const response = await GET();
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data).toEqual({
+        isAdmin: true,
+        adminType: "club_admin",
+        isRoot: false,
+        managedIds: ["club-1"],
+        assignedClub: { id: "club-1", name: "Owner Club" },
+      });
+    });
+
     it("should return none for non-admin users", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "regular-user-1", isRoot: false },
@@ -193,7 +215,7 @@ describe("Admin Status API", () => {
       });
     });
 
-    it("should only query for CLUB_ADMIN role in club memberships", async () => {
+    it("should query for both CLUB_ADMIN and CLUB_OWNER roles in club memberships", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "user-1", isRoot: false },
       });
@@ -205,7 +227,9 @@ describe("Admin Status API", () => {
       expect(mockClubMembershipFindMany).toHaveBeenCalledWith({
         where: {
           userId: "user-1",
-          role: "CLUB_ADMIN",
+          role: {
+            in: ["CLUB_ADMIN", "CLUB_OWNER"],
+          },
         },
         select: {
           clubId: true,
