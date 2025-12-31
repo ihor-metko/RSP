@@ -21,6 +21,7 @@ import {
   type OrganizationOption,
 } from "./steps";
 import type { UploadedFile, BusinessHour, InlineCourt } from "@/types/admin";
+import type { SpecialHour } from "./SpecialHoursField.client";
 import "./ClubCreationStepper.css";
 import "./InlineCourtsField.css";
 import "./steps/steps.css";
@@ -45,6 +46,7 @@ interface StepperFormData {
   website: string;
   // Step 3: Business Hours
   businessHours: BusinessHour[];
+  specialHours: SpecialHour[];
   // Step 4: Courts
   courts: InlineCourt[];
   // Step 5: Gallery / Images
@@ -79,6 +81,7 @@ const initialFormData: StepperFormData = {
   email: "info@padelpulsearena.ua",
   website: "https://padelpulsearena.ua",
   businessHours: initialBusinessHours,
+  specialHours: [],
   courts: [],
   logo: null,
   gallery: [],
@@ -350,6 +353,7 @@ export function ClubCreationStepper() {
         website: formData.website.trim() || null,
         supportedSports: formData.supportedSports.length > 0 ? formData.supportedSports : undefined,
         businessHours: formData.businessHours,
+        specialHours: formData.specialHours.length > 0 ? formData.specialHours : undefined,
         courts: formData.courts.map((court) => ({
           name: court.name,
           type: court.type || null,
@@ -495,7 +499,10 @@ export function ClubCreationStepper() {
               {t("hours.description")}
             </p>
             <HoursStep
-              data={{ businessHours: formData.businessHours }}
+              data={{ 
+                businessHours: formData.businessHours,
+                specialHours: formData.specialHours,
+              }}
               onChange={handleHoursChange}
               errors={fieldErrors}
               disabled={isSubmitting}

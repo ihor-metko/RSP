@@ -10,6 +10,14 @@ interface BusinessHourInput {
   isClosed: boolean;
 }
 
+interface SpecialHourInput {
+  date: string;
+  openTime: string | null;
+  closeTime: string | null;
+  isClosed: boolean;
+  reason?: string;
+}
+
 interface CourtInput {
   name: string;
   type: string | null;
@@ -48,6 +56,7 @@ interface CreateClubRequest {
   logoData?: { url: string; altText?: string; thumbnailUrl?: string };
   gallery?: GalleryInput[];
   businessHours?: BusinessHourInput[];
+  specialHours?: SpecialHourInput[];
   courts?: CourtInput[];
 }
 
@@ -185,6 +194,20 @@ export async function POST(request: Request) {
             openTime: hour.openTime,
             closeTime: hour.closeTime,
             isClosed: hour.isClosed,
+          })),
+        });
+      }
+
+      // Create special hours
+      if (body.specialHours && body.specialHours.length > 0) {
+        await tx.clubSpecialHours.createMany({
+          data: body.specialHours.map((hour) => ({
+            clubId: newClub.id,
+            date: new Date(hour.date),
+            openTime: hour.openTime,
+            closeTime: hour.closeTime,
+            isClosed: hour.isClosed,
+            reason: hour.reason || null,
           })),
         });
       }
