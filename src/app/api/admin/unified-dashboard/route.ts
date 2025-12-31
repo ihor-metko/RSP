@@ -4,33 +4,14 @@ import { requireAnyAdmin, AdminType } from "@/lib/requireRole";
 import type { PlatformStatistics } from "@/types/admin";
 
 /**
- * Organization info for unified dashboard
+ * Aggregated dashboard statistics
  */
-export interface UnifiedDashboardOrg {
-  id: string;
-  name: string;
-  slug: string;
-  clubsCount: number;
-  courtsCount: number;
-  bookingsToday: number;
-  clubAdminsCount: number;
+export interface DashboardStats {
   activeBookings: number;
-  pastBookings: number;
-}
-
-/**
- * Club info for unified dashboard
- */
-export interface UnifiedDashboardClub {
-  id: string;
-  name: string;
-  slug: string | null;
-  organizationId: string | null;
-  organizationName: string | null;
-  courtsCount: number;
   bookingsToday: number;
-  activeBookings: number;
   pastBookings: number;
+  clubsCount?: number; // Only for org owners
+  courtsCount?: number; // Only for org owners and club admins
 }
 
 /**
@@ -44,20 +25,18 @@ export interface UnifiedDashboardResponse {
     activeBookingsCount: number;
     pastBookingsCount: number;
   };
-  // Organization admin data
-  organizations?: UnifiedDashboardOrg[];
-  // Club admin data
-  clubs?: UnifiedDashboardClub[];
+  // Organization admin and club admin data - aggregated stats
+  stats?: DashboardStats;
 }
 
 /**
  * GET /api/admin/unified-dashboard
  *
- * Returns dashboard data appropriate for the current user's admin role.
+ * Returns aggregated dashboard statistics appropriate for the current user's admin role.
  * - Root Admin: Platform-wide statistics
- * - Organization Admin: Metrics for all managed organizations
- * - Club Owner: Metrics for all owned clubs
- * - Club Admin: Metrics for all managed clubs
+ * - Organization Admin: Aggregated stats for all managed organizations
+ * - Club Owner: Aggregated stats for all owned clubs
+ * - Club Admin: Aggregated stats for all managed clubs
  *
  * Access: Any admin role (root, organization admin, club owner, or club admin)
  */
@@ -86,7 +65,6 @@ export async function GET(
       ] = await Promise.all([
         prisma.organization.count(),
         prisma.club.count(),
-        prisma.user.count(),
         // Active/Upcoming bookings: today and future
         prisma.booking.count({
           where: {
@@ -126,152 +104,111 @@ export async function GET(
     }
 
     if (adminType === "organization_admin") {
-      // Fetch metrics for each managed organization
+      // Fetch aggregated metrics for all managed organizations
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const organizations = await Promise.all(
-        managedIds.map(async (orgId) => {
-          const [
-            org,
-            clubsCount,
-            courtsCount,
-            bookingsToday,
-            clubAdminsCount,
-            activeBookings,
-            pastBookings,
-          ] = await Promise.all([
-            prisma.organization.findUnique({
-              where: { id: orgId },
-              select: { id: true, name: true, slug: true },
-            }),
-            prisma.club.count({ where: { organizationId: orgId } }),
-            prisma.court.count({ where: { club: { organizationId: orgId } } }),
-            prisma.booking.count({
-              where: {
-                court: { club: { organizationId: orgId } },
-                start: { gte: today, lt: tomorrow },
-              },
-            }),
-            prisma.clubMembership.count({
-              where: {
-                role: "CLUB_ADMIN",
-                club: { organizationId: orgId },
-              },
-            }),
-            // Active/Upcoming bookings: today and future
-            prisma.booking.count({
-              where: {
-                court: { club: { organizationId: orgId } },
-                start: { gte: today },
-                status: { in: ["pending", "paid", "reserved", "confirmed"] },
-              },
-            }),
-            // Past bookings: before today (completed bookings only)
-            prisma.booking.count({
-              where: {
-                court: { club: { organizationId: orgId } },
-                start: { lt: today },
-                status: { in: ["pending", "paid", "reserved", "confirmed"] },
-              },
-            }),
-          ]);
-
-          if (!org) return null;
-
-          return {
-            id: org.id,
-            name: org.name,
-            slug: org.slug,
-            clubsCount,
-            courtsCount,
-            bookingsToday,
-            clubAdminsCount,
-            activeBookings,
-            pastBookings,
-          };
-        })
-      );
+      // Aggregate stats across all managed organizations
+      const [clubsCount, courtsCount, bookingsToday, activeBookings, pastBookings] =
+        await Promise.all([
+          // Total clubs across all managed organizations
+          prisma.club.count({
+            where: { organizationId: { in: managedIds } },
+          }),
+          // Total courts across all managed organizations
+          prisma.court.count({
+            where: { club: { organizationId: { in: managedIds } } },
+          }),
+          // Bookings today across all managed organizations
+          prisma.booking.count({
+            where: {
+              court: { club: { organizationId: { in: managedIds } } },
+              start: { gte: today, lt: tomorrow },
+            },
+          }),
+          // Active/Upcoming bookings: today and future
+          prisma.booking.count({
+            where: {
+              court: { club: { organizationId: { in: managedIds } } },
+              start: { gte: today },
+              status: { in: ["pending", "paid", "reserved", "confirmed"] },
+            },
+          }),
+          // Past bookings: before today
+          prisma.booking.count({
+            where: {
+              court: { club: { organizationId: { in: managedIds } } },
+              start: { lt: today },
+              status: { in: ["pending", "paid", "reserved", "confirmed"] },
+            },
+          }),
+        ]);
 
       const response: UnifiedDashboardResponse = {
         adminType,
         isRoot: false,
-        organizations: organizations.filter((org): org is UnifiedDashboardOrg => org !== null),
+        stats: {
+          clubsCount,
+          courtsCount,
+          bookingsToday,
+          activeBookings,
+          pastBookings,
+        },
       };
 
       return NextResponse.json(response);
     }
 
     if (adminType === "club_owner" || adminType === "club_admin") {
-      // Fetch metrics for each owned/managed club
+      // Fetch aggregated metrics for all owned/managed clubs
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const clubs = await Promise.all(
-        managedIds.map(async (clubId) => {
-          const [club, courtsCount, bookingsToday, activeBookings, pastBookings] =
-            await Promise.all([
-              prisma.club.findUnique({
-                where: { id: clubId },
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                  organizationId: true,
-                  organization: {
-                    select: { name: true },
-                  },
-                },
-              }),
-              prisma.court.count({ where: { clubId } }),
-              prisma.booking.count({
-                where: {
-                  court: { clubId },
-                  start: { gte: today, lt: tomorrow },
-                },
-              }),
-              // Active/Upcoming bookings: today and future
-              prisma.booking.count({
-                where: {
-                  court: { clubId },
-                  start: { gte: today },
-                  status: { in: ["pending", "paid", "reserved", "confirmed"] },
-                },
-              }),
-              // Past bookings: before today (completed bookings only)
-              prisma.booking.count({
-                where: {
-                  court: { clubId },
-                  start: { lt: today },
-                  status: { in: ["pending", "paid", "reserved", "confirmed"] },
-                },
-              }),
-            ]);
-
-          if (!club) return null;
-
-          return {
-            id: club.id,
-            name: club.name,
-            slug: club.slug,
-            organizationId: club.organizationId,
-            organizationName: club.organization?.name ?? null,
-            courtsCount,
-            bookingsToday,
-            activeBookings,
-            pastBookings,
-          };
-        })
-      );
+      // Aggregate stats across all managed clubs
+      const [courtsCount, bookingsToday, activeBookings, pastBookings] =
+        await Promise.all([
+          // Total courts across all managed clubs
+          prisma.court.count({
+            where: { clubId: { in: managedIds } },
+          }),
+          // Bookings today across all managed clubs
+          prisma.booking.count({
+            where: {
+              court: { clubId: { in: managedIds } },
+              start: { gte: today, lt: tomorrow },
+            },
+          }),
+          // Active/Upcoming bookings: today and future
+          prisma.booking.count({
+            where: {
+              court: { clubId: { in: managedIds } },
+              start: { gte: today },
+              status: { in: ["pending", "paid", "reserved", "confirmed"] },
+            },
+          }),
+          // Past bookings: before today
+          prisma.booking.count({
+            where: {
+              court: { clubId: { in: managedIds } },
+              start: { lt: today },
+              status: { in: ["pending", "paid", "reserved", "confirmed"] },
+            },
+          }),
+        ]);
 
       const response: UnifiedDashboardResponse = {
         adminType,
         isRoot: false,
-        clubs: clubs.filter((club): club is UnifiedDashboardClub => club !== null),
+        stats: {
+          courtsCount,
+          bookingsToday,
+          activeBookings,
+          pastBookings,
+        },
       };
 
       return NextResponse.json(response);

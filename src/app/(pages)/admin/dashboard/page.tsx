@@ -157,7 +157,7 @@ export default function AdminDashboardPage() {
     if (dashboardData?.adminType === "organization_admin") {
       return t("unifiedDashboard.organizationTitle");
     }
-    if (dashboardData?.adminType === "club_admin") {
+    if (dashboardData?.adminType === "club_admin" || dashboardData?.adminType === "club_owner") {
       return t("unifiedDashboard.clubTitle");
     }
     return t("admin.dashboard.title");
@@ -171,7 +171,7 @@ export default function AdminDashboardPage() {
     if (dashboardData?.adminType === "organization_admin") {
       return t("admin.dashboard.organizationSubtitle");
     }
-    if (dashboardData?.adminType === "club_admin") {
+    if (dashboardData?.adminType === "club_admin" || dashboardData?.adminType === "club_owner") {
       return t("admin.dashboard.clubSubtitle");
     }
     return t("admin.dashboard.subtitle");
@@ -280,7 +280,7 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Organization Admin: Organization-scoped dashboard */}
-        {dashboardData.adminType === "organization_admin" && dashboardData.organizations && (
+        {dashboardData.adminType === "organization_admin" && dashboardData.stats && (
           <>
             <div className="im-dashboard-section">
               <h2 className="im-dashboard-section-title">
@@ -291,20 +291,28 @@ export default function AdminDashboardPage() {
               </p>
             </div>
 
-            {/* Clubs Count Card - organization-scoped */}
+            {/* Clubs Count and Courts Count Cards - organization-scoped */}
             <div className="im-stats-grid">
               <StatCard
                 title={t("rootAdmin.dashboard.totalClubs")}
-                value={dashboardData.organizations.reduce((sum, org) => sum + org.clubsCount, 0)}
+                value={dashboardData.stats.clubsCount ?? 0}
                 icon={<ClubsIcon />}
                 colorClass="im-stat-card--clubs"
               />
+              {dashboardData.stats.courtsCount !== undefined && (
+                <StatCard
+                  title={t("unifiedDashboard.totalCourts")}
+                  value={dashboardData.stats.courtsCount}
+                  icon={<CourtsIcon />}
+                  colorClass="im-stat-card--courts"
+                />
+              )}
             </div>
 
             {/* Bookings Overview Section - organization-scoped */}
             <BookingsOverview
-              activeBookings={dashboardData.organizations.reduce((sum, org) => sum + org.activeBookings, 0)}
-              pastBookings={dashboardData.organizations.reduce((sum, org) => sum + org.pastBookings, 0)}
+              activeBookings={dashboardData.stats.activeBookings}
+              pastBookings={dashboardData.stats.pastBookings}
               onRefresh={refreshDashboard}
               enableRealtime={true}
             />
@@ -314,8 +322,8 @@ export default function AdminDashboardPage() {
           </>
         )}
 
-        {/* Club Admin: Club-specific dashboards */}
-        {dashboardData.adminType === "club_admin" && dashboardData.clubs && (
+        {/* Club Admin/Owner: Club-specific dashboards */}
+        {(dashboardData.adminType === "club_admin" || dashboardData.adminType === "club_owner") && dashboardData.stats && (
           <>
             <div className="im-dashboard-section">
               <h2 className="im-dashboard-section-title">
@@ -330,7 +338,7 @@ export default function AdminDashboardPage() {
             <div className="im-stats-grid">
               <StatCard
                 title={t("unifiedDashboard.totalCourts")}
-                value={dashboardData.clubs.reduce((sum, club) => sum + club.courtsCount, 0)}
+                value={dashboardData.stats.courtsCount ?? 0}
                 icon={<CourtsIcon />}
                 colorClass="im-stat-card--courts"
               />
@@ -338,8 +346,8 @@ export default function AdminDashboardPage() {
 
             {/* Bookings Overview Section - club admin scoped */}
             <BookingsOverview
-              activeBookings={dashboardData.clubs.reduce((sum, club) => sum + club.activeBookings, 0)}
-              pastBookings={dashboardData.clubs.reduce((sum, club) => sum + club.pastBookings, 0)}
+              activeBookings={dashboardData.stats.activeBookings}
+              pastBookings={dashboardData.stats.pastBookings}
               onRefresh={refreshDashboard}
               enableRealtime={true}
             />
