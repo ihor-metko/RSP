@@ -65,9 +65,6 @@ export default function AdminClubsPage() {
 
   // Fetch clubs from store when component mounts or organizationFilter changes
   useEffect(() => {
-    // Wait for auth to complete
-    if (isAuthLoading) return;
-
     // Fetch clubs if user is admin
     if (adminStatus?.isAdmin) {
       fetchClubsIfNeeded({ 
@@ -76,7 +73,7 @@ export default function AdminClubsPage() {
         console.error("Failed to fetch clubs:", err);
       });
     }
-  }, [isAuthLoading, adminStatus, fetchClubsIfNeeded, controller.filters.organizationFilter]);
+  }, [adminStatus, fetchClubsIfNeeded, controller.filters.organizationFilter]);
 
   // Client-side filtering and sorting
   const filteredAndSortedClubs = useMemo(() => {
