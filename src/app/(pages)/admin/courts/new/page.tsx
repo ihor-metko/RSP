@@ -302,10 +302,9 @@ export default function CreateCourtPage({
         }
       } catch (err) {
         console.error("Failed to load club:", err);
-        // Check for 404 error (club not found)
+        // Check for 404 error (club not found) by looking for HTTP 404 status
         const errorMessage = err instanceof Error ? err.message : "";
-        // Handle various 404 error formats: "HTTP 404", "HTTP404", "not found", etc.
-        const is404Error = /HTTP\s*404|not found/i.test(errorMessage);
+        const is404Error = /HTTP\s*404/i.test(errorMessage);
         
         if (is404Error) {
           setError(t("admin.courts.new.errors.clubNotFound"));
@@ -319,6 +318,7 @@ export default function CreateCourtPage({
     };
 
     loadClub();
+    // Note: setValue and getValues are stable refs from react-hook-form and don't need to be in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClubId, ensureClubById, t]);
 
