@@ -8,7 +8,7 @@ import { Button, Card, Modal, IMLink, ImageCarousel, EntityBanner, DangerZone, B
 import type { DangerAction } from "@/components/ui";
 import { ClubContactsView } from "@/components/admin/club/ClubContactsView";
 import { ClubHoursView } from "@/components/admin/club/ClubHoursView";
-import { ClubCourtsQuickList } from "@/components/admin/club/ClubCourtsQuickList";
+import { ClubCourtsPreview } from "@/components/admin/club/ClubCourtsPreview";
 import { ClubGalleryView } from "@/components/admin/club/ClubGalleryView";
 import AdminManagementSection from "@/components/admin/AdminManagementSection";
 import { ClubEditor } from "@/components/admin/ClubEditor.client";
@@ -335,6 +335,15 @@ export default function AdminClubDetailPage({
           />
         </section>
 
+        {/* Courts Preview Section */}
+        <section className="im-admin-club-courts-section">
+          <ClubCourtsPreview
+            club={club}
+            disabled={!canEdit}
+            disabledTooltip={editDisabledTooltip}
+          />
+        </section>
+
         {/* Court Availability Section */}
         {club.courts.length > 0 && (
           <section className="im-admin-club-availability-section">
@@ -346,27 +355,27 @@ export default function AdminClubDetailPage({
         <div className="im-admin-club-info-grid">
           {/* Left Column - Description & Details */}
           <div className="im-admin-club-info-column">
-            {/* Courts Summary with Edit */}
+            {/* Club Details Card */}
             <Card className="im-admin-club-info-card">
-              <ClubCourtsQuickList
-                club={club}
-                disabled={!canEdit}
-                disabledTooltip={editDisabledTooltip}
-              />
+              <div className="im-section-view-header">
+                <h2 className="im-club-view-section-title">{t("clubDetail.details")}</h2>
+              </div>
 
               {/* Court type badges */}
-              <div className="im-admin-club-courts-summary">
-                {courtCounts.indoor > 0 && (
-                  <span className="im-admin-club-badge im-admin-club-badge-indoor">
-                    <span className="im-admin-club-court-type-count">{courtCounts.indoor}</span> {t("clubs.indoor")}
-                  </span>
-                )}
-                {courtCounts.outdoor > 0 && (
-                  <span className="im-admin-club-badge im-admin-club-badge-outdoor">
-                    <span className="im-admin-club-court-type-count">{courtCounts.outdoor}</span> {t("clubs.outdoor")}
-                  </span>
-                )}
-              </div>
+              {(courtCounts.indoor > 0 || courtCounts.outdoor > 0) && (
+                <div className="im-admin-club-courts-summary">
+                  {courtCounts.indoor > 0 && (
+                    <span className="im-admin-club-badge im-admin-club-badge-indoor">
+                      <span className="im-admin-club-court-type-count">{courtCounts.indoor}</span> {t("clubs.indoor")}
+                    </span>
+                  )}
+                  {courtCounts.outdoor > 0 && (
+                    <span className="im-admin-club-badge im-admin-club-badge-outdoor">
+                      <span className="im-admin-club-court-type-count">{courtCounts.outdoor}</span> {t("clubs.outdoor")}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Price range */}
               {priceRange && (
