@@ -111,6 +111,14 @@
   @apply shadow-lg transform scale-105;
 }
 
+.rsp-entity-banner-edit-btn--disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+.rsp-entity-banner-edit-btn--disabled:hover {
+  @apply shadow-none transform-none;
+}
+
 .rsp-entity-banner-edit-btn svg {
   @apply w-4 h-4;
 }

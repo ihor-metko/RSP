@@ -2,15 +2,17 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Modal, IMLink } from "@/components/ui";
+import { Button, Modal, IMLink, Tooltip } from "@/components/ui";
 import type { ClubDetail, ClubCourt } from "@/types/club";
 import "./ClubCourtsQuickList.css";
 
 interface ClubCourtsQuickListProps {
   club: ClubDetail;
+  canEdit?: boolean;
+  editDisabledTooltip?: string;
 }
 
-export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
+export function ClubCourtsQuickList({ club, canEdit = true, editDisabledTooltip }: ClubCourtsQuickListProps) {
   const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingCourt, setDeletingCourt] = useState<ClubCourt | null>(null);
@@ -57,13 +59,27 @@ export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Courts</h2>
         <div className="im-courts-quick-actions">
-          <Button
-            variant="outline"
-            onClick={handleAddCourtClick}
-            className="im-section-edit-btn"
-          >
-            + Add Court
-          </Button>
+          {canEdit ? (
+            <Button
+              variant="outline"
+              onClick={handleAddCourtClick}
+              className="im-section-edit-btn"
+            >
+              + Add Court
+            </Button>
+          ) : (
+            <Tooltip content={editDisabledTooltip || "You don't have permission to edit"}>
+              <span>
+                <Button
+                  variant="outline"
+                  disabled
+                  className="im-section-edit-btn"
+                >
+                  + Add Court
+                </Button>
+              </span>
+            </Tooltip>
+          )}
           <IMLink
             href={`/admin/courts?clubId=${club.id}`}
             className="im-courts-manage-link"
@@ -100,13 +116,27 @@ export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
                   >
                     Pricing
                   </IMLink>
-                  <Button
-                    variant="outline"
-                    onClick={() => openDeleteModal(court)}
-                    className="im-courts-quick-delete-btn"
-                  >
-                    Delete
-                  </Button>
+                  {canEdit ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => openDeleteModal(court)}
+                      className="im-courts-quick-delete-btn"
+                    >
+                      Delete
+                    </Button>
+                  ) : (
+                    <Tooltip content={editDisabledTooltip || "You don't have permission to edit"}>
+                      <span>
+                        <Button
+                          variant="outline"
+                          disabled
+                          className="im-courts-quick-delete-btn"
+                        >
+                          Delete
+                        </Button>
+                      </span>
+                    </Tooltip>
+                  )}
                 </div>
               </div>
             ))}

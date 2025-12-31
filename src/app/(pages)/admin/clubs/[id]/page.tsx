@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
@@ -75,6 +75,32 @@ export default function AdminClubDetailPage({
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
+  const user = useUserStore((state) => state.user);
+
+  // Determine if the current user can edit club details
+  // Only Club Owner, Club Admin, and Root Admin can edit
+  // Organization Owner and Organization Admin cannot edit
+  const canEditClub = useMemo(() => {
+    if (!club || !adminStatus) return false;
+    
+    // Root admins can always edit
+    if (user?.isRoot) return true;
+    
+    // Organization admins cannot edit club details
+    if (adminStatus.adminType === "organization_admin") return false;
+    
+    // Club admins can edit if they manage this specific club
+    if (adminStatus.adminType === "club_admin") {
+      return adminStatus.managedIds.includes(club.id);
+    }
+    
+    // Club owners can edit if they manage this specific club
+    if (adminStatus.adminType === "club_owner") {
+      return adminStatus.managedIds.includes(club.id);
+    }
+    
+    return false;
+  }, [club, adminStatus, user?.isRoot]);
 
   // Unwrap params early to enable immediate loading state
   useEffect(() => {
@@ -315,6 +341,8 @@ export default function AdminClubDetailPage({
         logoAlt={`${club.name} logo`}
         isPublished={club.isPublic}
         onEdit={handleOpenDetailsEdit}
+        editDisabled={!canEditClub}
+        editDisabledTooltip={t("clubDetail.editRestrictedToClubAdmin")}
       />
 
       {/* Main Content */}
@@ -345,7 +373,11 @@ export default function AdminClubDetailPage({
           <div className="im-admin-club-info-column">
             {/* Courts Summary with Edit */}
             <Card className="im-admin-club-info-card">
-              <ClubCourtsQuickList club={club} />
+              <ClubCourtsQuickList
+                club={club}
+                canEdit={canEditClub}
+                editDisabledTooltip={t("clubDetail.editRestrictedToClubAdmin")}
+              />
 
               {/* Court type badges */}
               <div className="im-admin-club-courts-summary">
@@ -419,6 +451,8 @@ export default function AdminClubDetailPage({
             <Card className="im-admin-club-info-card">
               <ClubContactsView
                 club={club}
+                canEdit={canEditClub}
+                editDisabledTooltip={t("clubDetail.editRestrictedToClubAdmin")}
                 onUpdate={(payload) => handleSectionUpdate("contacts", payload)}
               />
             </Card>
@@ -427,6 +461,8 @@ export default function AdminClubDetailPage({
             <Card className="im-admin-club-info-card">
               <ClubHoursView
                 club={club}
+                canEdit={canEditClub}
+                editDisabledTooltip={t("clubDetail.editRestrictedToClubAdmin")}
                 onUpdate={(payload) => handleSectionUpdate("hours", payload)}
               />
             </Card>
@@ -438,6 +474,8 @@ export default function AdminClubDetailPage({
           <Card className="im-admin-club-info-card">
             <ClubGalleryView
               club={club}
+              canEdit={canEditClub}
+              editDisabledTooltip={t("clubDetail.editRestrictedToClubAdmin")}
               onUpdate={(payload) => handleSectionUpdate("gallery", payload)}
             />
           </Card>

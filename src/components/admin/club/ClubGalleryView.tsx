@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Button } from "@/components/ui";
+import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import type { ClubDetail } from "@/types/club";
@@ -19,6 +19,8 @@ interface GalleryImage {
 
 interface ClubGalleryViewProps {
   club: ClubDetail;
+  canEdit?: boolean;
+  editDisabledTooltip?: string;
   onUpdate: (payload: {
     bannerData: { url: string } | null;
     logoData: { url: string } | null;
@@ -26,7 +28,7 @@ interface ClubGalleryViewProps {
   }) => Promise<unknown>;
 }
 
-export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
+export function ClubGalleryView({ club, canEdit = true, editDisabledTooltip, onUpdate }: ClubGalleryViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -224,13 +226,27 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
     <>
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Gallery</h2>
-        <Button
-          variant="outline"
-          onClick={handleEdit}
-          className="im-section-edit-btn"
-        >
-          Edit
-        </Button>
+        {canEdit ? (
+          <Button
+            variant="outline"
+            onClick={handleEdit}
+            className="im-section-edit-btn"
+          >
+            Edit
+          </Button>
+        ) : (
+          <Tooltip content={editDisabledTooltip || "You don't have permission to edit"}>
+            <span>
+              <Button
+                variant="outline"
+                disabled
+                className="im-section-edit-btn"
+              >
+                Edit
+              </Button>
+            </span>
+          </Tooltip>
+        )}
       </div>
 
       <div className="im-section-view">

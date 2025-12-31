@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui";
+import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { WorkingHoursEditor, validateWorkingHours } from "../WorkingHoursEditor.client";
 import type { SpecialHour } from "../SpecialHoursField.client";
@@ -12,6 +12,8 @@ import "./ClubHoursView.css";
 
 interface ClubHoursViewProps {
   club: ClubDetail;
+  canEdit?: boolean;
+  editDisabledTooltip?: string;
   onUpdate: (payload: {
     businessHours: BusinessHour[];
     specialHours: SpecialHour[];
@@ -61,7 +63,7 @@ function formatSpecialHours(special: ClubSpecialHours[]): SpecialHour[] {
   }));
 }
 
-export function ClubHoursView({ club, onUpdate }: ClubHoursViewProps) {
+export function ClubHoursView({ club, canEdit = true, editDisabledTooltip, onUpdate }: ClubHoursViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -108,13 +110,27 @@ export function ClubHoursView({ club, onUpdate }: ClubHoursViewProps) {
     <>
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Business Hours</h2>
-        <Button
-          variant="outline"
-          onClick={handleEdit}
-          className="im-section-edit-btn"
-        >
-          Edit
-        </Button>
+        {canEdit ? (
+          <Button
+            variant="outline"
+            onClick={handleEdit}
+            className="im-section-edit-btn"
+          >
+            Edit
+          </Button>
+        ) : (
+          <Tooltip content={editDisabledTooltip || "You don't have permission to edit"}>
+            <span>
+              <Button
+                variant="outline"
+                disabled
+                className="im-section-edit-btn"
+              >
+                Edit
+              </Button>
+            </span>
+          </Tooltip>
+        )}
       </div>
 
       <div className="im-section-view">
