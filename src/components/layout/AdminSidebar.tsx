@@ -580,16 +580,14 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
   useEffect(() => {
     if (isOrgAdmin && adminStatus?.managedIds && adminStatus.managedIds.length > 0) {
       const orgId = adminStatus.managedIds[0];
-      // Only fetch if we don't have the summary yet
-      if (!orgSummary || orgSummary.id !== orgId) {
-        ensureOrganizationSummary(orgId).catch((error) => {
-          console.error(`Failed to fetch organization summary ${orgId}:`, error);
-          // Note: On error, the contextName will fall back to "Admin Panel"
-          // which provides a graceful degradation for the user
-        });
-      }
+      // ensureOrganizationSummary already implements fetch-if-missing with caching
+      ensureOrganizationSummary(orgId).catch((error) => {
+        console.error(`Failed to fetch organization summary ${orgId}:`, error);
+        // Note: On error, the contextName will fall back to "Admin Panel"
+        // which provides a graceful degradation for the user
+      });
     }
-  }, [isOrgAdmin, adminStatus, orgSummary, ensureOrganizationSummary]);
+  }, [isOrgAdmin, adminStatus, ensureOrganizationSummary]);
 
   // Get filtered navigation items based on isRoot status and admin type
   const navItems = useMemo(() => {
