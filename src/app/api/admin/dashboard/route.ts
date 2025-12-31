@@ -57,11 +57,11 @@ export interface UnifiedDashboardResponse {
 function getDateRange(): { startDate: Date; endDate: Date } {
   const endDate = new Date();
   endDate.setHours(23, 59, 59, 999);
-  
+
   const startDate = new Date();
   startDate.setHours(0, 0, 0, 0);
   startDate.setDate(startDate.getDate() - 6); // Last 7 days including today
-  
+
   return { startDate, endDate };
 }
 
@@ -71,12 +71,12 @@ function getDateRange(): { startDate: Date; endDate: Date } {
 function generateDateLabels(startDate: Date, endDate: Date): string[] {
   const labels: string[] = [];
   const currentDate = new Date(startDate);
-  
+
   while (currentDate <= endDate) {
     labels.push(currentDate.toISOString().split('T')[0]);
     currentDate.setDate(currentDate.getDate() + 1);
   }
-  
+
   return labels;
 }
 
@@ -88,12 +88,12 @@ function formatDateLabel(dateStr: string): string {
   if (parts.length !== 3) {
     return dateStr;
   }
-  
+
   const [year, month, day] = parts.map(Number);
   if (isNaN(year) || isNaN(month) || isNaN(day)) {
     return dateStr;
   }
-  
+
   const date = new Date(year, month - 1, day);
   return date.toLocaleDateString('en-US', { weekday: 'short' });
 }
@@ -247,10 +247,10 @@ async function fetchGraphsData(
   // Count bookings by date and track unique users per day
   bookings.forEach(booking => {
     const dateStr = booking.createdAt.toISOString().split('T')[0];
-    
+
     const currentCount = bookingCountsByDate.get(dateStr) || 0;
     bookingCountsByDate.set(dateStr, currentCount + 1);
-    
+
     const usersOnDate = activeUsersByDate.get(dateStr);
     if (usersOnDate) {
       usersOnDate.add(booking.userId);
@@ -278,7 +278,7 @@ async function fetchGraphsData(
 }
 
 /**
- * GET /api/admin/unified-dashboard
+ * GET /api/admin/dashboard
  *
  * Returns aggregated dashboard statistics appropriate for the current user's admin role.
  * - Root Admin: Platform-wide statistics + registered users + graphs

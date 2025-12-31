@@ -5,7 +5,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { RegisteredUsersCard } from "@/components/admin/RegisteredUsersCard";
-import type { RegisteredUsersData } from "@/app/api/admin/unified-dashboard/route";
+import type { RegisteredUsersData } from "@/app/api/admin/dashboard/route";
 
 // Mock next-intl
 jest.mock("next-intl", () => ({

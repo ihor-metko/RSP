@@ -20,14 +20,14 @@ export interface RegisteredUsersResponse {
 
 /**
  * GET /api/admin/dashboard/registered-users
- * 
+ *
  * Returns the count of real, active platform users (players) excluding:
  * - System/admin accounts (users with isRoot = true)
  * - Organization admins (users with ORGANIZATION_ADMIN role)
  * - Club admins (users with CLUB_ADMIN role)
- * 
+ *
  * Optionally includes trend data for the last 30 days.
- * 
+ *
  * Access: Root Admin only
  */
 export async function GET(

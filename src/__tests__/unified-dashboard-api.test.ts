@@ -37,7 +37,7 @@ jest.mock("@/lib/auth", () => ({
   auth: jest.fn(),
 }));
 
-import { GET } from "@/app/api/admin/unified-dashboard/route";
+import { GET } from "@/app/api/admin/dashboard/route";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { NextRequest } from "next/server";
@@ -84,7 +84,7 @@ describe("Unified Dashboard API", () => {
       (prisma.booking.count as jest.Mock)
         .mockResolvedValueOnce(20) // activeBookingsCount
         .mockResolvedValueOnce(50); // pastBookingsCount
-      
+
       // Mock registered users data
       (prisma.user.findMany as jest.Mock)
         .mockResolvedValueOnce([]) // Root admins
@@ -94,7 +94,7 @@ describe("Unified Dashboard API", () => {
       (prisma.user.count as jest.Mock).mockResolvedValue(100);
       (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
-      
+
       // Mock graphs data
       (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
 
@@ -124,7 +124,7 @@ describe("Unified Dashboard API", () => {
         { organizationId: "org-1" },
         { organizationId: "org-2" },
       ]);
-      
+
       // Mock aggregated counts for all organizations
       (prisma.club.count as jest.Mock).mockResolvedValue(5); // Total clubs across both orgs
       (prisma.court.count as jest.Mock).mockResolvedValue(10); // Total courts across both orgs
@@ -132,7 +132,7 @@ describe("Unified Dashboard API", () => {
         .mockResolvedValueOnce(3) // bookingsToday
         .mockResolvedValueOnce(8) // activeBookings
         .mockResolvedValueOnce(15); // pastBookings
-      
+
       // Mock graphs data
       (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
@@ -167,14 +167,14 @@ describe("Unified Dashboard API", () => {
           { clubId: "club-1" },
           { clubId: "club-2" },
         ]);
-      
+
       // Mock aggregated counts for all clubs
       (prisma.court.count as jest.Mock).mockResolvedValue(6); // Total courts across both clubs
       (prisma.booking.count as jest.Mock)
         .mockResolvedValueOnce(5) // bookingsToday
         .mockResolvedValueOnce(12) // activeBookings
         .mockResolvedValueOnce(20); // pastBookings
-      
+
       // Mock graphs data
       (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
 
@@ -215,7 +215,7 @@ describe("Unified Dashboard API", () => {
         { organizationId: "org-1" },
         { organizationId: "org-deleted" }, // This org might be deleted but counts still work
       ]);
-      
+
       // Aggregated counts still work even if specific orgs are deleted
       (prisma.club.count as jest.Mock).mockResolvedValue(2);
       (prisma.court.count as jest.Mock).mockResolvedValue(4);
@@ -223,7 +223,7 @@ describe("Unified Dashboard API", () => {
         .mockResolvedValueOnce(3) // bookingsToday
         .mockResolvedValueOnce(6) // activeBookings
         .mockResolvedValueOnce(10); // pastBookings
-      
+
       // Mock graphs data
       (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
@@ -252,14 +252,14 @@ describe("Unified Dashboard API", () => {
           { clubId: "club-1" },
           { clubId: "club-deleted" }, // This club might be deleted but counts still work
         ]);
-      
+
       // Aggregated counts still work even if specific clubs are deleted
       (prisma.court.count as jest.Mock).mockResolvedValue(3);
       (prisma.booking.count as jest.Mock)
         .mockResolvedValueOnce(5) // bookingsToday
         .mockResolvedValueOnce(8) // activeBookings
         .mockResolvedValueOnce(12); // pastBookings
-      
+
       // Mock graphs data
       (prisma.booking.findMany as jest.Mock).mockResolvedValue([]);
 

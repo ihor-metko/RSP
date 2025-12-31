@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { RegisteredUsersData } from "@/app/api/admin/unified-dashboard/route";
+import type { RegisteredUsersData } from "@/app/api/admin/dashboard/route";
 import "./RegisteredUsersCard.css";
 
 interface RegisteredUsersCardProps {
@@ -16,15 +16,15 @@ interface RegisteredUsersCardProps {
 
 /**
  * Registered Users Card Component
- * 
+ *
  * Displays the total number of real, active platform users (players)
  * excluding system/admin accounts, with a trend visualization for the last 30 days.
- * 
+ *
  * Access: Root Admin only (enforced server-side)
- * 
+ *
  * Data is now passed as props from the parent component to avoid redundant API calls.
  */
-export function RegisteredUsersCard({ 
+export function RegisteredUsersCard({
   className = "",
   data,
   loading = false,

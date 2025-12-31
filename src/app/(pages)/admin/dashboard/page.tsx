@@ -9,7 +9,7 @@ import { RegisteredUsersCard } from "@/components/admin/RegisteredUsersCard";
 import DashboardGraphs from "@/components/admin/DashboardGraphs";
 import DashboardShell from "@/components/admin/DashboardShell";
 import { DashboardPlaceholder } from "@/components/ui/skeletons";
-import type { UnifiedDashboardResponse } from "@/app/api/admin/unified-dashboard/route";
+import type { UnifiedDashboardResponse } from "@/app/api/admin/dashboard/route";
 import { fetchUnifiedDashboard } from "@/services/dashboard";
 import "./RootDashboard.css";
 
@@ -263,7 +263,7 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="im-stats-grid" style={{ gridTemplateColumns: "1fr" }}>
-              <RegisteredUsersCard 
+              <RegisteredUsersCard
                 data={dashboardData.registeredUsers}
                 loading={false}
               />
