@@ -23,47 +23,31 @@ export default function OperationsListPage() {
 
   // User store
   const adminStatus = useUserStore((state) => state.adminStatus);
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  const isLoadingUser = useUserStore((state) => state.isLoading);
-  const isHydrated = useUserStore((state) => state.isHydrated);
 
   // Club store
   const { fetchClubsIfNeeded, loading: loadingClubs } = useAdminClubStore();
 
   // Check access permissions and redirect Club Admins
   useEffect(() => {
-    // Wait for hydration before checking auth
-    if (!isHydrated || isLoadingUser) return;
-
-    if (!isLoggedIn) {
-      router.push("/auth/sign-in");
-      return;
-    }
-
-    if (!adminStatus?.isAdmin) {
-      router.push("/");
-      return;
-    }
-
     // Auto-redirect Club Admins to their assigned club
-    if (adminStatus.adminType === "club_admin" && adminStatus.assignedClub) {
+    if (adminStatus?.adminType === "club_admin" && adminStatus.assignedClub) {
       router.replace(`/admin/operations/${adminStatus.assignedClub.id}`);
       return;
     }
 
     // Load clubs for Organization Admins and Root Admins
-    if (adminStatus.adminType === "organization_admin" || adminStatus.adminType === "root_admin") {
+    if (adminStatus?.adminType === "organization_admin" || adminStatus?.adminType === "root_admin") {
       fetchClubsIfNeeded().catch(console.error);
     }
-  }, [isLoadingUser, isLoggedIn, adminStatus, router, fetchClubsIfNeeded, isHydrated]);
+  }, [adminStatus, router, fetchClubsIfNeeded]);
 
   // Handle club selection
   const handleClubSelect = (clubId: string) => {
     router.push(`/admin/operations/${clubId}`);
   };
 
-  // Loading state (include hydration)
-  const isLoadingState = !isHydrated || isLoadingUser || loadingClubs;
+  // Loading state
+  const isLoadingState = loadingClubs;
 
   if (isLoadingState) {
     return (
@@ -77,11 +61,6 @@ export default function OperationsListPage() {
         </section>
       </main>
     );
-  }
-
-  // Access denied
-  if (!isLoggedIn || !adminStatus?.isAdmin) {
-    return null;
   }
 
   // Check if Club Admin has no assigned club

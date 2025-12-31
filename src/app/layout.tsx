@@ -8,7 +8,6 @@ import { SocketProvider } from "@/contexts/SocketContext";
 import { BookingSocketProvider } from "@/contexts/BookingSocketContext";
 import { GlobalSocketListener } from "@/components/GlobalSocketListener";
 import { NotificationStoreInitializer } from "@/components/NotificationStoreInitializer";
-import { PagePreserveProvider } from "@/components/PagePreserveProvider";
 
 export const metadata: Metadata = {
   title: "ArenaOne",
@@ -28,17 +27,15 @@ export default async function RootLayout({
       <body className="antialiased min-h-screen flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
-            <PagePreserveProvider>
-              <ClubProvider>
-                <SocketProvider>
-                  <BookingSocketProvider>
-                    <GlobalSocketListener />
-                    <NotificationStoreInitializer />
-                    {children}
-                  </BookingSocketProvider>
-                </SocketProvider>
-              </ClubProvider>
-            </PagePreserveProvider>
+            <ClubProvider>
+              <SocketProvider>
+                <BookingSocketProvider>
+                  <GlobalSocketListener />
+                  <NotificationStoreInitializer />
+                  {children}
+                </BookingSocketProvider>
+              </SocketProvider>
+            </ClubProvider>
           </AuthProvider>
         </NextIntlClientProvider>
       </body>
