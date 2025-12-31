@@ -129,11 +129,35 @@ export async function POST(
         },
       });
     } else {
-      // For logo and heroImage, store in their respective columns
+      // For logo and heroImage, store in logoData and bannerData fields with full JSON objects
+      const fieldName = imageType === "logo" ? "logoData" : "bannerData";
+      
+      // Get existing data to preserve any metadata
+      const org = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { logoData: true, bannerData: true },
+      });
+
+      let existingData: Record<string, unknown> = {};
+      const existingField = fieldName === "logoData" ? org?.logoData : org?.bannerData;
+      if (existingField) {
+        try {
+          existingData = JSON.parse(existingField);
+        } catch {
+          // Invalid JSON, start fresh
+          existingData = {};
+        }
+      }
+
+      const imageData = {
+        ...existingData,
+        url,
+      };
+
       await prisma.organization.update({
         where: { id: organizationId },
         data: {
-          [imageType]: url,
+          [fieldName]: JSON.stringify(imageData),
         },
       });
     }
