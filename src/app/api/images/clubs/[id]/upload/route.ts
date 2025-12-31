@@ -142,7 +142,8 @@ export async function POST(
         try {
           existingData = JSON.parse(existingField);
         } catch {
-          // Invalid JSON, start fresh
+          // Invalid JSON in database - start fresh
+          // This is intentional to handle corrupted data gracefully
           existingData = {};
         }
       }
