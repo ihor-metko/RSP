@@ -119,12 +119,6 @@ interface UserFilters extends Record<string, unknown> {
 export default function AdminUsersPage() {
   const t = useTranslations();
   const router = useRouter();
-  
-  // Use store for auth state
-  const isHydrated = useUserStore((state) => state.isHydrated);
-  const isLoading = useUserStore((state) => state.isLoading);
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  const hasAnyRole = useUserStore((state) => state.hasAnyRole);
 
   // Use list controller hook for persistent filters
   const controller = useListController<UserFilters>({
@@ -212,17 +206,8 @@ export default function AdminUsersPage() {
   }, [page, pageSize, sortBy, sortOrder, filters, fetchUsersFromStore]);
 
   useEffect(() => {
-    // Wait for hydration and store initialization
-    if (!isHydrated || isLoading) return;
-
-    // Check if user has any admin role (ROOT_ADMIN, ORGANIZATION_ADMIN, CLUB_OWNER, or CLUB_ADMIN)
-    if (!isLoggedIn || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_OWNER", "CLUB_ADMIN"])) {
-      router.push("/auth/sign-in");
-      return;
-    }
-
     fetchUsers();
-  }, [isLoggedIn, isLoading, router, fetchUsers, isHydrated, hasAnyRole]);
+  }, [fetchUsers]);
 
   const handleSort = (field: string) => {
     if (sortBy === field) {
