@@ -7,6 +7,38 @@ import type {
 } from "@/types/organization";
 
 /**
+ * Organization club with statistics from the clubs endpoint
+ */
+export interface OrganizationClub {
+  id: string;
+  name: string;
+  slug: string | null;
+  location: string;
+  city: string | null;
+  country: string | null;
+  isPublic: boolean;
+  createdAt: string;
+  statistics: {
+    courtCount: number;
+    activeUpcomingBookings: number;
+    pastBookings: number;
+  };
+}
+
+/**
+ * Organization clubs response with pagination
+ */
+export interface OrganizationClubsResponse {
+  clubs: OrganizationClub[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  };
+}
+
+/**
  * Admin management payloads
  */
 export interface AddAdminPayload {
@@ -55,6 +87,7 @@ interface OrganizationState {
   organizations: Organization[];
   organizationsById: Record<string, OrganizationDetail>;
   organizationSummariesById: Record<string, OrganizationSummary>;
+  organizationClubsById: Record<string, OrganizationClubsResponse>;
   currentOrg: Organization | null;
   loading: boolean;
   error: string | null;
@@ -63,6 +96,7 @@ interface OrganizationState {
   // Internal inflight guards (prevent duplicate concurrent requests)
   _inflightFetchById: Record<string, Promise<OrganizationDetail>>;
   _inflightFetchSummaryById: Record<string, Promise<OrganizationSummary>>;
+  _inflightFetchClubsById: Record<string, Promise<OrganizationClubsResponse>>;
 
   // Actions
   setOrganizations: (orgs: Organization[]) => void;
@@ -74,6 +108,8 @@ interface OrganizationState {
   ensureOrganizationById: (id: string, options?: { force?: boolean }) => Promise<OrganizationDetail>;
   fetchOrganizationSummary: (id: string) => Promise<OrganizationSummary>;
   ensureOrganizationSummary: (id: string, options?: { force?: boolean }) => Promise<OrganizationSummary>;
+  fetchOrganizationClubs: (id: string, params?: { page?: number; limit?: number }) => Promise<OrganizationClubsResponse>;
+  ensureOrganizationClubs: (id: string, options?: { force?: boolean; page?: number; limit?: number }) => Promise<OrganizationClubsResponse>;
   createOrganization: (payload: CreateOrganizationPayload) => Promise<Organization>;
   updateOrganization: (id: string, payload: UpdateOrganizationPayload) => Promise<Organization>;
   deleteOrganization: (id: string, confirmOrgSlug?: string) => Promise<void>;
@@ -88,6 +124,7 @@ interface OrganizationState {
   getOrganizationById: (id: string) => Organization | undefined;
   getOrganizationDetailById: (id: string) => OrganizationDetail | undefined;
   getOrganizationSummaryById: (id: string) => OrganizationSummary | undefined;
+  getOrganizationClubsById: (id: string) => OrganizationClubsResponse | undefined;
   isOrgSelected: (id: string) => boolean;
   getOrganizationsWithAutoFetch: () => Organization[];
 }
@@ -107,12 +144,14 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   organizations: [],
   organizationsById: {},
   organizationSummariesById: {},
+  organizationClubsById: {},
   currentOrg: null,
   loading: false,
   error: null,
   hasFetched: false,
   _inflightFetchById: {},
   _inflightFetchSummaryById: {},
+  _inflightFetchClubsById: {},
 
   // State setters
   setOrganizations: (orgs) => set({ organizations: orgs }),
@@ -373,9 +412,12 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
         // Remove the deleted organization from the cache using destructuring
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { [id]: _, ...remainingById } = state.organizationsById;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [id]: __, ...remainingClubsById } = state.organizationClubsById;
         return {
           organizations: state.organizations.filter((org) => org.id !== id),
           organizationsById: remainingById,
+          organizationClubsById: remainingClubsById,
           currentOrg: state.currentOrg?.id === id ? null : state.currentOrg,
           loading: false,
         };
@@ -491,6 +533,120 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
     return fetchPromise;
   },
 
+  // Fetch organization clubs by ID (with pagination support)
+  fetchOrganizationClubs: async (id: string, params?: { page?: number; limit?: number }) => {
+    set({ loading: true, error: null });
+    try {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.set('page', params.page.toString());
+      if (params?.limit) queryParams.set('limit', params.limit.toString());
+      
+      const url = `/api/admin/organizations/${id}/clubs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({ error: "Failed to fetch organization clubs" }));
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Update organizationClubsById cache
+      set((state) => ({
+        organizationClubsById: {
+          ...state.organizationClubsById,
+          [id]: data,
+        },
+        loading: false,
+      }));
+
+      return data;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to fetch organization clubs";
+      set({ error: errorMessage, loading: false });
+      throw error;
+    }
+  },
+
+  // Ensure organization clubs are loaded by ID with fetch-if-missing pattern
+  // This method prevents duplicate fetches and returns cached data when available
+  ensureOrganizationClubs: async (id: string, options?: { force?: boolean; page?: number; limit?: number }) => {
+    const state = get();
+    
+    // Return cached data if available and not forcing refresh
+    if (!options?.force && state.organizationClubsById[id]) {
+      return state.organizationClubsById[id];
+    }
+    
+    // If there's already an inflight request for this ID, return it
+    const inflightRequest = state._inflightFetchClubsById[id];
+    if (inflightRequest) {
+      return inflightRequest;
+    }
+
+    // Create new fetch promise
+    const fetchPromise = (async () => {
+      try {
+        set({ loading: true, error: null });
+        
+        const queryParams = new URLSearchParams();
+        if (options?.page) queryParams.set('page', options.page.toString());
+        if (options?.limit) queryParams.set('limit', options.limit.toString());
+        
+        const url = `/api/admin/organizations/${id}/clubs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: "Failed to fetch organization clubs" }));
+          throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Update cache and clear inflight
+        set((state) => {
+          const newInflight = { ...state._inflightFetchClubsById };
+          delete newInflight[id];
+          return {
+            organizationClubsById: {
+              ...state.organizationClubsById,
+              [id]: data,
+            },
+            loading: false,
+            _inflightFetchClubsById: newInflight,
+          };
+        });
+        
+        return data;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch organization clubs";
+        
+        // Clear inflight and set error
+        set((state) => {
+          const newInflight = { ...state._inflightFetchClubsById };
+          delete newInflight[id];
+          return {
+            error: errorMessage,
+            loading: false,
+            _inflightFetchClubsById: newInflight,
+          };
+        });
+        
+        throw error;
+      }
+    })();
+
+    // Store inflight promise
+    set((state) => ({
+      _inflightFetchClubsById: {
+        ...state._inflightFetchClubsById,
+        [id]: fetchPromise,
+      },
+    }));
+
+    return fetchPromise;
+  },
+
   // Force refetch organizations (clears cache and fetches fresh data)
   refetch: async () => {
     const { fetchOrganizations } = get();
@@ -579,6 +735,11 @@ export const useOrganizationStore = create<OrganizationState>((set, get) => ({
   // Selector: Get organization summary by ID from the organizationSummariesById cache
   getOrganizationSummaryById: (id: string) => {
     return get().organizationSummariesById[id];
+  },
+
+  // Selector: Get organization clubs by ID from the organizationClubsById cache
+  getOrganizationClubsById: (id: string) => {
+    return get().organizationClubsById[id];
   },
 
   // Selector: Check if an organization is currently selected
