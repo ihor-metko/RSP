@@ -164,9 +164,9 @@ export async function GET(): Promise<NextResponse<MeResponse | { error: string }
         isPrimaryOwner,
       };
     } else {
-      // Check if user is a club admin
+      // Check if user is a club admin or club owner
       const clubAdminMemberships = clubMembershipRecords.filter(
-        (m) => m.role === ClubMembershipRole.CLUB_ADMIN
+        (m) => m.role === ClubMembershipRole.CLUB_ADMIN || m.role === ClubMembershipRole.CLUB_OWNER
       );
 
       if (clubAdminMemberships.length > 0) {

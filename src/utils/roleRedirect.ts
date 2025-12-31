@@ -97,7 +97,9 @@ export async function checkUserAdminStatus(
     prisma.clubMembership.findMany({
       where: {
         userId,
-        role: ClubMembershipRole.CLUB_ADMIN,
+        role: {
+          in: [ClubMembershipRole.CLUB_ADMIN, ClubMembershipRole.CLUB_OWNER],
+        },
       },
       select: {
         clubId: true,

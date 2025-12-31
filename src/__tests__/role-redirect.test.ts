@@ -124,6 +124,21 @@ describe("Role Redirect Utilities", () => {
       });
     });
 
+    it("should return club_admin for users with CLUB_OWNER membership", async () => {
+      mockMembershipFindMany.mockResolvedValue([]);
+      mockClubMembershipFindMany.mockResolvedValue([
+        { clubId: "club-1" },
+      ] as never[]);
+
+      const result = await checkUserAdminStatus("user-1", false);
+
+      expect(result).toEqual({
+        isAdmin: true,
+        adminType: "club_admin",
+        managedIds: ["club-1"],
+      });
+    });
+
     it("should return none for non-admin users", async () => {
       mockMembershipFindMany.mockResolvedValue([]);
       mockClubMembershipFindMany.mockResolvedValue([]);
@@ -169,7 +184,7 @@ describe("Role Redirect Utilities", () => {
       });
     });
 
-    it("should query for CLUB_ADMIN role only", async () => {
+    it("should query for both CLUB_ADMIN and CLUB_OWNER roles", async () => {
       mockMembershipFindMany.mockResolvedValue([]);
       mockClubMembershipFindMany.mockResolvedValue([]);
 
@@ -178,7 +193,9 @@ describe("Role Redirect Utilities", () => {
       expect(mockClubMembershipFindMany).toHaveBeenCalledWith({
         where: {
           userId: "user-1",
-          role: "CLUB_ADMIN",
+          role: {
+            in: ["CLUB_ADMIN", "CLUB_OWNER"],
+          },
         },
         select: {
           clubId: true,

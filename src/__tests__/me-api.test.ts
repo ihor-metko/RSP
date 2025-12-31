@@ -173,6 +173,42 @@ describe("/api/me endpoint", () => {
       });
     });
 
+    it("should return club admin status for club owners", async () => {
+      mockAuth.mockResolvedValue({
+        user: {
+          id: "club-owner-123",
+          email: "clubowner@example.com",
+          name: "Club Owner",
+          isRoot: false,
+        },
+        expires: new Date().toISOString(),
+      });
+      mockMembershipFindMany.mockResolvedValue([]);
+      mockClubMembershipFindMany.mockResolvedValue([
+        { clubId: "club-1", role: "CLUB_OWNER", club: { id: "club-1", name: "Owner Club" } },
+      ] as never[]);
+
+      const response = await GET();
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.userId).toBe("club-owner-123");
+      expect(data.adminStatus).toEqual({
+        isAdmin: true,
+        adminType: "club_admin",
+        managedIds: ["club-1"],
+        assignedClub: {
+          id: "club-1",
+          name: "Owner Club",
+        },
+      });
+      expect(data.clubMemberships).toHaveLength(1);
+      expect(data.clubMemberships[0]).toEqual({
+        clubId: "club-1",
+        role: "CLUB_OWNER",
+      });
+    });
+
     it("should handle missing optional fields", async () => {
       mockAuth.mockResolvedValue({
         user: {
