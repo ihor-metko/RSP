@@ -79,7 +79,6 @@ describe("Unified Dashboard API", () => {
       });
       (prisma.organization.count as jest.Mock).mockResolvedValue(3);
       (prisma.club.count as jest.Mock).mockResolvedValue(5);
-      (prisma.user.count as jest.Mock).mockResolvedValue(100);
       (prisma.booking.count as jest.Mock)
         .mockResolvedValueOnce(20) // activeBookingsCount
         .mockResolvedValueOnce(50); // pastBookingsCount
@@ -93,13 +92,12 @@ describe("Unified Dashboard API", () => {
       expect(data.platformStats).toEqual({
         totalOrganizations: 3,
         totalClubs: 5,
-        totalUsers: 100,
         activeBookingsCount: 20,
         pastBookingsCount: 50,
       });
     });
 
-    it("should return organization data for organization admin", async () => {
+    it("should return aggregated stats for organization admin", async () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "org-admin-1", isRoot: false },
       });
@@ -108,15 +106,13 @@ describe("Unified Dashboard API", () => {
         { organizationId: "org-2" },
       ]);
       
-      // First org
-      (prisma.organization.findUnique as jest.Mock)
-        .mockResolvedValueOnce({ id: "org-1", name: "Org 1", slug: "org-1" })
-        .mockResolvedValueOnce({ id: "org-2", name: "Org 2", slug: "org-2" });
-      
-      (prisma.club.count as jest.Mock).mockResolvedValue(2);
-      (prisma.court.count as jest.Mock).mockResolvedValue(4);
-      (prisma.booking.count as jest.Mock).mockResolvedValue(3);
-      (prisma.clubMembership.count as jest.Mock).mockResolvedValue(1);
+      // Mock aggregated counts for all organizations
+      (prisma.club.count as jest.Mock).mockResolvedValue(5); // Total clubs across both orgs
+      (prisma.court.count as jest.Mock).mockResolvedValue(10); // Total courts across both orgs
+      (prisma.booking.count as jest.Mock)
+        .mockResolvedValueOnce(3) // bookingsToday
+        .mockResolvedValueOnce(8) // activeBookings
+        .mockResolvedValueOnce(15); // pastBookings
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -124,41 +120,35 @@ describe("Unified Dashboard API", () => {
       expect(response.status).toBe(200);
       expect(data.adminType).toBe("organization_admin");
       expect(data.isRoot).toBe(false);
-      expect(data.organizations).toHaveLength(2);
-      expect(data.organizations[0]).toEqual({
-        id: "org-1",
-        name: "Org 1",
-        slug: "org-1",
-        clubsCount: 2,
-        courtsCount: 4,
+      expect(data.stats).toEqual({
+        clubsCount: 5,
+        courtsCount: 10,
         bookingsToday: 3,
-        clubAdminsCount: 1,
-        activeBookings: 3,
-        pastBookings: 3,
+        activeBookings: 8,
+        pastBookings: 15,
       });
     });
 
-    it("should return club data for club admin", async () => {
+    it("should return aggregated stats for club admin", async () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "club-admin-1", isRoot: false },
       });
       // No organization memberships
       (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
-      // Has club memberships
-      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([
-        { clubId: "club-1" },
-      ]);
+      // No club owner memberships
+      (prisma.clubMembership.findMany as jest.Mock)
+        .mockResolvedValueOnce([]) // First call for CLUB_OWNER
+        .mockResolvedValueOnce([   // Second call for CLUB_ADMIN
+          { clubId: "club-1" },
+          { clubId: "club-2" },
+        ]);
       
-      (prisma.club.findUnique as jest.Mock).mockResolvedValue({
-        id: "club-1",
-        name: "Club 1",
-        slug: "club-1",
-        organizationId: "org-1",
-        organization: { name: "Org 1" },
-      });
-      
-      (prisma.court.count as jest.Mock).mockResolvedValue(3);
-      (prisma.booking.count as jest.Mock).mockResolvedValue(5);
+      // Mock aggregated counts for all clubs
+      (prisma.court.count as jest.Mock).mockResolvedValue(6); // Total courts across both clubs
+      (prisma.booking.count as jest.Mock)
+        .mockResolvedValueOnce(5) // bookingsToday
+        .mockResolvedValueOnce(12) // activeBookings
+        .mockResolvedValueOnce(20); // pastBookings
 
       const response = await GET(mockRequest);
       const data = await response.json();
@@ -166,17 +156,11 @@ describe("Unified Dashboard API", () => {
       expect(response.status).toBe(200);
       expect(data.adminType).toBe("club_admin");
       expect(data.isRoot).toBe(false);
-      expect(data.clubs).toHaveLength(1);
-      expect(data.clubs[0]).toEqual({
-        id: "club-1",
-        name: "Club 1",
-        slug: "club-1",
-        organizationId: "org-1",
-        organizationName: "Org 1",
-        courtsCount: 3,
+      expect(data.stats).toEqual({
+        courtsCount: 6,
         bookingsToday: 5,
-        activeBookings: 5,
-        pastBookings: 5,
+        activeBookings: 12,
+        pastBookings: 20,
       });
     });
 
@@ -193,64 +177,65 @@ describe("Unified Dashboard API", () => {
       expect(data.error).toBe("Internal server error");
     });
 
-    it("should filter out organizations that no longer exist", async () => {
+    it("should return aggregated stats for organization admin even if some orgs are deleted", async () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "org-admin-1", isRoot: false },
       });
       (prisma.membership.findMany as jest.Mock).mockResolvedValue([
         { organizationId: "org-1" },
-        { organizationId: "org-deleted" },
+        { organizationId: "org-deleted" }, // This org might be deleted but counts still work
       ]);
       
-      // First org exists, second does not
-      (prisma.organization.findUnique as jest.Mock)
-        .mockResolvedValueOnce({ id: "org-1", name: "Org 1", slug: "org-1" })
-        .mockResolvedValueOnce(null);
-      
+      // Aggregated counts still work even if specific orgs are deleted
       (prisma.club.count as jest.Mock).mockResolvedValue(2);
       (prisma.court.count as jest.Mock).mockResolvedValue(4);
-      (prisma.booking.count as jest.Mock).mockResolvedValue(3);
-      (prisma.clubMembership.count as jest.Mock).mockResolvedValue(1);
+      (prisma.booking.count as jest.Mock)
+        .mockResolvedValueOnce(3) // bookingsToday
+        .mockResolvedValueOnce(6) // activeBookings
+        .mockResolvedValueOnce(10); // pastBookings
 
       const response = await GET(mockRequest);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.organizations).toHaveLength(1);
-      expect(data.organizations[0].id).toBe("org-1");
+      expect(data.stats).toEqual({
+        clubsCount: 2,
+        courtsCount: 4,
+        bookingsToday: 3,
+        activeBookings: 6,
+        pastBookings: 10,
+      });
     });
 
-    it("should filter out clubs that no longer exist", async () => {
+    it("should return aggregated stats for club admin even if some clubs are deleted", async () => {
       (auth as jest.Mock).mockResolvedValue({
         user: { id: "club-admin-1", isRoot: false },
       });
       (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
-      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([
-        { clubId: "club-1" },
-        { clubId: "club-deleted" },
-      ]);
+      (prisma.clubMembership.findMany as jest.Mock)
+        .mockResolvedValueOnce([]) // First call for CLUB_OWNER
+        .mockResolvedValueOnce([   // Second call for CLUB_ADMIN
+          { clubId: "club-1" },
+          { clubId: "club-deleted" }, // This club might be deleted but counts still work
+        ]);
       
-      (prisma.club.findUnique as jest.Mock)
-        .mockResolvedValueOnce({
-          id: "club-1",
-          name: "Club 1",
-          slug: "club-1",
-          organizationId: "org-1",
-          organization: { name: "Org 1" },
-        })
-        .mockResolvedValueOnce(null);
-      
+      // Aggregated counts still work even if specific clubs are deleted
       (prisma.court.count as jest.Mock).mockResolvedValue(3);
-      (prisma.booking.count as jest.Mock).mockResolvedValue(5);
+      (prisma.booking.count as jest.Mock)
+        .mockResolvedValueOnce(5) // bookingsToday
+        .mockResolvedValueOnce(8) // activeBookings
+        .mockResolvedValueOnce(12); // pastBookings
 
       const response = await GET(mockRequest);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.clubs).toHaveLength(1);
-      expect(data.clubs[0].id).toBe("club-1");
-      expect(data.clubs[0].activeBookings).toBe(5);
-      expect(data.clubs[0].pastBookings).toBe(5);
+      expect(data.stats).toEqual({
+        courtsCount: 3,
+        bookingsToday: 5,
+        activeBookings: 8,
+        pastBookings: 12,
+      });
     });
   });
 });
