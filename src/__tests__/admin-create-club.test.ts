@@ -8,6 +8,7 @@ jest.mock("@/lib/prisma", () => ({
     club: {
       findUnique: jest.fn(),
       create: jest.fn(),
+      count: jest.fn(),
     },
     clubBusinessHours: {
       createMany: jest.fn(),
@@ -482,6 +483,99 @@ describe("Admin Create Club API", () => {
 
       expect(response.status).toBe(403);
       expect(data.error).toBe("You do not have permission to create clubs in this organization");
+    });
+
+    it("should return 403 when organization has reached club limit", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      // Mock organization with maxClubs = 3
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue({
+        id: "org-123",
+        name: "Test Org",
+        maxClubs: 3,
+      });
+
+      // Mock club count = 3 (limit reached)
+      (prisma.club.count as jest.Mock).mockResolvedValue(3);
+
+      const request = new Request("http://localhost:3000/api/admin/clubs/new", {
+        method: "POST",
+        body: JSON.stringify(validClubData),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.error).toBe("Organization has reached the maximum limit of 3 clubs");
+      expect(data.maxClubs).toBe(3);
+      expect(data.currentCount).toBe(3);
+    });
+
+    it("should allow creating club when under the limit", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "admin-123", isRoot: true },
+      });
+
+      // Mock organization with maxClubs = 3
+      (prisma.organization.findUnique as jest.Mock).mockResolvedValue({
+        id: "org-123",
+        name: "Test Org",
+        maxClubs: 3,
+      });
+
+      // Mock club count = 2 (under limit)
+      (prisma.club.count as jest.Mock).mockResolvedValue(2);
+
+      // Mock slug check - no existing club
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(null);
+
+      // Mock successful club creation
+      const newClub = {
+        id: "club-new",
+        name: "Test Club",
+        slug: "test-club",
+        organizationId: "org-123",
+      };
+
+      (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        const tx = {
+          club: {
+            create: jest.fn().mockResolvedValue(newClub),
+          },
+          clubBusinessHours: {
+            createMany: jest.fn(),
+          },
+          clubSpecialHours: {
+            createMany: jest.fn(),
+          },
+          clubGallery: {
+            createMany: jest.fn(),
+          },
+          court: {
+            createMany: jest.fn(),
+          },
+        };
+        return callback(tx);
+      });
+
+      const request = new Request("http://localhost:3000/api/admin/clubs/new", {
+        method: "POST",
+        body: JSON.stringify(validClubData),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.id).toBe("club-new");
+      expect(prisma.club.count).toHaveBeenCalledWith({
+        where: { organizationId: "org-123" },
+      });
     });
   });
 });
