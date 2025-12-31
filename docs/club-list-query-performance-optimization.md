@@ -61,8 +61,8 @@ courts: {
 
 **Retained fields:**
 - `id`, `name`, `shortDescription`, `location`, `city`
-- `contactInfo`, `openingHours`, `logoData`, `bannerData`
-- `metadata`, `tags`, `isPublic`, `status`, `supportedSports`
+- `contactInfo`, `openingHours`, `metadata`, `tags`
+- `isPublic`, `status`, `supportedSports`
 - `createdAt`, `organizationId`
 - `organization` (only `id` and `name`)
 - `courtCount`, `indoorCount`, `outdoorCount` - Still calculated from courts

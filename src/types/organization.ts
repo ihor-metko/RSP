@@ -3,26 +3,6 @@
  */
 
 import { SportType } from "@/constants/sports";
-import type { EntityLogoMetadata } from "@/components/ui/EntityLogo";
-
-/**
- * Logo data structure
- */
-export interface LogoData {
-  url: string;
-  altText?: string;
-  thumbnailUrl?: string;
-}
-
-/**
- * Banner data structure
- */
-export interface BannerData {
-  url: string;
-  altText?: string;
-  description?: string;
-  position?: 'top' | 'center' | 'bottom';
-}
 
 /**
  * Organization entity
@@ -43,8 +23,6 @@ export interface Organization {
   isPublic: boolean;
   supportedSports?: SportType[];
   clubCount?: number;
-  logoData?: LogoData | null;
-  bannerData?: BannerData | null;
   createdBy?: {
     id: string;
     name: string | null;
@@ -75,8 +53,6 @@ export interface CreateOrganizationPayload {
   contactPhone?: string;
   website?: string;
   address?: string;
-  logoData?: LogoData;
-  bannerData?: BannerData;
   metadata?: Record<string, unknown>;
   supportedSports?: SportType[];
 }
@@ -92,19 +68,9 @@ export interface UpdateOrganizationPayload {
   contactPhone?: string | null;
   website?: string | null;
   address?: string | null;
-  logoData?: LogoData | null;
-  bannerData?: BannerData | null;
   metadata?: Record<string, unknown> | null;
   supportedSports?: SportType[];
   isPublic?: boolean;
-}
-
-/**
- * Organization metadata type extending EntityLogoMetadata
- */
-export interface OrganizationMetadata extends EntityLogoMetadata {
-  /** Banner image vertical alignment */
-  bannerAlignment?: 'top' | 'center' | 'bottom';
 }
 
 /**
@@ -113,7 +79,7 @@ export interface OrganizationMetadata extends EntityLogoMetadata {
  * @param metadata - Can be a JSON string (from database) or already parsed object (from API)
  * @returns Parsed metadata or undefined if invalid
  */
-export function parseOrganizationMetadata(metadata: string | Record<string, unknown> | null | undefined): OrganizationMetadata | undefined {
+export function parseOrganizationMetadata(metadata: string | Record<string, unknown> | null | undefined): Record<string, unknown> | undefined {
   if (!metadata) {
     return undefined;
   }
@@ -123,51 +89,15 @@ export function parseOrganizationMetadata(metadata: string | Record<string, unkn
     if (typeof metadata === 'object') {
       // Basic validation - ensure it's a plain object
       if (Object.prototype.toString.call(metadata) === '[object Object]') {
-        return metadata as OrganizationMetadata;
+        return metadata;
       }
       return undefined;
     }
     
     // If metadata is a string (from database), parse it
-    return JSON.parse(metadata) as OrganizationMetadata;
+    return JSON.parse(metadata);
   } catch {
     // Invalid JSON
-    return undefined;
-  }
-}
-
-/**
- * Helper function to parse logo data from JSON string
- * 
- * @param logoData - JSON string from database
- * @returns Parsed logo data or undefined if invalid
- */
-export function parseLogoData(logoData: string | null | undefined): LogoData | undefined {
-  if (!logoData) {
-    return undefined;
-  }
-
-  try {
-    return JSON.parse(logoData) as LogoData;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Helper function to parse banner data from JSON string
- * 
- * @param bannerData - JSON string from database
- * @returns Parsed banner data or undefined if invalid
- */
-export function parseBannerData(bannerData: string | null | undefined): BannerData | undefined {
-  if (!bannerData) {
-    return undefined;
-  }
-
-  try {
-    return JSON.parse(bannerData) as BannerData;
-  } catch {
     return undefined;
   }
 }

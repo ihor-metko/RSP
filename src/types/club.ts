@@ -1,24 +1,4 @@
 import { SportType } from "@/constants/sports";
-import type { EntityLogoMetadata } from "@/components/ui/EntityLogo";
-
-/**
- * Logo data structure
- */
-export interface LogoData {
-  url: string;
-  altText?: string;
-  thumbnailUrl?: string;
-}
-
-/**
- * Banner data structure
- */
-export interface BannerData {
-  url: string;
-  altText?: string;
-  description?: string;
-  position?: 'top' | 'center' | 'bottom';
-}
 
 export interface Club {
   id: string;
@@ -27,7 +7,6 @@ export interface Club {
   location: string;
   contactInfo: string | null;
   openingHours: string | null;
-  logoData?: LogoData | null;
   status: string;
   supportedSports?: SportType[];
   createdAt: string;
@@ -52,7 +31,6 @@ export interface ClubWithCounts extends Club {
   organizationId: string;
   shortDescription?: string | null;
   city?: string | null;
-  bannerData?: BannerData | null;
   metadata?: string | null;
   tags?: string | null;
   isPublic?: boolean;
@@ -158,23 +136,12 @@ export interface ClubDetail {
   socialLinks: string | null;
   contactInfo: string | null;
   openingHours: string | null;
-  logoData?: LogoData | null;
-  bannerData?: BannerData | null;
   metadata: string | null;
   defaultCurrency: string | null;
   timezone: string | null;
   isPublic: boolean;
   status: string;
   tags: string | null;
-  /**
-   * Flexible metadata field for storing additional club configuration.
-   * Common uses include:
-   * - bannerAlignment: 'top' | 'center' | 'bottom' (controls hero image positioning)
-   * - logoTheme: 'light' | 'dark' (for theme-aware logo display)
-   * - secondLogo: string | null (alternate logo URL)
-   * - secondLogoTheme: 'light' | 'dark'
-   * - Any other custom club-specific settings
-   */
   supportedSports?: SportType[];
   createdAt: string;
   updatedAt: string;
@@ -208,8 +175,6 @@ export interface CreateClubPayload {
   isPublic?: boolean;
   tags?: string | null;
   supportedSports?: SportType[];
-  logoData?: LogoData;
-  bannerData?: BannerData;
   gallery?: Array<{
     url: string;
     key: string;
@@ -238,67 +203,21 @@ export interface UpdateClubPayload {
   location?: string;
   contactInfo?: string | null;
   openingHours?: string | null;
-  logoData?: LogoData | null;
-  bannerData?: BannerData | null;
   supportedSports?: SportType[];
-}
-
-/**
- * Club metadata type extending EntityLogoMetadata with banner alignment
- */
-export interface ClubMetadata extends EntityLogoMetadata {
-  /** Banner image vertical alignment */
-  bannerAlignment?: 'top' | 'center' | 'bottom';
 }
 
 /**
  * Helper function to parse club metadata from JSON string
  */
-export function parseClubMetadata(metadataString: string | null | undefined): ClubMetadata | undefined {
+export function parseClubMetadata(metadataString: string | null | undefined): Record<string, unknown> | undefined {
   if (!metadataString) {
     return undefined;
   }
 
   try {
-    return JSON.parse(metadataString) as ClubMetadata;
+    return JSON.parse(metadataString);
   } catch {
     // Invalid JSON
-    return undefined;
-  }
-}
-
-/**
- * Helper function to parse logo data from JSON string
- * 
- * @param logoData - JSON string from database
- * @returns Parsed logo data or undefined if invalid
- */
-export function parseLogoData(logoData: string | null | undefined): LogoData | undefined {
-  if (!logoData) {
-    return undefined;
-  }
-
-  try {
-    return JSON.parse(logoData) as LogoData;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * Helper function to parse banner data from JSON string
- * 
- * @param bannerData - JSON string from database
- * @returns Parsed banner data or undefined if invalid
- */
-export function parseBannerData(bannerData: string | null | undefined): BannerData | undefined {
-  if (!bannerData) {
-    return undefined;
-  }
-
-  try {
-    return JSON.parse(bannerData) as BannerData;
-  } catch {
     return undefined;
   }
 }

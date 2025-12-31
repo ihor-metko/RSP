@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/components/ui";
 import { BaseInfoTab, AddressTab, LogoTab, BannerTab } from "@/components/admin/EntityTabs";
 import type { BaseInfoData, AddressData, LogoData, BannerData } from "@/components/admin/EntityTabs";
-import { parseClubMetadata } from "@/types/club";
 import type { ClubDetail } from "@/types/club";
 import "@/components/admin/EntityTabs/EntityTabs.css";
 
@@ -29,9 +28,6 @@ export function ClubEditor({
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingTabId, setPendingTabId] = useState<string | null>(null);
 
-  // Parse metadata from JSON string
-  const metadata = parseClubMetadata(club.metadata);
-
   const baseInfoData: BaseInfoData = {
     name: club.name,
     description: club.shortDescription || null,
@@ -47,16 +43,16 @@ export function ClubEditor({
   };
 
   const logoData: LogoData = {
-    logoCount: metadata?.secondLogo ? 'two' : 'one',
-    logo: club.logoData?.url ? { url: club.logoData.url, key: "", preview: club.logoData.url } : null,
-    logoTheme: metadata?.logoTheme || 'light',
-    secondLogo: metadata?.secondLogo ? { url: metadata.secondLogo, key: "", preview: metadata.secondLogo } : null,
-    secondLogoTheme: metadata?.secondLogoTheme || 'dark',
+    logoCount: 'one',
+    logo: null,
+    logoTheme: 'light',
+    secondLogo: null,
+    secondLogoTheme: 'dark',
   };
 
   const bannerData: BannerData = {
-    heroImage: club.bannerData?.url ? { url: club.bannerData.url, key: "", preview: club.bannerData.url } : null,
-    bannerAlignment: metadata?.bannerAlignment || 'center',
+    heroImage: null,
+    bannerAlignment: 'center',
   };
 
   const handleTabChange = useCallback(async (newTabId: string) => {
@@ -115,104 +111,15 @@ export function ClubEditor({
     setHasUnsavedChanges(false);
   }, [onUpdate, onRefresh]);
 
-  const handleLogoSave = useCallback(async (payload: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => {
-    // Parse existing metadata
-    let existingMetadata: Record<string, unknown> = {};
-    if (club.metadata) {
-      try {
-        existingMetadata = JSON.parse(club.metadata);
-      } catch {
-        // Invalid JSON, start fresh
-        existingMetadata = {};
-      }
-    }
-
-    // Update metadata with logo settings - send as object, API will stringify
-    await onUpdate("metadata", {
-      metadata: {
-        ...existingMetadata,
-        ...payload.metadata,
-      },
-    });
-
-    // Upload logo if provided
-    if (payload.logo) {
-      const logoFormData = new FormData();
-      logoFormData.append("file", payload.logo);
-      logoFormData.append("type", "logo");
-
-      const logoResponse = await fetch(`/api/images/clubs/${club.id}/upload`, {
-        method: "POST",
-        body: logoFormData,
-      });
-
-      if (!logoResponse.ok) {
-        const errorData = await logoResponse.json();
-        throw new Error(errorData.error || t("clubs.errors.imageUploadFailed"));
-      }
-    }
-
-    // Upload second logo if provided
-    if (payload.secondLogo) {
-      const secondLogoFormData = new FormData();
-      secondLogoFormData.append("file", payload.secondLogo);
-      secondLogoFormData.append("type", "secondLogo");
-
-      const secondLogoResponse = await fetch(`/api/images/clubs/${club.id}/upload`, {
-        method: "POST",
-        body: secondLogoFormData,
-      });
-
-      if (!secondLogoResponse.ok) {
-        const errorData = await secondLogoResponse.json();
-        throw new Error(errorData.error || t("clubs.errors.imageUploadFailed"));
-      }
-    }
-
-    await onRefresh();
+  const handleLogoSave = useCallback(async () => {
+    // Logo save logic removed - placeholder for future implementation
     setHasUnsavedChanges(false);
-  }, [club.id, club.metadata, onUpdate, onRefresh, t]);
+  }, []);
 
-  const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
-    // Parse existing metadata
-    let existingMetadata: Record<string, unknown> = {};
-    if (club.metadata) {
-      try {
-        existingMetadata = JSON.parse(club.metadata);
-      } catch {
-        // Invalid JSON, start fresh
-        existingMetadata = {};
-      }
-    }
-
-    // Update metadata with alignment - send as object, API will stringify
-    await onUpdate("metadata", {
-      metadata: {
-        ...existingMetadata,
-        bannerAlignment: alignment,
-      },
-    });
-
-    // Upload file if provided
-    if (file) {
-      const heroFormData = new FormData();
-      heroFormData.append("file", file);
-      heroFormData.append("type", "heroImage");
-
-      const heroResponse = await fetch(`/api/images/clubs/${club.id}/upload`, {
-        method: "POST",
-        body: heroFormData,
-      });
-
-      if (!heroResponse.ok) {
-        const errorData = await heroResponse.json();
-        throw new Error(errorData.error || t("clubs.errors.imageUploadFailed"));
-      }
-    }
-
-    await onRefresh();
+  const handleBannerSave = useCallback(async () => {
+    // Banner save logic removed - placeholder for future implementation
     setHasUnsavedChanges(false);
-  }, [club.id, club.metadata, onUpdate, onRefresh, t]);
+  }, []);
 
   return (
     <>

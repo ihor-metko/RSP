@@ -13,8 +13,6 @@ interface OrganizationData {
   slug: string;
   description?: string | null;
   address?: string | null;
-  logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
-  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
   metadata?: Record<string, unknown> | null;
 }
 
@@ -38,20 +36,13 @@ export function OrganizationEditor({
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingTabId, setPendingTabId] = useState<string | null>(null);
 
-  // Parse existing data
+  const addressParts = organization.address?.split(", ") || [];
   const metadata = organization.metadata as {
     country?: string;
     street?: string;
     latitude?: number;
     longitude?: number;
-    logoTheme?: 'light' | 'dark';
-    secondLogoTheme?: 'light' | 'dark';
-    logoCount?: 'one' | 'two';
-    secondLogo?: string | null;
-    bannerAlignment?: 'top' | 'center' | 'bottom';
   } | null;
-
-  const addressParts = organization.address?.split(", ") || [];
   const street = metadata?.street || addressParts[0] || "";
   const city = addressParts.length > 1 ? addressParts[1] : "";
   const postalCode = addressParts.length > 2 ? addressParts[2] : "";
@@ -72,16 +63,16 @@ export function OrganizationEditor({
   };
 
   const logoData: LogoData = {
-    logoCount: metadata?.logoCount || 'one',
-    logo: organization.logoData?.url ? { url: organization.logoData.url, key: "", preview: organization.logoData.url } : null,
-    logoTheme: metadata?.logoTheme || 'light',
-    secondLogo: metadata?.secondLogo ? { url: metadata.secondLogo, key: "", preview: metadata.secondLogo } : null,
-    secondLogoTheme: metadata?.secondLogoTheme || 'dark',
+    logoCount: 'one',
+    logo: null,
+    logoTheme: 'light',
+    secondLogo: null,
+    secondLogoTheme: 'dark',
   };
 
   const bannerData: BannerData = {
-    heroImage: organization.bannerData?.url ? { url: organization.bannerData.url, key: "", preview: organization.bannerData.url } : null,
-    bannerAlignment: metadata?.bannerAlignment || 'center',
+    heroImage: null,
+    bannerAlignment: 'center',
   };
 
   const handleTabChange = useCallback(async (newTabId: string) => {
@@ -151,82 +142,15 @@ export function OrganizationEditor({
     setHasUnsavedChanges(false);
   }, [organization.id, organization.metadata, onUpdate, onRefresh]);
 
-  const handleLogoSave = useCallback(async (payload: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => {
-    // Update metadata first
-    await onUpdate(organization.id, {
-      metadata: {
-        ...(organization.metadata as object || {}),
-        ...payload.metadata,
-      },
-    });
-
-    // Upload logo if provided
-    if (payload.logo) {
-      const logoFormData = new FormData();
-      logoFormData.append("file", payload.logo);
-      logoFormData.append("type", "logo");
-
-      const logoResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
-        method: "POST",
-        body: logoFormData,
-      });
-
-      if (!logoResponse.ok) {
-        const errorData = await logoResponse.json();
-        throw new Error(errorData.error || t("organizations.errors.imageUploadFailed"));
-      }
-    }
-
-    // Upload second logo if provided
-    if (payload.secondLogo) {
-      const secondLogoFormData = new FormData();
-      secondLogoFormData.append("file", payload.secondLogo);
-      secondLogoFormData.append("type", "secondLogo");
-
-      const secondLogoResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
-        method: "POST",
-        body: secondLogoFormData,
-      });
-
-      if (!secondLogoResponse.ok) {
-        const errorData = await secondLogoResponse.json();
-        throw new Error(errorData.error || t("organizations.errors.imageUploadFailed"));
-      }
-    }
-
-    await onRefresh();
+  const handleLogoSave = useCallback(async () => {
+    // Logo save logic removed - placeholder for future implementation
     setHasUnsavedChanges(false);
-  }, [organization.id, organization.metadata, onUpdate, onRefresh, t]);
+  }, []);
 
-  const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
-    // Update metadata with alignment first
-    await onUpdate(organization.id, {
-      metadata: {
-        ...(organization.metadata as object || {}),
-        bannerAlignment: alignment,
-      },
-    });
-
-    // Upload file if provided
-    if (file) {
-      const heroFormData = new FormData();
-      heroFormData.append("file", file);
-      heroFormData.append("type", "heroImage");
-
-      const heroResponse = await fetch(`/api/images/organizations/${organization.id}/upload`, {
-        method: "POST",
-        body: heroFormData,
-      });
-
-      if (!heroResponse.ok) {
-        const errorData = await heroResponse.json();
-        throw new Error(errorData.error || t("organizations.errors.imageUploadFailed"));
-      }
-    }
-
-    await onRefresh();
+  const handleBannerSave = useCallback(async () => {
+    // Banner save logic removed - placeholder for future implementation
     setHasUnsavedChanges(false);
-  }, [organization.id, organization.metadata, onUpdate, onRefresh, t]);
+  }, []);
 
   return (
     <>
