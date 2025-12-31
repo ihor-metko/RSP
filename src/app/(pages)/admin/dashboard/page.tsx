@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui";
@@ -9,8 +9,7 @@ import { RegisteredUsersCard } from "@/components/admin/RegisteredUsersCard";
 import DashboardGraphs from "@/components/admin/DashboardGraphs";
 import DashboardShell from "@/components/admin/DashboardShell";
 import { DashboardPlaceholder } from "@/components/ui/skeletons";
-import type { UnifiedDashboardResponse } from "@/app/api/admin/dashboard/route";
-import { fetchUnifiedDashboard } from "@/services/dashboard";
+import { useDashboardStore } from "@/stores/useDashboardStore";
 import "./RootDashboard.css";
 
 /**
@@ -108,61 +107,29 @@ function StatCard({ title, value, icon, colorClass }: StatCardProps) {
 export default function AdminDashboardPage() {
   const t = useTranslations();
   const router = useRouter();
-  const [dashboardData, setDashboardData] = useState<UnifiedDashboardResponse | null>(null);
-  const [error, setError] = useState("");
+  const { data: dashboardData, error, fetchDashboardOnce, refreshDashboard } = useDashboardStore();
 
-  // Refresh dashboard data
-  const refreshDashboard = useCallback(async () => {
-    try {
-      const data = await fetchUnifiedDashboard();
-      if (data) {
-        setDashboardData(data);
+  // Fetch dashboard data once on mount
+  useEffect(() => {
+    fetchDashboardOnce().catch((error) => {
+      // Handle unauthorized errors
+      if (error instanceof Error && error.message === "Unauthorized") {
+        router.push("/auth/sign-in");
       }
+    });
+  }, [fetchDashboardOnce, router]);
+
+  // Refresh dashboard data callback
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refreshDashboard();
     } catch (error) {
       // Handle unauthorized errors
       if (error instanceof Error && error.message === "Unauthorized") {
         router.push("/auth/sign-in");
       }
     }
-  }, [router]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const initializeDashboard = async () => {
-      setError("");
-
-      try {
-        const data = await fetchUnifiedDashboard();
-
-        // Only update state if component is still mounted
-        if (isMounted) {
-          if (!data) {
-            setError(t("unifiedDashboard.failedToLoad"));
-            return;
-          }
-
-          setDashboardData(data);
-        }
-      } catch (error) {
-        // Handle unauthorized errors
-        if (error instanceof Error && error.message === "Unauthorized") {
-          router.push("/auth/sign-in");
-        } else if (isMounted) {
-          setError(t("unifiedDashboard.failedToLoad"));
-        }
-      }
-    };
-
-    initializeDashboard();
-
-    // Cleanup function to prevent state updates on unmounted component
-    return () => {
-      isMounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array - fetch only once on mount, preventing multiple calls
-         // Note: router and t are intentionally excluded to prevent re-fetches
+  }, [refreshDashboard, router]);
 
   // Helper to get dashboard title based on admin type
   const getDashboardTitle = () => {
@@ -288,7 +255,7 @@ export default function AdminDashboardPage() {
             <BookingsOverview
               activeBookings={dashboardData.platformStats.activeBookingsCount}
               pastBookings={dashboardData.platformStats.pastBookingsCount}
-              onRefresh={refreshDashboard}
+              onRefresh={handleRefresh}
               enableRealtime={true}
             />
 
@@ -331,7 +298,7 @@ export default function AdminDashboardPage() {
             <BookingsOverview
               activeBookings={dashboardData.stats.activeBookings}
               pastBookings={dashboardData.stats.pastBookings}
-              onRefresh={refreshDashboard}
+              onRefresh={handleRefresh}
               enableRealtime={true}
             />
 
@@ -366,7 +333,7 @@ export default function AdminDashboardPage() {
             <BookingsOverview
               activeBookings={dashboardData.stats.activeBookings}
               pastBookings={dashboardData.stats.pastBookings}
-              onRefresh={refreshDashboard}
+              onRefresh={handleRefresh}
               enableRealtime={true}
             />
 

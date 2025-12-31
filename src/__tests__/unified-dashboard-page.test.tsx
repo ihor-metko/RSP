@@ -183,15 +183,32 @@ jest.mock("@/components/ui/skeletons", () => ({
   DashboardPlaceholder: () => <div data-testid="dashboard-placeholder">Loading...</div>,
 }));
 
+// Mock the dashboard store
+jest.mock("@/stores/useDashboardStore", () => ({
+  useDashboardStore: jest.fn(),
+}));
+
+import { useDashboardStore as mockUseDashboardStore } from "@/stores/useDashboardStore";
+
 const mockUseRouter = useRouter as jest.Mock;
 
 describe("AdminDashboardPage (Unified)", () => {
   const mockPush = jest.fn();
+  const mockFetchDashboardOnce = jest.fn();
+  const mockRefreshDashboard = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRouter.mockReturnValue({ push: mockPush });
-    global.fetch = jest.fn();
+    
+    // Default store mock - loading state
+    mockUseDashboardStore.mockReturnValue({
+      data: null,
+      loading: true,
+      error: null,
+      fetchDashboardOnce: mockFetchDashboardOnce,
+      refreshDashboard: mockRefreshDashboard,
+    });
   });
 
   afterEach(() => {
@@ -199,32 +216,35 @@ describe("AdminDashboardPage (Unified)", () => {
     jest.clearAllTimers();
   });
 
-  it("should show loading state initially", () => {
-    // Mock fetch to delay so we can see loading state
-    (global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {}));
-
-    render(<AdminDashboardPage />);
-
-    expect(screen.getByTestId("dashboard-placeholder")).toBeInTheDocument();
-  });
-
-  it("should redirect to sign-in on 401 error", async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-      status: 401,
+  it("should show loading state initially", async () => {
+    // Store returns loading state with no data
+    const mockFetch = jest.fn().mockImplementation(() => new Promise(() => {})); // Never resolves
+    
+    mockUseDashboardStore.mockReturnValue({
+      data: null,
+      loading: false,
+      error: null,
+      fetchDashboardOnce: mockFetch,
+      refreshDashboard: mockRefreshDashboard,
     });
 
     render(<AdminDashboardPage />);
 
+    // When data is null and error is null, the placeholder should be shown
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/auth/sign-in");
+      expect(screen.getByTestId("dashboard-placeholder")).toBeInTheDocument();
     });
   });
 
-  it("should redirect to sign-in on 403 error", async () => {
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-      status: 403,
+  it("should redirect to sign-in on unauthorized error", async () => {
+    mockFetchDashboardOnce.mockRejectedValueOnce(new Error("Unauthorized"));
+
+    mockUseDashboardStore.mockReturnValue({
+      data: null,
+      loading: false,
+      error: "Unauthorized",
+      fetchDashboardOnce: mockFetchDashboardOnce,
+      refreshDashboard: mockRefreshDashboard,
     });
 
     render(<AdminDashboardPage />);
@@ -257,9 +277,12 @@ describe("AdminDashboardPage (Unified)", () => {
       },
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockDashboardData,
+    mockUseDashboardStore.mockReturnValue({
+      data: mockDashboardData,
+      loading: false,
+      error: null,
+      fetchDashboardOnce: jest.fn().mockResolvedValue(mockDashboardData),
+      refreshDashboard: mockRefreshDashboard,
     });
 
     render(<AdminDashboardPage />);
@@ -287,9 +310,12 @@ describe("AdminDashboardPage (Unified)", () => {
       },
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockDashboardData,
+    mockUseDashboardStore.mockReturnValue({
+      data: mockDashboardData,
+      loading: false,
+      error: null,
+      fetchDashboardOnce: jest.fn().mockResolvedValue(mockDashboardData),
+      refreshDashboard: mockRefreshDashboard,
     });
 
     render(<AdminDashboardPage />);
@@ -317,9 +343,12 @@ describe("AdminDashboardPage (Unified)", () => {
       },
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockDashboardData,
+    mockUseDashboardStore.mockReturnValue({
+      data: mockDashboardData,
+      loading: false,
+      error: null,
+      fetchDashboardOnce: jest.fn().mockResolvedValue(mockDashboardData),
+      refreshDashboard: mockRefreshDashboard,
     });
 
     render(<AdminDashboardPage />);
@@ -347,9 +376,12 @@ describe("AdminDashboardPage (Unified)", () => {
       },
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockDashboardData,
+    mockUseDashboardStore.mockReturnValue({
+      data: mockDashboardData,
+      loading: false,
+      error: null,
+      fetchDashboardOnce: jest.fn().mockResolvedValue(mockDashboardData),
+      refreshDashboard: mockRefreshDashboard,
     });
 
     render(<AdminDashboardPage />);
