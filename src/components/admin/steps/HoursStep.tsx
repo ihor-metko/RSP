@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback } from "react";
-import { BusinessHoursField } from "@/components/admin/BusinessHoursField.client";
+import { WorkingHoursEditor } from "@/components/admin/WorkingHoursEditor.client";
+import type { SpecialHour } from "@/components/admin/SpecialHoursField.client";
 import type { BusinessHour } from "@/types/admin";
 
-export type { BusinessHour };
+export type { BusinessHour, SpecialHour };
 
 export interface HoursData {
   businessHours: BusinessHour[];
+  specialHours?: SpecialHour[];
 }
 
 interface HoursStepProps {
@@ -30,6 +32,13 @@ export function HoursStep({
     [onChange]
   );
 
+  const handleSpecialHoursChange = useCallback(
+    (hours: SpecialHour[]) => {
+      onChange({ specialHours: hours });
+    },
+    [onChange]
+  );
+
   return (
     <div className="im-step-content">
       {errors.businessHours && (
@@ -37,10 +46,13 @@ export function HoursStep({
           {errors.businessHours}
         </div>
       )}
-      <BusinessHoursField
-        value={data.businessHours}
-        onChange={handleBusinessHoursChange}
+      <WorkingHoursEditor
+        businessHours={data.businessHours}
+        specialHours={data.specialHours || []}
+        onBusinessHoursChange={handleBusinessHoursChange}
+        onSpecialHoursChange={handleSpecialHoursChange}
         disabled={disabled}
+        showSpecialHours={true}
       />
     </div>
   );
