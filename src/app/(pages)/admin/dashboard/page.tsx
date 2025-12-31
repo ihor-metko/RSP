@@ -11,7 +11,6 @@ import DashboardShell from "@/components/admin/DashboardShell";
 import { DashboardPlaceholder } from "@/components/ui/skeletons";
 import type { UnifiedDashboardResponse } from "@/app/api/admin/unified-dashboard/route";
 import { fetchUnifiedDashboard } from "@/services/dashboard";
-import { useAuthGuardOnce } from "@/hooks";
 import "./RootDashboard.css";
 
 /**
@@ -111,11 +110,6 @@ export default function AdminDashboardPage() {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<UnifiedDashboardResponse | null>(null);
   const [error, setError] = useState("");
-  
-  // Use auth guard hook (prevents redirect on page reload)
-  const { isLoading: isAuthLoading } = useAuthGuardOnce({
-    requireAuth: true,
-  });
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -139,9 +133,6 @@ export default function AdminDashboardPage() {
   }, [fetchDashboard]);
 
   useEffect(() => {
-    // Wait for auth to complete
-    if (isAuthLoading) return;
-
     const initializeDashboard = async () => {
       setError("");
 
@@ -156,7 +147,7 @@ export default function AdminDashboardPage() {
     };
 
     initializeDashboard();
-  }, [isAuthLoading, fetchDashboard, t]);
+  }, [fetchDashboard, t]);
 
   // Helper to get dashboard title based on admin type
   const getDashboardTitle = () => {
@@ -187,7 +178,7 @@ export default function AdminDashboardPage() {
   };
 
   // Show skeleton while loading or no data yet
-  const isLoadingState = isAuthLoading || !dashboardData;
+  const isLoadingState = !dashboardData;
 
   if (isLoadingState && !error) {
     return (

@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { IMLink, PageHeader, Select } from "@/components/ui";
 import { AdminClubCard } from "@/components/admin/AdminClubCard";
 import { CardListSkeleton } from "@/components/ui/skeletons";
-import { useListController, useDeferredLoading, useAuthGuardOnce } from "@/hooks";
+import { useListController, useDeferredLoading } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -16,6 +16,7 @@ import {
   QuickPresets,
 } from "@/components/list-controls";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { SPORT_TYPE_OPTIONS, SportType } from "@/constants/sports";
 import "@/components/admin/AdminClubCard.css";
 
@@ -33,11 +34,8 @@ interface ClubFilters extends Record<string, unknown> {
 export default function AdminClubsPage() {
   const t = useTranslations();
 
-  // Use auth guard hook (prevents redirect on page reload)
-  const { isLoading: isAuthLoading, adminStatus } = useAuthGuardOnce({
-    requireAuth: true,
-    requireAdmin: true,
-  });
+  // Get admin status from user store
+  const adminStatus = useUserStore((state) => state.adminStatus);
 
   // Use deferred loading to prevent flicker on fast responses
   const clubs = useAdminClubStore((state) => state.clubs);
@@ -169,7 +167,7 @@ export default function AdminClubsPage() {
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
 
   // Show skeleton loaders instead of blocking spinner
-  const isLoading = isAuthLoading || deferredLoading;
+  const isLoading = deferredLoading;
 
   // Sort options for SortSelect component
   const sortOptions = [

@@ -10,7 +10,8 @@ import type { AdminType } from "@/app/api/me/admin-status/route";
 import { SPORT_TYPE_OPTIONS, type SportType } from "@/constants/sports";
 import type { Club } from "@/types/club";
 import type { Organization } from "@/types/organization";
-import { useListController, useDeferredLoading, useAuthGuardOnce } from "@/hooks";
+import { useListController, useDeferredLoading } from "@/hooks";
+import { useUserStore } from "@/stores/useUserStore";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -68,11 +69,8 @@ export default function AdminCourtsPage() {
   // Use deferred loading to prevent flicker on fast responses
   const deferredLoading = useDeferredLoading(loading);
 
-  // Use auth guard hook (prevents redirect on page reload)
-  const { isLoading: isAuthLoading, adminStatus } = useAuthGuardOnce({
-    requireAuth: true,
-    requireAdmin: true,
-  });
+  // Get admin status from user store
+  const adminStatus = useUserStore((state) => state.adminStatus);
 
   // Use list controller hook for persistent filters
   const controller = useListController<CourtFilters>({
@@ -235,7 +233,7 @@ export default function AdminCourtsPage() {
   };
 
   // Show skeleton during auth or data loading
-  if (isAuthLoading || deferredLoading) {
+  if (deferredLoading) {
     return (
       <main className="rsp-container p-6">
         <PageHeader

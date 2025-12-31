@@ -6,10 +6,11 @@ import { useTranslations } from "next-intl";
 import { PageHeader, Button, type TableColumn, BookingStatusBadge, PaymentStatusBadge } from "@/components/ui";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import { BookingDetailsModal } from "@/components/admin/BookingDetailsModal";
 import { formatDateTime, calculateDuration, getInitials } from "@/utils/bookingFormatters";
-import { useListController, useDeferredLoading, useAuthGuardOnce } from "@/hooks";
+import { useListController, useDeferredLoading } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -48,11 +49,8 @@ export default function AdminBookingsPage() {
   const t = useTranslations();
   const router = useRouter();
 
-  // Use auth guard hook (prevents redirect on page reload)
-  const { isLoading: isAuthLoading, adminStatus } = useAuthGuardOnce({
-    requireAuth: true,
-    requireAdmin: true,
-  });
+  // Get admin status from user store
+  const adminStatus = useUserStore((state) => state.adminStatus);
 
   // Bookings data
   const [bookingsData, setBookingsData] = useState<AdminBookingsListResponse | null>(null);
@@ -216,10 +214,10 @@ export default function AdminBookingsPage() {
     ];
   };
 
-  const isLoadingState = isAuthLoading;
+  const isLoadingState = false;
 
-  // Check if should show content
-  const shouldShowContent = !isAuthLoading && adminStatus?.isAdmin;
+  // Only show content once admin status is available
+  const shouldShowContent = !!adminStatus?.isAdmin;
 
   const handleOpenBookingWizard = async () => {
     // Determine predefined data based on admin context

@@ -11,7 +11,7 @@ import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import type { Organization } from "@/types/organization";
 import { SportType, SPORT_TYPE_OPTIONS } from "@/constants/sports";
-import { useListController, useAuthGuardOnce } from "@/hooks";
+import { useListController } from "@/hooks";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -67,12 +67,6 @@ interface OrganizationFilters extends Record<string, unknown> {
 export default function AdminOrganizationsPage() {
   const t = useTranslations();
   const router = useRouter();
-  
-  // Use auth guard hook (prevents redirect on page reload)
-  const { isLoading: isAuthLoading } = useAuthGuardOnce({
-    requireAuth: true,
-    requireRoot: true,
-  });
 
   // Use Zustand store for organizations with auto-fetch
   const organizations = useOrganizationStore((state) => state.getOrganizationsWithAutoFetch());
@@ -320,14 +314,11 @@ export default function AdminOrganizationsPage() {
 
   // Auth check for error conditions (e.g., session expired)
   useEffect(() => {
-    // Wait for auth to complete
-    if (isAuthLoading) return;
-
     // Check for auth errors if present
     if (storeError && (storeError.includes("401") || storeError.includes("403"))) {
       router.push("/auth/sign-in");
     }
-  }, [isAuthLoading, router, storeError]);
+  }, [router, storeError]);
 
   // Debounced user search
   useEffect(() => {
@@ -660,7 +651,7 @@ export default function AdminOrganizationsPage() {
 
 
   // Combined loading state for consistent loading UI
-  const isLoadingState = isAuthLoading || loading;
+  const isLoadingState = loading;
 
   return (
     <ListControllerProvider controller={controller}>
