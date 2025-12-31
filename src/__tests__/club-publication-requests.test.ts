@@ -81,7 +81,10 @@ describe("Club Publication Request APIs", () => {
         user: { id: "user-123", isRoot: false },
       });
 
-      // Mock requireAnyAdmin to return unauthorized
+      // Mock membership queries to return empty arrays (user is not an admin)
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
+
       const request = new Request(
         "http://localhost:3000/api/admin/clubs/club-123/request-publication",
         { method: "POST" }
@@ -120,6 +123,12 @@ describe("Club Publication Request APIs", () => {
         user: { id: "admin-123", isRoot: false },
       });
 
+      // Mock as organization admin
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([
+        { organizationId: "org-123" }
+      ]);
+      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
+
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(null);
 
       const request = new Request(
@@ -140,6 +149,12 @@ describe("Club Publication Request APIs", () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: false },
       });
+
+      // Mock as organization admin
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([
+        { organizationId: "org-123" }
+      ]);
+      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue({
         id: "club-123",
@@ -166,6 +181,12 @@ describe("Club Publication Request APIs", () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: false },
       });
+
+      // Mock as organization admin
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([
+        { organizationId: "org-123" }
+      ]);
+      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValue([]);
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue({
         id: "club-123",
