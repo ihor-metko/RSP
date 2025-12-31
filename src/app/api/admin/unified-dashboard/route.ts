@@ -10,8 +10,8 @@ export interface DashboardStats {
   activeBookings: number;
   bookingsToday: number;
   pastBookings: number;
-  clubsCount?: number; // Only for org owners
-  courtsCount?: number; // Only for org owners and club admins
+  clubsCount?: number; // Only for organization admins
+  courtsCount?: number; // For organization admins and club admins/owners
 }
 
 /**
