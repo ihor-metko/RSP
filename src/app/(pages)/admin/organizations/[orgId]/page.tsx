@@ -322,7 +322,7 @@ export default function OrganizationDetailPage() {
             <TableSkeleton rows={3} columns={4} showHeader={true} />
           </div>
         ) : (
-          <div className="im-section-card im-org-detail-content--full">
+          <div className="im-org-detail-content--full">
             <AdminManagementSection
               context="organization"
               contextId={orgId}

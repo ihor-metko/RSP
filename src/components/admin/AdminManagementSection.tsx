@@ -144,12 +144,14 @@ export default function AdminManagementSection({
   // Early validation - for club context, we need clubData
   if (context === "club" && !clubData) {
     return (
-      <div className="im-org-admins-section">
-        <div className="im-section-header">
-          <h3 className="im-section-title">{t("clubAdmins.title")}</h3>
-        </div>
-        <div className="im-error-state">
-          {t("common.error")}
+      <div className="im-section-card">
+        <div className="im-org-admins-section">
+          <div className="im-section-header">
+            <h3 className="im-section-title">{t("clubAdmins.title")}</h3>
+          </div>
+          <div className="im-error-state">
+            {t("common.error")}
+          </div>
         </div>
       </div>
     );
@@ -329,13 +331,15 @@ export default function AdminManagementSection({
   // Show loading spinner while loading admins
   if (loading || storeLoading) {
     return (
-      <div className="im-org-admins-section">
-        <div className="im-section-header">
-          <h3 className="im-section-title">{getTitle()}</h3>
-        </div>
-        <div className="im-loading-state">
-          <div className="im-loading-spinner" />
-          <span>{t("common.loading")}</span>
+      <div className="im-section-card">
+        <div className="im-org-admins-section">
+          <div className="im-section-header">
+            <h3 className="im-section-title">{getTitle()}</h3>
+          </div>
+          <div className="im-loading-state">
+            <div className="im-loading-spinner" />
+            <span>{t("common.loading")}</span>
+          </div>
         </div>
       </div>
     );
@@ -343,22 +347,25 @@ export default function AdminManagementSection({
 
   if (error) {
     return (
-      <div className="im-org-admins-section">
-        <div className="im-section-header">
-          <h3 className="im-section-title">{getTitle()}</h3>
+      <div className="im-section-card">
+        <div className="im-org-admins-section">
+          <div className="im-section-header">
+            <h3 className="im-section-title">{getTitle()}</h3>
+          </div>
+          <div className="im-error-state">{error}</div>
         </div>
-        <div className="im-error-state">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="im-org-admins-section">
-      {toast && (
-        <div className={`im-toast im-toast--${toast.type}`}>{toast.message}</div>
-      )}
+    <div className="im-section-card">
+      <div className="im-org-admins-section">
+        {toast && (
+          <div className={`im-toast im-toast--${toast.type}`}>{toast.message}</div>
+        )}
 
-      <div className="im-section-header">
+        <div className="im-section-header">
         <div className="im-section-icon im-section-icon--admins">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -513,6 +520,7 @@ export default function AdminManagementSection({
           userId={selectedAdminUserId}
         />
       )}
+    </div>
     </div>
   );
 }
