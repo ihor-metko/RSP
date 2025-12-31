@@ -139,7 +139,7 @@ export async function POST(
       });
 
       let existingData: Record<string, unknown> = {};
-      const existingField = fieldName === "logoData" ? org?.logoData : org?.bannerData;
+      const existingField = org?.[fieldName as keyof typeof org];
       if (existingField) {
         try {
           existingData = JSON.parse(existingField);
