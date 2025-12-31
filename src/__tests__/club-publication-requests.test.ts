@@ -7,13 +7,22 @@ jest.mock("@/lib/prisma", () => ({
   prisma: {
     club: {
       findUnique: jest.fn(),
+      update: jest.fn(),
     },
     clubPublicationRequest: {
       findFirst: jest.fn(),
+      findUnique: jest.fn(),
       create: jest.fn(),
       findMany: jest.fn(),
       count: jest.fn(),
       update: jest.fn(),
+    },
+    membership: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+    },
+    clubMembership: {
+      findMany: jest.fn(),
     },
     $transaction: jest.fn(),
   },
