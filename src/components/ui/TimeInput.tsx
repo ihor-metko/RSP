@@ -1,13 +1,25 @@
 "use client";
 
-import { forwardRef, useId } from "react";
+import { useState, useRef, useEffect, useId } from "react";
+import { Portal } from "./Portal";
+import { useDropdownPosition } from "@/hooks/useDropdownPosition";
 import "./TimeInput.css";
 
-interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
+// Constants
+const DEFAULT_HOURS = "09";
+const DEFAULT_MINUTES = "00";
+const COMPLETE_TIME_FORMAT_LENGTH = 5; // HH:MM
+const DROPDOWN_CLOSE_DEBOUNCE_MS = 100;
+
+interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange'> {
   /** Label for the input */
   label?: string;
   /** ARIA label */
   "aria-label"?: string;
+  /** Current time value in HH:MM format */
+  value?: string;
+  /** Change handler */
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 /**
@@ -15,6 +27,21 @@ interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  * 
  * Provides a consistent, themed time picker that matches the existing
  * platform styles with im-* classes and dark theme support.
+ * Does not use native browser time pickers for consistent cross-browser UI.
+ * 
+ * Features:
+ * - Custom dropdown with hour (00-23) and minute (00-59) selection
+ * - Keyboard input with auto-formatting (type time in HH:MM format)
+ * - Full dark theme support using im-* CSS variables
+ * - Accessible with proper ARIA attributes
+ * - Portal-based dropdown positioning
+ * 
+ * Keyboard Accessibility:
+ * - Tab to focus the input
+ * - Type time directly in HH:MM format
+ * - Escape key closes the dropdown
+ * - Focus/click input to open dropdown
+ * - Tab through dropdown buttons
  * 
  * @example
  * ```tsx
@@ -25,38 +52,348 @@ interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  * />
  * ```
  */
-export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
-  function TimeInput({ label, className = "", id, "aria-label": ariaLabel, ...props }, ref) {
-    const generatedId = useId();
-    const inputId = id || generatedId;
+export function TimeInput({ 
+  label, 
+  className = "", 
+  id, 
+  "aria-label": ariaLabel,
+  value = "",
+  onChange,
+  disabled = false,
+  ...props 
+}: TimeInputProps) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const [isOpen, setIsOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(value || "");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const justClosedRef = useRef(false);
 
-    return (
-      <div className={`im-time-input-wrapper ${className}`.trim()}>
-        {label && (
-          <label
-            htmlFor={inputId}
-            className="im-time-input-label"
+  // Calculate dropdown position
+  const dropdownPosition = useDropdownPosition({
+    triggerRef: inputContainerRef,
+    isOpen,
+    offset: 8,
+    maxHeight: 300,
+    matchWidth: false,
+  });
+
+  // Sync internal state with external value
+  useEffect(() => {
+    setInputValue(value || "");
+  }, [value]);
+
+  // Parse time value to hours and minutes
+  const parseTime = (timeStr: string): { hours: string; minutes: string } => {
+    if (!timeStr || !timeStr.includes(":")) {
+      return { hours: DEFAULT_HOURS, minutes: DEFAULT_MINUTES };
+    }
+    const [hours, minutes] = timeStr.split(":");
+    return {
+      hours: hours.padStart(2, "0"),
+      minutes: minutes.padStart(2, "0"),
+    };
+  };
+
+  const { hours: currentHours, minutes: currentMinutes } = parseTime(inputValue);
+
+  // Validate and format time input
+  const validateAndFormatTime = (input: string): string | null => {
+    // Allow empty input
+    if (!input) return "";
+
+    // Remove any non-digit and non-colon characters
+    const cleaned = input.replace(/[^\d:]/g, "");
+
+    // Try to parse the input
+    const parts = cleaned.split(":");
+    
+    if (parts.length === 0) return null;
+    
+    let hours = parts[0] || "00";
+    let minutes = parts[1] || "00";
+
+    // Pad hours
+    if (hours.length === 1) hours = "0" + hours;
+    if (hours.length > 2) hours = hours.slice(0, 2);
+    
+    // Pad minutes
+    if (minutes.length === 1) minutes = "0" + minutes;
+    if (minutes.length > 2) minutes = minutes.slice(0, 2);
+
+    // Validate ranges
+    const hoursNum = parseInt(hours, 10);
+    const minutesNum = parseInt(minutes, 10);
+
+    if (isNaN(hoursNum) || hoursNum < 0 || hoursNum > 23) return null;
+    if (isNaN(minutesNum) || minutesNum < 0 || minutesNum > 59) return null;
+
+    return `${hours}:${minutes}`;
+  };
+
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    
+    // Validate on blur or when complete
+    if (newValue.length >= COMPLETE_TIME_FORMAT_LENGTH) {
+      const formatted = validateAndFormatTime(newValue);
+      if (formatted !== null) {
+        setInputValue(formatted);
+        onChange?.({ ...e, target: { ...e.target, value: formatted } });
+      }
+    }
+  };
+
+  // Handle input blur
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const relatedTarget = e.relatedTarget as Node | null;
+    if (containerRef.current && relatedTarget && containerRef.current.contains(relatedTarget)) {
+      return;
+    }
+    
+    // Format the value on blur
+    const formatted = validateAndFormatTime(inputValue);
+    if (formatted !== null) {
+      setInputValue(formatted);
+      const syntheticEvent = {
+        ...e,
+        target: { ...e.target, value: formatted, name: e.target.name }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onChange?.(syntheticEvent);
+    }
+    
+    setIsOpen(false);
+  };
+
+  // Handle dropdown selection
+  const handleTimeSelect = (hours: string, minutes: string) => {
+    const newValue = `${hours}:${minutes}`;
+    setInputValue(newValue);
+    
+    // Create synthetic event
+    const syntheticEvent = {
+      target: { value: newValue, name: inputRef.current?.name || "" },
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    onChange?.(syntheticEvent);
+    
+    justClosedRef.current = true;
+    setIsOpen(false);
+    setTimeout(() => {
+      justClosedRef.current = false;
+    }, DROPDOWN_CLOSE_DEBOUNCE_MS);
+    inputRef.current?.focus();
+  };
+
+  // Handle input focus
+  const handleInputFocus = () => {
+    if (justClosedRef.current || disabled) return;
+    setIsOpen(true);
+  };
+
+  // Handle icon click
+  const handleIconClick = () => {
+    if (disabled) return;
+    setIsOpen(!isOpen);
+    inputRef.current?.focus();
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const isOutsideContainer = containerRef.current && !containerRef.current.contains(target);
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(target);
+      
+      if (isOutsideContainer && isOutsideDropdown) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen]);
+
+  // Handle escape key
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isOpen) {
+        setIsOpen(false);
+        inputRef.current?.focus();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
+    }
+  }, [isOpen]);
+
+  return (
+    <div className={`im-time-input-wrapper ${className}`.trim()} ref={containerRef}>
+      {label && (
+        <label
+          htmlFor={inputId}
+          className="im-time-input-label"
+        >
+          {label}
+        </label>
+      )}
+      <div ref={inputContainerRef} className="im-time-input-container">
+        <input
+          ref={inputRef}
+          id={inputId}
+          type="text"
+          className="im-time-input"
+          value={inputValue}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          placeholder="HH:MM"
+          disabled={disabled}
+          aria-label={ariaLabel || label}
+          aria-haspopup="dialog"
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-controls={isOpen ? `${inputId}-timepicker` : undefined}
+          {...props}
+        />
+        <button
+          type="button"
+          className="im-time-input-icon"
+          onClick={handleIconClick}
+          aria-label="Open time picker"
+          tabIndex={-1}
+          disabled={disabled}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </button>
+      </div>
+      
+      {isOpen && dropdownPosition && (
+        <Portal>
+          <div
+            ref={dropdownRef}
+            id={`${inputId}-timepicker`}
+            className="im-time-picker-dropdown"
+            style={{
+              position: 'fixed',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 9999,
+            }}
           >
-            {label}
-          </label>
-        )}
-        <div className="im-time-input-container">
-          <input
-            ref={ref}
-            id={inputId}
-            type="time"
-            className="im-time-input"
-            aria-label={ariaLabel || label}
-            {...props}
-          />
-          <span className="im-time-input-icon" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </span>
+            <TimePickerDropdown
+              currentHours={currentHours}
+              currentMinutes={currentMinutes}
+              onSelect={handleTimeSelect}
+            />
+          </div>
+        </Portal>
+      )}
+    </div>
+  );
+}
+
+interface TimePickerDropdownProps {
+  currentHours: string;
+  currentMinutes: string;
+  onSelect: (hours: string, minutes: string) => void;
+}
+
+// Helper function to scroll selected option into view
+function scrollToSelectedOption(ref: React.RefObject<HTMLDivElement>) {
+  if (ref.current) {
+    const selectedElement = ref.current.querySelector('.im-time-option-selected') as HTMLElement;
+    if (selectedElement) {
+      selectedElement.scrollIntoView({ block: 'center' });
+    }
+  }
+}
+
+function TimePickerDropdown({ currentHours, currentMinutes, onSelect }: TimePickerDropdownProps) {
+  const [selectedHours, setSelectedHours] = useState(currentHours);
+  const [selectedMinutes, setSelectedMinutes] = useState(currentMinutes);
+  const hoursRef = useRef<HTMLDivElement>(null);
+  const minutesRef = useRef<HTMLDivElement>(null);
+
+  // Generate hours and minutes options
+  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, "0"));
+  const minutes = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, "0"));
+
+  // Scroll to selected values on mount
+  useEffect(() => {
+    scrollToSelectedOption(hoursRef);
+    scrollToSelectedOption(minutesRef);
+  }, []);
+
+  const handleHourClick = (hour: string) => {
+    setSelectedHours(hour);
+  };
+
+  const handleMinuteClick = (minute: string) => {
+    setSelectedMinutes(minute);
+  };
+
+  const handleConfirm = () => {
+    onSelect(selectedHours, selectedMinutes);
+  };
+
+  return (
+    <div className="im-time-picker">
+      <div className="im-time-picker-header">Select Time</div>
+      <div className="im-time-picker-body">
+        <div className="im-time-picker-column" ref={hoursRef}>
+          <div className="im-time-picker-column-header">Hours</div>
+          <div className="im-time-picker-options">
+            {hours.map((hour) => (
+              <button
+                key={hour}
+                type="button"
+                className={`im-time-option ${selectedHours === hour ? 'im-time-option-selected' : ''}`}
+                onClick={() => handleHourClick(hour)}
+              >
+                {hour}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="im-time-picker-separator">:</div>
+        <div className="im-time-picker-column" ref={minutesRef}>
+          <div className="im-time-picker-column-header">Minutes</div>
+          <div className="im-time-picker-options">
+            {minutes.map((minute) => (
+              <button
+                key={minute}
+                type="button"
+                className={`im-time-option ${selectedMinutes === minute ? 'im-time-option-selected' : ''}`}
+                onClick={() => handleMinuteClick(minute)}
+              >
+                {minute}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-    );
-  }
-);
+      <div className="im-time-picker-footer">
+        <button
+          type="button"
+          className="im-time-picker-confirm"
+          onClick={handleConfirm}
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  );
+}
