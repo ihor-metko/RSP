@@ -92,18 +92,18 @@ export default function DashboardGraphs({
   minPointsToRender = DEFAULT_MIN_POINTS_TO_RENDER,
 }: DashboardGraphsProps) {
   const t = useTranslations();
-  const [data, setData] = useState<DashboardGraphsResponse | null>(initialData || null);
+  const [data, setData] = useState<DashboardGraphsResponse | null>(initialData ?? null);
   const [loading, setLoading] = useState(!initialData);
   const [error, setError] = useState("");
   const [timeRange, setTimeRange] = useState<TimeRange>("week");
 
-  // Set initial data when it becomes available
+  // Set initial data when it becomes available (only runs once when initialData is provided)
   useEffect(() => {
-    if (initialData && !data) {
+    if (initialData) {
       setData(initialData);
       setLoading(false);
     }
-  }, [initialData, data]);
+  }, [initialData]);
 
   const fetchGraphData = useCallback(async (range: TimeRange) => {
     try {
