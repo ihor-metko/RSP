@@ -2,15 +2,17 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Modal, IMLink } from "@/components/ui";
+import { Button, Modal, IMLink, Tooltip } from "@/components/ui";
 import type { ClubDetail, ClubCourt } from "@/types/club";
 import "./ClubCourtsQuickList.css";
 
 interface ClubCourtsQuickListProps {
   club: ClubDetail;
+  disabled?: boolean;
+  disabledTooltip?: string;
 }
 
-export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
+export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }: ClubCourtsQuickListProps) {
   const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingCourt, setDeletingCourt] = useState<ClubCourt | null>(null);
@@ -57,13 +59,19 @@ export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Courts</h2>
         <div className="im-courts-quick-actions">
-          <Button
-            variant="outline"
-            onClick={handleAddCourtClick}
-            className="im-section-edit-btn"
+          <Tooltip
+            content={disabled && disabledTooltip ? disabledTooltip : ""}
+            position="bottom"
           >
-            + Add Court
-          </Button>
+            <Button
+              variant="outline"
+              onClick={handleAddCourtClick}
+              className="im-section-edit-btn"
+              disabled={disabled}
+            >
+              + Add Court
+            </Button>
+          </Tooltip>
           <IMLink
             href={`/admin/courts?clubId=${club.id}`}
             className="im-courts-manage-link"
@@ -94,19 +102,31 @@ export function ClubCourtsQuickList({ club }: ClubCourtsQuickListProps) {
                   </span>
                 </div>
                 <div className="im-courts-quick-item-actions">
-                  <IMLink
-                    href={`/admin/courts/${court.id}/price-rules`}
-                    className="im-courts-quick-btn"
+                  <Tooltip
+                    content={disabled && disabledTooltip ? disabledTooltip : ""}
+                    position="bottom"
                   >
-                    Pricing
-                  </IMLink>
-                  <Button
-                    variant="outline"
-                    onClick={() => openDeleteModal(court)}
-                    className="im-courts-quick-delete-btn"
+                    <IMLink
+                      href={disabled ? "#" : `/admin/courts/${court.id}/price-rules`}
+                      className="im-courts-quick-btn"
+                      style={disabled ? { opacity: 0.5, pointerEvents: 'none' } : undefined}
+                    >
+                      Pricing
+                    </IMLink>
+                  </Tooltip>
+                  <Tooltip
+                    content={disabled && disabledTooltip ? disabledTooltip : ""}
+                    position="bottom"
                   >
-                    Delete
-                  </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => openDeleteModal(court)}
+                      className="im-courts-quick-delete-btn"
+                      disabled={disabled}
+                    >
+                      Delete
+                    </Button>
+                  </Tooltip>
                 </div>
               </div>
             ))}

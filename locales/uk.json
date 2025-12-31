@@ -418,7 +418,8 @@
     "failedToSaveChanges": "Не вдалося зберегти зміни",
     "failedToDeleteClub": "Не вдалося видалити клуб",
     "clubPublishedSuccess": "Клуб успішно опубліковано",
-    "clubUnpublishedSuccess": "Клуб успішно знято з публікації"
+    "clubUnpublishedSuccess": "Клуб успішно знято з публікації",
+    "onlyClubAdminCanEdit": "Тільки власник клубу або адміністратор клубу може виконати цю дію"
   },
   "admin": {
     "club": "Клуб",

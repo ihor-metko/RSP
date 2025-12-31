@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import type { ClubDetail } from "@/types/club";
 import "./ClubContactsView.css";
@@ -18,9 +18,11 @@ interface ClubContactsViewProps {
     email?: string | null;
     website?: string | null;
   }) => Promise<unknown>;
+  disabled?: boolean;
+  disabledTooltip?: string;
 }
 
-export function ClubContactsView({ club, onUpdate }: ClubContactsViewProps) {
+export function ClubContactsView({ club, onUpdate, disabled = false, disabledTooltip }: ClubContactsViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -115,13 +117,19 @@ export function ClubContactsView({ club, onUpdate }: ClubContactsViewProps) {
     <>
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Contact Information</h2>
-        <Button
-          variant="outline"
-          onClick={handleEdit}
-          className="im-section-edit-btn"
+        <Tooltip
+          content={disabled && disabledTooltip ? disabledTooltip : ""}
+          position="bottom"
         >
-          Edit
-        </Button>
+          <Button
+            variant="outline"
+            onClick={handleEdit}
+            className="im-section-edit-btn"
+            disabled={disabled}
+          >
+            Edit
+          </Button>
+        </Tooltip>
       </div>
 
       <div className="im-section-view">

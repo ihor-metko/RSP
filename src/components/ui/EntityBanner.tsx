@@ -18,6 +18,7 @@ import { useTranslations } from "next-intl";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { EntityLogo } from "./EntityLogo";
 import type { EntityLogoMetadata } from "./EntityLogo";
+import { Tooltip } from "./Tooltip";
 
 /**
  * Location pin icon - reusable SVG component
@@ -126,6 +127,17 @@ export interface EntityBannerProps {
   onEdit?: () => void;
 
   /**
+   * Whether the edit button should be disabled (optional)
+   * When true, the edit button will be shown but disabled with a tooltip
+   */
+  editDisabled?: boolean;
+
+  /**
+   * Tooltip message to show when edit button is disabled (optional)
+   */
+  editDisabledTooltip?: string;
+
+  /**
    * Hide admin features (status badge, publish/unpublish button, edit button)
    * When true, the component will only show basic entity information
    * Use this for player/public views where admin controls shouldn't be visible
@@ -155,6 +167,8 @@ export function EntityBanner({
   className = "",
   actions,
   onEdit,
+  editDisabled = false,
+  editDisabledTooltip,
   hideAdminFeatures = false,
 }: EntityBannerProps) {
   // Translations
@@ -240,17 +254,24 @@ export function EntityBanner({
           </div>
         </div>
         {onEdit && !hideAdminFeatures && (
-          <button
-            onClick={onEdit}
-            className="rsp-entity-banner-edit-btn"
-            aria-label={t('editDetails', { name: title })}
+          <Tooltip
+            content={editDisabled && editDisabledTooltip ? editDisabledTooltip : ""}
+            position="bottom"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-            {t('edit')}
-          </button>
+            <button
+              onClick={editDisabled ? undefined : onEdit}
+              className="rsp-entity-banner-edit-btn"
+              aria-label={t('editDetails', { name: title })}
+              disabled={editDisabled}
+              style={editDisabled ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              {t('edit')}
+            </button>
+          </Tooltip>
         )}
       </div>
     </section>

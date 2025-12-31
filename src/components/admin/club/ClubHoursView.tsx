@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Button } from "@/components/ui";
+import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { WorkingHoursEditor, validateWorkingHours } from "../WorkingHoursEditor.client";
 import type { SpecialHour } from "../SpecialHoursField.client";
@@ -16,6 +16,8 @@ interface ClubHoursViewProps {
     businessHours: BusinessHour[];
     specialHours: SpecialHour[];
   }) => Promise<unknown>;
+  disabled?: boolean;
+  disabledTooltip?: string;
 }
 
 function formatTime(time: string | null): string {
@@ -61,7 +63,7 @@ function formatSpecialHours(special: ClubSpecialHours[]): SpecialHour[] {
   }));
 }
 
-export function ClubHoursView({ club, onUpdate }: ClubHoursViewProps) {
+export function ClubHoursView({ club, onUpdate, disabled = false, disabledTooltip }: ClubHoursViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -108,13 +110,19 @@ export function ClubHoursView({ club, onUpdate }: ClubHoursViewProps) {
     <>
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Business Hours</h2>
-        <Button
-          variant="outline"
-          onClick={handleEdit}
-          className="im-section-edit-btn"
+        <Tooltip
+          content={disabled && disabledTooltip ? disabledTooltip : ""}
+          position="bottom"
         >
-          Edit
-        </Button>
+          <Button
+            variant="outline"
+            onClick={handleEdit}
+            className="im-section-edit-btn"
+            disabled={disabled}
+          >
+            Edit
+          </Button>
+        </Tooltip>
       </div>
 
       <div className="im-section-view">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { Button } from "@/components/ui";
+import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import type { ClubDetail } from "@/types/club";
@@ -24,9 +24,11 @@ interface ClubGalleryViewProps {
     logoData: { url: string } | null;
     gallery: GalleryImage[];
   }) => Promise<unknown>;
+  disabled?: boolean;
+  disabledTooltip?: string;
 }
 
-export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
+export function ClubGalleryView({ club, onUpdate, disabled = false, disabledTooltip }: ClubGalleryViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -224,13 +226,19 @@ export function ClubGalleryView({ club, onUpdate }: ClubGalleryViewProps) {
     <>
       <div className="im-section-view-header">
         <h2 className="im-club-view-section-title">Gallery</h2>
-        <Button
-          variant="outline"
-          onClick={handleEdit}
-          className="im-section-edit-btn"
+        <Tooltip
+          content={disabled && disabledTooltip ? disabledTooltip : ""}
+          position="bottom"
         >
-          Edit
-        </Button>
+          <Button
+            variant="outline"
+            onClick={handleEdit}
+            className="im-section-edit-btn"
+            disabled={disabled}
+          >
+            Edit
+          </Button>
+        </Tooltip>
       </div>
 
       <div className="im-section-view">

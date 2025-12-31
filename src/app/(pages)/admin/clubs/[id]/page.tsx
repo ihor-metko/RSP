@@ -16,6 +16,7 @@ import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimel
 import { GalleryModal } from "@/components/GalleryModal";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useClubPageData } from "@/hooks/useClubPageData";
+import { useCanEditClub } from "@/hooks/useCanEditClub";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { formatPrice } from "@/utils/price";
 import { parseTags, getPriceRange, getCourtCounts } from "@/utils/club";
@@ -75,6 +76,10 @@ export default function AdminClubDetailPage({
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
+
+  // Check if user can edit this club (Club Owner or Club Admin only)
+  const canEdit = useCanEditClub(clubId);
+  const editDisabledTooltip = t("clubDetail.onlyClubAdminCanEdit");
 
   // Unwrap params early to enable immediate loading state
   useEffect(() => {
@@ -315,6 +320,8 @@ export default function AdminClubDetailPage({
         logoAlt={`${club.name} logo`}
         isPublished={club.isPublic}
         onEdit={handleOpenDetailsEdit}
+        editDisabled={!canEdit}
+        editDisabledTooltip={editDisabledTooltip}
       />
 
       {/* Main Content */}
@@ -345,7 +352,11 @@ export default function AdminClubDetailPage({
           <div className="im-admin-club-info-column">
             {/* Courts Summary with Edit */}
             <Card className="im-admin-club-info-card">
-              <ClubCourtsQuickList club={club} />
+              <ClubCourtsQuickList 
+                club={club} 
+                disabled={!canEdit}
+                disabledTooltip={editDisabledTooltip}
+              />
 
               {/* Court type badges */}
               <div className="im-admin-club-courts-summary">
@@ -420,6 +431,8 @@ export default function AdminClubDetailPage({
               <ClubContactsView
                 club={club}
                 onUpdate={(payload) => handleSectionUpdate("contacts", payload)}
+                disabled={!canEdit}
+                disabledTooltip={editDisabledTooltip}
               />
             </Card>
 
@@ -428,6 +441,8 @@ export default function AdminClubDetailPage({
               <ClubHoursView
                 club={club}
                 onUpdate={(payload) => handleSectionUpdate("hours", payload)}
+                disabled={!canEdit}
+                disabledTooltip={editDisabledTooltip}
               />
             </Card>
           </div>
@@ -439,6 +454,8 @@ export default function AdminClubDetailPage({
             <ClubGalleryView
               club={club}
               onUpdate={(payload) => handleSectionUpdate("gallery", payload)}
+              disabled={!canEdit}
+              disabledTooltip={editDisabledTooltip}
             />
           </Card>
 

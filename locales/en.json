@@ -412,7 +412,8 @@
     "failedToSaveChanges": "Failed to save changes",
     "failedToDeleteClub": "Failed to delete club",
     "clubPublishedSuccess": "Club published successfully",
-    "clubUnpublishedSuccess": "Club unpublished successfully"
+    "clubUnpublishedSuccess": "Club unpublished successfully",
+    "onlyClubAdminCanEdit": "Only Club Owner or Club Admin can perform this action"
   },
   "admin": {
     "club": "Club",
