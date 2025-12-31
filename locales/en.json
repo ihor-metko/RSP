@@ -2044,6 +2044,8 @@
     "noClubs": "No clubs yet. Create your first club.",
     "createNewClub": "Create New Club",
     "createFirstClub": "Create First Club",
+    "clubLimitReached": "Organization has reached the maximum limit of {maxClubs} clubs",
+    "clubLimitReachedMessage": "This organization has reached its club limit ({current}/{max}). Please contact support to upgrade.",
     "courts": "courts",
     "viewAllClubs": "View All Clubs",
     "admins": "Administrators",

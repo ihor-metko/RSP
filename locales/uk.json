@@ -2006,6 +2006,8 @@
     "unpublishSuccess": "Організацію успішно знято з публікації",
     "createNewClub": "Створити новий клуб",
     "createFirstClub": "Створити перший клуб",
+    "clubLimitReached": "Організація досягла максимального ліміту з {maxClubs} клубів",
+    "clubLimitReachedMessage": "Ця організація досягла свого ліміту клубів ({current}/{max}). Будь ласка, зверніться до підтримки для оновлення.",
     "clubStatistics": "Статистика клубів",
     "clubStatisticsDescription": "Показники завантаженості та ефективності всіх клубів",
     "currentOccupancy": "Поточна завантаженість",
