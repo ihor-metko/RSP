@@ -32,6 +32,10 @@ function determineUserRole(
     return 'ORGANIZATION_ADMIN';
   }
   
+  if (clubMemberships.some(m => m.role === ClubMembershipRole.CLUB_OWNER)) {
+    return 'CLUB_OWNER';
+  }
+  
   if (clubMemberships.some(m => m.role === ClubMembershipRole.CLUB_ADMIN)) {
     return 'CLUB_ADMIN';
   }

@@ -44,11 +44,13 @@ export async function GET(
 
     const clubIds = clubs.map((c) => c.id);
 
-    // Get all club admins for clubs in this organization
+    // Get all club admins and owners for clubs in this organization
     const clubMemberships = await prisma.clubMembership.findMany({
       where: {
         clubId: { in: clubIds },
-        role: ClubMembershipRole.CLUB_ADMIN,
+        role: {
+          in: [ClubMembershipRole.CLUB_ADMIN, ClubMembershipRole.CLUB_OWNER],
+        },
       },
       include: {
         user: {
@@ -76,6 +78,7 @@ export async function GET(
       userEmail: m.user.email,
       clubId: m.club.id,
       clubName: m.club.name,
+      role: m.role,
       createdAt: m.createdAt,
     }));
 
