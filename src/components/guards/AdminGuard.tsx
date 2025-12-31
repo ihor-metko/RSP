@@ -29,7 +29,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const isHydrated = useUserStore((state) => state.isHydrated);
   const sessionStatus = useUserStore((state) => state.sessionStatus);
-  const adminStatus = useUserStore((state) => state.adminStatus);
+  const isAdmin = useUserStore((state) => state.adminStatus?.isAdmin ?? false);
   const isLoading = useUserStore((state) => state.isLoading);
 
   useEffect(() => {
@@ -47,11 +47,11 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
 
     // Redirect to sign-in if user is not an admin
     // (Non-admin users should not have access to any admin routes)
-    if (!adminStatus?.isAdmin) {
+    if (!isAdmin) {
       router.replace("/auth/sign-in");
       return;
     }
-  }, [isHydrated, isLoading, sessionStatus, adminStatus, router]);
+  }, [isHydrated, isLoading, sessionStatus, isAdmin, router]);
 
   // Don't render anything until hydration completes
   if (!isHydrated) {
@@ -69,7 +69,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   }
 
   // Don't render anything if not an admin
-  if (!adminStatus?.isAdmin) {
+  if (!isAdmin) {
     return null;
   }
 

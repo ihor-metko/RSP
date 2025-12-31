@@ -214,9 +214,7 @@ export default function AdminBookingsPage() {
     ];
   };
 
-  const isLoadingState = false;
-
-  // Only show content once admin status is available
+  // AdminGuard handles all loading states at layout level
   const shouldShowContent = !!adminStatus?.isAdmin;
 
   const handleOpenBookingWizard = async () => {
@@ -360,11 +358,8 @@ export default function AdminBookingsPage() {
           description={t("adminBookings.subtitle")}
         />
 
-        {isLoadingState ? (
-          <section className="rsp-content">
-            <TableSkeleton rows={20} columns={7} showHeader />
-          </section>
-        ) : !shouldShowContent ? null : (
+        {/* AdminGuard handles loading state, show content if admin */}
+        {!shouldShowContent ? null : (
           <>
         {/* List Controls Toolbar with consolidated filters */}
         <ListToolbar
