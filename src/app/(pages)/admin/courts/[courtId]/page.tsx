@@ -190,6 +190,37 @@ export default function CourtDetailPage({
     setIsToggleActiveModalOpen(true);
   }, []);
 
+  // Prepare DangerZone actions (memoized to prevent unnecessary re-renders)
+  // NOTE: Must be called before any early returns to follow Rules of Hooks
+  const dangerActions: DangerAction[] = useMemo(() => {
+    if (!court || !canManageCourt) return [];
+    
+    return [
+      {
+        id: 'toggleActive',
+        title: court.isActive ? t("dangerZone.deactivateCourt") : t("dangerZone.activateCourt"),
+        description: court.isActive
+          ? t("dangerZone.deactivateCourtDescription")
+          : t("dangerZone.activateCourtDescription"),
+        buttonLabel: court.isActive ? t("dangerZone.deactivateCourt") : t("dangerZone.activateCourt"),
+        onAction: handleOpenToggleActiveModal,
+        isProcessing: isTogglingActive,
+        variant: court.isActive ? 'danger' : 'warning',
+        show: canManageCourt,
+      },
+      {
+        id: 'delete',
+        title: t("dangerZone.deleteCourt"),
+        description: t("dangerZone.deleteCourtDescription"),
+        buttonLabel: t("common.delete"),
+        onAction: () => setIsDeleteModalOpen(true),
+        isProcessing: submitting,
+        variant: 'danger',
+        show: canManageCourt,
+      },
+    ];
+  }, [court, canManageCourt, isTogglingActive, submitting, t, handleOpenToggleActiveModal]);
+
   // Loading skeleton
   if (loadingCourts || isLoading) {
     return (
@@ -227,32 +258,6 @@ export default function CourtDetailPage({
   if (!court) {
     return null;
   }
-
-  // Prepare DangerZone actions (memoized to prevent unnecessary re-renders)
-  const dangerActions: DangerAction[] = useMemo(() => [
-    {
-      id: 'toggleActive',
-      title: court.isActive ? t("dangerZone.deactivateCourt") : t("dangerZone.activateCourt"),
-      description: court.isActive
-        ? t("dangerZone.deactivateCourtDescription")
-        : t("dangerZone.activateCourtDescription"),
-      buttonLabel: court.isActive ? t("dangerZone.deactivateCourt") : t("dangerZone.activateCourt"),
-      onAction: handleOpenToggleActiveModal,
-      isProcessing: isTogglingActive,
-      variant: court.isActive ? 'danger' : 'warning',
-      show: canManageCourt,
-    },
-    {
-      id: 'delete',
-      title: t("dangerZone.deleteCourt"),
-      description: t("dangerZone.deleteCourtDescription"),
-      buttonLabel: t("common.delete"),
-      onAction: () => setIsDeleteModalOpen(true),
-      isProcessing: submitting,
-      variant: 'danger',
-      show: canManageCourt,
-    },
-  ], [court.isActive, canManageCourt, isTogglingActive, submitting, t, handleOpenToggleActiveModal]);
 
   return (
     <main className="im-court-detail-page">
