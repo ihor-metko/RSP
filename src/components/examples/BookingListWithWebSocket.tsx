@@ -154,8 +154,8 @@ export function BookingListWithWebSocket({
                 <div style={{ fontSize: '14px', color: '#6b7280' }}>
                   <div>User: {booking.userName}</div>
                   <div>
-                    Time: {new Date(booking.start).toLocaleTimeString()} -{' '}
-                    {new Date(booking.end).toLocaleTimeString()}
+                    Time: {new Date(booking.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })} -{' '}
+                    {new Date(booking.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}
                   </div>
                   <div>Price: ${booking.price}</div>
                 </div>

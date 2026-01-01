@@ -248,7 +248,9 @@ export default function UserDetailPage() {
 
   const formatDateTime = (dateString: string | Date | null | undefined) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleString();
+    return new Date(dateString).toLocaleString(undefined, {
+      hour12: false,
+    });
   };
 
   const getRoleLabel = (role: string) => {

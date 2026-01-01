@@ -96,7 +96,7 @@ function formatDate(dateStr: string, locale: string): string {
 // Format time for display
 function formatTime(isoString: string): string {
   const date = new Date(isoString);
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
 // Format date for display in summary

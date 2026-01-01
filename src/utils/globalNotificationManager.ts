@@ -266,7 +266,8 @@ export function transformBookingCreated(event: BookingCreatedEvent): AdminNotifi
     sessionDate: booking.start,
     sessionTime: new Date(booking.start).toLocaleTimeString('en-US', { 
       hour: '2-digit', 
-      minute: '2-digit' 
+      minute: '2-digit',
+      hour12: false
     }),
     courtInfo: courtInfo,
     summary: `New booking created by ${playerInfo} for ${courtInfo}`,
@@ -299,7 +300,8 @@ export function transformBookingUpdated(event: BookingUpdatedEvent): AdminNotifi
     sessionDate: booking.start,
     sessionTime: new Date(booking.start).toLocaleTimeString('en-US', { 
       hour: '2-digit', 
-      minute: '2-digit' 
+      minute: '2-digit',
+      hour12: false
     }),
     courtInfo: courtInfo,
     summary: `Booking updated${statusChange} for ${courtInfo}`,

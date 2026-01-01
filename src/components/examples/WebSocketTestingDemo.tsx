@@ -53,7 +53,7 @@ export function WebSocketTestingDemo({
   const fetchBookingsForDay = useBookingStore((state) => state.fetchBookingsForDay);
 
   const addLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
+    const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
     setLogs((prev) => [`[${timestamp}] ${message}`, ...prev.slice(0, 49)]); // Keep last 50 logs
   };
 
@@ -162,8 +162,8 @@ export function WebSocketTestingDemo({
                     </div>
                   </div>
                   <div className="text-sm text-gray-500">
-                    {new Date(booking.start).toLocaleTimeString()} -{' '}
-                    {new Date(booking.end).toLocaleTimeString()}
+                    {new Date(booking.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })} -{' '}
+                    {new Date(booking.end).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}
                   </div>
                 </div>
               ))

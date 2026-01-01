@@ -369,7 +369,9 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
               <div className="tm-details-row">
                 <span className="tm-details-label">Received</span>
                 <span className="tm-details-value">
-                  {new Date(selectedNotification.createdAt).toLocaleString()}
+                  {new Date(selectedNotification.createdAt).toLocaleString(undefined, {
+                    hour12: false,
+                  })}
                 </span>
               </div>
             </div>

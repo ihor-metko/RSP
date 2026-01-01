@@ -270,7 +270,7 @@ export function BookingModal({
   const formatSlot = (slot: Slot) => {
     const start = new Date(slot.startTime);
     const end = new Date(slot.endTime);
-    const timeStr = `${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    const timeStr = `${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })} - ${end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}`;
     
     if (slot.priceCents !== undefined) {
       return `${timeStr} · ${formatPrice(slot.priceCents)}`;

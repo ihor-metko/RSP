@@ -507,7 +507,7 @@ export default function AdminClubDetailPage({
                             {startDate.toLocaleDateString()}
                           </span>
                           <span className="im-booking-preview-hours">
-                            {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })} - {endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
                           </span>
                         </div>
                         <span className={`im-status-badge im-status-badge--${booking.status.toLowerCase()}`}>

@@ -468,7 +468,9 @@ export function NotificationsDropdown({ maxDropdownItems = 10 }: NotificationsDr
               <div className="im-details-row">
                 <span className="im-details-label">Received</span>
                 <span className="im-details-value">
-                  {new Date(selectedNotification.createdAt).toLocaleString()}
+                  {new Date(selectedNotification.createdAt).toLocaleString(undefined, {
+                    hour12: false,
+                  })}
                 </span>
               </div>
             </div>
