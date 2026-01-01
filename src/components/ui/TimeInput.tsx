@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useId } from "react";
+import { useState, useRef, useEffect, useId, useCallback } from "react";
 import { Portal } from "./Portal";
 import { useDropdownPosition } from "@/hooks/useDropdownPosition";
 import "./TimeInput.css";
@@ -32,6 +32,7 @@ interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  * Features:
  * - Custom dropdown with hour (00-23) and minute (00-59) selection
  * - Keyboard input with auto-formatting (type time in HH:MM format)
+ * - Up/Down arrow keys to increment/decrement hours or minutes based on cursor position
  * - Full dark theme support using im-* CSS variables
  * - Accessible with proper ARIA attributes
  * - Portal-based dropdown positioning
@@ -39,9 +40,11 @@ interface TimeInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement
  * Keyboard Accessibility:
  * - Tab to focus the input
  * - Type time directly in HH:MM format
+ * - Up/Down arrows increment/decrement hours (when cursor in hours section) or minutes (when cursor in minutes section)
  * - Escape key closes the dropdown
  * - Focus/click input to open dropdown
  * - Tab through dropdown buttons
+ * - Dropdown applies time only when Confirm is clicked or when clicking outside
  * 
  * @example
  * ```tsx
@@ -66,6 +69,8 @@ export function TimeInput({
   const inputId = id || generatedId;
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value || "");
+  const [pendingHours, setPendingHours] = useState<string | null>(null);
+  const [pendingMinutes, setPendingMinutes] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -170,8 +175,46 @@ export function TimeInput({
     setIsOpen(false);
   };
 
+  // Handle keyboard navigation (Up/Down arrows)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") {
+      return;
+    }
+
+    e.preventDefault();
+    
+    const input = e.currentTarget;
+    const cursorPosition = input.selectionStart || 0;
+    const timeValue = inputValue || `${DEFAULT_HOURS}:${DEFAULT_MINUTES}`;
+    const { hours, minutes } = parseTime(timeValue);
+    
+    // Determine if cursor is in hours or minutes section
+    // Position 0-1: hours, Position 2: colon, Position 3-4: minutes
+    const isInHoursSection = cursorPosition < 3;
+    const increment = e.key === "ArrowUp" ? 1 : -1;
+    
+    let newHours = parseInt(hours, 10);
+    let newMinutes = parseInt(minutes, 10);
+    
+    if (isInHoursSection) {
+      // Increment/decrement hours
+      newHours = (newHours + increment + 24) % 24;
+    } else {
+      // Increment/decrement minutes
+      newMinutes = (newMinutes + increment + 60) % 60;
+    }
+    
+    const newValue = `${newHours.toString().padStart(2, "0")}:${newMinutes.toString().padStart(2, "0")}`;
+    setInputValue(newValue);
+    
+    const syntheticEvent = {
+      target: { value: newValue, name: input.name || "" },
+    } as React.ChangeEvent<HTMLInputElement>;
+    onChange?.(syntheticEvent);
+  };
+
   // Handle dropdown selection
-  const handleTimeSelect = (hours: string, minutes: string) => {
+  const handleTimeSelect = useCallback((hours: string, minutes: string) => {
     const newValue = `${hours}:${minutes}`;
     setInputValue(newValue);
     
@@ -188,11 +231,14 @@ export function TimeInput({
       justClosedRef.current = false;
     }, DROPDOWN_CLOSE_DEBOUNCE_MS);
     inputRef.current?.focus();
-  };
+  }, [onChange]);
 
   // Handle input focus
   const handleInputFocus = () => {
     if (justClosedRef.current || disabled) return;
+    const { hours, minutes } = parseTime(inputValue);
+    setPendingHours(hours);
+    setPendingMinutes(minutes);
     setIsOpen(true);
   };
 
@@ -211,7 +257,12 @@ export function TimeInput({
       const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(target);
       
       if (isOutsideContainer && isOutsideDropdown) {
-        setIsOpen(false);
+        // Apply pending selection when clicking outside
+        if (pendingHours !== null && pendingMinutes !== null) {
+          handleTimeSelect(pendingHours, pendingMinutes);
+        } else {
+          setIsOpen(false);
+        }
       }
     };
 
@@ -219,13 +270,15 @@ export function TimeInput({
       document.addEventListener("mousedown", handleClickOutside);
       return () => document.removeEventListener("mousedown", handleClickOutside);
     }
-  }, [isOpen]);
+  }, [isOpen, pendingHours, pendingMinutes, handleTimeSelect]);
 
   // Handle escape key
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape" && isOpen) {
         setIsOpen(false);
+        setPendingHours(null);
+        setPendingMinutes(null);
         inputRef.current?.focus();
       }
     };
@@ -256,6 +309,7 @@ export function TimeInput({
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
+          onKeyDown={handleKeyDown}
           placeholder="HH:MM"
           disabled={disabled}
           aria-label={ariaLabel || label}
@@ -294,8 +348,10 @@ export function TimeInput({
             }}
           >
             <TimePickerDropdown
-              currentHours={currentHours}
-              currentMinutes={currentMinutes}
+              selectedHours={pendingHours || currentHours}
+              selectedMinutes={pendingMinutes || currentMinutes}
+              onHourChange={setPendingHours}
+              onMinuteChange={setPendingMinutes}
               onSelect={handleTimeSelect}
             />
           </div>
@@ -306,8 +362,10 @@ export function TimeInput({
 }
 
 interface TimePickerDropdownProps {
-  currentHours: string;
-  currentMinutes: string;
+  selectedHours: string;
+  selectedMinutes: string;
+  onHourChange: (hour: string) => void;
+  onMinuteChange: (minute: string) => void;
   onSelect: (hours: string, minutes: string) => void;
 }
 
@@ -315,15 +373,19 @@ interface TimePickerDropdownProps {
 function scrollToSelectedOption(ref: React.RefObject<HTMLDivElement>) {
   if (ref.current) {
     const selectedElement = ref.current.querySelector('.im-time-option-selected') as HTMLElement;
-    if (selectedElement) {
+    if (selectedElement && typeof selectedElement.scrollIntoView === 'function') {
       selectedElement.scrollIntoView({ block: 'center' });
     }
   }
 }
 
-function TimePickerDropdown({ currentHours, currentMinutes, onSelect }: TimePickerDropdownProps) {
-  const [selectedHours, setSelectedHours] = useState(currentHours);
-  const [selectedMinutes, setSelectedMinutes] = useState(currentMinutes);
+function TimePickerDropdown({ 
+  selectedHours,
+  selectedMinutes,
+  onHourChange,
+  onMinuteChange,
+  onSelect 
+}: TimePickerDropdownProps) {
   const hoursRef = useRef<HTMLDivElement>(null);
   const minutesRef = useRef<HTMLDivElement>(null);
 
@@ -338,11 +400,11 @@ function TimePickerDropdown({ currentHours, currentMinutes, onSelect }: TimePick
   }, []);
 
   const handleHourClick = (hour: string) => {
-    setSelectedHours(hour);
+    onHourChange(hour);
   };
 
   const handleMinuteClick = (minute: string) => {
-    setSelectedMinutes(minute);
+    onMinuteChange(minute);
   };
 
   const handleConfirm = () => {
