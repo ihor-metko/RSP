@@ -433,6 +433,7 @@
     "selectDate": "Select date",
     "date": "Date",
     "reason": "Reason (optional)",
+    "workingHoursTooltip": "Specify the working hours for this special date",
     "noSpecialHours": "No special hours set",
     "to": "to",
     "saveChanges": "Save Changes",

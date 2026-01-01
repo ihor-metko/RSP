@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Input, TimeInput, DateInput, Checkbox } from "@/components/ui";
+import { Button, Input, TimeInput, DateInput, Checkbox, Tooltip } from "@/components/ui";
 import "./SpecialHoursField.css";
 
 export interface SpecialHour {
@@ -109,58 +109,69 @@ export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFie
             
             return (
             <div key={hour.id || index} className="im-special-hours-row">
-              <div className="im-special-hours-date-field">
-                <DateInput
-                  value={hour.date}
-                  onChange={(date) => handleChange(index, "date", date)}
-                  placeholder={t("selectDate")}
-                  aria-label={t("date")}
-                />
-              </div>
-              <div className="im-special-hours-times">
-                {hour.isClosed ? (
-                  <span className="im-special-hours-closed-text">{t("closed")}</span>
-                ) : (
-                  <>
-                    <TimeInput
-                      value={hour.openTime || ""}
-                      onChange={(e) => handleChange(index, "openTime", e.target.value)}
-                      disabled={disabled}
-                    />
-                    <span className="im-special-hours-separator">{t("to")}</span>
-                    <TimeInput
-                      value={hour.closeTime || ""}
-                      onChange={(e) => handleChange(index, "closeTime", e.target.value)}
-                      disabled={disabled}
-                    />
-                  </>
-                )}
-              </div>
-              <div className="im-special-hours-toggle">
-                <Checkbox
-                  checked={hour.isClosed}
-                  onChange={(e) => handleChange(index, "isClosed", e.target.checked)}
+              <div className="im-special-hours-row-top">
+                <div className="im-special-hours-date-field">
+                  <DateInput
+                    value={hour.date}
+                    onChange={(date) => handleChange(index, "date", date)}
+                    placeholder={t("selectDate")}
+                    aria-label={t("date")}
+                  />
+                </div>
+                <div className="im-special-hours-toggle">
+                  <Checkbox
+                    checked={hour.isClosed}
+                    onChange={(e) => handleChange(index, "isClosed", e.target.checked)}
+                    disabled={disabled}
+                    label={t("closed")}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleRemove(index)}
                   disabled={disabled}
-                  label={t("closed")}
-                />
+                  className="im-special-hours-remove-btn"
+                >
+                  ✕
+                </Button>
               </div>
-              <div className="im-special-hours-reason-field">
-                <Input
-                  placeholder={t("reason")}
-                  value={hour.reason}
-                  onChange={(e) => handleChange(index, "reason", e.target.value)}
-                  disabled={disabled}
-                />
+              <div className="im-special-hours-row-bottom">
+                <div className="im-special-hours-times-wrapper">
+                  <Tooltip 
+                    content={t("workingHoursTooltip")} 
+                    position="top"
+                  >
+                    <div className="im-special-hours-times">
+                      {hour.isClosed ? (
+                        <span className="im-special-hours-closed-text">{t("closed")}</span>
+                      ) : (
+                        <>
+                          <TimeInput
+                            value={hour.openTime || ""}
+                            onChange={(e) => handleChange(index, "openTime", e.target.value)}
+                            disabled={disabled}
+                          />
+                          <span className="im-special-hours-separator">{t("to")}</span>
+                          <TimeInput
+                            value={hour.closeTime || ""}
+                            onChange={(e) => handleChange(index, "closeTime", e.target.value)}
+                            disabled={disabled}
+                          />
+                        </>
+                      )}
+                    </div>
+                  </Tooltip>
+                </div>
+                <div className="im-special-hours-reason-field">
+                  <Input
+                    placeholder={t("reason")}
+                    value={hour.reason}
+                    onChange={(e) => handleChange(index, "reason", e.target.value)}
+                    disabled={disabled}
+                  />
+                </div>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleRemove(index)}
-                disabled={disabled}
-                className="im-special-hours-remove-btn"
-              >
-                ✕
-              </Button>
             </div>
             );
           })}
