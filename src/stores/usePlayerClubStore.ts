@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import type { SportType } from "@/constants/sports";
 
 /**
  * Player-visible club data types
@@ -8,10 +9,16 @@ import { create } from "zustand";
 interface PlayerClubCourt {
   id: string;
   name: string;
+  slug?: string | null;
   type: string | null;
   surface: string | null;
   indoor: boolean;
+  sportType?: SportType | null;
   defaultPriceCents: number;
+  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface PlayerClubBusinessHours {

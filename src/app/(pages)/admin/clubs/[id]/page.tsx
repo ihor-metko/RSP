@@ -18,7 +18,7 @@ import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useClubPageData } from "@/hooks/useClubPageData";
 import { useCanEditClub } from "@/hooks/useCanEditClub";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
-import { parseTags, getPriceRange } from "@/utils/club";
+// import { parseTags, getPriceRange } from "@/utils/club";
 import { parseClubMetadata } from "@/types/club";
 import { useUserStore } from "@/stores/useUserStore";
 import "./page.css";
@@ -242,8 +242,8 @@ export default function AdminClubDetailPage({
   }
 
   // Prepare derived data
-  const clubTags = parseTags(club.tags);
-  const priceRange = getPriceRange(club.courts);
+  // const clubTags = parseTags(club.tags);
+  // const priceRange = getPriceRange(club.courts);
   const hasValidCoordinates = club.latitude != null && club.longitude != null;
 
   // Format location display

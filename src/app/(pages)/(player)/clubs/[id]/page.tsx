@@ -119,7 +119,14 @@ export default function ClubDetailPage({
   const club = currentClub as ClubWithDetails | null;
   
   // Get courts and gallery from store (wrapped in useMemo to prevent dependency issues)
-  const courts = useMemo(() => club ? getCourtsForClub(club.id) : [], [club, getCourtsForClub]);
+  // Transform courts to include imageUrl from bannerData for CourtCard compatibility
+  const courts = useMemo(() => {
+    const rawCourts = club ? getCourtsForClub(club.id) : [];
+    return rawCourts.map(court => ({
+      ...court,
+      imageUrl: court.bannerData?.url || null,
+    }));
+  }, [club, getCourtsForClub]);
   const gallery = useMemo(() => club ? getGalleryForClub(club.id) : [], [club, getGalleryForClub]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
