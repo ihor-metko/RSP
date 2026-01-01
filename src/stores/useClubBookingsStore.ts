@@ -78,7 +78,7 @@ export const useClubBookingsStore = create<ClubBookingsState>((set, get) => ({
    * Fetch bookings preview if needed with inflight guard
    * - If !force and cache exists and is fresh, returns cached data
    * - If an inflight request exists for this clubId, returns that Promise
-   * - Otherwise, performs a new network request
+   * - Otherwise, performs a new network request using the optimized overview endpoint
    */
   fetchBookingsPreviewIfNeeded: async (clubId: string, options = {}) => {
     const { force = false } = options;
@@ -102,45 +102,18 @@ export const useClubBookingsStore = create<ClubBookingsState>((set, get) => ({
       set({ loading: true, error: null });
 
       try {
-        // Constants for booking limits
-        const MAX_SUMMARY_BOOKINGS = 100;
-        const PREVIEW_BOOKINGS_LIMIT = 10;
+        // Use the new optimized overview endpoint (single request instead of 3)
+        const response = await fetch(`/api/admin/clubs/${clubId}/bookings/overview`);
 
-        // Get today's date range
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        // Get week range
-        const weekFromNow = new Date(today);
-        weekFromNow.setDate(weekFromNow.getDate() + 7);
-
-        // Fetch bookings for the club
-        const [todayResponse, weekResponse, upcomingResponse] = await Promise.all([
-          fetch(
-            `/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&dateTo=${tomorrow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`
-          ),
-          fetch(
-            `/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&dateTo=${weekFromNow.toISOString()}&perPage=${MAX_SUMMARY_BOOKINGS}`
-          ),
-          fetch(
-            `/api/admin/bookings?clubId=${clubId}&dateFrom=${today.toISOString()}&perPage=${PREVIEW_BOOKINGS_LIMIT}`
-          ),
-        ]);
-
-        if (!todayResponse.ok || !weekResponse.ok || !upcomingResponse.ok) {
+        if (!response.ok) {
           throw new Error("Failed to fetch bookings preview");
         }
 
-        const [todayData, weekData, upcomingData] = await Promise.all([
-          todayResponse.json(),
-          weekResponse.json(),
-          upcomingResponse.json(),
-        ]);
+        const data = await response.json();
 
+        // Transform API response to internal format
         const previewData: BookingsPreviewData = {
-          items: upcomingData.bookings.map((b: {
+          items: data.upcomingBookings.map((b: {
             id: string;
             courtName: string;
             clubName: string;
@@ -148,7 +121,7 @@ export const useClubBookingsStore = create<ClubBookingsState>((set, get) => ({
             userEmail: string;
             start: string;
             end: string;
-            bookingStatus: string;
+            status: string;
             sportType: string;
           }) => ({
             id: b.id,
@@ -158,13 +131,13 @@ export const useClubBookingsStore = create<ClubBookingsState>((set, get) => ({
             userEmail: b.userEmail,
             start: b.start,
             end: b.end,
-            status: b.bookingStatus,
+            status: b.status,
             sportType: b.sportType,
           })),
           summary: {
-            todayCount: todayData.total,
-            weekCount: weekData.total,
-            totalUpcoming: upcomingData.total,
+            todayCount: data.todayCount,
+            weekCount: data.weekCount,
+            totalUpcoming: data.upcomingCount,
           },
         };
 
