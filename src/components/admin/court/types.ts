@@ -3,8 +3,10 @@ import type { Court } from "@/types/court";
 export interface CourtPriceRule {
   id: string;
   courtId: string;
+  ruleType: string;
   dayOfWeek: number | null;
   date: string | null;
+  holidayId: string | null;
   startTime: string;
   endTime: string;
   priceCents: number;

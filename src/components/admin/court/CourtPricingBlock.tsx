@@ -15,11 +15,27 @@ function formatTimeRange(startTime: string, endTime: string): string {
   return `${startTime} - ${endTime}`;
 }
 
-function groupRulesByDay(rules: CourtPriceRule[]): Map<number | null, CourtPriceRule[]> {
-  const grouped = new Map<number | null, CourtPriceRule[]>();
+// Map of ruleType to display label
+const RULE_TYPE_LABELS: Record<string, string> = {
+  WEEKDAYS: "Weekdays (Mon-Fri)",
+  WEEKENDS: "Weekends (Sat-Sun)",
+  ALL_DAYS: "All Days",
+  SPECIFIC_DAY: "Specific Day",
+  SPECIFIC_DATE: "Specific Date",
+  HOLIDAY: "Holiday",
+};
+
+// Default rule type when none is specified
+const DEFAULT_RULE_TYPE = "ALL_DAYS" as const;
+
+// Order for displaying rule type groups
+const RULE_TYPE_ORDER = ["WEEKDAYS", "WEEKENDS", "ALL_DAYS", "SPECIFIC_DAY", "SPECIFIC_DATE", "HOLIDAY"];
+
+function groupRulesByType(rules: CourtPriceRule[]): Map<string, CourtPriceRule[]> {
+  const grouped = new Map<string, CourtPriceRule[]>();
   
   for (const rule of rules) {
-    const key = rule.dayOfWeek;
+    const key = rule.ruleType || DEFAULT_RULE_TYPE;
     if (!grouped.has(key)) {
       grouped.set(key, []);
     }
@@ -29,10 +45,25 @@ function groupRulesByDay(rules: CourtPriceRule[]): Map<number | null, CourtPrice
   return grouped;
 }
 
+function getDayLabel(dayOfWeek: number | null, t: (key: string) => string): string {
+  if (dayOfWeek === null) return "";
+  return t(DAY_TRANSLATION_KEYS[dayOfWeek]);
+}
+
+function formatDate(dateStr: string): string {
+  // Format date consistently in YYYY-MM-DD format or using locale
+  // Using ISO date format for consistency across locales
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
   const t = useTranslations();
   const hasRules = court.courtPriceRules && court.courtPriceRules.length > 0;
-  const groupedRules = groupRulesByDay(court.courtPriceRules || []);
+  const groupedRules = groupRulesByType(court.courtPriceRules || []);
 
   return (
     <div className="im-block im-court-pricing-block">
@@ -71,44 +102,40 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
             </div>
 
             <div className="im-pricing-rules-list">
-              {/* All days rules */}
-              {groupedRules.get(null) && (
-                <div className="im-pricing-rule-group">
-                  <div className="im-pricing-rule-day">All Days</div>
-                  {groupedRules.get(null)!.map((rule) => (
-                    <div key={rule.id} className="im-pricing-rule-item">
-                      <span className="im-pricing-rule-time">
-                        {formatTimeRange(rule.startTime, rule.endTime)}
-                      </span>
-                      <span className="im-pricing-rule-price">
-                        {formatPrice(rule.priceCents)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {RULE_TYPE_ORDER.map((ruleType) => {
+                const rules = groupedRules.get(ruleType);
+                if (!rules || rules.length === 0) return null;
 
-              {/* Day-specific rules */}
-              {Array.from(groupedRules.entries())
-                .filter(([key]) => key !== null)
-                .sort(([a], [b]) => (a as number) - (b as number))
-                .map(([dayOfWeek, rules]) => (
-                  <div key={dayOfWeek} className="im-pricing-rule-group">
-                    <div className="im-pricing-rule-day">
-                      {t(DAY_TRANSLATION_KEYS[dayOfWeek as number])}
+                return (
+                  <div key={ruleType} className="im-pricing-rule-group">
+                    <div className="im-pricing-rule-day-type">
+                      {RULE_TYPE_LABELS[ruleType] || ruleType}
                     </div>
                     {rules.map((rule) => (
                       <div key={rule.id} className="im-pricing-rule-item">
-                        <span className="im-pricing-rule-time">
-                          {formatTimeRange(rule.startTime, rule.endTime)}
-                        </span>
+                        <div className="im-pricing-rule-details">
+                          <span className="im-pricing-rule-time">
+                            {formatTimeRange(rule.startTime, rule.endTime)}
+                          </span>
+                          {rule.ruleType === "SPECIFIC_DAY" && rule.dayOfWeek !== null && (
+                            <span className="im-pricing-rule-day-label">
+                              {getDayLabel(rule.dayOfWeek, t)}
+                            </span>
+                          )}
+                          {rule.ruleType === "SPECIFIC_DATE" && rule.date && (
+                            <span className="im-pricing-rule-date-label">
+                              {formatDate(rule.date)}
+                            </span>
+                          )}
+                        </div>
                         <span className="im-pricing-rule-price">
                           {formatPrice(rule.priceCents)}
                         </span>
                       </div>
                     ))}
                   </div>
-                ))}
+                );
+              })}
             </div>
           </div>
         ) : (
