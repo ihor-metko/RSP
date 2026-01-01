@@ -8,6 +8,7 @@ import { Button, Card, Modal, IMLink, ImageCarousel, EntityBanner, DangerZone, B
 import type { DangerAction } from "@/components/ui";
 import { ClubContactsView } from "@/components/admin/club/ClubContactsView";
 import { ClubHoursView } from "@/components/admin/club/ClubHoursView";
+import { ClubSpecialDatesView } from "@/components/admin/club/ClubSpecialDatesView";
 import { ClubCourtsPreview } from "@/components/admin/club/ClubCourtsPreview";
 import { ClubGalleryView } from "@/components/admin/club/ClubGalleryView";
 import AdminManagementSection from "@/components/admin/AdminManagementSection";
@@ -424,7 +425,41 @@ export default function AdminClubDetailPage({
             <Card className="im-admin-club-info-card">
               <ClubHoursView
                 club={club}
-                onUpdate={(payload) => handleSectionUpdate("hours", payload)}
+                onUpdate={async (payload) => {
+                  // When updating business hours, preserve existing special hours
+                  return handleSectionUpdate("hours", {
+                    businessHours: payload.businessHours,
+                    specialHours: club.specialHours.map(h => ({
+                      id: h.id,
+                      date: h.date.split("T")[0],
+                      openTime: h.openTime,
+                      closeTime: h.closeTime,
+                      isClosed: h.isClosed,
+                      reason: h.reason || "",
+                    })),
+                  });
+                }}
+                disabled={!canEdit}
+                disabledTooltip={editDisabledTooltip}
+              />
+            </Card>
+
+            {/* Special Dates Card with Edit */}
+            <Card className="im-admin-club-info-card">
+              <ClubSpecialDatesView
+                club={club}
+                onUpdate={async (payload) => {
+                  // When updating special hours, preserve existing business hours
+                  return handleSectionUpdate("hours", {
+                    businessHours: club.businessHours.map(h => ({
+                      dayOfWeek: h.dayOfWeek,
+                      openTime: h.openTime,
+                      closeTime: h.closeTime,
+                      isClosed: h.isClosed,
+                    })),
+                    specialHours: payload.specialHours,
+                  });
+                }}
                 disabled={!canEdit}
                 disabledTooltip={editDisabledTooltip}
               />

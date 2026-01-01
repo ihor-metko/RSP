@@ -1,0 +1,41 @@
+.im-special-dates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.im-special-dates-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  border-bottom: 1px solid var(--rsp-border);
+}
+
+.im-special-dates-row:last-child {
+  border-bottom: none;
+}
+
+.im-special-dates-date {
+  font-weight: 600;
+  color: var(--rsp-foreground);
+  min-width: 60px;
+}
+
+.im-special-dates-separator {
+  color: var(--rsp-foreground);
+  opacity: 0.5;
+}
+
+.im-special-dates-status {
+  color: var(--rsp-foreground);
+  opacity: 0.8;
+}
+
+.im-special-dates-reason {
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+  font-style: italic;
+  margin-left: 0.25rem;
+}

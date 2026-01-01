@@ -24,34 +24,3 @@
   color: var(--rsp-foreground);
   opacity: 0.7;
 }
-
-.im-hours-view-special {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--rsp-border);
-}
-
-.im-hours-view-special-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--rsp-foreground);
-}
-
-.im-hours-view-special-row {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
-  font-size: 0.875rem;
-}
-
-.im-hours-view-special-date {
-  font-weight: 500;
-  color: var(--rsp-foreground);
-}
-
-.im-hours-view-special-reason {
-  color: var(--rsp-foreground);
-  opacity: 0.6;
-  font-style: italic;
-}
