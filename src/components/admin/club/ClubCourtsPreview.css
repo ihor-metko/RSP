@@ -127,18 +127,6 @@
   border-color: rgba(134, 239, 172, 0.4);
 }
 
-.im-status-badge--inactive {
-  background-color: rgba(156, 163, 175, 0.15);
-  color: #6b7280;
-  border: 1px solid rgba(156, 163, 175, 0.3);
-}
-
-.dark .im-status-badge--inactive {
-  background-color: rgba(156, 163, 175, 0.25);
-  color: #9ca3af;
-  border-color: rgba(156, 163, 175, 0.4);
-}
-
 /* ===== Responsive Design ===== */
 @media (max-width: 640px) {
   .im-court-overview-item {

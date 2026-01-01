@@ -79,7 +79,7 @@ export function ClubCourtsPreview({ club, disabled = false }: ClubCourtsPreviewP
                     <div className="im-court-overview-header">
                       <h3 className="im-court-overview-name">{court.name}</h3>
                       <span
-                        className={`im-status-badge ${court.isActive ? "im-status-badge--active" : "im-status-badge--inactive"}`}
+                        className={`im-status-badge ${court.isActive ? "im-status-badge--active" : "im-status-badge--draft"}`}
                       >
                         {court.isActive ? t("common.active") : t("common.inactive")}
                       </span>
