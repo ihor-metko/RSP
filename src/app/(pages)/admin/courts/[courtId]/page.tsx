@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Modal, IMLink, Breadcrumbs } from "@/components/ui";
+import { Button, Modal, IMLink } from "@/components/ui";
 import {
   CourtBasicBlock,
   CourtPricingBlock,
@@ -23,12 +23,12 @@ export default function CourtDetailPage({
   params: Promise<{ courtId: string }>;
 }) {
   const router = useRouter();
-  
+
   // Use store for auth
   const isHydrated = useUserStore((state) => state.isHydrated);
   const isLoading = useUserStore((state) => state.isLoading);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-  
+
   const [courtId, setCourtId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -37,7 +37,7 @@ export default function CourtDetailPage({
 
   // Use court store
   const loadingCourts = useCourtStore((state) => state.loadingCourts);
-  
+
   // Local state for court - using store's CourtDetail type
   const [court, setCourt] = useState<StoreCourtDetail | null>(null);
 
@@ -48,7 +48,7 @@ export default function CourtDetailPage({
   }, [params]);
 
   const ensureCourtByIdFromStore = useCourtStore((state) => state.ensureCourtById);
-  
+
   const fetchCourt = useCallback(async () => {
     if (!courtId) return;
 
@@ -193,16 +193,6 @@ export default function CourtDetailPage({
         {/* Toolbar */}
         <div className="im-court-detail-toolbar">
           <div className="im-court-detail-toolbar-left">
-            {/* Breadcrumbs */}
-            <Breadcrumbs
-              items={[
-                { label: "Admin", href: "/admin/courts" },
-                { label: "Courts", href: "/admin/courts" },
-                { label: court.name },
-              ]}
-              className="im-court-detail-breadcrumbs !mb-0"
-              ariaLabel="Court navigation"
-            />
           </div>
 
           <div className="im-court-detail-toolbar-right">
