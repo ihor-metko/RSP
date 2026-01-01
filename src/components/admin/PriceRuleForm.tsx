@@ -40,7 +40,7 @@ export function PriceRuleForm({
   );
   const [formData, setFormData] = useState<PriceRuleFormData>({
     dayOfWeek: initialValues?.dayOfWeek ?? 1, // Default to Monday
-    date: initialValues?.date || "",
+    date: initialValues?.date ?? null,
     startTime: initialValues?.startTime || "09:00",
     endTime: initialValues?.endTime || "10:00",
     priceCents: initialValues?.priceCents ?? 0,
@@ -179,7 +179,7 @@ export function PriceRuleForm({
           onChange={(date) => {
             setFormData((prev) => ({
               ...prev,
-              date,
+              date: date || null,
             }));
           }}
           placeholder="Select date"
