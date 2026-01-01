@@ -14,6 +14,7 @@ import {
 } from "@/components/admin/court";
 import { useCourtStore } from "@/stores/useCourtStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { useCanEditClub } from "@/hooks/useCanEditClub";
 import type { CourtDetail as StoreCourtDetail } from "@/types/court";
 
 import "./page.css";
@@ -222,6 +223,12 @@ export default function CourtDetailPage({
     return null;
   }
 
+  // Check if user can manage this court
+  // Based on API logic: club admins can manage courts in their clubs,
+  // organization admins can manage courts in clubs under their organization,
+  // and root admins can manage all courts
+  const canManageCourt = useCanEditClub(court.clubId);
+
   // Prepare DangerZone actions
   const dangerActions: DangerAction[] = [
     {
@@ -234,7 +241,7 @@ export default function CourtDetailPage({
       onAction: handleOpenToggleActiveModal,
       isProcessing: isTogglingActive,
       variant: court.isActive ? 'danger' : 'warning',
-      show: true,
+      show: canManageCourt,
     },
     {
       id: 'delete',
@@ -244,7 +251,7 @@ export default function CourtDetailPage({
       onAction: () => setIsDeleteModalOpen(true),
       isProcessing: submitting,
       variant: 'danger',
-      show: true,
+      show: canManageCourt,
     },
   ];
 
