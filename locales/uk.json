@@ -2682,5 +2682,110 @@
       "titleClub": "Створити адміністратора клубу",
       "titleDefault": "Створити адміністратора"
     }
+  },
+  "courtDetail": {
+    "availability": {
+      "statusAvailable": "Доступний",
+      "statusBooked": "Заброньований",
+      "statusLimited": "Обмежений",
+      "statusLocked": "Заблокований",
+      "statusUnknown": "Невідомо",
+      "prevDay": "Попередній",
+      "nextDay": "Наступний",
+      "previousDayLabel": "Попередній день",
+      "nextDayLabel": "Наступний день",
+      "selectDateLabel": "Вибрати дату",
+      "noAvailabilityData": "Немає даних про доступність на цю дату.",
+      "noSlotsAvailable": "Немає доступних слотів на цю дату.",
+      "checkAnotherDay": "Перевірити інший день →"
+    },
+    "navigation": {
+      "backToClub": "← Повернутися до клубу",
+      "backToCourts": "← Повернутися до кортів"
+    },
+    "subtitle": {
+      "indoorCourt": "Критий корт",
+      "outdoorCourt": "Відкритий корт"
+    },
+    "blocks": {
+      "basicInformation": {
+        "title": "Основна інформація",
+        "edit": "Редагувати",
+        "editBasicInfo": "Редагувати основну інформацію",
+        "editTitle": "Редагувати основну інформацію",
+        "name": "Назва",
+        "slug": "Ідентифікатор",
+        "type": "Тип",
+        "surface": "Покриття",
+        "sportType": "Вид спорту",
+        "environment": "Середовище",
+        "defaultPrice": "Базова ціна",
+        "notSet": "Не встановлено",
+        "indoor": "Критий",
+        "outdoor": "Відкритий",
+        "lastUpdated": "Останнє оновлення:",
+        "namePlaceholder": "Назва корту",
+        "slugLabel": "Ідентифікатор (для URL)",
+        "slugPlaceholder": "nazva-kortu-slug",
+        "slugHint": "Використовується в URL. Використовуйте лише малі літери, цифри та дефіси.",
+        "typeLabel": "Тип",
+        "typePlaceholder": "наприклад, падель, теніс",
+        "surfaceLabel": "Покриття",
+        "surfacePlaceholder": "наприклад, штучне, глиняне",
+        "sportTypeLabel": "Вид спорту",
+        "defaultPriceLabel": "Базова ціна за годину",
+        "defaultPricePlaceholder": "0.00",
+        "indoorCourtLabel": "Критий корт",
+        "nameRequired": "Назва обов'язкова",
+        "nameMinLength": "Назва повинна бути щонайменше 2 символи",
+        "nameMaxLength": "Назва повинна бути не більше 120 символів",
+        "slugInvalid": "Ідентифікатор повинен містити лише малі літери, цифри та дефіси",
+        "priceNonNegative": "Ціна повинна бути невід'ємною"
+      },
+      "pricingRules": {
+        "title": "Правила ціноутворення",
+        "manage": "Керувати",
+        "defaultPrice": "Базова ціна",
+        "customRules": "спеціальне правило",
+        "customRulesPlural": "спеціальних правил",
+        "ruleTypeWeekdays": "Будні (Пн-Пт)",
+        "ruleTypeWeekends": "Вихідні (Сб-Нд)",
+        "ruleTypeAllDays": "Всі дні",
+        "ruleTypeSpecificDay": "Конкретний день",
+        "ruleTypeSpecificDate": "Конкретна дата",
+        "ruleTypeHoliday": "Свято",
+        "emptyState": "Спеціальні правила ціноутворення не визначені. Базова ціна буде застосована до всіх часових слотів.",
+        "addPricingRule": "+ Додати правило ціноутворення"
+      },
+      "schedule": {
+        "title": "Розклад",
+        "clubHoursApply": "Застосовуються години клубу",
+        "daySun": "Нд",
+        "dayMon": "Пн",
+        "dayTue": "Вт",
+        "dayWed": "Ср",
+        "dayThu": "Чт",
+        "dayFri": "Пт",
+        "daySat": "Сб",
+        "emptyState": "Робочі години для клубу не налаштовані.",
+        "metaText": "Розклад відповідає робочим годинам клубу. Корти доступні протягом робочих годин."
+      },
+      "metadata": {
+        "title": "Метадані",
+        "courtId": "ID корту",
+        "club": "Клуб",
+        "created": "Створено",
+        "lastUpdated": "Останнє оновлення",
+        "publicUrl": "Публічний URL",
+        "unknown": "Невідомо"
+      },
+      "preview": {
+        "title": "Попередній перегляд",
+        "indoor": "Критий",
+        "outdoor": "Відкритий",
+        "courtImage": "Зображення корту",
+        "viewAvailability": "Переглянути доступність"
+      }
+    }
   }
 }

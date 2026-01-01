@@ -256,7 +256,7 @@ export default function CourtDetailPage({
             {error}
           </div>
           <div className="im-court-detail-error-back">
-            <IMLink href="/admin/courts">← Back to Courts</IMLink>
+            <IMLink href="/admin/courts">{t("courtDetail.navigation.backToCourts")}</IMLink>
           </div>
         </div>
       </main>
@@ -285,7 +285,7 @@ export default function CourtDetailPage({
       {/* Entity Banner Section - no location/address for courts */}
       <EntityBanner
         title={court.name}
-        subtitle={court.type || (court.indoor ? "Indoor Court" : "Outdoor Court")}
+        subtitle={court.type || (court.indoor ? t("courtDetail.subtitle.indoorCourt") : t("courtDetail.subtitle.outdoorCourt"))}
         imageUrl={court.bannerData?.url}
         bannerAlignment={courtMetadata?.bannerAlignment || 'center'}
         imageAlt={`${court.name} banner`}

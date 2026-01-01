@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Input } from "@/components/ui";
 import { SectionEditModal } from "@/components/admin/club/SectionEditModal";
 import { formatPrice, centsToDollars, dollarsToCents } from "@/utils/price";
@@ -22,6 +23,7 @@ interface CourtBasicBlockProps {
 }
 
 export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
+  const t = useTranslations();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -96,19 +98,19 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = "Name is required";
+      errors.name = t("courtDetail.blocks.basicInformation.nameRequired");
     } else if (formData.name.trim().length < 2) {
-      errors.name = "Name must be at least 2 characters";
+      errors.name = t("courtDetail.blocks.basicInformation.nameMinLength");
     } else if (formData.name.trim().length > 120) {
-      errors.name = "Name must be at most 120 characters";
+      errors.name = t("courtDetail.blocks.basicInformation.nameMaxLength");
     }
 
     if (formData.slug && !/^[a-z0-9-]+$/.test(formData.slug)) {
-      errors.slug = "Slug must contain only lowercase letters, numbers, and hyphens";
+      errors.slug = t("courtDetail.blocks.basicInformation.slugInvalid");
     }
 
     if (formData.defaultPriceCents < 0) {
-      errors.defaultPriceCents = "Price must be non-negative";
+      errors.defaultPriceCents = t("courtDetail.blocks.basicInformation.priceNonNegative");
     }
 
     if (Object.keys(errors).length > 0) {
@@ -142,7 +144,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
     } finally {
       setIsSaving(false);
     }
-  }, [formData, onUpdate]);
+  }, [formData, onUpdate, t]);
 
   const displayPrice = centsToDollars(formData.defaultPriceCents).toFixed(2);
 
@@ -156,66 +158,66 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
               <path d="M2 17l10 5 10-5" />
               <path d="M2 12l10 5 10-5" />
             </svg>
-            Basic Information
+            {t("courtDetail.blocks.basicInformation.title")}
           </h2>
           <Button
             variant="outline"
             onClick={handleEdit}
             className="im-edit-btn"
-            aria-label="Edit basic information"
+            aria-label={t("courtDetail.blocks.basicInformation.editBasicInfo")}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
             </svg>
-            Edit
+            {t("courtDetail.blocks.basicInformation.edit")}
           </Button>
         </div>
 
         <div className="im-block-content">
           <div className="im-block-row">
-            <span className="im-block-label">Name</span>
+            <span className="im-block-label">{t("courtDetail.blocks.basicInformation.name")}</span>
             <span className="im-block-value">{court.name}</span>
           </div>
 
           <div className="im-block-row">
-            <span className="im-block-label">Slug</span>
+            <span className="im-block-label">{t("courtDetail.blocks.basicInformation.slug")}</span>
             <span className={`im-block-value ${!court.slug ? "im-block-value--empty" : ""}`}>
-              {court.slug || "Not set"}
+              {court.slug || t("courtDetail.blocks.basicInformation.notSet")}
             </span>
           </div>
 
           <div className="im-block-row">
-            <span className="im-block-label">Type</span>
+            <span className="im-block-label">{t("courtDetail.blocks.basicInformation.type")}</span>
             <span className={`im-block-value ${!court.type ? "im-block-value--empty" : ""}`}>
-              {court.type || "Not set"}
+              {court.type || t("courtDetail.blocks.basicInformation.notSet")}
             </span>
           </div>
 
           <div className="im-block-row">
-            <span className="im-block-label">Surface</span>
+            <span className="im-block-label">{t("courtDetail.blocks.basicInformation.surface")}</span>
             <span className={`im-block-value ${!court.surface ? "im-block-value--empty" : ""}`}>
-              {court.surface || "Not set"}
+              {court.surface || t("courtDetail.blocks.basicInformation.notSet")}
             </span>
           </div>
 
           <div className="im-block-row">
-            <span className="im-block-label">Sport Type</span>
+            <span className="im-block-label">{t("courtDetail.blocks.basicInformation.sportType")}</span>
             <span className="im-block-value">
               {court.sportType ? getSportName(court.sportType as SportType) : "Padel"}
             </span>
           </div>
 
           <div className="im-block-row">
-            <span className="im-block-label">Environment</span>
+            <span className="im-block-label">{t("courtDetail.blocks.basicInformation.environment")}</span>
             <span className="im-block-value">
               <span className={`im-court-badge ${court.indoor ? "im-court-badge--indoor" : "im-court-badge--outdoor"}`}>
-                {court.indoor ? "Indoor" : "Outdoor"}
+                {court.indoor ? t("courtDetail.blocks.basicInformation.indoor") : t("courtDetail.blocks.basicInformation.outdoor")}
               </span>
             </span>
           </div>
 
           <div className="im-block-row">
-            <span className="im-block-label">Default Price</span>
+            <span className="im-block-label">{t("courtDetail.blocks.basicInformation.defaultPrice")}</span>
             <span className="im-block-value im-block-value--price">
               {formatPrice(court.defaultPriceCents)}/hour
             </span>
@@ -223,7 +225,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
 
           {court.updatedAt && (
             <div className="im-block-meta">
-              Last updated: {new Date(court.updatedAt).toLocaleDateString()}
+              {t("courtDetail.blocks.basicInformation.lastUpdated")} {new Date(court.updatedAt).toLocaleDateString()}
             </div>
           )}
         </div>
@@ -232,7 +234,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
       <SectionEditModal
         isOpen={isEditing}
         onClose={handleClose}
-        title="Edit Basic Information"
+        title={t("courtDetail.blocks.basicInformation.editTitle")}
         onSave={handleSave}
         isSaving={isSaving}
       >
@@ -240,11 +242,11 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
 
         <div className="im-modal-field">
           <Input
-            label="Name *"
+            label={`${t("courtDetail.blocks.basicInformation.name")} *`}
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            placeholder="Court name"
+            placeholder={t("courtDetail.blocks.basicInformation.namePlaceholder")}
             disabled={isSaving}
             aria-describedby={fieldErrors.name ? "name-error" : undefined}
           />
@@ -255,16 +257,16 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
 
         <div className="im-modal-field">
           <Input
-            label="Slug (URL identifier)"
+            label={t("courtDetail.blocks.basicInformation.slugLabel")}
             name="slug"
             value={formData.slug}
             onChange={handleInputChange}
-            placeholder="court-name-slug"
+            placeholder={t("courtDetail.blocks.basicInformation.slugPlaceholder")}
             disabled={isSaving}
             aria-describedby={fieldErrors.slug ? "slug-error" : undefined}
           />
           <span className="im-field-hint">
-            Used in URLs. Use lowercase letters, numbers, and hyphens only.
+            {t("courtDetail.blocks.basicInformation.slugHint")}
           </span>
           {fieldErrors.slug && (
             <span id="slug-error" className="im-field-error">{fieldErrors.slug}</span>
@@ -274,22 +276,22 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
         <div className="im-modal-row">
           <div className="im-modal-field">
             <Input
-              label="Type"
+              label={t("courtDetail.blocks.basicInformation.typeLabel")}
               name="type"
               value={formData.type}
               onChange={handleInputChange}
-              placeholder="e.g., padel, tennis"
+              placeholder={t("courtDetail.blocks.basicInformation.typePlaceholder")}
               disabled={isSaving}
             />
           </div>
 
           <div className="im-modal-field">
             <Input
-              label="Surface"
+              label={t("courtDetail.blocks.basicInformation.surfaceLabel")}
               name="surface"
               value={formData.surface}
               onChange={handleInputChange}
-              placeholder="e.g., artificial, clay"
+              placeholder={t("courtDetail.blocks.basicInformation.surfacePlaceholder")}
               disabled={isSaving}
             />
           </div>
@@ -297,7 +299,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
 
         <div className="im-modal-field">
           <label className="rsp-label mb-1 block text-sm font-medium">
-            Sport Type
+            {t("courtDetail.blocks.basicInformation.sportTypeLabel")}
           </label>
           <select
             name="sportType"
@@ -316,7 +318,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
 
         <div className="im-modal-field">
           <label className="rsp-label mb-1 block text-sm font-medium">
-            Default Price per Hour
+            {t("courtDetail.blocks.basicInformation.defaultPriceLabel")}
           </label>
           <Input
             name="defaultPrice"
@@ -325,7 +327,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
             min="0"
             value={displayPrice}
             onChange={handlePriceChange}
-            placeholder="0.00"
+            placeholder={t("courtDetail.blocks.basicInformation.defaultPricePlaceholder")}
             disabled={isSaving}
             aria-describedby={fieldErrors.defaultPriceCents ? "price-error" : undefined}
           />
@@ -344,7 +346,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
               disabled={isSaving}
               className="im-checkbox"
             />
-            <span className="im-checkbox-label">Indoor court</span>
+            <span className="im-checkbox-label">{t("courtDetail.blocks.basicInformation.indoorCourtLabel")}</span>
           </label>
         </div>
       </SectionEditModal>

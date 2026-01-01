@@ -15,14 +15,14 @@ function formatTimeRange(startTime: string, endTime: string): string {
   return `${startTime} - ${endTime}`;
 }
 
-// Map of ruleType to display label
-const RULE_TYPE_LABELS: Record<string, string> = {
-  WEEKDAYS: "Weekdays (Mon-Fri)",
-  WEEKENDS: "Weekends (Sat-Sun)",
-  ALL_DAYS: "All Days",
-  SPECIFIC_DAY: "Specific Day",
-  SPECIFIC_DATE: "Specific Date",
-  HOLIDAY: "Holiday",
+// Map of ruleType to translation keys
+const RULE_TYPE_KEYS: Record<string, string> = {
+  WEEKDAYS: "courtDetail.blocks.pricingRules.ruleTypeWeekdays",
+  WEEKENDS: "courtDetail.blocks.pricingRules.ruleTypeWeekends",
+  ALL_DAYS: "courtDetail.blocks.pricingRules.ruleTypeAllDays",
+  SPECIFIC_DAY: "courtDetail.blocks.pricingRules.ruleTypeSpecificDay",
+  SPECIFIC_DATE: "courtDetail.blocks.pricingRules.ruleTypeSpecificDate",
+  HOLIDAY: "courtDetail.blocks.pricingRules.ruleTypeHoliday",
 };
 
 // Default rule type when none is specified
@@ -72,7 +72,7 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
-          Pricing Rules
+          {t("courtDetail.blocks.pricingRules.title")}
         </h2>
         <IMLink
           href={`/admin/courts/${court.id}/price-rules`}
@@ -81,13 +81,13 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
           </svg>
-          Manage
+          {t("courtDetail.blocks.pricingRules.manage")}
         </IMLink>
       </div>
 
       <div className="im-block-content">
         <div className="im-block-row">
-          <span className="im-block-label">Default Price</span>
+          <span className="im-block-label">{t("courtDetail.blocks.pricingRules.defaultPrice")}</span>
           <span className="im-block-value im-block-value--price">
             {formatPrice(court.defaultPriceCents)}/hour
           </span>
@@ -97,7 +97,7 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
           <div className="im-pricing-rules-section">
             <div className="im-pricing-rules-header">
               <span className="im-pricing-rules-count">
-                {court.courtPriceRules.length} custom rule{court.courtPriceRules.length !== 1 ? "s" : ""}
+                {court.courtPriceRules.length} {court.courtPriceRules.length !== 1 ? t("courtDetail.blocks.pricingRules.customRulesPlural") : t("courtDetail.blocks.pricingRules.customRules")}
               </span>
             </div>
 
@@ -109,7 +109,7 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
                 return (
                   <div key={ruleType} className="im-pricing-rule-group">
                     <div className="im-pricing-rule-day-type">
-                      {RULE_TYPE_LABELS[ruleType] || ruleType}
+                      {t(RULE_TYPE_KEYS[ruleType] || ruleType)}
                     </div>
                     {rules.map((rule) => (
                       <div key={rule.id} className="im-pricing-rule-item">
@@ -141,13 +141,13 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
         ) : (
           <div className="im-pricing-empty">
             <p className="im-pricing-empty-text">
-              No custom pricing rules defined. The default price will apply to all time slots.
+              {t("courtDetail.blocks.pricingRules.emptyState")}
             </p>
             <IMLink
               href={`/admin/courts/${court.id}/price-rules`}
               className="im-pricing-add-btn"
             >
-              + Add Pricing Rule
+              {t("courtDetail.blocks.pricingRules.addPricingRule")}
             </IMLink>
           </div>
         )}

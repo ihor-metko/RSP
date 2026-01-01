@@ -9,7 +9,15 @@ interface CourtScheduleBlockProps {
   court: CourtDetail;
 }
 
-const DAY_SHORT_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_SHORT_KEYS = [
+  "courtDetail.blocks.schedule.daySun",
+  "courtDetail.blocks.schedule.dayMon",
+  "courtDetail.blocks.schedule.dayTue",
+  "courtDetail.blocks.schedule.dayWed",
+  "courtDetail.blocks.schedule.dayThu",
+  "courtDetail.blocks.schedule.dayFri",
+  "courtDetail.blocks.schedule.daySat",
+];
 
 function formatTime(time: string | null): string {
   if (!time) return "-";
@@ -35,9 +43,9 @@ export function CourtScheduleBlock({ court }: CourtScheduleBlockProps) {
             <circle cx="12" cy="12" r="10" />
             <polyline points="12,6 12,12 16,14" />
           </svg>
-          Schedule
+          {t("courtDetail.blocks.schedule.title")}
         </h2>
-        <span className="im-schedule-info">Club hours apply</span>
+        <span className="im-schedule-info">{t("courtDetail.blocks.schedule.clubHoursApply")}</span>
       </div>
 
       <div className="im-block-content">
@@ -56,7 +64,7 @@ export function CourtScheduleBlock({ court }: CourtScheduleBlockProps) {
                 >
                   <span className="im-schedule-day">
                     <span className="im-schedule-day-full">{t(DAY_TRANSLATION_KEYS[dayOfWeek])}</span>
-                    <span className="im-schedule-day-short">{DAY_SHORT_NAMES[dayOfWeek]}</span>
+                    <span className="im-schedule-day-short">{t(DAY_SHORT_KEYS[dayOfWeek])}</span>
                   </span>
                   <span className="im-schedule-hours">
                     {isClosed ? (
@@ -74,13 +82,13 @@ export function CourtScheduleBlock({ court }: CourtScheduleBlockProps) {
         ) : (
           <div className="im-schedule-empty">
             <p className="im-schedule-empty-text">
-              No business hours configured for the club.
+              {t("courtDetail.blocks.schedule.emptyState")}
             </p>
           </div>
         )}
 
         <div className="im-block-meta">
-          Schedule follows club business hours. Courts available during open hours.
+          {t("courtDetail.blocks.schedule.metaText")}
         </div>
       </div>
     </div>

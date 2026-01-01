@@ -2754,5 +2754,110 @@
       "titleClub": "Create Club Admin",
       "titleDefault": "Create Admin"
     }
+  },
+  "courtDetail": {
+    "availability": {
+      "statusAvailable": "Available",
+      "statusBooked": "Booked",
+      "statusLimited": "Limited",
+      "statusLocked": "Locked",
+      "statusUnknown": "Unknown",
+      "prevDay": "Prev",
+      "nextDay": "Next",
+      "previousDayLabel": "Previous day",
+      "nextDayLabel": "Next day",
+      "selectDateLabel": "Select date",
+      "noAvailabilityData": "No availability data for this date.",
+      "noSlotsAvailable": "No slots available for this date.",
+      "checkAnotherDay": "Check another day →"
+    },
+    "navigation": {
+      "backToClub": "← Back to Club",
+      "backToCourts": "← Back to Courts"
+    },
+    "subtitle": {
+      "indoorCourt": "Indoor Court",
+      "outdoorCourt": "Outdoor Court"
+    },
+    "blocks": {
+      "basicInformation": {
+        "title": "Basic Information",
+        "edit": "Edit",
+        "editBasicInfo": "Edit basic information",
+        "editTitle": "Edit Basic Information",
+        "name": "Name",
+        "slug": "Slug",
+        "type": "Type",
+        "surface": "Surface",
+        "sportType": "Sport Type",
+        "environment": "Environment",
+        "defaultPrice": "Default Price",
+        "notSet": "Not set",
+        "indoor": "Indoor",
+        "outdoor": "Outdoor",
+        "lastUpdated": "Last updated:",
+        "namePlaceholder": "Court name",
+        "slugLabel": "Slug (URL identifier)",
+        "slugPlaceholder": "court-name-slug",
+        "slugHint": "Used in URLs. Use lowercase letters, numbers, and hyphens only.",
+        "typeLabel": "Type",
+        "typePlaceholder": "e.g., padel, tennis",
+        "surfaceLabel": "Surface",
+        "surfacePlaceholder": "e.g., artificial, clay",
+        "sportTypeLabel": "Sport Type",
+        "defaultPriceLabel": "Default Price per Hour",
+        "defaultPricePlaceholder": "0.00",
+        "indoorCourtLabel": "Indoor court",
+        "nameRequired": "Name is required",
+        "nameMinLength": "Name must be at least 2 characters",
+        "nameMaxLength": "Name must be at most 120 characters",
+        "slugInvalid": "Slug must contain only lowercase letters, numbers, and hyphens",
+        "priceNonNegative": "Price must be non-negative"
+      },
+      "pricingRules": {
+        "title": "Pricing Rules",
+        "manage": "Manage",
+        "defaultPrice": "Default Price",
+        "customRules": "custom rule",
+        "customRulesPlural": "custom rules",
+        "ruleTypeWeekdays": "Weekdays (Mon-Fri)",
+        "ruleTypeWeekends": "Weekends (Sat-Sun)",
+        "ruleTypeAllDays": "All Days",
+        "ruleTypeSpecificDay": "Specific Day",
+        "ruleTypeSpecificDate": "Specific Date",
+        "ruleTypeHoliday": "Holiday",
+        "emptyState": "No custom pricing rules defined. The default price will apply to all time slots.",
+        "addPricingRule": "+ Add Pricing Rule"
+      },
+      "schedule": {
+        "title": "Schedule",
+        "clubHoursApply": "Club hours apply",
+        "daySun": "Sun",
+        "dayMon": "Mon",
+        "dayTue": "Tue",
+        "dayWed": "Wed",
+        "dayThu": "Thu",
+        "dayFri": "Fri",
+        "daySat": "Sat",
+        "emptyState": "No business hours configured for the club.",
+        "metaText": "Schedule follows club business hours. Courts available during open hours."
+      },
+      "metadata": {
+        "title": "Metadata",
+        "courtId": "Court ID",
+        "club": "Club",
+        "created": "Created",
+        "lastUpdated": "Last Updated",
+        "publicUrl": "Public URL",
+        "unknown": "Unknown"
+      },
+      "preview": {
+        "title": "Live Preview",
+        "indoor": "Indoor",
+        "outdoor": "Outdoor",
+        "courtImage": "Court Image",
+        "viewAvailability": "View Availability"
+      }
+    }
   }
 }

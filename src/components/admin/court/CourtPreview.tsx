@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { formatPrice } from "@/utils/price";
 import type { CourtDetail } from "./types";
 import "./CourtPreview.css";
@@ -10,12 +11,14 @@ interface CourtPreviewProps {
 }
 
 export function CourtPreview({ court, clubId }: CourtPreviewProps) {
+  const t = useTranslations();
+  
   return (
     <div className="im-preview">
       <div className="im-preview-header">
-        <h3 className="im-preview-title">Live Preview</h3>
+        <h3 className="im-preview-title">{t("courtDetail.blocks.preview.title")}</h3>
         <span className="im-preview-badge">
-          {court.indoor ? "Indoor" : "Outdoor"}
+          {court.indoor ? t("courtDetail.blocks.preview.indoor") : t("courtDetail.blocks.preview.outdoor")}
         </span>
       </div>
 
@@ -28,7 +31,7 @@ export function CourtPreview({ court, clubId }: CourtPreviewProps) {
               <circle cx="8.5" cy="8.5" r="1.5" />
               <polyline points="21,15 16,10 5,21" />
             </svg>
-            <span>Court Image</span>
+            <span>{t("courtDetail.blocks.preview.courtImage")}</span>
           </div>
         </div>
 
@@ -42,7 +45,7 @@ export function CourtPreview({ court, clubId }: CourtPreviewProps) {
 
           <div className="im-preview-badges">
             <span className={`im-preview-type-badge ${court.indoor ? "im-preview-type-badge--indoor" : "im-preview-type-badge--outdoor"}`}>
-              {court.indoor ? "Indoor" : "Outdoor"}
+              {court.indoor ? t("courtDetail.blocks.preview.indoor") : t("courtDetail.blocks.preview.outdoor")}
             </span>
             {court.type && (
               <span className="im-preview-type-badge im-preview-type-badge--type">
@@ -78,7 +81,7 @@ export function CourtPreview({ court, clubId }: CourtPreviewProps) {
               <line x1="8" y1="2" x2="8" y2="6" />
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
-            View Availability
+            {t("courtDetail.blocks.preview.viewAvailability")}
           </a>
         </div>
       </div>

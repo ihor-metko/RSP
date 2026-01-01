@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { CourtDetail } from "./types";
 import "./CourtMetaBlock.css";
 
@@ -7,10 +8,10 @@ interface CourtMetaBlockProps {
   court: CourtDetail;
 }
 
-function formatDate(dateString: string | undefined): string {
+function formatDate(dateString: string | undefined, locale?: string): string {
   if (!dateString) return "Unknown";
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale || "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -20,6 +21,8 @@ function formatDate(dateString: string | undefined): string {
 }
 
 export function CourtMetaBlock({ court }: CourtMetaBlockProps) {
+  const t = useTranslations();
+  
   return (
     <div className="im-block im-court-meta-block">
       <div className="im-block-header">
@@ -29,34 +32,34 @@ export function CourtMetaBlock({ court }: CourtMetaBlockProps) {
             <line x1="12" y1="16" x2="12" y2="12" />
             <line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          Metadata
+          {t("courtDetail.blocks.metadata.title")}
         </h2>
       </div>
 
       <div className="im-block-content">
         <div className="im-block-row">
-          <span className="im-block-label">Court ID</span>
+          <span className="im-block-label">{t("courtDetail.blocks.metadata.courtId")}</span>
           <span className="im-block-value im-block-value--mono">
             {court.id}
           </span>
         </div>
 
         <div className="im-block-row">
-          <span className="im-block-label">Club</span>
+          <span className="im-block-label">{t("courtDetail.blocks.metadata.club")}</span>
           <span className="im-block-value">
-            {court.club?.name || "Unknown"}
+            {court.club?.name || t("courtDetail.blocks.metadata.unknown")}
           </span>
         </div>
 
         <div className="im-block-row">
-          <span className="im-block-label">Created</span>
+          <span className="im-block-label">{t("courtDetail.blocks.metadata.created")}</span>
           <span className="im-block-value">
             {formatDate(court.createdAt)}
           </span>
         </div>
 
         <div className="im-block-row">
-          <span className="im-block-label">Last Updated</span>
+          <span className="im-block-label">{t("courtDetail.blocks.metadata.lastUpdated")}</span>
           <span className="im-block-value">
             {formatDate(court.updatedAt)}
           </span>
@@ -64,7 +67,7 @@ export function CourtMetaBlock({ court }: CourtMetaBlockProps) {
 
         {court.slug && (
           <div className="im-block-row">
-            <span className="im-block-label">Public URL</span>
+            <span className="im-block-label">{t("courtDetail.blocks.metadata.publicUrl")}</span>
             <span className="im-block-value im-block-value--mono">
               /courts/{court.slug}
             </span>

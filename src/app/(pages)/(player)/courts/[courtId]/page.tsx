@@ -68,20 +68,20 @@ function getStatusColor(status: AvailabilitySlot["status"], isLocked?: boolean):
   }
 }
 
-function getStatusLabel(status: AvailabilitySlot["status"], isLocked?: boolean): string {
+function getStatusLabel(status: AvailabilitySlot["status"], isLocked?: boolean, t?: (key: string) => string): string {
   if (isLocked) {
-    return "Locked";
+    return t ? t("courtDetail.availability.statusLocked") : "Locked";
   }
   
   switch (status) {
     case "available":
-      return "Available";
+      return t ? t("courtDetail.availability.statusAvailable") : "Available";
     case "booked":
-      return "Booked";
+      return t ? t("courtDetail.availability.statusBooked") : "Booked";
     case "partial":
-      return "Limited";
+      return t ? t("courtDetail.availability.statusLimited") : "Limited";
     default:
-      return "Unknown";
+      return t ? t("courtDetail.availability.statusUnknown") : "Unknown";
   }
 }
 
@@ -427,9 +427,9 @@ export default function CourtDetailPage({
           <Button
             variant="outline"
             onClick={handlePrevDay}
-            aria-label="Previous day"
+            aria-label={t("courtDetail.availability.previousDayLabel")}
           >
-            ← Prev
+            ← {t("courtDetail.availability.prevDay")}
           </Button>
 
           <div className="flex items-center gap-2">
@@ -438,16 +438,16 @@ export default function CourtDetailPage({
               value={formatDateString(selectedDate)}
               onChange={handleDateChange}
               className="tm-date-input px-3 py-2 border rounded-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-              aria-label="Select date"
+              aria-label={t("courtDetail.availability.selectDateLabel")}
             />
           </div>
 
           <Button
             variant="outline"
             onClick={handleNextDay}
-            aria-label="Next day"
+            aria-label={t("courtDetail.availability.nextDayLabel")}
           >
-            Next →
+            {t("courtDetail.availability.nextDay")} →
           </Button>
         </div>
         <p className="text-center text-gray-600 dark:text-gray-400 mt-2">
@@ -459,16 +459,16 @@ export default function CourtDetailPage({
       <section className="tm-slots-legend mb-4">
         <div className="flex justify-center gap-4 text-sm flex-wrap">
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-green-500" /> {t("common.available")}
+            <span className="w-3 h-3 rounded-sm bg-green-500" /> {t("courtDetail.availability.statusAvailable")}
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-red-500" /> {t("common.booked")}
+            <span className="w-3 h-3 rounded-sm bg-red-500" /> {t("courtDetail.availability.statusBooked")}
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-yellow-500" /> Limited
+            <span className="w-3 h-3 rounded-sm bg-yellow-500" /> {t("courtDetail.availability.statusLimited")}
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded-sm bg-orange-500" /> Locked
+            <span className="w-3 h-3 rounded-sm bg-orange-500" /> {t("courtDetail.availability.statusLocked")}
           </span>
         </div>
       </section>
@@ -487,19 +487,19 @@ export default function CourtDetailPage({
         ) : availability.length === 0 ? (
           <div className="tm-no-slots text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-sm">
             <p className="text-gray-500 dark:text-gray-400">
-              No availability data for this date.
+              {t("courtDetail.availability.noAvailabilityData")}
             </p>
             <Button variant="outline" className="mt-4" onClick={handleNextDay}>
-              Check another day →
+              {t("courtDetail.availability.checkAnotherDay")}
             </Button>
           </div>
         ) : !hasAvailableSlots ? (
           <div className="tm-no-slots text-center p-8 bg-gray-50 dark:bg-gray-800 rounded-sm">
             <p className="text-gray-500 dark:text-gray-400">
-              No slots available for this date.
+              {t("courtDetail.availability.noSlotsAvailable")}
             </p>
             <Button variant="outline" className="mt-4" onClick={handleNextDay}>
-              Check another day →
+              {t("courtDetail.availability.checkAnotherDay")}
             </Button>
           </div>
         ) : (
@@ -512,14 +512,14 @@ export default function CourtDetailPage({
                   className={`tm-slot-button p-3 rounded-sm border text-center transition-colors ${getStatusColor(slot.status, locked)}`}
                   onClick={() => handleSlotClick(slot, locked)}
                   disabled={slot.status === "booked" || locked}
-                  aria-label={`${formatTime(slot.start)} - ${formatTime(slot.end)}: ${getStatusLabel(slot.status, locked)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
+                  aria-label={`${formatTime(slot.start)} - ${formatTime(slot.end)}: ${getStatusLabel(slot.status, locked, t)}${slot.priceCents !== undefined ? `, ${formatPrice(slot.priceCents)}` : ""}`}
                 >
                   <div className="font-semibold">{formatTime(slot.start)}</div>
                   <div className="text-xs">{formatTime(slot.end)}</div>
                   {slot.priceCents !== undefined && slot.status !== "booked" && !locked && (
                     <div className="text-xs font-medium mt-1">{formatPrice(slot.priceCents)}</div>
                   )}
-                  <div className="text-xs mt-1 opacity-75">{getStatusLabel(slot.status, locked)}</div>
+                  <div className="text-xs mt-1 opacity-75">{getStatusLabel(slot.status, locked, t)}</div>
                 </button>
               );
             })}
@@ -531,7 +531,7 @@ export default function CourtDetailPage({
       <div className="mt-8">
         {court.clubId ? (
           <IMLink href={`/clubs/${court.clubId}`}>
-            ← Back to Club
+            {t("courtDetail.navigation.backToClub")}
           </IMLink>
         ) : (
           <IMLink href="/clubs">
