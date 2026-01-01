@@ -1184,7 +1184,7 @@ export default function CreateCourtPage() {
                   min="1"
                   max="20"
                   value={field.value}
-                  onChange={(e) => field.onChange(parseInt(e.target.value) || 4)}
+                  onChange={(e) => field.onChange(Number(e.target.value) || 4)}
                   label={t("admin.courts.new.settingsTab.maxPlayers")}
                   disabled={isSubmitting}
                 />
@@ -1312,15 +1312,21 @@ export default function CreateCourtPage() {
                 })}
               </TabList>
 
-              {ALL_TABS.map((tab) => (
-                <TabPanel key={tab.id} id={tab.id}>
-                  {tab.id === "context" && renderContextTab()}
-                  {tab.id === "basic" && renderBasicTab()}
-                  {tab.id === "pricing-schedule" && renderPricingScheduleTab()}
-                  {tab.id === "media" && renderMediaTab()}
-                  {tab.id === "settings" && renderSettingsTab()}
-                </TabPanel>
-              ))}
+              <TabPanel id="context">
+                {renderContextTab()}
+              </TabPanel>
+              <TabPanel id="basic">
+                {renderBasicTab()}
+              </TabPanel>
+              <TabPanel id="pricing-schedule">
+                {renderPricingScheduleTab()}
+              </TabPanel>
+              <TabPanel id="media">
+                {renderMediaTab()}
+              </TabPanel>
+              <TabPanel id="settings">
+                {renderSettingsTab()}
+              </TabPanel>
             </Tabs>
           </Card>
         </div>
