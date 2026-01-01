@@ -139,7 +139,8 @@ describe("GET /api/admin/clubs/:clubId/bookings/overview", () => {
     mockPrisma.booking.count
       .mockResolvedValueOnce(5) // today
       .mockResolvedValueOnce(15) // week
-      .mockResolvedValueOnce(50); // upcoming
+      .mockResolvedValueOnce(50) // upcoming
+      .mockResolvedValueOnce(100); // past
 
     // Mock upcoming bookings
     const mockBookings = [
@@ -192,6 +193,7 @@ describe("GET /api/admin/clubs/:clubId/bookings/overview", () => {
       todayCount: 5,
       weekCount: 15,
       upcomingCount: 50,
+      pastCount: 100,
       upcomingBookings: [
         {
           id: "booking-1",
@@ -219,7 +221,7 @@ describe("GET /api/admin/clubs/:clubId/bookings/overview", () => {
     });
 
     // Verify correct Prisma queries were made
-    expect(mockPrisma.booking.count).toHaveBeenCalledTimes(3);
+    expect(mockPrisma.booking.count).toHaveBeenCalledTimes(4);
     expect(mockPrisma.booking.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
@@ -249,7 +251,8 @@ describe("GET /api/admin/clubs/:clubId/bookings/overview", () => {
     mockPrisma.booking.count
       .mockResolvedValueOnce(3)
       .mockResolvedValueOnce(10)
-      .mockResolvedValueOnce(25);
+      .mockResolvedValueOnce(25)
+      .mockResolvedValueOnce(75);
 
     mockPrisma.booking.findMany.mockResolvedValue([]);
 
@@ -264,6 +267,7 @@ describe("GET /api/admin/clubs/:clubId/bookings/overview", () => {
       todayCount: 3,
       weekCount: 10,
       upcomingCount: 25,
+      pastCount: 75,
       upcomingBookings: [],
     });
   });
@@ -286,7 +290,8 @@ describe("GET /api/admin/clubs/:clubId/bookings/overview", () => {
     mockPrisma.booking.count
       .mockResolvedValueOnce(2)
       .mockResolvedValueOnce(8)
-      .mockResolvedValueOnce(20);
+      .mockResolvedValueOnce(20)
+      .mockResolvedValueOnce(50);
 
     mockPrisma.booking.findMany.mockResolvedValue([]);
 
@@ -301,6 +306,7 @@ describe("GET /api/admin/clubs/:clubId/bookings/overview", () => {
       todayCount: 2,
       weekCount: 8,
       upcomingCount: 20,
+      pastCount: 50,
       upcomingBookings: [],
     });
   });
