@@ -11,6 +11,8 @@ export interface Court {
   sportType?: SportType | null;
   defaultPriceCents: number;
   imageUrl?: string | null;
+  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+  metadata?: Record<string, unknown> | null;
   createdAt?: string;
   updatedAt?: string;
 }

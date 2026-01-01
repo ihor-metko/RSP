@@ -1061,6 +1061,13 @@
           "setAsMainImage": "Set gallery image {index} as main image",
           "removeGalleryImage": "Remove gallery image {index}"
         }
+      },
+      "editor": {
+        "title": "Edit Court Details"
+      },
+      "errors": {
+        "updateFailed": "Failed to update court",
+        "imageUploadFailed": "Failed to upload image"
       }
     },
     "sportConfig": {

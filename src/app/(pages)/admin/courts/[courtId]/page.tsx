@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Modal, IMLink } from "@/components/ui";
+import { Button, Modal, IMLink, EntityBanner } from "@/components/ui";
 import {
   CourtBasicBlock,
   CourtPricingBlock,
@@ -10,8 +10,10 @@ import {
   CourtMetaBlock,
   CourtPreview,
 } from "@/components/admin/court";
+import { CourtEditor } from "@/components/admin/CourtEditor.client";
 import { useCourtStore } from "@/stores/useCourtStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { parseCourtMetadata } from "@/utils/court-metadata";
 import type { CourtDetail as StoreCourtDetail } from "@/types/court";
 
 import "./page.css";
@@ -32,6 +34,7 @@ export default function CourtDetailPage({
   const [courtId, setCourtId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -139,6 +142,10 @@ export default function CourtDetailPage({
     }
   };
 
+  const handleOpenDetailsEdit = () => {
+    setIsEditingDetails(true);
+  };
+
   // Loading skeleton
   if (status === "loading" || loadingCourts) {
     return (
@@ -177,6 +184,9 @@ export default function CourtDetailPage({
     return null;
   }
 
+  // Parse court metadata for banner alignment
+  const courtMetadata = parseCourtMetadata(court.metadata);
+
   return (
     <main className="im-court-detail-page">
       {/* Toast Notification */}
@@ -188,6 +198,16 @@ export default function CourtDetailPage({
           {toast.message}
         </div>
       )}
+
+      {/* Entity Banner Section - no location/address for courts */}
+      <EntityBanner
+        title={court.name}
+        subtitle={court.type || (court.indoor ? "Indoor Court" : "Outdoor Court")}
+        imageUrl={court.bannerData?.url}
+        bannerAlignment={courtMetadata?.bannerAlignment || 'center'}
+        imageAlt={`${court.name} banner`}
+        onEdit={handleOpenDetailsEdit}
+      />
 
       <div className="entity-page-content entity-page-content--narrow">
         {/* Toolbar */}
@@ -205,19 +225,6 @@ export default function CourtDetailPage({
             </Button>
           </div>
         </div>
-
-        {/* Header */}
-        <header className="im-court-detail-header">
-          <div className="im-court-detail-header-info">
-            <h1 className="im-court-detail-title">{court.name}</h1>
-            <div className="im-court-detail-subtitle">
-              <span className={`im-court-status-badge ${court.indoor ? "im-court-status-badge--indoor" : "im-court-status-badge--outdoor"}`}>
-                {court.indoor ? "Indoor" : "Outdoor"}
-              </span>
-              {court.type && <span className="im-court-detail-type">{court.type}</span>}
-            </div>
-          </div>
-        </header>
 
         {/* Main Content */}
         <div className="im-court-detail-content">
@@ -259,6 +266,16 @@ export default function CourtDetailPage({
           </Button>
         </div>
       </Modal>
+
+      {/* Court Editor Modal */}
+      {court && (
+        <CourtEditor
+          isOpen={isEditingDetails}
+          onClose={() => setIsEditingDetails(false)}
+          court={court}
+          onRefresh={fetchCourt}
+        />
+      )}
     </main>
   );
 }
