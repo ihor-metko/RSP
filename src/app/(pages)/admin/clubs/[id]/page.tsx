@@ -12,7 +12,6 @@ import { ClubCourtsPreview } from "@/components/admin/club/ClubCourtsPreview";
 import { ClubGalleryView } from "@/components/admin/club/ClubGalleryView";
 import AdminManagementSection from "@/components/admin/AdminManagementSection";
 import { ClubEditor } from "@/components/admin/ClubEditor.client";
-import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
 import { GalleryModal } from "@/components/GalleryModal";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useClubPageData } from "@/hooks/useClubPageData";
@@ -347,13 +346,6 @@ export default function AdminClubDetailPage({
             disabledTooltip={editDisabledTooltip}
           />
         </section>
-
-        {/* Court Availability Section */}
-        {club.courts.length > 0 && (
-          <section className="im-admin-club-availability-section">
-            <WeeklyAvailabilityTimeline clubId={club.id} />
-          </section>
-        )}
 
         {/* Info Grid - matching player page layout */}
         <div className="im-admin-club-info-grid">

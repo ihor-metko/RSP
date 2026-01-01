@@ -1,0 +1,160 @@
+@reference "tailwindcss";
+
+/* ===== Courts Overview List Layout ===== */
+.im-courts-overview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* ===== Court Overview Item ===== */
+.im-court-overview-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: var(--im-background);
+  border: 1px solid var(--im-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 1rem;
+}
+
+.im-court-overview-item:hover {
+  border-color: var(--im-primary);
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dark .im-court-overview-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.im-court-overview-item:focus {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+/* ===== Court Overview Main Content ===== */
+.im-court-overview-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.im-court-overview-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.im-court-overview-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--im-foreground);
+  margin: 0;
+}
+
+/* ===== Court Overview Details ===== */
+.im-court-overview-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--im-foreground);
+  opacity: 0.7;
+}
+
+.im-court-overview-type,
+.im-court-overview-surface,
+.im-court-overview-availability {
+  display: inline-flex;
+  align-items: center;
+}
+
+.im-court-overview-type::after,
+.im-court-overview-surface::after {
+  content: "•";
+  margin-left: 0.75rem;
+  opacity: 0.5;
+}
+
+.im-court-overview-availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+/* ===== Court Overview Action Arrow ===== */
+.im-court-overview-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.im-court-overview-arrow {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--im-foreground);
+  opacity: 0.4;
+  transition: all 0.2s ease;
+}
+
+.im-court-overview-item:hover .im-court-overview-arrow {
+  opacity: 0.8;
+  transform: translateX(2px);
+}
+
+/* ===== Status Badge Variants ===== */
+.im-status-badge--active {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.dark .im-status-badge--active {
+  background-color: rgba(34, 197, 94, 0.25);
+  color: #86efac;
+  border-color: rgba(134, 239, 172, 0.4);
+}
+
+.im-status-badge--inactive {
+  background-color: rgba(156, 163, 175, 0.15);
+  color: #6b7280;
+  border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
+.dark .im-status-badge--inactive {
+  background-color: rgba(156, 163, 175, 0.25);
+  color: #9ca3af;
+  border-color: rgba(156, 163, 175, 0.4);
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 640px) {
+  .im-court-overview-item {
+    padding: 0.875rem;
+  }
+
+  .im-court-overview-name {
+    font-size: 0.875rem;
+  }
+
+  .im-court-overview-details {
+    font-size: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .im-court-overview-header {
+    gap: 0.5rem;
+  }
+}

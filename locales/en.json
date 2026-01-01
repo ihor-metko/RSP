@@ -423,7 +423,8 @@
     "pricing": "Pricing",
     "deleteCourt": "Delete Court",
     "deleteCourtConfirm": "Are you sure you want to delete court \"{name}\"? This action cannot be undone.",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "usesClubHours": "Uses club hours"
   },
   "admin": {
     "club": "Club",
