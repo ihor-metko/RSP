@@ -38,10 +38,24 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { dayOfWeek, date, startTime, endTime, priceCents } = body;
+    const { ruleType, dayOfWeek, date, holidayId, startTime, endTime, priceCents } = body;
 
     // Build update data
     const updateData: Record<string, unknown> = {};
+
+    // Handle ruleType
+    if (ruleType !== undefined) {
+      const validRuleTypes = ["SPECIFIC_DAY", "SPECIFIC_DATE", "WEEKDAYS", "WEEKENDS", "ALL_DAYS", "HOLIDAY"];
+      if (!validRuleTypes.includes(ruleType)) {
+        return NextResponse.json(
+          { error: `Invalid ruleType. Must be one of: ${validRuleTypes.join(", ")}` },
+          { status: 400 }
+        );
+      }
+      updateData.ruleType = ruleType;
+    }
+
+    const effectiveRuleType = (updateData.ruleType as string) || existingRule.ruleType;
 
     // Handle time fields
     if (startTime !== undefined) {
@@ -87,57 +101,70 @@ export async function PUT(
       updateData.priceCents = priceCents;
     }
 
-    // Handle dayOfWeek and date
+    // Handle fields based on ruleType
     let effectiveDayOfWeek = existingRule.dayOfWeek;
     let effectiveDate = existingRule.date;
+    let effectiveHolidayId = existingRule.holidayId;
 
-    if (dayOfWeek !== undefined || date !== undefined) {
-      // Check for mutual exclusivity
-      const newDayOfWeek = dayOfWeek !== undefined ? dayOfWeek : existingRule.dayOfWeek;
-      const newDate = date !== undefined ? date : (existingRule.date ? existingRule.date.toISOString().split("T")[0] : null);
-
-      if (newDayOfWeek !== null && newDate) {
-        return NextResponse.json(
-          { error: "dayOfWeek and date are mutually exclusive. Provide only one." },
-          { status: 400 }
-        );
-      }
-
+    if (effectiveRuleType === "SPECIFIC_DAY") {
       if (dayOfWeek !== undefined) {
-        if (dayOfWeek !== null && (typeof dayOfWeek !== "number" || dayOfWeek < 0 || dayOfWeek > 6)) {
+        if (typeof dayOfWeek !== "number" || dayOfWeek < 0 || dayOfWeek > 6) {
           return NextResponse.json(
-            { error: "dayOfWeek must be null or a number between 0 (Sunday) and 6 (Saturday)" },
+            { error: "dayOfWeek must be a number between 0 (Sunday) and 6 (Saturday)" },
             { status: 400 }
           );
         }
         updateData.dayOfWeek = dayOfWeek;
         effectiveDayOfWeek = dayOfWeek;
       }
-
+      updateData.date = null;
+      updateData.holidayId = null;
+    } else if (effectiveRuleType === "SPECIFIC_DATE") {
       if (date !== undefined) {
-        if (date === null) {
-          updateData.date = null;
-          effectiveDate = null;
-        } else {
-          const parsedDate = new Date(date);
-          if (isNaN(parsedDate.getTime())) {
-            return NextResponse.json(
-              { error: "Invalid date format. Use YYYY-MM-DD format" },
-              { status: 400 }
-            );
-          }
-          updateData.date = parsedDate;
-          effectiveDate = parsedDate;
+        const parsedDate = new Date(date);
+        if (isNaN(parsedDate.getTime())) {
+          return NextResponse.json(
+            { error: "Invalid date format. Use YYYY-MM-DD format" },
+            { status: 400 }
+          );
         }
+        updateData.date = parsedDate;
+        effectiveDate = parsedDate;
       }
+      updateData.dayOfWeek = null;
+      updateData.holidayId = null;
+    } else if (effectiveRuleType === "HOLIDAY") {
+      if (holidayId !== undefined) {
+        // Verify holiday exists
+        const holiday = await prisma.holidayDate.findUnique({
+          where: { id: holidayId },
+        });
+        if (!holiday) {
+          return NextResponse.json(
+            { error: "Holiday not found" },
+            { status: 404 }
+          );
+        }
+        updateData.holidayId = holidayId;
+        effectiveHolidayId = holidayId;
+      }
+      updateData.dayOfWeek = null;
+      updateData.date = null;
+    } else {
+      // WEEKDAYS, WEEKENDS, ALL_DAYS
+      updateData.dayOfWeek = null;
+      updateData.date = null;
+      updateData.holidayId = null;
     }
 
     // Check for overlapping rules (excluding current rule)
     const conflictingRule = await findConflictingRule(
       courtId,
       {
+        ruleType: effectiveRuleType,
         dayOfWeek: effectiveDayOfWeek,
         date: effectiveDate,
+        holidayId: effectiveHolidayId,
         startTime: effectiveStartTime,
         endTime: effectiveEndTime,
       },
@@ -147,7 +174,7 @@ export async function PUT(
     if (conflictingRule) {
       return NextResponse.json(
         {
-          error: `Time range conflicts with existing rule (${conflictingRule.startTime}-${conflictingRule.endTime})`,
+          error: `Time range conflicts with existing ${conflictingRule.ruleType} rule (${conflictingRule.startTime}-${conflictingRule.endTime})`,
         },
         { status: 409 }
       );
@@ -162,8 +189,10 @@ export async function PUT(
     return NextResponse.json({
       id: updatedRule.id,
       courtId: updatedRule.courtId,
+      ruleType: updatedRule.ruleType,
       dayOfWeek: updatedRule.dayOfWeek,
       date: updatedRule.date ? updatedRule.date.toISOString().split("T")[0] : null,
+      holidayId: updatedRule.holidayId,
       startTime: updatedRule.startTime,
       endTime: updatedRule.endTime,
       priceCents: updatedRule.priceCents,

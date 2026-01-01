@@ -33,8 +33,10 @@ export async function GET(
     const formattedRules = rules.map((rule) => ({
       id: rule.id,
       courtId: rule.courtId,
+      ruleType: rule.ruleType,
       dayOfWeek: rule.dayOfWeek,
       date: rule.date ? rule.date.toISOString().split("T")[0] : null,
+      holidayId: rule.holidayId,
       startTime: rule.startTime,
       endTime: rule.endTime,
       priceCents: rule.priceCents,
@@ -69,12 +71,21 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { dayOfWeek, date, startTime, endTime, priceCents } = body;
+    const { ruleType, dayOfWeek, date, holidayId, startTime, endTime, priceCents } = body;
 
     // Validate required fields
-    if (!startTime || !endTime || priceCents === undefined) {
+    if (!ruleType || !startTime || !endTime || priceCents === undefined) {
       return NextResponse.json(
-        { error: "startTime, endTime, and priceCents are required" },
+        { error: "ruleType, startTime, endTime, and priceCents are required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate ruleType
+    const validRuleTypes = ["SPECIFIC_DAY", "SPECIFIC_DATE", "WEEKDAYS", "WEEKENDS", "ALL_DAYS", "HOLIDAY"];
+    if (!validRuleTypes.includes(ruleType)) {
+      return NextResponse.json(
+        { error: `Invalid ruleType. Must be one of: ${validRuleTypes.join(", ")}` },
         { status: 400 }
       );
     }
@@ -106,27 +117,29 @@ export async function POST(
       );
     }
 
-    // Validate dayOfWeek XOR date (mutually exclusive)
-    if (dayOfWeek !== undefined && dayOfWeek !== null && date) {
-      return NextResponse.json(
-        { error: "dayOfWeek and date are mutually exclusive. Provide only one." },
-        { status: 400 }
-      );
-    }
-
-    // Validate dayOfWeek range
-    if (dayOfWeek !== undefined && dayOfWeek !== null) {
+    // Validate fields based on ruleType
+    let parsedDate: Date | null = null;
+    
+    if (ruleType === "SPECIFIC_DAY") {
+      if (dayOfWeek === undefined || dayOfWeek === null) {
+        return NextResponse.json(
+          { error: "dayOfWeek is required for SPECIFIC_DAY rules" },
+          { status: 400 }
+        );
+      }
       if (typeof dayOfWeek !== "number" || dayOfWeek < 0 || dayOfWeek > 6) {
         return NextResponse.json(
           { error: "dayOfWeek must be a number between 0 (Sunday) and 6 (Saturday)" },
           { status: 400 }
         );
       }
-    }
-
-    // Parse and validate date
-    let parsedDate: Date | null = null;
-    if (date) {
+    } else if (ruleType === "SPECIFIC_DATE") {
+      if (!date) {
+        return NextResponse.json(
+          { error: "date is required for SPECIFIC_DATE rules" },
+          { status: 400 }
+        );
+      }
       parsedDate = new Date(date);
       if (isNaN(parsedDate.getTime())) {
         return NextResponse.json(
@@ -134,12 +147,31 @@ export async function POST(
           { status: 400 }
         );
       }
+    } else if (ruleType === "HOLIDAY") {
+      if (!holidayId) {
+        return NextResponse.json(
+          { error: "holidayId is required for HOLIDAY rules" },
+          { status: 400 }
+        );
+      }
+      // Verify holiday exists
+      const holiday = await prisma.holidayDate.findUnique({
+        where: { id: holidayId },
+      });
+      if (!holiday) {
+        return NextResponse.json(
+          { error: "Holiday not found" },
+          { status: 404 }
+        );
+      }
     }
 
     // Check for overlapping rules
     const conflictingRule = await findConflictingRule(courtId, {
-      dayOfWeek: dayOfWeek ?? null,
+      ruleType,
+      dayOfWeek: ruleType === "SPECIFIC_DAY" ? dayOfWeek : null,
       date: parsedDate,
+      holidayId: ruleType === "HOLIDAY" ? holidayId : null,
       startTime: normalizedStartTime,
       endTime: normalizedEndTime,
     });
@@ -147,7 +179,7 @@ export async function POST(
     if (conflictingRule) {
       return NextResponse.json(
         {
-          error: `Time range conflicts with existing rule (${conflictingRule.startTime}-${conflictingRule.endTime})`,
+          error: `Time range conflicts with existing ${conflictingRule.ruleType} rule (${conflictingRule.startTime}-${conflictingRule.endTime})`,
         },
         { status: 409 }
       );
@@ -157,8 +189,10 @@ export async function POST(
     const rule = await prisma.courtPriceRule.create({
       data: {
         courtId,
-        dayOfWeek: dayOfWeek ?? null,
+        ruleType,
+        dayOfWeek: ruleType === "SPECIFIC_DAY" ? dayOfWeek : null,
         date: parsedDate,
+        holidayId: ruleType === "HOLIDAY" ? holidayId : null,
         startTime: normalizedStartTime,
         endTime: normalizedEndTime,
         priceCents,
@@ -169,8 +203,10 @@ export async function POST(
       {
         id: rule.id,
         courtId: rule.courtId,
+        ruleType: rule.ruleType,
         dayOfWeek: rule.dayOfWeek,
         date: rule.date ? rule.date.toISOString().split("T")[0] : null,
+        holidayId: rule.holidayId,
         startTime: rule.startTime,
         endTime: rule.endTime,
         priceCents: rule.priceCents,

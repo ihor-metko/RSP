@@ -5,8 +5,10 @@ import { Button, Input, Select, TimeInput, RadioGroup, DateInput } from "@/compo
 import { centsToDollars, dollarsToCents } from "@/utils/price";
 
 export interface PriceRuleFormData {
+  ruleType: string;
   dayOfWeek: number | null;
   date: string | null;
+  holidayId: string | null;
   startTime: string;
   endTime: string;
   priceCents: number;
@@ -17,6 +19,7 @@ interface PriceRuleFormProps {
   onSubmit: (data: PriceRuleFormData) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
+  holidays?: Array<{ id: string; name: string; date: string }>;
 }
 
 const DAY_OF_WEEK_OPTIONS = [
@@ -29,18 +32,27 @@ const DAY_OF_WEEK_OPTIONS = [
   { value: 6, label: "Saturday" },
 ];
 
+const RULE_TYPE_OPTIONS = [
+  { value: "SPECIFIC_DAY", label: "Specific Day of Week" },
+  { value: "WEEKDAYS", label: "All Weekdays (Mon-Fri)" },
+  { value: "WEEKENDS", label: "All Weekends (Sat-Sun)" },
+  { value: "SPECIFIC_DATE", label: "Specific Date" },
+  { value: "HOLIDAY", label: "Holiday" },
+  { value: "ALL_DAYS", label: "All Days" },
+];
+
 export function PriceRuleForm({
   initialValues,
   onSubmit,
   onCancel,
   isSubmitting = false,
+  holidays = [],
 }: PriceRuleFormProps) {
-  const [ruleType, setRuleType] = useState<"weekly" | "date">(
-    initialValues?.date ? "date" : "weekly"
-  );
   const [formData, setFormData] = useState<PriceRuleFormData>({
+    ruleType: initialValues?.ruleType || "SPECIFIC_DAY",
     dayOfWeek: initialValues?.dayOfWeek ?? 1, // Default to Monday
     date: initialValues?.date ?? null,
+    holidayId: initialValues?.holidayId ?? null,
     startTime: initialValues?.startTime || "09:00",
     endTime: initialValues?.endTime || "10:00",
     priceCents: initialValues?.priceCents ?? 0,
@@ -64,21 +76,15 @@ export function PriceRuleForm({
     }));
   };
 
-  const handleRuleTypeChange = (type: "weekly" | "date") => {
-    setRuleType(type);
-    if (type === "weekly") {
-      setFormData((prev) => ({
-        ...prev,
-        date: null,
-        dayOfWeek: prev.dayOfWeek ?? 1,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        dayOfWeek: null,
-        date: prev.date || new Date().toISOString().split("T")[0],
-      }));
-    }
+  const handleRuleTypeChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      ruleType: value,
+      // Reset fields based on rule type
+      dayOfWeek: value === "SPECIFIC_DAY" ? (prev.dayOfWeek ?? 1) : null,
+      date: value === "SPECIFIC_DATE" ? (prev.date || new Date().toISOString().split("T")[0]) : null,
+      holidayId: value === "HOLIDAY" ? (prev.holidayId || (holidays[0]?.id ?? null)) : null,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,20 +111,19 @@ export function PriceRuleForm({
     }
 
     // Validate date for date-specific rules
-    if (ruleType === "date" && !formData.date) {
+    if (formData.ruleType === "SPECIFIC_DATE" && !formData.date) {
       setError("Date is required for date-specific rules");
       return;
     }
 
+    // Validate holiday for holiday rules
+    if (formData.ruleType === "HOLIDAY" && !formData.holidayId) {
+      setError("Holiday is required for holiday rules");
+      return;
+    }
+
     try {
-      const submitData: PriceRuleFormData = {
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        priceCents: formData.priceCents,
-        dayOfWeek: ruleType === "weekly" ? formData.dayOfWeek : null,
-        date: ruleType === "date" ? formData.date : null,
-      };
-      await onSubmit(submitData);
+      await onSubmit(formData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save price rule");
     }
@@ -134,25 +139,21 @@ export function PriceRuleForm({
         </div>
       )}
 
-      {/* Rule Type Toggle */}
-      <RadioGroup
+      {/* Rule Type Selection */}
+      <Select
+        id="ruleType"
         label="Rule Type"
-        name="ruleType"
-        options={[
-          { value: "weekly", label: "Recurring Weekly" },
-          { value: "date", label: "Specific Date" },
-        ]}
-        value={ruleType}
-        onChange={(value) => {
-          if (value === "weekly" || value === "date") {
-            handleRuleTypeChange(value);
-          }
-        }}
+        options={RULE_TYPE_OPTIONS.map((opt) => ({
+          value: opt.value,
+          label: opt.label,
+        }))}
+        value={formData.ruleType}
+        onChange={handleRuleTypeChange}
         disabled={isSubmitting}
       />
 
-      {/* Day of Week Select (for weekly rules) */}
-      {ruleType === "weekly" && (
+      {/* Day of Week Select (for SPECIFIC_DAY rules) */}
+      {formData.ruleType === "SPECIFIC_DAY" && (
         <Select
           id="dayOfWeek"
           label="Day of Week"
@@ -171,8 +172,8 @@ export function PriceRuleForm({
         />
       )}
 
-      {/* Date Input (for date-specific rules) */}
-      {ruleType === "date" && (
+      {/* Date Input (for SPECIFIC_DATE rules) */}
+      {formData.ruleType === "SPECIFIC_DATE" && (
         <DateInput
           label="Date"
           value={formData.date ?? ""}
@@ -185,6 +186,53 @@ export function PriceRuleForm({
           placeholder="Select date"
           disabled={isSubmitting}
         />
+      )}
+
+      {/* Holiday Selection (for HOLIDAY rules) */}
+      {formData.ruleType === "HOLIDAY" && (
+        <>
+          {holidays.length > 0 ? (
+            <Select
+              id="holidayId"
+              label="Holiday"
+              options={holidays.map((h) => ({
+                value: h.id,
+                label: `${h.name} (${new Date(h.date).toLocaleDateString()})`,
+              }))}
+              value={formData.holidayId ?? ""}
+              onChange={(value) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  holidayId: value || null,
+                }));
+              }}
+              disabled={isSubmitting}
+            />
+          ) : (
+            <div className="text-sm text-gray-500 dark:text-gray-400 p-3 bg-gray-100 dark:bg-gray-800 rounded-sm">
+              No holidays configured. Please add holidays first in club settings.
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Helper text for special rule types */}
+      {formData.ruleType === "WEEKDAYS" && (
+        <div className="text-sm text-gray-600 dark:text-gray-400 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-sm">
+          This rule will apply to all weekdays (Monday through Friday).
+        </div>
+      )}
+
+      {formData.ruleType === "WEEKENDS" && (
+        <div className="text-sm text-gray-600 dark:text-gray-400 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-sm">
+          This rule will apply to all weekends (Saturday and Sunday).
+        </div>
+      )}
+
+      {formData.ruleType === "ALL_DAYS" && (
+        <div className="text-sm text-gray-600 dark:text-gray-400 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-sm">
+          This rule will apply to every day of the week.
+        </div>
       )}
 
       {/* Time Range */}

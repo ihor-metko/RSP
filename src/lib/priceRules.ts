@@ -149,8 +149,67 @@ export async function getResolvedPriceForSlot(
 }
 
 /**
+ * Helper to check if a rule applies to a given date.
+ */
+function ruleAppliesToDate(
+  rule: {
+    ruleType: string;
+    dayOfWeek: number | null;
+    date: Date | null;
+    holidayId: string | null;
+  },
+  targetDate: Date,
+  targetDayOfWeek: number,
+  holidayDates: Set<string>
+): boolean {
+  const dateStr = targetDate.toISOString().split("T")[0];
+  
+  switch (rule.ruleType) {
+    case "SPECIFIC_DATE":
+      return rule.date !== null && rule.date.toISOString().split("T")[0] === dateStr;
+    
+    case "SPECIFIC_DAY":
+      return rule.dayOfWeek === targetDayOfWeek;
+    
+    case "WEEKDAYS":
+      // Monday (1) to Friday (5)
+      return targetDayOfWeek >= 1 && targetDayOfWeek <= 5;
+    
+    case "WEEKENDS":
+      // Saturday (6) and Sunday (0)
+      return targetDayOfWeek === 0 || targetDayOfWeek === 6;
+    
+    case "ALL_DAYS":
+      return true;
+    
+    case "HOLIDAY":
+      return holidayDates.has(dateStr);
+    
+    default:
+      return false;
+  }
+}
+
+/**
+ * Get priority for a rule type (higher number = higher priority).
+ */
+function getRulePriority(ruleType: string): number {
+  const priorities: Record<string, number> = {
+    SPECIFIC_DATE: 6,  // Highest priority
+    HOLIDAY: 5,
+    SPECIFIC_DAY: 4,
+    WEEKDAYS: 3,
+    WEEKENDS: 2,
+    ALL_DAYS: 1,      // Lowest priority
+  };
+  return priorities[ruleType] || 0;
+}
+
+/**
  * Get price timeline for a day - returns list of time segments with resolved price.
  * Used for court page and club today preview.
+ * 
+ * Priority order: SPECIFIC_DATE > HOLIDAY > SPECIFIC_DAY > WEEKDAYS > WEEKENDS > ALL_DAYS
  * 
  * @param courtId - The court ID
  * @param date - Date string in YYYY-MM-DD format
@@ -163,50 +222,72 @@ export async function getPriceTimelineForDay(
   const dayOfWeek = getDayOfWeek(date);
   const dateObj = new Date(date);
 
-  // Fetch all applicable rules for this court and date
-  const rules = await prisma.courtPriceRule.findMany({
-    where: {
-      courtId,
-      OR: [
-        // Exact date match
-        { date: dateObj },
-        // Day of week match (no specific date)
-        {
-          date: null,
-          dayOfWeek,
-        },
-        // Rules that apply to all days (dayOfWeek is null and date is null)
-        {
-          date: null,
-          dayOfWeek: null,
-        },
-      ],
-    },
-    orderBy: [
-      // Prefer exact date rules first, then dayOfWeek rules
-      { date: "desc" },
-      { startTime: "asc" },
-    ],
+  // Get court to access club for holidays
+  const court = await prisma.court.findUnique({
+    where: { id: courtId },
+    select: { clubId: true },
   });
 
-  if (rules.length === 0) {
+  if (!court) {
     return [];
   }
 
-  // Group rules by priority: date-specific first, then dayOfWeek-specific, then general
-  const dateRules = rules.filter((r) => r.date !== null);
-  const dayOfWeekRules = rules.filter((r) => r.date === null && r.dayOfWeek !== null);
-  const generalRules = rules.filter((r) => r.date === null && r.dayOfWeek === null);
+  // Fetch holidays for the club that match this date
+  const holidays = await prisma.holidayDate.findMany({
+    where: {
+      clubId: court.clubId,
+      OR: [
+        { date: dateObj },
+        // Recurring holidays with same month-day
+        {
+          recurring: true,
+          date: {
+            gte: new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()),
+            lt: new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate() + 1),
+          },
+        },
+      ],
+    },
+  });
 
-  // Merge rules with priority: date > dayOfWeek > general
-  // For overlapping time ranges, higher priority wins
-  const allRulesInPriority = [...dateRules, ...dayOfWeekRules, ...generalRules];
+  const holidayDates = new Set(holidays.map((h) => h.date.toISOString().split("T")[0]));
+  const holidayIds = new Set(holidays.map((h) => h.id));
+
+  // Fetch all rules for this court
+  const allRules = await prisma.courtPriceRule.findMany({
+    where: { courtId },
+    orderBy: [{ startTime: "asc" }],
+  });
+
+  // Filter rules that apply to this date
+  const applicableRules = allRules.filter((rule) =>
+    ruleAppliesToDate(
+      {
+        ruleType: rule.ruleType,
+        dayOfWeek: rule.dayOfWeek,
+        date: rule.date,
+        holidayId: rule.holidayId,
+      },
+      dateObj,
+      dayOfWeek,
+      holidayDates
+    ) && (rule.ruleType !== "HOLIDAY" || (rule.holidayId && holidayIds.has(rule.holidayId)))
+  );
+
+  if (applicableRules.length === 0) {
+    return [];
+  }
+
+  // Sort by priority (higher priority first)
+  const rulesByPriority = applicableRules.sort(
+    (a, b) => getRulePriority(b.ruleType) - getRulePriority(a.ruleType)
+  );
 
   // Build a timeline by processing rules in priority order
   const timeline: PriceSegment[] = [];
   const coveredRanges: Array<{ start: number; end: number }> = [];
 
-  for (const rule of allRulesInPriority) {
+  for (const rule of rulesByPriority) {
     const ruleStart = timeToMinutes(rule.startTime);
     const ruleEnd = timeToMinutes(rule.endTime);
 
@@ -314,28 +395,52 @@ function mergeContiguousSegments(segments: PriceSegment[]): PriceSegment[] {
 export async function findConflictingRule(
   courtId: string,
   newRule: {
+    ruleType: string;
     dayOfWeek?: number | null;
     date?: Date | null;
+    holidayId?: string | null;
     startTime: string;
     endTime: string;
   },
   excludeRuleId?: string
-): Promise<{ id: string; startTime: string; endTime: string } | null> {
+): Promise<{ id: string; startTime: string; endTime: string; ruleType: string } | null> {
   const whereClause: Record<string, unknown> = {
     courtId,
     ...(excludeRuleId && { NOT: { id: excludeRuleId } }),
   };
 
-  // Match rules with the same date or dayOfWeek
-  if (newRule.date) {
-    whereClause.date = newRule.date;
-  } else if (newRule.dayOfWeek !== undefined && newRule.dayOfWeek !== null) {
-    whereClause.dayOfWeek = newRule.dayOfWeek;
-    whereClause.date = null;
-  } else {
-    // General rule (applies to all days)
-    whereClause.dayOfWeek = null;
-    whereClause.date = null;
+  // Match rules based on ruleType
+  switch (newRule.ruleType) {
+    case "SPECIFIC_DATE":
+      whereClause.ruleType = "SPECIFIC_DATE";
+      whereClause.date = newRule.date;
+      break;
+    
+    case "SPECIFIC_DAY":
+      whereClause.ruleType = "SPECIFIC_DAY";
+      whereClause.dayOfWeek = newRule.dayOfWeek;
+      break;
+    
+    case "WEEKDAYS":
+      whereClause.ruleType = "WEEKDAYS";
+      break;
+    
+    case "WEEKENDS":
+      whereClause.ruleType = "WEEKENDS";
+      break;
+    
+    case "ALL_DAYS":
+      whereClause.ruleType = "ALL_DAYS";
+      break;
+    
+    case "HOLIDAY":
+      whereClause.ruleType = "HOLIDAY";
+      whereClause.holidayId = newRule.holidayId;
+      break;
+    
+    default:
+      // Unknown rule type, check all rules
+      break;
   }
 
   const existingRules = await prisma.courtPriceRule.findMany({
@@ -344,6 +449,7 @@ export async function findConflictingRule(
       id: true,
       startTime: true,
       endTime: true,
+      ruleType: true,
     },
   });
 

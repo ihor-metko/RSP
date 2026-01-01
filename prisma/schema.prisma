@@ -273,6 +273,7 @@ model Club {
   invites          Invite[]         // Invites for club roles
   dailyStatistics  ClubDailyStatistics[] // Daily occupancy statistics
   monthlyStatistics ClubMonthlyStatistics[] // Monthly occupancy statistics
+  holidays         HolidayDate[]    // Club-specific holidays
 
   @@index([organizationId])
 }
@@ -343,20 +344,53 @@ model Court {
   courtPriceRules CourtPriceRule[]
 }
 
-model CourtPriceRule {
-  id         String    @id @default(uuid())
-  courtId    String
-  dayOfWeek  Int?      // 0=Sunday .. 6=Saturday OR null = applies to all days
-  date       DateTime? @db.Date // optional exact date override (mutually exclusive with dayOfWeek)
-  startTime  String    // "09:00" format
-  endTime    String    // "12:00" format
-  priceCents Int
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+// Price rule type enum
+enum PriceRuleType {
+  SPECIFIC_DAY      // Specific day of week (dayOfWeek field used)
+  SPECIFIC_DATE     // Specific date (date field used)
+  WEEKDAYS          // Monday-Friday
+  WEEKENDS          // Saturday-Sunday
+  ALL_DAYS          // Every day
+  HOLIDAY           // Holiday dates (uses holidayId)
+}
 
-  court Court @relation(fields: [courtId], references: [id], onDelete: Cascade)
+model CourtPriceRule {
+  id         String        @id @default(uuid())
+  courtId    String
+  ruleType   PriceRuleType @default(SPECIFIC_DAY) // Type of rule
+  dayOfWeek  Int?          // 0=Sunday .. 6=Saturday (used when ruleType=SPECIFIC_DAY)
+  date       DateTime?     @db.Date // Specific date (used when ruleType=SPECIFIC_DATE)
+  holidayId  String?       // Reference to holiday (used when ruleType=HOLIDAY)
+  startTime  String        // "09:00" format
+  endTime    String        // "12:00" format
+  priceCents Int
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  court   Court        @relation(fields: [courtId], references: [id], onDelete: Cascade)
+  holiday HolidayDate? @relation(fields: [holidayId], references: [id], onDelete: Cascade)
 
   @@index([courtId])
+  @@index([holidayId])
+}
+
+// Holiday dates model - for managing custom holidays
+model HolidayDate {
+  id          String   @id @default(uuid())
+  clubId      String
+  name        String   // e.g., "Christmas Day", "New Year"
+  date        DateTime @db.Date
+  recurring   Boolean  @default(false) // If true, applies every year
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  club            Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  courtPriceRules CourtPriceRule[]
+
+  @@unique([clubId, date, name])
+  @@index([clubId])
+  @@index([date])
 }
 
 model Coach {

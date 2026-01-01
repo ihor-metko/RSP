@@ -13,13 +13,21 @@ import { useUserStore } from "@/stores/useUserStore";
 interface PriceRule {
   id: string;
   courtId: string;
+  ruleType: string;
   dayOfWeek: number | null;
   date: string | null;
+  holidayId: string | null;
   startTime: string;
   endTime: string;
   priceCents: number;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Holiday {
+  id: string;
+  name: string;
+  date: string;
 }
 
 interface Court {
@@ -57,6 +65,7 @@ export default function PriceRulesPage({
   const [courtId, setCourtId] = useState<string | null>(null);
   const [court, setCourt] = useState<Court | null>(null);
   const [rules, setRules] = useState<PriceRule[]>([]);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -103,6 +112,15 @@ export default function PriceRulesPage({
     try {
       const courtData = await ensureCourtByIdFromStore(courtId);
       setCourt(courtData as Court);
+      
+      // Fetch holidays for the club
+      if (courtData?.clubId) {
+        const holidaysResponse = await fetch(`/api/admin/clubs/${courtData.clubId}/holidays`);
+        if (holidaysResponse.ok) {
+          const holidaysData = await holidaysResponse.json();
+          setHolidays(holidaysData.holidays || []);
+        }
+      }
     } catch {
       setError("Failed to load court");
     }
@@ -209,13 +227,35 @@ export default function PriceRulesPage({
   };
 
   const formatRuleDay = (rule: PriceRule): string => {
-    if (rule.date) {
-      return new Date(rule.date).toLocaleDateString();
+    switch (rule.ruleType) {
+      case "SPECIFIC_DATE":
+        return rule.date ? new Date(rule.date).toLocaleDateString() : "Unknown";
+      case "SPECIFIC_DAY":
+        return rule.dayOfWeek !== null ? DAY_OF_WEEK_LABELS[rule.dayOfWeek] : "Unknown";
+      case "WEEKDAYS":
+        return "Weekdays (Mon-Fri)";
+      case "WEEKENDS":
+        return "Weekends (Sat-Sun)";
+      case "ALL_DAYS":
+        return "All Days";
+      case "HOLIDAY":
+        const holiday = holidays.find((h) => h.id === rule.holidayId);
+        return holiday ? `Holiday: ${holiday.name}` : "Holiday (deleted)";
+      default:
+        return "Unknown";
     }
-    if (rule.dayOfWeek !== null) {
-      return DAY_OF_WEEK_LABELS[rule.dayOfWeek];
-    }
-    return "All days";
+  };
+
+  const getRuleTypeLabel = (ruleType: string): string => {
+    const labels: Record<string, string> = {
+      SPECIFIC_DATE: "Specific Date",
+      SPECIFIC_DAY: "Day of Week",
+      WEEKDAYS: "Weekdays",
+      WEEKENDS: "Weekends",
+      ALL_DAYS: "All Days",
+      HOLIDAY: "Holiday",
+    };
+    return labels[ruleType] || ruleType;
   };
 
   if (status === "loading" || loading) {
@@ -275,6 +315,7 @@ export default function PriceRulesPage({
                   className="border-b"
                   style={{ borderColor: "var(--rsp-border)" }}
                 >
+                  <th className="py-3 px-4 font-semibold">Type</th>
                   <th className="py-3 px-4 font-semibold">Day/Date</th>
                   <th className="py-3 px-4 font-semibold">Start Time</th>
                   <th className="py-3 px-4 font-semibold">End Time</th>
@@ -285,7 +326,7 @@ export default function PriceRulesPage({
               <tbody>
                 {rules.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-gray-500">
+                    <td colSpan={6} className="py-8 text-center text-gray-500">
                       No price rules defined. Default court price will be used.
                     </td>
                   </tr>
@@ -297,12 +338,12 @@ export default function PriceRulesPage({
                       style={{ borderColor: "var(--rsp-border)" }}
                     >
                       <td className="py-3 px-4">
+                        <span className="text-xs px-2 py-1 rounded-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                          {getRuleTypeLabel(rule.ruleType)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
                         <span className="font-medium">{formatRuleDay(rule)}</span>
-                        {rule.date && (
-                          <span className="ml-2 text-xs px-2 py-0.5 rounded-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                            Specific date
-                          </span>
-                        )}
                       </td>
                       <td className="py-3 px-4">{rule.startTime}</td>
                       <td className="py-3 px-4">{rule.endTime}</td>
@@ -343,8 +384,10 @@ export default function PriceRulesPage({
           initialValues={
             editingRule
               ? {
+                ruleType: editingRule.ruleType,
                 dayOfWeek: editingRule.dayOfWeek,
                 date: editingRule.date,
+                holidayId: editingRule.holidayId,
                 startTime: editingRule.startTime,
                 endTime: editingRule.endTime,
                 priceCents: editingRule.priceCents,
@@ -354,6 +397,7 @@ export default function PriceRulesPage({
           onSubmit={handleSubmit}
           onCancel={handleCloseModal}
           isSubmitting={submitting}
+          holidays={holidays}
         />
       </Modal>
 
