@@ -16,15 +16,6 @@ interface ClubSpecialDatesViewProps {
   disabledTooltip?: string;
 }
 
-function formatTime(time: string | null, t: (key: string) => string): string {
-  if (!time) return "";
-  const [hours, minutes] = time.split(":");
-  const h = parseInt(hours, 10);
-  const ampm = h >= 12 ? t("pm") : t("am");
-  const h12 = h % 12 || 12;
-  return `${h12}:${minutes} ${ampm}`;
-}
-
 function formatDateShort(dateString: string): string {
   const date = new Date(dateString);
   const month = date.toLocaleDateString('en-US', { month: 'short' });
@@ -176,7 +167,7 @@ export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }
                   <span className="im-special-dates-status">
                     {hour.isClosed
                       ? t("closed")
-                      : `${formatTime(hour.openTime, t)} - ${formatTime(hour.closeTime, t)} ${t("opened")}`}
+                      : `${hour.openTime} - ${hour.closeTime}`}
                   </span>
                 </div>
               </div>

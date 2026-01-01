@@ -18,15 +18,6 @@ interface ClubHoursViewProps {
   disabledTooltip?: string;
 }
 
-function formatTime(time: string | null): string {
-  if (!time) return "";
-  const [hours, minutes] = time.split(":");
-  const h = parseInt(hours, 10);
-  const ampm = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 || 12;
-  return `${h12}:${minutes} ${ampm}`;
-}
-
 function initializeBusinessHours(existing: ClubBusinessHours[]): BusinessHour[] {
   const hours: BusinessHour[] = [];
   for (let i = 0; i < 7; i++) {
@@ -138,7 +129,7 @@ export function ClubHoursView({ club, disabled = false, disabledTooltip }: ClubH
                 <span className="im-hours-view-time">
                   {hour.isClosed
                     ? t("businessHours.closed")
-                    : `${formatTime(hour.openTime)} - ${formatTime(hour.closeTime)}`}
+                    : `${hour.openTime} - ${hour.closeTime}`}
                 </span>
               </div>
             ))
