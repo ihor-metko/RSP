@@ -263,6 +263,7 @@ model Club {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @default(now()) @updatedAt
   courts           Court[]
+  courtGroups      CourtGroup[]     // Court groups for pricing management
   coaches          Coach[]
   pricingRules     PricingRule[]
   gallery          ClubGallery[]
@@ -321,24 +322,68 @@ model ClubSpecialHours {
   @@index([clubId])
 }
 
+// Court Group - groups courts by surface, color (type), and gameType for pricing management
+model CourtGroup {
+  id                String   @id @default(uuid())
+  clubId            String
+  name              String   // Auto-generated name (e.g., "Hard Blue Singles")
+  surface           String?  // Surface type (hard, clay, synthetic, etc.)
+  color             String?  // Color/type (blue, green, etc.) - maps to Court.type
+  gameType          String?  // Game type (single, double, etc.)
+  sportType         SportType @default(PADEL) // Type of sport for this group
+  defaultPriceCents Int      @default(0) // Default price for the group
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  club            Club             @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  courts          Court[]          // Courts in this group
+  groupPriceRules CourtGroupPriceRule[] // Price rules for the group
+
+  @@unique([clubId, surface, color, gameType, sportType])
+  @@index([clubId])
+}
+
+// Price rules for court groups
+model CourtGroupPriceRule {
+  id          String    @id @default(uuid())
+  groupId     String
+  dayOfWeek   Int?      // 0=Sunday .. 6=Saturday OR null = applies to all days
+  date        DateTime? @db.Date // optional exact date override (mutually exclusive with dayOfWeek)
+  startTime   String    // "09:00" format
+  endTime     String    // "12:00" format
+  priceCents  Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  group CourtGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([groupId])
+}
+
 model Court {
   id                String        @id @default(uuid())
   clubId            String
+  groupId           String?       // Optional: court belongs to a group for pricing
   name              String
   slug              String?       @unique
-  type              String?
-  surface           String?
+  type              String?       // Color/type (e.g., "blue", "green") - used for grouping
+  surface           String?       // Surface type (e.g., "hard", "clay") - used for grouping
+  gameType          String?       // Game type (e.g., "single", "double") - used for grouping
   indoor            Boolean       @default(false)
   sportType         SportType     @default(PADEL) // Type of sport for this court
   isActive          Boolean       @default(true)
-  defaultPriceCents Int           @default(0)
+  defaultPriceCents Int           @default(0) // Individual override price (if not using group pricing)
+  useGroupPricing   Boolean       @default(true) // Whether to use group pricing or individual pricing
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
   club            Club             @relation(fields: [clubId], references: [id])
+  group           CourtGroup?      @relation(fields: [groupId], references: [id], onDelete: SetNull)
   bookings        Booking[]
   pricingRules    PricingRule[]
-  courtPriceRules CourtPriceRule[]
+  courtPriceRules CourtPriceRule[] // Individual price rules (overrides)
+
+  @@index([groupId])
 }
 
 model CourtPriceRule {

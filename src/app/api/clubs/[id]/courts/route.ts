@@ -173,7 +173,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, defaultPriceCents } = body;
+    const { name, slug, type, surface, gameType, indoor, sportType, defaultPriceCents, useGroupPricing } = body;
 
     // Validate required fields
     if (!name || typeof name !== "string" || name.trim() === "") {
@@ -211,6 +211,23 @@ export async function POST(
       );
     }
 
+    const courtSportType = sportType || "PADEL";
+    const shouldUseGroupPricing = useGroupPricing ?? true;
+
+    // Find or create appropriate group if using group pricing
+    let groupId: string | null = null;
+    if (shouldUseGroupPricing) {
+      const { findOrCreateCourtGroup } = await import("@/lib/courtGrouping");
+      groupId = await findOrCreateCourtGroup(
+        clubId,
+        surface?.trim() || null,
+        type?.trim() || null, // type is used as color
+        gameType?.trim() || null,
+        courtSportType,
+        defaultPriceCents ?? 0
+      );
+    }
+
     // Create the court
     const court = await prisma.court.create({
       data: {
@@ -219,22 +236,28 @@ export async function POST(
         slug: slug?.trim() || null,
         type: type?.trim() || null,
         surface: surface?.trim() || null,
+        gameType: gameType?.trim() || null,
         indoor: indoor ?? false,
-        sportType: sportType || "PADEL",
+        sportType: courtSportType,
         isActive: true,
         defaultPriceCents: defaultPriceCents ?? 0,
+        useGroupPricing: shouldUseGroupPricing,
+        groupId,
       },
       select: {
         id: true,
         clubId: true,
+        groupId: true,
         name: true,
         slug: true,
         type: true,
         surface: true,
+        gameType: true,
         indoor: true,
         sportType: true,
         isActive: true,
         defaultPriceCents: true,
+        useGroupPricing: true,
         createdAt: true,
         updatedAt: true,
       },

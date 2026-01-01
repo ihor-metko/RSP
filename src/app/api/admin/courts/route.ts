@@ -141,10 +141,13 @@ export async function GET(request: Request) {
         slug: true,
         type: true,
         surface: true,
+        gameType: true,
         indoor: true,
         sportType: true,
         isActive: true,
         defaultPriceCents: true,
+        useGroupPricing: true,
+        groupId: true,
         createdAt: true,
         updatedAt: true,
         club: {
@@ -158,6 +161,17 @@ export async function GET(request: Request) {
                 name: true,
               },
             },
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
+            surface: true,
+            color: true,
+            gameType: true,
+            sportType: true,
+            defaultPriceCents: true,
           },
         },
         _count: {
@@ -175,10 +189,13 @@ export async function GET(request: Request) {
       slug: court.slug,
       type: court.type,
       surface: court.surface,
+      gameType: court.gameType,
       indoor: court.indoor,
       sportType: court.sportType,
       isActive: court.isActive,
       defaultPriceCents: court.defaultPriceCents,
+      useGroupPricing: court.useGroupPricing,
+      groupId: court.groupId,
       createdAt: court.createdAt,
       updatedAt: court.updatedAt,
       club: {
@@ -190,6 +207,10 @@ export async function GET(request: Request) {
             id: court.club.organization.id,
             name: court.club.organization.name,
           }
+        : null,
+      group: court.group,
+      bookingCount: court._count.bookings,
+    }));
         : null,
       bookingCount: court._count.bookings,
     }));

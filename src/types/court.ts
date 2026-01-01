@@ -1,18 +1,49 @@
 import { SportType } from "@/constants/sports";
 
+export interface CourtGroup {
+  id: string;
+  clubId: string;
+  name: string;
+  surface: string | null;
+  color: string | null;
+  gameType: string | null;
+  sportType: SportType;
+  defaultPriceCents: number;
+  createdAt: string;
+  updatedAt: string;
+  courts?: Court[];
+  groupPriceRules?: CourtGroupPriceRule[];
+}
+
+export interface CourtGroupPriceRule {
+  id: string;
+  groupId: string;
+  dayOfWeek: number | null;
+  date: string | null;
+  startTime: string;
+  endTime: string;
+  priceCents: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Court {
   id: string;
   name: string;
   clubId?: string; // Optional for backward compatibility
+  groupId?: string | null;
   slug?: string | null;
-  type?: string | null;
+  type?: string | null; // Color/type (e.g., "blue", "green") - used for grouping
   surface?: string | null;
+  gameType?: string | null; // Game type (e.g., "single", "double") - used for grouping
   indoor: boolean;
   sportType?: SportType | null;
   defaultPriceCents: number;
+  useGroupPricing?: boolean; // Whether to use group pricing or individual pricing
   imageUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  group?: CourtGroup;
 }
 
 /**
@@ -31,6 +62,7 @@ export interface CourtWithClubInfo extends Court {
     name: string;
   } | null;
   bookingCount?: number;
+  group?: CourtGroup;
 }
 
 /**
@@ -68,11 +100,13 @@ export interface CourtDetail extends Court {
 export interface CreateCourtPayload {
   name: string;
   slug?: string | null;
-  type?: string | null;
+  type?: string | null; // Color/type for grouping
   surface?: string | null;
+  gameType?: string | null; // Game type for grouping
   indoor?: boolean;
   sportType?: SportType;
   defaultPriceCents?: number;
+  useGroupPricing?: boolean;
 }
 
 /**
@@ -81,11 +115,14 @@ export interface CreateCourtPayload {
 export interface UpdateCourtPayload {
   name?: string;
   slug?: string | null;
-  type?: string | null;
+  type?: string | null; // Color/type for grouping
   surface?: string | null;
+  gameType?: string | null; // Game type for grouping
   indoor?: boolean;
   sportType?: SportType;
   defaultPriceCents?: number;
+  useGroupPricing?: boolean;
+  groupId?: string | null;
 }
 
 export interface AvailabilitySlot {
