@@ -4,6 +4,7 @@
 .im-time-input-wrapper {
   display: block;
   width: 100%;
+  max-width: 100px;
 }
 
 .im-time-input-label {
@@ -81,13 +82,13 @@
   opacity: 0.8;
 }
 
-.im-time-input:focus ~ .im-time-input-icon {
+.im-time-input:focus~.im-time-input-icon {
   color: var(--im-primary);
   opacity: 0.8;
 }
 
 .im-time-input-icon:disabled,
-.im-time-input:disabled ~ .im-time-input-icon {
+.im-time-input:disabled~.im-time-input-icon {
   opacity: 0.3;
   cursor: not-allowed;
 }

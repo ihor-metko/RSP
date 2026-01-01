@@ -9,13 +9,12 @@
 }
 
 .rsp-checkbox {
-  @apply w-5 h-5 rounded cursor-pointer;
-  @apply transition-all duration-200;
-  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  @apply w-5 h-5 rounded cursor-pointer transition-all duration-200;
   background-color: var(--rsp-background);
   border: 2px solid var(--rsp-border);
   appearance: none;
   position: relative;
+  outline: none;
 }
 
 .rsp-checkbox:checked {
@@ -50,6 +49,6 @@
   color: var(--rsp-foreground);
 }
 
-.rsp-checkbox:disabled + .rsp-checkbox-text {
+.rsp-checkbox:disabled+.rsp-checkbox-text {
   @apply opacity-50;
 }
