@@ -13,7 +13,7 @@ import {
   CourtPreview,
 } from "@/components/admin/court";
 import { CourtEditor } from "@/components/admin/CourtEditor.client";
-import { useCourtStore } from "@/stores/useCourtStore";
+import { useAdminCourtsStore } from "@/stores/useAdminCourtsStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useCanEditClub } from "@/hooks/useCanEditClub";
 import { parseCourtMetadata } from "@/utils/court-metadata";
@@ -45,7 +45,8 @@ export default function CourtDetailPage({
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Use court store
-  const loadingCourts = useCourtStore((state) => state.loadingCourts);
+  const loadingCourts = useAdminCourtsStore((state) => state.loadingCourts);
+  const ensureCourtByIdFromStore = useAdminCourtsStore((state) => state.ensureCourtById);
 
   // Local state for court - using store's CourtDetail type
   const [court, setCourt] = useState<StoreCourtDetail | null>(null);
@@ -62,13 +63,25 @@ export default function CourtDetailPage({
     });
   }, [params]);
 
-  const ensureCourtByIdFromStore = useCourtStore((state) => state.ensureCourtById);
-
   const fetchCourt = useCallback(async () => {
     if (!courtId) return;
 
     try {
-      const courtData = await ensureCourtByIdFromStore(courtId);
+      // First fetch to get clubId, then use it for proper admin store fetching
+      // We need clubId for the admin store architecture
+      const response = await fetch(`/api/admin/courts/${courtId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError("Court not found");
+        } else if (response.status === 401 || response.status === 403) {
+          router.push("/auth/sign-in");
+        } else {
+          setError("Failed to load court");
+        }
+        return;
+      }
+      
+      const courtData = await response.json();
       setCourt(courtData);
     } catch (err) {
       if (err instanceof Error) {
@@ -83,7 +96,7 @@ export default function CourtDetailPage({
         setError("Failed to load court");
       }
     }
-  }, [ensureCourtByIdFromStore, courtId, router]);
+  }, [courtId, router]);
 
   useEffect(() => {
     if (!isHydrated || isLoading) return;

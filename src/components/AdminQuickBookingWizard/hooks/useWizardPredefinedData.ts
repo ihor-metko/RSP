@@ -1,10 +1,7 @@
-/**
- * Custom hook for initializing wizard with predefined data
- */
 import { useEffect, useState } from "react";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
-import { useCourtStore } from "@/stores/useCourtStore";
+import { useAdminCourtsStore } from "@/stores/useAdminCourtsStore";
 import type { WizardOrganization, WizardClub, WizardCourt, PredefinedData } from "../types";
 
 interface UseWizardPredefinedDataOptions {
@@ -104,20 +101,18 @@ export function useWizardPredefinedData({
             : Promise.resolve(null),
 
           // Initialize court if predefined
-          predefinedData?.courtId
+          predefinedData?.courtId && predefinedData?.clubId
             ? (async () => {
                 const courtId = predefinedData.courtId;
-                if (!courtId) return null;
+                const clubId = predefinedData.clubId;
+                if (!courtId || !clubId) return null;
 
-                const courtStore = useCourtStore.getState();
+                const courtStore = useAdminCourtsStore.getState();
                 const ensureCourtById = courtStore.ensureCourtById;
 
                 try {
-                  // Fetch court details using clubId if available
-                  const court = await ensureCourtById(
-                    courtId,
-                    { clubId: predefinedData.clubId }
-                  );
+                  // Fetch court details using admin store
+                  const court = await ensureCourtById(clubId, courtId);
 
                   // Convert CourtDetail to WizardCourt format
                   if (court) {

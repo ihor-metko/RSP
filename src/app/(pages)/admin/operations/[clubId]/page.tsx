@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { PageHeader, Button, Input, Card } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
-import { useCourtStore } from "@/stores/useCourtStore";
+import { useAdminCourtsStore } from "@/stores/useAdminCourtsStore";
 import { useBookingStore } from "@/stores/useBookingStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import {
@@ -51,7 +51,9 @@ export default function ClubOperationsPage() {
 
   // Club and courts stores
   const { clubsById, clubs, ensureClubById, loadingClubs: loadingClub, clubsError } = useAdminClubStore();
-  const { courts, fetchCourtsIfNeeded, loading: loadingCourts } = useCourtStore();
+  const courts = useAdminCourtsStore((state) => state.getCourtsForClub(clubId));
+  const fetchCourtsIfNeeded = useAdminCourtsStore((state) => state.fetchCourtsIfNeeded);
+  const loadingCourts = useAdminCourtsStore((state) => state.loadingCourts);
 
   // Booking store
   const {
@@ -152,7 +154,7 @@ export default function ClubOperationsPage() {
       setActiveClubId(clubId);
       
       ensureClubById(clubId).catch(console.error);
-      fetchCourtsIfNeeded({ clubId }).catch(console.error);
+      fetchCourtsIfNeeded(clubId).catch(console.error);
     }
 
     // Cleanup: Clear active club when leaving this page

@@ -6,7 +6,7 @@ import { Button, Card, Modal, IMLink } from "@/components/ui";
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { PriceRuleForm, PriceRuleFormData } from "@/components/admin/PriceRuleForm";
 import { formatPrice } from "@/utils/price";
-import { useCourtStore } from "@/stores/useCourtStore";
+import { useAdminCourtsStore } from "@/stores/useAdminCourtsStore";
 import { useUserStore } from "@/stores/useUserStore";
 
 
@@ -104,13 +104,18 @@ export default function PriceRulesPage({
     }
   }, [courtId]);
 
-  const ensureCourtByIdFromStore = useCourtStore((state) => state.ensureCourtById);
-
   const fetchCourt = useCallback(async () => {
     if (!courtId) return;
 
     try {
-      const courtData = await ensureCourtByIdFromStore(courtId);
+      // Fetch court directly from API (we don't have clubId yet to use the store properly)
+      const response = await fetch(`/api/admin/courts/${courtId}`);
+      if (!response.ok) {
+        setError("Failed to load court");
+        return;
+      }
+      
+      const courtData = await response.json();
       setCourt(courtData as Court);
       
       // Fetch holidays for the club
@@ -124,7 +129,7 @@ export default function PriceRulesPage({
     } catch {
       setError("Failed to load court");
     }
-  }, [ensureCourtByIdFromStore, courtId]);
+  }, [courtId]);
 
   useEffect(() => {
     if (!isHydrated || isLoading) return;

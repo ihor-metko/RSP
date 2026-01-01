@@ -7,6 +7,15 @@ import type {
 } from "@/types/court";
 
 /**
+ * DEPRECATED: This store is being phased out in favor of context-specific stores.
+ * 
+ * For player-facing court data, use: usePlayerClubStore (courtsByClubId)
+ * For admin court operations, use: useAdminCourtsStore
+ * 
+ * This generic court store should NOT be used for new code as it mixes
+ * player and admin concerns. It remains temporarily for backward compatibility
+ * with legacy code that will be gradually migrated.
+ * 
  * Zustand store for managing courts for clubs
  * 
  * This store provides a centralized, reusable state management solution for courts
