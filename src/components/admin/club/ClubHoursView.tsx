@@ -94,28 +94,28 @@ export function ClubHoursView({ club, onRefresh, disabled = false, disabledToolt
     setIsSaving(true);
     setError("");
     try {
-      // Update business hours via /business-hours endpoint
-      const businessHoursResponse = await fetch(`/api/admin/clubs/${club.id}/business-hours`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          businessHours: businessHours,
+      // Update both business hours and special hours in parallel
+      const [businessHoursResponse, specialHoursResponse] = await Promise.all([
+        fetch(`/api/admin/clubs/${club.id}/business-hours`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            businessHours,
+          }),
         }),
-      });
+        fetch(`/api/admin/clubs/${club.id}/special-hours`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            specialHours,
+          }),
+        }),
+      ]);
 
       if (!businessHoursResponse.ok) {
         const data = await businessHoursResponse.json();
         throw new Error(data.error || "Failed to update business hours");
       }
-
-      // Update special hours via /special-hours endpoint
-      const specialHoursResponse = await fetch(`/api/admin/clubs/${club.id}/special-hours`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          specialHours: specialHours,
-        }),
-      });
 
       if (!specialHoursResponse.ok) {
         const data = await specialHoursResponse.json();

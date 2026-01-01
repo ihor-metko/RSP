@@ -84,34 +84,34 @@ export function ClubContactsView({ club, onRefresh, disabled = false, disabledTo
     setIsSaving(true);
     setError("");
     try {
-      // Update location data via /location endpoint
-      const locationResponse = await fetch(`/api/admin/clubs/${club.id}/location`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: formData.location.trim(),
-          city: formData.city.trim() || null,
-          country: formData.country.trim() || null,
-          latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-          longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      // Update both location and contacts in parallel
+      const [locationResponse, contactsResponse] = await Promise.all([
+        fetch(`/api/admin/clubs/${club.id}/location`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location: formData.location.trim(),
+            city: formData.city.trim() || null,
+            country: formData.country.trim() || null,
+            latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+            longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+          }),
         }),
-      });
+        fetch(`/api/admin/clubs/${club.id}/contacts`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: formData.phone.trim() || null,
+            email: formData.email.trim() || null,
+            website: formData.website.trim() || null,
+          }),
+        }),
+      ]);
 
       if (!locationResponse.ok) {
         const data = await locationResponse.json();
         throw new Error(data.error || "Failed to update location");
       }
-
-      // Update contact info via /contacts endpoint
-      const contactsResponse = await fetch(`/api/admin/clubs/${club.id}/contacts`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: formData.phone.trim() || null,
-          email: formData.email.trim() || null,
-          website: formData.website.trim() || null,
-        }),
-      });
 
       if (!contactsResponse.ok) {
         const data = await contactsResponse.json();
