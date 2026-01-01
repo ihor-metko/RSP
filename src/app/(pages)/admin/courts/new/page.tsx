@@ -675,24 +675,6 @@ export default function CreateCourtPage() {
     }
   };
 
-  // Render tab content
-  const renderTabContent = () => {
-    switch (currentTab) {
-      case "context":
-        return renderContextTab();
-      case "basic":
-        return renderBasicTab();
-      case "pricing-schedule":
-        return renderPricingScheduleTab();
-      case "media":
-        return renderMediaTab();
-      case "settings":
-        return renderSettingsTab();
-      default:
-        return null;
-    }
-  };
-
   // Context Tab (Organization & Club Selection)
   const renderContextTab = () => {
     return (
@@ -945,7 +927,7 @@ export default function CreateCourtPage() {
                 label={t("admin.courts.new.pricingScheduleTab.defaultSlotLength")}
                 options={SLOT_LENGTHS}
                 value={String(field.value)}
-                onChange={(value) => field.onChange(parseInt(value))}
+                onChange={(value) => field.onChange(Number(value))}
                 disabled={isSubmitting}
               />
             )}
@@ -1332,7 +1314,11 @@ export default function CreateCourtPage() {
 
               {ALL_TABS.map((tab) => (
                 <TabPanel key={tab.id} id={tab.id}>
-                  {renderTabContent()}
+                  {tab.id === "context" && renderContextTab()}
+                  {tab.id === "basic" && renderBasicTab()}
+                  {tab.id === "pricing-schedule" && renderPricingScheduleTab()}
+                  {tab.id === "media" && renderMediaTab()}
+                  {tab.id === "settings" && renderSettingsTab()}
                 </TabPanel>
               ))}
             </Tabs>
