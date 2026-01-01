@@ -21,6 +21,7 @@ interface BookingsPreviewData {
     todayCount: number;
     weekCount: number;
     totalUpcoming: number;
+    pastCount: number;
   };
 }
 
@@ -138,6 +139,7 @@ export const useClubBookingsStore = create<ClubBookingsState>((set, get) => ({
             todayCount: data.todayCount,
             weekCount: data.weekCount,
             totalUpcoming: data.upcomingCount,
+            pastCount: data.pastCount,
           },
         };
 

@@ -27,6 +27,7 @@ export interface BookingsOverviewResponse {
   todayCount: number;
   weekCount: number;
   upcomingCount: number;
+  pastCount: number;
   upcomingBookings: BookingPreviewItem[];
 }
 
@@ -40,6 +41,7 @@ export interface BookingsOverviewResponse {
  * - todayCount: Number of bookings today
  * - weekCount: Number of bookings this week
  * - upcomingCount: Total number of upcoming bookings
+ * - pastCount: Total number of past bookings
  * - upcomingBookings: Array of up to 10 nearest upcoming bookings
  *
  * Access control:
@@ -116,7 +118,7 @@ export async function GET(
     };
 
     // Execute aggregation queries in parallel
-    const [todayCount, weekCount, upcomingCount, upcomingBookings] = await Promise.all([
+    const [todayCount, weekCount, upcomingCount, pastCount, upcomingBookings] = await Promise.all([
       // Count bookings today
       prisma.booking.count({
         where: {
@@ -145,6 +147,16 @@ export async function GET(
           ...baseWhere,
           start: {
             gte: now,
+          },
+        },
+      }),
+
+      // Count all past bookings
+      prisma.booking.count({
+        where: {
+          ...baseWhere,
+          start: {
+            lt: now,
           },
         },
       }),
@@ -199,6 +211,7 @@ export async function GET(
       todayCount,
       weekCount,
       upcomingCount,
+      pastCount,
       upcomingBookings: bookingPreviews,
     };
 
