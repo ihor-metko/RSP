@@ -8,6 +8,14 @@ import "@testing-library/jest-dom";
 import { ClubSpecialDatesView } from "@/components/admin/club/ClubSpecialDatesView";
 import type { ClubDetail } from "@/types/club";
 
+// Mock useAdminClubStore
+const mockUpdateClubInStore = jest.fn();
+jest.mock("@/stores/useAdminClubStore", () => ({
+  useAdminClubStore: (selector: (state: { updateClubInStore: typeof mockUpdateClubInStore }) => unknown) => {
+    return selector({ updateClubInStore: mockUpdateClubInStore });
+  },
+}));
+
 // Mock next-intl
 jest.mock("next-intl", () => ({
   useTranslations: (namespace: string) => {
@@ -153,12 +161,9 @@ describe("ClubSpecialDatesView", () => {
   });
 
   it("should render special dates list", () => {
-    const mockRefresh = jest.fn();
-    
     render(
       <ClubSpecialDatesView
         club={mockClub}
-        onRefresh={mockRefresh}
       />
     );
 
@@ -173,12 +178,10 @@ describe("ClubSpecialDatesView", () => {
 
   it("should show empty state when no special dates", () => {
     const clubWithNoSpecialDates = { ...mockClub, specialHours: [] };
-    const mockRefresh = jest.fn();
     
     render(
       <ClubSpecialDatesView
         club={clubWithNoSpecialDates}
-        onRefresh={mockRefresh}
       />
     );
 
@@ -186,12 +189,9 @@ describe("ClubSpecialDatesView", () => {
   });
 
   it("should open modal when Edit button is clicked", () => {
-    const mockRefresh = jest.fn();
-    
     render(
       <ClubSpecialDatesView
         club={mockClub}
-        onRefresh={mockRefresh}
       />
     );
 
@@ -202,17 +202,16 @@ describe("ClubSpecialDatesView", () => {
     expect(screen.getByText("Edit Special Dates")).toBeInTheDocument();
   });
 
-  it("should call onRefresh when saving changes", async () => {
-    const mockRefresh = jest.fn().mockResolvedValue(undefined);
+  it("should save changes successfully", async () => {
+    const mockUpdatedClub = { ...mockClub };
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => ({}),
+      json: async () => mockUpdatedClub,
     });
     
     render(
       <ClubSpecialDatesView
         club={mockClub}
-        onRefresh={mockRefresh}
       />
     );
 
@@ -225,25 +224,20 @@ describe("ClubSpecialDatesView", () => {
     fireEvent.click(saveButton);
 
     await waitFor(() => {
-      expect(mockRefresh).toHaveBeenCalled();
+      expect(global.fetch).toHaveBeenCalledWith(
+        `/api/admin/clubs/${mockClub.id}/special-hours`,
+        expect.objectContaining({
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+        })
+      );
     });
-
-    expect(global.fetch).toHaveBeenCalledWith(
-      `/api/admin/clubs/${mockClub.id}/special-hours`,
-      expect.objectContaining({
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-      })
-    );
   });
 
   it("should disable Edit button when disabled prop is true", () => {
-    const mockRefresh = jest.fn();
-    
     render(
       <ClubSpecialDatesView
         club={mockClub}
-        onRefresh={mockRefresh}
         disabled={true}
       />
     );

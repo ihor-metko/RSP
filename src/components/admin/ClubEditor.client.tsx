@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/components/ui";
 import { BaseInfoTab, AddressTab, LogoTab, BannerTab } from "@/components/admin/EntityTabs";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import type { BaseInfoData, AddressData, LogoData, BannerData } from "@/components/admin/EntityTabs";
 import { parseClubMetadata } from "@/types/club";
 import type { ClubDetail } from "@/types/club";
@@ -23,6 +24,7 @@ export function ClubEditor({
   onRefresh,
 }: ClubEditorProps) {
   const t = useTranslations();
+  const updateClubInStore = useAdminClubStore((state) => state.updateClubInStore);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingTabId, setPendingTabId] = useState<string | null>(null);
@@ -107,9 +109,14 @@ export function ClubEditor({
       throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
     }
 
-    await onRefresh();
+    // Get updated club data from response
+    const updatedClub = await response.json();
+
+    // Update store reactively - no page reload needed
+    updateClubInStore(club.id, updatedClub);
+
     setHasUnsavedChanges(false);
-  }, [club.id, onRefresh, t]);
+  }, [club.id, t, updateClubInStore]);
 
   const handleAddressSave = useCallback(async (data: AddressData) => {
     const response = await fetch(`/api/admin/clubs/${club.id}/location`, {
@@ -129,9 +136,14 @@ export function ClubEditor({
       throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
     }
 
-    await onRefresh();
+    // Get updated club data from response
+    const updatedClub = await response.json();
+
+    // Update store reactively - no page reload needed
+    updateClubInStore(club.id, updatedClub);
+
     setHasUnsavedChanges(false);
-  }, [club.id, onRefresh, t]);
+  }, [club.id, t, updateClubInStore]);
 
   const handleLogoSave = useCallback(async (payload: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => {
     // Parse existing metadata
@@ -196,7 +208,12 @@ export function ClubEditor({
       }
     }
 
-    await onRefresh();
+    // Refetch club data after all operations complete
+    // This is necessary because file upload endpoints don't return the full club object
+    if (onRefresh) {
+      await onRefresh();
+    }
+    
     setHasUnsavedChanges(false);
   }, [club.id, club.metadata, onRefresh, t]);
 
@@ -246,7 +263,12 @@ export function ClubEditor({
       }
     }
 
-    await onRefresh();
+    // Refetch club data after all operations complete
+    // This is necessary because file upload endpoints don't return the full club object
+    if (onRefresh) {
+      await onRefresh();
+    }
+    
     setHasUnsavedChanges(false);
   }, [club.id, club.metadata, onRefresh, t]);
 

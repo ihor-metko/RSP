@@ -6,6 +6,7 @@ import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { BusinessHoursField } from "../BusinessHoursField.client";
 import { validateBusinessHours } from "../WorkingHoursEditor.client";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import type { BusinessHour } from "@/types/admin";
 import type { ClubDetail, ClubBusinessHours } from "@/types/club";
 import { DAY_TRANSLATION_KEYS } from "@/constants/workingHours";
@@ -13,7 +14,6 @@ import "./ClubHoursView.css";
 
 interface ClubHoursViewProps {
   club: ClubDetail;
-  onRefresh?: () => Promise<void>;
   disabled?: boolean;
   disabledTooltip?: string;
 }
@@ -50,8 +50,9 @@ function initializeBusinessHours(existing: ClubBusinessHours[]): BusinessHour[] 
   return hours;
 }
 
-export function ClubHoursView({ club, onRefresh, disabled = false, disabledTooltip }: ClubHoursViewProps) {
+export function ClubHoursView({ club, disabled = false, disabledTooltip }: ClubHoursViewProps) {
   const t = useTranslations();
+  const updateClubInStore = useAdminClubStore((state) => state.updateClubInStore);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -81,25 +82,24 @@ export function ClubHoursView({ club, onRefresh, disabled = false, disabledToolt
     setIsSaving(true);
     setError("");
     try {
-      const [businessHoursResponse] = await Promise.all([
-        fetch(`/api/admin/clubs/${club.id}/business-hours`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            businessHours,
-          }),
+      const businessHoursResponse = await fetch(`/api/admin/clubs/${club.id}/business-hours`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessHours,
         }),
-      ]);
+      });
 
       if (!businessHoursResponse.ok) {
         const data = await businessHoursResponse.json();
         throw new Error(data.error || "Failed to update business hours");
       }
 
-      // Refresh club data to reflect changes
-      if (onRefresh) {
-        await onRefresh();
-      }
+      // Get updated club data from response
+      const updatedClub = await businessHoursResponse.json();
+
+      // Update store reactively - no page reload needed
+      updateClubInStore(club.id, updatedClub);
 
       setIsEditing(false);
     } catch (err) {
@@ -107,7 +107,7 @@ export function ClubHoursView({ club, onRefresh, disabled = false, disabledToolt
     } finally {
       setIsSaving(false);
     }
-  }, [businessHours, club.id, onRefresh]);
+  }, [businessHours, club.id, updateClubInStore]);
 
   return (
     <>

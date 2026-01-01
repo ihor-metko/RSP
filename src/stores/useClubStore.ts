@@ -56,6 +56,9 @@ interface ClubState {
   ensureClubById: (id: string, options?: { force?: boolean }) => Promise<ClubDetail>;
   invalidateClubs: () => void;
   
+  // Reactive update method
+  updateClubInStore: (clubId: string, updatedClub: ClubDetail) => void;
+  
   createClub: (payload: CreateClubPayload) => Promise<Club>;
   updateClub: (id: string, payload: UpdateClubPayload) => Promise<Club>;
   deleteClub: (id: string) => Promise<void>;
@@ -311,6 +314,49 @@ export const useClubStore = create<ClubState>((set, get) => ({
       lastFetchedAt: null,
       lastOrganizationId: null,
       clubsError: null,
+    });
+  },
+
+  /**
+   * Update club data in store reactively without refetch
+   * This enables reactive state management - update store, UI updates automatically
+   * Use this after PATCH/PUT operations to avoid full page reloads
+   */
+  updateClubInStore: (clubId: string, updatedClub: ClubDetail) => {
+    // Validate that the updated club has the correct ID
+    if (updatedClub.id !== clubId) {
+      console.error(`updateClubInStore: ID mismatch. Expected ${clubId}, got ${updatedClub.id}`);
+      return;
+    }
+
+    set((state) => {
+      // Update clubsById cache
+      const newClubsById = { ...state.clubsById, [clubId]: updatedClub };
+
+      // Update clubs array if club exists there
+      const clubIndex = state.clubs.findIndex(c => c.id === clubId);
+      let newClubs = state.clubs;
+      if (clubIndex >= 0) {
+        newClubs = [...state.clubs];
+        // Merge updated data while preserving ClubWithCounts structure
+        // The clubs array contains ClubWithCounts (with courtCount, bookingCount, etc.)
+        // We merge the updated ClubDetail data while keeping the count fields
+        newClubs[clubIndex] = { 
+          ...newClubs[clubIndex], // Keep existing ClubWithCounts fields (counts, etc.)
+          ...updatedClub,          // Merge in updated ClubDetail fields
+        };
+      }
+
+      // Update currentClub if it matches
+      const newCurrentClub = state.currentClub?.id === clubId 
+        ? updatedClub 
+        : state.currentClub;
+
+      return {
+        clubsById: newClubsById,
+        clubs: newClubs,
+        currentClub: newCurrentClub,
+      };
     });
   },
 

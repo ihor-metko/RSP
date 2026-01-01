@@ -5,13 +5,13 @@ import { useTranslations } from "next-intl";
 import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { SpecialHoursField, type SpecialHour } from "../SpecialHoursField.client";
+import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import type { ClubDetail, ClubSpecialHours } from "@/types/club";
 import { validateSpecialHours } from "../WorkingHoursEditor.client";
 import "./ClubSpecialDatesView.css";
 
 interface ClubSpecialDatesViewProps {
   club: ClubDetail;
-  onRefresh?: () => Promise<void>;
   disabled?: boolean;
   disabledTooltip?: string;
 }
@@ -43,9 +43,10 @@ function formatDateShort(dateString: string): string {
   return `${month} ${day}`;
 }
 
-export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabledTooltip }: ClubSpecialDatesViewProps) {
+export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }: ClubSpecialDatesViewProps) {
   const t = useTranslations("clubDetail");
   const tCommon = useTranslations("common");
+  const updateClubInStore = useAdminClubStore((state) => state.updateClubInStore);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -75,25 +76,24 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
     setIsSaving(true);
     setError("");
     try {
-      const [specialHoursResponse] = await Promise.all([
-        fetch(`/api/admin/clubs/${club.id}/special-hours`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            specialHours,
-          }),
+      const specialHoursResponse = await fetch(`/api/admin/clubs/${club.id}/special-hours`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          specialHours,
         }),
-      ]);
+      });
 
       if (!specialHoursResponse.ok) {
         const data = await specialHoursResponse.json();
         throw new Error(data.error || t("failedToUpdateSpecialHours"));
       }
 
-      // Refresh club data to reflect changes
-      if (onRefresh) {
-        await onRefresh();
-      }
+      // Get updated club data from response
+      const updatedClub = await specialHoursResponse.json();
+
+      // Update store reactively - no page reload needed
+      updateClubInStore(club.id, updatedClub);
 
       setIsEditing(false);
     } catch (err) {
@@ -101,7 +101,7 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
     } finally {
       setIsSaving(false);
     }
-  }, [specialHours, club.id, onRefresh, t]);
+  }, [specialHours, club.id, t, updateClubInStore]);
 
   return (
     <>
