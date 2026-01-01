@@ -166,7 +166,7 @@ export function ClubGalleryView({ club, onRefresh, disabled = false, disabledToo
 
   const handleRemoveGalleryImage = useCallback(async (index: number) => {
     const image = gallery[index];
-    
+
     // If image has an ID, delete from server
     if (image.id) {
       try {
@@ -244,7 +244,6 @@ export function ClubGalleryView({ club, onRefresh, disabled = false, disabledToo
           <Button
             variant="outline"
             onClick={handleEdit}
-            className="im-section-edit-btn"
             disabled={disabled}
           >
             Edit
@@ -374,7 +373,6 @@ export function ClubGalleryView({ club, onRefresh, disabled = false, disabledToo
               variant="outline"
               onClick={() => galleryInputRef.current?.click()}
               disabled={isSaving || isUploading}
-              className="im-section-edit-btn"
             >
               {isUploading ? "Uploading..." : "+ Add Images"}
             </Button>

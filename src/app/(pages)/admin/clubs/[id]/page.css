@@ -124,6 +124,10 @@
   @apply text-red-700;
 }
 
+.im-section-view-header {
+  @apply flex justify-between items-center gap-4 mb-4;
+}
+
 /* ===== Info Grid Layout ===== */
 .im-admin-club-info-grid {
   @apply grid gap-6;
@@ -458,12 +462,6 @@
   color: var(--rsp-foreground);
   opacity: 0.5;
   font-style: italic;
-}
-
-/* Edit button styles */
-.im-section-edit-btn {
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
 }
 
 /* Status badge */

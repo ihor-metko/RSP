@@ -426,6 +426,16 @@
     "deleting": "Deleting...",
     "usesClubHours": "Uses club hours"
   },
+  "businessHours": {
+    "title": "Business Hours",
+    "editTitle": "Edit Business Hours",
+    "noHoursSet": "No hours set",
+    "closed": "Closed",
+    "to": "to",
+    "closedLabel": "Closed",
+    "openingTime": "{day} opening time",
+    "closingTime": "{day} closing time"
+  },
   "admin": {
     "club": "Club",
     "clubsPlural": "Clubs",

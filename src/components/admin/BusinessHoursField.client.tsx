@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Checkbox, TimeInput } from "@/components/ui";
 import type { BusinessHour } from "@/types/admin";
-import { DAY_NAMES } from "@/constants/workingHours";
+import { DAY_TRANSLATION_KEYS } from "@/constants/workingHours";
 import "./BusinessHoursField.css";
 
 interface BusinessHoursFieldProps {
@@ -13,6 +14,8 @@ interface BusinessHoursFieldProps {
 }
 
 export function BusinessHoursField({ value, onChange, disabled }: BusinessHoursFieldProps) {
+  const t = useTranslations();
+
   const handleTimeChange = useCallback((dayOfWeek: number, field: "openTime" | "closeTime", time: string) => {
     const newHours = value.map((hour) => {
       if (hour.dayOfWeek === dayOfWeek) {
@@ -44,44 +47,47 @@ export function BusinessHoursField({ value, onChange, disabled }: BusinessHoursF
   return (
     <div className="im-business-hours">
       <div className="im-business-hours-grid">
-        {value.map((hour) => (
-          <div key={hour.dayOfWeek} className="im-business-hours-row">
-            <span className="im-business-hours-day">
-              {DAY_NAMES[hour.dayOfWeek]}
-            </span>
-            
-            <div className="im-business-hours-times">
-              {hour.isClosed ? (
-                <span className="im-business-hours-closed-text">Closed</span>
-              ) : (
-                <>
-                  <TimeInput
-                    value={hour.openTime || ""}
-                    onChange={(e) => handleTimeChange(hour.dayOfWeek, "openTime", e.target.value)}
-                    disabled={disabled}
-                    aria-label={`${DAY_NAMES[hour.dayOfWeek]} opening time`}
-                  />
-                  <span className="im-business-hours-separator">to</span>
-                  <TimeInput
-                    value={hour.closeTime || ""}
-                    onChange={(e) => handleTimeChange(hour.dayOfWeek, "closeTime", e.target.value)}
-                    disabled={disabled}
-                    aria-label={`${DAY_NAMES[hour.dayOfWeek]} closing time`}
-                  />
-                </>
-              )}
-            </div>
+        {value.map((hour) => {
+          const dayName = t(DAY_TRANSLATION_KEYS[hour.dayOfWeek]);
+          return (
+            <div key={hour.dayOfWeek} className="im-business-hours-row">
+              <span className="im-business-hours-day">
+                {dayName}
+              </span>
+              
+              <div className="im-business-hours-times">
+                {hour.isClosed ? (
+                  <span className="im-business-hours-closed-text">{t("businessHours.closed")}</span>
+                ) : (
+                  <>
+                    <TimeInput
+                      value={hour.openTime || ""}
+                      onChange={(e) => handleTimeChange(hour.dayOfWeek, "openTime", e.target.value)}
+                      disabled={disabled}
+                      aria-label={t("businessHours.openingTime", { day: dayName })}
+                    />
+                    <span className="im-business-hours-separator">{t("businessHours.to")}</span>
+                    <TimeInput
+                      value={hour.closeTime || ""}
+                      onChange={(e) => handleTimeChange(hour.dayOfWeek, "closeTime", e.target.value)}
+                      disabled={disabled}
+                      aria-label={t("businessHours.closingTime", { day: dayName })}
+                    />
+                  </>
+                )}
+              </div>
 
-            <div className="im-business-hours-toggle">
-              <Checkbox
-                label="Closed"
-                checked={hour.isClosed}
-                onChange={() => handleClosedToggle(hour.dayOfWeek)}
-                disabled={disabled}
-              />
+              <div className="im-business-hours-toggle">
+                <Checkbox
+                  label={t("businessHours.closedLabel")}
+                  checked={hour.isClosed}
+                  onChange={() => handleClosedToggle(hour.dayOfWeek)}
+                  disabled={disabled}
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

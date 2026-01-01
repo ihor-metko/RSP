@@ -432,6 +432,16 @@
     "deleting": "Видалення...",
     "usesClubHours": "Використовує години клубу"
   },
+  "businessHours": {
+    "title": "Години роботи",
+    "editTitle": "Редагувати години роботи",
+    "noHoursSet": "Години роботи не встановлено",
+    "closed": "Зачинено",
+    "to": "до",
+    "closedLabel": "Зачинено",
+    "openingTime": "Час відкриття {day}",
+    "closingTime": "Час закриття {day}"
+  },
   "admin": {
     "club": "Клуб",
     "clubsPlural": "Клуби",

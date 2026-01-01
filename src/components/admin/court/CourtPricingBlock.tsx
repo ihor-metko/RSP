@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { DAY_TRANSLATION_KEYS } from "@/constants/workingHours";
 import { IMLink } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import type { CourtDetail, CourtPriceRule } from "./types";
@@ -8,8 +10,6 @@ import "./CourtPricingBlock.css";
 interface CourtPricingBlockProps {
   court: CourtDetail;
 }
-
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 function formatTimeRange(startTime: string, endTime: string): string {
   return `${startTime} - ${endTime}`;
@@ -30,6 +30,7 @@ function groupRulesByDay(rules: CourtPriceRule[]): Map<number | null, CourtPrice
 }
 
 export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
+  const t = useTranslations();
   const hasRules = court.courtPriceRules && court.courtPriceRules.length > 0;
   const groupedRules = groupRulesByDay(court.courtPriceRules || []);
 
@@ -94,7 +95,7 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
                 .map(([dayOfWeek, rules]) => (
                   <div key={dayOfWeek} className="im-pricing-rule-group">
                     <div className="im-pricing-rule-day">
-                      {DAY_NAMES[dayOfWeek as number]}
+                      {t(DAY_TRANSLATION_KEYS[dayOfWeek as number])}
                     </div>
                     {rules.map((rule) => (
                       <div key={rule.id} className="im-pricing-rule-item">

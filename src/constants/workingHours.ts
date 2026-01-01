@@ -11,3 +11,16 @@ export const DAY_NAMES = [
   "Friday",
   "Saturday",
 ] as const;
+
+/**
+ * Translation keys for day names
+ */
+export const DAY_TRANSLATION_KEYS = [
+  "common.sunday",
+  "common.monday",
+  "common.tuesday",
+  "common.wednesday",
+  "common.thursday",
+  "common.friday",
+  "common.saturday",
+] as const;

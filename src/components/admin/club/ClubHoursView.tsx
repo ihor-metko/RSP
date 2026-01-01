@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { BusinessHoursField } from "../BusinessHoursField.client";
 import { validateBusinessHours } from "../WorkingHoursEditor.client";
 import type { BusinessHour } from "@/types/admin";
 import type { ClubDetail, ClubBusinessHours } from "@/types/club";
-import { DAY_NAMES } from "@/constants/workingHours";
+import { DAY_TRANSLATION_KEYS } from "@/constants/workingHours";
 import "./ClubHoursView.css";
 
 interface ClubHoursViewProps {
@@ -50,6 +51,7 @@ function initializeBusinessHours(existing: ClubBusinessHours[]): BusinessHour[] 
 }
 
 export function ClubHoursView({ club, onRefresh, disabled = false, disabledTooltip }: ClubHoursViewProps) {
+  const t = useTranslations();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -110,7 +112,7 @@ export function ClubHoursView({ club, onRefresh, disabled = false, disabledToolt
   return (
     <>
       <div className="im-section-view-header">
-        <h2 className="im-club-view-section-title">Business Hours</h2>
+        <h2 className="im-club-view-section-title">{t("businessHours.title")}</h2>
         <Tooltip
           content={disabled ? disabledTooltip : undefined}
           position="bottom"
@@ -118,10 +120,9 @@ export function ClubHoursView({ club, onRefresh, disabled = false, disabledToolt
           <Button
             variant="outline"
             onClick={handleEdit}
-            className="im-section-edit-btn"
             disabled={disabled}
           >
-            Edit
+            {t("common.edit")}
           </Button>
         </Tooltip>
       </div>
@@ -132,17 +133,17 @@ export function ClubHoursView({ club, onRefresh, disabled = false, disabledToolt
             club.businessHours.map((hour) => (
               <div key={hour.dayOfWeek} className="im-hours-view-row">
                 <span className="im-hours-view-day">
-                  {DAY_NAMES[hour.dayOfWeek]}
+                  {t(DAY_TRANSLATION_KEYS[hour.dayOfWeek])}
                 </span>
                 <span className="im-hours-view-time">
                   {hour.isClosed
-                    ? "Closed"
+                    ? t("businessHours.closed")
                     : `${formatTime(hour.openTime)} - ${formatTime(hour.closeTime)}`}
                 </span>
               </div>
             ))
           ) : (
-            <p className="im-section-view-value--empty">No hours set</p>
+            <p className="im-section-view-value--empty">{t("businessHours.noHoursSet")}</p>
           )}
         </div>
       </div>
@@ -150,7 +151,7 @@ export function ClubHoursView({ club, onRefresh, disabled = false, disabledToolt
       <SectionEditModal
         isOpen={isEditing}
         onClose={handleClose}
-        title="Edit Business Hours"
+        title={t("businessHours.editTitle")}
         onSave={handleSave}
         isSaving={isSaving}
       >

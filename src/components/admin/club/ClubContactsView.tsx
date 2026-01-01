@@ -144,7 +144,6 @@ export function ClubContactsView({ club, onRefresh, disabled = false, disabledTo
           <Button
             variant="outline"
             onClick={handleEdit}
-            className="im-section-edit-btn"
             disabled={disabled}
           >
             Edit
@@ -168,9 +167,8 @@ export function ClubContactsView({ club, onRefresh, disabled = false, disabledTo
         <div className="im-section-view-row">
           <span className="im-section-view-label">Phone:</span>
           <span
-            className={`im-section-view-value ${
-              !club.phone ? "im-section-view-value--empty" : ""
-            }`}
+            className={`im-section-view-value ${!club.phone ? "im-section-view-value--empty" : ""
+              }`}
           >
             {club.phone || "Not set"}
           </span>
@@ -178,9 +176,8 @@ export function ClubContactsView({ club, onRefresh, disabled = false, disabledTo
         <div className="im-section-view-row">
           <span className="im-section-view-label">Email:</span>
           <span
-            className={`im-section-view-value ${
-              !club.email ? "im-section-view-value--empty" : ""
-            }`}
+            className={`im-section-view-value ${!club.email ? "im-section-view-value--empty" : ""
+              }`}
           >
             {club.email || "Not set"}
           </span>
@@ -188,9 +185,8 @@ export function ClubContactsView({ club, onRefresh, disabled = false, disabledTo
         <div className="im-section-view-row">
           <span className="im-section-view-label">Website:</span>
           <span
-            className={`im-section-view-value ${
-              !club.website ? "im-section-view-value--empty" : ""
-            }`}
+            className={`im-section-view-value ${!club.website ? "im-section-view-value--empty" : ""
+              }`}
           >
             {club.website ? (
               <a

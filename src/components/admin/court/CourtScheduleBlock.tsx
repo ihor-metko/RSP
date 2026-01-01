@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { DAY_TRANSLATION_KEYS } from "@/constants/workingHours";
 import type { CourtDetail, ClubBusinessHour } from "./types";
 import "./CourtScheduleBlock.css";
 
@@ -7,7 +9,6 @@ interface CourtScheduleBlockProps {
   court: CourtDetail;
 }
 
-const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const DAY_SHORT_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function formatTime(time: string | null): string {
@@ -16,6 +17,7 @@ function formatTime(time: string | null): string {
 }
 
 export function CourtScheduleBlock({ court }: CourtScheduleBlockProps) {
+  const t = useTranslations();
   const businessHours = court.club?.businessHours || [];
   const hasHours = businessHours.length > 0;
 
@@ -53,12 +55,12 @@ export function CourtScheduleBlock({ court }: CourtScheduleBlockProps) {
                   className={`im-schedule-row ${isClosed ? "im-schedule-row--closed" : ""}`}
                 >
                   <span className="im-schedule-day">
-                    <span className="im-schedule-day-full">{DAY_NAMES[dayOfWeek]}</span>
+                    <span className="im-schedule-day-full">{t(DAY_TRANSLATION_KEYS[dayOfWeek])}</span>
                     <span className="im-schedule-day-short">{DAY_SHORT_NAMES[dayOfWeek]}</span>
                   </span>
                   <span className="im-schedule-hours">
                     {isClosed ? (
-                      <span className="im-schedule-closed">Closed</span>
+                      <span className="im-schedule-closed">{t("businessHours.closed")}</span>
                     ) : (
                       <span className="im-schedule-open">
                         {formatTime(openTime ?? null)} - {formatTime(closeTime ?? null)}

@@ -68,7 +68,6 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
             <Button
               variant="outline"
               onClick={handleAddCourtClick}
-              className="im-section-edit-btn"
               disabled={disabled}
             >
               + {t("clubDetail.addCourt")}

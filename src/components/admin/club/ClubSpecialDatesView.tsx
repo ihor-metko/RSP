@@ -111,7 +111,6 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
           <Button
             variant="outline"
             onClick={handleEdit}
-            className="im-section-edit-btn"
             disabled={disabled}
           >
             Edit
