@@ -125,8 +125,14 @@ export const useAdminClubStore = create<AdminClubState>((set, get) => ({
         throw new Error(data.error || `HTTP ${response.status}`);
       }
 
-      const data = await response.json();
-      set({ currentClub: data, loading: false });
+      const club = await response.json();
+      
+      // Update both currentClub AND clubsById to ensure consistency
+      set((state) => ({
+        currentClub: club,
+        clubsById: { ...state.clubsById, [id]: club },
+        loading: false,
+      }));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to fetch club";
       set({ error: errorMessage, loading: false, currentClub: null });
