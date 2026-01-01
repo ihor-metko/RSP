@@ -4,7 +4,7 @@
 import { GET, POST } from "@/app/api/(player)/courts/[courtId]/price-rules/route";
 import { PUT, DELETE } from "@/app/api/(player)/courts/[courtId]/price-rules/[ruleId]/route";
 import { prisma } from "@/lib/prisma";
-import { ClubMembershipRole } from "@/constants/roles";
+import { ClubMembershipRole, MembershipRole } from "@/constants/roles";
 
 // Mock Prisma
 jest.mock("@/lib/prisma", () => ({
@@ -265,6 +265,55 @@ describe("Price Rules API", () => {
       (prisma.court.findUnique as jest.Mock).mockResolvedValue(mockCourt);
       (prisma.clubMembership.findUnique as jest.Mock).mockResolvedValue({
         role: ClubMembershipRole.CLUB_ADMIN,
+      });
+      (prisma.courtPriceRule.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.courtPriceRule.create as jest.Mock).mockResolvedValue(newRule);
+
+      const request = new Request("http://localhost:3000/api/courts/court-123/price-rules", {
+        method: "POST",
+        body: JSON.stringify({
+          dayOfWeek: 1,
+          startTime: "09:00",
+          endTime: "12:00",
+          priceCents: 10000,
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const response = await POST(request, { params: Promise.resolve({ courtId: "court-123" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.dayOfWeek).toBe(1);
+      expect(data.priceCents).toBe(10000);
+    });
+
+    it("should create a weekly price rule for organization admin", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "org-admin-123", isRoot: false },
+      });
+
+      const mockCourt = {
+        id: "court-123",
+        clubId: "club-123",
+        club: { id: "club-123", organizationId: "org-123" },
+      };
+      const newRule = {
+        id: "rule-new",
+        courtId: "court-123",
+        dayOfWeek: 1,
+        date: null,
+        startTime: "09:00",
+        endTime: "12:00",
+        priceCents: 10000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      (prisma.court.findUnique as jest.Mock).mockResolvedValue(mockCourt);
+      (prisma.clubMembership.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.membership.findUnique as jest.Mock).mockResolvedValue({
+        role: MembershipRole.ORGANIZATION_ADMIN,
       });
       (prisma.courtPriceRule.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.courtPriceRule.create as jest.Mock).mockResolvedValue(newRule);
