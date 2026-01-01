@@ -92,6 +92,46 @@ describe("Courts API", () => {
       expect(response.status).toBe(404);
       expect(data.error).toBe("Club not found");
     });
+
+    it("should return 404 when club is not public", async () => {
+      const mockClub = {
+        id: "club-123",
+        name: "Private Club",
+        isPublic: false,
+        organization: {
+          isPublic: true
+        }
+      };
+
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+
+      const request = new Request("http://localhost:3000/api/clubs/club-123/courts");
+      const response = await GET(request, { params: Promise.resolve({ id: "club-123" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("Club not found");
+    });
+
+    it("should return 404 when organization is not public", async () => {
+      const mockClub = {
+        id: "club-123",
+        name: "Test Club",
+        isPublic: true,
+        organization: {
+          isPublic: false
+        }
+      };
+
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+
+      const request = new Request("http://localhost:3000/api/clubs/club-123/courts");
+      const response = await GET(request, { params: Promise.resolve({ id: "club-123" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("Club not found");
+    });
   });
 
   describe("POST /api/clubs/:clubId/courts", () => {
