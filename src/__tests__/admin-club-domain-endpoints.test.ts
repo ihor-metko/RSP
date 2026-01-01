@@ -221,7 +221,7 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.name).toBe("Updated Club");
+      expect(data.success).toBe(true);
       expect(prisma.club.update).toHaveBeenCalledWith({
         where: { id: "club-123" },
         data: {
@@ -229,7 +229,6 @@ describe("Admin Club Domain-Specific APIs", () => {
           shortDescription: "Updated description",
           isPublic: false,
         },
-        include: expect.any(Object),
       });
     });
   });
@@ -296,9 +295,10 @@ describe("Admin Club Domain-Specific APIs", () => {
       );
 
       const response = await PatchBusinessHours(request, { params: mockParams });
-      await response.json();
+      const data = await response.json();
 
       expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
       expect(prisma.$transaction).toHaveBeenCalled();
     });
   });
@@ -435,7 +435,7 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.location).toBe("456 New Street");
+      expect(data.success).toBe(true);
     });
   });
 
@@ -478,7 +478,7 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.phone).toBe("+1234567890");
+      expect(data.success).toBe(true);
     });
   });
 
@@ -517,12 +517,12 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
       expect(prisma.club.update).toHaveBeenCalledWith({
         where: { id: "club-123" },
         data: {
           metadata: JSON.stringify({ logoTheme: "dark", bannerAlignment: "top" }),
         },
-        include: expect.any(Object),
       });
     });
   });
@@ -562,9 +562,10 @@ describe("Admin Club Domain-Specific APIs", () => {
       );
 
       const response = await PatchMedia(request, { params: mockParams });
-      await response.json();
+      const data = await response.json();
 
       expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
       expect(prisma.$transaction).toHaveBeenCalled();
     });
   });
@@ -600,9 +601,10 @@ describe("Admin Club Domain-Specific APIs", () => {
       );
 
       const response = await PatchCoaches(request, { params: mockParams });
-      await response.json();
+      const data = await response.json();
 
       expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
       expect(prisma.$transaction).toHaveBeenCalled();
     });
   });
@@ -652,7 +654,7 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.name).toBe("Updated by Club Admin");
+      expect(data.success).toBe(true);
     });
 
     it("should allow club_owner to update club business hours", async () => {
@@ -700,7 +702,7 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.businessHours).toEqual(businessHours);
+      expect(data.success).toBe(true);
     });
 
     it("should allow club_admin to update club location", async () => {
@@ -746,7 +748,7 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.location).toBe("456 New Street");
+      expect(data.success).toBe(true);
     });
 
     it("should deny club_admin access to another club", async () => {

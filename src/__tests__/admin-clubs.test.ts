@@ -587,7 +587,7 @@ describe("Admin Clubs API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.name).toBe("Updated Club");
+      expect(data.success).toBe(true);
     });
 
     it("should return 400 when name is missing on update", async () => {

@@ -173,7 +173,7 @@ export async function POST(request: Request) {
     }
 
     // Create club with related records in a transaction
-    const club = await prisma.$transaction(async (tx) => {
+    const clubId = await prisma.$transaction(async (tx) => {
       // Create the club
       const newClub = await tx.club.create({
         data: {
@@ -256,10 +256,10 @@ export async function POST(request: Request) {
         });
       }
 
-      return newClub;
+      return newClub.id;
     });
 
-    return NextResponse.json(club, { status: 201 });
+    return NextResponse.json({ id: clubId, success: true }, { status: 201 });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error creating club:", error);

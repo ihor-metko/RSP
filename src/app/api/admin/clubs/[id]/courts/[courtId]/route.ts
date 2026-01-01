@@ -178,26 +178,12 @@ export async function PATCH(
     if (sportType !== undefined) updateData.sportType = sportType;
     if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
 
-    const updatedCourt = await prisma.court.update({
+    await prisma.court.update({
       where: { id: courtId },
       data: updateData,
-      include: {
-        club: {
-          select: {
-            id: true,
-            name: true,
-            businessHours: {
-              orderBy: { dayOfWeek: "asc" },
-            },
-          },
-        },
-        courtPriceRules: {
-          orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
-        },
-      },
     });
 
-    return NextResponse.json(updatedCourt);
+    return NextResponse.json({ success: true });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating court:", error);

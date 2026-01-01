@@ -53,7 +53,7 @@ export async function PATCH(
     const { bannerData, logoData, gallery } = body;
 
     // Update in transaction
-    const updatedClub = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Update banner and logo data if provided
       const updateData: Record<string, unknown> = {};
       if (bannerData !== undefined) {
@@ -89,20 +89,9 @@ export async function PATCH(
           });
         }
       }
-
-      return tx.club.findUnique({
-        where: { id: clubId },
-        include: {
-          courts: true,
-          coaches: { include: { user: true } },
-          gallery: { orderBy: { sortOrder: "asc" } },
-          businessHours: { orderBy: { dayOfWeek: "asc" } },
-          specialHours: { orderBy: { date: "asc" } },
-        },
-      });
     });
 
-    return NextResponse.json(updatedClub);
+    return NextResponse.json({ success: true });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club media:", error);

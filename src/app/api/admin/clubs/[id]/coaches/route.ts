@@ -58,7 +58,7 @@ export async function PATCH(
     }
 
     // Update in transaction
-    const updatedClub = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // First, unlink all existing coaches from this club
       await tx.coach.updateMany({
         where: { clubId },
@@ -72,20 +72,9 @@ export async function PATCH(
           data: { clubId },
         });
       }
-
-      return tx.club.findUnique({
-        where: { id: clubId },
-        include: {
-          courts: true,
-          coaches: { include: { user: true } },
-          gallery: { orderBy: { sortOrder: "asc" } },
-          businessHours: { orderBy: { dayOfWeek: "asc" } },
-          specialHours: { orderBy: { date: "asc" } },
-        },
-      });
     });
 
-    return NextResponse.json(updatedClub);
+    return NextResponse.json({ success: true });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club coaches:", error);
