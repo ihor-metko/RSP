@@ -50,12 +50,12 @@ export async function PATCH(
     if (email !== undefined) updateData.email = email?.trim() || null;
     if (website !== undefined) updateData.website = website?.trim() || null;
 
-    await prisma.club.update({
+    const updatedClub = await prisma.club.update({
       where: { id: clubId },
       data: updateData,
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(updatedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club contacts:", error);

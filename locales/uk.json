@@ -452,7 +452,13 @@
     "failedToDeleteSpecialDate": "Не вдалося видалити спеціальну дату",
     "failedToRefreshClubData": "Не вдалося оновити дані клубу",
     "am": "ДП",
-    "pm": "ПП"
+    "pm": "ПП",
+    "contactInformation": "Контактна інформація",
+    "editContactInformation": "Редагувати контактну інформацію",
+    "notSet": "Не вказано",
+    "invalidEmailFormat": "Невірний формат email",
+    "failedToUpdateLocation": "Не вдалося оновити розташування",
+    "failedToUpdateContacts": "Не вдалося оновити контакти"
   },
   "businessHours": {
     "title": "Години роботи",

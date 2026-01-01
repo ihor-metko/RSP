@@ -446,7 +446,13 @@
     "failedToDeleteSpecialDate": "Failed to delete special date",
     "failedToRefreshClubData": "Failed to refresh club data",
     "am": "AM",
-    "pm": "PM"
+    "pm": "PM",
+    "contactInformation": "Contact Information",
+    "editContactInformation": "Edit Contact Information",
+    "notSet": "Not set",
+    "invalidEmailFormat": "Invalid email format",
+    "failedToUpdateLocation": "Failed to update location",
+    "failedToUpdateContacts": "Failed to update contacts"
   },
   "businessHours": {
     "title": "Business Hours",
