@@ -664,6 +664,165 @@ export async function requireClubAdminManagement(
 }
 
 /**
+ * Success result type for court management permission check.
+ */
+export interface CourtManagementSuccess {
+  authorized: true;
+  userId: string;
+  isRoot: boolean;
+  court: {
+    id: string;
+    clubId: string;
+    organizationId: string | null;
+  };
+}
+
+/**
+ * Failure result type for court management permission check.
+ */
+export interface CourtManagementFailure {
+  authorized: false;
+  response: NextResponse;
+}
+
+/**
+ * Result type for court management permission check.
+ */
+export type CourtManagementResult = CourtManagementSuccess | CourtManagementFailure;
+
+/**
+ * Check if the current user has permission to manage a specific court.
+ * 
+ * This function allows:
+ * - Root Admin: Can manage any court
+ * - Organization Admin: Can manage courts in clubs within their organization
+ * - Club Owner: Can manage courts in their club
+ * - Club Admin: Can manage courts in their club
+ * 
+ * @param courtId - The court ID to check access for
+ * @returns Promise resolving to authorized status with user and court info or error response
+ * 
+ * @example
+ * const authResult = await requireCourtManagement(courtId);
+ * if (!authResult.authorized) return authResult.response;
+ * // User can manage this court
+ */
+export async function requireCourtManagement(
+  courtId: string
+): Promise<CourtManagementResult> {
+  const session = await auth();
+
+  if (!session?.user) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
+
+  const userId = session.user.id;
+  const isRoot = session.user.isRoot ?? false;
+
+  // Fetch the court with club and organization info
+  const court = await prisma.court.findUnique({
+    where: { id: courtId },
+    select: {
+      id: true,
+      clubId: true,
+      club: {
+        select: {
+          id: true,
+          organizationId: true,
+        },
+      },
+    },
+  });
+
+  if (!court) {
+    return {
+      authorized: false,
+      response: NextResponse.json({ error: "Court not found" }, { status: 404 }),
+    };
+  }
+
+  // Root admins can manage any court
+  if (isRoot) {
+    return {
+      authorized: true,
+      userId,
+      isRoot: true,
+      court: {
+        id: court.id,
+        clubId: court.clubId,
+        organizationId: court.club.organizationId,
+      },
+    };
+  }
+
+  // Check if user is a club owner or club admin for this court's club
+  const clubMembership = await prisma.clubMembership.findUnique({
+    where: {
+      userId_clubId: {
+        userId,
+        clubId: court.clubId,
+      },
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  if (clubMembership) {
+    const role = clubMembership.role as ClubMembershipRole;
+    if (role === ClubMembershipRole.CLUB_OWNER || role === ClubMembershipRole.CLUB_ADMIN) {
+      return {
+        authorized: true,
+        userId,
+        isRoot: false,
+        court: {
+          id: court.id,
+          clubId: court.clubId,
+          organizationId: court.club.organizationId,
+        },
+      };
+    }
+  }
+
+  // Check if user is an organization admin for this court's organization
+  if (court.club.organizationId) {
+    const orgMembership = await prisma.membership.findUnique({
+      where: {
+        userId_organizationId: {
+          userId,
+          organizationId: court.club.organizationId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (orgMembership && orgMembership.role === MembershipRole.ORGANIZATION_ADMIN) {
+      return {
+        authorized: true,
+        userId,
+        isRoot: false,
+        court: {
+          id: court.id,
+          clubId: court.clubId,
+          organizationId: court.club.organizationId,
+        },
+      };
+    }
+  }
+
+  // User doesn't have permission to manage this court
+  return {
+    authorized: false,
+    response: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+  };
+}
+
+/**
  * Validate email format.
  * @param email - The email to validate
  * @returns true if the email format is valid

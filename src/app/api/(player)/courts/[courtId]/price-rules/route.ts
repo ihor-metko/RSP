@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRootAdmin } from "@/lib/requireRole";
+import { requireCourtManagement } from "@/lib/requireRole";
 import {
   isValidTimeFormat,
   normalizeTime,
@@ -58,23 +58,14 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ courtId: string }> }
 ) {
-  // Require root admin role
-  const authResult = await requireRootAdmin(request);
-  if (!authResult.authorized) {
-    return authResult.response;
-  }
-
   try {
     const resolvedParams = await params;
     const { courtId } = resolvedParams;
 
-    // Check if court exists
-    const court = await prisma.court.findUnique({
-      where: { id: courtId },
-    });
-
-    if (!court) {
-      return NextResponse.json({ error: "Court not found" }, { status: 404 });
+    // Check if user has permission to manage this court
+    const authResult = await requireCourtManagement(courtId);
+    if (!authResult.authorized) {
+      return authResult.response;
     }
 
     const body = await request.json();
