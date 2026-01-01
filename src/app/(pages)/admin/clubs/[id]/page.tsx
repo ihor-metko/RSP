@@ -124,35 +124,6 @@ export default function AdminClubDetailPage({
     setTimeout(() => setToast(null), 4000);
   }, []);
 
-  const handleSectionUpdate = useCallback(async (section: string, payload: Record<string, unknown>) => {
-    if (!clubId) return;
-
-    try {
-      // Section updates still use direct API call as they're not part of the basic store
-      // This is a specialized admin endpoint for partial updates
-      const response = await fetch(`/api/admin/clubs/${clubId}/section`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ section, payload }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to update section");
-      }
-
-      const updatedClub = await response.json();
-      // Refresh club data from store to keep it in sync
-      await refetchClub();
-      showToast("success", t("clubDetail.changesSavedSuccess"));
-      return updatedClub;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t("clubDetail.failedToSaveChanges");
-      showToast("error", message);
-      throw err;
-    }
-  }, [clubId, refetchClub, showToast, t]);
-
   const handleDelete = async () => {
     if (!clubId) return;
 
@@ -172,16 +143,28 @@ export default function AdminClubDetailPage({
 
     setIsTogglingPublish(true);
     try {
-      await handleSectionUpdate("header", {
-        name: club.name,
-        slug: club.slug,
-        shortDescription: club.shortDescription,
-        isPublic: !club.isPublic,
+      const response = await fetch(`/api/admin/clubs/${clubId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: club.name,
+          slug: club.slug,
+          shortDescription: club.shortDescription,
+          isPublic: !club.isPublic,
+        }),
       });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to update club");
+      }
+
+      await refetchClub();
       setIsPublishModalOpen(false);
       showToast("success", club.isPublic ? t("clubDetail.clubUnpublishedSuccess") : t("clubDetail.clubPublishedSuccess"));
-    } catch {
-      // Error already handled in handleSectionUpdate
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t("clubDetail.failedToSaveChanges");
+      showToast("error", message);
     } finally {
       setIsTogglingPublish(false);
     }
@@ -622,7 +605,6 @@ export default function AdminClubDetailPage({
           isOpen={isEditingDetails}
           onClose={() => setIsEditingDetails(false)}
           club={club}
-          onUpdate={handleSectionUpdate}
           onRefresh={refetchClub}
         />
       )}

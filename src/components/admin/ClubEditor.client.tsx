@@ -13,7 +13,6 @@ interface ClubEditorProps {
   isOpen: boolean;
   onClose: () => void;
   club: ClubDetail;
-  onUpdate: (section: string, payload: Record<string, unknown>) => Promise<unknown>;
   onRefresh: () => Promise<void>;
 }
 
@@ -21,7 +20,6 @@ export function ClubEditor({
   isOpen,
   onClose,
   club,
-  onUpdate,
   onRefresh,
 }: ClubEditorProps) {
   const t = useTranslations();
@@ -95,25 +93,45 @@ export function ClubEditor({
   }, [onClose]);
 
   const handleBaseInfoSave = useCallback(async (data: BaseInfoData) => {
-    await onUpdate("header", {
-      name: data.name,
-      shortDescription: data.description,
+    const response = await fetch(`/api/admin/clubs/${club.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.name,
+        shortDescription: data.description,
+      }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
+    }
+
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [onUpdate, onRefresh]);
+  }, [club.id, onRefresh, t]);
 
   const handleAddressSave = useCallback(async (data: AddressData) => {
-    await onUpdate("location", {
-      location: data.street,
-      city: data.city,
-      country: data.country,
-      latitude: data.latitude,
-      longitude: data.longitude,
+    const response = await fetch(`/api/admin/clubs/${club.id}/location`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        location: data.street,
+        city: data.city,
+        country: data.country,
+        latitude: data.latitude,
+        longitude: data.longitude,
+      }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
+    }
+
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [onUpdate, onRefresh]);
+  }, [club.id, onRefresh, t]);
 
   const handleLogoSave = useCallback(async (payload: { logo?: File | null; secondLogo?: File | null; metadata: Record<string, unknown> }) => {
     // Parse existing metadata
@@ -127,13 +145,22 @@ export function ClubEditor({
       }
     }
 
-    // Update metadata with logo settings - send as object, API will stringify
-    await onUpdate("metadata", {
-      metadata: {
-        ...existingMetadata,
-        ...payload.metadata,
-      },
+    // Update metadata with logo settings
+    const response = await fetch(`/api/admin/clubs/${club.id}/metadata`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        metadata: {
+          ...existingMetadata,
+          ...payload.metadata,
+        },
+      }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
+    }
 
     // Upload logo if provided
     if (payload.logo) {
@@ -171,7 +198,7 @@ export function ClubEditor({
 
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [club.id, club.metadata, onUpdate, onRefresh, t]);
+  }, [club.id, club.metadata, onRefresh, t]);
 
   const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
     // Parse existing metadata
@@ -185,13 +212,22 @@ export function ClubEditor({
       }
     }
 
-    // Update metadata with alignment - send as object, API will stringify
-    await onUpdate("metadata", {
-      metadata: {
-        ...existingMetadata,
-        bannerAlignment: alignment,
-      },
+    // Update metadata with alignment
+    const response = await fetch(`/api/admin/clubs/${club.id}/metadata`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        metadata: {
+          ...existingMetadata,
+          bannerAlignment: alignment,
+        },
+      }),
     });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
+    }
 
     // Upload file if provided
     if (file) {
@@ -212,7 +248,7 @@ export function ClubEditor({
 
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [club.id, club.metadata, onUpdate, onRefresh, t]);
+  }, [club.id, club.metadata, onRefresh, t]);
 
   return (
     <>
