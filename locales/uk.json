@@ -457,7 +457,6 @@
     "editContactInformation": "Редагувати контактну інформацію",
     "notSet": "Не вказано",
     "invalidEmailFormat": "Невірний формат email",
-    "failedToUpdateLocation": "Не вдалося оновити розташування",
     "failedToUpdateContacts": "Не вдалося оновити контакти"
   },
   "businessHours": {

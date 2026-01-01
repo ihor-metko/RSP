@@ -451,7 +451,6 @@
     "editContactInformation": "Edit Contact Information",
     "notSet": "Not set",
     "invalidEmailFormat": "Invalid email format",
-    "failedToUpdateLocation": "Failed to update location",
     "failedToUpdateContacts": "Failed to update contacts"
   },
   "businessHours": {
