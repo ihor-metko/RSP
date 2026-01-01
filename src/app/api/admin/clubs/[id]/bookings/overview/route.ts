@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
-import { toNewBookingStatus, toPaymentStatus } from "@/utils/bookingStatus";
-import type { BookingStatus, PaymentStatus } from "@/types/booking";
+import { toNewBookingStatus } from "@/utils/bookingStatus";
+import type { BookingStatus } from "@/types/booking";
 
 /**
  * Booking preview item for overview
