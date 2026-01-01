@@ -138,30 +138,30 @@ export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFie
               </div>
               <div className="im-special-hours-row-bottom">
                 <div className="im-special-hours-times-wrapper">
-                  <Tooltip 
-                    content={t("workingHoursTooltip")} 
-                    position="top"
-                  >
+                  {hour.isClosed ? (
                     <div className="im-special-hours-times">
-                      {hour.isClosed ? (
-                        <span className="im-special-hours-closed-text">{t("closed")}</span>
-                      ) : (
-                        <>
-                          <TimeInput
-                            value={hour.openTime || ""}
-                            onChange={(e) => handleChange(index, "openTime", e.target.value)}
-                            disabled={disabled}
-                          />
-                          <span className="im-special-hours-separator">{t("to")}</span>
-                          <TimeInput
-                            value={hour.closeTime || ""}
-                            onChange={(e) => handleChange(index, "closeTime", e.target.value)}
-                            disabled={disabled}
-                          />
-                        </>
-                      )}
+                      <span className="im-special-hours-closed-text">{t("closed")}</span>
                     </div>
-                  </Tooltip>
+                  ) : (
+                    <Tooltip 
+                      content={t("workingHoursTooltip")} 
+                      position="top"
+                    >
+                      <div className="im-special-hours-times">
+                        <TimeInput
+                          value={hour.openTime || ""}
+                          onChange={(e) => handleChange(index, "openTime", e.target.value)}
+                          disabled={disabled}
+                        />
+                        <span className="im-special-hours-separator">{t("to")}</span>
+                        <TimeInput
+                          value={hour.closeTime || ""}
+                          onChange={(e) => handleChange(index, "closeTime", e.target.value)}
+                          disabled={disabled}
+                        />
+                      </div>
+                    </Tooltip>
+                  )}
                 </div>
                 <div className="im-special-hours-reason-field">
                   <Input
