@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { toNewBookingStatus } from "@/utils/bookingStatus";
 import type { BookingStatus } from "@/types/booking";
+import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
 
 /**
  * Booking preview item for overview
@@ -39,7 +40,7 @@ export interface BookingsOverviewResponse {
  * - todayCount: Number of bookings today
  * - weekCount: Number of bookings this week
  * - upcomingCount: Total number of upcoming bookings
- * - upcomingBookings: Array of 5-10 nearest upcoming bookings
+ * - upcomingBookings: Array of up to 10 nearest upcoming bookings
  *
  * Access control:
  * - Root Admin: Can access any club
@@ -191,7 +192,7 @@ export async function GET(
       start: booking.start.toISOString(),
       end: booking.end.toISOString(),
       status: toNewBookingStatus(booking.bookingStatus),
-      sportType: booking.sportType || "PADEL",
+      sportType: booking.sportType || DEFAULT_SPORT_TYPE,
     }));
 
     const response: BookingsOverviewResponse = {
