@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin, requireRootAdmin } from "@/lib/requireRole";
 import { canAccessClub } from "@/lib/permissions/clubAccess";
+import { CLUB_DETAIL_INCLUDE, formatClubResponse } from "@/lib/clubApiHelpers";
 
 export async function GET(
   request: Request,
@@ -148,12 +149,13 @@ export async function PATCH(
     if (isPublic !== undefined) updateData.isPublic = isPublic;
     if (supportedSports !== undefined) updateData.supportedSports = supportedSports;
 
-    await prisma.club.update({
+    const updatedClub = await prisma.club.update({
       where: { id: clubId },
       data: updateData,
+      include: CLUB_DETAIL_INCLUDE,
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(formatClubResponse(updatedClub));
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club:", error);

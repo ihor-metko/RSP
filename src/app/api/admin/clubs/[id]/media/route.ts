@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { canAccessClub } from "@/lib/permissions/clubAccess";
+import { CLUB_DETAIL_INCLUDE, formatClubResponse } from "@/lib/clubApiHelpers";
 
 interface GalleryImage {
   id?: string;
@@ -52,8 +53,8 @@ export async function PATCH(
     const body = await request.json();
     const { bannerData, logoData, gallery } = body;
 
-    // Update in transaction
-    await prisma.$transaction(async (tx) => {
+    // Update media and fetch updated club in a transaction
+    const updatedClub = await prisma.$transaction(async (tx) => {
       // Update banner and logo data if provided
       const updateData: Record<string, unknown> = {};
       if (bannerData !== undefined) {
@@ -89,9 +90,19 @@ export async function PATCH(
           });
         }
       }
+
+      // Fetch and return the updated club with all relations
+      return await tx.club.findUnique({
+        where: { id: clubId },
+        include: CLUB_DETAIL_INCLUDE,
+      });
     });
 
-    return NextResponse.json({ success: true });
+    if (!updatedClub) {
+      return NextResponse.json({ error: "Club not found after update" }, { status: 404 });
+    }
+
+    return NextResponse.json(formatClubResponse(updatedClub));
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club media:", error);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { canAccessClub } from "@/lib/permissions/clubAccess";
+import { CLUB_DETAIL_INCLUDE, formatClubResponse } from "@/lib/clubApiHelpers";
 
 /**
  * PATCH /api/admin/clubs/[id]/metadata
@@ -51,14 +52,15 @@ export async function PATCH(
       );
     }
 
-    await prisma.club.update({
+    const updatedClub = await prisma.club.update({
       where: { id: clubId },
       data: {
         metadata: JSON.stringify(metadata),
       },
+      include: CLUB_DETAIL_INCLUDE,
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json(formatClubResponse(updatedClub));
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club metadata:", error);

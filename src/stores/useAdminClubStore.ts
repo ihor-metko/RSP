@@ -51,7 +51,7 @@ interface AdminClubState {
   invalidateClubs: () => void;
   
   // Reactive update method
-  updateClubInStore: (clubId: string, updatedClub: ClubDetail) => void;
+  updateClubInStore: (clubId: string, updatedFields: Partial<ClubDetail>) => void;
   
   createClub: (payload: CreateClubPayload) => Promise<Club>;
   updateClub: (id: string, payload: UpdateClubPayload) => Promise<Club>;
@@ -323,15 +323,28 @@ export const useAdminClubStore = create<AdminClubState>((set, get) => ({
    * Update club data in store reactively without refetch
    * This enables reactive state management - update store, UI updates automatically
    * Use this after PATCH/PUT operations to avoid full page reloads
+   * 
+   * @param clubId - The ID of the club to update
+   * @param updatedFields - Partial club data containing only the fields that were updated
    */
-  updateClubInStore: (clubId: string, updatedClub: ClubDetail) => {
-    // Validate that the updated club has the correct ID
-    if (updatedClub.id !== clubId) {
-      console.error(`updateClubInStore: ID mismatch. Expected ${clubId}, got ${updatedClub.id}`);
-      return;
-    }
-
+  updateClubInStore: (clubId: string, updatedFields: Partial<ClubDetail>) => {
     set((state) => {
+      // Get existing club data from clubsById cache
+      const existingClub = state.clubsById[clubId];
+      
+      // If club doesn't exist in cache, we can't update it
+      if (!existingClub) {
+        console.warn(`updateClubInStore: Club ${clubId} not found in store. Consider fetching it first.`);
+        return state;
+      }
+
+      // Merge updated fields with existing club data
+      const updatedClub: ClubDetail = {
+        ...existingClub,
+        ...updatedFields,
+        id: clubId, // Ensure ID is not overwritten
+      };
+
       // Update clubsById cache
       const newClubsById = { ...state.clubsById, [clubId]: updatedClub };
 
@@ -342,10 +355,10 @@ export const useAdminClubStore = create<AdminClubState>((set, get) => ({
         newClubs = [...state.clubs];
         // Merge updated data while preserving ClubWithCounts structure
         // The clubs array contains ClubWithCounts (with courtCount, bookingCount, etc.)
-        // We merge the updated ClubDetail data while keeping the count fields
+        // We merge the updated ClubDetail fields while keeping the count fields
         newClubs[clubIndex] = { 
           ...newClubs[clubIndex], // Keep existing ClubWithCounts fields (counts, etc.)
-          ...updatedClub,          // Merge in updated ClubDetail fields
+          ...updatedFields,       // Merge in updated fields only
         };
       }
 

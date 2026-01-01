@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { canAccessClub } from "@/lib/permissions/clubAccess";
+import { CLUB_DETAIL_INCLUDE, formatClubResponse } from "@/lib/clubApiHelpers";
 
 interface BusinessHour {
   dayOfWeek: number;
@@ -81,9 +82,12 @@ export async function PATCH(
       );
     }
 
-    await prisma.$transaction(async (tx) => {
+    // Update business hours and fetch updated club in a transaction
+    const updatedClub = await prisma.$transaction(async (tx) => {
+      // Delete existing business hours
       await tx.clubBusinessHours.deleteMany({ where: { clubId } });
 
+      // Create new business hours if provided
       if (businessHours.length > 0) {
         await tx.clubBusinessHours.createMany({
           data: businessHours.map((hour) => ({
@@ -95,9 +99,19 @@ export async function PATCH(
           })),
         });
       }
+
+      // Fetch and return the updated club with all relations
+      return await tx.club.findUnique({
+        where: { id: clubId },
+        include: CLUB_DETAIL_INCLUDE,
+      });
     });
 
-    return NextResponse.json({ success: true });
+    if (!updatedClub) {
+      return NextResponse.json({ error: "Club not found after update" }, { status: 404 });
+    }
+
+    return NextResponse.json(formatClubResponse(updatedClub));
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating business hours:", error);
