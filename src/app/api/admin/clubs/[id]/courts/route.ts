@@ -4,9 +4,9 @@ import { requireClubAdmin } from "@/lib/requireRole";
 import { Prisma } from "@prisma/client";
 
 /**
- * GET /api/clubs/[clubId]/courts
+ * GET /api/admin/clubs/[clubId]/courts
  * 
- * Returns all courts for a specific club.
+ * Returns all courts for a specific club (admin view with full details).
  * 
  * Access: Club Admins for this club, Organization Admins for the parent org, Root Admins
  * 
@@ -143,7 +143,7 @@ export async function GET(
 }
 
 /**
- * POST /api/clubs/[clubId]/courts
+ * POST /api/admin/clubs/[clubId]/courts
  * 
  * Creates a new court for the specified club.
  * 
