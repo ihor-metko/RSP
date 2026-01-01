@@ -355,5 +355,141 @@ describe("TimeInput", () => {
       expect(input).toHaveValue("09:30"); // Still the original value
       expect(handleChange).not.toHaveBeenCalled();
     });
+
+    it("selects first time in list (00:00) correctly", async () => {
+      const handleChange = jest.fn();
+      render(<TimeInput value="09:30" onChange={handleChange} label="Start Time" />);
+      
+      const input = screen.getByRole("combobox");
+      fireEvent.focus(input);
+      
+      await waitFor(() => {
+        expect(screen.getByText("Select Time")).toBeInTheDocument();
+      });
+      
+      const allButtons = screen.getAllByRole("button");
+      
+      // Find and click hour 00
+      const hourButton = allButtons.find(btn => btn.textContent === "00" && btn.className.includes("im-time-option"));
+      expect(hourButton).toBeDefined();
+      fireEvent.click(hourButton!);
+      
+      // Find and click minute 00
+      const minuteButtons = allButtons.filter(btn => btn.textContent === "00" && btn.className.includes("im-time-option"));
+      const minuteButton = minuteButtons[1]; // Second "00" is for minutes
+      expect(minuteButton).toBeDefined();
+      fireEvent.click(minuteButton!);
+      
+      // Click Confirm
+      const confirmButton = screen.getByRole("button", { name: "Confirm" });
+      fireEvent.click(confirmButton);
+      
+      await waitFor(() => {
+        expect(handleChange).toHaveBeenCalled();
+        expect(input).toHaveValue("00:00");
+      });
+    });
+
+    it("selects last time in list (23:59) correctly", async () => {
+      const handleChange = jest.fn();
+      render(<TimeInput value="09:30" onChange={handleChange} label="Start Time" />);
+      
+      const input = screen.getByRole("combobox");
+      fireEvent.focus(input);
+      
+      await waitFor(() => {
+        expect(screen.getByText("Select Time")).toBeInTheDocument();
+      });
+      
+      const allButtons = screen.getAllByRole("button");
+      
+      // Find and click hour 23
+      const hourButton = allButtons.find(btn => btn.textContent === "23" && btn.className.includes("im-time-option"));
+      expect(hourButton).toBeDefined();
+      fireEvent.click(hourButton!);
+      
+      // Find and click minute 59
+      const minuteButton = allButtons.find(btn => btn.textContent === "59" && btn.className.includes("im-time-option"));
+      expect(minuteButton).toBeDefined();
+      fireEvent.click(minuteButton!);
+      
+      // Click Confirm
+      const confirmButton = screen.getByRole("button", { name: "Confirm" });
+      fireEvent.click(confirmButton);
+      
+      await waitFor(() => {
+        expect(handleChange).toHaveBeenCalled();
+        expect(input).toHaveValue("23:59");
+      });
+    });
+
+    it("handles rapid clicks on different times", async () => {
+      const handleChange = jest.fn();
+      render(<TimeInput value="09:30" onChange={handleChange} label="Start Time" />);
+      
+      const input = screen.getByRole("combobox");
+      fireEvent.focus(input);
+      
+      await waitFor(() => {
+        expect(screen.getByText("Select Time")).toBeInTheDocument();
+      });
+      
+      const allButtons = screen.getAllByRole("button");
+      
+      // Rapidly click different hours
+      const hour10 = allButtons.find(btn => btn.textContent === "10" && btn.className.includes("im-time-option"));
+      const hour15 = allButtons.find(btn => btn.textContent === "15" && btn.className.includes("im-time-option"));
+      const hour20 = allButtons.find(btn => btn.textContent === "20" && btn.className.includes("im-time-option"));
+      
+      fireEvent.click(hour10!);
+      fireEvent.click(hour15!);
+      fireEvent.click(hour20!);
+      
+      // Dropdown should still be open
+      expect(screen.getByText("Select Time")).toBeInTheDocument();
+      expect(hour20).toHaveClass("im-time-option-selected");
+      
+      // Value should not have changed yet
+      expect(input).toHaveValue("09:30");
+      expect(handleChange).not.toHaveBeenCalled();
+    });
+
+    it("handles opening and closing dropdown multiple times", async () => {
+      const handleChange = jest.fn();
+      render(<TimeInput value="09:30" onChange={handleChange} label="Start Time" />);
+      
+      const input = screen.getByRole("combobox");
+      
+      // First open
+      fireEvent.focus(input);
+      await waitFor(() => {
+        expect(input).toHaveAttribute("aria-expanded", "true");
+      });
+      
+      // Blur to close
+      fireEvent.blur(input);
+      await waitFor(() => {
+        expect(input).toHaveAttribute("aria-expanded", "false");
+      });
+      
+      // Second open
+      fireEvent.focus(input);
+      await waitFor(() => {
+        expect(input).toHaveAttribute("aria-expanded", "true");
+      });
+      
+      // Make a selection this time
+      const allButtons = screen.getAllByRole("button");
+      const hourButton = allButtons.find(btn => btn.textContent === "14" && btn.className.includes("im-time-option"));
+      fireEvent.click(hourButton!);
+      
+      const confirmButton = screen.getByRole("button", { name: "Confirm" });
+      fireEvent.click(confirmButton);
+      
+      await waitFor(() => {
+        expect(handleChange).toHaveBeenCalled();
+        expect(input).toHaveValue("14:30");
+      });
+    });
   });
 });

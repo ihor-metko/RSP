@@ -399,15 +399,21 @@ function TimePickerDropdown({
     scrollToSelectedOption(minutesRef);
   }, []);
 
-  const handleHourClick = (hour: string) => {
+  const handleHourClick = (hour: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onHourChange(hour);
   };
 
-  const handleMinuteClick = (minute: string) => {
+  const handleMinuteClick = (minute: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onMinuteChange(minute);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onSelect(selectedHours, selectedMinutes);
   };
 
@@ -423,7 +429,8 @@ function TimePickerDropdown({
                 key={hour}
                 type="button"
                 className={`im-time-option ${selectedHours === hour ? 'im-time-option-selected' : ''}`}
-                onClick={() => handleHourClick(hour)}
+                onClick={(e) => handleHourClick(hour, e)}
+                onMouseDown={(e) => e.preventDefault()}
               >
                 {hour}
               </button>
@@ -439,7 +446,8 @@ function TimePickerDropdown({
                 key={minute}
                 type="button"
                 className={`im-time-option ${selectedMinutes === minute ? 'im-time-option-selected' : ''}`}
-                onClick={() => handleMinuteClick(minute)}
+                onClick={(e) => handleMinuteClick(minute, e)}
+                onMouseDown={(e) => e.preventDefault()}
               >
                 {minute}
               </button>
@@ -451,7 +459,8 @@ function TimePickerDropdown({
         <button
           type="button"
           className="im-time-picker-confirm"
-          onClick={handleConfirm}
+          onClick={(e) => handleConfirm(e)}
+          onMouseDown={(e) => e.preventDefault()}
         >
           Confirm
         </button>
