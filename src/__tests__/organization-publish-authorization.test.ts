@@ -5,8 +5,6 @@
  * Ensures only root admins can update isPublic field for organizations
  */
 
-import { NextResponse } from "next/server";
-
 // Mock dependencies
 jest.mock("@/lib/prisma", () => ({
   prisma: {
