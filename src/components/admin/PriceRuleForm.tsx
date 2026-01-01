@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Input, Select, TimeInput } from "@/components/ui";
+import { Button, Input, Select, TimeInput, RadioGroup, DateInput } from "@/components/ui";
 import { centsToDollars, dollarsToCents } from "@/utils/price";
 
 export interface PriceRuleFormData {
@@ -135,37 +135,17 @@ export function PriceRuleForm({
       )}
 
       {/* Rule Type Toggle */}
-      <div className="rsp-input-wrapper">
-        <label className="rsp-label mb-2 block text-sm font-medium">
-          Rule Type
-        </label>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="ruleType"
-              value="weekly"
-              checked={ruleType === "weekly"}
-              onChange={() => handleRuleTypeChange("weekly")}
-              disabled={isSubmitting}
-              className="h-4 w-4"
-            />
-            <span className="text-sm">Recurring Weekly</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="ruleType"
-              value="date"
-              checked={ruleType === "date"}
-              onChange={() => handleRuleTypeChange("date")}
-              disabled={isSubmitting}
-              className="h-4 w-4"
-            />
-            <span className="text-sm">Specific Date</span>
-          </label>
-        </div>
-      </div>
+      <RadioGroup
+        label="Rule Type"
+        name="ruleType"
+        options={[
+          { value: "weekly", label: "Recurring Weekly" },
+          { value: "date", label: "Specific Date" },
+        ]}
+        value={ruleType}
+        onChange={(value) => handleRuleTypeChange(value as "weekly" | "date")}
+        disabled={isSubmitting}
+      />
 
       {/* Day of Week Select (for weekly rules) */}
       {ruleType === "weekly" && (
@@ -189,20 +169,17 @@ export function PriceRuleForm({
 
       {/* Date Input (for date-specific rules) */}
       {ruleType === "date" && (
-        <div className="rsp-input-wrapper">
-          <label htmlFor="date" className="rsp-label mb-1 block text-sm font-medium">
-            Date
-          </label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={formData.date || ""}
-            onChange={handleInputChange}
-            disabled={isSubmitting}
-            className="w-full px-3 py-2 border rounded-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-          />
-        </div>
+        <DateInput
+          label="Date"
+          value={formData.date || ""}
+          onChange={(date) => {
+            setFormData((prev) => ({
+              ...prev,
+              date,
+            }));
+          }}
+          placeholder="Select date"
+        />
       )}
 
       {/* Time Range */}
@@ -226,21 +203,17 @@ export function PriceRuleForm({
       </div>
 
       {/* Price */}
-      <div className="rsp-input-wrapper">
-        <label className="rsp-label mb-1 block text-sm font-medium">
-          Price per Hour
-        </label>
-        <Input
-          name="price"
-          type="number"
-          step="0.01"
-          min="0.01"
-          value={displayPrice}
-          onChange={handlePriceChange}
-          placeholder="0.00"
-          disabled={isSubmitting}
-        />
-      </div>
+      <Input
+        name="price"
+        label="Price per Hour"
+        type="number"
+        step="0.01"
+        min="0.01"
+        value={displayPrice}
+        onChange={handlePriceChange}
+        placeholder="0.00"
+        disabled={isSubmitting}
+      />
 
       {/* Actions */}
       <div className="flex justify-end gap-2 mt-4">
