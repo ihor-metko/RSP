@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui";
 import type { ClubDetail } from "@/types/club";
+import "./ClubCourtsPreview.css";
 
 interface ClubCourtsPreviewProps {
   club: ClubDetail;
@@ -50,13 +51,12 @@ export function ClubCourtsPreview({ club, disabled = false }: ClubCourtsPreviewP
         </div>
       ) : (
         <>
-          <div className="im-clubs-preview-list">
+          <div className="im-courts-overview-list">
             {club.courts.map((court) => {
-              // Format court details
-              const courtDetails = [
-                court.type,
-                court.surface,
+              // Format court type (indoor/outdoor + surface)
+              const courtType = [
                 court.indoor ? t("common.indoor") : t("common.outdoor"),
+                court.surface,
               ]
                 .filter(Boolean)
                 .join(" · ");
@@ -64,7 +64,7 @@ export function ClubCourtsPreview({ club, disabled = false }: ClubCourtsPreviewP
               return (
                 <div
                   key={court.id}
-                  className="im-club-preview-item im-club-preview-item--clickable"
+                  className="im-court-overview-item"
                   onClick={() => handleViewCourt(court.id)}
                   role="button"
                   tabIndex={0}
@@ -75,19 +75,27 @@ export function ClubCourtsPreview({ club, disabled = false }: ClubCourtsPreviewP
                     }
                   }}
                 >
-                  <div className="im-club-preview-info">
-                    <span className="im-club-preview-name">{court.name}</span>
-                    <span className="im-club-preview-meta">
-                      {courtDetails}
-                    </span>
+                  <div className="im-court-overview-main">
+                    <div className="im-court-overview-header">
+                      <h3 className="im-court-overview-name">{court.name}</h3>
+                      <span
+                        className={`im-status-badge ${court.isActive ? "im-status-badge--active" : "im-status-badge--draft"}`}
+                      >
+                        {court.isActive ? t("common.active") : t("common.inactive")}
+                      </span>
+                    </div>
+                    <div className="im-court-overview-details">
+                      {court.type && <span className="im-court-overview-type">{court.type}</span>}
+                      {courtType && <span className="im-court-overview-surface">{courtType}</span>}
+                      <span className="im-court-overview-availability">
+                        {t("clubDetail.usesClubHours")}
+                      </span>
+                    </div>
                   </div>
-
-                  <div className="im-club-preview-status">
-                    <span
-                      className={`im-status-badge ${court.isActive ? "im-status-badge--active" : "im-status-badge--draft"}`}
-                    >
-                      {court.isActive ? t("common.active") : t("common.inactive")}
-                    </span>
+                  <div className="im-court-overview-action">
+                    <svg className="im-court-overview-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
                   </div>
                 </div>
               );

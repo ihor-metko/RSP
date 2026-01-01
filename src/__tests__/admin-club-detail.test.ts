@@ -233,6 +233,13 @@ describe("Admin Club Detail API - GET", () => {
           gallery: { orderBy: { sortOrder: "asc" } },
           businessHours: { orderBy: { dayOfWeek: "asc" } },
           specialHours: { orderBy: { date: "asc" } },
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
         },
       });
     });
