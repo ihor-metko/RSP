@@ -120,7 +120,7 @@ export const useAdminCourtsStore = create<AdminCourtsState>((set, get) => ({
     }
 
     // If already fetching, return the existing promise
-    if (state._inflightFetchCourts[clubId]) {
+    if (clubId in state._inflightFetchCourts) {
       return state._inflightFetchCourts[clubId];
     }
 
@@ -303,7 +303,6 @@ export const useAdminCourtsStore = create<AdminCourtsState>((set, get) => ({
         const clubCourts = state.courtsByClubId[clubId] || [];
         return {
           courtsByClubId: { ...state.courtsByClubId, [clubId]: [...clubCourts, newCourt] },
-          courtsById: { ...state.courtsById, [newCourt.id]: newCourt },
           loading: false,
           lastFetchedByClubId: { ...state.lastFetchedByClubId, [clubId]: Date.now() }
         };
@@ -343,12 +342,6 @@ export const useAdminCourtsStore = create<AdminCourtsState>((set, get) => ({
         
         return {
           courtsByClubId: { ...state.courtsByClubId, [clubId]: updatedClubCourts },
-          courtsById: {
-            ...state.courtsById,
-            [courtId]: state.courtsById[courtId] 
-              ? { ...state.courtsById[courtId], ...updatedCourt }
-              : updatedCourt
-          },
           currentCourt: state.currentCourt?.id === courtId 
             ? { ...state.currentCourt, ...updatedCourt } 
             : state.currentCourt,

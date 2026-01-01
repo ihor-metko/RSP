@@ -41,12 +41,21 @@ export async function GET(
         indoor: true,
         sportType: true,
         defaultPriceCents: true,
+        bannerData: true,
+        metadata: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return NextResponse.json({ courts });
+    // Parse JSON fields and format response
+    const formattedCourts = courts.map(court => ({
+      ...court,
+      bannerData: court.bannerData ? JSON.parse(court.bannerData) : null,
+      metadata: court.metadata ? JSON.parse(court.metadata) : null,
+    }));
+
+    return NextResponse.json({ courts: formattedCourts });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error fetching courts:", error);

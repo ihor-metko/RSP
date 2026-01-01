@@ -46,7 +46,7 @@ export default function CourtDetailPage({
 
   // Use court store
   const loadingCourts = useAdminCourtsStore((state) => state.loadingCourts);
-  const ensureCourtByIdFromStore = useAdminCourtsStore((state) => state.ensureCourtById);
+  // const ensureCourtByIdFromStore = useAdminCourtsStore((state) => state.ensureCourtById);
 
   // Local state for court - using store's CourtDetail type
   const [court, setCourt] = useState<StoreCourtDetail | null>(null);
