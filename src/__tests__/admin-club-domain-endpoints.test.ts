@@ -606,4 +606,180 @@ describe("Admin Club Domain-Specific APIs", () => {
       expect(prisma.$transaction).toHaveBeenCalled();
     });
   });
+
+  describe("Club Admin and Club Owner permissions", () => {
+    it("should allow club_admin to update general club info", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "club-admin-123", isRoot: false },
+      });
+
+      // Mock requireAnyAdmin to return club_admin
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubMembership.findMany as jest.Mock)
+        .mockResolvedValueOnce([]) // CLUB_OWNER check
+        .mockResolvedValueOnce([{ clubId: "club-123" }]); // CLUB_ADMIN check
+
+      // Mock canAccessClub - club admin has access to their club
+      (prisma.club.findUnique as jest.Mock)
+        .mockResolvedValueOnce({ id: "club-123", organizationId: "org-1" }) // canAccessClub check
+        .mockResolvedValueOnce(mockClub) // existingClub check
+        .mockResolvedValueOnce(mockClub); // update check
+
+      (prisma.club.findFirst as jest.Mock).mockResolvedValue(null);
+
+      const updatedClub = {
+        ...mockClub,
+        name: "Updated by Club Admin",
+        courts: [],
+        coaches: [],
+        gallery: [],
+        businessHours: [],
+        specialHours: [],
+      };
+
+      (prisma.club.update as jest.Mock).mockResolvedValue(updatedClub);
+
+      const request = new Request(
+        "http://localhost:3000/api/admin/clubs/club-123",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ name: "Updated by Club Admin" }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const response = await PatchClub(request, { params: mockParams });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.name).toBe("Updated by Club Admin");
+    });
+
+    it("should allow club_owner to update club business hours", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "club-owner-123", isRoot: false },
+      });
+
+      // Mock requireAnyAdmin to return club_owner
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubMembership.findMany as jest.Mock).mockResolvedValueOnce([
+        { clubId: "club-123" },
+      ]);
+
+      // Mock canAccessClub - club owner has access to their club
+      (prisma.club.findUnique as jest.Mock)
+        .mockResolvedValueOnce({ id: "club-123", organizationId: "org-1" })
+        .mockResolvedValueOnce(mockClub);
+
+      const businessHours = [
+        { dayOfWeek: 1, openTime: "09:00", closeTime: "18:00", isClosed: false },
+        { dayOfWeek: 2, openTime: "09:00", closeTime: "18:00", isClosed: false },
+      ];
+
+      const updatedClub = {
+        ...mockClub,
+        courts: [],
+        coaches: [],
+        gallery: [],
+        businessHours,
+        specialHours: [],
+      };
+
+      (prisma.$transaction as jest.Mock).mockResolvedValue(updatedClub);
+
+      const request = new Request(
+        "http://localhost:3000/api/admin/clubs/club-123/business-hours",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ businessHours }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const response = await PatchBusinessHours(request, { params: mockParams });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.businessHours).toEqual(businessHours);
+    });
+
+    it("should allow club_admin to update club location", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "club-admin-123", isRoot: false },
+      });
+
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubMembership.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ clubId: "club-123" }]);
+
+      (prisma.club.findUnique as jest.Mock)
+        .mockResolvedValueOnce({ id: "club-123", organizationId: "org-1" })
+        .mockResolvedValueOnce(mockClub);
+
+      const updatedClub = {
+        ...mockClub,
+        location: "456 New Street",
+        city: "New City",
+        courts: [],
+        coaches: [],
+        gallery: [],
+        businessHours: [],
+        specialHours: [],
+      };
+
+      (prisma.club.update as jest.Mock).mockResolvedValue(updatedClub);
+
+      const request = new Request(
+        "http://localhost:3000/api/admin/clubs/club-123/location",
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            location: "456 New Street",
+            city: "New City",
+          }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const response = await PatchLocation(request, { params: mockParams });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.location).toBe("456 New Street");
+    });
+
+    it("should deny club_admin access to another club", async () => {
+      mockAuth.mockResolvedValue({
+        user: { id: "club-admin-123", isRoot: false },
+      });
+
+      // Mock requireAnyAdmin to return club_admin for club-456
+      (prisma.membership.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.clubMembership.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ clubId: "club-456" }]); // Admin of different club
+
+      // Mock canAccessClub - trying to access club-123 but admin of club-456
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue({
+        id: "club-123",
+        organizationId: "org-1",
+      });
+
+      const request = new Request(
+        "http://localhost:3000/api/admin/clubs/club-123",
+        {
+          method: "PATCH",
+          body: JSON.stringify({ name: "Unauthorized Update" }),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const response = await PatchClub(request, { params: mockParams });
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.error).toBe("Forbidden");
+    });
+  });
 });
