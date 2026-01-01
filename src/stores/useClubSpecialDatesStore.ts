@@ -55,6 +55,7 @@ export const useClubSpecialDatesStore = create<ClubSpecialDatesState>((set, get)
 
     // If not forcing and data already loaded for this club, return immediately
     if (!force && state.specialDates.length > 0 && clubId === state.lastFetchedClubId) {
+      // Note: This assumes data is fresh. For longer sessions, consider adding timestamp-based invalidation
       return Promise.resolve();
     }
 
@@ -116,13 +117,16 @@ export const useClubSpecialDatesStore = create<ClubSpecialDatesState>((set, get)
 
       const newSpecialDate: ClubSpecialHours = await response.json();
       
-      // Optimistically update the store
-      set((state) => ({
-        specialDates: [...state.specialDates, newSpecialDate].sort((a, b) => 
-          new Date(a.date).getTime() - new Date(b.date).getTime()
-        ),
-        loading: false,
-      }));
+      // Optimistically update the store with sorted insert
+      set((state) => {
+        const newDates = [...state.specialDates, newSpecialDate];
+        // Sort by date - small array so performance impact is minimal
+        newDates.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        return {
+          specialDates: newDates,
+          loading: false,
+        };
+      });
 
       return newSpecialDate;
     } catch (error) {
@@ -149,13 +153,23 @@ export const useClubSpecialDatesStore = create<ClubSpecialDatesState>((set, get)
 
       const updatedSpecialDate: ClubSpecialHours = await response.json();
       
-      // Update the store
-      set((state) => ({
-        specialDates: state.specialDates
-          .map((sd) => (sd.id === dateId ? updatedSpecialDate : sd))
-          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
-        loading: false,
-      }));
+      // Update the store - sort only if date changed
+      set((state) => {
+        const updated = state.specialDates.map((sd) => 
+          sd.id === dateId ? updatedSpecialDate : sd
+        );
+        
+        // Only sort if the date was changed
+        const original = state.specialDates.find((sd) => sd.id === dateId);
+        if (original && original.date !== updatedSpecialDate.date) {
+          updated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }
+        
+        return {
+          specialDates: updated,
+          loading: false,
+        };
+      });
 
       return updatedSpecialDate;
     } catch (error) {

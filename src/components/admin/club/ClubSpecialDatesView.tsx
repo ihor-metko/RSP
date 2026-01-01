@@ -49,11 +49,13 @@ export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }
   const [specialHours, setSpecialHours] = useState<SpecialHour[]>([]);
 
   // Fetch special dates on mount
+  // Note: fetchSpecialDates is a Zustand store action and is stable across renders
   useEffect(() => {
     fetchSpecialDates(club.id).catch(() => {
       // Error is already set in the store
     });
-  }, [club.id, fetchSpecialDates]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [club.id]);
 
   // Convert store special dates to SpecialHour format for editing
   const formatSpecialHours = useCallback((): SpecialHour[] => {
