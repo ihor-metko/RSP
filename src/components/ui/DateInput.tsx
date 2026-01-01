@@ -128,10 +128,15 @@ export function DateInput({
 
   // Handle input blur - check if focus moved outside the component
   const handleInputBlur = (e: React.FocusEvent) => {
-    // Check if the related target (where focus is moving to) is within our container
+    // Check if the related target (where focus is moving to) is within our container or calendar popup
     const relatedTarget = e.relatedTarget as Node | null;
     if (containerRef.current && relatedTarget && containerRef.current.contains(relatedTarget)) {
       // Focus is moving to an element inside our component, don't close
+      return;
+    }
+    // Also check if focus is moving to the calendar popup (rendered in Portal)
+    if (calendarPopupRef.current && relatedTarget && calendarPopupRef.current.contains(relatedTarget)) {
+      // Focus is moving to the calendar popup, don't close
       return;
     }
     // Focus is moving outside, close the calendar
