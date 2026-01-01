@@ -1,38 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
-
-/**
- * Check if an admin has access to a specific club
- */
-async function canAccessClub(
-  adminType: "root_admin" | "organization_admin" | "club_owner" | "club_admin",
-  managedIds: string[],
-  clubId: string
-): Promise<boolean> {
-  if (adminType === "root_admin") {
-    return true;
-  }
-
-  if (adminType === "club_owner") {
-    return managedIds.includes(clubId);
-  }
-
-  if (adminType === "club_admin") {
-    return managedIds.includes(clubId);
-  }
-
-  if (adminType === "organization_admin") {
-    // Check if club belongs to one of the managed organizations
-    const club = await prisma.club.findUnique({
-      where: { id: clubId },
-      select: { organizationId: true },
-    });
-    return club?.organizationId ? managedIds.includes(club.organizationId) : false;
-  }
-
-  return false;
-}
+import { canAccessClub } from "@/lib/permissions/clubAccess";
 
 /**
  * PATCH /api/admin/clubs/[id]/contacts
@@ -49,6 +18,7 @@ export async function PATCH(
   }
 
   // Only root admins and organization admins can edit clubs
+  // Club admins have read-only access to club data
   if (authResult.adminType === "club_admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
