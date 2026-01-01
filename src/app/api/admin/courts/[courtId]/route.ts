@@ -37,6 +37,17 @@ export async function GET(
             },
           },
         },
+        group: {
+          select: {
+            id: true,
+            name: true,
+            surface: true,
+            color: true,
+            gameType: true,
+            sportType: true,
+            defaultPriceCents: true,
+          },
+        },
         courtPriceRules: {
           orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
         },
@@ -93,7 +104,7 @@ export async function PATCH(
     const resolvedParams = await params;
     const { courtId } = resolvedParams;
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, defaultPriceCents, isActive } = body;
+    const { name, slug, type, surface, gameType, indoor, sportType, defaultPriceCents, isActive, useGroupPricing } = body;
 
 
     // Check if court exists
@@ -209,10 +220,33 @@ export async function PATCH(
     if (slug !== undefined) updateData.slug = slug?.trim() || null;
     if (type !== undefined) updateData.type = type?.trim() || null;
     if (surface !== undefined) updateData.surface = surface?.trim() || null;
+    if (gameType !== undefined) updateData.gameType = gameType?.trim() || null;
     if (indoor !== undefined) updateData.indoor = indoor;
     if (sportType !== undefined) updateData.sportType = sportType;
     if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (useGroupPricing !== undefined) updateData.useGroupPricing = useGroupPricing;
+
+    // If grouping attributes changed, reassign to appropriate group
+    const shouldReassignGroup = 
+      (type !== undefined || surface !== undefined || gameType !== undefined || sportType !== undefined) &&
+      (useGroupPricing ?? existingCourt.useGroupPricing);
+
+    if (shouldReassignGroup) {
+      const { findOrCreateCourtGroup } = await import("@/lib/courtGrouping");
+      const groupId = await findOrCreateCourtGroup(
+        existingCourt.clubId,
+        surface !== undefined ? (surface?.trim() || null) : existingCourt.surface,
+        type !== undefined ? (type?.trim() || null) : existingCourt.type,
+        gameType !== undefined ? (gameType?.trim() || null) : existingCourt.gameType,
+        sportType !== undefined ? sportType : existingCourt.sportType,
+        defaultPriceCents !== undefined ? defaultPriceCents : existingCourt.defaultPriceCents
+      );
+      updateData.groupId = groupId;
+    } else if (useGroupPricing === false) {
+      // If disabling group pricing, remove from group
+      updateData.groupId = null;
+    }
 
     const updatedCourt = await prisma.court.update({
       where: { id: courtId },
@@ -225,6 +259,17 @@ export async function PATCH(
             businessHours: {
               orderBy: { dayOfWeek: "asc" },
             },
+          },
+        },
+        group: {
+          select: {
+            id: true,
+            name: true,
+            surface: true,
+            color: true,
+            gameType: true,
+            sportType: true,
+            defaultPriceCents: true,
           },
         },
         courtPriceRules: {
