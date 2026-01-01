@@ -1123,6 +1123,8 @@
     "reserving": "Бронювання...",
     "reserve": "Забронювати",
     "book": "Забронювати",
+    "addBooking": "Додати бронювання",
+    "createFirstBooking": "Створити перше бронювання",
     "viewSchedule": "Переглянути розклад",
     "courtScheduleTitle": "{courtName} - Розклад",
     "loadingCoachAvailability": "Завантаження доступності тренера...",

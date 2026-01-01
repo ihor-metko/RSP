@@ -361,7 +361,7 @@ export default function AdminClubDetailPage({
               />
             </section>
 
-            {/* Bookings Summary */}
+            {/* Bookings Overview */}
             {bookingsLoading ? (
               <BookingsPreviewSkeleton count={5} className="im-admin-club-bookings-section" />
             ) : bookingsPreview && club && (
@@ -378,6 +378,12 @@ export default function AdminClubDetailPage({
                     </div>
                     <h2 className="im-section-title">{t("orgDetail.bookingsOverview")}</h2>
                     <div className="im-section-actions">
+                      <Button
+                        variant="primary"
+                        onClick={() => router.push(`/admin/operations/${club.id}`)}
+                      >
+                        {t("bookings.addBooking")}
+                      </Button>
                       <Button
                         variant="outline"
                         onClick={() => router.push(`/admin/bookings?clubId=${club.id}`)}
@@ -401,7 +407,16 @@ export default function AdminClubDetailPage({
                     </div>
                   </div>
                   {bookingsPreview.items.length === 0 ? (
-                    <p className="im-preview-empty">{t("orgDetail.noBookings")}</p>
+                    <div className="im-preview-empty-state">
+                      <p className="im-preview-empty">{t("orgDetail.noBookings")}</p>
+                      <Button
+                        variant="primary"
+                        size="small"
+                        onClick={() => router.push(`/admin/operations/${club.id}`)}
+                      >
+                        {t("bookings.createFirstBooking")}
+                      </Button>
+                    </div>
                   ) : (
                     <div className="im-bookings-preview-list">
                       <h4 className="im-bookings-preview-title">{t("orgDetail.upcomingBookings")}</h4>
