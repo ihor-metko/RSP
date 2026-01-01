@@ -195,10 +195,13 @@ export function PriceRuleForm({
             <Select
               id="holidayId"
               label="Holiday"
-              options={holidays.map((h) => ({
-                value: h.id,
-                label: `${h.name} (${new Date(h.date).toLocaleDateString()})`,
-              }))}
+              options={holidays.map((h) => {
+                const holidayDate = new Date(h.date);
+                return {
+                  value: h.id,
+                  label: `${h.name} (${holidayDate.toLocaleDateString()})`,
+                };
+              })}
               value={formData.holidayId ?? ""}
               onChange={(value) => {
                 setFormData((prev) => ({

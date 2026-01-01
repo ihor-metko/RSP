@@ -242,29 +242,17 @@ export async function getPriceTimelineForDay(
     return [];
   }
 
-  // Fetch holidays for the club that match this date
+  // Fetch holidays for the club
   const holidays = await prisma.holidayDate.findMany({
     where: {
       clubId: court.clubId,
-      OR: [
-        // Exact date match
-        { date: dateObj, recurring: false },
-        // Recurring holidays - match by month and day only
-        {
-          recurring: true,
-          date: {
-            // For recurring holidays, we need to check if month and day match
-            // We'll fetch all recurring holidays and filter in memory
-          },
-        },
-      ],
     },
   });
 
-  // Filter recurring holidays by month and day
+  // Filter holidays that match this date
   const matchingHolidays = holidays.filter((h) => {
     if (!h.recurring) {
-      // Non-recurring: exact date match already handled by query
+      // Non-recurring: exact date match
       return h.date.toISOString().split("T")[0] === dateObj.toISOString().split("T")[0];
     } else {
       // Recurring: match month and day regardless of year
@@ -272,8 +260,13 @@ export async function getPriceTimelineForDay(
     }
   });
 
-  const holidayDates = new Set(matchingHolidays.map((h) => h.date.toISOString().split("T")[0]));
-  const holidayIds = new Set(matchingHolidays.map((h) => h.id));
+  // For matching holidays, use the target date string (not the original holiday date)
+  const holidayDates = new Set<string>();
+  const holidayIds = new Set<string>();
+  matchingHolidays.forEach((h) => {
+    holidayDates.add(dateObj.toISOString().split("T")[0]); // Use target date
+    holidayIds.add(h.id);
+  });
 
   // Fetch all rules for this court
   const allRules = await prisma.courtPriceRule.findMany({
