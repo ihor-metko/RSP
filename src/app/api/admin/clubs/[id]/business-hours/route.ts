@@ -81,12 +81,8 @@ export async function PATCH(
       );
     }
 
-    // Update in transaction
-    const updatedClub = await prisma.$transaction(async (tx) => {
-      // Delete existing business hours and replace
-      await tx.clubBusinessHours.deleteMany({
-        where: { clubId },
-      });
+    const updatedHours = await prisma.$transaction(async (tx) => {
+      await tx.clubBusinessHours.deleteMany({ where: { clubId } });
 
       if (businessHours.length > 0) {
         await tx.clubBusinessHours.createMany({
@@ -100,19 +96,13 @@ export async function PATCH(
         });
       }
 
-      return tx.club.findUnique({
-        where: { id: clubId },
-        include: {
-          courts: true,
-          coaches: { include: { user: true } },
-          gallery: { orderBy: { sortOrder: "asc" } },
-          businessHours: { orderBy: { dayOfWeek: "asc" } },
-          specialHours: { orderBy: { date: "asc" } },
-        },
+      return tx.clubBusinessHours.findMany({
+        where: { clubId },
+        orderBy: { dayOfWeek: 'asc' },
       });
     });
 
-    return NextResponse.json(updatedClub);
+    return NextResponse.json({ businessHours: updatedHours });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating business hours:", error);
