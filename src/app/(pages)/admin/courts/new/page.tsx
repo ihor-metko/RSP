@@ -5,7 +5,22 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
 import Link from "next/link";
-import { Button, Card, TimeInput } from "@/components/ui";
+import {
+  Button,
+  Card,
+  TimeInput,
+  Input,
+  Select,
+  Textarea,
+  Checkbox,
+  Tabs,
+  TabList,
+  Tab,
+  TabPanel,
+  PageHeader,
+  ImageUpload,
+} from "@/components/ui";
+import type { SelectOption } from "@/components/ui/Select";
 import { FormSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { formatPrice, dollarsToCents } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
@@ -114,34 +129,33 @@ export default function CreateCourtPage() {
   const isOrgAdmin = hasRole("ORGANIZATION_ADMIN");
   const isClubAdmin = hasRole("CLUB_ADMIN");
 
-  // Build steps array based on role
-  const ALL_STEPS = useMemo(() => {
-    const steps = [];
-    let stepNumber = 1;
+  // Build tabs array based on role
+  const ALL_TABS = useMemo(() => {
+    const tabs = [];
 
-    // Step 1: Organization Selection (Root Admin only)
-    if (isRootAdmin && !clubIdFromUrl) {
-      steps.push({ id: "organization", label: t("admin.courts.new.steps.organization"), number: stepNumber++ });
+    // Tab 1: Context Selection (Organization & Club) - Only for Root/Org Admin
+    if ((isRootAdmin || isOrgAdmin) && !clubIdFromUrl) {
+      tabs.push({ id: "context", label: t("admin.courts.new.tabs.context") || "Context" });
     }
 
-    // Step 2: Club Selection (Root Admin and Org Admin only, not Club Admin)
-    if ((isRootAdmin || isOrgAdmin) && !isClubAdmin && !clubIdFromUrl) {
-      steps.push({ id: "club", label: t("admin.courts.new.steps.club"), number: stepNumber++ });
-    }
+    // Tab 2: Basic Info
+    tabs.push({ id: "basic", label: t("admin.courts.new.tabs.basic") || "Basic Info" });
 
-    // Existing steps
-    steps.push({ id: "basic", label: t("admin.courts.new.steps.basic"), number: stepNumber++ });
-    steps.push({ id: "pricing", label: t("admin.courts.new.steps.pricing"), number: stepNumber++ });
-    steps.push({ id: "schedule", label: t("admin.courts.new.steps.schedule"), number: stepNumber++ });
-    steps.push({ id: "media", label: t("admin.courts.new.steps.media"), number: stepNumber++ });
-    steps.push({ id: "meta", label: t("admin.courts.new.steps.meta"), number: stepNumber++ });
+    // Tab 3: Pricing & Schedule (combined)
+    tabs.push({ id: "pricing-schedule", label: t("admin.courts.new.tabs.pricingSchedule") || "Pricing & Schedule" });
 
-    return steps;
-  }, [isRootAdmin, isOrgAdmin, isClubAdmin, clubIdFromUrl, t]);
+    // Tab 4: Media
+    tabs.push({ id: "media", label: t("admin.courts.new.tabs.media") || "Media" });
 
-  const [currentStep, setCurrentStep] = useState(ALL_STEPS[0]?.id || "basic");
+    // Tab 5: Settings (meta information)
+    tabs.push({ id: "settings", label: t("admin.courts.new.tabs.settings") || "Settings" });
 
-  const COURT_TYPES = [
+    return tabs;
+  }, [isRootAdmin, isOrgAdmin, clubIdFromUrl, t]);
+
+  const [currentTab, setCurrentTab] = useState(ALL_TABS[0]?.id || "basic");
+
+  const COURT_TYPES: SelectOption[] = [
     { value: "padel", label: t("admin.courts.new.types.padel") },
     { value: "tennis", label: t("admin.courts.new.types.tennis") },
     { value: "squash", label: t("admin.courts.new.types.squash") },
@@ -149,7 +163,7 @@ export default function CreateCourtPage() {
     { value: "pickleball", label: t("admin.courts.new.types.pickleball") },
   ];
 
-  const SURFACE_TYPES = [
+  const SURFACE_TYPES: SelectOption[] = [
     { value: "artificial-grass", label: t("admin.courts.new.surfaces.artificialGrass") },
     { value: "clay", label: t("admin.courts.new.surfaces.clay") },
     { value: "hard", label: t("admin.courts.new.surfaces.hard") },
@@ -157,11 +171,11 @@ export default function CreateCourtPage() {
     { value: "carpet", label: t("admin.courts.new.surfaces.carpet") },
   ];
 
-  const SLOT_LENGTHS = [
-    { value: 30, label: t("admin.courts.new.slotLengths.30") },
-    { value: 60, label: t("admin.courts.new.slotLengths.60") },
-    { value: 90, label: t("admin.courts.new.slotLengths.90") },
-    { value: 120, label: t("admin.courts.new.slotLengths.120") },
+  const SLOT_LENGTHS: SelectOption[] = [
+    { value: "30", label: t("admin.courts.new.slotLengths.30") },
+    { value: "60", label: t("admin.courts.new.slotLengths.60") },
+    { value: "90", label: t("admin.courts.new.slotLengths.90") },
+    { value: "120", label: t("admin.courts.new.slotLengths.120") },
   ];
 
   // Form handling with react-hook-form
@@ -186,7 +200,7 @@ export default function CreateCourtPage() {
   // Debounced preview values
   const [previewData, setPreviewData] = useState<CourtFormData>(defaultFormValues);
 
-  // Filter clubs by selected organization (for club selection step)
+  // Filter clubs by selected organization (for club selection tab)
   const filteredClubs = useMemo(() => {
     if (isRootAdmin && selectedOrgId) {
       return clubs.filter(club => club.organization?.id === selectedOrgId);
@@ -197,6 +211,22 @@ export default function CreateCourtPage() {
     }
     return clubs;
   }, [clubs, selectedOrgId, isRootAdmin, isOrgAdmin, adminStatus]);
+
+  // Convert organizations to SelectOption format
+  const organizationOptions: SelectOption[] = useMemo(() => {
+    return organizations.map(org => ({
+      value: org.id,
+      label: org.name,
+    }));
+  }, [organizations]);
+
+  // Convert filtered clubs to SelectOption format
+  const clubOptions: SelectOption[] = useMemo(() => {
+    return filteredClubs.map(club => ({
+      value: club.id,
+      label: club.name,
+    }));
+  }, [filteredClubs]);
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -459,28 +489,27 @@ export default function CreateCourtPage() {
     setValue("gallery", newGallery);
   };
 
-  // Validation per step
-  const validateStep = useCallback(
-    async (stepId: string): Promise<boolean> => {
+  // Validation per tab
+  const validateTab = useCallback(
+    async (tabId: string): Promise<boolean> => {
       let fieldsToValidate: (keyof CourtFormData)[] = [];
 
-      switch (stepId) {
-        case "organization":
-          fieldsToValidate = ["organizationId"];
-          break;
-        case "club":
-          fieldsToValidate = ["clubId"];
+      switch (tabId) {
+        case "context":
+          if (isRootAdmin) {
+            fieldsToValidate.push("organizationId");
+          }
+          if (isRootAdmin || isOrgAdmin) {
+            fieldsToValidate.push("clubId");
+          }
           break;
         case "basic":
           fieldsToValidate = ["name", "slug"];
           break;
-        case "pricing":
-          fieldsToValidate = ["defaultPrice"];
+        case "pricing-schedule":
+          fieldsToValidate = ["defaultPrice", "courtOpenTime", "courtCloseTime"];
           break;
-        case "schedule":
-          fieldsToValidate = ["courtOpenTime", "courtCloseTime"];
-          break;
-        case "meta":
+        case "settings":
           fieldsToValidate = ["maxPlayers"];
           break;
         default:
@@ -488,17 +517,18 @@ export default function CreateCourtPage() {
       }
 
       const result = await trigger(fieldsToValidate);
-      setStepErrors((prev) => ({ ...prev, [stepId]: !result }));
+      setStepErrors((prev) => ({ ...prev, [tabId]: !result }));
       return result;
     },
-    [trigger]
+    [trigger, isRootAdmin, isOrgAdmin]
   );
 
-  // Navigate to step
-  const handleStepClick = async (stepId: string) => {
-    // Validate current step before leaving
-    await validateStep(currentStep);
-    setCurrentStep(stepId);
+  // Navigate to tab
+  const handleTabChange = async (tabId: string) => {
+    // Validate current tab before leaving
+    await validateTab(currentTab);
+    setCurrentTab(tabId);
+    return true;
   };
 
   // Submit handler
@@ -510,10 +540,10 @@ export default function CreateCourtPage() {
       return;
     }
 
-    // Validate all steps
+    // Validate all tabs
     let allValid = true;
-    for (const step of ALL_STEPS) {
-      const valid = await validateStep(step.id);
+    for (const tab of ALL_TABS) {
+      const valid = await validateTab(tab.id);
       if (!valid) allValid = false;
     }
 
@@ -560,7 +590,7 @@ export default function CreateCourtPage() {
         if (response.status === 409) {
           // Slug conflict
           setStepErrors((prev) => ({ ...prev, basic: true }));
-          setCurrentStep("basic");
+          setCurrentTab("basic");
           showToast("error", `Slug already exists. Try a different slug like: ${data.slug}-1`);
           return;
         }
@@ -582,333 +612,304 @@ export default function CreateCourtPage() {
     }
   };
 
-  // Render step content
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case "organization":
-        return renderOrganizationStep();
-      case "club":
-        return renderClubStep();
-      case "basic":
-        return renderBasicStep();
-      case "pricing":
-        return renderPricingStep();
-      case "schedule":
-        return renderScheduleStep();
-      case "media":
-        return renderMediaStep();
-      case "meta":
-        return renderMetaStep();
-      default:
-        return null;
-    }
-  };
-
-  // Organization Selection Step
-  const renderOrganizationStep = () => {
+  // Context Tab (Organization & Club Selection)
+  const renderContextTab = () => {
     return (
-      <div className="im-create-court-step-content">
-        <h2 className="im-create-court-step-title">{t("admin.courts.new.organizationStep.title")}</h2>
-        <p className="im-create-court-step-description">
-          {t("admin.courts.new.organizationStep.description")}
-        </p>
+      <div className="im-create-court-tab-content">
+        <div className="im-tab-section">
+          <h3 className="im-section-title">{t("admin.courts.new.contextTab.title")}</h3>
+          <p className="im-section-description">
+            {t("admin.courts.new.contextTab.description")}
+          </p>
 
-        <div className="im-create-court-row">
-          <div className="im-create-court-field im-create-court-field--full">
-            <label className="im-create-court-label">{t("admin.courts.new.organizationStep.organization")} *</label>
-            <select
-              {...register("organizationId", {
+          {isRootAdmin && (
+            <Controller
+              name="organizationId"
+              control={control}
+              rules={{
                 required: t("admin.courts.new.errors.organizationRequired"),
-              })}
-              className={`im-create-court-select ${errors.organizationId ? "im-create-court-input--error" : ""}`}
-              disabled={isSubmitting || orgsLoading}
-            >
-              <option value="">{t("admin.courts.new.organizationStep.selectOrganization")}</option>
-              {organizations.map((org) => (
-                <option key={org.id} value={org.id}>
-                  {org.name}
-                </option>
-              ))}
-            </select>
-            {errors.organizationId && (
-              <span className="im-create-court-error">{errors.organizationId.message}</span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Club Selection Step
-  const renderClubStep = () => {
-    // Club selection is only disabled during submission or loading
-    // Org admins can select clubs; club admins shouldn't see this step at all
-    const isDisabled = isSubmitting || clubsLoading;
-
-    return (
-      <div className="im-create-court-step-content">
-        <h2 className="im-create-court-step-title">{t("admin.courts.new.clubStep.title")}</h2>
-        <p className="im-create-court-step-description">
-          {t("admin.courts.new.clubStep.description")}
-        </p>
-
-        <div className="im-create-court-row">
-          <div className="im-create-court-field im-create-court-field--full">
-            <label className="im-create-court-label">{t("admin.courts.new.clubStep.club")} *</label>
-            <select
-              {...register("clubId", {
-                required: t("admin.courts.new.errors.clubRequired"),
-              })}
-              className={`im-create-court-select ${errors.clubId ? "im-create-court-input--error" : ""}`}
-              disabled={isDisabled}
-            >
-              <option value="">{t("admin.courts.new.clubStep.selectClub")}</option>
-              {filteredClubs.map((club) => (
-                <option key={club.id} value={club.id}>
-                  {club.name}
-                </option>
-              ))}
-            </select>
-            {isOrgAdmin && (
-              <span className="im-create-court-hint">{t("admin.courts.new.clubStep.orgAdminHint")}</span>
-            )}
-            {errors.clubId && (
-              <span className="im-create-court-error">{errors.clubId.message}</span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Basic Step
-  const renderBasicStep = () => (
-    <div className="im-create-court-step-content">
-      <h2 className="im-create-court-step-title">{t("admin.courts.new.basicStep.title")}</h2>
-      <p className="im-create-court-step-description">
-        {t("admin.courts.new.basicStep.description")}
-      </p>
-
-      <div className="im-create-court-row">
-        <div className="im-create-court-field im-create-court-field--full">
-          <label className="im-create-court-label">{t("admin.courts.new.basicStep.courtName")}</label>
-          <input
-            {...register("name", {
-              required: t("admin.courts.new.errors.nameRequired"),
-              minLength: { value: 2, message: t("admin.courts.new.errors.nameMinLength") },
-              maxLength: { value: 120, message: t("admin.courts.new.errors.nameMaxLength") },
-            })}
-            onChange={(e) => {
-              register("name").onChange(e);
-              handleNameChange(e);
-            }}
-            className={`im-create-court-input ${errors.name ? "im-create-court-input--error" : ""}`}
-            placeholder={t("admin.courts.new.basicStep.courtNamePlaceholder")}
-            disabled={isSubmitting}
-          />
-          {errors.name && <span className="im-create-court-error">{errors.name.message}</span>}
-        </div>
-      </div>
-
-      <div className="im-create-court-row im-create-court-row--two">
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.basicStep.slug")}</label>
-          <input
-            {...register("slug", {
-              pattern: {
-                value: /^[a-z0-9-]*$/,
-                message: t("admin.courts.new.errors.slugPattern"),
-              },
-            })}
-            className={`im-create-court-input ${errors.slug ? "im-create-court-input--error" : ""}`}
-            placeholder={t("admin.courts.new.basicStep.slugPlaceholder")}
-            disabled={isSubmitting}
-          />
-          <span className="im-create-court-hint">{t("admin.courts.new.basicStep.slugHint")}</span>
-          {errors.slug && <span className="im-create-court-error">{errors.slug.message}</span>}
-        </div>
-
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.basicStep.courtType")}</label>
-          <select
-            {...register("type")}
-            className="im-create-court-select"
-            disabled={isSubmitting}
-          >
-            <option value="">{t("admin.courts.new.basicStep.selectType")}</option>
-            {COURT_TYPES.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="im-create-court-row im-create-court-row--two">
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.basicStep.surface")}</label>
-          <select
-            {...register("surface")}
-            className="im-create-court-select"
-            disabled={isSubmitting}
-          >
-            <option value="">{t("admin.courts.new.basicStep.selectSurface")}</option>
-            {SURFACE_TYPES.map((surface) => (
-              <option key={surface.value} value={surface.value}>
-                {surface.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="im-create-court-field">
-          <label className="im-create-court-checkbox-wrapper">
-            <input
-              type="checkbox"
-              {...register("indoor")}
-              className="im-create-court-checkbox"
-              disabled={isSubmitting}
+              }}
+              render={({ field }) => (
+                <Select
+                  label={t("admin.courts.new.contextTab.organization") + " *"}
+                  options={[
+                    { value: "", label: t("admin.courts.new.contextTab.selectOrganization") },
+                    ...organizationOptions,
+                  ]}
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={isSubmitting || orgsLoading}
+                />
+              )}
             />
-            <span className="im-create-court-checkbox-label">{t("admin.courts.new.basicStep.indoorCourt")}</span>
-          </label>
-        </div>
-      </div>
-
-      <div className="im-create-court-row">
-        <div className="im-create-court-field im-create-court-field--full">
-          <label className="im-create-court-label">{t("admin.courts.new.basicStep.shortDescription")}</label>
-          <textarea
-            {...register("shortDescription")}
-            className="im-create-court-textarea"
-            placeholder={t("admin.courts.new.basicStep.shortDescriptionPlaceholder")}
-            rows={3}
-            disabled={isSubmitting}
-          />
-        </div>
-      </div>
-    </div>
-  );
-
-  // Pricing Step
-  const renderPricingStep = () => (
-    <div className="im-create-court-step-content">
-      <h2 className="im-create-court-step-title">{t("admin.courts.new.pricingStep.title")}</h2>
-      <p className="im-create-court-step-description">
-        {t("admin.courts.new.pricingStep.description")}
-      </p>
-
-      <div className="im-create-court-row im-create-court-row--two">
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.pricingStep.defaultPrice")}</label>
-          <Controller
-            name="defaultPrice"
-            control={control}
-            rules={{
-              min: { value: 0, message: t("admin.courts.new.errors.priceNegative") },
-            }}
-            render={({ field }) => (
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={field.value}
-                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                className={`im-create-court-input ${errors.defaultPrice ? "im-create-court-input--error" : ""}`}
-                placeholder={t("admin.courts.new.pricingStep.pricePlaceholder")}
-                disabled={isSubmitting}
-              />
-            )}
-          />
-          {errors.defaultPrice && (
-            <span className="im-create-court-error">{errors.defaultPrice.message}</span>
+          )}
+          {errors.organizationId && (
+            <span className="im-error-text">{errors.organizationId.message}</span>
           )}
         </div>
 
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.pricingStep.currency")}</label>
-          <select
-            {...register("currency")}
-            className="im-create-court-select"
-            disabled={isSubmitting}
-          >
-            <option value="USD">{t("admin.courts.new.currencies.usd")}</option>
-            <option value="EUR">{t("admin.courts.new.currencies.eur")}</option>
-            <option value="GBP">{t("admin.courts.new.currencies.gbp")}</option>
-            <option value="UAH">{t("admin.courts.new.currencies.uah")}</option>
-          </select>
-          <span className="im-create-court-hint">{t("admin.courts.new.pricingStep.currencyHint")}</span>
+        {(isRootAdmin || isOrgAdmin) && (
+          <div className="im-tab-section">
+            <Controller
+              name="clubId"
+              control={control}
+              rules={{
+                required: t("admin.courts.new.errors.clubRequired"),
+              }}
+              render={({ field }) => (
+                <Select
+                  label={t("admin.courts.new.contextTab.club") + " *"}
+                  options={[
+                    { value: "", label: t("admin.courts.new.contextTab.selectClub") },
+                    ...clubOptions,
+                  ]}
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={isSubmitting || clubsLoading}
+                />
+              )}
+            />
+            {isOrgAdmin && (
+              <span className="im-hint-text">{t("admin.courts.new.contextTab.orgAdminHint")}</span>
+            )}
+            {errors.clubId && (
+              <span className="im-error-text">{errors.clubId.message}</span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Basic Tab
+  const renderBasicTab = () => (
+    <div className="im-create-court-tab-content">
+      <div className="im-tab-section">
+        <h3 className="im-section-title">{t("admin.courts.new.basicTab.title")}</h3>
+        <p className="im-section-description">
+          {t("admin.courts.new.basicTab.description")}
+        </p>
+
+        <Input
+          {...register("name", {
+            required: t("admin.courts.new.errors.nameRequired"),
+            minLength: { value: 2, message: t("admin.courts.new.errors.nameMinLength") },
+            maxLength: { value: 120, message: t("admin.courts.new.errors.nameMaxLength") },
+          })}
+          onChange={(e) => {
+            register("name").onChange(e);
+            handleNameChange(e);
+          }}
+          label={t("admin.courts.new.basicTab.courtName") + " *"}
+          placeholder={t("admin.courts.new.basicTab.courtNamePlaceholder")}
+          disabled={isSubmitting}
+        />
+        {errors.name && <span className="im-error-text">{errors.name.message}</span>}
+      </div>
+
+      <div className="im-tab-section">
+        <div className="im-form-row">
+          <div className="im-form-col">
+            <Input
+              {...register("slug", {
+                pattern: {
+                  value: /^[a-z0-9-]*$/,
+                  message: t("admin.courts.new.errors.slugPattern"),
+                },
+              })}
+              label={t("admin.courts.new.basicTab.slug")}
+              placeholder={t("admin.courts.new.basicTab.slugPlaceholder")}
+              disabled={isSubmitting}
+            />
+            <span className="im-hint-text">{t("admin.courts.new.basicTab.slugHint")}</span>
+            {errors.slug && <span className="im-error-text">{errors.slug.message}</span>}
+          </div>
+
+          <div className="im-form-col">
+            <Controller
+              name="type"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label={t("admin.courts.new.basicTab.courtType")}
+                  options={[
+                    { value: "", label: t("admin.courts.new.basicTab.selectType") },
+                    ...COURT_TYPES,
+                  ]}
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={isSubmitting}
+                />
+              )}
+            />
+          </div>
         </div>
       </div>
 
-      <div className="im-create-court-row">
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.pricingStep.defaultSlotLength")}</label>
-          <select
-            {...register("defaultSlotLengthMinutes", { valueAsNumber: true })}
-            className="im-create-court-select"
-            disabled={isSubmitting}
-          >
-            {SLOT_LENGTHS.map((slot) => (
-              <option key={slot.value} value={slot.value}>
-                {slot.label}
-              </option>
-            ))}
-          </select>
+      <div className="im-tab-section">
+        <div className="im-form-row">
+          <div className="im-form-col">
+            <Controller
+              name="surface"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label={t("admin.courts.new.basicTab.surface")}
+                  options={[
+                    { value: "", label: t("admin.courts.new.basicTab.selectSurface") },
+                    ...SURFACE_TYPES,
+                  ]}
+                  value={field.value}
+                  onChange={field.onChange}
+                  disabled={isSubmitting}
+                />
+              )}
+            />
+          </div>
+
+          <div className="im-form-col">
+            <Checkbox
+              {...register("indoor")}
+              label={t("admin.courts.new.basicTab.indoorCourt")}
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
+      </div>
+
+      <div className="im-tab-section">
+        <Textarea
+          {...register("shortDescription")}
+          label={t("admin.courts.new.basicTab.shortDescription")}
+          placeholder={t("admin.courts.new.basicTab.shortDescriptionPlaceholder")}
+          rows={3}
+          disabled={isSubmitting}
+        />
       </div>
     </div>
   );
 
-  // Schedule Step
-  const renderScheduleStep = () => {
+  // Pricing & Schedule Tab (combined)
+  const renderPricingScheduleTab = () => {
     const courtOpenTime = watch("courtOpenTime");
     const courtCloseTime = watch("courtCloseTime");
     const timeError =
       courtOpenTime && courtCloseTime && courtOpenTime >= courtCloseTime
-        ? t("admin.courts.new.scheduleStep.timeError")
+        ? t("admin.courts.new.pricingScheduleTab.timeError")
         : null;
 
     return (
-      <div className="im-create-court-step-content">
-        <h2 className="im-create-court-step-title">{t("admin.courts.new.scheduleStep.title")}</h2>
-        <p className="im-create-court-step-description">
-          {t("admin.courts.new.scheduleStep.description")}
-        </p>
+      <div className="im-create-court-tab-content">
+        {/* Pricing Section */}
+        <div className="im-tab-section">
+          <h3 className="im-section-title">{t("admin.courts.new.pricingScheduleTab.pricingTitle")}</h3>
+          <p className="im-section-description">
+            {t("admin.courts.new.pricingScheduleTab.pricingDescription")}
+          </p>
 
-        <div className="im-create-court-row im-create-court-row--two">
-          <Controller
-            name="courtOpenTime"
-            control={control}
-            render={({ field }) => (
-              <TimeInput
-                label={t("admin.courts.new.scheduleStep.openTime")}
-                disabled={isSubmitting}
-                {...field}
+          <div className="im-form-row">
+            <div className="im-form-col">
+              <Controller
+                name="defaultPrice"
+                control={control}
+                rules={{
+                  min: { value: 0, message: t("admin.courts.new.errors.priceNegative") },
+                }}
+                render={({ field }) => (
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={field.value}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    label={t("admin.courts.new.pricingScheduleTab.defaultPrice")}
+                    placeholder={t("admin.courts.new.pricingScheduleTab.pricePlaceholder")}
+                    disabled={isSubmitting}
+                  />
+                )}
               />
-            )}
-          />
+              {errors.defaultPrice && (
+                <span className="im-error-text">{errors.defaultPrice.message}</span>
+              )}
+            </div>
+
+            <div className="im-form-col">
+              <Controller
+                name="currency"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label={t("admin.courts.new.pricingScheduleTab.currency")}
+                    options={[
+                      { value: "USD", label: t("admin.courts.new.currencies.usd") },
+                      { value: "EUR", label: t("admin.courts.new.currencies.eur") },
+                      { value: "GBP", label: t("admin.courts.new.currencies.gbp") },
+                      { value: "UAH", label: t("admin.courts.new.currencies.uah") },
+                    ]}
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                  />
+                )}
+              />
+              <span className="im-hint-text">{t("admin.courts.new.pricingScheduleTab.currencyHint")}</span>
+            </div>
+          </div>
 
           <Controller
-            name="courtCloseTime"
+            name="defaultSlotLengthMinutes"
             control={control}
             render={({ field }) => (
-              <TimeInput
-                label={t("admin.courts.new.scheduleStep.closeTime")}
+              <Select
+                label={t("admin.courts.new.pricingScheduleTab.defaultSlotLength")}
+                options={SLOT_LENGTHS}
+                value={String(field.value)}
+                onChange={(value) => field.onChange(Number(value))}
                 disabled={isSubmitting}
-                {...field}
               />
             )}
           />
         </div>
 
-        {timeError && (
-          <div className="im-create-court-row">
-            <span className="im-create-court-error">{timeError}</span>
-          </div>
-        )}
+        {/* Schedule Section */}
+        <div className="im-tab-section">
+          <h3 className="im-section-title">{t("admin.courts.new.pricingScheduleTab.scheduleTitle")}</h3>
+          <p className="im-section-description">
+            {t("admin.courts.new.pricingScheduleTab.scheduleDescription")}
+          </p>
 
-        <div className="im-create-court-row">
+          <div className="im-form-row">
+            <div className="im-form-col">
+              <Controller
+                name="courtOpenTime"
+                control={control}
+                render={({ field }) => (
+                  <TimeInput
+                    label={t("admin.courts.new.pricingScheduleTab.openTime")}
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="im-form-col">
+              <Controller
+                name="courtCloseTime"
+                control={control}
+                render={({ field }) => (
+                  <TimeInput
+                    label={t("admin.courts.new.pricingScheduleTab.closeTime")}
+                    disabled={isSubmitting}
+                    {...field}
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+          {timeError && <span className="im-error-text">{timeError}</span>}
+
           <span className="im-create-court-hint">
             {t("admin.courts.new.scheduleStep.workingHoursHint")}
           </span>
@@ -917,28 +918,28 @@ export default function CreateCourtPage() {
     );
   };
 
-  // Media Step
-  const renderMediaStep = () => {
+  // Media Tab
+  const renderMediaTab = () => {
     const mainImage = watch("mainImage");
     const gallery = watch("gallery");
 
     return (
-      <div className="im-create-court-step-content">
-        <h2 className="im-create-court-step-title">{t("admin.courts.new.mediaStep.title")}</h2>
-        <p className="im-create-court-step-description">
-          {t("admin.courts.new.mediaStep.description")}
-        </p>
+      <div className="im-create-court-tab-content">
+        <div className="im-tab-section">
+          <h3 className="im-section-title">{t("admin.courts.new.mediaTab.title")}</h3>
+          <p className="im-section-description">
+            {t("admin.courts.new.mediaTab.description")}
+          </p>
 
-        {/* Main Image */}
-        <div className="im-create-court-row">
-          <div className="im-create-court-field">
-            <label className="im-create-court-label">{t("admin.courts.new.mediaStep.mainImage")}</label>
+          {/* Main Image */}
+          <div className="im-media-section">
+            <label className="im-label">{t("admin.courts.new.mediaTab.mainImage")}</label>
             {mainImage ? (
               <div className="im-create-court-gallery-item im-create-court-gallery-item--main" style={{ width: "150px" }}>
                 {mainImage.uploading ? (
                   <div className="im-create-court-upload-progress">
                     <div className="im-create-court-spinner" />
-                    <span>{t("admin.courts.new.mediaStep.uploading")}</span>
+                    <span>{t("admin.courts.new.mediaTab.uploading")}</span>
                   </div>
                 ) : (
                   <>
@@ -962,7 +963,7 @@ export default function CreateCourtPage() {
                   </>
                 )}
                 {mainImage.error && (
-                  <span className="im-create-court-error">{mainImage.error}</span>
+                  <span className="im-error-text">{mainImage.error}</span>
                 )}
               </div>
             ) : (
@@ -974,7 +975,7 @@ export default function CreateCourtPage() {
                 disabled={isSubmitting}
               >
                 <span className="im-create-court-gallery-add-icon">+</span>
-                <span>{t("admin.courts.new.mediaStep.addMainImage")}</span>
+                <span>{t("admin.courts.new.mediaTab.addMainImage")}</span>
               </button>
             )}
             <input
@@ -986,14 +987,12 @@ export default function CreateCourtPage() {
               disabled={isSubmitting}
             />
           </div>
-        </div>
 
-        {/* Gallery */}
-        <div className="im-create-court-row">
-          <div className="im-create-court-field im-create-court-field--full">
-            <label className="im-create-court-label">Gallery</label>
-            <span className="im-create-court-hint" style={{ marginBottom: "0.5rem", display: "block" }}>
-              Add additional photos. Click an image to set it as main.
+          {/* Gallery */}
+          <div className="im-media-section">
+            <label className="im-label">{t("admin.courts.new.mediaTab.gallery")}</label>
+            <span className="im-hint-text" style={{ marginBottom: "0.5rem", display: "block" }}>
+              {t("admin.courts.new.mediaTab.galleryHint")}
             </span>
 
             <div className="im-create-court-gallery-grid">
@@ -1036,7 +1035,7 @@ export default function CreateCourtPage() {
                     </>
                   )}
                   {image.error && (
-                    <span className="im-create-court-error">{image.error}</span>
+                    <span className="im-error-text">{image.error}</span>
                   )}
                 </div>
               ))}
@@ -1048,7 +1047,7 @@ export default function CreateCourtPage() {
                 disabled={isSubmitting}
               >
                 <span className="im-create-court-gallery-add-icon">+</span>
-                <span>{t("admin.courts.new.mediaStep.add")}</span>
+                <span>{t("admin.courts.new.mediaTab.add")}</span>
               </button>
             </div>
 
@@ -1067,79 +1066,81 @@ export default function CreateCourtPage() {
     );
   };
 
-  // Meta Step
-  const renderMetaStep = () => (
-    <div className="im-create-court-step-content">
-      <h2 className="im-create-court-step-title">{t("admin.courts.new.metaStep.title")}</h2>
-      <p className="im-create-court-step-description">
-        {t("admin.courts.new.metaStep.description")}
-      </p>
+  // Settings Tab (previously Meta)
+  const renderSettingsTab = () => (
+    <div className="im-create-court-tab-content">
+      <div className="im-tab-section">
+        <h3 className="im-section-title">{t("admin.courts.new.settingsTab.title")}</h3>
+        <p className="im-section-description">
+          {t("admin.courts.new.settingsTab.description")}
+        </p>
 
-      <div className="im-create-court-row">
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.metaStep.visibility")}</label>
-          <select
-            {...register("visibility")}
-            className="im-create-court-select"
-            disabled={isSubmitting}
-          >
-            <option value="draft">{t("admin.courts.new.metaStep.visibilityDraft")}</option>
-            <option value="published">{t("admin.courts.new.metaStep.visibilityPublished")}</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="im-create-court-row im-create-court-row--two">
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.metaStep.tags")}</label>
-          <input
-            {...register("tags")}
-            className="im-create-court-input"
-            placeholder={t("admin.courts.new.metaStep.tagsPlaceholder")}
-            disabled={isSubmitting}
-          />
-          <span className="im-create-court-hint">{t("admin.courts.new.metaStep.tagsHint")}</span>
-        </div>
-
-        <div className="im-create-court-field">
-          <label className="im-create-court-label">{t("admin.courts.new.metaStep.maxPlayers")}</label>
-          <Controller
-            name="maxPlayers"
-            control={control}
-            rules={{
-              min: { value: 1, message: t("admin.courts.new.errors.maxPlayersMin") },
-              max: { value: 20, message: t("admin.courts.new.errors.maxPlayersMax") },
-            }}
-            render={({ field }) => (
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={field.value}
-                onChange={(e) => field.onChange(parseInt(e.target.value) || 4)}
-                className="im-create-court-input"
-                disabled={isSubmitting}
-              />
-            )}
-          />
-          {errors.maxPlayers && (
-            <span className="im-create-court-error">{errors.maxPlayers.message}</span>
+        <Controller
+          name="visibility"
+          control={control}
+          render={({ field }) => (
+            <Select
+              label={t("admin.courts.new.settingsTab.visibility")}
+              options={[
+                { value: "draft", label: t("admin.courts.new.settingsTab.visibilityDraft") },
+                { value: "published", label: t("admin.courts.new.settingsTab.visibilityPublished") },
+              ]}
+              value={field.value}
+              onChange={field.onChange}
+              disabled={isSubmitting}
+            />
           )}
+        />
+      </div>
+
+      <div className="im-tab-section">
+        <div className="im-form-row">
+          <div className="im-form-col">
+            <Input
+              {...register("tags")}
+              label={t("admin.courts.new.settingsTab.tags")}
+              placeholder={t("admin.courts.new.settingsTab.tagsPlaceholder")}
+              disabled={isSubmitting}
+            />
+            <span className="im-hint-text">{t("admin.courts.new.settingsTab.tagsHint")}</span>
+          </div>
+
+          <div className="im-form-col">
+            <Controller
+              name="maxPlayers"
+              control={control}
+              rules={{
+                min: { value: 1, message: t("admin.courts.new.errors.maxPlayersMin") },
+                max: { value: 20, message: t("admin.courts.new.errors.maxPlayersMax") },
+              }}
+              render={({ field }) => (
+                <Input
+                  type="number"
+                  min="1"
+                  max="20"
+                  value={field.value}
+                  onChange={(e) => field.onChange(Number(e.target.value) || 4)}
+                  label={t("admin.courts.new.settingsTab.maxPlayers")}
+                  disabled={isSubmitting}
+                />
+              )}
+            />
+            {errors.maxPlayers && (
+              <span className="im-error-text">{errors.maxPlayers.message}</span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="im-create-court-row">
-        <div className="im-create-court-field im-create-court-field--full">
-          <label className="im-create-court-label">{t("admin.courts.new.metaStep.notes")}</label>
-          <textarea
-            {...register("notes")}
-            className="im-create-court-textarea"
-            placeholder={t("admin.courts.new.metaStep.notesPlaceholder")}
-            rows={3}
-            disabled={isSubmitting}
-          />
-          <span className="im-create-court-hint">{t("admin.courts.new.metaStep.notesHint")}</span>
-        </div>
+      <div className="im-tab-section">
+        <Textarea
+          {...register("notes")}
+          label={t("admin.courts.new.settingsTab.notes")}
+          placeholder={t("admin.courts.new.settingsTab.notesPlaceholder")}
+          rows={3}
+          disabled={isSubmitting}
+        />
+        <span className="im-hint-text">{t("admin.courts.new.settingsTab.notesHint")}</span>
       </div>
     </div>
   );
@@ -1194,19 +1195,11 @@ export default function CreateCourtPage() {
         </div>
       )}
 
-      {/* Header / Toolbar */}
-      <header className="im-create-court-header">
-        <div className="im-create-court-header-content">
-          <div className="im-create-court-header-progress">
-            <div className="im-create-court-progress-bar">
-              <div
-                className="im-create-court-progress-fill"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-            <span>{progressPercentage}{t("admin.courts.new.progress.complete")}</span>
-          </div>
-
+      {/* Page Header */}
+      <PageHeader
+        title={t("admin.courts.new.pageTitle") || "Create New Court"}
+        description={t("admin.courts.new.pageDescription") || "Add a new court to your club"}
+        actions={
           <div className="im-create-court-header-actions">
             <Button
               type="button"
@@ -1224,45 +1217,53 @@ export default function CreateCourtPage() {
               {t("admin.courts.new.actions.saveAndPublish")}
             </Button>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Layout */}
       <div className="im-create-court-layout">
-        {/* Left Column - Wizard */}
-        <div className="im-create-court-wizard">
-          {/* Step Navigation */}
-          <nav className="im-create-court-steps-nav" aria-label="Form steps">
-            {ALL_STEPS.map((step) => {
-              const isActive = currentStep === step.id;
-              const hasError = stepErrors[step.id];
+        {/* Left Column - Tabs */}
+        <div className="im-create-court-content">
+          <Card>
+            {/* Error Banner */}
+            {error && (
+              <div className="im-create-court-error-banner" role="alert">
+                {error}
+              </div>
+            )}
 
-              return (
-                <button
-                  key={step.id}
-                  type="button"
-                  className={`im-create-court-step-btn ${isActive ? "im-create-court-step-btn--active" : ""} ${hasError ? "im-create-court-step-btn--error" : ""}`}
-                  onClick={() => handleStepClick(step.id)}
-                  aria-current={isActive ? "step" : undefined}
-                >
-                  <span className="im-create-court-step-number">
-                    {hasError ? "!" : step.number}
-                  </span>
-                  <span>{step.label}</span>
-                </button>
-              );
-            })}
-          </nav>
+            <Tabs defaultTab={currentTab} onTabChange={handleTabChange}>
+              <TabList>
+                {ALL_TABS.map((tab) => {
+                  const hasError = stepErrors[tab.id];
+                  return (
+                    <Tab
+                      key={tab.id}
+                      id={tab.id}
+                      label={tab.label}
+                      className={hasError ? "im-tab--error" : ""}
+                    />
+                  );
+                })}
+              </TabList>
 
-          {/* Error Banner */}
-          {error && (
-            <div className="im-create-court-error-banner" role="alert">
-              {error}
-            </div>
-          )}
-
-          {/* Step Content */}
-          <form>{renderStepContent()}</form>
+              <TabPanel id="context">
+                {renderContextTab()}
+              </TabPanel>
+              <TabPanel id="basic">
+                {renderBasicTab()}
+              </TabPanel>
+              <TabPanel id="pricing-schedule">
+                {renderPricingScheduleTab()}
+              </TabPanel>
+              <TabPanel id="media">
+                {renderMediaTab()}
+              </TabPanel>
+              <TabPanel id="settings">
+                {renderSettingsTab()}
+              </TabPanel>
+            </Tabs>
+          </Card>
         </div>
 
         {/* Right Column - Preview */}

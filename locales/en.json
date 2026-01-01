@@ -804,6 +804,8 @@
       "loading": "Loading...",
       "new": {
         "title": "New Court",
+        "pageTitle": "Create New Court",
+        "pageDescription": "Add a new court to your club",
         "steps": {
           "organization": "Organization",
           "club": "Club",
@@ -812,6 +814,23 @@
           "schedule": "Schedule",
           "media": "Media",
           "meta": "Meta"
+        },
+        "tabs": {
+          "context": "Context",
+          "basic": "Basic Info",
+          "pricingSchedule": "Pricing & Schedule",
+          "media": "Media",
+          "settings": "Settings"
+        },
+        "contextTab": {
+          "title": "Organization & Club Selection",
+          "description": "Select the organization and club where this court will be located.",
+          "organization": "Organization",
+          "selectOrganization": "Select an organization...",
+          "club": "Club",
+          "selectClub": "Select a club...",
+          "orgAdminHint": "Your organization's clubs are shown",
+          "clubAdminHint": "Your club is pre-selected"
         },
         "organizationStep": {
           "title": "Select Organization",
@@ -826,6 +845,22 @@
           "selectClub": "Select a club...",
           "orgAdminHint": "Your organization's club is pre-selected",
           "clubAdminHint": "Your club is pre-selected"
+        },
+        "basicTab": {
+          "title": "Basic Information",
+          "description": "Enter the basic details about your court.",
+          "courtName": "Court Name",
+          "courtNamePlaceholder": "Enter court name",
+          "slug": "Slug",
+          "slugPlaceholder": "court-name-slug",
+          "slugHint": "Auto-generated from name if empty",
+          "courtType": "Court Type",
+          "selectType": "Select type...",
+          "surface": "Surface",
+          "selectSurface": "Select surface...",
+          "indoorCourt": "Indoor Court",
+          "shortDescription": "Short Description",
+          "shortDescriptionPlaceholder": "Brief description of the court..."
         },
         "basicStep": {
           "title": "Basic Information",
@@ -842,6 +877,22 @@
           "indoorCourt": "Indoor Court",
           "shortDescription": "Short Description",
           "shortDescriptionPlaceholder": "Brief description of the court..."
+        },
+        "pricingScheduleTab": {
+          "pricingTitle": "Pricing Settings",
+          "pricingDescription": "Set the default pricing for this court.",
+          "scheduleTitle": "Operating Hours",
+          "scheduleDescription": "Set court-specific operating hours. Leave empty to use club hours.",
+          "defaultPrice": "Default Price",
+          "pricePlaceholder": "0.00",
+          "currency": "Currency",
+          "currencyHint": "Defaults to club currency",
+          "defaultSlotLength": "Default Slot Length",
+          "openTime": "Open Time",
+          "closeTime": "Close Time",
+          "timeError": "Open time must be before close time",
+          "clubHoursHint": "Club hours will be used if not specified here.",
+          "noClubHoursHint": "No club hours configured. Court hours are recommended."
         },
         "pricingStep": {
           "title": "Pricing",
@@ -860,6 +911,16 @@
           "timeError": "Open time must be before close time",
           "workingHoursHint": "If court working hours are not specified, club working hours will be used as a fallback."
         },
+        "mediaTab": {
+          "title": "Images & Media",
+          "description": "Upload images for this court. The main image will be shown as the primary photo.",
+          "mainImage": "Main Image",
+          "uploading": "Uploading...",
+          "addMainImage": "Add Main Image",
+          "gallery": "Gallery",
+          "galleryHint": "Add additional photos. Click an image to set it as main.",
+          "add": "Add"
+        },
         "mediaStep": {
           "title": "Media",
           "description": "Upload images for this court. The main image will be shown as the primary photo.",
@@ -868,6 +929,20 @@
           "addMainImage": "Add Main Image",
           "gallery": "Gallery Images",
           "add": "Add"
+        },
+        "settingsTab": {
+          "title": "Additional Settings",
+          "description": "Configure visibility and additional options.",
+          "visibility": "Visibility",
+          "visibilityDraft": "Draft (not visible to public)",
+          "visibilityPublished": "Published (visible to public)",
+          "tags": "Tags",
+          "tagsPlaceholder": "e.g., beginner-friendly, tournament",
+          "tagsHint": "Comma-separated tags",
+          "maxPlayers": "Max Players",
+          "notes": "Notes",
+          "notesPlaceholder": "Additional notes or instructions...",
+          "notesHint": "Internal notes, not shown to public"
         },
         "metaStep": {
           "title": "Additional Settings",
