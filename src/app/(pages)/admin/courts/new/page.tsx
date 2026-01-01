@@ -18,7 +18,6 @@ import {
   Tab,
   TabPanel,
   PageHeader,
-  ImageUpload,
 } from "@/components/ui";
 import type { SelectOption } from "@/components/ui/Select";
 import { FormSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
@@ -293,6 +292,7 @@ export default function CreateCourtPage() {
   }, []);
 
   // Calculate progress percentage
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const progressPercentage = useMemo(() => {
     const requiredFields = ["name"];
     const optionalFields = [
