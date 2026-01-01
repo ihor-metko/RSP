@@ -77,7 +77,7 @@ export default function PriceRulesPage({
 
     try {
       setLoading(true);
-      const response = await fetch(`/api/courts/${courtId}/price-rules`);
+      const response = await fetch(`/api/admin/courts/${courtId}/price-rules`);
       if (!response.ok) {
         if (response.status === 404) {
           setError("Court not found");
@@ -158,8 +158,8 @@ export default function PriceRulesPage({
     setSubmitting(true);
     try {
       const url = editingRule
-        ? `/api/courts/${courtId}/price-rules/${editingRule.id}`
-        : `/api/courts/${courtId}/price-rules`;
+        ? `/api/admin/courts/${courtId}/price-rules/${editingRule.id}`
+        : `/api/admin/courts/${courtId}/price-rules`;
       const method = editingRule ? "PUT" : "POST";
 
       const response = await fetch(url, {
@@ -189,7 +189,7 @@ export default function PriceRulesPage({
     setSubmitting(true);
     try {
       const response = await fetch(
-        `/api/courts/${courtId}/price-rules/${deletingRule.id}`,
+        `/api/admin/courts/${courtId}/price-rules/${deletingRule.id}`,
         { method: "DELETE" }
       );
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireRootAdmin } from "@/lib/requireRole";
+import { requireCourtManagement } from "@/lib/requireRole";
 import {
   isValidTimeFormat,
   normalizeTime,
@@ -11,15 +11,15 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ courtId: string; ruleId: string }> }
 ) {
-  // Require root admin role
-  const authResult = await requireRootAdmin(request);
-  if (!authResult.authorized) {
-    return authResult.response;
-  }
-
   try {
     const resolvedParams = await params;
     const { courtId, ruleId } = resolvedParams;
+
+    // Check if user has permission to manage this court
+    const authResult = await requireCourtManagement(courtId);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
 
     // Check if rule exists and belongs to the court
     const existingRule = await prisma.courtPriceRule.findUnique({
@@ -185,15 +185,15 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ courtId: string; ruleId: string }> }
 ) {
-  // Require root admin role
-  const authResult = await requireRootAdmin(request);
-  if (!authResult.authorized) {
-    return authResult.response;
-  }
-
   try {
     const resolvedParams = await params;
     const { courtId, ruleId } = resolvedParams;
+
+    // Check if user has permission to manage this court
+    const authResult = await requireCourtManagement(courtId);
+    if (!authResult.authorized) {
+      return authResult.response;
+    }
 
     // Check if rule exists and belongs to the court
     const existingRule = await prisma.courtPriceRule.findUnique({
