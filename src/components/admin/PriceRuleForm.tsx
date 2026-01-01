@@ -175,7 +175,7 @@ export function PriceRuleForm({
       {ruleType === "date" && (
         <DateInput
           label="Date"
-          value={formData.date || ""}
+          value={formData.date ?? ""}
           onChange={(date) => {
             setFormData((prev) => ({
               ...prev,
