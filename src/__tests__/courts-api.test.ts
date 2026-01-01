@@ -35,7 +35,14 @@ describe("Courts API", () => {
 
   describe("GET /api/clubs/:clubId/courts", () => {
     it("should return courts for a club", async () => {
-      const mockClub = { id: "club-123", name: "Test Club" };
+      const mockClub = { 
+        id: "club-123", 
+        name: "Test Club",
+        isPublic: true,
+        organization: {
+          isPublic: true
+        }
+      };
       const mockCourts = [
         {
           id: "court-1",
@@ -44,6 +51,7 @@ describe("Courts API", () => {
           type: "padel",
           surface: "artificial",
           indoor: true,
+          sportType: "PADEL",
           defaultPriceCents: 5000,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -55,6 +63,7 @@ describe("Courts API", () => {
           type: null,
           surface: null,
           indoor: false,
+          sportType: "PADEL",
           defaultPriceCents: 4000,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

@@ -187,7 +187,7 @@ describe("useCourtStore", () => {
       expect(result.current.courts).toEqual(mockCourts);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(global.fetch).toHaveBeenCalledWith("/api/clubs/club-1/courts");
+      expect(global.fetch).toHaveBeenCalledWith("/api/admin/clubs/club-1/courts");
     });
 
     it("should handle direct array response", async () => {
@@ -377,7 +377,7 @@ describe("useCourtStore", () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(global.fetch).toHaveBeenCalledWith(
-        "/api/clubs/club-1/courts",
+        "/api/admin/clubs/club-1/courts",
         expect.objectContaining({
           method: "POST",
           headers: { "Content-Type": "application/json" },

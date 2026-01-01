@@ -55,7 +55,7 @@ describe("useCourtStore - Inflight Guards & Fetch-if-Missing", () => {
       expect(result.current.courtsError).toBeNull();
       expect(result.current.lastFetchedAt).not.toBeNull();
       expect(global.fetch).toHaveBeenCalledTimes(1);
-      expect(global.fetch).toHaveBeenCalledWith("/api/clubs/club-1/courts");
+      expect(global.fetch).toHaveBeenCalledWith("/api/admin/clubs/club-1/courts");
     });
 
     it("should return cached courts without fetching when data exists", async () => {

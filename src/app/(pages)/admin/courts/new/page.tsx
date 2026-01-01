@@ -578,7 +578,7 @@ export default function CreateCourtPage() {
         notes: data.notes || null,
       };
 
-      const response = await fetch(`/api/clubs/${targetClubId}/courts`, {
+      const response = await fetch(`/api/admin/clubs/${targetClubId}/courts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

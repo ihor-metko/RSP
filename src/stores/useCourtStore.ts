@@ -138,7 +138,7 @@ export const useCourtStore = create<CourtState>((set, get) => ({
       set({ loadingCourts: true, courtsError: null });
       try {
         // Use clubId if provided, otherwise use a general endpoint
-        const endpoint = clubId ? `/api/clubs/${clubId}/courts` : '/api/courts';
+        const endpoint = clubId ? `/api/admin/clubs/${clubId}/courts` : '/api/admin/courts';
         const response = await fetch(endpoint);
         
         if (!response.ok) {
@@ -285,7 +285,7 @@ export const useCourtStore = create<CourtState>((set, get) => ({
   fetchCourtsByClubId: async (clubId: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch(`/api/clubs/${clubId}/courts`);
+      const response = await fetch(`/api/admin/clubs/${clubId}/courts`);
       
       if (!response.ok) {
         const data = await response.json().catch(() => ({ error: "Failed to fetch courts" }));
@@ -327,7 +327,7 @@ export const useCourtStore = create<CourtState>((set, get) => ({
   createCourt: async (clubId: string, payload: CreateCourtPayload) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch(`/api/clubs/${clubId}/courts`, {
+      const response = await fetch(`/api/admin/clubs/${clubId}/courts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
