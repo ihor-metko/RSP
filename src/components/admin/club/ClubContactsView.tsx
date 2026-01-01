@@ -8,21 +8,12 @@ import "./ClubContactsView.css";
 
 interface ClubContactsViewProps {
   club: ClubDetail;
-  onUpdate: (payload: {
-    location: string;
-    city?: string | null;
-    country?: string | null;
-    latitude?: number | null;
-    longitude?: number | null;
-    phone?: string | null;
-    email?: string | null;
-    website?: string | null;
-  }) => Promise<unknown>;
+  onRefresh?: () => Promise<void>;
   disabled?: boolean;
   disabledTooltip?: string;
 }
 
-export function ClubContactsView({ club, onUpdate, disabled = false, disabledTooltip }: ClubContactsViewProps) {
+export function ClubContactsView({ club, onRefresh, disabled = false, disabledTooltip }: ClubContactsViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -93,23 +84,52 @@ export function ClubContactsView({ club, onUpdate, disabled = false, disabledToo
     setIsSaving(true);
     setError("");
     try {
-      await onUpdate({
-        location: formData.location.trim(),
-        city: formData.city.trim() || null,
-        country: formData.country.trim() || null,
-        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
-        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
-        phone: formData.phone.trim() || null,
-        email: formData.email.trim() || null,
-        website: formData.website.trim() || null,
-      });
+      // Update both location and contacts in parallel
+      const [locationResponse, contactsResponse] = await Promise.all([
+        fetch(`/api/admin/clubs/${club.id}/location`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location: formData.location.trim(),
+            city: formData.city.trim() || null,
+            country: formData.country.trim() || null,
+            latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+            longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+          }),
+        }),
+        fetch(`/api/admin/clubs/${club.id}/contacts`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: formData.phone.trim() || null,
+            email: formData.email.trim() || null,
+            website: formData.website.trim() || null,
+          }),
+        }),
+      ]);
+
+      if (!locationResponse.ok) {
+        const data = await locationResponse.json();
+        throw new Error(data.error || "Failed to update location");
+      }
+
+      if (!contactsResponse.ok) {
+        const data = await contactsResponse.json();
+        throw new Error(data.error || "Failed to update contacts");
+      }
+
+      // Refresh club data to reflect changes
+      if (onRefresh) {
+        await onRefresh();
+      }
+
       setIsEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
     } finally {
       setIsSaving(false);
     }
-  }, [formData, onUpdate]);
+  }, [formData, club.id, onRefresh]);
 
   const hasCoordinates = club.latitude && club.longitude;
 

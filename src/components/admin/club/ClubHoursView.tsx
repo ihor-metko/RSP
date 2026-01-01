@@ -12,10 +12,7 @@ import "./ClubHoursView.css";
 
 interface ClubHoursViewProps {
   club: ClubDetail;
-  onUpdate: (payload: {
-    businessHours: BusinessHour[];
-    specialHours: SpecialHour[];
-  }) => Promise<unknown>;
+  onRefresh?: () => Promise<void>;
   disabled?: boolean;
   disabledTooltip?: string;
 }
@@ -63,7 +60,7 @@ function formatSpecialHours(special: ClubSpecialHours[]): SpecialHour[] {
   }));
 }
 
-export function ClubHoursView({ club, onUpdate, disabled = false, disabledTooltip }: ClubHoursViewProps) {
+export function ClubHoursView({ club, onRefresh, disabled = false, disabledTooltip }: ClubHoursViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -97,14 +94,46 @@ export function ClubHoursView({ club, onUpdate, disabled = false, disabledToolti
     setIsSaving(true);
     setError("");
     try {
-      await onUpdate({ businessHours, specialHours });
+      // Update both business hours and special hours in parallel
+      const [businessHoursResponse, specialHoursResponse] = await Promise.all([
+        fetch(`/api/admin/clubs/${club.id}/business-hours`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            businessHours,
+          }),
+        }),
+        fetch(`/api/admin/clubs/${club.id}/special-hours`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            specialHours,
+          }),
+        }),
+      ]);
+
+      if (!businessHoursResponse.ok) {
+        const data = await businessHoursResponse.json();
+        throw new Error(data.error || "Failed to update business hours");
+      }
+
+      if (!specialHoursResponse.ok) {
+        const data = await specialHoursResponse.json();
+        throw new Error(data.error || "Failed to update special hours");
+      }
+
+      // Refresh club data to reflect changes
+      if (onRefresh) {
+        await onRefresh();
+      }
+
       setIsEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
     } finally {
       setIsSaving(false);
     }
-  }, [businessHours, specialHours, onUpdate]);
+  }, [businessHours, specialHours, club.id, onRefresh]);
 
   return (
     <>

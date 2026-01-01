@@ -19,16 +19,12 @@ interface GalleryImage {
 
 interface ClubGalleryViewProps {
   club: ClubDetail;
-  onUpdate: (payload: {
-    bannerData: { url: string } | null;
-    logoData: { url: string } | null;
-    gallery: GalleryImage[];
-  }) => Promise<unknown>;
+  onRefresh?: () => Promise<void>;
   disabled?: boolean;
   disabledTooltip?: string;
 }
 
-export function ClubGalleryView({ club, onUpdate, disabled = false, disabledTooltip }: ClubGalleryViewProps) {
+export function ClubGalleryView({ club, onRefresh, disabled = false, disabledTooltip }: ClubGalleryViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -203,24 +199,39 @@ export function ClubGalleryView({ club, onUpdate, disabled = false, disabledTool
     setIsSaving(true);
     setError("");
     try {
-      await onUpdate({
-        bannerData: bannerUrl ? { url: bannerUrl } : null,
-        logoData: logoUrl ? { url: logoUrl } : null,
-        gallery: gallery.map((img, index) => ({
-          id: img.id,
-          imageUrl: img.imageUrl,
-          imageKey: img.imageKey || null,
-          altText: img.altText || null,
-          sortOrder: index,
-        })),
+      const response = await fetch(`/api/admin/clubs/${club.id}/media`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bannerData: bannerUrl ? { url: bannerUrl } : null,
+          logoData: logoUrl ? { url: logoUrl } : null,
+          gallery: gallery.map((img, index) => ({
+            id: img.id,
+            imageUrl: img.imageUrl,
+            imageKey: img.imageKey || null,
+            altText: img.altText || null,
+            sortOrder: index,
+          })),
+        }),
       });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to update media");
+      }
+
+      // Refresh club data to reflect changes
+      if (onRefresh) {
+        await onRefresh();
+      }
+
       setIsEditing(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save changes");
     } finally {
       setIsSaving(false);
     }
-  }, [bannerUrl, logoUrl, gallery, onUpdate]);
+  }, [bannerUrl, logoUrl, gallery, club.id, onRefresh]);
 
   return (
     <>
