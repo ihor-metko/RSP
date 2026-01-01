@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Input, TimeInput } from "@/components/ui";
 import "./SpecialHoursField.css";
 
@@ -20,6 +21,8 @@ interface SpecialHoursFieldProps {
 }
 
 export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFieldProps) {
+  const t = useTranslations("clubDetail");
+  
   const handleAdd = useCallback(() => {
     const today = new Date().toISOString().split("T")[0];
     onChange([
@@ -60,7 +63,7 @@ export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFie
   return (
     <div className="im-special-hours">
       <div className="im-special-hours-header">
-        <h3 className="im-special-hours-title">Special Date Overrides</h3>
+        <h3 className="im-special-hours-title">{t("specialDateOverrides")}</h3>
         <Button
           type="button"
           variant="outline"
@@ -68,7 +71,7 @@ export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFie
           disabled={disabled}
           className="im-special-hours-add-btn"
         >
-          + Add Date
+          + {t("addDate")}
         </Button>
       </div>
       {value.length > 0 ? (
@@ -83,7 +86,7 @@ export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFie
               />
               <div className="im-special-hours-times">
                 {hour.isClosed ? (
-                  <span className="im-special-hours-closed-text">Closed</span>
+                  <span className="im-special-hours-closed-text">{t("closed")}</span>
                 ) : (
                   <>
                     <TimeInput
@@ -91,7 +94,7 @@ export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFie
                       onChange={(e) => handleChange(index, "openTime", e.target.value)}
                       disabled={disabled}
                     />
-                    <span className="im-special-hours-separator">to</span>
+                    <span className="im-special-hours-separator">{t("to")}</span>
                     <TimeInput
                       value={hour.closeTime || ""}
                       onChange={(e) => handleChange(index, "closeTime", e.target.value)}
@@ -107,10 +110,10 @@ export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFie
                   onChange={(e) => handleChange(index, "isClosed", e.target.checked)}
                   disabled={disabled}
                 />
-                <span>Closed</span>
+                <span>{t("closed")}</span>
               </label>
               <Input
-                placeholder="Reason (optional)"
+                placeholder={t("reason")}
                 value={hour.reason}
                 onChange={(e) => handleChange(index, "reason", e.target.value)}
                 disabled={disabled}
@@ -128,7 +131,7 @@ export function SpecialHoursField({ value, onChange, disabled }: SpecialHoursFie
           ))}
         </div>
       ) : (
-        <p className="im-special-hours-empty">No special hours set</p>
+        <p className="im-special-hours-empty">{t("noSpecialHours")}</p>
       )}
     </div>
   );

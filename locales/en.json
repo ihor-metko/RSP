@@ -424,7 +424,22 @@
     "deleteCourt": "Delete Court",
     "deleteCourtConfirm": "Are you sure you want to delete court \"{name}\"? This action cannot be undone.",
     "deleting": "Deleting...",
-    "usesClubHours": "Uses club hours"
+    "usesClubHours": "Uses club hours",
+    "specialDates": "Special Dates",
+    "specialDatesEdit": "Edit Special Dates",
+    "noSpecialDates": "No special dates set",
+    "specialDateOverrides": "Special Date Overrides",
+    "addDate": "Add Date",
+    "reason": "Reason (optional)",
+    "noSpecialHours": "No special hours set",
+    "to": "to",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "duplicateDates": "Duplicate dates in special hours",
+    "invalidSpecialHours": "Invalid special hours for {date}: opening time must be before closing time",
+    "failedToUpdateSpecialHours": "Failed to update special hours",
+    "am": "AM",
+    "pm": "PM"
   },
   "businessHours": {
     "title": "Business Hours",

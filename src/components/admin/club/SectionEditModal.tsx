@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Modal, Button } from "@/components/ui";
 import "./SectionEditModal.css";
 
@@ -20,16 +21,19 @@ export function SectionEditModal({
   isSaving = false,
   children,
 }: SectionEditModalProps) {
+  const t = useTranslations("clubDetail");
+  const tCommon = useTranslations("common");
+  
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title}>
       <div className="im-section-edit-modal">
         <div className="im-section-edit-modal-content">{children}</div>
         <div className="im-section-edit-modal-actions">
           <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button onClick={onSave} disabled={isSaving}>
-            {isSaving ? "Saving..." : "Save Changes"}
+            {isSaving ? t("saving") : t("saveChanges")}
           </Button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { SpecialHoursField, type SpecialHour } from "../SpecialHoursField.client";
@@ -15,11 +16,11 @@ interface ClubSpecialDatesViewProps {
   disabledTooltip?: string;
 }
 
-function formatTime(time: string | null): string {
+function formatTime(time: string | null, t: (key: string) => string): string {
   if (!time) return "";
   const [hours, minutes] = time.split(":");
   const h = parseInt(hours, 10);
-  const ampm = h >= 12 ? "PM" : "AM";
+  const ampm = h >= 12 ? t("pm") : t("am");
   const h12 = h % 12 || 12;
   return `${h12}:${minutes} ${ampm}`;
 }
@@ -43,6 +44,8 @@ function formatDateShort(dateString: string): string {
 }
 
 export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabledTooltip }: ClubSpecialDatesViewProps) {
+  const t = useTranslations("clubDetail");
+  const tCommon = useTranslations("common");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -63,7 +66,7 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
 
   const handleSave = useCallback(async () => {
     // Validate special hours
-    const validationError = validateSpecialHours(specialHours);
+    const validationError = validateSpecialHours(specialHours, t);
     if (validationError) {
       setError(validationError);
       return;
@@ -84,7 +87,7 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
 
       if (!specialHoursResponse.ok) {
         const data = await specialHoursResponse.json();
-        throw new Error(data.error || "Failed to update special hours");
+        throw new Error(data.error || t("failedToUpdateSpecialHours"));
       }
 
       // Refresh club data to reflect changes
@@ -94,16 +97,16 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
 
       setIsEditing(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save changes");
+      setError(err instanceof Error ? err.message : t("failedToSaveChanges"));
     } finally {
       setIsSaving(false);
     }
-  }, [specialHours, club.id, onRefresh]);
+  }, [specialHours, club.id, onRefresh, t]);
 
   return (
     <>
       <div className="im-section-view-header">
-        <h2 className="im-club-view-section-title">Special Dates</h2>
+        <h2 className="im-club-view-section-title">{t("specialDates")}</h2>
         <Tooltip
           content={disabled ? disabledTooltip : undefined}
           position="bottom"
@@ -113,7 +116,7 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
             onClick={handleEdit}
             disabled={disabled}
           >
-            Edit
+            {tCommon("edit")}
           </Button>
         </Tooltip>
       </div>
@@ -129,8 +132,8 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
                 <span className="im-special-dates-separator">—</span>
                 <span className="im-special-dates-status">
                   {hour.isClosed
-                    ? "Closed"
-                    : `${formatTime(hour.openTime)} - ${formatTime(hour.closeTime)}`}
+                    ? t("closed")
+                    : `${formatTime(hour.openTime, t)} - ${formatTime(hour.closeTime, t)}`}
                 </span>
                 {hour.reason && (
                   <span className="im-special-dates-reason">
@@ -141,14 +144,14 @@ export function ClubSpecialDatesView({ club, onRefresh, disabled = false, disabl
             ))}
           </div>
         ) : (
-          <p className="im-section-view-value--empty">No special dates set</p>
+          <p className="im-section-view-value--empty">{t("noSpecialDates")}</p>
         )}
       </div>
 
       <SectionEditModal
         isOpen={isEditing}
         onClose={handleClose}
-        title="Edit Special Dates"
+        title={t("specialDatesEdit")}
         onSave={handleSave}
         isSaving={isSaving}
       >

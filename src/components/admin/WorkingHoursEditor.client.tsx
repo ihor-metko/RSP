@@ -64,21 +64,28 @@ export function validateBusinessHours(hours: BusinessHour[]): string | null {
 
 /**
  * Validates special hours
+ * @param hours - Array of special hours to validate
+ * @param t - Optional translation function for error messages
  * @returns error message if validation fails, null otherwise
  */
-export function validateSpecialHours(hours: SpecialHour[]): string | null {
+export function validateSpecialHours(
+  hours: SpecialHour[],
+  t?: (key: string, params?: Record<string, string>) => string
+): string | null {
   // Check for duplicate dates
   const dates = hours.map((h) => h.date);
   const uniqueDates = new Set(dates);
   if (dates.length !== uniqueDates.size) {
-    return "Duplicate dates in special hours";
+    return t ? t("duplicateDates") : "Duplicate dates in special hours";
   }
 
   // Validate each special hour
   for (const hour of hours) {
     if (!hour.isClosed && hour.openTime && hour.closeTime) {
       if (hour.openTime >= hour.closeTime) {
-        return `Invalid special hours for ${hour.date}: opening time must be before closing time`;
+        return t 
+          ? t("invalidSpecialHours", { date: hour.date })
+          : `Invalid special hours for ${hour.date}: opening time must be before closing time`;
       }
     }
   }
