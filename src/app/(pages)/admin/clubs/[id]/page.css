@@ -124,11 +124,6 @@
   @apply text-red-700;
 }
 
-/* ===== Availability Section ===== */
-.im-admin-club-availability-section {
-  @apply mb-8;
-}
-
 /* ===== Info Grid Layout ===== */
 .im-admin-club-info-grid {
   @apply grid gap-6;
@@ -501,6 +496,7 @@
   background-color: rgba(146, 64, 14, 0.4);
   color: #fcd34d;
 }
+
 /* ===== Bookings Section ===== */
 .im-admin-club-bookings-section {
   grid-column: 1 / -1;
