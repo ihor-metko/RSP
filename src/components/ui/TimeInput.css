@@ -3,8 +3,8 @@
 /* Time Input Wrapper */
 .im-time-input-wrapper {
   display: block;
-  width: 100%;
-  max-width: 100px;
+  width: 100px;
+  min-width: 100px;
 }
 
 .im-time-input-label {

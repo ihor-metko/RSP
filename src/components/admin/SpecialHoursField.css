@@ -1,5 +1,5 @@
 .im-special-hours {
-  width: 100%;
+  width: 640px;
 }
 
 .im-special-hours-header {
@@ -27,11 +27,8 @@
 }
 
 .im-special-hours-row {
-  display: grid;
-  grid-template-columns: minmax(180px, 220px) 1fr auto auto auto;
-  grid-template-areas: 
-    "date times toggle reason remove";
-  align-items: start;
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
   background-color: var(--rsp-background);
@@ -44,30 +41,44 @@
   border-color: var(--rsp-primary);
 }
 
-.im-special-hours-date-field {
-  grid-area: date;
-}
-
-.im-special-hours-times {
-  grid-area: times;
+.im-special-hours-row-top {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+}
+
+.im-special-hours-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.im-special-hours-date-field {
+  flex: 0 0 auto;
+  min-width: 180px;
+}
+
+.im-special-hours-times-wrapper {
   flex: 1;
   min-width: 200px;
 }
 
-.im-special-hours-toggle {
-  grid-area: toggle;
+.im-special-hours-times {
   display: flex;
   align-items: center;
-  padding-top: 0.5rem;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.im-special-hours-toggle {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .im-special-hours-reason-field {
-  grid-area: reason;
-  flex: 1;
-  min-width: 150px;
+  flex: 2;
+  min-width: 200px;
 }
 
 .im-special-hours-separator {
@@ -86,11 +97,10 @@
 }
 
 .im-special-hours-remove-btn {
-  grid-area: remove;
   padding: 0.5rem 0.75rem;
   color: #ef4444;
-  align-self: start;
-  margin-top: 0.25rem;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .dark .im-special-hours-remove-btn {
@@ -111,41 +121,60 @@
 
 /* Responsive design for smaller screens */
 @media (max-width: 1024px) {
-  .im-special-hours-row {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas: 
-      "date date"
-      "times toggle"
-      "reason remove";
-    gap: 0.75rem 0.5rem;
+  .im-special-hours-row-top {
+    flex-wrap: wrap;
   }
-  
-  .im-special-hours-times {
-    min-width: unset;
+
+  .im-special-hours-row-bottom {
+    flex-wrap: wrap;
   }
-  
+
+  .im-special-hours-date-field {
+    min-width: 150px;
+  }
+
+  .im-special-hours-times-wrapper {
+    min-width: 180px;
+  }
+
   .im-special-hours-reason-field {
-    min-width: unset;
+    min-width: 180px;
+    flex: 1 1 100%;
   }
 }
 
 @media (max-width: 640px) {
-  .im-special-hours-row {
-    grid-template-columns: 1fr auto;
-    grid-template-areas: 
-      "date remove"
-      "times times"
-      "toggle toggle"
-      "reason reason";
+  .im-special-hours-row-top {
+    gap: 0.5rem;
+  }
+
+  .im-special-hours-row-bottom {
+    flex-direction: column;
+    align-items: stretch;
     gap: 0.75rem;
   }
-  
+
+  .im-special-hours-date-field {
+    flex: 1;
+    min-width: unset;
+  }
+
+  .im-special-hours-times-wrapper {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .im-special-hours-reason-field {
+    width: 100%;
+    min-width: unset;
+  }
+
   .im-special-hours-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.75rem;
   }
-  
+
   .im-special-hours-add-btn {
     width: 100%;
   }
