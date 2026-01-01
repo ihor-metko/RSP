@@ -38,20 +38,9 @@ export async function GET(
             slug: true,
           },
         },
+        metadata: false,
         courts: {
           orderBy: { name: "asc" },
-        },
-        coaches: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true,
-              },
-            },
-          },
         },
         gallery: {
           orderBy: { sortOrder: "asc" },
@@ -73,6 +62,7 @@ export async function GET(
       bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
     };
 
+    console.log("Fetched club:", formattedClub);
     return NextResponse.json(formattedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
@@ -179,11 +169,11 @@ export async function PATCH(
  * @deprecated Use PATCH instead for partial updates
  * PUT /api/admin/clubs/[id]
  * Update club (legacy - kept for backward compatibility)
- * 
+ *
  * This endpoint will be removed in a future version.
  * Please migrate to using PATCH /api/admin/clubs/[id] for general info updates
  * or the specific domain endpoints for other updates.
- * 
+ *
  * Migration Guide: See /docs/api/club-domain-endpoints.md
  */
 export async function PUT(

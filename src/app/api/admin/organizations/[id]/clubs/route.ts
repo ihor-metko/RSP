@@ -5,12 +5,12 @@ import { requireOrganizationAdmin } from "@/lib/requireRole";
 /**
  * GET /api/admin/organizations/[id]/clubs
  * Returns clubs for a given organization with minimal statistics.
- * 
+ *
  * Statistics per club:
  * - Number of courts
  * - Number of active upcoming bookings (pending, paid, reserved, confirmed, start >= now)
  * - Number of past bookings (start < now)
- * 
+ *
  * Allowed: isRoot OR ORGANIZATION_ADMIN of this org
  */
 export async function GET(
@@ -51,6 +51,7 @@ export async function GET(
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
+          metadata: false,
           _count: {
             select: {
               courts: true,
