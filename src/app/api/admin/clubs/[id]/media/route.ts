@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { canAccessClub } from "@/lib/permissions/clubAccess";
+import { CLUB_DETAIL_INCLUDE, formatClubResponse } from "@/lib/clubApiHelpers";
 
 interface GalleryImage {
   id?: string;
@@ -94,50 +95,14 @@ export async function PATCH(
     // Fetch updated club with all relations
     const updatedClub = await prisma.club.findUnique({
       where: { id: clubId },
-      include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        courts: {
-          orderBy: { name: "asc" },
-        },
-        coaches: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true,
-              },
-            },
-          },
-        },
-        gallery: {
-          orderBy: { sortOrder: "asc" },
-        },
-        businessHours: {
-          orderBy: { dayOfWeek: "asc" },
-        },
-      },
+      include: CLUB_DETAIL_INCLUDE,
     });
 
     if (!updatedClub) {
       return NextResponse.json({ error: "Club not found after update" }, { status: 404 });
     }
 
-    // Parse JSON fields
-    const formattedClub = {
-      ...updatedClub,
-      logoData: updatedClub.logoData ? JSON.parse(updatedClub.logoData) : null,
-      bannerData: updatedClub.bannerData ? JSON.parse(updatedClub.bannerData) : null,
-    };
-
-    return NextResponse.json(formattedClub);
+    return NextResponse.json(formatClubResponse(updatedClub));
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club media:", error);
