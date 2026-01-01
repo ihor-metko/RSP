@@ -115,6 +115,7 @@ export interface ClubCourt {
   type: string | null;
   surface: string | null;
   indoor: boolean;
+  isActive: boolean;
   sportType?: SportType;
   defaultPriceCents: number;
   createdAt: string;

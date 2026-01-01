@@ -418,7 +418,12 @@
     "noCourts": "No courts available yet",
     "addFirstCourt": "Add Your First Court",
     "viewAllCourts": "View All Courts",
-    "details": "Details"
+    "details": "Details",
+    "manageAllCourts": "Manage All",
+    "pricing": "Pricing",
+    "deleteCourt": "Delete Court",
+    "deleteCourtConfirm": "Are you sure you want to delete court \"{name}\"? This action cannot be undone.",
+    "deleting": "Deleting..."
   },
   "admin": {
     "club": "Club",
@@ -904,8 +909,7 @@
           "openTime": "Open Time",
           "closeTime": "Close Time",
           "timeError": "Open time must be before close time",
-          "clubHoursHint": "Club hours will be used if not specified here.",
-          "noClubHoursHint": "No club hours configured. Court hours are recommended."
+          "workingHoursHint": "If court working hours are not specified, club working hours will be used as a fallback."
         },
         "mediaTab": {
           "title": "Images & Media",

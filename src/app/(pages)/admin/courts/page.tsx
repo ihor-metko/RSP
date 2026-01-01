@@ -144,15 +144,12 @@ export default function AdminCourtsPage() {
 
   // Fetch courts when filters change or on mount
   useEffect(() => {
-    // Wait for auth to complete
-    if (isAuthLoading) return;
-
     // Fetch data if user is admin
     if (adminStatus?.isAdmin) {
       fetchCourts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthLoading, adminStatus, fetchCourts]);
+  }, [adminStatus, fetchCourts]);
 
   // Determine permissions based on admin type
   const canCreate = (adminType: AdminType | undefined): boolean =>

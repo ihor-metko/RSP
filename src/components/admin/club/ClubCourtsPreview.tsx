@@ -56,7 +56,7 @@ export function ClubCourtsPreview({ club, disabled = false }: ClubCourtsPreviewP
               const courtDetails = [
                 court.type,
                 court.surface,
-                court.indoor ? t("clubs.indoor") : t("clubs.outdoor"),
+                court.indoor ? t("common.indoor") : t("common.outdoor"),
               ]
                 .filter(Boolean)
                 .join(" · ");

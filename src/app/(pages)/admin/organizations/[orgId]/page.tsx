@@ -55,6 +55,7 @@ export default function OrganizationDetailPage() {
   const isHydrated = useUserStore((state) => state.isHydrated);
   const isLoading = useUserStore((state) => state.isLoading);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const hasRole = useUserStore((state) => state.hasRole);
 
   // Use Zustand store for organization
   const ensureOrganizationById = useOrganizationStore((state) => state.ensureOrganizationById);
@@ -226,6 +227,9 @@ export default function OrganizationDetailPage() {
     setIsPublishModalOpen(true);
   };
 
+  // Determine if user can publish/unpublish this organization (only root admin)
+  const canPublish = hasRole("ROOT_ADMIN");
+
   // Prepare DangerZone actions
   const dangerActions: DangerAction[] = org ? [
     {
@@ -238,7 +242,7 @@ export default function OrganizationDetailPage() {
       onAction: handleOpenPublishModal,
       isProcessing: isTogglingPublication,
       variant: org.isPublic ? 'danger' : 'warning',
-      show: !org.archivedAt,
+      show: !org.archivedAt && canPublish,
     },
   ] : [];
 

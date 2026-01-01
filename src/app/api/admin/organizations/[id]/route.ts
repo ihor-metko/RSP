@@ -131,6 +131,7 @@ export async function GET(
  * PATCH /api/admin/organizations/[id]
  * Updates an organization's metadata (name, contact info, slug, metadata, etc.)
  * Allowed: isRoot OR ORGANIZATION_ADMIN of this org
+ * Note: Only root admins can update isPublic field
  */
 export async function PATCH(
   request: Request,
@@ -147,6 +148,13 @@ export async function PATCH(
     const body = await request.json();
     const { name, slug, description, contactEmail, contactPhone, website, address, logoData, bannerData, metadata, isPublic, supportedSports } = body;
 
+    // Only root admins can change isPublic status
+    if (isPublic !== undefined && !authResult.isRoot) {
+      return NextResponse.json(
+        { error: "Only root admins can publish/unpublish organizations" },
+        { status: 403 }
+      );
+    }
 
     // Verify organization exists
     const organization = await prisma.organization.findUnique({

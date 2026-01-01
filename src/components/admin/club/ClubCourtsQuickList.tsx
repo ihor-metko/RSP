@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button, Modal, IMLink, Tooltip } from "@/components/ui";
 import type { ClubDetail, ClubCourt } from "@/types/club";
 import "./ClubCourtsQuickList.css";
@@ -14,6 +15,7 @@ interface ClubCourtsQuickListProps {
 
 export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }: ClubCourtsQuickListProps) {
   const router = useRouter();
+  const t = useTranslations();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingCourt, setDeletingCourt] = useState<ClubCourt | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -57,7 +59,7 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
   return (
     <>
       <div className="im-section-view-header">
-        <h2 className="im-club-view-section-title">Courts</h2>
+        <h2 className="im-club-view-section-title">{t("clubDetail.courts")}</h2>
         <div className="im-courts-quick-actions">
           <Tooltip
             content={disabled ? disabledTooltip : undefined}
@@ -69,14 +71,14 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
               className="im-section-edit-btn"
               disabled={disabled}
             >
-              + Add Court
+              + {t("clubDetail.addCourt")}
             </Button>
           </Tooltip>
           <IMLink
             href={`/admin/courts?clubId=${club.id}`}
             className="im-courts-manage-link"
           >
-            Manage All →
+            {t("clubDetail.manageAllCourts")} →
           </IMLink>
         </div>
       </div>
@@ -90,12 +92,19 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
             {club.courts.map((court) => (
               <div key={court.id} className="im-courts-quick-item">
                 <div className="im-courts-quick-info">
-                  <span className="im-courts-quick-name">{court.name}</span>
+                  <div className="im-courts-quick-name-row">
+                    <span className="im-courts-quick-name">{court.name}</span>
+                    <span
+                      className={`im-status-badge ${court.isActive ? "im-status-badge--active" : "im-status-badge--draft"}`}
+                    >
+                      {court.isActive ? t("common.active") : t("common.inactive")}
+                    </span>
+                  </div>
                   <span className="im-courts-quick-details">
                     {[
                       court.type,
                       court.surface,
-                      court.indoor ? "Indoor" : "Outdoor",
+                      court.indoor ? t("common.indoor") : t("common.outdoor"),
                     ]
                       .filter(Boolean)
                       .join(" • ")}
@@ -112,7 +121,7 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
                         className="im-courts-quick-btn"
                         onClick={disabled ? (e: React.MouseEvent) => e.preventDefault() : undefined}
                       >
-                        Pricing
+                        {t("clubDetail.pricing")}
                       </IMLink>
                     </span>
                   </Tooltip>
@@ -126,7 +135,7 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
                       className="im-courts-quick-delete-btn"
                       disabled={disabled}
                     >
-                      Delete
+                      {t("common.delete")}
                     </Button>
                   </Tooltip>
                 </div>
@@ -134,7 +143,7 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
             ))}
           </div>
         ) : (
-          <p className="im-section-view-value--empty">No courts added yet</p>
+          <p className="im-section-view-value--empty">{t("clubDetail.noCourts")}</p>
         )}
       </div>
 
@@ -145,11 +154,10 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
           setIsDeleteModalOpen(false);
           setDeletingCourt(null);
         }}
-        title="Delete Court"
+        title={t("clubDetail.deleteCourt")}
       >
         <p className="mb-4">
-          Are you sure you want to delete court &quot;{deletingCourt?.name}&quot;?
-          This action cannot be undone.
+          {t("clubDetail.deleteCourtConfirm", { name: deletingCourt?.name })}
         </p>
         <div className="flex justify-end gap-2">
           <Button
@@ -159,14 +167,14 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
               setDeletingCourt(null);
             }}
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             onClick={handleDeleteCourt}
             disabled={submitting}
             className="bg-red-500 hover:bg-red-600"
           >
-            {submitting ? "Deleting..." : "Delete"}
+            {submitting ? t("clubDetail.deleting") : t("common.delete")}
           </Button>
         </div>
       </Modal>

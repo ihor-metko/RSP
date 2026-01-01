@@ -67,23 +67,6 @@ interface CourtFormData {
   notes: string;
 }
 
-interface Club {
-  id: string;
-  name: string;
-  organizationId?: string;
-  organization?: {
-    id: string;
-    name: string;
-  } | null;
-  defaultCurrency?: string;
-  businessHours?: Array<{
-    dayOfWeek: number;
-    openTime: string | null;
-    closeTime: string | null;
-    isClosed: boolean;
-  }>;
-}
-
 const defaultFormValues: CourtFormData = {
   organizationId: "",
   clubId: "",
@@ -131,10 +114,7 @@ export default function CreateCourtPage() {
   // Organization and Club stores
   const { organizations, fetchOrganizations, loading: orgsLoading } = useOrganizationStore();
   const { clubs, fetchClubsIfNeeded, loadingClubs: clubsLoading } = useAdminClubStore();
-
   const [clubIdFromUrl, setClubIdFromUrl] = useState<string | null>(null);
-  const [club, setClub] = useState<Club | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -160,13 +140,13 @@ export default function CreateCourtPage() {
 
     // Tab 2: Basic Info
     tabs.push({ id: "basic", label: t("admin.courts.new.tabs.basic") || "Basic Info" });
-    
+
     // Tab 3: Pricing & Schedule (combined)
     tabs.push({ id: "pricing-schedule", label: t("admin.courts.new.tabs.pricingSchedule") || "Pricing & Schedule" });
-    
+
     // Tab 4: Media
     tabs.push({ id: "media", label: t("admin.courts.new.tabs.media") || "Media" });
-    
+
     // Tab 5: Settings (meta information)
     tabs.push({ id: "settings", label: t("admin.courts.new.tabs.settings") || "Settings" });
 
@@ -297,49 +277,6 @@ export default function CreateCourtPage() {
       setValue("clubId", clubId);
     }
   }, [isOrgAdmin, isClubAdmin, adminStatus, setValue]);
-
-  // Fetch club data when clubId is set
-  const selectedClubId = watch("clubId") || clubIdFromUrl;
-
-  useEffect(() => {
-    if (!selectedClubId) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchClub = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/clubs/${selectedClubId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError(t("admin.courts.new.errors.clubNotFound"));
-            return;
-          }
-          throw new Error(t("admin.courts.new.errors.failedToLoadClub"));
-        }
-        const data = await response.json();
-        setClub(data);
-
-        // Set default currency from club
-        if (data.defaultCurrency) {
-          setValue("currency", data.defaultCurrency);
-        }
-
-        // Set organization ID from club if not already set
-        if (data.organizationId && !getValues("organizationId")) {
-          setValue("organizationId", data.organizationId);
-        }
-      } catch (err) {
-        console.error("Failed to load club:", err);
-        setError(t("admin.courts.new.errors.failedToLoadClub"));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchClub();
-  }, [selectedClubId, setValue, getValues, t]);
 
   // Auth check - allow any admin
   useEffect(() => {
@@ -973,10 +910,8 @@ export default function CreateCourtPage() {
 
           {timeError && <span className="im-error-text">{timeError}</span>}
 
-          <span className="im-hint-text">
-            {club?.businessHours && club.businessHours.length > 0
-              ? t("admin.courts.new.pricingScheduleTab.clubHoursHint")
-              : t("admin.courts.new.pricingScheduleTab.noClubHoursHint")}
+          <span className="im-create-court-hint">
+            {t("admin.courts.new.scheduleStep.workingHoursHint")}
           </span>
         </div>
       </div>
@@ -1211,7 +1146,7 @@ export default function CreateCourtPage() {
   );
 
   // Loading state
-  if (isLoading || loading) {
+  if (isLoading) {
     return (
       <main className="im-create-court-page">
         <PageHeaderSkeleton showDescription />
@@ -1223,7 +1158,7 @@ export default function CreateCourtPage() {
   }
 
   // Error state
-  if (error && !club) {
+  if (error) {
     return (
       <main className="im-create-court-page">
         <div className="im-create-court-layout">

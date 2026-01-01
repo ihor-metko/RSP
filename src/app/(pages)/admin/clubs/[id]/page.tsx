@@ -76,6 +76,7 @@ export default function AdminClubDetailPage({
   const adminStatus = useUserStore((state) => state.adminStatus);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isLoadingStore = useUserStore((state) => state.isLoading);
+  const hasRole = useUserStore((state) => state.hasRole);
 
   // Check if user can edit this club (Club Owner or Club Admin only)
   const canEdit = useCanEditClub(clubId);
@@ -197,6 +198,9 @@ export default function AdminClubDetailPage({
 
   // Determine if user can delete clubs (only root admin)
   const canDelete = adminStatus?.adminType === "root_admin";
+  
+  // Determine if user can publish/unpublish this club (only root admin)
+  const canPublish = hasRole("ROOT_ADMIN");
 
   // Prepare DangerZone actions
   const dangerActions: DangerAction[] = [
@@ -210,7 +214,7 @@ export default function AdminClubDetailPage({
       onAction: handleOpenPublishModal,
       isProcessing: isTogglingPublish,
       variant: club?.isPublic ? 'danger' : 'warning',
-      show: true,
+      show: canPublish,
     },
     {
       id: 'delete',
