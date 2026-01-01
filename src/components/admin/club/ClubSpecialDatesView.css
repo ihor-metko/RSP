@@ -11,6 +11,7 @@
   padding: 0.5rem 0;
   font-size: 0.875rem;
   border-bottom: 1px solid var(--rsp-border);
+  justify-content: space-between;
 }
 
 .im-special-dates-row:last-child {
@@ -23,14 +24,10 @@
   min-width: 60px;
 }
 
-.im-special-dates-separator {
-  color: var(--rsp-foreground);
-  opacity: 0.5;
-}
-
 .im-special-dates-status {
   color: var(--rsp-foreground);
   opacity: 0.8;
+  white-space: nowrap;
 }
 
 .im-special-dates-reason {

@@ -35,14 +35,14 @@ function formatDateShort(dateString: string): string {
 export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }: ClubSpecialDatesViewProps) {
   const t = useTranslations("clubDetail");
   const tCommon = useTranslations("common");
-  
+
   // Use the dedicated special dates store
   const specialDatesFromStore = useClubSpecialDatesStore((state) => state.specialDates);
   const fetchSpecialDates = useClubSpecialDatesStore((state) => state.fetchSpecialDates);
   const addSpecialDate = useClubSpecialDatesStore((state) => state.addSpecialDate);
   const updateSpecialDate = useClubSpecialDatesStore((state) => state.updateSpecialDate);
   const removeSpecialDate = useClubSpecialDatesStore((state) => state.removeSpecialDate);
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -124,7 +124,7 @@ export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }
 
       // Wait for all operations to complete, collecting both successes and failures
       const results = await Promise.allSettled(promises);
-      
+
       // Check if any operations failed
       const failures = results.filter(r => r.status === 'rejected');
       if (failures.length > 0) {
@@ -166,17 +166,19 @@ export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }
                 <span className="im-special-dates-date">
                   {formatDateShort(hour.date)}
                 </span>
-                <span className="im-special-dates-separator">—</span>
-                <span className="im-special-dates-status">
-                  {hour.isClosed
-                    ? t("closed")
-                    : `${formatTime(hour.openTime, t)} - ${formatTime(hour.closeTime, t)}`}
-                </span>
-                {hour.reason && (
-                  <span className="im-special-dates-reason">
-                    ({hour.reason})
+
+                <div className="flex gap-2 items-center">
+                  {hour.reason && (
+                    <span className="im-special-dates-reason">
+                      ({hour.reason})
+                    </span>
+                  )}
+                  <span className="im-special-dates-status">
+                    {hour.isClosed
+                      ? t("closed")
+                      : `${formatTime(hour.openTime, t)} - ${formatTime(hour.closeTime, t)} ${t("opened")}`}
                   </span>
-                )}
+                </div>
               </div>
             ))}
           </div>
