@@ -258,7 +258,7 @@ export default function PriceRulesPage({
     return labels[ruleType] || ruleType;
   };
 
-  if (status === "loading" || loading) {
+  if (isLoading || loading) {
     return (
       <main className="rsp-container p-6">
         <PageHeaderSkeleton showDescription />
