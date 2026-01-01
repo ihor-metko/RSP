@@ -39,18 +39,9 @@
   opacity: 0.6;
 }
 
-.im-time-input:hover:not(:disabled) {
-  border-color: var(--im-border-hover);
-}
-
 .im-time-input:focus {
   outline: none;
   border-color: var(--im-primary);
-  box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
-}
-
-.dark .im-time-input:focus {
-  box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.2);
 }
 
 .im-time-input:disabled {
