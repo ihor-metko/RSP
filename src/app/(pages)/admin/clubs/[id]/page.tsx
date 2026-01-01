@@ -57,7 +57,6 @@ export default function AdminClubDetailPage({
     isClubLoading,
     bookingsLoading,
     error: dataError,
-    refetchClub,
   } = useClubPageData(clubId, { loadAdmins: false });
 
   // Store actions for mutations

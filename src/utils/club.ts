@@ -35,10 +35,6 @@ export function getPriceRange(courts: CourtWithPrice[]): { min: number; max: num
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }
 
-interface CourtWithIndoor {
-  indoor: boolean;
-}
-
 /**
  * Safely construct Google Maps embed URL with validated coordinates
  * @param latitude - Latitude coordinate
