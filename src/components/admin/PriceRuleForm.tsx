@@ -179,6 +179,7 @@ export function PriceRuleForm({
             }));
           }}
           placeholder="Select date"
+          disabled={isSubmitting}
         />
       )}
 

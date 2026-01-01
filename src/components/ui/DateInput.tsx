@@ -32,6 +32,8 @@ interface DateInputProps {
   className?: string;
   /** ARIA label */
   "aria-label"?: string;
+  /** Whether the input is disabled */
+  disabled?: boolean;
 }
 
 /**
@@ -62,6 +64,7 @@ export function DateInput({
   isRangeStart = false,
   className = "",
   "aria-label": ariaLabel,
+  disabled = false,
 }: DateInputProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -112,6 +115,10 @@ export function DateInput({
 
   // Handle input focus
   const handleInputFocus = () => {
+    // Don't open if disabled
+    if (disabled) {
+      return;
+    }
     // Don't re-open if we just closed from a date selection
     if (justClosedRef.current) {
       return;
@@ -189,6 +196,7 @@ export function DateInput({
           onFocus={handleInputFocus}
           onBlur={handleInputBlur}
           readOnly
+          disabled={disabled}
           aria-label={ariaLabel || label}
           aria-haspopup="dialog"
           role="combobox"
@@ -198,9 +206,10 @@ export function DateInput({
         <button
           type="button"
           className="im-date-input-icon"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={() => !disabled && setIsOpen(!isOpen)}
           aria-label="Open calendar"
-          tabIndex={0}
+          tabIndex={disabled ? -1 : 0}
+          disabled={disabled}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
