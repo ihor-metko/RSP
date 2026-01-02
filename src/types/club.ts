@@ -247,10 +247,11 @@ export interface UpdateClubPayload {
 /**
  * Club metadata type extending EntityLogoMetadata
  * Note: Banner alignment is now stored in bannerData.position, not in metadata
+ * 
+ * This interface may be extended in the future with other club-specific metadata fields.
+ * For now, it only includes logo-related fields from EntityLogoMetadata.
  */
-export interface ClubMetadata extends EntityLogoMetadata {
-  // Banner alignment removed - now stored in bannerData.position
-}
+export type ClubMetadata = EntityLogoMetadata;
 
 /**
  * Helper function to parse club metadata from JSON string

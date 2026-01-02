@@ -113,10 +113,11 @@ export interface UpdateOrganizationPayload {
 /**
  * Organization metadata type extending EntityLogoMetadata
  * Note: Banner alignment is now stored in bannerData.position, not in metadata
+ * 
+ * This type may be extended in the future with other organization-specific metadata fields.
+ * For now, it only includes logo-related fields from EntityLogoMetadata.
  */
-export interface OrganizationMetadata extends EntityLogoMetadata {
-  // Banner alignment removed - now stored in bannerData.position
-}
+export type OrganizationMetadata = EntityLogoMetadata;
 
 /**
  * Helper function to parse organization metadata from JSON string or object

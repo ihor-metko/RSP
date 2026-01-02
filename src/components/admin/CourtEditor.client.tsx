@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/components/ui";
 import { BannerTab } from "@/components/admin/EntityTabs";
 import type { BannerData } from "@/components/admin/EntityTabs";
-import { parseCourtMetadata } from "@/utils/court-metadata";
 import type { CourtDetail } from "@/types/court";
 import "@/components/admin/EntityTabs/EntityTabs.css";
 
@@ -25,9 +24,6 @@ export function CourtEditor({
   const t = useTranslations();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
-
-  // Parse metadata from JSON string
-  const metadata = parseCourtMetadata(court.metadata);
 
   const bannerData: BannerData = {
     heroImage: court.bannerData?.url ? { url: court.bannerData.url, key: "", preview: court.bannerData.url } : null,

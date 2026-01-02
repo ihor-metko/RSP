@@ -3,10 +3,13 @@
  * Helper to parse and validate court metadata JSON
  * 
  * Note: Banner alignment is now stored in bannerData.position, not in metadata
+ * 
+ * This type may be extended in the future with court-specific metadata fields.
+ * For now, it's an empty object that can hold any court-specific metadata.
  */
-
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface CourtMetadata {
-  // Banner alignment removed - now stored in bannerData.position
+  // Empty for now - can be extended with court-specific metadata in the future
 }
 
 /**

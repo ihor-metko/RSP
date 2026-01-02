@@ -16,7 +16,6 @@ import { CourtEditor } from "@/components/admin/CourtEditor.client";
 import { useAdminCourtsStore } from "@/stores/useAdminCourtsStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useCanEditClub } from "@/hooks/useCanEditClub";
-import { parseCourtMetadata } from "@/utils/court-metadata";
 import type { CourtDetail as StoreCourtDetail } from "@/types/court";
 
 import "./page.css";
@@ -279,9 +278,6 @@ export default function CourtDetailPage({
   if (!court) {
     return null;
   }
-
-  // Parse court metadata for banner alignment
-  const courtMetadata = parseCourtMetadata(court.metadata);
 
   return (
     <main className="im-court-detail-page">
