@@ -176,18 +176,13 @@ export function formatWeekdayShort(date: string | Date, locale: string): string 
 
 /**
  * Format only date without year (e.g., "Apr 2" in English)
+ * Alias for formatDateShort for backward compatibility
  * @param date Date string or Date object
  * @param locale Current application locale
  * @returns Formatted date string without year
  */
 export function formatDateNoYear(date: string | Date, locale: string): string {
-  const dateObj = toDate(date);
-  const intlLocale = getIntlLocale(locale);
-  
-  return dateObj.toLocaleDateString(intlLocale, {
-    month: 'short',
-    day: 'numeric',
-  });
+  return formatDateShort(date, locale);
 }
 
 /**
