@@ -7,6 +7,7 @@ import { Card, Button, Select, Modal } from "@/components/ui";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
+import { formatDateWithWeekday, formatTime, formatDateLong } from "@/utils/date";
 import "./PersonalizedSection.css";
 
 interface UpcomingBooking {
@@ -83,32 +84,6 @@ function calculateEndTime(startTime: string, durationMinutes: number): string {
   return `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
 }
 
-// Format date for display
-function formatDate(dateStr: string, locale: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(locale === "uk" ? "uk-UA" : "en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-// Format time for display
-function formatTime(isoString: string): string {
-  const date = new Date(isoString);
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
-}
-
-// Format date for display in summary
-function formatDateDisplay(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
 
 // Get status badge class
 function getStatusBadgeClass(status: string): string {
@@ -559,14 +534,14 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                     onClick={() => handleBookingCardClick(booking)}
                     className="rsp-personalized-booking-card"
                     role="listitem"
-                    aria-label={`${booking.club?.name || ""} - ${formatDate(booking.startTime, currentLocale)} ${formatTime(booking.startTime)}`}
+                    aria-label={`${booking.club?.name || ""} - ${formatDateWithWeekday(booking.startTime, currentLocale)} ${formatTime(booking.startTime, currentLocale)}`}
                   >
                     <div className="rsp-personalized-booking-main">
                       <div className="rsp-personalized-booking-date">
-                        {formatDate(booking.startTime, currentLocale)}
+                        {formatDateWithWeekday(booking.startTime, currentLocale)}
                       </div>
                       <div className="rsp-personalized-booking-time">
-                        {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                        {formatTime(booking.startTime, currentLocale)} - {formatTime(booking.endTime, currentLocale)}
                       </div>
                     </div>
                     <div className="rsp-personalized-booking-details">
@@ -1061,14 +1036,14 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
               <div className="rsp-personalized-booking-modal-row">
                 <span className="rsp-personalized-booking-modal-label">{t("common.date")}</span>
                 <span className="rsp-personalized-booking-modal-value">
-                  {formatDateDisplay(selectedBooking.startTime)}
+                  {formatDateLong(selectedBooking.startTime, currentLocale)}
                 </span>
               </div>
 
               <div className="rsp-personalized-booking-modal-row">
                 <span className="rsp-personalized-booking-modal-label">{t("common.time")}</span>
                 <span className="rsp-personalized-booking-modal-value">
-                  {formatTime(selectedBooking.startTime)} - {formatTime(selectedBooking.endTime)}
+                  {formatTime(selectedBooking.startTime, currentLocale)} - {formatTime(selectedBooking.endTime, currentLocale)}
                 </span>
               </div>
 

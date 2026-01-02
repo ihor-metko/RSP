@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useCurrentLocale } from "@/hooks/useCurrentLocale";
+import { formatDateTime } from "@/utils/date";
 import type { CourtDetail } from "./types";
 import "./CourtMetaBlock.css";
 
@@ -8,20 +10,9 @@ interface CourtMetaBlockProps {
   court: CourtDetail;
 }
 
-function formatDate(dateString: string | undefined, locale?: string): string {
-  if (!dateString) return "Unknown";
-  const date = new Date(dateString);
-  return date.toLocaleDateString(locale || "en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
 export function CourtMetaBlock({ court }: CourtMetaBlockProps) {
   const t = useTranslations();
+  const locale = useCurrentLocale();
   
   return (
     <div className="im-block im-court-meta-block">
@@ -54,14 +45,14 @@ export function CourtMetaBlock({ court }: CourtMetaBlockProps) {
         <div className="im-block-row">
           <span className="im-block-label">{t("courtDetail.blocks.metadata.created")}</span>
           <span className="im-block-value">
-            {formatDate(court.createdAt)}
+            {court.createdAt ? formatDateTime(court.createdAt, locale) : t("courtDetail.blocks.metadata.unknown")}
           </span>
         </div>
 
         <div className="im-block-row">
           <span className="im-block-label">{t("courtDetail.blocks.metadata.lastUpdated")}</span>
           <span className="im-block-value">
-            {formatDate(court.updatedAt)}
+            {court.updatedAt ? formatDateTime(court.updatedAt, locale) : t("courtDetail.blocks.metadata.unknown")}
           </span>
         </div>
 

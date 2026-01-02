@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Modal, Button, Card, BookingStatusBadge, ConfirmationModal } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import { formatDateTime, calculateDuration } from "@/utils/bookingFormatters";
+import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import type { AdminBookingDetailResponse } from "@/app/api/admin/bookings/[id]/route";
 import "./BookingDetailsModal.css";
 
@@ -38,6 +39,7 @@ export function BookingDetailsModal({
   onBookingCancelled
 }: BookingDetailsModalProps) {
   const t = useTranslations();
+  const locale = useCurrentLocale();
   const [booking, setBooking] = useState<AdminBookingDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -237,7 +239,7 @@ export function BookingDetailsModal({
               <div className="im-booking-modal-field im-booking-modal-field-wide">
                 <span className="im-booking-modal-label">{t("adminBookings.dateTime")}</span>
                 <span className="im-booking-modal-value im-booking-modal-value-time">
-                  {formatDateTime(booking.start)} — {formatDateTime(booking.end)}
+                  {formatDateTime(booking.start, locale)} — {formatDateTime(booking.end, locale)}
                 </span>
               </div>
               <div className="im-booking-modal-field">
@@ -253,7 +255,7 @@ export function BookingDetailsModal({
               <div className="im-booking-modal-field">
                 <span className="im-booking-modal-label">{t("adminBookings.createdAt")}</span>
                 <span className="im-booking-modal-value im-booking-modal-value-muted">
-                  {formatDateTime(booking.createdAt)}
+                  {formatDateTime(booking.createdAt, locale)}
                 </span>
               </div>
             </div>
@@ -300,7 +302,7 @@ export function BookingDetailsModal({
             </div>
             <div className="im-booking-modal-field">
               <span className="im-booking-modal-label">{t("adminBookings.dateTime")}</span>
-              <span className="im-booking-modal-value">{formatDateTime(booking.start)}</span>
+              <span className="im-booking-modal-value">{formatDateTime(booking.start, locale)}</span>
             </div>
           </div>
         )}

@@ -4,15 +4,17 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Modal } from "@/components/ui";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { AdminNotification } from "@/stores/useNotificationStore";
 import { NotificationToastContainer } from "./NotificationToast";
+import { formatDateSimple, formatDateNoYear, formatDateTime, formatDateLong } from "@/utils/date";
 import "./NotificationBell.css";
 
 interface NotificationBellProps {
   maxDropdownItems?: number;
 }
 
-function formatTimeAgo(dateStr: string): string {
+function formatTimeAgo(dateStr: string, locale: string): string {
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -24,7 +26,7 @@ function formatTimeAgo(dateStr: string): string {
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString();
+  return formatDateSimple(date, locale);
 }
 
 function getNotificationIcon(type: string): string {
@@ -43,15 +45,13 @@ function getNotificationIcon(type: string): string {
 }
 
 function generateNotificationSummary(
-  notification: AdminNotification
+  notification: AdminNotification,
+  locale: string
 ): string {
   const { type, playerName, coachName, sessionDate, sessionTime } = notification;
   const dateInfo =
     sessionDate && sessionTime
-      ? ` for ${new Date(sessionDate).toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-        })} at ${sessionTime}`
+      ? ` for ${formatDateNoYear(sessionDate, locale)} at ${sessionTime}`
       : "";
 
   switch (type) {
@@ -70,6 +70,7 @@ function generateNotificationSummary(
 
 export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProps) {
   const router = useRouter();
+  const locale = useCurrentLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<AdminNotification | null>(null);
   const [toasts, setToasts] = useState<
@@ -79,7 +80,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
 
   // Handle new notification callback
   const handleNewNotification = useCallback((notification: AdminNotification) => {
-    const summary = notification.summary || generateNotificationSummary(notification);
+    const summary = notification.summary || generateNotificationSummary(notification, locale);
     setToasts((prev) => {
       // Limit to 3 toasts max
       const newToasts = [
@@ -88,7 +89,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
       ];
       return newToasts;
     });
-  }, []);
+  }, [locale]);
 
   const {
     notifications,
@@ -251,10 +252,10 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
                       </span>
                       <div className="tm-dropdown-item-content">
                         <span className="tm-dropdown-item-summary">
-                          {generateNotificationSummary(notification)}
+                          {generateNotificationSummary(notification, locale)}
                         </span>
                         <span className="tm-dropdown-item-time">
-                          {formatTimeAgo(notification.createdAt)}
+                          {formatTimeAgo(notification.createdAt, locale)}
                         </span>
                       </div>
                     </button>
@@ -295,7 +296,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
               <div className="tm-details-row">
                 <span className="tm-details-label">Summary</span>
                 <span className="tm-details-value">
-                  {generateNotificationSummary(selectedNotification)}
+                  {generateNotificationSummary(selectedNotification, locale)}
                 </span>
               </div>
 
@@ -324,12 +325,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
                 <div className="tm-details-row">
                   <span className="tm-details-label">Session Date</span>
                   <span className="tm-details-value">
-                    {new Date(selectedNotification.sessionDate).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
+                    {formatDateLong(selectedNotification.sessionDate, locale)}
                   </span>
                 </div>
               )}
@@ -369,9 +365,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
               <div className="tm-details-row">
                 <span className="tm-details-label">Received</span>
                 <span className="tm-details-value">
-                  {new Date(selectedNotification.createdAt).toLocaleString(undefined, {
-                    hour12: false,
-                  })}
+                  {formatDateTime(selectedNotification.createdAt, locale)}
                 </span>
               </div>
             </div>
