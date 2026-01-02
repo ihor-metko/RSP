@@ -56,7 +56,7 @@
 /* Decorative element - subtle sports pattern */
 .im-auth-decorative {
   @apply fixed inset-0 w-full h-full pointer-events-none;
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 80%, var(--im-primary) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, var(--im-primary) 0%, transparent 50%);
   opacity: 0.05;
@@ -110,7 +110,7 @@
 }
 
 /* Auth-specific input styling */
-.im-auth-input {
+input.im-auth-input {
   @apply w-full rounded-lg px-4 py-3 text-sm;
   @apply transition-all duration-200;
   @apply focus:outline-none focus:ring-2 focus:ring-offset-0;
@@ -126,7 +126,6 @@
 
 .im-auth-input:focus {
   border-color: var(--im-auth-input-focus-border);
-  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
 }
 
 /* Primary button styling */
@@ -221,6 +220,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;

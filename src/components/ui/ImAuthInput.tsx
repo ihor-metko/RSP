@@ -9,17 +9,17 @@ interface ImAuthInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 
 /**
  * ImAuthInput Component
- * 
+ *
  * A specialized input component for authentication pages that applies
  * consistent auth-specific styling (im-auth-input class) while maintaining
  * all functionality from the base Input component.
- * 
+ *
  * Features:
  * - Automatic application of im-auth-input styling
  * - Password toggle support for password fields
  * - Full compatibility with all standard input props
  * - Consistent with dark theme and authentication page design
- * 
+ *
  * Note: This component intentionally does not expose the `label` prop from the base
  * Input component, as auth pages use separate <label> elements for layout flexibility.
  * The im-auth-input class is applied alongside rsp-input (from Input component),
@@ -31,8 +31,8 @@ export const ImAuthInput = forwardRef<HTMLInputElement, ImAuthInputProps>(
     // Split by whitespace and check for exact match to avoid false positives
     const classNames = className.split(/\s+/).filter(Boolean);
     const hasAuthClass = classNames.includes("im-auth-input");
-    const authClassName = hasAuthClass 
-      ? className 
+    const authClassName = hasAuthClass
+      ? className
       : `im-auth-input ${className}`.trim();
 
     return (
