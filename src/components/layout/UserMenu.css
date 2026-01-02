@@ -93,7 +93,7 @@
 }
 
 /* Menu item */
-.im-user-menu-item {
+a.im-user-menu-item {
   @apply w-full px-4 flex items-center gap-3 transition-colors no-underline;
   height: 40px;
   color: var(--im-foreground);
