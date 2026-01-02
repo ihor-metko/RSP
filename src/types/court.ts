@@ -9,6 +9,8 @@ export interface Court {
   surface?: string | null;
   indoor: boolean;
   sportType?: SportType | null;
+  description?: string | null;
+  isPublished?: boolean;
   defaultPriceCents: number;
   imageUrl?: string | null;
   bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
@@ -74,6 +76,8 @@ export interface CreateCourtPayload {
   surface?: string | null;
   indoor?: boolean;
   sportType?: SportType;
+  description?: string | null;
+  isPublished?: boolean;
   defaultPriceCents?: number;
 }
 
@@ -87,6 +91,8 @@ export interface UpdateCourtPayload {
   surface?: string | null;
   indoor?: boolean;
   sportType?: SportType;
+  description?: string | null;
+  isPublished?: boolean;
   defaultPriceCents?: number;
 }
 

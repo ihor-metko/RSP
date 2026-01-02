@@ -421,6 +421,16 @@ export default function CourtDetailPage({
         </Card>
       </header>
 
+      {/* Description Section */}
+      {court.description && (
+        <section className="tm-court-description mb-8">
+          <Card className="tm-court-description-card">
+            <h2 className="text-lg font-semibold mb-3">{t("courtDetail.description.title")}</h2>
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{court.description}</p>
+          </Card>
+        </section>
+      )}
+
       {/* Date navigation */}
       <section className="tm-date-picker mb-6">
         <div className="flex items-center justify-center gap-4 flex-wrap">

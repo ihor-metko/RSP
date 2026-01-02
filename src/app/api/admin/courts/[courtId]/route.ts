@@ -93,7 +93,7 @@ export async function PATCH(
     const resolvedParams = await params;
     const { courtId } = resolvedParams;
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, defaultPriceCents, isActive, metadata } = body;
+    const { name, slug, type, surface, indoor, sportType, description, isPublished, defaultPriceCents, isActive, metadata } = body;
 
 
     // Check if court exists
@@ -211,6 +211,8 @@ export async function PATCH(
     if (surface !== undefined) updateData.surface = surface?.trim() || null;
     if (indoor !== undefined) updateData.indoor = indoor;
     if (sportType !== undefined) updateData.sportType = sportType;
+    if (description !== undefined) updateData.description = description?.trim() || null;
+    if (isPublished !== undefined) updateData.isPublished = isPublished;
     if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
     if (isActive !== undefined) updateData.isActive = isActive;
     if (metadata !== undefined) updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);

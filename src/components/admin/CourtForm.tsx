@@ -12,6 +12,8 @@ export interface CourtFormData {
   surface: string;
   indoor: boolean;
   sportType: SportType;
+  description: string;
+  isPublished: boolean;
   defaultPriceCents: number;
 }
 
@@ -35,12 +37,14 @@ export function CourtForm({
     surface: initialValues?.surface || "",
     indoor: initialValues?.indoor ?? false,
     sportType: initialValues?.sportType || SportType.PADEL,
+    description: initialValues?.description || "",
+    isPublished: initialValues?.isPublished ?? false,
     defaultPriceCents: initialValues?.defaultPriceCents ?? 0,
   });
 
   const [error, setError] = useState("");
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as HTMLInputElement;
     setFormData((prev) => ({
       ...prev,
@@ -121,6 +125,21 @@ export function CourtForm({
 
       <div className="rsp-input-wrapper">
         <label className="rsp-label mb-1 block text-sm font-medium">
+          Description (optional)
+        </label>
+        <textarea
+          name="description"
+          value={formData.description}
+          onChange={handleInputChange}
+          placeholder="General information about the court (surface details, notes, etc.)"
+          disabled={isSubmitting}
+          rows={4}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      <div className="rsp-input-wrapper">
+        <label className="rsp-label mb-1 block text-sm font-medium">
           Sport Type
         </label>
         <select
@@ -166,6 +185,21 @@ export function CourtForm({
         />
         <label htmlFor="indoor" className="rsp-label text-sm font-medium">
           Indoor
+        </label>
+      </div>
+
+      <div className="rsp-input-wrapper flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="isPublished"
+          name="isPublished"
+          checked={formData.isPublished}
+          onChange={handleInputChange}
+          disabled={isSubmitting}
+          className="h-4 w-4 rounded-sm border-gray-300 focus:ring-2"
+        />
+        <label htmlFor="isPublished" className="rsp-label text-sm font-medium">
+          Published
         </label>
       </div>
 

@@ -19,6 +19,8 @@ export async function GET(
         type: true,
         surface: true,
         indoor: true,
+        description: true,
+        isPublished: true,
         defaultPriceCents: true,
         clubId: true,
         createdAt: true,
@@ -27,6 +29,12 @@ export async function GET(
     });
 
     if (!court) {
+      return NextResponse.json({ error: "Court not found" }, { status: 404 });
+    }
+
+    // Filter out unpublished courts for regular users
+    // Admins should use the admin API endpoint to see unpublished courts
+    if (!court.isPublished) {
       return NextResponse.json({ error: "Court not found" }, { status: 404 });
     }
 

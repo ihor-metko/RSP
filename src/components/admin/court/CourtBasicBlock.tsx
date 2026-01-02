@@ -18,6 +18,7 @@ interface CourtBasicBlockProps {
     surface: string;
     indoor: boolean;
     sportType: SportType;
+    isPublished: boolean;
     defaultPriceCents: number;
   }) => Promise<unknown>;
 }
@@ -35,6 +36,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
     surface: court.surface || "",
     indoor: court.indoor,
     sportType: court.sportType || SportType.PADEL,
+    isPublished: court.isPublished ?? false,
     defaultPriceCents: court.defaultPriceCents,
   });
 
@@ -46,6 +48,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
       surface: court.surface || "",
       indoor: court.indoor,
       sportType: court.sportType || SportType.PADEL,
+      isPublished: court.isPublished ?? false,
       defaultPriceCents: court.defaultPriceCents,
     });
     setError("");
@@ -217,6 +220,15 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
           </div>
 
           <div className="im-block-row">
+            <span className="im-block-label">{t("courtDetail.blocks.basicInformation.publicationStatus")}</span>
+            <span className="im-block-value">
+              <span className={`im-court-badge ${court.isPublished ? "im-court-badge--published" : "im-court-badge--unpublished"}`}>
+                {court.isPublished ? t("courtDetail.blocks.basicInformation.published") : t("courtDetail.blocks.basicInformation.unpublished")}
+              </span>
+            </span>
+          </div>
+
+          <div className="im-block-row">
             <span className="im-block-label">{t("courtDetail.blocks.basicInformation.defaultPrice")}</span>
             <span className="im-block-value im-block-value--price">
               {formatPrice(court.defaultPriceCents)}/hour
@@ -348,6 +360,23 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
             />
             <span className="im-checkbox-label">{t("courtDetail.blocks.basicInformation.indoorCourtLabel")}</span>
           </label>
+        </div>
+
+        <div className="im-modal-field">
+          <label className="im-checkbox-wrapper">
+            <input
+              type="checkbox"
+              name="isPublished"
+              checked={formData.isPublished}
+              onChange={handleInputChange}
+              disabled={isSaving}
+              className="im-checkbox"
+            />
+            <span className="im-checkbox-label">{t("courtDetail.blocks.basicInformation.publishedLabel")}</span>
+          </label>
+          <span className="im-field-hint">
+            {t("courtDetail.blocks.basicInformation.publishedHint")}
+          </span>
         </div>
       </SectionEditModal>
     </>

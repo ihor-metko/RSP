@@ -30,7 +30,10 @@ export async function GET(
     }
 
     const courts = await prisma.court.findMany({
-      where: { clubId },
+      where: { 
+        clubId,
+        isPublished: true, // Only return published courts for players
+      },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
@@ -40,6 +43,8 @@ export async function GET(
         surface: true,
         indoor: true,
         sportType: true,
+        description: true,
+        isPublished: true,
         defaultPriceCents: true,
         bannerData: true,
         metadata: true,

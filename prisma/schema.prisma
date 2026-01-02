@@ -327,6 +327,8 @@ model Court {
   indoor            Boolean   @default(false)
   sportType         SportType @default(PADEL) // Type of sport for this court
   isActive          Boolean   @default(true)
+  description       String?   @db.Text // General information about the court (surface details, notes, etc.)
+  isPublished       Boolean   @default(false) // Whether the court is publicly visible/available
   defaultPriceCents Int       @default(0)
   bannerData        String?   @db.Text // JSON: { url: string; altText?: string; description?: string; position?: string }
   metadata          String?   @db.Text // JSON string for additional metadata (e.g., bannerAlignment)
