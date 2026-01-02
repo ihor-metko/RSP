@@ -1,7 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
+import { formatDateTime } from "@/utils/date";
 import "./ActivityFeed.css";
 
 /**
@@ -106,6 +107,7 @@ export default function ActivityFeed({
   loading = false,
 }: ActivityFeedProps) {
   const t = useTranslations();
+  const locale = useLocale();
 
   if (loading) {
     return (
@@ -163,13 +165,7 @@ export default function ActivityFeed({
             ? new Date(activity.timestamp)
             : activity.timestamp;
           
-          const formattedTime = timestamp.toLocaleString(undefined, {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          });
+          const formattedTime = formatDateTime(timestamp, locale);
 
           return (
             <article key={activity.id} className="im-activity-feed-item" role="article">

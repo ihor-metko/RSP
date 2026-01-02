@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useLocale } from "next-intl";
 import { Button, Card } from "@/components/ui";
 import { useNotifications } from "@/hooks/useNotifications";
 import { AdminNotification } from "@/stores/useNotificationStore";
+import { formatDateWithWeekday, formatRelativeTime } from "@/utils/date";
 import "./AdminNotifications.css";
 
 /**
@@ -23,32 +25,7 @@ import "./AdminNotifications.css";
  * - UI: Reads from store and re-renders automatically
  */
 
-function formatDateDisplay(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatTimeAgo(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return formatDateDisplay(dateStr);
-}
-
-function getNotificationMessage(notification: AdminNotification): string {
+function getNotificationMessage(notification: AdminNotification, locale: string): string {
   const { type, playerName, coachName, sessionDate, sessionTime, summary } = notification;
   
   // Use pre-generated summary if available (for Booking/Payment events)
@@ -58,7 +35,7 @@ function getNotificationMessage(notification: AdminNotification): string {
   
   // Generate message for training request events
   const dateInfo = sessionDate && sessionTime 
-    ? ` for ${formatDateDisplay(sessionDate)} at ${sessionTime}` 
+    ? ` for ${formatDateWithWeekday(sessionDate, locale)} at ${sessionTime}` 
     : "";
 
   switch (type) {
@@ -105,6 +82,7 @@ function getNotificationIcon(type: string): string {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function AdminNotificationsPanel() {
+  const locale = useLocale();
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -241,7 +219,7 @@ export function AdminNotificationsPanel() {
               </div>
               <div className="tm-notification-content">
                 <div className="tm-notification-message">
-                  {getNotificationMessage(notification)}
+                  {getNotificationMessage(notification, locale)}
                 </div>
                 <div className="tm-notification-meta">
                   <span className={`tm-notification-type tm-notification-type--${notification.type.toLowerCase()}`}>
@@ -253,7 +231,7 @@ export function AdminNotificationsPanel() {
                     </span>
                   )}
                   <span className="tm-notification-time">
-                    {formatTimeAgo(notification.createdAt)}
+                    {formatRelativeTime(notification.createdAt, locale)}
                   </span>
                 </div>
               </div>
