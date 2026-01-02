@@ -3,6 +3,22 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { parseAddress } from "@/types/address";
 
+/**
+ * Helper function to safely parse JSON data
+ * Returns null if parsing fails instead of throwing
+ */
+function safeJsonParse<T = unknown>(jsonString: string | null | undefined): T | null {
+  if (!jsonString) {
+    return null;
+  }
+  
+  try {
+    return JSON.parse(jsonString) as T;
+  } catch {
+    return null;
+  }
+}
+
 // Public endpoint - no authentication required
 export async function GET(request: Request) {
   try {
@@ -102,8 +118,8 @@ export async function GET(request: Request) {
         address: parsedAddress || null,
         contactInfo: club.contactInfo,
         openingHours: club.openingHours,
-        logoData: club.logoData ? JSON.parse(club.logoData) : null,
-        bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
+        logoData: safeJsonParse(club.logoData),
+        bannerData: safeJsonParse(club.bannerData),
         tags: club.tags,
         createdAt: club.createdAt,
         indoorCount,
