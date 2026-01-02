@@ -8,7 +8,6 @@ import { IMLink } from "@/components/ui/IMLink";
 import {
   Button,
   Card,
-  TimeInput,
   Input,
   Select,
   Textarea,
@@ -21,7 +20,6 @@ import {
   PageHeader,
 } from "@/components/ui";
 import type { SelectOption } from "@/components/ui/Select";
-import type { RadioOption } from "@/components/ui/RadioGroup";
 import { FormSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { formatPrice, dollarsToCents } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
@@ -143,9 +141,6 @@ export default function CreateCourtPage() {
 
     // Tab 2: Basic Info
     tabs.push({ id: "basic", label: t("admin.courts.new.tabs.basic") || "Basic Info" });
-
-    // Tab 3: Pricing & Schedule (combined)
-    tabs.push({ id: "pricing-schedule", label: t("admin.courts.new.tabs.pricingSchedule") || "Pricing & Schedule" });
 
     // Tab 4: Media
     tabs.push({ id: "media", label: t("admin.courts.new.tabs.media") || "Media" });
@@ -302,8 +297,6 @@ export default function CreateCourtPage() {
       "surface",
       "shortDescription",
       "defaultPrice",
-      "courtOpenTime",
-      "courtCloseTime",
       "tags",
     ];
 
@@ -329,11 +322,8 @@ export default function CreateCourtPage() {
     const nameValid = watchedValues.name && watchedValues.name.length >= 2 && watchedValues.name.length <= 120;
     const slugValid = !watchedValues.slug || /^[a-z0-9-]+$/.test(watchedValues.slug);
     const priceValid = watchedValues.defaultPrice >= 0;
-    const timeValid =
-      (!watchedValues.courtOpenTime && !watchedValues.courtCloseTime) ||
-      (watchedValues.courtOpenTime && watchedValues.courtCloseTime && watchedValues.courtOpenTime < watchedValues.courtCloseTime);
 
-    return nameValid && slugValid && priceValid && timeValid;
+    return nameValid && slugValid && priceValid;
   }, [watchedValues]);
 
   // Auto-generate slug from name
@@ -512,7 +502,7 @@ export default function CreateCourtPage() {
           }
           break;
         case "pricing-schedule":
-          fieldsToValidate = ["defaultPrice", "courtOpenTime", "courtCloseTime"];
+          fieldsToValidate = ["defaultPrice"];
           break;
         case "settings":
           fieldsToValidate = ["maxPlayers"];
@@ -525,7 +515,7 @@ export default function CreateCourtPage() {
       setStepErrors((prev) => ({ ...prev, [tabId]: !result }));
       return result;
     },
-    [trigger, isRootAdmin, isOrgAdmin]
+    [trigger, isRootAdmin, isOrgAdmin, watch]
   );
 
   // Navigate to tab
@@ -577,8 +567,7 @@ export default function CreateCourtPage() {
         shortDescription: data.shortDescription || null,
         defaultPriceCents: dollarsToCents(data.defaultPrice),
         defaultSlotLengthMinutes: data.defaultSlotLengthMinutes,
-        courtOpenTime: data.courtOpenTime || null,
-        courtCloseTime: data.courtCloseTime || null,
+        // No courtOpenTime/courtCloseTime - courts inherit club schedule
         mainImage: data.mainImage?.url || null,
         gallery: data.gallery
           .filter((img) => img.url && !img.error)
@@ -804,135 +793,6 @@ export default function CreateCourtPage() {
       />
     </div>
   );
-
-  // Pricing & Schedule Tab (combined)
-  const renderPricingScheduleTab = () => {
-    const courtOpenTime = watch("courtOpenTime");
-    const courtCloseTime = watch("courtCloseTime");
-    const timeError =
-      courtOpenTime && courtCloseTime && courtOpenTime >= courtCloseTime
-        ? t("admin.courts.new.pricingScheduleTab.timeError")
-        : null;
-
-    return (
-      <div className="im-create-court-tab-content">
-        {/* Pricing Section */}
-        <div className="im-tab-section">
-          <h3 className="im-section-title">{t("admin.courts.new.pricingScheduleTab.pricingTitle")}</h3>
-          <p className="im-section-description">
-            {t("admin.courts.new.pricingScheduleTab.pricingDescription")}
-          </p>
-
-          <div className="im-form-row">
-            <div className="im-form-col">
-              <Controller
-                name="defaultPrice"
-                control={control}
-                rules={{
-                  min: { value: 0, message: t("admin.courts.new.errors.priceNegative") },
-                }}
-                render={({ field }) => (
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={field.value}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    label={t("admin.courts.new.pricingScheduleTab.defaultPrice")}
-                    placeholder={t("admin.courts.new.pricingScheduleTab.pricePlaceholder")}
-                    disabled={isSubmitting}
-                  />
-                )}
-              />
-              {errors.defaultPrice && (
-                <span className="im-error-text">{errors.defaultPrice.message}</span>
-              )}
-            </div>
-
-            <div className="im-form-col">
-              <Controller
-                name="currency"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label={t("admin.courts.new.pricingScheduleTab.currency")}
-                    options={[
-                      { value: "USD", label: t("admin.courts.new.currencies.usd") },
-                      { value: "EUR", label: t("admin.courts.new.currencies.eur") },
-                      { value: "GBP", label: t("admin.courts.new.currencies.gbp") },
-                      { value: "UAH", label: t("admin.courts.new.currencies.uah") },
-                    ]}
-                    value={field.value}
-                    onChange={field.onChange}
-                    disabled={isSubmitting}
-                  />
-                )}
-              />
-              <span className="im-hint-text">{t("admin.courts.new.pricingScheduleTab.currencyHint")}</span>
-            </div>
-          </div>
-
-          <Controller
-            name="defaultSlotLengthMinutes"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label={t("admin.courts.new.pricingScheduleTab.defaultSlotLength")}
-                options={SLOT_LENGTHS}
-                value={String(field.value)}
-                onChange={(value) => field.onChange(Number(value))}
-                disabled={isSubmitting}
-              />
-            )}
-          />
-        </div>
-
-        {/* Schedule Section */}
-        <div className="im-tab-section">
-          <h3 className="im-section-title">{t("admin.courts.new.pricingScheduleTab.scheduleTitle")}</h3>
-          <p className="im-section-description">
-            {t("admin.courts.new.pricingScheduleTab.scheduleDescription")}
-          </p>
-
-          <div className="im-form-row">
-            <div className="im-form-col">
-              <Controller
-                name="courtOpenTime"
-                control={control}
-                render={({ field }) => (
-                  <TimeInput
-                    label={t("admin.courts.new.pricingScheduleTab.openTime")}
-                    disabled={isSubmitting}
-                    {...field}
-                  />
-                )}
-              />
-            </div>
-
-            <div className="im-form-col">
-              <Controller
-                name="courtCloseTime"
-                control={control}
-                render={({ field }) => (
-                  <TimeInput
-                    label={t("admin.courts.new.pricingScheduleTab.closeTime")}
-                    disabled={isSubmitting}
-                    {...field}
-                  />
-                )}
-              />
-            </div>
-          </div>
-
-          {timeError && <span className="im-error-text">{timeError}</span>}
-
-          <span className="im-create-court-hint">
-            {t("admin.courts.new.scheduleStep.workingHoursHint")}
-          </span>
-        </div>
-      </div>
-    );
-  };
 
   // Media Tab
   const renderMediaTab = () => {
@@ -1189,9 +1049,6 @@ export default function CreateCourtPage() {
               </TabPanel>
               <TabPanel id="basic">
                 {renderBasicTab()}
-              </TabPanel>
-              <TabPanel id="pricing-schedule">
-                {renderPricingScheduleTab()}
               </TabPanel>
               <TabPanel id="media">
                 {renderMediaTab()}
