@@ -197,10 +197,10 @@ export function OrganizationEditor({
     }
 
     // Update logoData with logo theme settings
-    const updatedLogoData = {
+    const updatedLogoData: OrgLogoData = {
       ...existingLogoData,
-      logoTheme: payload.metadata.logoTheme,
-      secondLogoTheme: payload.metadata.secondLogoTheme,
+      logoTheme: payload.metadata.logoTheme as 'light' | 'dark' | undefined,
+      secondLogoTheme: payload.metadata.secondLogoTheme as 'light' | 'dark' | undefined,
     };
 
     // Update organization logoData
