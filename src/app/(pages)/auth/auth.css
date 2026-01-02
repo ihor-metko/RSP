@@ -244,6 +244,43 @@ input.im-auth-input {
   color: var(--im-auth-text-muted);
 }
 
+/* Google OAuth button */
+.im-btn-google {
+  @apply w-full py-3 px-4 rounded-lg;
+  @apply font-semibold text-sm sm:text-base;
+  @apply transition-all duration-200;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply flex items-center justify-center gap-3;
+  background-color: #ffffff;
+  color: #1f2937;
+  border: 1px solid var(--im-auth-input-border);
+}
+
+.dark .im-btn-google {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--im-auth-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.im-btn-google:hover:not(:disabled) {
+  background-color: #f9fafb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark .im-btn-google:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.im-btn-google:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.im-btn-google svg {
+  @apply w-5 h-5;
+}
+
 /* Responsive adjustments */
 @media (max-width: 480px) {
   .im-auth-card {

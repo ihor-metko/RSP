@@ -56,7 +56,7 @@ interface ClubWithDetails {
   latitude?: number | null;
   longitude?: number | null;
   // New dedicated address object
-  address?: any | null;
+  address?: Record<string, unknown> | null;
   phone?: string | null;
   email?: string | null;
   website?: string | null;
@@ -399,11 +399,11 @@ export default function ClubDetailPage({
     (club.address?.lat !== null && club.address?.lng !== null && club.address?.lat !== undefined && club.address?.lng !== undefined);
 
   // Get map coordinates from address object
-  const mapLatitude = club.address?.lat;
-  const mapLongitude = club.address?.lng;
+  const mapLatitude = (club.address as { lat?: number })?.lat;
+  const mapLongitude = (club.address as { lng?: number })?.lng;
 
   // Get formatted address for contact info
-  const formattedAddress = club.address?.formattedAddress || "";
+  const formattedAddress = (club.address as { formattedAddress?: string })?.formattedAddress || "";
 
   // Parse club logoData and bannerData for theme settings
   let clubLogoMetadata = null;
@@ -449,7 +449,7 @@ export default function ClubDetailPage({
       <EntityBanner
         title={club.name}
         subtitle={club.shortDescription}
-        location={club.address?.formattedAddress || ""}
+        location={(club.address as { formattedAddress?: string })?.formattedAddress || ""}
         imageUrl={club.bannerData?.url}
         bannerAlignment={clubBannerAlignment}
         logoUrl={club.logoData?.url}

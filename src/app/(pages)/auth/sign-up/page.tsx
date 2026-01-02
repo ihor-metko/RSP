@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ImAuthInput, IMLink } from "@/components/ui";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { validateRedirectUrl } from "@/utils/redirectValidation";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -197,6 +198,14 @@ export default function RegisterPage() {
           {loading ? t("auth.creatingAccount") : t("auth.createAccount")}
         </button>
       </form>
+
+      {/* Divider */}
+      <div className="im-auth-divider">
+        <span className="im-auth-divider-text">{t("auth.orContinueWith")}</span>
+      </div>
+
+      {/* Google Login Button */}
+      <GoogleLoginButton callbackUrl={redirectTo || "/dashboard"} />
 
       {/* Links section */}
       <div className="im-auth-links">

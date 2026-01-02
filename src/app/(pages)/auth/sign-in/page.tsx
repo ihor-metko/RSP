@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ImAuthInput, IMLink } from "@/components/ui";
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { getRoleHomepage } from "@/utils/roleRedirect";
 import { validateRedirectUrl } from "@/utils/redirectValidation";
 import { useUserStore } from "@/stores/useUserStore";
@@ -194,6 +195,14 @@ export default function SignInPage() {
             {loading ? t("auth.signingIn") : t("common.signIn")}
           </button>
         </form>
+
+        {/* Divider */}
+        <div className="im-auth-divider">
+          <span className="im-auth-divider-text">{t("auth.orContinueWith")}</span>
+        </div>
+
+        {/* Google Login Button */}
+        <GoogleLoginButton callbackUrl={redirectTo || "/dashboard"} />
 
         {/* Links section */}
         <div className="im-auth-links">

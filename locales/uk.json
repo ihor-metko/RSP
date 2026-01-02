@@ -236,7 +236,10 @@
     "signInToBook": "Увійдіть / Зареєструйтесь для бронювання",
     "signInToBookTooltip": "Увійдіть, щоб забронювати цей корт",
     "welcomeBack": "Вітаємо, {name}!",
-    "emailPrefilledFromInvite": "Email попередньо заповнено з вашого запрошення"
+    "emailPrefilledFromInvite": "Email попередньо заповнено з вашого запрошення",
+    "continueWithGoogle": "Продовжити з Google",
+    "signingInWithGoogle": "Вхід через Google...",
+    "orContinueWith": "Або продовжити з"
   },
   "invites": {
     "errorTitle": "Помилка запрошення",

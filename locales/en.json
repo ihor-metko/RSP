@@ -236,7 +236,10 @@
     "signInToBook": "Sign up / Log in to book",
     "signInToBookTooltip": "Sign in to book this court",
     "welcomeBack": "Welcome back, {name}!",
-    "emailPrefilledFromInvite": "Email is pre-filled from your invitation"
+    "emailPrefilledFromInvite": "Email is pre-filled from your invitation",
+    "continueWithGoogle": "Continue with Google",
+    "signingInWithGoogle": "Signing in with Google...",
+    "orContinueWith": "Or continue with"
   },
   "invites": {
     "errorTitle": "Invitation Error",
