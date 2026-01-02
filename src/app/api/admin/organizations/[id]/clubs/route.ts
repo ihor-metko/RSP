@@ -51,7 +51,6 @@ export async function GET(
         take: limit,
         orderBy: { createdAt: "desc" },
         include: {
-          metadata: false,
           _count: {
             select: {
               courts: true,

@@ -167,7 +167,6 @@ export async function GET(request: Request) {
         openingHours: club.openingHours,
         logoData: club.logoData ? JSON.parse(club.logoData) : null,
         bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
-        metadata: club.metadata,
         tags: club.tags,
         isPublic: club.isPublic,
         status: club.status,
