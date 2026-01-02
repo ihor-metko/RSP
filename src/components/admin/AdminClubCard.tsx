@@ -5,7 +5,6 @@ import { IMLink, Button, EntityLogo } from "@/components/ui";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { getSportName } from "@/constants/sports";
 import type { ClubWithCounts } from "@/types/club";
-import { parseClubMetadata } from "@/types/club";
 import { formatAddress as formatAddressHelper } from "@/types/address";
 import "./AdminClubCard.css";
 
@@ -106,12 +105,17 @@ export function AdminClubCard({ club, showOrganization, actionButton }: AdminClu
   // Parse logo metadata from logoData if available
   let logoMetadata = null;
   if (club.logoData) {
-    const parsedLogoData = typeof club.logoData === 'string' ? JSON.parse(club.logoData) : club.logoData;
-    logoMetadata = {
-      logoTheme: parsedLogoData.logoTheme,
-      secondLogo: parsedLogoData.secondLogo,
-      secondLogoTheme: parsedLogoData.secondLogoTheme,
-    };
+    try {
+      const parsedLogoData = typeof club.logoData === 'string' ? JSON.parse(club.logoData) : club.logoData;
+      logoMetadata = {
+        logoTheme: parsedLogoData.logoTheme,
+        secondLogo: parsedLogoData.secondLogo,
+        secondLogoTheme: parsedLogoData.secondLogoTheme,
+      };
+    } catch {
+      // Invalid JSON, ignore
+      logoMetadata = null;
+    }
   }
 
   // Determine the main image: heroImage first, then logo as fallback

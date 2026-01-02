@@ -256,17 +256,27 @@ export default function OrganizationDetailPage() {
   let orgBannerAlignment = 'center' as 'top' | 'center' | 'bottom';
   
   if (org?.logoData) {
-    const parsedLogoData = typeof org.logoData === 'string' ? JSON.parse(org.logoData) : org.logoData;
-    orgLogoMetadata = {
-      logoTheme: parsedLogoData.logoTheme,
-      secondLogo: parsedLogoData.secondLogo,
-      secondLogoTheme: parsedLogoData.secondLogoTheme,
-    };
+    try {
+      const parsedLogoData = typeof org.logoData === 'string' ? JSON.parse(org.logoData) : org.logoData;
+      orgLogoMetadata = {
+        logoTheme: parsedLogoData.logoTheme,
+        secondLogo: parsedLogoData.secondLogo,
+        secondLogoTheme: parsedLogoData.secondLogoTheme,
+      };
+    } catch {
+      // Invalid JSON, ignore
+      orgLogoMetadata = null;
+    }
   }
 
   if (org?.bannerData) {
-    const parsedBannerData = typeof org.bannerData === 'string' ? JSON.parse(org.bannerData) : org.bannerData;
-    orgBannerAlignment = parsedBannerData.bannerAlignment || 'center';
+    try {
+      const parsedBannerData = typeof org.bannerData === 'string' ? JSON.parse(org.bannerData) : org.bannerData;
+      orgBannerAlignment = parsedBannerData.bannerAlignment || 'center';
+    } catch {
+      // Invalid JSON, use default
+      orgBannerAlignment = 'center';
+    }
   }
 
   return (

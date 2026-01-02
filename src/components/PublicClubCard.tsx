@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { Button, IMLink, EntityLogo } from "@/components/ui";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
-import { parseClubMetadata } from "@/types/club";
 import type { Address } from "@/types/address";
 import { formatAddress as formatAddressHelper } from "@/types/address";
 import "./ClubsList.css";
@@ -59,12 +58,17 @@ export function PublicClubCard({ club, isRoot = false }: PublicClubCardProps) {
   // Parse logo metadata from logoData if available
   let logoMetadata = null;
   if (club.logoData) {
-    const parsedLogoData = typeof club.logoData === 'string' ? JSON.parse(club.logoData) : club.logoData;
-    logoMetadata = {
-      logoTheme: parsedLogoData.logoTheme,
-      secondLogo: parsedLogoData.secondLogo,
-      secondLogoTheme: parsedLogoData.secondLogoTheme,
-    };
+    try {
+      const parsedLogoData = typeof club.logoData === 'string' ? JSON.parse(club.logoData) : club.logoData;
+      logoMetadata = {
+        logoTheme: parsedLogoData.logoTheme,
+        secondLogo: parsedLogoData.secondLogo,
+        secondLogoTheme: parsedLogoData.secondLogoTheme,
+      };
+    } catch {
+      // Invalid JSON, ignore
+      logoMetadata = null;
+    }
   }
   
   // Determine the main image: heroImage first, then logo as fallback

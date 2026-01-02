@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import { Button, EntityLogo } from "@/components/ui";
 import { SportType } from "@/constants/sports";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
-import { parseOrganizationMetadata } from "@/types/organization";
 import { formatAddress as formatAddressObj } from "@/types/address";
 import type { Address } from "@/types/address";
 
@@ -71,12 +70,17 @@ export function AdminOrganizationCard({
   // Parse logo metadata from logoData if available
   let logoMetadata = null;
   if (organization.logoData) {
-    const parsedLogoData = typeof organization.logoData === 'string' ? JSON.parse(organization.logoData) : organization.logoData;
-    logoMetadata = {
-      logoTheme: parsedLogoData.logoTheme,
-      secondLogo: parsedLogoData.secondLogo,
-      secondLogoTheme: parsedLogoData.secondLogoTheme,
-    };
+    try {
+      const parsedLogoData = typeof organization.logoData === 'string' ? JSON.parse(organization.logoData) : organization.logoData;
+      logoMetadata = {
+        logoTheme: parsedLogoData.logoTheme,
+        secondLogo: parsedLogoData.secondLogo,
+        secondLogoTheme: parsedLogoData.secondLogoTheme,
+      };
+    } catch {
+      // Invalid JSON, ignore
+      logoMetadata = null;
+    }
   }
 
   // Validate both images (isValidImageUrl checks for null/undefined/empty and valid URL format)

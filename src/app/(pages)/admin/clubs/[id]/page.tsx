@@ -279,17 +279,27 @@ export default function AdminClubDetailPage({
   let clubBannerAlignment = 'center' as 'top' | 'center' | 'bottom';
   
   if (club.logoData) {
-    const parsedLogoData = typeof club.logoData === 'string' ? JSON.parse(club.logoData) : club.logoData;
-    clubLogoMetadata = {
-      logoTheme: parsedLogoData.logoTheme,
-      secondLogo: parsedLogoData.secondLogo,
-      secondLogoTheme: parsedLogoData.secondLogoTheme,
-    };
+    try {
+      const parsedLogoData = typeof club.logoData === 'string' ? JSON.parse(club.logoData) : club.logoData;
+      clubLogoMetadata = {
+        logoTheme: parsedLogoData.logoTheme,
+        secondLogo: parsedLogoData.secondLogo,
+        secondLogoTheme: parsedLogoData.secondLogoTheme,
+      };
+    } catch {
+      // Invalid JSON, ignore
+      clubLogoMetadata = null;
+    }
   }
 
   if (club.bannerData) {
-    const parsedBannerData = typeof club.bannerData === 'string' ? JSON.parse(club.bannerData) : club.bannerData;
-    clubBannerAlignment = parsedBannerData.bannerAlignment || 'center';
+    try {
+      const parsedBannerData = typeof club.bannerData === 'string' ? JSON.parse(club.bannerData) : club.bannerData;
+      clubBannerAlignment = parsedBannerData.bannerAlignment || 'center';
+    } catch {
+      // Invalid JSON, use default
+      clubBannerAlignment = 'center';
+    }
   }
 
   return (
