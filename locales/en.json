@@ -893,7 +893,7 @@
         "tabs": {
           "context": "Context",
           "basic": "Basic Info",
-          "pricingSchedule": "Pricing & Schedule",
+          "pricingSchedule": "Pricing",
           "media": "Media",
           "settings": "Settings"
         },
