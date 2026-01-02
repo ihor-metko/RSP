@@ -110,8 +110,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return true;
         }
         
-        // New user - PrismaAdapter will create it, but we need to ensure correct defaults
-        // We create the user here to control the isRoot field
+        // New user - create manually to ensure isRoot defaults to false
+        // (PrismaAdapter would create with undefined isRoot, which is unacceptable)
         try {
           await prisma.user.create({
             data: {
@@ -124,15 +124,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
           });
         } catch (error) {
-          // User might have been created by adapter in a race condition
-          // Update with googleId if user exists
-          try {
-            await prisma.user.update({
-              where: { email },
-              data: { googleId },
-            });
-          } catch (updateError) {
-            console.error("Error creating/updating Google user:", error, updateError);
+          // Handle race condition: adapter might have created user simultaneously
+          const createdUser = await prisma.user.findUnique({
+            where: { email },
+          });
+          
+          if (createdUser) {
+            // User was created by adapter - update with googleId and ensure isRoot is false
+            try {
+              await prisma.user.update({
+                where: { email },
+                data: { 
+                  googleId,
+                  isRoot: false, // Ensure isRoot is explicitly false
+                },
+              });
+            } catch (updateError) {
+              console.error("Error updating Google user after race condition:", updateError);
+              return false;
+            }
+          } else {
+            console.error("Error creating Google user:", error);
             return false;
           }
         }
