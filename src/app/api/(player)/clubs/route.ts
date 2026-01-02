@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     // Support both 'q' (new) and 'search' (legacy) params
     const q = url.searchParams.get("q")?.trim() || url.searchParams.get("search")?.trim() || "";
+    const city = url.searchParams.get("city")?.trim() || "";
     const indoor = url.searchParams.get("indoor");
     const popular = url.searchParams.get("popular");
     const limit = url.searchParams.get("limit");
@@ -25,7 +26,17 @@ export async function GET(request: Request) {
       });
     }
 
-    // city filter removed as it's no longer a separate field
+    // city -> search in JSON address field with case-insensitive partial matching
+    if (city) {
+      conditions.push({
+        address: {
+          // Use path to access the 'city' field in the JSON
+          path: ["city"],
+          // Use string_contains for partial, case-insensitive matching
+          string_contains: city,
+        },
+      });
+    }
 
     if (conditions.length > 0) {
       whereClause.AND = conditions;
