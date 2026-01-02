@@ -173,7 +173,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, defaultPriceCents } = body;
+    const { name, slug, type, surface, indoor, sportType, defaultPriceCents, metadata } = body;
 
     // Validate required fields
     if (!name || typeof name !== "string" || name.trim() === "") {
@@ -196,6 +196,37 @@ export async function POST(
         { error: "Court name must be at most 120 characters" },
         { status: 400 }
       );
+    }
+
+    // Validate Padel court format if type is padel
+    if (type?.toLowerCase() === "padel") {
+      let parsedMetadata: Record<string, unknown> | null = null;
+      
+      if (metadata) {
+        try {
+          parsedMetadata = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+        } catch {
+          return NextResponse.json(
+            { error: "Invalid metadata format" },
+            { status: 400 }
+          );
+        }
+      }
+
+      if (!parsedMetadata || !parsedMetadata.padelCourtFormat) {
+        return NextResponse.json(
+          { error: "Padel courts must specify Single or Double format" },
+          { status: 400 }
+        );
+      }
+
+      const format = parsedMetadata.padelCourtFormat;
+      if (format !== "single" && format !== "double") {
+        return NextResponse.json(
+          { error: "Padel court format must be either 'single' or 'double'" },
+          { status: 400 }
+        );
+      }
     }
 
 
@@ -223,6 +254,7 @@ export async function POST(
         sportType: sportType || "PADEL",
         isActive: true,
         defaultPriceCents: defaultPriceCents ?? 0,
+        metadata: metadata || null,
       },
       select: {
         id: true,
@@ -235,6 +267,7 @@ export async function POST(
         sportType: true,
         isActive: true,
         defaultPriceCents: true,
+        metadata: true,
         createdAt: true,
         updatedAt: true,
       },

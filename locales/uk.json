@@ -929,7 +929,8 @@
           "clubNotFound": "Клуб не знайдено",
           "failedToLoadClub": "Не вдалося завантажити клуб",
           "failedToCreateCourt": "Не вдалося створити корт",
-          "uploadFailed": "Помилка завантаження"
+          "uploadFailed": "Помилка завантаження",
+          "padelCourtFormatRequired": "Будь ласка, оберіть Одиночний або Парний для падел-кортів"
         },
         "types": {
           "padel": "Падел",
@@ -986,6 +987,9 @@
           "slugHint": "Автоматично генерується з назви, якщо порожньо",
           "courtType": "Тип корту",
           "selectType": "Оберіть тип...",
+          "padelCourtFormat": "Формат корту",
+          "padelCourtFormatSingle": "Одиночний",
+          "padelCourtFormatDouble": "Парний",
           "surface": "Покриття",
           "selectSurface": "Оберіть покриття...",
           "indoorCourt": "Закритий корт",

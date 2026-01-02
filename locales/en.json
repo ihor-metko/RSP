@@ -931,6 +931,9 @@
           "slugHint": "Auto-generated from name if empty",
           "courtType": "Court Type",
           "selectType": "Select type...",
+          "padelCourtFormat": "Court Format",
+          "padelCourtFormatSingle": "Single",
+          "padelCourtFormatDouble": "Double",
           "surface": "Surface",
           "selectSurface": "Select surface...",
           "indoorCourt": "Indoor Court",
@@ -1057,7 +1060,8 @@
           "clubNotFound": "Club not found",
           "failedToLoadClub": "Failed to load club",
           "failedToCreateCourt": "Failed to create court",
-          "uploadFailed": "Upload failed"
+          "uploadFailed": "Upload failed",
+          "padelCourtFormatRequired": "Please select Single or Double for Padel courts"
         },
         "types": {
           "padel": "Padel",

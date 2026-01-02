@@ -13,6 +13,7 @@ import {
   Select,
   Textarea,
   Checkbox,
+  RadioGroup,
   Tabs,
   TabList,
   Tab,
@@ -20,6 +21,7 @@ import {
   PageHeader,
 } from "@/components/ui";
 import type { SelectOption } from "@/components/ui/Select";
+import type { RadioOption } from "@/components/ui/RadioGroup";
 import { FormSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { formatPrice, dollarsToCents } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
@@ -46,6 +48,7 @@ interface CourtFormData {
   name: string;
   slug: string;
   type: string;
+  padelCourtFormat: string; // "single" | "double" - only for padel courts
   surface: string;
   indoor: boolean;
   shortDescription: string;
@@ -72,6 +75,7 @@ const defaultFormValues: CourtFormData = {
   name: "",
   slug: "",
   type: "",
+  padelCourtFormat: "",
   surface: "",
   indoor: false,
   shortDescription: "",
@@ -505,6 +509,10 @@ export default function CreateCourtPage() {
           break;
         case "basic":
           fieldsToValidate = ["name", "slug"];
+          // Add padelCourtFormat validation only if type is padel
+          if (watch("type") === "padel") {
+            fieldsToValidate.push("padelCourtFormat");
+          }
           break;
         case "pricing-schedule":
           fieldsToValidate = ["defaultPrice", "courtOpenTime", "courtCloseTime"];
@@ -556,6 +564,12 @@ export default function CreateCourtPage() {
     setError(null);
 
     try {
+      // Build metadata for padel courts
+      const metadata: Record<string, unknown> = {};
+      if (data.type === "padel" && data.padelCourtFormat) {
+        metadata.padelCourtFormat = data.padelCourtFormat;
+      }
+
       // Build payload
       const payload = {
         name: data.name.trim(),
@@ -576,9 +590,10 @@ export default function CreateCourtPage() {
         tags: data.tags || null,
         maxPlayers: data.maxPlayers || null,
         notes: data.notes || null,
+        metadata: Object.keys(metadata).length > 0 ? JSON.stringify(metadata) : null,
       };
 
-      const response = await fetch(`/api/clubs/${targetClubId}/courts`, {
+      const response = await fetch(`/api/admin/clubs/${targetClubId}/courts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -745,6 +760,41 @@ export default function CreateCourtPage() {
           </div>
         </div>
       </div>
+
+      {/* Padel Court Format - Only show when type is "padel" */}
+      {watch("type") === "padel" && (
+        <div className="im-tab-section">
+          <Controller
+            name="padelCourtFormat"
+            control={control}
+            rules={{
+              required: watch("type") === "padel" ? t("admin.courts.new.errors.padelCourtFormatRequired") : false,
+            }}
+            render={({ field }) => (
+              <RadioGroup
+                label={t("admin.courts.new.basicTab.padelCourtFormat") + " *"}
+                name="padelCourtFormat"
+                options={[
+                  {
+                    value: "single",
+                    label: t("admin.courts.new.basicTab.padelCourtFormatSingle"),
+                  },
+                  {
+                    value: "double",
+                    label: t("admin.courts.new.basicTab.padelCourtFormatDouble"),
+                  },
+                ]}
+                value={field.value}
+                onChange={field.onChange}
+                disabled={isSubmitting}
+              />
+            )}
+          />
+          {errors.padelCourtFormat && (
+            <span className="im-error-text">{errors.padelCourtFormat.message}</span>
+          )}
+        </div>
+      )}
 
       <div className="im-tab-section">
         <div className="im-form-row">
