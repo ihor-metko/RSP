@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { SportType } from "@/constants/sports";
+import type { Address } from "@/types/address";
 
 /**
  * Player-visible club data types
@@ -42,8 +43,12 @@ export interface PlayerClub {
   id: string;
   name: string;
   shortDescription?: string | null;
-  location: string;
+  // Legacy location field - kept for backward compatibility
+  location?: string;
+  // Legacy city field - kept for backward compatibility
   city?: string | null;
+  // New dedicated address object
+  address?: Address | null;
   contactInfo?: string | null;
   openingHours?: string | null;
   logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
@@ -66,11 +71,15 @@ export interface PlayerClubDetail {
   slug?: string | null;
   shortDescription?: string | null;
   longDescription?: string | null;
-  location: string;
+  // Legacy location field - kept for backward compatibility
+  location?: string;
+  // Legacy address fields - kept for backward compatibility
   city?: string | null;
   country?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  // New dedicated address object
+  address?: Address | null;
   phone?: string | null;
   email?: string | null;
   website?: string | null;

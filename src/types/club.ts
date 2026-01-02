@@ -1,5 +1,6 @@
 import { SportType } from "@/constants/sports";
 import type { EntityLogoMetadata } from "@/components/ui/EntityLogo";
+import type { Address } from "./address";
 
 /**
  * Logo data structure
@@ -24,7 +25,10 @@ export interface Club {
   id: string;
   name: string;
   slug?: string | null;
-  location: string;
+  // Legacy location field - kept for backward compatibility
+  location?: string;
+  // New dedicated address object
+  address?: Address | null;
   contactInfo: string | null;
   openingHours: string | null;
   logoData?: LogoData | null;
@@ -51,6 +55,7 @@ export interface ClubAdminInfo {
 export interface ClubWithCounts extends Club {
   organizationId: string;
   shortDescription?: string | null;
+  // Legacy city field - kept for backward compatibility
   city?: string | null;
   bannerData?: BannerData | null;
   metadata?: string | null;
@@ -147,11 +152,15 @@ export interface ClubDetail {
   slug: string | null;
   shortDescription: string | null;
   longDescription: string | null;
-  location: string;
-  city: string | null;
-  country: string | null;
-  latitude: number | null;
-  longitude: number | null;
+  // Legacy location field - deprecated, use address.formattedAddress instead
+  location?: string;
+  // Legacy address fields - deprecated, use address object instead
+  city?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  // New dedicated address object
+  address?: Address | null;
   phone: string | null;
   email: string | null;
   website: string | null;
@@ -194,11 +203,14 @@ export interface CreateClubPayload {
   slug?: string;
   shortDescription: string;
   longDescription?: string;
-  location: string;
+  // Legacy location field - deprecated, use address object instead
+  location?: string;
   city?: string | null;
   country?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  // New dedicated address object
+  address?: Address | null;
   phone?: string | null;
   email?: string | null;
   website?: string | null;
