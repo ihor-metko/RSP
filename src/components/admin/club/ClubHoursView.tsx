@@ -98,7 +98,7 @@ export function ClubHoursView({ club, disabled = false, disabledTooltip }: ClubH
     } finally {
       setIsSaving(false);
     }
-  }, [businessHours, club.id, updateClubInStore]);
+  }, [businessHours, club.id, updateClubInStore, t]);
 
   return (
     <>

@@ -479,7 +479,8 @@
     "failedToRemoveClubAdmin": "Failed to remove club admin",
     "failedToDeleteCourt": "Failed to delete court",
     "failedToUpdateBusinessHours": "Failed to update business hours",
-    "failedToLoadClubAdmins": "Failed to load club admins"
+    "failedToLoadClubAdmins": "Failed to load club admins",
+    "failedToUpdateClub": "Failed to update club"
   },
   "businessHours": {
     "title": "Business Hours",

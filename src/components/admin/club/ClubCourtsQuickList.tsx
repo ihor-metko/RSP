@@ -49,7 +49,7 @@ export function ClubCourtsQuickList({ club, disabled = false, disabledTooltip }:
     } finally {
       setSubmitting(false);
     }
-  }, [club.id, deletingCourt, router]);
+  }, [club.id, deletingCourt, router, t]);
 
   const openDeleteModal = useCallback((court: ClubCourt) => {
     setDeletingCourt(court);

@@ -156,7 +156,7 @@ export default function AdminClubDetailPage({
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Failed to update club");
+        throw new Error(data.error || t("clubDetail.failedToUpdateClub"));
       }
 
       await refetchClub();

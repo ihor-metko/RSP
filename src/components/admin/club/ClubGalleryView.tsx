@@ -91,7 +91,7 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
     }
 
     return response.json();
-  }, [club.id]);
+  }, [club.id, t]);
 
   const handleHeroUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +112,7 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
         }
       }
     },
-    [uploadFile]
+    [uploadFile, t]
   );
 
   const handleLogoUpload = useCallback(
@@ -134,7 +134,7 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
         }
       }
     },
-    [uploadFile]
+    [uploadFile, t]
   );
 
   const handleGalleryUpload = useCallback(
@@ -165,7 +165,7 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
         }
       }
     },
-    [gallery.length, uploadFile]
+    [gallery.length, uploadFile, t]
   );
 
   const handleRemoveGalleryImage = useCallback(async (index: number) => {
@@ -193,7 +193,7 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
     }
 
     setGallery((prev) => prev.filter((_, i) => i !== index));
-  }, [club.id, gallery]);
+  }, [club.id, gallery, t]);
 
   const handleSetHeroFromGallery = useCallback((imageUrl: string) => {
     setBannerUrl(imageUrl);
@@ -236,7 +236,7 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
     } finally {
       setIsSaving(false);
     }
-  }, [bannerUrl, logoUrl, gallery, club.id, updateClubInStore]);
+  }, [bannerUrl, logoUrl, gallery, club.id, updateClubInStore, t]);
 
   return (
     <>

@@ -485,7 +485,8 @@
     "failedToRemoveClubAdmin": "Не вдалося видалити адміністратора клубу",
     "failedToDeleteCourt": "Не вдалося видалити корт",
     "failedToUpdateBusinessHours": "Не вдалося оновити години роботи",
-    "failedToLoadClubAdmins": "Не вдалося завантажити адміністраторів клубу"
+    "failedToLoadClubAdmins": "Не вдалося завантажити адміністраторів клубу",
+    "failedToUpdateClub": "Не вдалося оновити клуб"
   },
   "businessHours": {
     "title": "Години роботи",
