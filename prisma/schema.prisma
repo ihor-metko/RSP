@@ -82,6 +82,7 @@ model User {
   emailVerified        DateTime?
   image                String?
   password             String?
+  googleId             String?          @unique // Google OAuth ID from profile.sub
   isRoot               Boolean          @default(false)
   blocked              Boolean          @default(false)
   lastLoginAt          DateTime?

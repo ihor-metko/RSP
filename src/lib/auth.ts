@@ -67,8 +67,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/auth/sign-in",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      // For Google OAuth, ensure user exists in database
+    async signIn({ user, account, profile }) {
+      // For Google OAuth, handle account linking
       if (account?.provider === "google") {
         const email = user.email;
         
@@ -76,13 +76,43 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return false; // Reject if no email provided
         }
 
+        // Extract Google ID from profile
+        const googleId = (profile as { sub?: string })?.sub;
+        
+        if (!googleId) {
+          console.error("Google profile missing 'sub' field");
+          return false;
+        }
+
         // Check if user exists in database
         const existingUser = await prisma.user.findUnique({
           where: { email },
         });
 
-        // If user doesn't exist, create new user with PLAYER role (isRoot: false)
-        if (!existingUser) {
+        if (existingUser) {
+          // User exists - link Google account if not already linked
+          if (!existingUser.googleId) {
+            try {
+              // Update existing user with Google ID
+              await prisma.user.update({
+                where: { email },
+                data: {
+                  googleId,
+                  emailVerified: existingUser.emailVerified || new Date(), // Set verified if not already
+                },
+              });
+            } catch (error) {
+              console.error("Error linking Google account to existing user:", error);
+              return false;
+            }
+          }
+          // User exists, allow sign-in (PrismaAdapter will handle Account linking)
+          return true;
+        } else {
+          // User doesn't exist - PrismaAdapter will create the user
+          // We need to ensure it's created with the correct role
+          // However, PrismaAdapter creates users automatically, so we need to update after creation
+          // We'll handle this by creating the user ourselves with the correct data
           try {
             await prisma.user.create({
               data: {
@@ -90,6 +120,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 name: user.name || null,
                 image: user.image || null,
                 emailVerified: new Date(), // OAuth users are verified
+                googleId,
                 isRoot: false, // Never grant admin rights via Google OAuth
                 // Note: password is null for OAuth users
               },
