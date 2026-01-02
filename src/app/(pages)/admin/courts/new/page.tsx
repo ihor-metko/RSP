@@ -150,9 +150,6 @@ export default function CreateCourtPage() {
     // Tab 4: Media
     tabs.push({ id: "media", label: t("admin.courts.new.tabs.media") || "Media" });
 
-    // Tab 5: Settings (meta information)
-    tabs.push({ id: "settings", label: t("admin.courts.new.tabs.settings") || "Settings" });
-
     return tabs;
   }, [isRootAdmin, isOrgAdmin, clubIdFromUrl, t]);
 
@@ -706,22 +703,23 @@ export default function CreateCourtPage() {
         </p>
       </div>
 
-      <Input
-        {...register("name", {
-          required: t("admin.courts.new.errors.nameRequired"),
-          minLength: { value: 2, message: t("admin.courts.new.errors.nameMinLength") },
-          maxLength: { value: 120, message: t("admin.courts.new.errors.nameMaxLength") },
-        })}
-        onChange={(e) => {
-          register("name").onChange(e);
-          handleNameChange(e);
-        }}
-        label={t("admin.courts.new.basicTab.courtName") + " *"}
-        placeholder={t("admin.courts.new.basicTab.courtNamePlaceholder")}
-        disabled={isSubmitting}
-      />
-      {errors.name && <span className="im-error-text">{errors.name.message}</span>}
-
+      <div className="im-tab-section">
+        <Input
+          {...register("name", {
+            required: t("admin.courts.new.errors.nameRequired"),
+            minLength: { value: 2, message: t("admin.courts.new.errors.nameMinLength") },
+            maxLength: { value: 120, message: t("admin.courts.new.errors.nameMaxLength") },
+          })}
+          onChange={(e) => {
+            register("name").onChange(e);
+            handleNameChange(e);
+          }}
+          label={t("admin.courts.new.basicTab.courtName") + " *"}
+          placeholder={t("admin.courts.new.basicTab.courtNamePlaceholder")}
+          disabled={isSubmitting}
+        />
+        {errors.name && <span className="im-error-text">{errors.name.message}</span>}
+      </div>
       <Controller
         name="type"
         control={control}
@@ -1084,85 +1082,6 @@ export default function CreateCourtPage() {
     );
   };
 
-  // Settings Tab (previously Meta)
-  const renderSettingsTab = () => (
-    <div className="im-create-court-tab-content">
-      <div className="im-tab-section">
-        <h3 className="im-section-title">{t("admin.courts.new.settingsTab.title")}</h3>
-        <p className="im-section-description">
-          {t("admin.courts.new.settingsTab.description")}
-        </p>
-
-        <Controller
-          name="visibility"
-          control={control}
-          render={({ field }) => (
-            <Select
-              label={t("admin.courts.new.settingsTab.visibility")}
-              options={[
-                { value: "draft", label: t("admin.courts.new.settingsTab.visibilityDraft") },
-                { value: "published", label: t("admin.courts.new.settingsTab.visibilityPublished") },
-              ]}
-              value={field.value}
-              onChange={field.onChange}
-              disabled={isSubmitting}
-            />
-          )}
-        />
-      </div>
-
-      <div className="im-tab-section">
-        <div className="im-form-row">
-          <div className="im-form-col">
-            <Input
-              {...register("tags")}
-              label={t("admin.courts.new.settingsTab.tags")}
-              placeholder={t("admin.courts.new.settingsTab.tagsPlaceholder")}
-              disabled={isSubmitting}
-            />
-            <span className="im-hint-text">{t("admin.courts.new.settingsTab.tagsHint")}</span>
-          </div>
-
-          <div className="im-form-col">
-            <Controller
-              name="maxPlayers"
-              control={control}
-              rules={{
-                min: { value: 1, message: t("admin.courts.new.errors.maxPlayersMin") },
-                max: { value: 20, message: t("admin.courts.new.errors.maxPlayersMax") },
-              }}
-              render={({ field }) => (
-                <Input
-                  type="number"
-                  min="1"
-                  max="20"
-                  value={field.value}
-                  onChange={(e) => field.onChange(Number(e.target.value) || 4)}
-                  label={t("admin.courts.new.settingsTab.maxPlayers")}
-                  disabled={isSubmitting}
-                />
-              )}
-            />
-            {errors.maxPlayers && (
-              <span className="im-error-text">{errors.maxPlayers.message}</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="im-tab-section">
-        <Textarea
-          {...register("notes")}
-          label={t("admin.courts.new.settingsTab.notes")}
-          placeholder={t("admin.courts.new.settingsTab.notesPlaceholder")}
-          rows={3}
-          disabled={isSubmitting}
-        />
-        <span className="im-hint-text">{t("admin.courts.new.settingsTab.notesHint")}</span>
-      </div>
-    </div>
-  );
-
   // Loading state
   if (isLoading) {
     return (
@@ -1276,9 +1195,6 @@ export default function CreateCourtPage() {
               </TabPanel>
               <TabPanel id="media">
                 {renderMediaTab()}
-              </TabPanel>
-              <TabPanel id="settings">
-                {renderSettingsTab()}
               </TabPanel>
             </Tabs>
           </Card>
