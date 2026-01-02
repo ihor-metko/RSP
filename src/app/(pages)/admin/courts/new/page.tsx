@@ -8,7 +8,6 @@ import { IMLink } from "@/components/ui/IMLink";
 import {
   Button,
   Card,
-  TimeInput,
   Input,
   Select,
   Textarea,
@@ -21,7 +20,6 @@ import {
   PageHeader,
 } from "@/components/ui";
 import type { SelectOption } from "@/components/ui/Select";
-import type { RadioOption } from "@/components/ui/RadioGroup";
 import { FormSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { formatPrice, dollarsToCents } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
@@ -305,8 +303,6 @@ export default function CreateCourtPage() {
       "surface",
       "shortDescription",
       "defaultPrice",
-      "courtOpenTime",
-      "courtCloseTime",
       "tags",
     ];
 
@@ -332,11 +328,8 @@ export default function CreateCourtPage() {
     const nameValid = watchedValues.name && watchedValues.name.length >= 2 && watchedValues.name.length <= 120;
     const slugValid = !watchedValues.slug || /^[a-z0-9-]+$/.test(watchedValues.slug);
     const priceValid = watchedValues.defaultPrice >= 0;
-    const timeValid =
-      (!watchedValues.courtOpenTime && !watchedValues.courtCloseTime) ||
-      (watchedValues.courtOpenTime && watchedValues.courtCloseTime && watchedValues.courtOpenTime < watchedValues.courtCloseTime);
 
-    return nameValid && slugValid && priceValid && timeValid;
+    return nameValid && slugValid && priceValid;
   }, [watchedValues]);
 
   // Auto-generate slug from name
@@ -515,7 +508,7 @@ export default function CreateCourtPage() {
           }
           break;
         case "pricing-schedule":
-          fieldsToValidate = ["defaultPrice", "courtOpenTime", "courtCloseTime"];
+          fieldsToValidate = ["defaultPrice"];
           break;
         case "settings":
           fieldsToValidate = ["maxPlayers"];
@@ -528,7 +521,7 @@ export default function CreateCourtPage() {
       setStepErrors((prev) => ({ ...prev, [tabId]: !result }));
       return result;
     },
-    [trigger, isRootAdmin, isOrgAdmin]
+    [trigger, isRootAdmin, isOrgAdmin, watch]
   );
 
   // Navigate to tab
@@ -580,8 +573,7 @@ export default function CreateCourtPage() {
         shortDescription: data.shortDescription || null,
         defaultPriceCents: dollarsToCents(data.defaultPrice),
         defaultSlotLengthMinutes: data.defaultSlotLengthMinutes,
-        courtOpenTime: data.courtOpenTime || null,
-        courtCloseTime: data.courtCloseTime || null,
+        // No courtOpenTime/courtCloseTime - courts inherit club schedule
         mainImage: data.mainImage?.url || null,
         gallery: data.gallery
           .filter((img) => img.url && !img.error)
@@ -807,15 +799,8 @@ export default function CreateCourtPage() {
     </div>
   );
 
-  // Pricing & Schedule Tab (combined)
+  // Pricing Tab (schedule removed for MVP - courts inherit club hours)
   const renderPricingScheduleTab = () => {
-    const courtOpenTime = watch("courtOpenTime");
-    const courtCloseTime = watch("courtCloseTime");
-    const timeError =
-      courtOpenTime && courtCloseTime && courtOpenTime >= courtCloseTime
-        ? t("admin.courts.new.pricingScheduleTab.timeError")
-        : null;
-
     return (
       <div className="im-create-court-tab-content">
         {/* Pricing Section */}
@@ -887,50 +872,6 @@ export default function CreateCourtPage() {
               />
             )}
           />
-        </div>
-
-        {/* Schedule Section */}
-        <div className="im-tab-section">
-          <h3 className="im-section-title">{t("admin.courts.new.pricingScheduleTab.scheduleTitle")}</h3>
-          <p className="im-section-description">
-            {t("admin.courts.new.pricingScheduleTab.scheduleDescription")}
-          </p>
-
-          <div className="im-form-row">
-            <div className="im-form-col">
-              <Controller
-                name="courtOpenTime"
-                control={control}
-                render={({ field }) => (
-                  <TimeInput
-                    label={t("admin.courts.new.pricingScheduleTab.openTime")}
-                    disabled={isSubmitting}
-                    {...field}
-                  />
-                )}
-              />
-            </div>
-
-            <div className="im-form-col">
-              <Controller
-                name="courtCloseTime"
-                control={control}
-                render={({ field }) => (
-                  <TimeInput
-                    label={t("admin.courts.new.pricingScheduleTab.closeTime")}
-                    disabled={isSubmitting}
-                    {...field}
-                  />
-                )}
-              />
-            </div>
-          </div>
-
-          {timeError && <span className="im-error-text">{timeError}</span>}
-
-          <span className="im-create-court-hint">
-            {t("admin.courts.new.scheduleStep.workingHoursHint")}
-          </span>
         </div>
       </div>
     );
