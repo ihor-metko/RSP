@@ -582,6 +582,15 @@
   color: #22d3ee;
 }
 
+/* Empty state for bookings section */
+.im-admin-club-bookings-section .im-preview-empty-state {
+  @apply flex flex-col items-center justify-center py-8;
+}
+
+.im-admin-club-bookings-section .im-preview-empty-state .im-preview-empty {
+  @apply py-0 mb-4;
+}
+
 /* Responsive styles for bookings section actions */
 @media (max-width: 768px) {
   .im-admin-club-bookings-section .im-section-actions {
