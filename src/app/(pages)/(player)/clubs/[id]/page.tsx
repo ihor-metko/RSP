@@ -18,6 +18,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { parseClubMetadata } from "@/types/club";
+import { getLocationDisplay } from "@/types/address";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
@@ -393,10 +394,21 @@ export default function ClubDetailPage({
   }
 
   // Prepare derived data
-  const hasValidCoordinates = club.latitude !== null && club.longitude !== null && club.latitude !== undefined && club.longitude !== undefined;
+  const hasValidCoordinates = 
+    (club.address?.lat !== null && club.address?.lng !== null && club.address?.lat !== undefined && club.address?.lng !== undefined) ||
+    (club.latitude !== null && club.longitude !== null && club.latitude !== undefined && club.longitude !== undefined);
 
-  // Format location display
-  const locationDisplay = [club.city, club.country].filter(Boolean).join(", ") || club.location;
+  // Get map coordinates - prefer address object, fallback to legacy fields
+  const mapLatitude = club.address?.lat ?? club.latitude;
+  const mapLongitude = club.address?.lng ?? club.longitude;
+
+  // Format location display - prefer address object, fallback to legacy fields
+  const locationDisplay = club.address 
+    ? getLocationDisplay(club.address) 
+    : ([club.city, club.country].filter(Boolean).join(", ") || club.location || "");
+
+  // Get formatted address for contact info - prefer address.formattedAddress, fallback to location
+  const formattedAddress = club.address?.formattedAddress || club.location || "";
 
   // Parse club metadata for logo and banner settings
   const clubMetadata = parseClubMetadata(club.metadata);
@@ -585,7 +597,7 @@ export default function ClubDetailPage({
                       </svg>
                       <div>
                         <span className="im-club-contact-label">{t("clubDetail.address")}</span>
-                        <span className="im-club-contact-value">{club.location}</span>
+                        <span className="im-club-contact-value">{formattedAddress}</span>
                       </div>
                     </div>
                   )}
@@ -636,15 +648,15 @@ export default function ClubDetailPage({
             {process.env.NODE_ENV === "production" ? (
               <Suspense fallback={<MapLoadingPlaceholder message={t("common.loadingMap")} />}>
                 <ClubMap
-                  latitude={club.latitude as number}
-                  longitude={club.longitude as number}
+                  latitude={mapLatitude as number}
+                  longitude={mapLongitude as number}
                   clubName={club.name}
                 />
               </Suspense>
             ) : (
               <div>{t("common.mapHiddenInDev")}</div>
             )}
-            <p className="mt-3 text-sm opacity-70">{club.location}</p>
+            <p className="mt-3 text-sm opacity-70">{formattedAddress}</p>
           </div>
         )}
 

@@ -37,6 +37,13 @@ describe("Club Detail API Refactoring", () => {
         country: "Test Country",
         latitude: 40.7128,
         longitude: -74.006,
+        address: JSON.stringify({
+          formattedAddress: "123 Test St",
+          city: "Test City",
+          country: "Test Country",
+          lat: 40.7128,
+          lng: -74.006,
+        }),
         phone: "+1234567890",
         email: "test@club.com",
         website: "https://testclub.com",
@@ -67,11 +74,12 @@ describe("Club Detail API Refactoring", () => {
         slug: mockClub.slug,
         shortDescription: mockClub.shortDescription,
         longDescription: mockClub.longDescription,
-        location: mockClub.location,
-        city: mockClub.city,
-        country: mockClub.country,
-        latitude: mockClub.latitude,
-        longitude: mockClub.longitude,
+        address: JSON.parse(mockClub.address),
+        location: "123 Test St",
+        city: "Test City",
+        country: "Test Country",
+        latitude: 40.7128,
+        longitude: -74.006,
         phone: mockClub.phone,
         email: mockClub.email,
         website: mockClub.website,
@@ -99,7 +107,19 @@ describe("Club Detail API Refactoring", () => {
       // Verify it includes basic club info
       expect(responseData.id).toBe("club-1");
       expect(responseData.name).toBe("Test Club");
+      expect(responseData.address).toBeDefined();
+      expect(responseData.address.formattedAddress).toBe("123 Test St");
+      expect(responseData.address.city).toBe("Test City");
+      expect(responseData.address.country).toBe("Test Country");
+      expect(responseData.address.lat).toBe(40.7128);
+      expect(responseData.address.lng).toBe(-74.006);
+
+      // Verify legacy fields are still provided for backward compatibility
       expect(responseData.location).toBe("123 Test St");
+      expect(responseData.city).toBe("Test City");
+      expect(responseData.country).toBe("Test Country");
+      expect(responseData.latitude).toBe(40.7128);
+      expect(responseData.longitude).toBe(-74.006);
 
       // Verify it includes organization info (id and name only)
       expect(responseData.organization).toEqual({

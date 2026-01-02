@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseAddress } from "@/types/address";
 
 export async function GET(
   request: Request,
@@ -32,6 +33,9 @@ export async function GET(
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
+    // Parse address from JSON if available
+    const parsedAddress = parseAddress(club.address);
+
     // Return optimized club details (without courts, coaches, and gallery)
     // Courts: Available via /api/(player)/clubs/[id]/courts
     // Gallery: Available via /api/(player)/clubs/[id]/gallery
@@ -42,11 +46,14 @@ export async function GET(
       slug: club.slug,
       shortDescription: club.shortDescription,
       longDescription: club.longDescription,
-      location: club.location,
-      city: club.city,
-      country: club.country,
-      latitude: club.latitude,
-      longitude: club.longitude,
+      // New address object (primary)
+      address: parsedAddress || null,
+      // Legacy fields for backward compatibility
+      location: parsedAddress?.formattedAddress || club.location || null,
+      city: parsedAddress?.city || club.city || null,
+      country: parsedAddress?.country || club.country || null,
+      latitude: parsedAddress?.lat || club.latitude || null,
+      longitude: parsedAddress?.lng || club.longitude || null,
       phone: club.phone,
       email: club.email,
       website: club.website,
