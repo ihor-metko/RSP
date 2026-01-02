@@ -26,17 +26,8 @@ export async function GET(request: Request) {
       });
     }
 
-    // city -> search in JSON address field with case-insensitive partial matching
-    if (city) {
-      conditions.push({
-        address: {
-          // Use path to access the 'city' field in the JSON
-          path: ["city"],
-          // Use string_contains for partial, case-insensitive matching
-          string_contains: city,
-        },
-      });
-    }
+    // Note: city filtering is done post-fetch for case-insensitive matching
+    // because Prisma's JSON field string_contains is case-sensitive
 
     if (conditions.length > 0) {
       whereClause.AND = conditions;
@@ -79,7 +70,7 @@ export async function GET(request: Request) {
       },
     });
 
-    // Process clubs to add indoor/outdoor counts
+    // Process clubs to add indoor/outdoor counts and apply city filter
     const clubsWithCounts = clubs.map((club) => {
       const indoorCount = club.courts.filter((c) => c.indoor).length;
       const outdoorCount = club.courts.filter((c) => !c.indoor).length;
@@ -91,6 +82,18 @@ export async function GET(request: Request) {
 
       // Parse address from JSON if available
       const parsedAddress = parseAddress(club.address);
+
+      // Apply case-insensitive city filter (post-fetch)
+      if (city && parsedAddress?.city) {
+        const cityLower = city.toLowerCase();
+        const clubCityLower = parsedAddress.city.toLowerCase();
+        if (!clubCityLower.includes(cityLower)) {
+          return null;
+        }
+      } else if (city && !parsedAddress?.city) {
+        // If city filter is provided but club has no city, exclude it
+        return null;
+      }
 
       return {
         id: club.id,
