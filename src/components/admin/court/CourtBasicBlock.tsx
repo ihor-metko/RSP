@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button, Input } from "@/components/ui";
 import { SectionEditModal } from "@/components/admin/club/SectionEditModal";
 import { formatPrice, centsToDollars, dollarsToCents } from "@/utils/price";
+import { formatDateLong } from "@/utils/date";
 import { SportType, SPORT_TYPE_OPTIONS, getSportName } from "@/constants/sports";
 import type { CourtDetail } from "./types";
 import "./CourtBasicBlock.css";
@@ -24,6 +25,7 @@ interface CourtBasicBlockProps {
 
 export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -225,7 +227,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
 
           {court.updatedAt && (
             <div className="im-block-meta">
-              {t("courtDetail.blocks.basicInformation.lastUpdated")} {new Date(court.updatedAt).toLocaleDateString()}
+              {t("courtDetail.blocks.basicInformation.lastUpdated")} {formatDateLong(court.updatedAt, locale)}
             </div>
           )}
         </div>
