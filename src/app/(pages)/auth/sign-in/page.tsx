@@ -2,16 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ImAuthInput, IMLink } from "@/components/ui";
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
-import { validateRedirectUrl } from "@/utils/redirectValidation";
 import { useUserStore } from "@/stores/useUserStore";
 
 export default function SignInPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const sessionStatus = useUserStore(state => state.sessionStatus);
   const user = useUserStore(state => state.user);
   const t = useTranslations();
@@ -19,9 +17,6 @@ export default function SignInPage() {
   const [password, setPassword] = useState("12345678");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // Get and validate redirectTo from query params (not used for post-auth, but kept for future use)
-  const redirectTo = validateRedirectUrl(searchParams.get("redirectTo"));
 
   // Redirect already logged-in users to /post-auth
   useEffect(() => {
@@ -157,7 +152,7 @@ export default function SignInPage() {
           <p className="im-auth-link-text">
             {t("auth.dontHaveAccount")}{" "}
             <IMLink
-              href={redirectTo ? `/auth/sign-up?redirectTo=${encodeURIComponent(redirectTo)}` : "/auth/sign-up"}
+              href="/auth/sign-up"
               className="im-auth-link"
             >
               {t("common.register")}

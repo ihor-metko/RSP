@@ -40,23 +40,19 @@ export default async function PostAuthPage() {
     redirect("/dashboard");
   }
 
-  // Check for any organization membership (non-admin)
-  const orgMembership = await prisma.membership.findFirst({
-    where: { userId },
-    select: { id: true },
-  });
+  // Check for any organization or club membership (non-admin) concurrently
+  const [orgMembership, clubMembership] = await Promise.all([
+    prisma.membership.findFirst({
+      where: { userId },
+      select: { id: true },
+    }),
+    prisma.clubMembership.findFirst({
+      where: { userId },
+      select: { id: true },
+    }),
+  ]);
 
-  if (orgMembership) {
-    redirect("/dashboard");
-  }
-
-  // Check for any club membership (non-admin)
-  const clubMembership = await prisma.clubMembership.findFirst({
-    where: { userId },
-    select: { id: true },
-  });
-
-  if (clubMembership) {
+  if (orgMembership || clubMembership) {
     redirect("/dashboard");
   }
 

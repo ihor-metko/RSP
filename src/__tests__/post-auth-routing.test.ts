@@ -149,12 +149,18 @@ describe("Post-Auth Routing Logic", () => {
       const adminStatus = await checkUserAdminStatus(userId, isRoot);
 
       if (!adminStatus.isAdmin) {
-        const orgMembership = await prisma.membership.findFirst({
-          where: { userId },
-          select: { id: true },
-        });
+        const [orgMembership, clubMembership] = await Promise.all([
+          prisma.membership.findFirst({
+            where: { userId },
+            select: { id: true },
+          }),
+          prisma.clubMembership.findFirst({
+            where: { userId },
+            select: { id: true },
+          }),
+        ]);
 
-        if (orgMembership) {
+        if (orgMembership || clubMembership) {
           redirect("/dashboard");
         }
       }
@@ -184,10 +190,8 @@ describe("Post-Auth Routing Logic", () => {
         managedIds: [],
       });
 
-      // Mock no org membership
+      // Mock no org membership but club membership exists
       (prisma.membership.findFirst as jest.Mock).mockResolvedValue(null);
-
-      // Mock club membership exists
       (prisma.clubMembership.findFirst as jest.Mock).mockResolvedValue({
         id: "club-membership-123",
       });
@@ -195,20 +199,19 @@ describe("Post-Auth Routing Logic", () => {
       const adminStatus = await checkUserAdminStatus(userId, isRoot);
 
       if (!adminStatus.isAdmin) {
-        const orgMembership = await prisma.membership.findFirst({
-          where: { userId },
-          select: { id: true },
-        });
-
-        if (!orgMembership) {
-          const clubMembership = await prisma.clubMembership.findFirst({
+        const [orgMembership, clubMembership] = await Promise.all([
+          prisma.membership.findFirst({
             where: { userId },
             select: { id: true },
-          });
+          }),
+          prisma.clubMembership.findFirst({
+            where: { userId },
+            select: { id: true },
+          }),
+        ]);
 
-          if (clubMembership) {
-            redirect("/dashboard");
-          }
+        if (orgMembership || clubMembership) {
+          redirect("/dashboard");
         }
       }
 
@@ -246,20 +249,19 @@ describe("Post-Auth Routing Logic", () => {
       const adminStatus = await checkUserAdminStatus(userId, isRoot);
 
       if (!adminStatus.isAdmin) {
-        const orgMembership = await prisma.membership.findFirst({
-          where: { userId },
-          select: { id: true },
-        });
-
-        if (!orgMembership) {
-          const clubMembership = await prisma.clubMembership.findFirst({
+        const [orgMembership, clubMembership] = await Promise.all([
+          prisma.membership.findFirst({
             where: { userId },
             select: { id: true },
-          });
+          }),
+          prisma.clubMembership.findFirst({
+            where: { userId },
+            select: { id: true },
+          }),
+        ]);
 
-          if (!clubMembership) {
-            redirect("/");
-          }
+        if (!orgMembership && !clubMembership) {
+          redirect("/");
         }
       }
 
