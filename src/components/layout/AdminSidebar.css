@@ -137,25 +137,27 @@
   @apply mx-2;
 }
 
-.im-sidebar-nav-link {
-  @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors no-underline;
-  color: var(--im-foreground);
-  width: 100%;
-}
+.im-sidebar-nav-list {
+  .im-sidebar-nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors no-underline;
+    color: var(--im-foreground);
+    width: 100%;
+  }
 
-.im-sidebar-nav-link:hover {
-  background-color: var(--im-card-bg);
-  color: var(--im-primary);
-}
+  .im-sidebar-nav-link:hover {
+    background-color: var(--im-card-bg);
+    color: var(--im-primary);
+  }
 
-.im-sidebar-nav-link--active {
-  background-color: var(--im-primary);
-  color: white;
-}
+  .im-sidebar-nav-link--active {
+    background-color: var(--im-primary);
+    color: white;
+  }
 
-.im-sidebar-nav-link--active:hover {
-  background-color: var(--im-primary-hover);
-  color: white;
+  .im-sidebar-nav-link--active:hover {
+    background-color: var(--im-primary-hover);
+    color: white;
+  }
 }
 
 .im-sidebar-nav-link--active .im-sidebar-icon {
@@ -179,7 +181,7 @@
   color: var(--im-icon-color);
 }
 
-.im-sidebar-nav-link:hover .im-sidebar-icon {
+.im-sidebar-nav-link:not(.im-sidebar-nav-link--active):hover .im-sidebar-icon {
   color: var(--im-primary);
 }
 
