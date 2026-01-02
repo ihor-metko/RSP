@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { SpecialHoursField, type SpecialHour } from "../SpecialHoursField.client";
@@ -20,7 +20,6 @@ interface ClubSpecialDatesViewProps {
 export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }: ClubSpecialDatesViewProps) {
   const t = useTranslations("clubDetail");
   const tCommon = useTranslations("common");
-  const locale = useLocale();
 
   // Use the dedicated special dates store
   const specialDatesFromStore = useClubSpecialDatesStore((state) => state.specialDates);
@@ -150,7 +149,7 @@ export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }
             {specialDatesFromStore.map((hour) => (
               <div key={hour.id} className="im-special-dates-row">
                 <span className="im-special-dates-date">
-                  {formatDateShort(hour.date, locale)}
+                  {formatDateShort(hour.date)}
                 </span>
 
                 <div className="flex gap-2 items-center">

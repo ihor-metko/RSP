@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Modal, Badge } from "@/components/ui";
 import { formatDateLong } from "@/utils/date";
 import type { AdminUserDetail } from "@/types/adminUser";
@@ -129,7 +129,6 @@ function ClockIcon() {
 
 export function UserProfileModal({ isOpen, onClose, userId }: UserProfileModalProps) {
   const t = useTranslations();
-  const locale = useLocale();
   const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -165,9 +164,9 @@ export function UserProfileModal({ isOpen, onClose, userId }: UserProfileModalPr
     fetchUserProfile();
   }, [isOpen, userId]);
 
-  const formatDate = (dateString: string | Date | null | undefined, locale: string) => {
+  const formatDate = (dateString: string | Date | null | undefined) => {
     if (!dateString) return "-";
-    return formatDateLong(dateString, locale);
+    return formatDateLong(dateString);
   };
 
   // Use translation keys for role labels
@@ -244,14 +243,14 @@ export function UserProfileModal({ isOpen, onClose, userId }: UserProfileModalPr
                       <CalendarIcon />
                       {t("userDetail.stats.memberSince")}
                     </span>
-                    <span className="im-user-profile-value">{formatDate(user.createdAt, locale)}</span>
+                    <span className="im-user-profile-value">{formatDate(user.createdAt)}</span>
                   </div>
                   <div className="im-user-profile-item">
                     <span className="im-user-profile-label">
                       <ClockIcon />
                       {t("userDetail.stats.lastLogin")}
                     </span>
-                    <span className="im-user-profile-value">{formatDate(user.lastLoginAt, locale)}</span>
+                    <span className="im-user-profile-value">{formatDate(user.lastLoginAt)}</span>
                   </div>
                   {user.totalBookings !== undefined && (
                     <div className="im-user-profile-item">

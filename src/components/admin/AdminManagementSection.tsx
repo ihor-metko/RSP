@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button, Modal, Badge } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
@@ -64,7 +64,6 @@ export default function AdminManagementSection({
   clubData,
 }: AdminManagementSectionProps) {
   const t = useTranslations();
-  const locale = useLocale();
   const user = useUserStore((state) => state.user);
   const hasAnyRole = useUserStore((state) => state.hasAnyRole);
   const isRoot = user?.isRoot ?? false;
@@ -415,7 +414,7 @@ export default function AdminManagementSection({
                   {isRoot && admin.lastLoginAt && (
                     <span className="im-admin-meta">
                       {t("orgAdmins.lastLogin")}:{" "}
-                      {formatDateLong(admin.lastLoginAt, locale)}
+                      {formatDateLong(admin.lastLoginAt)}
                     </span>
                   )}
                 </div>

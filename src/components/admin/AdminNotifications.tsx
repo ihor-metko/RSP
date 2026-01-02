@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useLocale } from "next-intl";
 import { Button, Card } from "@/components/ui";
 import { useNotifications } from "@/hooks/useNotifications";
 import { AdminNotification } from "@/stores/useNotificationStore";
@@ -25,7 +24,7 @@ import "./AdminNotifications.css";
  * - UI: Reads from store and re-renders automatically
  */
 
-function getNotificationMessage(notification: AdminNotification, locale: string): string {
+function getNotificationMessage(notification: AdminNotification): string {
   const { type, playerName, coachName, sessionDate, sessionTime, summary } = notification;
   
   // Use pre-generated summary if available (for Booking/Payment events)
@@ -35,7 +34,7 @@ function getNotificationMessage(notification: AdminNotification, locale: string)
   
   // Generate message for training request events
   const dateInfo = sessionDate && sessionTime 
-    ? ` for ${formatDateWithWeekday(sessionDate, locale)} at ${sessionTime}` 
+    ? ` for ${formatDateWithWeekday(sessionDate)} at ${sessionTime}` 
     : "";
 
   switch (type) {
@@ -82,7 +81,6 @@ function getNotificationIcon(type: string): string {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function AdminNotificationsPanel() {
-  const locale = useLocale();
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -231,7 +229,7 @@ export function AdminNotificationsPanel() {
                     </span>
                   )}
                   <span className="tm-notification-time">
-                    {formatRelativeTime(notification.createdAt, locale)}
+                    {formatRelativeTime(notification.createdAt)}
                   </span>
                 </div>
               </div>

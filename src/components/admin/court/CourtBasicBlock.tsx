@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button, Input } from "@/components/ui";
 import { SectionEditModal } from "@/components/admin/club/SectionEditModal";
 import { formatPrice, centsToDollars, dollarsToCents } from "@/utils/price";
@@ -25,7 +25,6 @@ interface CourtBasicBlockProps {
 
 export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
   const t = useTranslations();
-  const locale = useLocale();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
@@ -227,7 +226,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
 
           {court.updatedAt && (
             <div className="im-block-meta">
-              {t("courtDetail.blocks.basicInformation.lastUpdated")} {formatDateLong(court.updatedAt, locale)}
+              {t("courtDetail.blocks.basicInformation.lastUpdated")} {formatDateLong(court.updatedAt)}
             </div>
           )}
         </div>

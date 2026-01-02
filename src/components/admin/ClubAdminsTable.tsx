@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button, Modal, Input, Select, UserSearchDropdown } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
@@ -40,7 +40,6 @@ export default function ClubAdminsTable({
   onRefresh,
 }: ClubAdminsTableProps) {
   const t = useTranslations();
-  const locale = useLocale();
   const user = useUserStore((state) => state.user);
   const isRoot = user?.isRoot ?? false;
   const isOrgAdmin = useUserStore((state) => state.isOrgAdmin);
@@ -317,7 +316,7 @@ export default function ClubAdminsTable({
                     </td>
                     <td>
                       {admin.lastLoginAt
-                        ? formatDateLong(admin.lastLoginAt, locale)
+                        ? formatDateLong(admin.lastLoginAt)
                         : t("common.never")}
                     </td>
                     <td>

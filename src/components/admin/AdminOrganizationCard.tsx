@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Button, EntityLogo } from "@/components/ui";
 import { SportType } from "@/constants/sports";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
@@ -54,14 +54,13 @@ export function AdminOrganizationCard({
   onView,
 }: AdminOrganizationCardProps) {
   const t = useTranslations();
-  const locale = useLocale();
 
   // Find the primary owner
   const primaryOwner = organization.superAdmins?.find((admin) => admin.isPrimaryOwner);
   const ownerInfo = primaryOwner || organization.superAdmins?.[0];
 
   // Format date for display
-  const formattedDate = formatDateLong(organization.createdAt, locale);
+  const formattedDate = formatDateLong(organization.createdAt);
 
   const logoUrl = organization.logoData?.url;
   const bannerUrl = organization.bannerData?.url;

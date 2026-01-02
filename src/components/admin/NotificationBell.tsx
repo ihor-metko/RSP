@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
 import { Button, Modal } from "@/components/ui";
 import { useNotifications } from "@/hooks/useNotifications";
 import { AdminNotification } from "@/stores/useNotificationStore";
@@ -30,13 +29,12 @@ function getNotificationIcon(type: string): string {
 }
 
 function generateNotificationSummary(
-  notification: AdminNotification,
-  locale: string
+  notification: AdminNotification
 ): string {
   const { type, playerName, coachName, sessionDate, sessionTime } = notification;
   const dateInfo =
     sessionDate && sessionTime
-      ? ` for ${formatDateWithWeekday(sessionDate, locale)} at ${sessionTime}`
+      ? ` for ${formatDateWithWeekday(sessionDate)} at ${sessionTime}`
       : "";
 
   switch (type) {
@@ -55,7 +53,6 @@ function generateNotificationSummary(
 
 export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProps) {
   const router = useRouter();
-  const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<AdminNotification | null>(null);
   const [toasts, setToasts] = useState<
@@ -65,7 +62,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
 
   // Handle new notification callback
   const handleNewNotification = useCallback((notification: AdminNotification) => {
-    const summary = notification.summary || generateNotificationSummary(notification, locale);
+    const summary = notification.summary || generateNotificationSummary(notification);
     setToasts((prev) => {
       // Limit to 3 toasts max
       const newToasts = [
@@ -74,7 +71,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
       ];
       return newToasts;
     });
-  }, [locale]);
+  }, []);
 
   const {
     notifications,
@@ -237,10 +234,10 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
                       </span>
                       <div className="tm-dropdown-item-content">
                         <span className="tm-dropdown-item-summary">
-                          {generateNotificationSummary(notification, locale)}
+                          {generateNotificationSummary(notification)}
                         </span>
                         <span className="tm-dropdown-item-time">
-                          {formatRelativeTime(notification.createdAt, locale)}
+                          {formatRelativeTime(notification.createdAt)}
                         </span>
                       </div>
                     </button>
@@ -310,7 +307,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
                 <div className="tm-details-row">
                   <span className="tm-details-label">Session Date</span>
                   <span className="tm-details-value">
-                    {formatDateWithWeekday(selectedNotification.sessionDate, locale)}
+                    {formatDateWithWeekday(selectedNotification.sessionDate)}
                   </span>
                 </div>
               )}
@@ -350,7 +347,7 @@ export function NotificationBell({ maxDropdownItems = 10 }: NotificationBellProp
               <div className="tm-details-row">
                 <span className="tm-details-label">Received</span>
                 <span className="tm-details-value">
-                  {formatDateTimeFull(selectedNotification.createdAt, locale)}
+                  {formatDateTimeFull(selectedNotification.createdAt)}
                 </span>
               </div>
             </div>
