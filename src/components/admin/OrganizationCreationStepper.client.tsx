@@ -266,25 +266,21 @@ export function OrganizationCreationStepper() {
       .replace(/^-+|-+$/g, "");
   }, []);
 
-  // Helper function to update metadata with second logo URL
-  const updateMetadataWithSecondLogo = async (
+  // Helper function to update logoData with second logo URL
+  const updateLogoDataWithSecondLogo = async (
     organizationId: string,
-    baseMetadata: Record<string, unknown>,
+    currentLogoData: Record<string, unknown>,
     secondLogoUrl: string
   ) => {
-    const currentLogoMetadata = baseMetadata.logoMetadata as Record<string, unknown> || {};
-    const updatedMetadata = {
-      ...baseMetadata,
-      logoMetadata: {
-        ...currentLogoMetadata,
-        secondLogo: secondLogoUrl,
-      }
+    const updatedLogoData = {
+      ...currentLogoData,
+      secondLogo: secondLogoUrl,
     };
     
     await fetch(`/api/admin/organizations/${organizationId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ metadata: updatedMetadata }),
+      body: JSON.stringify({ logoData: updatedLogoData }),
     });
   };
 
@@ -317,61 +313,47 @@ export function OrganizationCreationStepper() {
     setError(null);
 
     try {
-      // Build address from components
-      const addressParts = [
-        formData.street.trim(),
-        formData.city.trim(),
-        formData.postalCode.trim(),
-        formData.country.trim()
-      ].filter(Boolean); // Remove empty strings
-      const fullAddress = addressParts.join(", ");
-
-      // Prepare metadata with social links and location
-      const metadata: Record<string, unknown> = {
-        country: formData.country.trim(),
+      // Build address object
+      const addressData = {
         street: formData.street.trim(),
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
+        city: formData.city.trim(),
+        postalCode: formData.postalCode.trim(),
+        country: formData.country.trim(),
+        lat: parseFloat(formData.latitude),
+        lng: parseFloat(formData.longitude),
+        formattedAddress: [
+          formData.street.trim(),
+          formData.city.trim(),
+          formData.postalCode.trim(),
+          formData.country.trim()
+        ].filter(Boolean).join(", "),
       };
 
-      // Add social media links if provided
-      const socialLinks: Record<string, string> = {};
-      if (formData.facebook.trim()) socialLinks.facebook = formData.facebook.trim();
-      if (formData.instagram.trim()) socialLinks.instagram = formData.instagram.trim();
-      if (formData.linkedin.trim()) socialLinks.linkedin = formData.linkedin.trim();
-
-      if (Object.keys(socialLinks).length > 0) {
-        metadata.socialLinks = socialLinks;
+      // Prepare logoData with theme settings
+      const logoData: Record<string, unknown> = {
+        logoTheme: formData.logoTheme,
+      };
+      
+      if (formData.logoCount === 'two' && formData.secondLogo) {
+        logoData.secondLogoTheme = formData.secondLogoTheme;
       }
 
-      // Add logo theme metadata if logos are provided
-      if (formData.logo || formData.secondLogo) {
-        const logoMetadata: Record<string, unknown> = {
-          logoTheme: formData.logoTheme,
-          logoCount: formData.logoCount,
-          logoBackground: formData.logoBackground, // Save logo background for display in banners and cards
-        };
-        
-        if (formData.logoCount === 'two' && formData.secondLogo) {
-          logoMetadata.secondLogoTheme = formData.secondLogoTheme;
-        }
-        
-        metadata.logoMetadata = logoMetadata;
-      }
-
-      // Add banner alignment metadata (always save, even if no image uploaded yet)
-      metadata.bannerAlignment = formData.bannerAlignment;
+      // Prepare bannerData with alignment
+      const bannerData: Record<string, unknown> = {
+        bannerAlignment: formData.bannerAlignment,
+      };
 
       // Prepare data for submission (without images - they'll be uploaded separately)
       const submitData = {
         name: formData.name.trim(),
         slug: formData.slug.trim() || generateSlug(formData.name),
         description: formData.description.trim(),
-        address: fullAddress,
+        address: addressData,
         contactEmail: formData.contactEmail.trim() || undefined,
         contactPhone: formData.contactPhone.trim() || undefined,
         website: formData.website.trim() || undefined,
-        metadata,
+        logoData,
+        bannerData,
       };
 
       const organization = await createOrganization(submitData);
@@ -431,8 +413,8 @@ export function OrganizationCreationStepper() {
             
             const secondLogoData = await secondLogoResponse.json();
             
-            // Update metadata with second logo URL using helper
-            await updateMetadataWithSecondLogo(organization.id, metadata, secondLogoData.url);
+            // Update logoData with second logo URL using helper
+            await updateLogoDataWithSecondLogo(organization.id, logoData, secondLogoData.url);
           }
         }
       } catch (imageErr) {
