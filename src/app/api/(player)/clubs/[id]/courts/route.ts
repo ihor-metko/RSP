@@ -30,7 +30,10 @@ export async function GET(
     }
 
     const courts = await prisma.court.findMany({
-      where: { clubId },
+      where: { 
+        clubId,
+        isPublished: true, // Only return published courts for players
+      },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
@@ -40,6 +43,8 @@ export async function GET(
         surface: true,
         indoor: true,
         sportType: true,
+        description: true,
+        isPublished: true,
         defaultPriceCents: true,
         bannerData: true,
         metadata: true,
@@ -112,7 +117,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, defaultPriceCents } = body;
+    const { name, slug, type, surface, indoor, sportType, description, isPublished, defaultPriceCents } = body;
 
     if (!name || typeof name !== "string" || name.trim() === "") {
       return NextResponse.json(
@@ -151,6 +156,8 @@ export async function POST(
         surface: surface?.trim() || null,
         indoor: indoor ?? false,
         sportType: sportType || "PADEL",
+        description: description?.trim() || null,
+        isPublished: isPublished ?? false,
         defaultPriceCents: defaultPriceCents ?? 0,
       },
     });

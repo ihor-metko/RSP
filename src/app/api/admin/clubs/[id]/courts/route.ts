@@ -173,7 +173,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, defaultPriceCents, metadata } = body;
+    const { name, slug, type, surface, indoor, sportType, description, isPublished, defaultPriceCents, metadata } = body;
 
     // Validate required fields
     if (!name || typeof name !== "string" || name.trim() === "") {
@@ -251,6 +251,8 @@ export async function POST(
         surface: surface?.trim() || null,
         indoor: indoor ?? false,
         sportType: sportType || "PADEL",
+        description: description?.trim() || null,
+        isPublished: isPublished ?? false,
         isActive: true,
         defaultPriceCents: defaultPriceCents ?? 0,
         metadata: metadata || null,
@@ -264,6 +266,8 @@ export async function POST(
         surface: true,
         indoor: true,
         sportType: true,
+        description: true,
+        isPublished: true,
         isActive: true,
         defaultPriceCents: true,
         metadata: true,
