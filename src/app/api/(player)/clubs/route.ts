@@ -96,8 +96,20 @@ export async function GET(request: Request) {
         city: club.city,
         contactInfo: club.contactInfo,
         openingHours: club.openingHours,
-        logoData: club.logoData ? JSON.parse(club.logoData) : null,
-        bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
+        logoData: club.logoData ? (() => {
+          try {
+            return JSON.parse(club.logoData);
+          } catch {
+            return null;
+          }
+        })() : null,
+        bannerData: club.bannerData ? (() => {
+          try {
+            return JSON.parse(club.bannerData);
+          } catch {
+            return null;
+          }
+        })() : null,
         tags: club.tags,
         createdAt: club.createdAt,
         indoorCount,

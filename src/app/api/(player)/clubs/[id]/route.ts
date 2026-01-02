@@ -52,8 +52,20 @@ export async function GET(
       socialLinks: club.socialLinks,
       contactInfo: club.contactInfo,
       openingHours: club.openingHours,
-      logoData: club.logoData ? JSON.parse(club.logoData) : null,
-      bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
+      logoData: club.logoData ? (() => {
+        try {
+          return JSON.parse(club.logoData);
+        } catch {
+          return null;
+        }
+      })() : null,
+      bannerData: club.bannerData ? (() => {
+        try {
+          return JSON.parse(club.bannerData);
+        } catch {
+          return null;
+        }
+      })() : null,
       defaultCurrency: club.defaultCurrency,
       timezone: club.timezone,
       tags: club.tags,

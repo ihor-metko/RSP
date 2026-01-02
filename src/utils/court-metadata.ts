@@ -7,10 +7,7 @@
  * This type may be extended in the future with court-specific metadata fields.
  * For now, it's an empty object that can hold any court-specific metadata.
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface CourtMetadata {
-  // Empty for now - can be extended with court-specific metadata in the future
-}
+export type CourtMetadata = Record<string, never>;
 
 /**
  * Parse court metadata JSON string into typed object
