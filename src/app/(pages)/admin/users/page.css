@@ -388,10 +388,6 @@
   text-decoration: none;
 }
 
-.im-link:hover {
-  text-decoration: underline;
-}
-
 .im-link svg {
   @apply w-4 h-4;
 }

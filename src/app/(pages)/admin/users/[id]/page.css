@@ -29,6 +29,7 @@
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -322,10 +323,6 @@
   @apply text-sm font-medium transition-colors;
   color: var(--rsp-primary);
   text-decoration: none;
-}
-
-.im-details-list-item .im-link:hover {
-  text-decoration: underline;
 }
 
 /* ===== Audit List ===== */

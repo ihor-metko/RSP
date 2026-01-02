@@ -8,6 +8,7 @@
 }
 
 .im-link:hover {
+  text-decoration: none;
   color: var(--rsp-primary-hover);
   cursor: pointer;
 }
