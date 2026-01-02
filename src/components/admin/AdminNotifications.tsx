@@ -217,7 +217,7 @@ export function AdminNotificationsPanel() {
               </div>
               <div className="tm-notification-content">
                 <div className="tm-notification-message">
-                  {getNotificationMessage(notification, locale)}
+                  {getNotificationMessage(notification)}
                 </div>
                 <div className="tm-notification-meta">
                   <span className={`tm-notification-type tm-notification-type--${notification.type.toLowerCase()}`}>
