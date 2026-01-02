@@ -11,6 +11,7 @@ import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { useAuthGuardOnce } from "@/hooks";
 import { formatPrice } from "@/utils/price";
+import { formatDateWithWeekday, formatTime } from "@/utils/date";
 import "./player-dashboard.css";
 
 interface Club {
@@ -61,34 +62,6 @@ interface Event {
   clubId: string;
   clubName?: string;
   type: "tournament" | "promotion" | "event";
-}
-
-// Get today's date string in YYYY-MM-DD format
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-// Get date string for N days from now
-function getDateString(daysFromNow: number): string {
-  const date = new Date();
-  date.setDate(date.getDate() + daysFromNow);
-  return date.toISOString().split("T")[0];
-}
-
-// Format date for display
-function formatDate(dateStr: string, locale: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(locale === "uk" ? "uk-UA" : "en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-// Format time for display
-function formatTime(isoString: string): string {
-  const date = new Date(isoString);
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
 export default function PlayerDashboardPage() {
@@ -295,7 +268,7 @@ export default function PlayerDashboardPage() {
     const dateStr = getDateString(i);
     return {
       date: dateStr,
-      label: formatDate(dateStr, currentLocale),
+      label: formatDateWithWeekday(dateStr, currentLocale),
       isSelected: dateStr === selectedDate,
     };
   });
@@ -431,7 +404,7 @@ export default function PlayerDashboardPage() {
                   >
                     <div className="tm-booking-info">
                       <p className="font-medium">
-                        {formatDate(booking.start, currentLocale)} • {formatTime(booking.start)} - {formatTime(booking.end)}
+                        {formatDateWithWeekday(booking.start, currentLocale)} • {formatTime(booking.start, currentLocale)} - {formatTime(booking.end, currentLocale)}
                       </p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         {booking.court?.club?.name || ""} - {booking.court?.name || ""}
@@ -544,7 +517,7 @@ export default function PlayerDashboardPage() {
                           {event.description}
                         </p>
                         <p className="text-sm mt-1">
-                          {formatDate(event.date, currentLocale)} • {event.clubName}
+                          {formatDateWithWeekday(event.date, currentLocale)} • {event.clubName}
                         </p>
                       </div>
                       <span className={`px-2 py-1 text-xs rounded-full ${event.type === "tournament"
@@ -638,13 +611,13 @@ export default function PlayerDashboardPage() {
               <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                 {t("common.date")}
               </label>
-              <p className="text-lg">{formatDate(selectedBooking.start, currentLocale)}</p>
+              <p className="text-lg">{formatDateWithWeekday(selectedBooking.start, currentLocale)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                 {t("common.time")}
               </label>
-              <p>{formatTime(selectedBooking.start)} - {formatTime(selectedBooking.end)}</p>
+              <p>{formatTime(selectedBooking.start, currentLocale)} - {formatTime(selectedBooking.end, currentLocale)}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">

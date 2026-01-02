@@ -3,21 +3,16 @@
  * Shared utilities for formatting booking data across the application
  */
 
+import { formatDateTime as formatDateTimeFn } from './date';
+
 /**
  * Format date to display format
  * @param isoString - ISO date string
+ * @param locale - Current application locale (default: 'en')
  * @returns Formatted date string
  */
-export function formatDateTime(isoString: string): string {
-  const date = new Date(isoString);
-  return date.toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+export function formatDateTime(isoString: string, locale: string = 'en'): string {
+  return formatDateTimeFn(isoString, locale);
 }
 
 /**

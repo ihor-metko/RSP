@@ -8,6 +8,8 @@ import { SpecialHoursField, type SpecialHour } from "../SpecialHoursField.client
 import { useClubSpecialDatesStore } from "@/stores/useClubSpecialDatesStore";
 import type { ClubDetail } from "@/types/club";
 import { validateSpecialHours } from "../WorkingHoursEditor.client";
+import { useCurrentLocale } from "@/hooks/useCurrentLocale";
+import { formatDateShort } from "@/utils/date";
 import "./ClubSpecialDatesView.css";
 
 interface ClubSpecialDatesViewProps {
@@ -16,16 +18,10 @@ interface ClubSpecialDatesViewProps {
   disabledTooltip?: string;
 }
 
-function formatDateShort(dateString: string): string {
-  const date = new Date(dateString);
-  const month = date.toLocaleDateString('en-US', { month: 'short' });
-  const day = date.getDate();
-  return `${month} ${day}`;
-}
-
 export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }: ClubSpecialDatesViewProps) {
   const t = useTranslations("clubDetail");
   const tCommon = useTranslations("common");
+  const locale = useCurrentLocale();
 
   // Use the dedicated special dates store
   const specialDatesFromStore = useClubSpecialDatesStore((state) => state.specialDates);
@@ -155,7 +151,7 @@ export function ClubSpecialDatesView({ club, disabled = false, disabledTooltip }
             {specialDatesFromStore.map((hour) => (
               <div key={hour.id} className="im-special-dates-row">
                 <span className="im-special-dates-date">
-                  {formatDateShort(hour.date)}
+                  {formatDateShort(hour.date, locale)}
                 </span>
 
                 <div className="flex gap-2 items-center">

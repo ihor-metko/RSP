@@ -11,6 +11,7 @@ import { AdminQuickBookingWizard } from "@/components/AdminQuickBookingWizard";
 import { BookingDetailsModal } from "@/components/admin/BookingDetailsModal";
 import { formatDateTime, calculateDuration, getInitials } from "@/utils/bookingFormatters";
 import { useListController, useDeferredLoading } from "@/hooks";
+import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -48,6 +49,7 @@ interface BookingFilters extends Record<string, unknown> {
 export default function AdminBookingsPage() {
   const t = useTranslations();
   const router = useRouter();
+  const locale = useCurrentLocale();
 
   // Get admin status from user store
   const adminStatus = useUserStore((state) => state.adminStatus);
@@ -316,7 +318,7 @@ export default function AdminBookingsPage() {
     {
       key: "start",
       header: t("adminBookings.dateTime"),
-      render: (booking) => formatDateTime(booking.start),
+      render: (booking) => formatDateTime(booking.start, locale),
     },
     {
       key: "duration",
@@ -492,7 +494,7 @@ export default function AdminBookingsPage() {
                         <td>{booking.clubName}</td>
                       )}
                       <td>{booking.courtName}</td>
-                      <td>{formatDateTime(booking.start)}</td>
+                      <td>{formatDateTime(booking.start, locale)}</td>
                       <td>{calculateDuration(booking.start, booking.end)} {t("common.minutes")}</td>
                       <td><BookingStatusBadge status={booking.bookingStatus} /></td>
                       <td><PaymentStatusBadge status={booking.paymentStatus} /></td>
