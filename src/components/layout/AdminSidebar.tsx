@@ -901,7 +901,6 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
                               href={child.href || "#"}
                               className={`im-sidebar-nav-link ${isActive(child.href) ? "im-sidebar-nav-link--active" : ""
                                 }`}
-                              role="menuitem"
                               aria-current={isActive(child.href) ? "page" : undefined}
                               onClick={() => setIsMobileOpen(false)}
                             >
@@ -938,10 +937,8 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
                   <IMLink
                     href={item.href || "#"}
                     className={`im-sidebar-nav-link ${isActive(item.href) ? "im-sidebar-nav-link--active" : ""}`}
-                    role="menuitem"
                     aria-current={isActive(item.href) ? "page" : undefined}
                     onClick={() => setIsMobileOpen(false)}
-                    title={isCollapsed ? getLabel(item.labelKey, item.dynamicLabel) : undefined}
                   >
                     {item.icon}
                     {!isCollapsed && <span>{getLabel(item.labelKey, item.dynamicLabel)}</span>}

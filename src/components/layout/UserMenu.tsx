@@ -11,7 +11,7 @@ import "./UserMenu.css";
 /**
  * Outline icon components for the user menu
  * Uses consistent 18-20px sizing with color: var(--im-icon-color)
- * 
+ *
  * ARIA: Icons are decorative (aria-hidden="true")
  */
 
@@ -143,16 +143,16 @@ function getInitials(name: string | null | undefined): string {
 
 /**
  * UserMenu Component
- * 
+ *
  * Accessible dropdown menu for authenticated users.
  * Shows user avatar with initials and a chevron.
- * 
+ *
  * ACCESSIBILITY:
  * - Uses button + aria-expanded, aria-controls for toggle
  * - role="menu" and role="menuitem" semantics
  * - Keyboard navigation: Enter/Space opens, Escape closes, Arrow keys navigate
  * - Focus ring using outline: 2px solid var(--im-primary)
- * 
+ *
  * For players: No role is displayed in the header or menu
  * For admins: Shows admin badge in dropdown
  */
@@ -300,8 +300,6 @@ export default function UserMenu({ userName, userEmail, isRoot = false }: UserMe
           <IMLink
             href="/profile"
             className="im-user-menu-item"
-            role="menuitem"
-            tabIndex={0}
             onClick={() => setIsOpen(false)}
           >
             <UserIcon />
@@ -311,8 +309,6 @@ export default function UserMenu({ userName, userEmail, isRoot = false }: UserMe
           <IMLink
             href="/bookings"
             className="im-user-menu-item"
-            role="menuitem"
-            tabIndex={0}
             onClick={() => setIsOpen(false)}
           >
             <CalendarIcon />
@@ -322,8 +318,6 @@ export default function UserMenu({ userName, userEmail, isRoot = false }: UserMe
           <IMLink
             href="/settings"
             className="im-user-menu-item"
-            role="menuitem"
-            tabIndex={0}
             onClick={() => setIsOpen(false)}
           >
             <SettingsIcon />

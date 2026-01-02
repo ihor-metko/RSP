@@ -166,7 +166,6 @@
 }
 
 .tm-availability-block--blocked-past:focus {
-  none;
   ring-color: transparent;
 }
 

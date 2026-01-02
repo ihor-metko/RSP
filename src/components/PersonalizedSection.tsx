@@ -120,7 +120,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
   const clubsFromStore = usePlayerClubStore((state) => state.clubs);
   const clubsLoading = usePlayerClubStore((state) => state.loading);
   const fetchClubsFromStore = usePlayerClubStore((state) => state.fetchClubsIfNeeded);
-  
+
   // Memoize clubs to avoid unnecessary re-renders
   const clubs = useMemo(() => clubsFromStore, [clubsFromStore]);
 
@@ -596,9 +596,8 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
               return (
                 <div
                   key={step.id}
-                  className={`rsp-wizard-step ${
-                    isActive ? "rsp-wizard-step--active" : ""
-                  } ${isCompleted ? "rsp-wizard-step--completed" : ""}`}
+                  className={`rsp-wizard-step ${isActive ? "rsp-wizard-step--active" : ""
+                    } ${isCompleted ? "rsp-wizard-step--completed" : ""}`}
                   aria-current={isActive ? "step" : undefined}
                 >
                   <div className="rsp-wizard-step-circle" aria-hidden="true">
@@ -641,12 +640,12 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                       clubs.length === 0
                         ? [{ value: "", label: t("playerDashboard.quickBook.noClubs") }]
                         : [
-                            { value: "", label: t("home.personalized.chooseClub") },
-                            ...clubs.map((club) => ({
-                              value: club.id,
-                              label: club.name,
-                            })),
-                          ]
+                          { value: "", label: t("home.personalized.chooseClub") },
+                          ...clubs.map((club) => ({
+                            value: club.id,
+                            label: club.name,
+                          })),
+                        ]
                     }
                     value={selectedClubId}
                     onChange={(value) => setSelectedClubId(value)}
@@ -775,9 +774,8 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                           role="option"
                           aria-selected={selectedCourtId === court.id}
                           tabIndex={0}
-                          className={`rsp-wizard-court-card ${
-                            selectedCourtId === court.id ? "rsp-wizard-court-card--selected" : ""
-                          }`}
+                          className={`rsp-wizard-court-card ${selectedCourtId === court.id ? "rsp-wizard-court-card--selected" : ""
+                            }`}
                           onClick={() => handleSelectCourt(court)}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" || e.key === " ") {
@@ -878,7 +876,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                         </div>
                         <div className="rsp-wizard-summary-row">
                           <span className="rsp-wizard-summary-label">{t("common.date")}</span>
-                          <span className="rsp-wizard-summary-value">{formatDateDisplay(selectedDate)}</span>
+                          <span className="rsp-wizard-summary-value">{selectedDate}</span>
                         </div>
                         <div className="rsp-wizard-summary-row">
                           <span className="rsp-wizard-summary-label">{t("common.time")}</span>
@@ -916,9 +914,8 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                         type="button"
                         role="radio"
                         aria-checked={selectedPaymentMethod === "card"}
-                        className={`rsp-wizard-payment-method ${
-                          selectedPaymentMethod === "card" ? "rsp-wizard-payment-method--selected" : ""
-                        }`}
+                        className={`rsp-wizard-payment-method ${selectedPaymentMethod === "card" ? "rsp-wizard-payment-method--selected" : ""
+                          }`}
                         onClick={() => setSelectedPaymentMethod("card")}
                         disabled={isSubmitting}
                       >
@@ -933,9 +930,8 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                         type="button"
                         role="radio"
                         aria-checked={selectedPaymentMethod === "apple_pay"}
-                        className={`rsp-wizard-payment-method ${
-                          selectedPaymentMethod === "apple_pay" ? "rsp-wizard-payment-method--selected" : ""
-                        }`}
+                        className={`rsp-wizard-payment-method ${selectedPaymentMethod === "apple_pay" ? "rsp-wizard-payment-method--selected" : ""
+                          }`}
                         onClick={() => setSelectedPaymentMethod("apple_pay")}
                         disabled={isSubmitting}
                       >
@@ -946,9 +942,8 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                         type="button"
                         role="radio"
                         aria-checked={selectedPaymentMethod === "google_pay"}
-                        className={`rsp-wizard-payment-method ${
-                          selectedPaymentMethod === "google_pay" ? "rsp-wizard-payment-method--selected" : ""
-                        }`}
+                        className={`rsp-wizard-payment-method ${selectedPaymentMethod === "google_pay" ? "rsp-wizard-payment-method--selected" : ""
+                          }`}
                         onClick={() => setSelectedPaymentMethod("google_pay")}
                         disabled={isSubmitting}
                       >

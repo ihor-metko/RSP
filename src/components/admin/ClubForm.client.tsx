@@ -307,9 +307,9 @@ export function ClubForm() {
       {/* Header with breadcrumb and actions */}
       <div className="im-club-form-header">
         <div className="im-club-form-breadcrumb">
-          <Link href="/admin/clubs" className="im-club-form-breadcrumb-link">
+          <IMLink href="/admin/clubs" className="im-club-form-breadcrumb-link">
             Clubs
-          </Link>
+          </IMLink>
           <span className="im-club-form-breadcrumb-separator">/</span>
           <span className="im-club-form-breadcrumb-current">New Club</span>
         </div>
