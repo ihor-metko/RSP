@@ -26,6 +26,7 @@ interface EntityData {
   longitude?: number | null;
   logo?: string | null;
   heroImage?: string | null;
+  bannerPosition?: 'top' | 'center' | 'bottom' | null;
   metadata?: Record<string, unknown> | null;
 }
 
@@ -66,6 +67,7 @@ interface EntityEditStepperProps {
     metadata?: Record<string, unknown>;
     logo?: File | null;
     heroImage?: File | null;
+    bannerPosition?: 'top' | 'center' | 'bottom';
   }) => Promise<void>;
 }
 
@@ -199,7 +201,7 @@ export function EntityEditStepper({
 
       setBannerData({
         heroImage: entityData.heroImage ? { url: entityData.heroImage, key: "", preview: entityData.heroImage } : null,
-        bannerAlignment: logoMetadata?.bannerAlignment || 'center',
+        bannerAlignment: (entityData.bannerPosition as 'top' | 'center' | 'bottom' | undefined) || 'center',
       });
 
       setFieldErrors({});
@@ -388,9 +390,6 @@ export function EntityEditStepper({
         }
         metadata.logoMetadata = logoMetadata;
 
-        // Add banner alignment
-        metadata.bannerAlignment = bannerData.bannerAlignment;
-
         // Call the onSave callback with updated data (Organization format)
         await onSave({
           name: basicInfoData.name.trim(),
@@ -400,6 +399,7 @@ export function EntityEditStepper({
           metadata,
           logo: logoData.logo?.file || null,
           heroImage: bannerData.heroImage?.file || null,
+          bannerPosition: bannerData.bannerAlignment,
         });
       } else {
         // Club: Pass individual location fields
@@ -417,9 +417,6 @@ export function EntityEditStepper({
         }
         clubMetadata.logoMetadata = logoMetadata;
 
-        // Add banner alignment
-        clubMetadata.bannerAlignment = bannerData.bannerAlignment;
-
         await onSave({
           name: basicInfoData.name.trim(),
           slug: basicInfoData.slug.trim(),
@@ -432,6 +429,7 @@ export function EntityEditStepper({
           metadata: clubMetadata,
           logo: logoData.logo?.file || null,
           heroImage: bannerData.heroImage?.file || null,
+          bannerPosition: bannerData.bannerAlignment,
         });
       }
 

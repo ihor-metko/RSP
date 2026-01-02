@@ -112,10 +112,10 @@ export interface UpdateOrganizationPayload {
 
 /**
  * Organization metadata type extending EntityLogoMetadata
+ * Note: Banner alignment is now stored in bannerData.position, not in metadata
  */
 export interface OrganizationMetadata extends EntityLogoMetadata {
-  /** Banner image vertical alignment */
-  bannerAlignment?: 'top' | 'center' | 'bottom';
+  // Banner alignment removed - now stored in bannerData.position
 }
 
 /**

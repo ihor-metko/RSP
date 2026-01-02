@@ -31,7 +31,7 @@ export function CourtEditor({
 
   const bannerData: BannerData = {
     heroImage: court.bannerData?.url ? { url: court.bannerData.url, key: "", preview: court.bannerData.url } : null,
-    bannerAlignment: metadata?.bannerAlignment || 'center',
+    bannerAlignment: (court.bannerData?.position as 'top' | 'center' | 'bottom' | undefined) || 'center',
   };
 
   const handleClose = useCallback(() => {
@@ -53,19 +53,33 @@ export function CourtEditor({
   }, []);
 
   const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
-    // Parse existing metadata and merge with new alignment
-    const existingMetadata = parseCourtMetadata(court.metadata);
-    const newMetadata = {
-      ...existingMetadata,
-      bannerAlignment: alignment,
+    // Get existing bannerData to preserve other fields
+    let existingBannerData: Record<string, unknown> = {};
+    if (court.bannerData) {
+      if (typeof court.bannerData === 'string') {
+        try {
+          existingBannerData = JSON.parse(court.bannerData);
+        } catch {
+          // Invalid JSON, start fresh
+          existingBannerData = {};
+        }
+      } else {
+        existingBannerData = court.bannerData as Record<string, unknown>;
+      }
+    }
+
+    // Update bannerData with new position
+    const updatedBannerData = {
+      ...existingBannerData,
+      position: alignment,
     };
 
-    // Update metadata with alignment first
+    // Update court with new bannerData
     const response = await fetch(`/api/admin/courts/${court.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        metadata: newMetadata,
+        bannerData: updatedBannerData,
       }),
     });
 
@@ -93,7 +107,7 @@ export function CourtEditor({
 
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [court.id, court.metadata, onRefresh, t]);
+  }, [court.id, court.bannerData, onRefresh, t]);
 
   return (
     <>

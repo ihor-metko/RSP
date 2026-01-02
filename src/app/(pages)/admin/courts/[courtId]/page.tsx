@@ -300,7 +300,7 @@ export default function CourtDetailPage({
         title={court.name}
         subtitle={court.type || (court.indoor ? t("courtDetail.subtitle.indoorCourt") : t("courtDetail.subtitle.outdoorCourt"))}
         imageUrl={court.bannerData?.url}
-        bannerAlignment={courtMetadata?.bannerAlignment || 'center'}
+        bannerAlignment={(court.bannerData?.position as 'top' | 'center' | 'bottom' | undefined) || 'center'}
         imageAlt={`${court.name} banner`}
         onEdit={handleOpenDetailsEdit}
       />

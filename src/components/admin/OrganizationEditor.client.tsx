@@ -81,7 +81,7 @@ export function OrganizationEditor({
 
   const bannerData: BannerData = {
     heroImage: organization.bannerData?.url ? { url: organization.bannerData.url, key: "", preview: organization.bannerData.url } : null,
-    bannerAlignment: metadata?.bannerAlignment || 'center',
+    bannerAlignment: organization.bannerData?.position || 'center',
   };
 
   const handleTabChange = useCallback(async (newTabId: string) => {
@@ -199,12 +199,18 @@ export function OrganizationEditor({
   }, [organization.id, organization.metadata, onUpdate, onRefresh, t]);
 
   const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
-    // Update metadata with alignment first
+    // Get existing bannerData to preserve other fields
+    const existingBannerData = organization.bannerData || {};
+    
+    // Update bannerData with new position
+    const updatedBannerData = {
+      ...existingBannerData,
+      position: alignment,
+    };
+
+    // Update organization with new bannerData
     await onUpdate(organization.id, {
-      metadata: {
-        ...(organization.metadata as object || {}),
-        bannerAlignment: alignment,
-      },
+      bannerData: updatedBannerData,
     });
 
     // Upload file if provided
@@ -226,7 +232,7 @@ export function OrganizationEditor({
 
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [organization.id, organization.metadata, onUpdate, onRefresh, t]);
+  }, [organization.id, organization.bannerData, onUpdate, onRefresh, t]);
 
   return (
     <>
