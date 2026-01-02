@@ -57,11 +57,11 @@ export async function DELETE(
       where: { id: imageId },
     });
 
-    console.log(`[Club Gallery Delete] Successfully deleted image ${imageId} from club ${clubId}`);
+    console.log(`Club Gallery Delete - Successfully deleted image ${imageId} from club ${clubId}`);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(`[Club Gallery Delete] Error deleting image:`, {
+    console.error(`Club Gallery Delete - Error deleting image:`, {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });

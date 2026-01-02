@@ -77,6 +77,9 @@ export async function PATCH(
     });
 
     // Fetch updated club data to return
+    // Note: We return the full club data (not just gallery) because the component's
+    // updateClubInStore() method needs the complete club object to properly update
+    // the Zustand store. This maintains consistency with other update endpoints.
     const updatedClub = await prisma.club.findUnique({
       where: { id: clubId },
       include: {

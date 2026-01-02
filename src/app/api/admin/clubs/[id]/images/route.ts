@@ -60,7 +60,7 @@ export async function POST(
     // Validate file
     const validationError = validateUploadedFile(file);
     if (validationError) {
-      console.warn(`[Club Gallery Upload] Validation failed for club ${clubId}:`, validationError);
+      console.warn(`Club Gallery Upload - Validation failed for club ${clubId}:`, validationError);
       
       // Return 415 for unsupported file type
       if (validationError.includes("Invalid file type") || validationError.includes("Allowed types")) {
@@ -78,14 +78,14 @@ export async function POST(
     }
 
     // Save file to storage
-    console.log(`[Club Gallery Upload] Saving file for club ${clubId}, size: ${file.size} bytes`);
+    console.log(`Club Gallery Upload - Saving file for club ${clubId}, size: ${file.size} bytes`);
     const filename = await saveUploadedFile(file, "clubs", clubId);
-    console.log(`[Club Gallery Upload] File saved successfully: ${filename}`);
+    console.log(`Club Gallery Upload - File saved successfully: ${filename}`);
 
     // Generate URL
     const url = getUploadedImageUrl("clubs", clubId, filename);
 
-    console.log(`[Club Gallery Upload] Upload successful for club ${clubId}: ${url}`);
+    console.log(`Club Gallery Upload - Upload successful for club ${clubId}: ${url}`);
 
     return NextResponse.json({
       success: true,
@@ -94,7 +94,7 @@ export async function POST(
     });
   } catch (error) {
     // Log detailed error information for debugging
-    console.error(`[Club Gallery Upload] Error uploading image for club ${clubId}:`, {
+    console.error(`Club Gallery Upload - Error uploading image for club ${clubId}:`, {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       clubId,
