@@ -100,11 +100,6 @@
   background: var(--im-bg-tertiary);
 }
 
-.club-header-toggle:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: -2px;
-}
-
 .club-toggle-icon {
   font-size: 0.875rem;
   color: var(--im-text-secondary);
@@ -168,6 +163,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;

@@ -47,11 +47,6 @@
   color: var(--im-primary);
 }
 
-.im-calendar-nav-button:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 .im-calendar-nav-button:active {
   transform: scale(0.95);
 }
@@ -106,12 +101,6 @@
   border-color: var(--im-border-hover);
   color: var(--im-primary);
   transform: scale(1.05);
-}
-
-.im-calendar-day:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-  z-index: 1;
 }
 
 /* Today */
@@ -183,12 +172,12 @@
   .im-calendar {
     max-width: 100%;
   }
-  
+
   .im-calendar-day {
     font-size: 0.813rem;
     min-height: 2.25rem;
   }
-  
+
   .im-calendar-weekday {
     font-size: 0.688rem;
   }
@@ -200,6 +189,7 @@
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

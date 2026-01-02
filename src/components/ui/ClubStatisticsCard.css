@@ -22,11 +22,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.im-club-stat-card--clickable:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 /* ===== Header ===== */
 .im-club-stat-header {
   @apply mb-4 pb-3;

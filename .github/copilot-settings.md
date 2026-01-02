@@ -167,3 +167,27 @@ This rule applies to:
 - Frontend data fetching and typings
 
 For Club entities, `metadata` is considered **internal-only** and must not be returned or consumed by the frontend under any circumstances.
+
+# 8. Copilot Styling Rules
+
+## Remove Outline on Focus / Active / Hover
+
+When generating UI components, **do not add `outline` or browser default focus rings** on elements for the following states:
+
+- `:focus`
+- `:focus-visible`
+- `:active`
+- `:hover` (if outline is applied)
+
+Instead, use custom visual indicators (like box-shadow or border changes) if needed, but never rely on the default browser outline.
+
+**Example:**
+
+```css
+/* Avoid default outline */
+.my-button:focus,
+.my-button:focus-visible,
+.my-button:active,
+.my-button:hover {
+  outline: none;
+}

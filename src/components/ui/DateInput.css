@@ -44,7 +44,6 @@
 }
 
 .im-date-input:focus {
-  outline: none;
   border-color: var(--im-primary);
   box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
 }
@@ -76,11 +75,6 @@
   background-color: var(--im-bg-tertiary);
 }
 
-.im-date-input-icon:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 /* Calendar Popup */
 .im-date-input-popup {
   animation: slideDown 0.2s ease-out;
@@ -96,6 +90,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -103,6 +98,6 @@
 }
 
 /* When used in forms or grids */
-.im-date-input-wrapper + .im-date-input-wrapper {
+.im-date-input-wrapper+.im-date-input-wrapper {
   margin-top: 0;
 }

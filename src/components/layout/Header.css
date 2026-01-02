@@ -57,11 +57,6 @@
   transform: scale(1.05);
 }
 
-.im-header-brand:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 /* Modern logo with brand colors */
 .im-logo {
   @apply font-sans font-extrabold;
@@ -121,11 +116,6 @@
   background-color: var(--im-card-bg);
 }
 
-.im-header-mobile-toggle:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 .im-header-mobile-toggle .im-header-icon {
   width: 20px;
   height: 20px;
@@ -156,11 +146,6 @@
   color: var(--im-primary);
 }
 
-.im-header-mobile-nav-link:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: -2px;
-}
-
 .im-header-mobile-controls {
   @apply flex items-center gap-2 pt-3 border-t;
   border-color: var(--im-border);
@@ -181,11 +166,6 @@
 .im-header-mobile-auth-link:hover {
   background-color: var(--im-card-bg);
   color: var(--im-primary);
-}
-
-.im-header-mobile-auth-link:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
 }
 
 .im-header-mobile-auth-link--primary {
@@ -223,11 +203,6 @@
   color: var(--im-primary);
 }
 
-.im-header-auth-link:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 .im-header-auth-link--primary {
   background-color: var(--im-primary);
   color: white;
@@ -255,7 +230,6 @@
 .im-header-search-input:focus {
   width: 280px;
   border-color: var(--im-primary);
-  outline: none;
 }
 
 .im-header-search-input::placeholder {

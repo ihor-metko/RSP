@@ -30,7 +30,6 @@
   transition: all 0.2s ease;
   background-color: var(--im-card-bg);
   position: relative;
-  outline: none;
 }
 
 .im-radio-option:hover:not(.im-radio-option--disabled) {
@@ -41,7 +40,6 @@
 .im-radio-option:focus-visible {
   border-color: var(--im-primary);
   box-shadow: var(--shadow-focus);
-  outline: none;
 }
 
 .im-radio-option--selected {

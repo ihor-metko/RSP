@@ -104,7 +104,6 @@
 }
 
 .im-select-native:focus {
-  outline: none;
   border-color: var(--im-accent);
   box-shadow: 0 0 0 3px rgba(var(--im-accent-rgb), 0.1);
 }

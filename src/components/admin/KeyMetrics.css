@@ -31,11 +31,6 @@
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
 }
 
-.im-metric-card:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 /* Card Icon Container */
 .im-metric-card-icon {
   @apply flex-shrink-0 flex items-center justify-center w-14 h-14 rounded-xl;

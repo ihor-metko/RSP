@@ -42,7 +42,6 @@
 }
 
 .im-upload-field:focus {
-  outline: none;
   border-color: var(--rsp-primary);
   box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.25);
 }
@@ -74,7 +73,7 @@
   aspect-ratio: 16 / 9;
 }
 
-/* Theme-based backgrounds for logos 
+/* Theme-based backgrounds for logos
  * Note: These use fixed colors (not CSS variables) intentionally to provide
  * consistent preview backgrounds for logos regardless of the current app theme.
  * This allows users to see how their logo looks on both light and dark backgrounds.

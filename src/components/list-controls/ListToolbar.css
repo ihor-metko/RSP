@@ -89,12 +89,6 @@
   box-shadow: var(--shadow-hover, 0 2px 8px rgba(0, 0, 0, 0.1));
 }
 
-/* Focus state for keyboard navigation */
-.im-list-toolbar-actions button:focus-visible {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 /* Responsive adjustments - on narrow screens allow horizontal scroll */
 @media (max-width: 768px) {
   .im-list-toolbar {

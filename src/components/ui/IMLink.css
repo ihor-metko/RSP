@@ -9,13 +9,7 @@
 
 .im-link:hover {
   color: var(--rsp-primary-hover);
-  text-decoration: underline;
   cursor: pointer;
-}
-
-.im-link:focus {
-  outline: 2px solid var(--rsp-primary);
-  outline-offset: 2px;
 }
 
 .im-link:active {

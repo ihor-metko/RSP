@@ -49,7 +49,6 @@
 }
 
 .im-business-hours-input:focus {
-  outline: none;
   border-color: var(--rsp-primary);
 }
 

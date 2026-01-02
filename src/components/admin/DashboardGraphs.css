@@ -44,11 +44,6 @@
   border-color: var(--im-border-hover);
 }
 
-.im-graph-time-button:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 .im-graph-time-button--active {
   color: var(--im-text-primary);
   background-color: var(--im-primary);

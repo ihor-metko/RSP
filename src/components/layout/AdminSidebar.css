@@ -37,7 +37,7 @@
     /* Formula: (viewport-width - max-content-width) / 2 */
     left: max(0px, calc((100vw - 1600px - 240px) / 2));
   }
-  
+
   .im-sidebar--collapsed {
     left: max(0px, calc((100vw - 1600px - 64px) / 2));
   }
@@ -214,11 +214,6 @@
   background-color: var(--im-card-bg);
 }
 
-.im-sidebar-toggle:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 .im-sidebar-toggle .im-sidebar-icon {
   width: 20px;
   height: 20px;
@@ -254,11 +249,6 @@
 .im-sidebar-expand-btn:hover {
   background-color: var(--im-card-bg);
   color: var(--im-primary);
-}
-
-.im-sidebar-expand-btn:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: -2px;
 }
 
 /* Badge for counts/notifications */
@@ -364,11 +354,6 @@
 .im-sidebar-collapse-btn:hover {
   background-color: var(--im-card-bg);
   color: var(--im-foreground);
-}
-
-.im-sidebar-collapse-btn:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: -2px;
 }
 
 .im-sidebar--collapsed .im-sidebar-collapse-btn {

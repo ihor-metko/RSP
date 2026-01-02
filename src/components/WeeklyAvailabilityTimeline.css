@@ -156,7 +156,8 @@
   color: var(--im-availability-blocked-text);
   opacity: 0.6;
   cursor: not-allowed;
-  pointer-events: auto; /* Allow hover for tooltip; click prevention is handled in JavaScript */
+  pointer-events: auto;
+  /* Allow hover for tooltip; click prevention is handled in JavaScript */
 }
 
 .tm-availability-block--blocked-past:hover {
@@ -165,7 +166,7 @@
 }
 
 .tm-availability-block--blocked-past:focus {
-  outline: none;
+  none;
   ring-color: transparent;
 }
 

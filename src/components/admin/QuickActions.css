@@ -44,11 +44,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.im-quick-action-card:focus {
-  outline: 2px solid var(--im-primary, #3b82f6);
-  outline-offset: 2px;
-}
-
 /* Icon wrapper */
 .im-quick-action-icon-wrapper {
   flex-shrink: 0;

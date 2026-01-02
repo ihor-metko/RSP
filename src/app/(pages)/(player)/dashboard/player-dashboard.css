@@ -29,7 +29,6 @@
 }
 
 .tm-quick-book-section .tm-booking-select:focus {
-  outline: none;
   border-color: var(--rsp-primary);
   box-shadow: 0 0 0 2px rgba(0, 208, 144, 0.2);
 }
@@ -93,11 +92,6 @@
   border: 1px solid var(--rsp-border);
 }
 
-.tm-nav-link:focus {
-  outline: 2px solid var(--rsp-primary);
-  outline-offset: 2px;
-}
-
 /* Loading Skeleton */
 .tm-loading-skeleton {
   padding: 2rem;
@@ -127,14 +121,6 @@
   .tm-nav-links {
     grid-template-columns: repeat(2, 1fr);
   }
-}
-
-/* Focus visible styles for accessibility */
-.tm-player-dashboard button:focus-visible,
-.tm-player-dashboard a:focus-visible,
-.tm-player-dashboard select:focus-visible {
-  outline: 2px solid var(--rsp-primary);
-  outline-offset: 2px;
 }
 
 /* Screen reader only utility */

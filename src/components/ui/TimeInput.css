@@ -40,7 +40,6 @@
 }
 
 .im-time-input:focus {
-  outline: none;
   border-color: var(--im-primary);
 }
 

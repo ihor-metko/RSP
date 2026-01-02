@@ -57,7 +57,6 @@
 .im-public-footer-link:hover,
 .im-public-footer-link:focus {
   color: var(--im-footer-link-hover);
-  outline: none;
 }
 
 .im-public-footer-link:focus-visible {
@@ -123,7 +122,6 @@
 .im-dashboard-footer-link:hover,
 .im-dashboard-footer-link:focus {
   color: var(--im-footer-link-hover);
-  outline: none;
 }
 
 .im-dashboard-footer-link:focus-visible {

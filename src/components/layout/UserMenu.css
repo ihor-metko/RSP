@@ -113,8 +113,6 @@
 }
 
 .im-user-menu-item:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: -2px;
   background-color: var(--im-surface);
 }
 

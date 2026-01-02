@@ -34,12 +34,6 @@
   background-color: var(--im-card-bg);
 }
 
-/* Focus state for keyboard navigation */
-.im-quick-presets button:focus-visible {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 /* When in toolbar - more compact, inline layout */
 .im-list-toolbar-content .im-quick-presets {
   flex-wrap: nowrap;
@@ -51,7 +45,7 @@
   .im-quick-presets:not(.im-list-toolbar-content .im-quick-presets) {
     @apply flex-col items-stretch;
   }
-  
+
   .im-quick-presets:not(.im-list-toolbar-content .im-quick-presets) button {
     @apply w-full justify-center;
   }

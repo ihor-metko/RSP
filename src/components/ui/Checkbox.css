@@ -14,7 +14,6 @@
   border: 2px solid var(--rsp-border);
   appearance: none;
   position: relative;
-  outline: none;
 }
 
 .rsp-checkbox:checked {

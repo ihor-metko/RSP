@@ -89,12 +89,6 @@
   transform: none;
 }
 
-/* Focus state for keyboard navigation */
-.im-pagination-page:focus-visible {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 .im-pagination-size {
   @apply flex items-center gap-2;
 }

@@ -32,11 +32,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.im-court-overview-item:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 /* ===== Court Overview Main Content ===== */
 .im-court-overview-main {
   display: flex;

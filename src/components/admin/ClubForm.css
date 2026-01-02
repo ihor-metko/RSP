@@ -131,7 +131,6 @@
 }
 
 .im-club-form-textarea:focus {
-  outline: none;
   border-color: var(--rsp-primary);
 }
 

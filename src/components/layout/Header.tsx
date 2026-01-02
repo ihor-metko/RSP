@@ -173,7 +173,7 @@ const primaryNavItems: NavItem[] = [
 export default function Header({ showSearch = false, hideProfile = false }: HeaderProps) {
   const t = useTranslations();
   const currentLocale = useCurrentLocale();
-  
+
   // Use store for auth
   const isLoading = useUserStore(state => state.isLoading);
   const isLoggedIn = useUserStore(state => state.isLoggedIn);
@@ -233,7 +233,7 @@ export default function Header({ showSearch = false, hideProfile = false }: Head
         {/* Left section: Brand and navigation */}
         <div className="im-header-left">
           {/* Logo / Brand */}
-          <IMLink href="/" className="im-header-brand" aria-label="ArenaOne">
+          <IMLink href="/" aria-label="ArenaOne">
             <span className="im-logo">
               <span className="im-logo-arena">Arena</span>
               <span className="im-logo-one">One</span>

@@ -17,12 +17,6 @@
   z-index: 2;
 }
 
-.im-booking-block:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-  z-index: 2;
-}
-
 /* Status-based colors using centralized color classes */
 /* These match the utility function color mappings */
 

@@ -379,11 +379,6 @@
   transform: translateX(4px);
 }
 
-.im-club-preview-item--clickable:focus {
-  outline: 2px solid var(--im-primary);
-  outline-offset: 2px;
-}
-
 .im-club-preview-info {
   @apply flex flex-col gap-1 flex-1 min-w-0;
 }

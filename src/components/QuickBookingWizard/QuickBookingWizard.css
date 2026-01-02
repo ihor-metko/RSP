@@ -78,6 +78,7 @@
     opacity: 0;
     transform: translateX(20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -93,6 +94,7 @@
     opacity: 1;
     transform: translateX(0);
   }
+
   to {
     opacity: 0;
     transform: translateX(-20px);
@@ -168,11 +170,11 @@
   background-color: var(--rsp-background);
   border: 1px solid var(--rsp-border);
   color: var(--rsp-foreground);
-  min-height: 44px; /* Touch-friendly */
+  min-height: 44px;
+  /* Touch-friendly */
 }
 
 .rsp-wizard-input:focus {
-  outline: none;
   border-color: var(--rsp-primary);
   box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
 }
