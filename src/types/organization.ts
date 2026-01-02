@@ -10,7 +10,7 @@ import type { Address } from "./address";
  * Logo data structure
  */
 export interface LogoData {
-  url: string;
+  url?: string;
   altText?: string;
   thumbnailUrl?: string;
   // Theme-aware logo fields (migrated from metadata)
@@ -23,7 +23,7 @@ export interface LogoData {
  * Banner data structure
  */
 export interface BannerData {
-  url: string;
+  url?: string;
   altText?: string;
   description?: string;
   position?: 'top' | 'center' | 'bottom';

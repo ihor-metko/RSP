@@ -18,8 +18,8 @@ export interface AdminOrganizationCardProps {
     createdAt: string;
     clubCount?: number;
     supportedSports?: SportType[];
-    logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
-    bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+    logoData?: { url?: string; altText?: string; thumbnailUrl?: string } | null;
+    bannerData?: { url?: string; altText?: string; description?: string; position?: string } | null;
     metadata?: Record<string, unknown> | null;
     isPublic: boolean;
     createdBy?: {
