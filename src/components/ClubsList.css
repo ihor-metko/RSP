@@ -80,7 +80,7 @@
 
 @media (min-width: 1024px) {
   .rsp-popular-clubs-grid {
-    @apply grid-cols-4;
+    @apply grid-cols-3;
   }
 }
 

@@ -2,19 +2,25 @@
  * Shared types for the Home page components
  */
 
+import type { Address } from "./address";
+
 /**
- * Club data with indoor/outdoor court counts for display
+ * Public club card data with indoor/outdoor court counts for display
+ * This matches the structure returned by /api/clubs endpoint and used by PublicClubCard
  */
-export interface ClubWithCounts {
+export interface PublicClubCardData {
   id: string;
   name: string;
-  location: string;
+  shortDescription?: string | null;
+  address?: Address | null;
   contactInfo?: string | null;
   openingHours?: string | null;
-  logo?: string | null;
-  indoorCount: number;
-  outdoorCount: number;
-  shortDescription: string | null;
+  logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
+  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+  tags?: string | null;
+  createdAt?: string;
+  indoorCount?: number;
+  outdoorCount?: number;
 }
 
 /**
