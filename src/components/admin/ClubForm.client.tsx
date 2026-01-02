@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import { Button, Input, Card } from "@/components/ui";
 import { UploadField } from "./UploadField.client";
 import { BusinessHoursField } from "./BusinessHoursField.client";

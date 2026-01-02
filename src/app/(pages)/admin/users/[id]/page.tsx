@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import { Button, Modal, Breadcrumbs, Badge, Card, Input } from "@/components/ui";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { useUserStore } from "@/stores/useUserStore";
@@ -326,12 +326,12 @@ export default function UserDetailPage() {
               <AlertTriangleIcon />
               <h2>{t("userDetail.errorTitle")}</h2>
               <p>{error}</p>
-              <Link href="/admin/users">
+              <IMLink href="/admin/users">
                 <Button variant="outline">
                   <ArrowLeftIcon />
                   {t("userDetail.backToUsers")}
                 </Button>
-              </Link>
+              </IMLink>
             </div>
           </Card>
         </section>
@@ -568,9 +568,9 @@ export default function UserDetailPage() {
               <div className="im-details-list">
                 {user.memberships.map((m) => (
                   <div key={m.id} className="im-details-list-item">
-                    <Link href={`/admin/organizations/${m.organization.id}`} className="im-link">
+                    <IMLink href={`/admin/organizations/${m.organization.id}`} className="im-link">
                       {m.organization.name}
-                    </Link>
+                    </IMLink>
                     <Badge variant="info" size="small">
                       {getRoleLabel(m.role)} {m.isPrimaryOwner && `(${t("organizations.owner")})`}
                     </Badge>
@@ -590,9 +590,9 @@ export default function UserDetailPage() {
               <div className="im-details-list">
                 {user.clubMemberships.map((m) => (
                   <div key={m.id} className="im-details-list-item">
-                    <Link href={`/admin/clubs/${m.club.id}`} className="im-link">
+                    <IMLink href={`/admin/clubs/${m.club.id}`} className="im-link">
                       {m.club.name}
-                    </Link>
+                    </IMLink>
                     <Badge variant="warning" size="small">
                       {getRoleLabel(m.role)}
                     </Badge>
@@ -627,12 +627,12 @@ export default function UserDetailPage() {
 
         {/* Back Button */}
         <div className="im-back-button-container">
-          <Link href="/admin/users">
+          <IMLink href="/admin/users">
             <Button variant="outline">
               <ArrowLeftIcon />
               {t("userDetail.backToUsers")}
             </Button>
-          </Link>
+          </IMLink>
         </div>
       </section>
 

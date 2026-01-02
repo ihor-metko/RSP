@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import { DarkModeToggle, LanguageSwitcher, NotificationsDropdown } from "@/components/ui";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { useUserStore } from "@/stores/useUserStore";
@@ -233,12 +233,12 @@ export default function Header({ showSearch = false, hideProfile = false }: Head
         {/* Left section: Brand and navigation */}
         <div className="im-header-left">
           {/* Logo / Brand */}
-          <Link href="/" className="im-header-brand" aria-label="ArenaOne">
+          <IMLink href="/" className="im-header-brand" aria-label="ArenaOne">
             <span className="im-logo">
               <span className="im-logo-arena">Arena</span>
               <span className="im-logo-one">One</span>
             </span>
-          </Link>
+          </IMLink>
         </div>
 
         {/* Right section: Search, controls, profile/auth */}
@@ -281,12 +281,12 @@ export default function Header({ showSearch = false, hideProfile = false }: Head
                 />
               ) : (
                 <div className="im-header-auth-links">
-                  <Link href="/auth/sign-in" className="im-header-auth-link">
+                  <IMLink href="/auth/sign-in" className="im-header-auth-link">
                     {t("common.signIn")}
-                  </Link>
-                  <Link href="/auth/sign-up" className="im-header-auth-link im-header-auth-link--primary">
+                  </IMLink>
+                  <IMLink href="/auth/sign-up" className="im-header-auth-link im-header-auth-link--primary">
                     {t("common.register")}
-                  </Link>
+                  </IMLink>
                 </div>
               )}
             </>
@@ -311,7 +311,7 @@ export default function Header({ showSearch = false, hideProfile = false }: Head
           {/* Mobile navigation */}
           <nav className="im-header-mobile-nav" aria-label={t("playerDashboard.navigation.title")}>
             {primaryNavItems.map((item) => (
-              <Link
+              <IMLink
                 key={item.href}
                 href={item.href}
                 className="im-header-mobile-nav-link"
@@ -319,7 +319,7 @@ export default function Header({ showSearch = false, hideProfile = false }: Head
               >
                 {item.icon}
                 <span>{getNavLabel(item.labelKey)}</span>
-              </Link>
+              </IMLink>
             ))}
           </nav>
 
@@ -332,20 +332,20 @@ export default function Header({ showSearch = false, hideProfile = false }: Head
           {/* Mobile auth links for unauthenticated users */}
           {!isAuthenticated && !hideProfile && (
             <div className="im-header-mobile-auth">
-              <Link
+              <IMLink
                 href="/auth/sign-in"
                 className="im-header-mobile-auth-link"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {t("common.signIn")}
-              </Link>
-              <Link
+              </IMLink>
+              <IMLink
                 href="/auth/sign-up"
                 className="im-header-mobile-auth-link im-header-mobile-auth-link--primary"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {t("common.register")}
-              </Link>
+              </IMLink>
             </div>
           )}
         </div>

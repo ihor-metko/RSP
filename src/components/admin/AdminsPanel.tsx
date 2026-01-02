@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import "./AdminsPanel.css";
 
 /**
@@ -150,10 +150,10 @@ export default function AdminsPanel({
               </h3>
             </div>
           </div>
-          <Link href={orgAdminsUrl} className="im-admins-panel-card-link">
+          <IMLink href={orgAdminsUrl} className="im-admins-panel-card-link">
             {t("adminsPanel.manageAdmins")}
             <ArrowRightIcon />
-          </Link>
+          </IMLink>
         </article>
 
         {/* Club Admins Card */}
@@ -171,10 +171,10 @@ export default function AdminsPanel({
               </h3>
             </div>
           </div>
-          <Link href={clubAdminsUrl} className="im-admins-panel-card-link">
+          <IMLink href={clubAdminsUrl} className="im-admins-panel-card-link">
             {t("adminsPanel.manageAdmins")}
             <ArrowRightIcon />
-          </Link>
+          </IMLink>
         </article>
       </div>
     </div>

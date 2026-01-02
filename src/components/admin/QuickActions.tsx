@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import { useUserStore } from "@/stores/useUserStore";
 import "./QuickActions.css";
 
@@ -135,7 +135,7 @@ export default function QuickActions({ organizationId, clubId }: QuickActionsPro
       
       <nav className="im-quick-actions-grid" aria-label={t("quickActions.title")}>
         {canCreateClub && (
-          <Link
+          <IMLink
             href={createClubUrl}
             className="im-quick-action-card im-quick-action-card--primary"
           >
@@ -150,11 +150,11 @@ export default function QuickActions({ organizationId, clubId }: QuickActionsPro
                 {t("quickActions.createClubDescription")}
               </p>
             </div>
-          </Link>
+          </IMLink>
         )}
 
         {canInviteAdmin && (
-          <Link
+          <IMLink
             href={inviteAdminUrl}
             className="im-quick-action-card im-quick-action-card--secondary"
           >
@@ -169,11 +169,11 @@ export default function QuickActions({ organizationId, clubId }: QuickActionsPro
                 {t("quickActions.inviteAdminDescription")}
               </p>
             </div>
-          </Link>
+          </IMLink>
         )}
 
         {canCreateCourt && (
-          <Link
+          <IMLink
             href={createCourtUrl}
             className="im-quick-action-card im-quick-action-card--tertiary"
           >
@@ -188,7 +188,7 @@ export default function QuickActions({ organizationId, clubId }: QuickActionsPro
                 {t("quickActions.createCourtDescription")}
               </p>
             </div>
-          </Link>
+          </IMLink>
         )}
       </nav>
     </div>

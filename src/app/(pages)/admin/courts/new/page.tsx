@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useForm, Controller } from "react-hook-form";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import {
   Button,
   Card,
@@ -1165,7 +1165,7 @@ export default function CreateCourtPage() {
           <Card>
             <div className="im-create-court-error-banner">{error}</div>
             <div style={{ marginTop: "1rem" }}>
-              <Link href="/admin/clubs">{t("admin.courts.new.actions.backToClubs")}</Link>
+              <IMLink href="/admin/clubs">{t("admin.courts.new.actions.backToClubs")}</IMLink>
             </div>
           </Card>
         </div>

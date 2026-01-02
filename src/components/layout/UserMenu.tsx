@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import "./UserMenu.css";
@@ -297,7 +297,7 @@ export default function UserMenu({ userName, userEmail, isRoot = false }: UserMe
           <div className="im-user-menu-separator" role="separator" />
 
           {/* Menu items - aria-label omitted when visible text is sufficient */}
-          <Link
+          <IMLink
             href="/profile"
             className="im-user-menu-item"
             role="menuitem"
@@ -306,9 +306,9 @@ export default function UserMenu({ userName, userEmail, isRoot = false }: UserMe
           >
             <UserIcon />
             <span>{t("playerDashboard.navigation.profile")}</span>
-          </Link>
+          </IMLink>
 
-          <Link
+          <IMLink
             href="/bookings"
             className="im-user-menu-item"
             role="menuitem"
@@ -317,9 +317,9 @@ export default function UserMenu({ userName, userEmail, isRoot = false }: UserMe
           >
             <CalendarIcon />
             <span>{t("training.history.title")}</span>
-          </Link>
+          </IMLink>
 
-          <Link
+          <IMLink
             href="/settings"
             className="im-user-menu-item"
             role="menuitem"
@@ -328,7 +328,7 @@ export default function UserMenu({ userName, userEmail, isRoot = false }: UserMe
           >
             <SettingsIcon />
             <span>{t("common.settings") || "Settings"}</span>
-          </Link>
+          </IMLink>
 
           <div className="im-user-menu-separator" role="separator" />
 

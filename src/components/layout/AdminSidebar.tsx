@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import type { AdminStatus } from "@/app/api/me/route";
@@ -897,7 +897,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
                       >
                         {item.children.map((child) => (
                           <li key={child.id} className="im-sidebar-nav-item" role="none">
-                            <Link
+                            <IMLink
                               href={child.href || "#"}
                               className={`im-sidebar-nav-link ${isActive(child.href) ? "im-sidebar-nav-link--active" : ""
                                 }`}
@@ -907,7 +907,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
                             >
                               {child.icon}
                               <span>{getLabel(child.labelKey, child.dynamicLabel)}</span>
-                            </Link>
+                            </IMLink>
                           </li>
                         ))}
                       </ul>
@@ -935,7 +935,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
                   </div>
                 ) : (
                   // Regular link (or collapsed mode for expandable items)
-                  <Link
+                  <IMLink
                     href={item.href || "#"}
                     className={`im-sidebar-nav-link ${isActive(item.href) ? "im-sidebar-nav-link--active" : ""}`}
                     role="menuitem"
@@ -945,7 +945,7 @@ export default function AdminSidebar({ hasHeader = true, onCollapsedChange }: Ad
                   >
                     {item.icon}
                     {!isCollapsed && <span>{getLabel(item.labelKey, item.dynamicLabel)}</span>}
-                  </Link>
+                  </IMLink>
                 )}
               </li>
             ))}

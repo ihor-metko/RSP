@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import { PageHeader, Badge, Card, Tooltip, Button } from "@/components/ui";
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { useListController, useDeferredLoading } from "@/hooks";
@@ -551,9 +551,9 @@ export default function AdminUsersPage() {
                           <div className="im-user-avatar">
                             {user.name ? user.name.charAt(0).toUpperCase() : "?"}
                           </div>
-                          <Link href={`/admin/users/${user.id}`} className="im-user-name-link">
+                          <IMLink href={`/admin/users/${user.id}`} className="im-user-name-link">
                             {user.name || t("users.unnamed")}
-                          </Link>
+                          </IMLink>
                         </div>
                       </td>
                       {/* Email (mailto link) */}

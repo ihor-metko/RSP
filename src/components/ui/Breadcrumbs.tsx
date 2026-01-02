@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import "./Breadcrumbs.css";
 
 export interface BreadcrumbItem {
@@ -100,7 +100,7 @@ export function Breadcrumbs({
                 </span>
               ) : (
                 // Clickable link
-                <Link
+                <IMLink
                   href={item.href}
                   className="im-breadcrumb-link"
                 >
@@ -122,7 +122,7 @@ export function Breadcrumbs({
                   ) : (
                     item.label
                   )}
-                </Link>
+                </IMLink>
               )}
             </li>
           );

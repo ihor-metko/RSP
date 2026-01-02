@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import "./ActivityFeed.css";
 
 /**
@@ -151,10 +151,10 @@ export default function ActivityFeed({
     <div className="im-activity-feed-section">
       <div className="im-activity-feed-header">
         <h2 className="im-activity-feed-title">{t("activityFeed.title")}</h2>
-        <Link href={auditLogUrl} className="im-activity-feed-view-all">
+        <IMLink href={auditLogUrl} className="im-activity-feed-view-all">
           {t("activityFeed.viewAll")}
           <ArrowRightIcon />
-        </Link>
+        </IMLink>
       </div>
 
       <div className="im-activity-feed-list" role="feed" aria-label={t("activityFeed.title")}>
@@ -205,10 +205,10 @@ export default function ActivityFeed({
 
       {activities.length > maxItems && (
         <div className="im-activity-feed-footer">
-          <Link href={auditLogUrl} className="im-activity-feed-show-more">
+          <IMLink href={auditLogUrl} className="im-activity-feed-show-more">
             {t("activityFeed.showMore", { count: activities.length - maxItems })}
             <ArrowRightIcon />
-          </Link>
+          </IMLink>
         </div>
       )}
     </div>

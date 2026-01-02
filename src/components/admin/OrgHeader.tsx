@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { IMLink } from "@/components/ui/IMLink";
 import "./OrgHeader.css";
 
 /**
@@ -106,13 +106,13 @@ export default function OrgHeader({
               </span>
             </div>
           )}
-          <Link
+          <IMLink
             href={`/admin/orgs/${orgId}/settings`}
             className="im-org-header-settings-btn"
             aria-label={t("common.settings")}
           >
             <SettingsIcon />
-          </Link>
+          </IMLink>
         </div>
       </div>
     </header>
