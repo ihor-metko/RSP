@@ -689,103 +689,71 @@ export default function CreateCourtPage() {
         <p className="im-section-description">
           {t("admin.courts.new.basicTab.description")}
         </p>
-
-        <Input
-          {...register("name", {
-            required: t("admin.courts.new.errors.nameRequired"),
-            minLength: { value: 2, message: t("admin.courts.new.errors.nameMinLength") },
-            maxLength: { value: 120, message: t("admin.courts.new.errors.nameMaxLength") },
-          })}
-          onChange={(e) => {
-            register("name").onChange(e);
-            handleNameChange(e);
-          }}
-          label={t("admin.courts.new.basicTab.courtName") + " *"}
-          placeholder={t("admin.courts.new.basicTab.courtNamePlaceholder")}
-          disabled={isSubmitting}
-        />
-        {errors.name && <span className="im-error-text">{errors.name.message}</span>}
       </div>
 
-      <div className="im-tab-section">
-        <div className="im-form-row">
-          <div className="im-form-col">
-            <Input
-              {...register("slug", {
-                pattern: {
-                  value: /^[a-z0-9-]*$/,
-                  message: t("admin.courts.new.errors.slugPattern"),
-                },
-              })}
-              label={t("admin.courts.new.basicTab.slug")}
-              placeholder={t("admin.courts.new.basicTab.slugPlaceholder")}
-              disabled={isSubmitting}
-            />
-            <span className="im-hint-text">{t("admin.courts.new.basicTab.slugHint")}</span>
-            {errors.slug && <span className="im-error-text">{errors.slug.message}</span>}
-          </div>
+      <Input
+        {...register("name", {
+          required: t("admin.courts.new.errors.nameRequired"),
+          minLength: { value: 2, message: t("admin.courts.new.errors.nameMinLength") },
+          maxLength: { value: 120, message: t("admin.courts.new.errors.nameMaxLength") },
+        })}
+        onChange={(e) => {
+          register("name").onChange(e);
+          handleNameChange(e);
+        }}
+        label={t("admin.courts.new.basicTab.courtName") + " *"}
+        placeholder={t("admin.courts.new.basicTab.courtNamePlaceholder")}
+        disabled={isSubmitting}
+      />
+      {errors.name && <span className="im-error-text">{errors.name.message}</span>}
 
-          <div className="im-form-col">
-            <Controller
-              name="type"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  label={t("admin.courts.new.basicTab.courtType")}
-                  options={[
-                    { value: "", label: t("admin.courts.new.basicTab.selectType") },
-                    ...COURT_TYPES,
-                  ]}
-                  value={field.value}
-                  onChange={field.onChange}
-                  disabled={isSubmitting}
-                />
-              )}
-            />
-          </div>
-        </div>
-      </div>
+      <Controller
+        name="type"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label={t("admin.courts.new.basicTab.courtType")}
+            options={[
+              { value: "", label: t("admin.courts.new.basicTab.selectType") },
+              ...COURT_TYPES,
+            ]}
+            value={field.value}
+            onChange={field.onChange}
+            disabled={isSubmitting}
+          />
+        )}
+      />
 
-      <div className="im-tab-section">
-        <div className="im-form-row">
-          <div className="im-form-col">
-            <Controller
-              name="surface"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  label={t("admin.courts.new.basicTab.surface")}
-                  options={[
-                    { value: "", label: t("admin.courts.new.basicTab.selectSurface") },
-                    ...SURFACE_TYPES,
-                  ]}
-                  value={field.value}
-                  onChange={field.onChange}
-                  disabled={isSubmitting}
-                />
-              )}
-            />
-          </div>
+      <Controller
+        name="surface"
+        control={control}
+        render={({ field }) => (
+          <Select
+            label={t("admin.courts.new.basicTab.surface")}
+            options={[
+              { value: "", label: t("admin.courts.new.basicTab.selectSurface") },
+              ...SURFACE_TYPES,
+            ]}
+            value={field.value}
+            onChange={field.onChange}
+            disabled={isSubmitting}
+          />
+        )}
+      />
 
-          <div className="im-form-col">
-            <Checkbox
-              {...register("indoor")}
-              label={t("admin.courts.new.basicTab.indoorCourt")}
-              disabled={isSubmitting}
-            />
-          </div>
-        </div>
-      </div>
+      <Checkbox
+        {...register("indoor")}
+        label={t("admin.courts.new.basicTab.indoorCourt")}
+        disabled={isSubmitting}
+      />
 
-      <div className="im-tab-section">
-        <Textarea
-          {...register("shortDescription")}
-          label={t("admin.courts.new.basicTab.shortDescription")}
-          placeholder={t("admin.courts.new.basicTab.shortDescriptionPlaceholder")}
-          rows={3}
-          disabled={isSubmitting}
-        />
-      </div>
+      <Textarea
+        {...register("shortDescription")}
+        label={t("admin.courts.new.basicTab.shortDescription")}
+        placeholder={t("admin.courts.new.basicTab.shortDescriptionPlaceholder")}
+        rows={3}
+        disabled={isSubmitting}
+      />
     </div>
   );
 

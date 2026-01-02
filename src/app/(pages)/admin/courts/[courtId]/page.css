@@ -4,7 +4,7 @@
   /* Note: Padding has been removed and is now handled by .entity-page-content */
 }
 
-/* DEPRECATED: Use .entity-page-content.entity-page-content--narrow from EntityPageLayout.css instead */
+/* DEPRECATED: Use .entity-page-content from EntityPageLayout.css instead */
 .im-court-detail-container {
   /* Content layout has been moved to shared .entity-page-content class */
   /* This class is kept for backward compatibility only */
@@ -14,21 +14,6 @@
 
 .im-court-detail-breadcrumbs {
   margin-bottom: 1rem;
-}
-
-.im-court-detail-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-}
-
-.im-court-detail-toolbar-left,
-.im-court-detail-toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
 }
 
 .im-court-detail-back {
@@ -247,11 +232,6 @@
 @media (max-width: 640px) {
   .im-court-detail-page {
     padding: 1rem;
-  }
-
-  .im-court-detail-toolbar {
-    flex-direction: column;
-    align-items: flex-start;
   }
 
   .im-court-detail-title {

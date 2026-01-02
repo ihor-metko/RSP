@@ -29,16 +29,14 @@
 
 /* Tab Content Styles */
 .im-create-court-tab-content {
-  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.im-tab-section {
-  margin-bottom: 2rem;
-}
+.im-tab-section {}
 
-.im-tab-section:last-child {
-  margin-bottom: 0;
-}
+.im-tab-section:last-child {}
 
 .im-section-title {
   font-size: 1.125rem;
@@ -50,7 +48,6 @@
 .im-section-description {
   font-size: 0.875rem;
   color: var(--im-muted);
-  margin: 0 0 1.5rem;
 }
 
 /* Form Layout */
