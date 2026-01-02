@@ -142,9 +142,6 @@ export default function CreateCourtPage() {
     // Tab 2: Basic Info
     tabs.push({ id: "basic", label: t("admin.courts.new.tabs.basic") || "Basic Info" });
 
-    // Tab 3: Pricing & Schedule (combined)
-    tabs.push({ id: "pricing-schedule", label: t("admin.courts.new.tabs.pricingSchedule") || "Pricing & Schedule" });
-
     // Tab 4: Media
     tabs.push({ id: "media", label: t("admin.courts.new.tabs.media") || "Media" });
 
@@ -797,84 +794,6 @@ export default function CreateCourtPage() {
     </div>
   );
 
-  // Pricing Tab (schedule removed for MVP - courts inherit club hours)
-  const renderPricingScheduleTab = () => {
-    return (
-      <div className="im-create-court-tab-content">
-        {/* Pricing Section */}
-        <div className="im-tab-section">
-          <h3 className="im-section-title">{t("admin.courts.new.pricingScheduleTab.pricingTitle")}</h3>
-          <p className="im-section-description">
-            {t("admin.courts.new.pricingScheduleTab.pricingDescription")}
-          </p>
-
-          <div className="im-form-row">
-            <div className="im-form-col">
-              <Controller
-                name="defaultPrice"
-                control={control}
-                rules={{
-                  min: { value: 0, message: t("admin.courts.new.errors.priceNegative") },
-                }}
-                render={({ field }) => (
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={field.value}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    label={t("admin.courts.new.pricingScheduleTab.defaultPrice")}
-                    placeholder={t("admin.courts.new.pricingScheduleTab.pricePlaceholder")}
-                    disabled={isSubmitting}
-                  />
-                )}
-              />
-              {errors.defaultPrice && (
-                <span className="im-error-text">{errors.defaultPrice.message}</span>
-              )}
-            </div>
-
-            <div className="im-form-col">
-              <Controller
-                name="currency"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label={t("admin.courts.new.pricingScheduleTab.currency")}
-                    options={[
-                      { value: "USD", label: t("admin.courts.new.currencies.usd") },
-                      { value: "EUR", label: t("admin.courts.new.currencies.eur") },
-                      { value: "GBP", label: t("admin.courts.new.currencies.gbp") },
-                      { value: "UAH", label: t("admin.courts.new.currencies.uah") },
-                    ]}
-                    value={field.value}
-                    onChange={field.onChange}
-                    disabled={isSubmitting}
-                  />
-                )}
-              />
-              <span className="im-hint-text">{t("admin.courts.new.pricingScheduleTab.currencyHint")}</span>
-            </div>
-          </div>
-
-          <Controller
-            name="defaultSlotLengthMinutes"
-            control={control}
-            render={({ field }) => (
-              <Select
-                label={t("admin.courts.new.pricingScheduleTab.defaultSlotLength")}
-                options={SLOT_LENGTHS}
-                value={String(field.value)}
-                onChange={(value) => field.onChange(Number(value))}
-                disabled={isSubmitting}
-              />
-            )}
-          />
-        </div>
-      </div>
-    );
-  };
-
   // Media Tab
   const renderMediaTab = () => {
     const mainImage = watch("mainImage");
@@ -1130,9 +1049,6 @@ export default function CreateCourtPage() {
               </TabPanel>
               <TabPanel id="basic">
                 {renderBasicTab()}
-              </TabPanel>
-              <TabPanel id="pricing-schedule">
-                {renderPricingScheduleTab()}
               </TabPanel>
               <TabPanel id="media">
                 {renderMediaTab()}
