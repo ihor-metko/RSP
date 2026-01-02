@@ -17,7 +17,6 @@ import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
-import { getLocationDisplay, type Address } from "@/types/address";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
@@ -57,7 +56,7 @@ interface ClubWithDetails {
   latitude?: number | null;
   longitude?: number | null;
   // New dedicated address object
-  address?: Address | null;
+  address?: any | null;
   phone?: string | null;
   email?: string | null;
   website?: string | null;
@@ -120,7 +119,7 @@ export default function ClubDetailPage({
 
   // Map currentClub to ClubWithDetails (they should be compatible)
   const club = currentClub as ClubWithDetails | null;
-  
+
   // Get courts and gallery from store (wrapped in useMemo to prevent dependency issues)
   // Transform courts to include imageUrl from bannerData for CourtCard compatibility
   const courts = useMemo(() => {
@@ -193,7 +192,7 @@ export default function ClubDetailPage({
         setActiveClubId(resolvedParams.id);
 
         await ensureClubById(resolvedParams.id);
-        
+
         // Fetch courts and gallery separately after club is loaded
         await Promise.all([
           ensureCourtsByClubId(resolvedParams.id),
@@ -373,12 +372,12 @@ export default function ClubDetailPage({
 
   // Error state
   if (clubsError || (!loadingClubs && !club)) {
-    const errorMessage = clubsError 
-      ? (clubsError.includes("404") || clubsError.includes("not found") 
-          ? t("clubs.clubNotFound") 
-          : clubsError)
+    const errorMessage = clubsError
+      ? (clubsError.includes("404") || clubsError.includes("not found")
+        ? t("clubs.clubNotFound")
+        : clubsError)
       : t("clubs.clubNotFound");
-    
+
     return (
       <main className="rsp-club-detail-page p-8">
         <div className="tm-error-banner text-center p-6 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-xl">
@@ -396,15 +395,12 @@ export default function ClubDetailPage({
   }
 
   // Prepare derived data
-  const hasValidCoordinates = 
+  const hasValidCoordinates =
     (club.address?.lat !== null && club.address?.lng !== null && club.address?.lat !== undefined && club.address?.lng !== undefined);
 
   // Get map coordinates from address object
   const mapLatitude = club.address?.lat;
   const mapLongitude = club.address?.lng;
-
-  // Format location display from address object
-  const locationDisplay = club.address ? getLocationDisplay(club.address) : "";
 
   // Get formatted address for contact info
   const formattedAddress = club.address?.formattedAddress || "";
@@ -412,7 +408,7 @@ export default function ClubDetailPage({
   // Parse club logoData and bannerData for theme settings
   let clubLogoMetadata = null;
   let clubBannerAlignment = 'center' as 'top' | 'center' | 'bottom';
-  
+
   if (club.logoData) {
     try {
       const parsedLogoData = typeof club.logoData === 'string' ? JSON.parse(club.logoData) : club.logoData;
@@ -453,7 +449,7 @@ export default function ClubDetailPage({
       <EntityBanner
         title={club.name}
         subtitle={club.shortDescription}
-        location={locationDisplay}
+        location={club.address?.formattedAddress || ""}
         imageUrl={club.bannerData?.url}
         bannerAlignment={clubBannerAlignment}
         logoUrl={club.logoData?.url}

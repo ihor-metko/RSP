@@ -19,7 +19,7 @@ export interface Address {
 
 /**
  * Helper function to parse address from JSON string
- * 
+ *
  * @param addressData - JSON string from database
  * @returns Parsed address object or undefined if invalid
  */
@@ -37,7 +37,7 @@ export function parseAddress(addressData: string | null | undefined): Address | 
 
 /**
  * Helper function to create a formatted address string from address object
- * 
+ *
  * @param address - Address object
  * @returns Formatted address string
  */
@@ -60,20 +60,5 @@ export function formatAddress(address: Address | null | undefined): string {
     address.country,
   ].filter(Boolean);
 
-  return parts.join(", ");
-}
-
-/**
- * Helper function to get location display (city, country)
- * 
- * @param address - Address object
- * @returns Location display string (e.g., "New York, USA")
- */
-export function getLocationDisplay(address: Address | null | undefined): string {
-  if (!address) {
-    return "";
-  }
-
-  const parts = [address.city, address.country].filter(Boolean);
   return parts.join(", ");
 }

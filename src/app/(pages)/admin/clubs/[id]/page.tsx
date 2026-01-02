@@ -245,11 +245,6 @@ export default function AdminClubDetailPage({
   // const priceRange = getPriceRange(club.courts);
   const hasValidCoordinates = club.address?.lat != null && club.address?.lng != null;
 
-  // Format location display from address object
-  const locationDisplay = club.address
-    ? [club.address.city, club.address.country].filter(Boolean).join(", ") || club.address.formattedAddress
-    : "";
-
   // Prepare gallery images for carousel and modal
   const galleryImages = (club.gallery || [])
     .map((image) => {
@@ -277,7 +272,7 @@ export default function AdminClubDetailPage({
   // Parse club logoData and bannerData for theme settings
   let clubLogoMetadata = null;
   let clubBannerAlignment = 'center' as 'top' | 'center' | 'bottom';
-  
+
   if (club.logoData) {
     try {
       const parsedLogoData = typeof club.logoData === 'string' ? JSON.parse(club.logoData) : club.logoData;
@@ -318,7 +313,7 @@ export default function AdminClubDetailPage({
       <EntityBanner
         title={club.name}
         subtitle={club.shortDescription}
-        location={locationDisplay}
+        location={club?.address?.formattedAddress}
         imageUrl={club.bannerData?.url}
         bannerAlignment={clubBannerAlignment}
         logoUrl={club.logoData?.url}
