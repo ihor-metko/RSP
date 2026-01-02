@@ -2905,5 +2905,51 @@
         "viewAvailability": "View Availability"
       }
     }
+  },
+  "courts": {
+    "editor": {
+      "title": "Edit Court"
+    },
+    "tabs": {
+      "detailedInfo": {
+        "tabLabel": "Detailed Info",
+        "title": "Court Information",
+        "description": "Edit the court name and description",
+        "courtName": "Court Name",
+        "courtNamePlaceholder": "Enter court name",
+        "courtDescription": "Description",
+        "courtDescriptionPlaceholder": "Describe the court... (optional)"
+      },
+      "banner": {
+        "tabLabel": "Banner",
+        "title": "Court Banner",
+        "description": "Upload and configure the court banner image",
+        "heroImage": "Banner Image",
+        "heroImageHelperText": "Upload a banner image for the court",
+        "alignment": "Banner Alignment",
+        "alignmentTop": "Top",
+        "alignmentTopDesc": "Focus on the top of the image",
+        "alignmentCenter": "Center",
+        "alignmentCenterDesc": "Focus on the center of the image",
+        "alignmentBottom": "Bottom",
+        "alignmentBottomDesc": "Focus on the bottom of the image"
+      },
+      "validation": {
+        "nameRequired": "Court name is required"
+      },
+      "errors": {
+        "saveFailed": "Failed to save changes",
+        "updateFailed": "Failed to update court",
+        "imageUploadFailed": "Failed to upload image"
+      },
+      "common": {
+        "saving": "Saving...",
+        "save": "Save"
+      }
+    },
+    "errors": {
+      "updateFailed": "Failed to update court",
+      "imageUploadFailed": "Failed to upload image"
+    }
   }
 }

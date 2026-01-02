@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireClubAdmin } from "@/lib/requireRole";
+import { requireClubManagement } from "@/lib/requireRole";
 import { Prisma } from "@prisma/client";
 
 /**
@@ -8,7 +8,7 @@ import { Prisma } from "@prisma/client";
  * 
  * Returns all courts for a specific club (admin view with full details).
  * 
- * Access: Club Admins for this club, Organization Admins for the parent org, Root Admins
+ * Access: Club Owners, Club Admins for this club, Organization Admins for the parent org, Root Admins
  * 
  * Query parameters:
  * - search: Search by court name
@@ -25,7 +25,7 @@ export async function GET(
   const { id: clubId } = await context.params;
 
   // Check authorization for this club
-  const authResult = await requireClubAdmin(clubId);
+  const authResult = await requireClubManagement(clubId);
 
   if (!authResult.authorized) {
     return authResult.response;
@@ -147,7 +147,7 @@ export async function GET(
  * 
  * Creates a new court for the specified club.
  * 
- * Access: Club Admins for this club, Organization Admins for the parent org, Root Admins
+ * Access: Club Owners, Club Admins for this club, Organization Admins for the parent org, Root Admins
  * 
  * Request body:
  * - name: Court name (required)
@@ -165,7 +165,7 @@ export async function POST(
   const { id: clubId } = await context.params;
 
   // Check authorization for this club
-  const authResult = await requireClubAdmin(clubId);
+  const authResult = await requireClubManagement(clubId);
 
   if (!authResult.authorized) {
     return authResult.response;

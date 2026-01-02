@@ -15,10 +15,10 @@ jest.mock("@/lib/prisma", () => ({
   },
 }));
 
-// Mock requireClubAdmin
-const mockRequireClubAdmin = jest.fn();
+// Mock requireClubManagement
+const mockRequireClubManagement = jest.fn();
 jest.mock("@/lib/requireRole", () => ({
-  requireClubAdmin: (clubId: string) => mockRequireClubAdmin(clubId),
+  requireClubManagement: (clubId: string) => mockRequireClubManagement(clubId),
 }));
 
 import { GET as AdminGET, POST as AdminPOST } from "@/app/api/admin/clubs/[id]/courts/route";
@@ -65,7 +65,7 @@ describe("Courts Access Separation", () => {
       expect(data.courts[0].name).toBe("Court 1");
       
       // Verify no admin auth was required
-      expect(mockRequireClubAdmin).not.toHaveBeenCalled();
+      expect(mockRequireClubManagement).not.toHaveBeenCalled();
     });
 
     it("should deny access to private club courts", async () => {
@@ -89,7 +89,7 @@ describe("Courts Access Separation", () => {
 
   describe("Admin endpoint /api/admin/clubs/:clubId/courts", () => {
     it("should require admin authorization", async () => {
-      mockRequireClubAdmin.mockResolvedValue({
+      mockRequireClubManagement.mockResolvedValue({
         authorized: false,
         response: new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403 }),
       });
@@ -100,11 +100,11 @@ describe("Courts Access Separation", () => {
 
       expect(response.status).toBe(403);
       expect(data.error).toBe("Unauthorized");
-      expect(mockRequireClubAdmin).toHaveBeenCalledWith("club-123");
+      expect(mockRequireClubManagement).toHaveBeenCalledWith("club-123");
     });
 
     it("should return full court details with admin fields for authorized admins", async () => {
-      mockRequireClubAdmin.mockResolvedValue({
+      mockRequireClubManagement.mockResolvedValue({
         authorized: true,
       });
 
@@ -139,11 +139,11 @@ describe("Courts Access Separation", () => {
       expect(data[0].name).toBe("Court 1");
       expect(data[0].isActive).toBe(true);
       expect(data[0].bookingCount).toBe(42);
-      expect(mockRequireClubAdmin).toHaveBeenCalledWith("club-123");
+      expect(mockRequireClubManagement).toHaveBeenCalledWith("club-123");
     });
 
     it("should allow court creation for authorized admins", async () => {
-      mockRequireClubAdmin.mockResolvedValue({
+      mockRequireClubManagement.mockResolvedValue({
         authorized: true,
       });
 
@@ -177,7 +177,7 @@ describe("Courts Access Separation", () => {
 
       expect(response.status).toBe(201);
       expect(data.name).toBe("New Court");
-      expect(mockRequireClubAdmin).toHaveBeenCalledWith("club-123");
+      expect(mockRequireClubManagement).toHaveBeenCalledWith("club-123");
     });
   });
 

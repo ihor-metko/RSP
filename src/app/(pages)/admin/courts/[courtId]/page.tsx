@@ -80,7 +80,7 @@ export default function CourtDetailPage({
         }
         return;
       }
-      
+
       const courtData = await response.json();
       setCourt(courtData);
     } catch (err) {
@@ -305,16 +305,7 @@ export default function CourtDetailPage({
         onEdit={handleOpenDetailsEdit}
       />
 
-      <div className="entity-page-content entity-page-content--narrow">
-        {/* Toolbar - now empty but kept for future actions */}
-        <div className="im-court-detail-toolbar">
-          <div className="im-court-detail-toolbar-left">
-          </div>
-
-          <div className="im-court-detail-toolbar-right">
-          </div>
-        </div>
-
+      <div className="entity-page-content">
         {/* Main Content */}
         <div className="im-court-detail-content">
           {/* Blocks Column */}

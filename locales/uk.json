@@ -2839,5 +2839,51 @@
         "viewAvailability": "Переглянути доступність"
       }
     }
+  },
+  "courts": {
+    "editor": {
+      "title": "Редагувати корт"
+    },
+    "tabs": {
+      "detailedInfo": {
+        "tabLabel": "Детальна інформація",
+        "title": "Інформація про корт",
+        "description": "Редагуйте назву та опис корту",
+        "courtName": "Назва корту",
+        "courtNamePlaceholder": "Введіть назву корту",
+        "courtDescription": "Опис",
+        "courtDescriptionPlaceholder": "Опишіть корт... (необов'язково)"
+      },
+      "banner": {
+        "tabLabel": "Банер",
+        "title": "Банер корту",
+        "description": "Завантажте та налаштуйте банерне зображення корту",
+        "heroImage": "Зображення банера",
+        "heroImageHelperText": "Завантажте банерне зображення для корту",
+        "alignment": "Вирівнювання банера",
+        "alignmentTop": "Зверху",
+        "alignmentTopDesc": "Фокус на верхній частині зображення",
+        "alignmentCenter": "По центру",
+        "alignmentCenterDesc": "Фокус на центрі зображення",
+        "alignmentBottom": "Знизу",
+        "alignmentBottomDesc": "Фокус на нижній частині зображення"
+      },
+      "validation": {
+        "nameRequired": "Назва корту обов'язкова"
+      },
+      "errors": {
+        "saveFailed": "Не вдалося зберегти зміни",
+        "updateFailed": "Не вдалося оновити корт",
+        "imageUploadFailed": "Не вдалося завантажити зображення"
+      },
+      "common": {
+        "saving": "Збереження...",
+        "save": "Зберегти"
+      }
+    },
+    "errors": {
+      "updateFailed": "Не вдалося оновити корт",
+      "imageUploadFailed": "Не вдалося завантажити зображення"
+    }
   }
 }

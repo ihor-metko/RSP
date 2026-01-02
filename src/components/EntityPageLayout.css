@@ -30,11 +30,6 @@
   max-width: 1600px;
 }
 
-/* Narrow variant - for pages that need less width */
-.entity-page-content--narrow {
-  max-width: 1200px;
-}
-
 /* Full width variant - for pages that need to span the full width */
 .entity-page-content--full {
   max-width: none;
