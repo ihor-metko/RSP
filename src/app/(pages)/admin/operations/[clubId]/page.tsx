@@ -51,7 +51,7 @@ export default function ClubOperationsPage() {
 
   // Club and courts stores
   const { clubsById, clubs, ensureClubById, loadingClubs: loadingClub, clubsError } = useAdminClubStore();
-  const courts = useAdminCourtsStore((state) => state.getCourtsForClub(clubId));
+  const courts = useAdminCourtsStore((state) => state.courtsByClubId[clubId] || []);
   const fetchCourtsIfNeeded = useAdminCourtsStore((state) => state.fetchCourtsIfNeeded);
   const loadingCourts = useAdminCourtsStore((state) => state.loadingCourts);
 
