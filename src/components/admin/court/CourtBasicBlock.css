@@ -53,6 +53,11 @@
   gap: 1rem;
 }
 
+.im-block-row--vertical {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .im-block-label {
   font-size: 0.875rem;
   color: var(--im-muted);
@@ -64,6 +69,12 @@
   color: var(--im-foreground);
   text-align: right;
   word-break: break-word;
+}
+
+.im-block-value--description {
+  text-align: left;
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 
 .im-block-value--empty {
