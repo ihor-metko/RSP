@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button, Modal, Input, Select, UserSearchDropdown } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useAdminUsersStore } from "@/stores/useAdminUsersStore";
 import { UserProfileModal } from "./UserProfileModal";
+import { formatDateLong } from "@/utils/date";
 import type { SimpleUser } from "@/types/adminUser";
 import "@/components/admin/admin-wizard/CreateAdminWizard.css";
 
@@ -39,6 +40,7 @@ export default function ClubAdminsTable({
   onRefresh,
 }: ClubAdminsTableProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const user = useUserStore((state) => state.user);
   const isRoot = user?.isRoot ?? false;
   const isOrgAdmin = useUserStore((state) => state.isOrgAdmin);
@@ -315,7 +317,7 @@ export default function ClubAdminsTable({
                     </td>
                     <td>
                       {admin.lastLoginAt
-                        ? new Date(admin.lastLoginAt).toLocaleDateString()
+                        ? formatDateLong(admin.lastLoginAt, locale)
                         : t("common.never")}
                     </td>
                     <td>

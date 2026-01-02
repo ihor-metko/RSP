@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button, Modal, Badge } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminsStore } from "@/stores/useAdminsStore";
+import { formatDateLong } from "@/utils/date";
 import type { Admin } from "@/stores/useAdminsStore";
 import { UserProfileModal } from "./UserProfileModal";
 import { CreateAdminModal } from "./admin-wizard";
@@ -29,6 +30,7 @@ export default function OrganizationAdminsTable({
   organizationData,
 }: OrganizationAdminsTableProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const user = useUserStore((state) => state.user);
   const isRoot = user?.isRoot ?? false;
   // Get organization detail from store to pass to modal (avoids fetching)
@@ -305,7 +307,7 @@ export default function OrganizationAdminsTable({
                     <span className="im-admin-meta">
                       {t("orgAdmins.lastLogin")}:{" "}
                       {admin.lastLoginAt
-                        ? new Date(admin.lastLoginAt).toLocaleDateString()
+                        ? formatDateLong(admin.lastLoginAt, locale)
                         : t("common.never")}
                     </span>
                   )}

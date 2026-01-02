@@ -1,11 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Button, EntityLogo } from "@/components/ui";
 import { SportType } from "@/constants/sports";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import { parseOrganizationMetadata } from "@/types/organization";
 import { formatAddress as formatAddressObj } from "@/types/address";
+import { formatDateLong } from "@/utils/date";
 import type { Address } from "@/types/address";
 
 export interface AdminOrganizationCardProps {
@@ -53,13 +54,14 @@ export function AdminOrganizationCard({
   onView,
 }: AdminOrganizationCardProps) {
   const t = useTranslations();
+  const locale = useLocale();
 
   // Find the primary owner
   const primaryOwner = organization.superAdmins?.find((admin) => admin.isPrimaryOwner);
   const ownerInfo = primaryOwner || organization.superAdmins?.[0];
 
   // Format date for display
-  const formattedDate = new Date(organization.createdAt).toLocaleDateString();
+  const formattedDate = formatDateLong(organization.createdAt, locale);
 
   const logoUrl = organization.logoData?.url;
   const bannerUrl = organization.bannerData?.url;
