@@ -1191,6 +1191,8 @@
     "reserving": "Reserving...",
     "reserve": "Reserve Booking",
     "book": "Book",
+    "addBooking": "Add Booking",
+    "createFirstBooking": "Create First Booking",
     "viewSchedule": "View schedule",
     "courtScheduleTitle": "{courtName} - Schedule",
     "loadingCoachAvailability": "Loading coach availability...",

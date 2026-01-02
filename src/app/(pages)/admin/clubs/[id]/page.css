@@ -577,3 +577,43 @@
   background-color: rgba(6, 182, 212, 0.25);
   color: #22d3ee;
 }
+
+/* Empty state for bookings section */
+.im-admin-club-bookings-section .im-preview-empty-state {
+  @apply flex flex-col items-center justify-center py-8;
+}
+
+.im-admin-club-bookings-section .im-preview-empty-state .im-preview-empty {
+  @apply py-0 mb-4;
+}
+
+/* Responsive styles for bookings section actions */
+@media (max-width: 768px) {
+  .im-admin-club-bookings-section .im-section-actions {
+    @apply w-full flex flex-col gap-2;
+  }
+
+  .im-admin-club-bookings-section .im-section-actions button {
+    @apply w-full;
+  }
+
+  .im-bookings-summary {
+    @apply flex-col gap-4;
+  }
+
+  .im-bookings-summary-item {
+    @apply items-center text-center;
+  }
+
+  .im-booking-preview-item {
+    @apply flex-wrap gap-3;
+  }
+
+  .im-booking-preview-info {
+    @apply w-full;
+  }
+
+  .im-booking-preview-time {
+    @apply w-auto text-left;
+  }
+}
