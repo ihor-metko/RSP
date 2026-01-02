@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Input, Button } from "@/components/ui";
@@ -46,11 +46,20 @@ export function PublicSearchBar({
   const router = useRouter();
   const [q, setQ] = useState(initialQ);
   const [city, setCity] = useState(initialCity);
+  
+  // Track if we're syncing from URL to prevent triggering debounced search
+  const isSyncingFromUrl = useRef(false);
 
   // Sync with URL changes (for back/forward navigation)
   useEffect(() => {
+    isSyncingFromUrl.current = true;
     setQ(initialQ);
     setCity(initialCity);
+    // Reset the flag after a short delay to allow state updates to complete
+    const timer = setTimeout(() => {
+      isSyncingFromUrl.current = false;
+    }, 0);
+    return () => clearTimeout(timer);
   }, [initialQ, initialCity, initialIndoor]);
 
   // Build URL with query params
@@ -76,7 +85,10 @@ export function PublicSearchBar({
       return;
     }
     
-    const params = { q, city };
+    // Normalize inputs: trim whitespace
+    const normalizedQ = q.trim();
+    const normalizedCity = city.trim();
+    const params = { q: normalizedQ, city: normalizedCity };
 
     if (navigateOnSearch) {
       router.push(buildSearchUrl(params));
@@ -100,11 +112,15 @@ export function PublicSearchBar({
 
   // Debounced live search for /clubs page (only when onSearch is provided and not navigating)
   useEffect(() => {
-    if (!onSearch || navigateOnSearch) return;
+    // Don't trigger search if we're just syncing from URL
+    if (!onSearch || navigateOnSearch || isSyncingFromUrl.current) return;
 
     const handler = setTimeout(() => {
-      onSearch({ q, city });
-    }, 300);
+      // Normalize inputs: trim whitespace
+      const normalizedQ = q.trim();
+      const normalizedCity = city.trim();
+      onSearch({ q: normalizedQ, city: normalizedCity });
+    }, 500); // Increased from 300ms to 500ms for better debouncing
 
     return () => clearTimeout(handler);
   }, [q, city, onSearch, navigateOnSearch]);
