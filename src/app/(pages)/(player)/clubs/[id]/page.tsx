@@ -8,9 +8,6 @@ import { BookingModal } from "@/components/booking/BookingModal";
 import { PlayerQuickBooking } from "@/components/PlayerQuickBooking";
 import { CourtCard } from "@/components/CourtCard";
 import { WeeklyAvailabilityTimeline } from "@/components/WeeklyAvailabilityTimeline";
-
-// Stable empty array to prevent unnecessary re-renders
-const EMPTY_ARRAY: never[] = [];
 import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
@@ -23,6 +20,9 @@ import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
+
+// Stable empty array to prevent unnecessary re-renders
+const EMPTY_ARRAY: never[] = [];
 
 // Create a loading component wrapper
 function MapLoadingPlaceholder({ message }: { message: string }) {

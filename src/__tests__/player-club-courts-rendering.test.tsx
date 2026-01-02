@@ -75,6 +75,8 @@ describe("Player Club Page - Courts Rendering", () => {
     const { result, rerender } = renderHook(() => {
       const currentClub = usePlayerClubStore((state) => state.currentClub);
       const clubId = currentClub?.id;
+      // useCallback is called unconditionally on every render of this test hook
+      // eslint-disable is needed because the linter doesn't recognize renderHook's callback as a component
       const rawCourts = usePlayerClubStore(
         // eslint-disable-next-line react-hooks/rules-of-hooks
         useCallback((state: ReturnType<typeof usePlayerClubStore.getState>) => 
@@ -222,6 +224,8 @@ describe("Player Club Page - Courts Rendering", () => {
     const { result, rerender } = renderHook(() => {
       const currentClub = usePlayerClubStore((state) => state.currentClub);
       const clubId = currentClub?.id;
+      // useCallback is called unconditionally on every render of this test hook
+      // eslint-disable is needed because the linter doesn't recognize renderHook's callback as a component
       const rawCourts = usePlayerClubStore(
         // eslint-disable-next-line react-hooks/rules-of-hooks
         useCallback((state: ReturnType<typeof usePlayerClubStore.getState>) => 
