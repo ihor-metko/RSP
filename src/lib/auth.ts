@@ -22,6 +22,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true, // Auto-link Google accounts to existing users by email
     }),
     Credentials({
       name: "credentials",
@@ -68,7 +69,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      // For Google OAuth, handle account linking
+      // For Google OAuth, handle googleId storage and ensure correct roles
       if (account?.provider === "google") {
         const email = user.email;
         
@@ -90,43 +91,48 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (existingUser) {
-          // User exists - link Google account if not already linked
+          // User exists - update googleId if not already set
           if (!existingUser.googleId) {
             try {
-              // Update existing user with Google ID
               await prisma.user.update({
                 where: { email },
                 data: {
                   googleId,
-                  emailVerified: existingUser.emailVerified || new Date(), // Set verified if not already
+                  emailVerified: existingUser.emailVerified || new Date(),
                 },
               });
             } catch (error) {
-              console.error("Error linking Google account to existing user:", error);
+              console.error("Error linking Google account:", error);
               return false;
             }
           }
-          // User exists, allow sign-in (PrismaAdapter will handle Account linking)
+          // Allow sign-in (allowDangerousEmailAccountLinking handles Account linking)
           return true;
-        } else {
-          // User doesn't exist - PrismaAdapter will create the user
-          // We need to ensure it's created with the correct role
-          // However, PrismaAdapter creates users automatically, so we need to update after creation
-          // We'll handle this by creating the user ourselves with the correct data
+        }
+        
+        // New user - PrismaAdapter will create it, but we need to ensure correct defaults
+        // We create the user here to control the isRoot field
+        try {
+          await prisma.user.create({
+            data: {
+              email,
+              name: user.name || null,
+              image: user.image || null,
+              emailVerified: new Date(),
+              googleId,
+              isRoot: false, // Never grant admin rights via Google OAuth
+            },
+          });
+        } catch (error) {
+          // User might have been created by adapter in a race condition
+          // Update with googleId if user exists
           try {
-            await prisma.user.create({
-              data: {
-                email,
-                name: user.name || null,
-                image: user.image || null,
-                emailVerified: new Date(), // OAuth users are verified
-                googleId,
-                isRoot: false, // Never grant admin rights via Google OAuth
-                // Note: password is null for OAuth users
-              },
+            await prisma.user.update({
+              where: { email },
+              data: { googleId },
             });
-          } catch (error) {
-            console.error("Error creating Google OAuth user:", error);
+          } catch (updateError) {
+            console.error("Error creating/updating Google user:", error, updateError);
             return false;
           }
         }
