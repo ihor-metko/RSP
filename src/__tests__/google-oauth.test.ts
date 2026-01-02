@@ -8,6 +8,7 @@ jest.mock("@/lib/prisma", () => ({
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
     },
   },
 }));
@@ -20,11 +21,15 @@ describe("Google OAuth Integration", () => {
   });
 
   describe("signIn callback", () => {
-    it("should create new user with PLAYER role (isRoot: false) for new Google users", async () => {
+    it("should create new user with PLAYER role (isRoot: false) and googleId for new Google users", async () => {
       const mockGoogleUser = {
         email: "newuser@gmail.com",
         name: "New Google User",
         image: "https://lh3.googleusercontent.com/a/default-user=s96-c",
+      };
+
+      const mockGoogleProfile = {
+        sub: "google-id-12345",
       };
 
       // Simulate user doesn't exist
@@ -37,6 +42,7 @@ describe("Google OAuth Integration", () => {
         name: mockGoogleUser.name,
         image: mockGoogleUser.image,
         emailVerified: new Date(),
+        googleId: mockGoogleProfile.sub,
         isRoot: false,
         password: null,
       });
@@ -55,34 +61,90 @@ describe("Google OAuth Integration", () => {
           name: mockGoogleUser.name,
           image: mockGoogleUser.image,
           emailVerified: new Date(),
+          googleId: mockGoogleProfile.sub,
           isRoot: false, // Never grant admin rights via Google OAuth
         },
       });
 
       expect(newUser).toBeDefined();
       expect(newUser.email).toBe(mockGoogleUser.email);
+      expect(newUser.googleId).toBe(mockGoogleProfile.sub);
       expect(newUser.isRoot).toBe(false);
       expect(newUser.password).toBeNull();
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           email: mockGoogleUser.email,
+          googleId: mockGoogleProfile.sub,
           isRoot: false,
         }),
       });
     });
 
-    it("should allow existing user to login with Google", async () => {
+    it("should auto-link Google account to existing email/password user", async () => {
+      const mockExistingUser = {
+        id: "existing-user-id",
+        email: "existinguser@example.com",
+        name: "Existing User",
+        image: null,
+        emailVerified: new Date("2024-01-01"),
+        googleId: null, // No Google ID yet
+        isRoot: false,
+        password: "hashed-password", // Has password (email/password user)
+      };
+
+      const mockGoogleProfile = {
+        sub: "google-id-67890",
+      };
+
+      // Simulate user exists without Google ID
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockExistingUser);
+
+      // Simulate update to add Google ID
+      (prisma.user.update as jest.Mock).mockResolvedValue({
+        ...mockExistingUser,
+        googleId: mockGoogleProfile.sub,
+      });
+
+      const existingUser = await prisma.user.findUnique({
+        where: { email: mockExistingUser.email },
+      });
+
+      expect(existingUser).toBeDefined();
+      expect(existingUser?.googleId).toBeNull();
+
+      // Link Google account
+      const updatedUser = await prisma.user.update({
+        where: { email: mockExistingUser.email },
+        data: {
+          googleId: mockGoogleProfile.sub,
+          emailVerified: existingUser?.emailVerified || new Date(),
+        },
+      });
+
+      expect(updatedUser.googleId).toBe(mockGoogleProfile.sub);
+      expect(updatedUser.isRoot).toBe(false); // Role preserved
+      expect(updatedUser.password).toBe("hashed-password"); // Password preserved
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { email: mockExistingUser.email },
+        data: expect.objectContaining({
+          googleId: mockGoogleProfile.sub,
+        }),
+      });
+    });
+
+    it("should allow existing user with Google ID to login without updating", async () => {
       const mockExistingUser = {
         id: "existing-user-id",
         email: "existinguser@gmail.com",
         name: "Existing User",
         image: null,
         emailVerified: new Date("2024-01-01"),
+        googleId: "google-id-already-set", // Already has Google ID
         isRoot: false,
         password: null,
       };
 
-      // Simulate user exists
+      // Simulate user exists with Google ID
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockExistingUser);
 
       const existingUser = await prisma.user.findUnique({
@@ -91,6 +153,8 @@ describe("Google OAuth Integration", () => {
 
       expect(existingUser).toBeDefined();
       expect(existingUser?.email).toBe(mockExistingUser.email);
+      expect(existingUser?.googleId).toBe("google-id-already-set");
+      expect(prisma.user.update).not.toHaveBeenCalled();
       expect(prisma.user.create).not.toHaveBeenCalled();
     });
 
@@ -101,11 +165,16 @@ describe("Google OAuth Integration", () => {
         image: null,
       };
 
+      const mockGoogleProfile = {
+        sub: "google-id-admin-attempt",
+      };
+
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
       (prisma.user.create as jest.Mock).mockResolvedValue({
         id: "new-user-id",
         email: mockGoogleUser.email,
         name: mockGoogleUser.name,
+        googleId: mockGoogleProfile.sub,
         isRoot: false,
       });
 
@@ -114,6 +183,7 @@ describe("Google OAuth Integration", () => {
           email: mockGoogleUser.email,
           name: mockGoogleUser.name,
           emailVerified: new Date(),
+          googleId: mockGoogleProfile.sub,
           isRoot: false, // Must be false
         },
       });
@@ -226,11 +296,20 @@ describe("Google OAuth Integration", () => {
         email: "admin@example.com",
         name: "Admin User",
         isRoot: true, // Existing admin
+        googleId: null,
         emailVerified: new Date("2024-01-01"),
-        password: null,
+        password: "hashed-password",
+      };
+
+      const mockGoogleProfile = {
+        sub: "google-id-admin",
       };
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockAdminUser);
+      (prisma.user.update as jest.Mock).mockResolvedValue({
+        ...mockAdminUser,
+        googleId: mockGoogleProfile.sub,
+      });
 
       const existingUser = await prisma.user.findUnique({
         where: { email: mockAdminUser.email },
@@ -238,7 +317,19 @@ describe("Google OAuth Integration", () => {
 
       expect(existingUser).toBeDefined();
       expect(existingUser?.isRoot).toBe(true); // Admin rights preserved
-      expect(prisma.user.create).not.toHaveBeenCalled();
+
+      // Link Google account
+      const updatedUser = await prisma.user.update({
+        where: { email: mockAdminUser.email },
+        data: {
+          googleId: mockGoogleProfile.sub,
+          emailVerified: existingUser?.emailVerified || new Date(),
+        },
+      });
+
+      expect(updatedUser.isRoot).toBe(true); // Admin rights still preserved
+      expect(updatedUser.googleId).toBe(mockGoogleProfile.sub);
+      expect(updatedUser.password).toBe("hashed-password"); // Password preserved
     });
   });
 });

@@ -22,6 +22,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true, // Auto-link Google accounts to existing users by email
     }),
     Credentials({
       name: "credentials",
@@ -67,8 +68,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     signIn: "/auth/sign-in",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      // For Google OAuth, ensure user exists in database
+    async signIn({ user, account, profile }) {
+      // For Google OAuth, handle googleId storage and ensure correct roles
       if (account?.provider === "google") {
         const email = user.email;
         
@@ -76,26 +77,74 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return false; // Reject if no email provided
         }
 
+        // Extract Google ID from profile
+        const googleId = (profile as { sub?: string })?.sub;
+        
+        if (!googleId) {
+          console.error("Google profile missing 'sub' field");
+          return false;
+        }
+
         // Check if user exists in database
         const existingUser = await prisma.user.findUnique({
           where: { email },
         });
 
-        // If user doesn't exist, create new user with PLAYER role (isRoot: false)
-        if (!existingUser) {
-          try {
-            await prisma.user.create({
-              data: {
-                email,
-                name: user.name || null,
-                image: user.image || null,
-                emailVerified: new Date(), // OAuth users are verified
-                isRoot: false, // Never grant admin rights via Google OAuth
-                // Note: password is null for OAuth users
-              },
-            });
-          } catch (error) {
-            console.error("Error creating Google OAuth user:", error);
+        if (existingUser) {
+          // User exists - update googleId if not already set
+          if (!existingUser.googleId) {
+            try {
+              await prisma.user.update({
+                where: { email },
+                data: {
+                  googleId,
+                  emailVerified: existingUser.emailVerified || new Date(),
+                },
+              });
+            } catch (error) {
+              console.error("Error linking Google account:", error);
+              return false;
+            }
+          }
+          // Allow sign-in (allowDangerousEmailAccountLinking handles Account linking)
+          return true;
+        }
+        
+        // New user - create manually to ensure isRoot defaults to false
+        // (PrismaAdapter would create with undefined isRoot, which is unacceptable)
+        try {
+          await prisma.user.create({
+            data: {
+              email,
+              name: user.name || null,
+              image: user.image || null,
+              emailVerified: new Date(),
+              googleId,
+              isRoot: false, // Never grant admin rights via Google OAuth
+            },
+          });
+        } catch (error) {
+          // Handle race condition: adapter might have created user simultaneously
+          const createdUser = await prisma.user.findUnique({
+            where: { email },
+          });
+          
+          if (createdUser) {
+            // User was created by adapter - update with googleId and ensure isRoot is false
+            try {
+              await prisma.user.update({
+                where: { email },
+                data: { 
+                  googleId,
+                  isRoot: false, // Ensure isRoot is explicitly false
+                },
+              });
+            } catch (updateError) {
+              console.error("Error updating Google user after race condition:", updateError);
+              return false;
+            }
+          } else {
+            console.error("Error creating Google user:", error);
             return false;
           }
         }
