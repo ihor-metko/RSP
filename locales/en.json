@@ -87,6 +87,7 @@
     "unsavedChanges": "Unsaved Changes",
     "unsavedChangesMessage": "You have unsaved changes. Do you want to discard them?",
     "discardChanges": "Discard Changes",
+    "confirmRemove": "Are you sure you want to remove {item}?",
     "sunday": "Sunday",
     "monday": "Monday",
     "tuesday": "Tuesday",
