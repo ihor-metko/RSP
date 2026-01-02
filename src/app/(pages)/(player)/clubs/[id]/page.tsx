@@ -419,7 +419,7 @@ export default function ClubDetailPage({
         subtitle={club.shortDescription}
         location={locationDisplay}
         imageUrl={club.bannerData?.url}
-        bannerAlignment={clubMetadata?.bannerAlignment || 'center'}
+        bannerAlignment={(club.bannerData?.position as 'top' | 'center' | 'bottom' | undefined) || 'center'}
         logoUrl={club.logoData?.url}
         logoMetadata={clubMetadata}
         imageAlt={`${club.name} hero image`}

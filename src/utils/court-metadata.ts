@@ -1,11 +1,13 @@
 /**
  * Court metadata parser
  * Helper to parse and validate court metadata JSON
+ * 
+ * Note: Banner alignment is now stored in bannerData.position, not in metadata
+ * 
+ * This type may be extended in the future with court-specific metadata fields.
+ * For now, it's an empty object that can hold any court-specific metadata.
  */
-
-export interface CourtMetadata {
-  bannerAlignment?: 'top' | 'center' | 'bottom';
-}
+export type CourtMetadata = Record<string, never>;
 
 /**
  * Parse court metadata JSON string into typed object
@@ -16,11 +18,8 @@ export function parseCourtMetadata(metadata: string | Record<string, unknown> | 
   try {
     const parsed = typeof metadata === 'string' ? JSON.parse(metadata) : metadata;
     
-    return {
-      bannerAlignment: parsed.bannerAlignment === 'top' || parsed.bannerAlignment === 'bottom' 
-        ? parsed.bannerAlignment 
-        : 'center',
-    };
+    // Return empty object for now - can be extended with other court-specific metadata
+    return parsed as CourtMetadata;
   } catch {
     return undefined;
   }

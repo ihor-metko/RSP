@@ -169,11 +169,12 @@ export interface ClubDetail {
   /**
    * Flexible metadata field for storing additional club configuration.
    * Common uses include:
-   * - bannerAlignment: 'top' | 'center' | 'bottom' (controls hero image positioning)
    * - logoTheme: 'light' | 'dark' (for theme-aware logo display)
    * - secondLogo: string | null (alternate logo URL)
    * - secondLogoTheme: 'light' | 'dark'
    * - Any other custom club-specific settings
+   * 
+   * Note: Banner positioning is stored in bannerData.position, not in metadata
    */
   supportedSports?: SportType[];
   createdAt: string;
@@ -244,12 +245,13 @@ export interface UpdateClubPayload {
 }
 
 /**
- * Club metadata type extending EntityLogoMetadata with banner alignment
+ * Club metadata type extending EntityLogoMetadata
+ * Note: Banner alignment is now stored in bannerData.position, not in metadata
+ * 
+ * This interface may be extended in the future with other club-specific metadata fields.
+ * For now, it only includes logo-related fields from EntityLogoMetadata.
  */
-export interface ClubMetadata extends EntityLogoMetadata {
-  /** Banner image vertical alignment */
-  bannerAlignment?: 'top' | 'center' | 'bottom';
-}
+export type ClubMetadata = EntityLogoMetadata;
 
 /**
  * Helper function to parse club metadata from JSON string

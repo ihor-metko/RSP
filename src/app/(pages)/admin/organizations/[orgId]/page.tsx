@@ -274,7 +274,7 @@ export default function OrganizationDetailPage() {
           subtitle={org.description || null}
           location={org.address}
           imageUrl={org.bannerData?.url}
-          bannerAlignment={orgMetadata?.bannerAlignment || 'center'}
+          bannerAlignment={(org.bannerData?.position as 'top' | 'center' | 'bottom' | undefined) || 'center'}
           logoUrl={org.logoData?.url}
           logoMetadata={orgMetadata}
           imageAlt={`${org.name} banner`}

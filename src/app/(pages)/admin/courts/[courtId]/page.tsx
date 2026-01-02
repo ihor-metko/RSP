@@ -16,7 +16,6 @@ import { CourtEditor } from "@/components/admin/CourtEditor.client";
 import { useAdminCourtsStore } from "@/stores/useAdminCourtsStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useCanEditClub } from "@/hooks/useCanEditClub";
-import { parseCourtMetadata } from "@/utils/court-metadata";
 import type { CourtDetail as StoreCourtDetail } from "@/types/court";
 
 import "./page.css";
@@ -280,9 +279,6 @@ export default function CourtDetailPage({
     return null;
   }
 
-  // Parse court metadata for banner alignment
-  const courtMetadata = parseCourtMetadata(court.metadata);
-
   return (
     <main className="im-court-detail-page">
       {/* Toast Notification */}
@@ -300,7 +296,7 @@ export default function CourtDetailPage({
         title={court.name}
         subtitle={court.type || (court.indoor ? t("courtDetail.subtitle.indoorCourt") : t("courtDetail.subtitle.outdoorCourt"))}
         imageUrl={court.bannerData?.url}
-        bannerAlignment={courtMetadata?.bannerAlignment || 'center'}
+        bannerAlignment={(court.bannerData?.position as 'top' | 'center' | 'bottom' | undefined) || 'center'}
         imageAlt={`${court.name} banner`}
         onEdit={handleOpenDetailsEdit}
       />

@@ -56,7 +56,7 @@ export function ClubEditor({
 
   const bannerData: BannerData = {
     heroImage: club.bannerData?.url ? { url: club.bannerData.url, key: "", preview: club.bannerData.url } : null,
-    bannerAlignment: metadata?.bannerAlignment || 'center',
+    bannerAlignment: (club.bannerData?.position as 'top' | 'center' | 'bottom' | undefined) || 'center',
   };
 
   const handleTabChange = useCallback(async (newTabId: string) => {
@@ -218,26 +218,28 @@ export function ClubEditor({
   }, [club.id, club.metadata, onRefresh, t]);
 
   const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
-    // Parse existing metadata
-    let existingMetadata: Record<string, unknown> = {};
-    if (club.metadata) {
+    // Get existing bannerData to preserve other fields
+    let existingBannerData: Record<string, unknown> = {};
+    if (club.bannerData) {
       try {
-        existingMetadata = JSON.parse(club.metadata);
+        existingBannerData = JSON.parse(club.bannerData);
       } catch {
         // Invalid JSON, start fresh
-        existingMetadata = {};
+        existingBannerData = {};
       }
     }
 
-    // Update metadata with alignment
-    const response = await fetch(`/api/admin/clubs/${club.id}/metadata`, {
+    // Update bannerData with new position
+    const updatedBannerData = {
+      ...existingBannerData,
+      position: alignment,
+    };
+
+    const response = await fetch(`/api/admin/clubs/${club.id}/media`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        metadata: {
-          ...existingMetadata,
-          bannerAlignment: alignment,
-        },
+        bannerData: updatedBannerData,
       }),
     });
 
@@ -270,7 +272,7 @@ export function ClubEditor({
     }
     
     setHasUnsavedChanges(false);
-  }, [club.id, club.metadata, onRefresh, t]);
+  }, [club.id, club.bannerData, onRefresh, t]);
 
   return (
     <>

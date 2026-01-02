@@ -31,17 +31,16 @@ describe("parseOrganizationMetadata", () => {
     expect(result?.secondLogoTheme).toBe("light");
   });
 
-  it("should parse JSON string with banner alignment", () => {
+  it("should parse JSON string without banner alignment (moved to bannerData)", () => {
     const metadataString = JSON.stringify({
-      bannerAlignment: "top",
       logoTheme: "light",
     });
 
     const result = parseOrganizationMetadata(metadataString);
     
     expect(result).toBeDefined();
-    expect(result?.bannerAlignment).toBe("top");
     expect(result?.logoTheme).toBe("light");
+    // bannerAlignment is no longer in metadata - it's in bannerData.position
   });
 
   it("should handle object input directly", () => {
@@ -49,7 +48,6 @@ describe("parseOrganizationMetadata", () => {
       logoTheme: "dark",
       secondLogo: "org-logo-light.png",
       secondLogoTheme: "light",
-      bannerAlignment: "center",
     };
 
     const result = parseOrganizationMetadata(metadataObject);
@@ -58,7 +56,7 @@ describe("parseOrganizationMetadata", () => {
     expect(result?.logoTheme).toBe("dark");
     expect(result?.secondLogo).toBe("org-logo-light.png");
     expect(result?.secondLogoTheme).toBe("light");
-    expect(result?.bannerAlignment).toBe("center");
+    // bannerAlignment is no longer in metadata - it's in bannerData.position
   });
 
   it("should return undefined for invalid JSON string", () => {
@@ -89,12 +87,11 @@ describe("parseOrganizationMetadata", () => {
     expect(result?.secondLogo).toBeUndefined();
   });
 
-  it("should parse metadata with all possible fields", () => {
+  it("should parse metadata with all logo-related fields", () => {
     const metadataString = JSON.stringify({
       logoTheme: "dark",
       secondLogo: "org-logo-light.png",
       secondLogoTheme: "light",
-      bannerAlignment: "bottom",
     });
 
     const result = parseOrganizationMetadata(metadataString);
@@ -103,7 +100,7 @@ describe("parseOrganizationMetadata", () => {
     expect(result?.logoTheme).toBe("dark");
     expect(result?.secondLogo).toBe("org-logo-light.png");
     expect(result?.secondLogoTheme).toBe("light");
-    expect(result?.bannerAlignment).toBe("bottom");
+    // bannerAlignment is no longer in metadata - it's in bannerData.position
   });
 
   it("should handle Record<string, unknown> with extra fields", () => {

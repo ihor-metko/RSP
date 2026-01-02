@@ -93,7 +93,7 @@ export async function PATCH(
     const resolvedParams = await params;
     const { courtId } = resolvedParams;
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, defaultPriceCents, isActive, metadata } = body;
+    const { name, slug, type, surface, indoor, sportType, defaultPriceCents, isActive, metadata, bannerData } = body;
 
 
     // Check if court exists
@@ -214,6 +214,7 @@ export async function PATCH(
     if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
     if (isActive !== undefined) updateData.isActive = isActive;
     if (metadata !== undefined) updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
+    if (bannerData !== undefined) updateData.bannerData = bannerData ? JSON.stringify(bannerData) : null;
 
     const updatedCourt = await prisma.court.update({
       where: { id: courtId },

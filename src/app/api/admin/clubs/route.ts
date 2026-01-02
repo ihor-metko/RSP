@@ -121,6 +121,7 @@ export async function GET(request: Request) {
         openingHours: true,
         logoData: true,
         bannerData: true,
+        metadata: true,
         tags: true,
         isPublic: true,
         status: true,

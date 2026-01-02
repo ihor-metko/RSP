@@ -359,8 +359,10 @@ export function OrganizationCreationStepper() {
         metadata.logoMetadata = logoMetadata;
       }
 
-      // Add banner alignment metadata (always save, even if no image uploaded yet)
-      metadata.bannerAlignment = formData.bannerAlignment;
+      // Prepare bannerData with position
+      const bannerData: Record<string, unknown> | undefined = formData.bannerAlignment ? {
+        position: formData.bannerAlignment,
+      } : undefined;
 
       // Prepare data for submission (without images - they'll be uploaded separately)
       const submitData = {
@@ -372,6 +374,7 @@ export function OrganizationCreationStepper() {
         contactPhone: formData.contactPhone.trim() || undefined,
         website: formData.website.trim() || undefined,
         metadata,
+        bannerData, // Include bannerData with position
       };
 
       const organization = await createOrganization(submitData);
