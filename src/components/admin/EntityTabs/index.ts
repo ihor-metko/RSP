@@ -1,6 +1,9 @@
 export { BaseInfoTab } from './BaseInfoTab';
 export type { BaseInfoData } from './BaseInfoTab';
 
+export { DetailedInfoTab } from './DetailedInfoTab';
+export type { DetailedInfoData } from './DetailedInfoTab';
+
 export { AddressTab } from './AddressTab';
 export type { AddressData } from './AddressTab';
 

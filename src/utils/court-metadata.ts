@@ -5,6 +5,7 @@
 
 export interface CourtMetadata {
   bannerAlignment?: 'top' | 'center' | 'bottom';
+  description?: string | null;
 }
 
 /**
@@ -20,6 +21,7 @@ export function parseCourtMetadata(metadata: string | Record<string, unknown> | 
       bannerAlignment: parsed.bannerAlignment === 'top' || parsed.bannerAlignment === 'bottom' 
         ? parsed.bannerAlignment 
         : 'center',
+      description: typeof parsed.description === 'string' ? parsed.description : null,
     };
   } catch {
     return undefined;
