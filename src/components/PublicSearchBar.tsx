@@ -49,9 +49,17 @@ export function PublicSearchBar({
   
   // Track if we're syncing from URL to prevent triggering debounced search
   const isSyncingFromUrl = useRef(false);
+  const isInitialMount = useRef(true);
+  const skipNextDebounce = useRef(false);
 
   // Sync with URL changes (for back/forward navigation)
   useEffect(() => {
+    // Skip on initial mount - only sync when props actually change
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
     isSyncingFromUrl.current = true;
     setQ(initialQ);
     setCity(initialCity);
@@ -106,6 +114,8 @@ export function PublicSearchBar({
     if (navigateOnSearch) {
       router.push(buildSearchUrl(defaultParams));
     } else if (onSearch) {
+      // Skip next debounce since we're calling onSearch directly
+      skipNextDebounce.current = true;
       onSearch(defaultParams);
     }
   };
@@ -114,6 +124,12 @@ export function PublicSearchBar({
   useEffect(() => {
     // Don't trigger search if we're just syncing from URL
     if (!onSearch || navigateOnSearch || isSyncingFromUrl.current) return;
+    
+    // Skip if we just manually called onSearch (e.g., from handleClear)
+    if (skipNextDebounce.current) {
+      skipNextDebounce.current = false;
+      return;
+    }
 
     const handler = setTimeout(() => {
       // Normalize inputs: trim whitespace
