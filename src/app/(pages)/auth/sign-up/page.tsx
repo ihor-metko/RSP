@@ -205,7 +205,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Google Login Button */}
-      <GoogleLoginButton callbackUrl={redirectTo || "/dashboard"} />
+      <GoogleLoginButton />
 
       {/* Links section */}
       <div className="im-auth-links">

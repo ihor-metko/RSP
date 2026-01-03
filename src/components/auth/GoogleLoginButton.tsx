@@ -5,22 +5,23 @@ import { signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
 
 interface GoogleLoginButtonProps {
-  callbackUrl?: string;
   disabled?: boolean;
 }
 
 /**
  * Reusable Google OAuth login button component.
  * Styled with im-btn-google class to match dark theme.
+ * 
+ * All Google sign-ins redirect to /post-auth for centralized routing.
  */
-export function GoogleLoginButton({ callbackUrl = "/dashboard", disabled = false }: GoogleLoginButtonProps) {
+export function GoogleLoginButton({ disabled = false }: GoogleLoginButtonProps) {
   const t = useTranslations();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl });
+      await signIn("google", { callbackUrl: "/post-auth" });
     } catch (error) {
       console.error("Google sign-in error:", error);
       setIsLoading(false);

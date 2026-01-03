@@ -181,5 +181,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      // If the URL is a relative path, prepend the base URL
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+      // If the URL already contains the base URL, use it
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      // Default to /post-auth for all sign-ins
+      return `${baseUrl}/post-auth`;
+    },
   },
 });
