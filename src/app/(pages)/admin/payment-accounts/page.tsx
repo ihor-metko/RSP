@@ -669,24 +669,19 @@ export default function UnifiedPaymentAccountsPage() {
         onClose={handleCloseVerificationModal}
         title={t("paymentAccount.verificationModal.title")}
       >
-        <div style={{ width: "100%", minHeight: "500px" }}>
-          <p className="im-text-muted" style={{ marginBottom: "1rem" }}>
+        <div className="verification-modal-content">
+          <p className="im-text-muted verification-modal-description">
             {t("paymentAccount.verificationModal.description")}
           </p>
           {verificationCheckoutUrl && (
             <iframe
               src={verificationCheckoutUrl}
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
-              style={{
-                width: "100%",
-                height: "500px",
-                border: "none",
-                borderRadius: "8px",
-              }}
+              className="verification-modal-iframe"
               title={t("paymentAccount.verificationModal.iframeTitle")}
             />
           )}
-          <p className="im-helper-text" style={{ marginTop: "1rem", fontSize: "0.875rem" }}>
+          <p className="im-helper-text verification-modal-hint">
             {t("paymentAccount.verificationModal.hint")}
           </p>
         </div>

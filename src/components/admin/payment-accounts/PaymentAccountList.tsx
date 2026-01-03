@@ -162,7 +162,7 @@ export function PaymentAccountList({
               (account.status === PaymentAccountStatus.TECHNICAL_OK || account.status === PaymentAccountStatus.PENDING) &&
               canVerifyReal &&
               onVerifyReal && (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div className="im-button-content">
                   <Button 
                     size="small" 
                     variant="primary" 
@@ -170,15 +170,8 @@ export function PaymentAccountList({
                     disabled={isVerifying}
                   >
                     {isVerifying ? (
-                      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <span className="im-button-spinner" style={{ 
-                          width: "14px", 
-                          height: "14px",
-                          border: "2px solid currentColor",
-                          borderTopColor: "transparent",
-                          borderRadius: "50%",
-                          display: "inline-block"
-                        }} />
+                      <span className="im-button-content">
+                        <span className="im-button-spinner-small" />
                         {t("actions.verifying")}
                       </span>
                     ) : (
@@ -186,7 +179,7 @@ export function PaymentAccountList({
                     )}
                   </Button>
                   {isVerifying && (
-                    <span className="im-helper-text" style={{ fontSize: "0.75rem", color: "var(--im-text-muted)" }}>
+                    <span className="im-helper-text-small">
                       {t("messages.verificationInProgress")}
                     </span>
                   )}
