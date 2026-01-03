@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader, ConfirmationModal, Card } from "@/components/ui";
+import { PageHeader, ConfirmationModal, Card, Modal } from "@/components/ui";
 import { PaymentAccountList } from "@/components/admin/payment-accounts/PaymentAccountList";
 import { PaymentAccountForm, PaymentAccountFormData } from "@/components/admin/payment-accounts/PaymentAccountForm";
 import { useUserStore } from "@/stores/useUserStore";
@@ -57,6 +57,12 @@ export default function UnifiedPaymentAccountsPage() {
   const [accountToDisable, setAccountToDisable] = useState<MaskedPaymentAccount | null>(null);
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  
+  // Verification modal state
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [verificationCheckoutUrl, setVerificationCheckoutUrl] = useState<string | null>(null);
+  const [verifyingAccountId, setVerifyingAccountId] = useState<string | null>(null);
+  const [verificationPaymentId, setVerificationPaymentId] = useState<string | null>(null);
 
   // Determine user role
   const isOrgAdmin = adminStatus?.adminType === "organization_admin";
@@ -388,6 +394,9 @@ export default function UnifiedPaymentAccountsPage() {
   const handleVerifyReal = async (account: MaskedPaymentAccount, clubId?: string) => {
     if (!user) return;
 
+    // Set loading state
+    setVerifyingAccountId(account.id);
+
     try {
       let url: string;
       if (account.scope === "ORGANIZATION" && orgId) {
@@ -411,16 +420,19 @@ export default function UnifiedPaymentAccountsPage() {
 
       const data = await response.json();
       
-      // Show success message
-      showToast(t("paymentAccount.messages.verificationInitiated"), "success");
-      
-      // Redirect to WayForPay checkout
+      // Open modal with checkout URL instead of redirecting
       if (data.verificationPayment?.checkoutUrl) {
-        window.location.href = data.verificationPayment.checkoutUrl;
+        setVerificationCheckoutUrl(data.verificationPayment.checkoutUrl);
+        setVerificationPaymentId(data.verificationPayment.id);
+        setIsVerificationModalOpen(true);
+      } else {
+        throw new Error("No checkout URL received");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to initiate real payment verification";
       showToast(errorMessage, "error");
+    } finally {
+      setVerifyingAccountId(null);
     }
   };
 
@@ -431,6 +443,71 @@ export default function UnifiedPaymentAccountsPage() {
       )
     );
   };
+
+  const handleCloseVerificationModal = () => {
+    setIsVerificationModalOpen(false);
+    setVerificationCheckoutUrl(null);
+    setVerificationPaymentId(null);
+  };
+
+  // Poll for verification payment status when modal is open
+  useEffect(() => {
+    if (!verificationPaymentId || !isVerificationModalOpen) {
+      return;
+    }
+
+    const pollVerificationStatus = async () => {
+      try {
+        const response = await fetch(`/api/admin/verification-payments/${verificationPaymentId}`);
+        
+        if (!response.ok) {
+          return; // Continue polling
+        }
+
+        const data = await response.json();
+        const verificationPayment = data.verificationPayment;
+
+        if (!verificationPayment) {
+          return;
+        }
+
+        // Check if verification completed
+        if (verificationPayment.status === "completed") {
+          // Close modal and refresh accounts
+          handleCloseVerificationModal();
+          
+          if (verificationPayment.paymentAccount?.verificationLevel === "VERIFIED") {
+            showToast(t("paymentAccount.messages.verificationComplete"), "success");
+          } else {
+            showToast(verificationPayment.errorMessage || t("paymentAccount.messages.verificationFailed"), "error");
+          }
+          
+          // Refresh the accounts list
+          await fetchAccounts();
+        } else if (verificationPayment.status === "failed" || verificationPayment.status === "expired") {
+          // Close modal and show error
+          handleCloseVerificationModal();
+          showToast(verificationPayment.errorMessage || t("paymentAccount.messages.verificationFailed"), "error");
+          
+          // Refresh the accounts list
+          await fetchAccounts();
+        }
+      } catch (error) {
+        console.error("Error polling verification status:", error);
+      }
+    };
+
+    // Initial poll after 2 seconds
+    const initialTimeout = setTimeout(pollVerificationStatus, 2000);
+
+    // Poll every 3 seconds
+    const pollInterval = setInterval(pollVerificationStatus, 3000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(pollInterval);
+    };
+  }, [verificationPaymentId, isVerificationModalOpen, t, fetchAccounts]);
 
   if (isLoadingStore || (!orgId && !clubId)) {
     return <div className="im-loading">{t("common.loading")}</div>;
@@ -504,6 +581,7 @@ export default function UnifiedPaymentAccountsPage() {
             canVerifyReal={isOrgOwner}
             scope="ORGANIZATION"
             showScopeInfo={false}
+            verifyingAccountId={verifyingAccountId}
           />
         </div>
       )}
@@ -548,6 +626,7 @@ export default function UnifiedPaymentAccountsPage() {
                     canVerifyReal={true}
                     scope="CLUB"
                     showScopeInfo
+                    verifyingAccountId={verifyingAccountId}
                   />
                 </div>
               )}
@@ -574,6 +653,34 @@ export default function UnifiedPaymentAccountsPage() {
         confirmText={t("paymentAccount.disableModal.confirm")}
         cancelText={t("paymentAccount.disableModal.cancel")}
       />
+
+      {/* Verification Payment Modal */}
+      <Modal
+        isOpen={isVerificationModalOpen}
+        onClose={handleCloseVerificationModal}
+        title={t("paymentAccount.verificationModal.title")}
+      >
+        <div style={{ width: "100%", minHeight: "500px" }}>
+          <p className="im-text-muted" style={{ marginBottom: "1rem" }}>
+            {t("paymentAccount.verificationModal.description")}
+          </p>
+          {verificationCheckoutUrl && (
+            <iframe
+              src={verificationCheckoutUrl}
+              style={{
+                width: "100%",
+                height: "500px",
+                border: "none",
+                borderRadius: "8px",
+              }}
+              title={t("paymentAccount.verificationModal.iframeTitle")}
+            />
+          )}
+          <p className="im-helper-text" style={{ marginTop: "1rem", fontSize: "0.875rem" }}>
+            {t("paymentAccount.verificationModal.hint")}
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
