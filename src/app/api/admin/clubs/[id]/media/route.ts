@@ -13,7 +13,8 @@ interface GalleryImage {
 
 /**
  * PATCH /api/admin/clubs/[id]/media
- * Update club media (logo, banner, gallery)
+ * Update club gallery images only
+ * Note: Banner and logo are managed separately via dedicated endpoints
  */
 export async function PATCH(
   request: Request,
@@ -50,26 +51,10 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { bannerData, logoData, gallery } = body;
+    const { gallery } = body;
 
-    // Update in transaction
+    // Update gallery in transaction
     await prisma.$transaction(async (tx) => {
-      // Update banner and logo data if provided
-      const updateData: Record<string, unknown> = {};
-      if (bannerData !== undefined) {
-        updateData.bannerData = bannerData ? JSON.stringify(bannerData) : null;
-      }
-      if (logoData !== undefined) {
-        updateData.logoData = logoData ? JSON.stringify(logoData) : null;
-      }
-
-      if (Object.keys(updateData).length > 0) {
-        await tx.club.update({
-          where: { id: clubId },
-          data: updateData,
-        });
-      }
-
       // Update gallery if provided
       if (gallery !== undefined && Array.isArray(gallery)) {
         // Delete existing gallery and replace
@@ -91,7 +76,45 @@ export async function PATCH(
       }
     });
 
-    return NextResponse.json({ success: true });
+    // Fetch updated club data to return
+    // Note: We return the full club data (not just gallery) because the component's
+    // updateClubInStore() method needs the complete club object to properly update
+    // the Zustand store. This maintains consistency with other update endpoints.
+    const updatedClub = await prisma.club.findUnique({
+      where: { id: clubId },
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        metadata: false,
+        courts: {
+          orderBy: { name: "asc" },
+        },
+        gallery: {
+          orderBy: { sortOrder: "asc" },
+        },
+        businessHours: {
+          orderBy: { dayOfWeek: "asc" },
+        },
+      },
+    });
+
+    if (!updatedClub) {
+      return NextResponse.json({ error: "Club not found after update" }, { status: 404 });
+    }
+
+    // Parse JSON fields
+    const formattedClub = {
+      ...updatedClub,
+      logoData: updatedClub.logoData ? JSON.parse(updatedClub.logoData) : null,
+      bannerData: updatedClub.bannerData ? JSON.parse(updatedClub.bannerData) : null,
+    };
+
+    return NextResponse.json(formattedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club media:", error);
