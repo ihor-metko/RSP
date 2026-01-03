@@ -173,6 +173,9 @@ export default function UnifiedPaymentAccountsPage() {
     } finally {
       setLoading(false);
     }
+  // Intentionally excluding `clubs`, `assignedClubName`, and `t` from dependencies:
+  // - These are captured from closure and don't affect the fetch logic
+  // - Including them causes unnecessary re-creation and polling restarts
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOrgOwner, isClubAdmin, orgId, clubId]);
 
