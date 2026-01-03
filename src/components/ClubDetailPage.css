@@ -624,10 +624,6 @@
     @apply w-4 h-4;
   }
 
-  .im-club-contact-label {
-    @apply text-xs;
-  }
-
   .im-club-contact-value {
     @apply text-xs;
   }
