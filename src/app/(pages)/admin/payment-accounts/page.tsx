@@ -67,6 +67,8 @@ export default function UnifiedPaymentAccountsPage() {
   // Refs to prevent overlapping polling requests and stop when completed
   const isPollingRef = useRef(false);
   const shouldStopPollingRef = useRef(false);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const initialTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Determine user role
   const isOrgAdmin = adminStatus?.adminType === "organization_admin";
@@ -497,6 +499,16 @@ export default function UnifiedPaymentAccountsPage() {
           // Stop polling
           shouldStopPollingRef.current = true;
           
+          // Clear intervals immediately
+          if (initialTimeoutRef.current) {
+            clearTimeout(initialTimeoutRef.current);
+            initialTimeoutRef.current = null;
+          }
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+          
           // Close modal and refresh accounts
           handleCloseVerificationModal();
           
@@ -511,6 +523,16 @@ export default function UnifiedPaymentAccountsPage() {
         } else if (verificationPayment.status === "failed" || verificationPayment.status === "expired") {
           // Stop polling
           shouldStopPollingRef.current = true;
+          
+          // Clear intervals immediately
+          if (initialTimeoutRef.current) {
+            clearTimeout(initialTimeoutRef.current);
+            initialTimeoutRef.current = null;
+          }
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
           
           // Close modal and show error
           handleCloseVerificationModal();
@@ -527,14 +549,20 @@ export default function UnifiedPaymentAccountsPage() {
     };
 
     // Initial poll after 2 seconds
-    const initialTimeout = setTimeout(pollVerificationStatus, 2000);
+    initialTimeoutRef.current = setTimeout(pollVerificationStatus, 2000);
 
     // Poll every 3 seconds
-    const pollInterval = setInterval(pollVerificationStatus, 3000);
+    pollIntervalRef.current = setInterval(pollVerificationStatus, 3000);
 
     return () => {
-      clearTimeout(initialTimeout);
-      clearInterval(pollInterval);
+      if (initialTimeoutRef.current) {
+        clearTimeout(initialTimeoutRef.current);
+        initialTimeoutRef.current = null;
+      }
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
     };
   // Only depend on verificationPaymentId and isVerificationModalOpen
   // fetchAccounts and t are intentionally excluded to prevent unnecessary effect re-runs

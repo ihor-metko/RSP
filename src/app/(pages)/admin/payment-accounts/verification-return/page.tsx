@@ -28,6 +28,7 @@ export default function VerificationReturnPage() {
   const pollingCountRef = useRef(0);
   const isPollingRef = useRef(false);
   const shouldStopPollingRef = useRef(false);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
   useEffect(() => {
     if (!verificationPaymentId) {
@@ -68,10 +69,20 @@ export default function VerificationReturnPage() {
             setMessage(verificationPayment.errorMessage || t("messages.verificationFailed"));
           }
           shouldStopPollingRef.current = true;
+          // Clear the interval immediately
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
         } else if (verificationPayment.status === "failed" || verificationPayment.status === "expired") {
           setStatus("failed");
           setMessage(verificationPayment.errorMessage || t("messages.verificationFailed"));
           shouldStopPollingRef.current = true;
+          // Clear the interval immediately
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
         } else if (verificationPayment.status === "pending") {
           // Still pending, continue polling
           setStatus("pending");
@@ -82,6 +93,11 @@ export default function VerificationReturnPage() {
             setStatus("pending");
             setMessage("Verification is taking longer than expected. Please check back later.");
             shouldStopPollingRef.current = true;
+            // Clear the interval immediately
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
           }
         }
       } catch (error) {
@@ -89,6 +105,11 @@ export default function VerificationReturnPage() {
         setStatus("failed");
         setMessage(error instanceof Error ? error.message : "Failed to check verification status");
         shouldStopPollingRef.current = true;
+        // Clear the interval immediately
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
       } finally {
         isPollingRef.current = false;
       }
@@ -98,13 +119,16 @@ export default function VerificationReturnPage() {
     pollStatus();
 
     // Set up polling interval
-    const pollInterval = setInterval(() => {
+    pollIntervalRef.current = setInterval(() => {
       pollStatus();
     }, POLLING_INTERVAL_MS);
 
     // Cleanup
     return () => {
-      clearInterval(pollInterval);
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
     };
   // Only depend on verificationPaymentId to prevent unnecessary re-creation of the polling interval
   // t is intentionally excluded to prevent effect re-runs on translation changes
