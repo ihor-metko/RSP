@@ -57,6 +57,15 @@ export function PublicSearchBar({
   // Track if we just performed a manual search action (submit or clear)
   const manualActionRef = useRef(false);
   
+  // Helper to reset manual action flag after current render cycle
+  const resetManualActionFlag = useCallback(() => {
+    // Use setTimeout(0) to reset the flag after React's state updates complete
+    // This ensures the debounce effect doesn't trigger for state changes from manual actions
+    setTimeout(() => {
+      manualActionRef.current = false;
+    }, 0);
+  }, []);
+  
   // Track if we're syncing from URL to prevent triggering debounced search
   const isSyncingFromUrl = useRef(false);
   // Track initial mount to distinguish from prop changes (for URL sync)
@@ -122,10 +131,7 @@ export function PublicSearchBar({
       onSearch(params);
     }
     
-    // Reset manual action flag after a short delay
-    setTimeout(() => {
-      manualActionRef.current = false;
-    }, 0);
+    resetManualActionFlag();
   };
 
   // Handle clear - reset filters and trigger search/navigation
@@ -149,10 +155,7 @@ export function PublicSearchBar({
       onSearch(defaultParams);
     }
     
-    // Reset manual action flag after a short delay
-    setTimeout(() => {
-      manualActionRef.current = false;
-    }, 0);
+    resetManualActionFlag();
   };
 
   // Debounced live search for /clubs page (only when onSearch is provided and not navigating)
