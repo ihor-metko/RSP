@@ -18,6 +18,15 @@ import {
 const VERIFICATION_AMOUNT = 100; // 1 UAH in kopiykas (minor units)
 const VERIFICATION_CURRENCY = "UAH";
 
+// Default phone number for verification payments when user doesn't have one
+// Format: Ukrainian mobile number (380 country code + 9 zeros)
+// This is required by WayForPay API but not validated for verification payments
+const DEFAULT_VERIFICATION_PHONE = "380000000000";
+
+// Default client info when user name is not available
+const DEFAULT_CLIENT_FIRST_NAME = "Verification";
+const DEFAULT_CLIENT_LAST_NAME = "User";
+
 /**
  * Initiate a real payment verification for a payment account
  *
@@ -121,10 +130,16 @@ async function generateWayForPayCheckoutUrl(
   // Get base URL for return/callback URLs
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-  // Parse user name into first and last name
-  const nameParts = user.name?.split(" ") || ["Verification", "User"];
-  const clientFirstName = nameParts[0] || "Verification";
-  const clientLastName = nameParts.slice(1).join(" ") || "User";
+  // Parse user name into first and last name components
+  // If user name is not available, use default verification client info
+  let clientFirstName = DEFAULT_CLIENT_FIRST_NAME;
+  let clientLastName = DEFAULT_CLIENT_LAST_NAME;
+  
+  if (user.name) {
+    const nameParts = user.name.split(" ");
+    clientFirstName = nameParts[0];
+    clientLastName = nameParts.slice(1).join(" ") || DEFAULT_CLIENT_LAST_NAME;
+  }
 
   // Generate signature for PURCHASE request
   // Signature string: merchantAccount;merchantDomainName;orderReference;orderDate;amount;currency;productName;productCount;productPrice
@@ -164,7 +179,7 @@ async function generateWayForPayCheckoutUrl(
     clientFirstName,
     clientLastName,
     clientEmail: user.email,
-    clientPhone: "380000000000", // Default phone as User model doesn't have phone field
+    clientPhone: DEFAULT_VERIFICATION_PHONE, // User model doesn't have phone field
     // Return URLs
     returnUrl: `${baseUrl}/admin/payment-accounts/verification-return?id=${verificationPaymentId}`,
     serviceUrl: `${baseUrl}/api/webhooks/wayforpay/verification`,
