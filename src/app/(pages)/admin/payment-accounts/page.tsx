@@ -425,13 +425,15 @@ export default function UnifiedPaymentAccountsPage() {
         setVerificationCheckoutUrl(data.verificationPayment.checkoutUrl);
         setVerificationPaymentId(data.verificationPayment.id);
         setIsVerificationModalOpen(true);
+        // Clear loading state after successfully opening modal
+        setVerifyingAccountId(null);
       } else {
         throw new Error("No checkout URL received");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to initiate real payment verification";
       showToast(errorMessage, "error");
-    } finally {
+      // Clear loading state on error
       setVerifyingAccountId(null);
     }
   };
@@ -456,7 +458,12 @@ export default function UnifiedPaymentAccountsPage() {
       return;
     }
 
+    let isPolling = false; // Prevent overlapping requests
+
     const pollVerificationStatus = async () => {
+      if (isPolling) return; // Skip if already polling
+      
+      isPolling = true;
       try {
         const response = await fetch(`/api/admin/verification-payments/${verificationPaymentId}`);
         
@@ -494,6 +501,8 @@ export default function UnifiedPaymentAccountsPage() {
         }
       } catch (error) {
         console.error("Error polling verification status:", error);
+      } finally {
+        isPolling = false;
       }
     };
 
@@ -667,6 +676,7 @@ export default function UnifiedPaymentAccountsPage() {
           {verificationCheckoutUrl && (
             <iframe
               src={verificationCheckoutUrl}
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
               style={{
                 width: "100%",
                 height: "500px",

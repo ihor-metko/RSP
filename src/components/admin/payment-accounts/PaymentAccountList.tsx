@@ -170,10 +170,18 @@ export function PaymentAccountList({
                     disabled={isVerifying}
                   >
                     {isVerifying ? (
-                      <>
-                        <span className="im-spinner-small" style={{ marginRight: "0.5rem" }}>⏳</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span className="im-button-spinner" style={{ 
+                          width: "14px", 
+                          height: "14px",
+                          border: "2px solid currentColor",
+                          borderTopColor: "transparent",
+                          borderRadius: "50%",
+                          display: "inline-block",
+                          animation: "spin 0.8s linear infinite"
+                        }} />
                         {t("actions.verifying")}
-                      </>
+                      </span>
                     ) : (
                       t("actions.verifyReal")
                     )}
