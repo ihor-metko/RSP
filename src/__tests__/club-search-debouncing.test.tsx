@@ -25,43 +25,34 @@ jest.mock("next/navigation", () => ({
 }));
 // Mock UI components
 jest.mock("@/components/ui", () => {
-  const React = require("react");
   return {
     Input: React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-      (props, ref) => <input ref={ref} {...props} />
+      function Input(props, ref) {
+        return <input ref={ref} {...props} />;
+      }
     ),
-    Button: ({
+    Button: function Button({
       children,
       onClick,
       type,
       disabled,
-      variant,
       className,
     }: {
       children: React.ReactNode;
       onClick?: () => void;
       type?: "button" | "submit";
       disabled?: boolean;
-      variant?: string;
       className?: string;
-    }) => (
-      <button onClick={onClick} type={type} disabled={disabled} className={className}>
-        {children}
-      </button>
-    ),
+    }) {
+      return (
+        <button onClick={onClick} type={type} disabled={disabled} className={className}>
+          {children}
+        </button>
+      );
+    },
   };
 });
-import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
-const messages = {
-  common: {
-    search: "Search",
-  },
-  clubs: {
-    searchPlaceholder: "Search clubs...",
-    cityPlaceholder: "City",
-    clearFilters: "Clear filters",
-  },
-};
+import { PublicSearchBar } from "@/components/PublicSearchBar";
 describe("Club Search Debouncing", () => {
   beforeEach(() => {
     jest.clearAllMocks();
