@@ -159,6 +159,80 @@ describe("PublicClubCard", () => {
     });
   });
 
+  describe("Banner Alignment", () => {
+    it("applies default center alignment when bannerData is not provided", () => {
+      const clubWithBanner = {
+        ...baseClub,
+        bannerData: { url: "https://example.com/banner.jpg" },
+      };
+      render(<PublicClubCard club={clubWithBanner} />);
+      const img = screen.getByAltText("Test Club main image");
+      expect(img).toHaveStyle({ objectPosition: 'center' });
+    });
+
+    it("applies top alignment when bannerAlignment is top", () => {
+      const clubWithBanner = {
+        ...baseClub,
+        bannerData: { 
+          url: "https://example.com/banner.jpg",
+          bannerAlignment: 'top'
+        },
+      };
+      render(<PublicClubCard club={clubWithBanner} />);
+      const img = screen.getByAltText("Test Club main image");
+      expect(img).toHaveStyle({ objectPosition: 'top' });
+    });
+
+    it("applies bottom alignment when bannerAlignment is bottom", () => {
+      const clubWithBanner = {
+        ...baseClub,
+        bannerData: { 
+          url: "https://example.com/banner.jpg",
+          bannerAlignment: 'bottom'
+        },
+      };
+      render(<PublicClubCard club={clubWithBanner} />);
+      const img = screen.getByAltText("Test Club main image");
+      expect(img).toHaveStyle({ objectPosition: 'bottom' });
+    });
+
+    it("applies center alignment when bannerAlignment is center", () => {
+      const clubWithBanner = {
+        ...baseClub,
+        bannerData: { 
+          url: "https://example.com/banner.jpg",
+          bannerAlignment: 'center'
+        },
+      };
+      render(<PublicClubCard club={clubWithBanner} />);
+      const img = screen.getByAltText("Test Club main image");
+      expect(img).toHaveStyle({ objectPosition: 'center' });
+    });
+
+    it("falls back to position field if bannerAlignment is not provided", () => {
+      const clubWithBanner = {
+        ...baseClub,
+        bannerData: { 
+          url: "https://example.com/banner.jpg",
+          position: 'bottom'
+        },
+      };
+      render(<PublicClubCard club={clubWithBanner} />);
+      const img = screen.getByAltText("Test Club main image");
+      expect(img).toHaveStyle({ objectPosition: 'bottom' });
+    });
+
+    it("defaults to center when bannerData is invalid JSON string", () => {
+      const clubWithInvalidBanner = {
+        ...baseClub,
+        bannerData: "invalid json",
+      };
+      render(<PublicClubCard club={clubWithInvalidBanner as any} />);
+      // Should render placeholder since invalid bannerData means no valid image
+      expect(screen.getByText("T")).toBeInTheDocument();
+    });
+  });
+
   describe("Short Description", () => {
     it("renders short description when provided", () => {
       const clubWithDesc = {

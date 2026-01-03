@@ -71,11 +71,26 @@ export function PublicClubCard({ club, isRoot = false }: PublicClubCardProps) {
     }
   }
   
+  // Parse banner alignment from bannerData
+  let bannerAlignment: 'top' | 'center' | 'bottom' = 'center';
+  if (club.bannerData) {
+    try {
+      const parsedBannerData = typeof club.bannerData === 'string' ? JSON.parse(club.bannerData) : club.bannerData;
+      bannerAlignment = parsedBannerData.bannerAlignment || parsedBannerData.position || 'center';
+    } catch {
+      // Invalid JSON, use default
+      bannerAlignment = 'center';
+    }
+  }
+  
   // Determine the main image: heroImage first, then logo as fallback
   const mainImage = isValidImageUrl(heroImageUrl) ? heroImageUrl : null;
   const hasLogo = isValidImageUrl(logoDisplayUrl);
   const formattedAddress = formatAddressHelper(club.address);
   const clubTags = parseTags(club.tags);
+  
+  // Map alignment to CSS object-position (same logic as EntityBanner)
+  const objectPosition = bannerAlignment === 'top' ? 'top' : bannerAlignment === 'bottom' ? 'bottom' : 'center';
 
   // Determine the club link based on isRoot status
   const getClubLink = () => {
@@ -97,6 +112,7 @@ export function PublicClubCard({ club, isRoot = false }: PublicClubCardProps) {
               src={mainImage}
               alt={`${club.name} main image`}
               className="rsp-club-hero-image"
+              style={{ objectPosition }}
             />
             {/* Logo overlayed on banner */}
             {hasLogo && (
