@@ -136,6 +136,12 @@ async function generateWayForPayCheckoutUrl(
     productPrice: [productPrice],
     merchantSignature: signature,
     apiVersion: 1,
+    // Buyer context fields for fraud prevention
+    // These are optional but recommended for better transaction tracking
+    clientFirstName: "Verification",
+    clientLastName: "User",
+    clientEmail: "verification@arenaone.com",
+    clientPhone: "380000000000",
     // Return URLs
     returnUrl: `${baseUrl}/admin/payment-accounts/verification-return?id=${verificationPaymentId}`,
     serviceUrl: `${baseUrl}/api/webhooks/wayforpay/verification`,
