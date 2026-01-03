@@ -458,12 +458,12 @@ export default function UnifiedPaymentAccountsPage() {
       return;
     }
 
-    let isPolling = false; // Prevent overlapping requests
+    const pollingRef = { current: false }; // Prevent overlapping requests using object ref
 
     const pollVerificationStatus = async () => {
-      if (isPolling) return; // Skip if already polling
+      if (pollingRef.current) return; // Skip if already polling
       
-      isPolling = true;
+      pollingRef.current = true;
       try {
         const response = await fetch(`/api/admin/verification-payments/${verificationPaymentId}`);
         
@@ -502,7 +502,7 @@ export default function UnifiedPaymentAccountsPage() {
       } catch (error) {
         console.error("Error polling verification status:", error);
       } finally {
-        isPolling = false;
+        pollingRef.current = false;
       }
     };
 

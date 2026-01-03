@@ -177,8 +177,7 @@ export function PaymentAccountList({
                           border: "2px solid currentColor",
                           borderTopColor: "transparent",
                           borderRadius: "50%",
-                          display: "inline-block",
-                          animation: "spin 0.8s linear infinite"
+                          display: "inline-block"
                         }} />
                         {t("actions.verifying")}
                       </span>
