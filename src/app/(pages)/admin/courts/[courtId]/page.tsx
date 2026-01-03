@@ -38,9 +38,11 @@ export default function CourtDetailPage({
   const [error, setError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isToggleActiveModalOpen, setIsToggleActiveModalOpen] = useState(false);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isTogglingActive, setIsTogglingActive] = useState(false);
+  const [isTogglingPublish, setIsTogglingPublish] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Use court store
@@ -205,6 +207,44 @@ export default function CourtDetailPage({
     setIsToggleActiveModalOpen(true);
   }, []);
 
+  const handleTogglePublish = async () => {
+    if (!court) return;
+
+    setIsTogglingPublish(true);
+    try {
+      const response = await fetch(`/api/admin/courts/${courtId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          isPublished: !court.isPublished,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to update court");
+      }
+
+      await fetchCourt();
+      setIsPublishModalOpen(false);
+      showToast(
+        "success",
+        court.isPublished
+          ? t("courts.courtUnpublishedSuccess")
+          : t("courts.courtPublishedSuccess")
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to save changes";
+      showToast("error", message);
+    } finally {
+      setIsTogglingPublish(false);
+    }
+  };
+
+  const handleOpenPublishModal = useCallback(() => {
+    setIsPublishModalOpen(true);
+  }, []);
+
   // Prepare DangerZone actions (memoized to prevent unnecessary re-renders)
   // NOTE: Must be called before any early returns to follow Rules of Hooks
   const dangerActions: DangerAction[] = useMemo(() => {
@@ -213,15 +253,15 @@ export default function CourtDetailPage({
 
     return [
       {
-        id: 'toggleActive',
-        title: court.isActive ? t("dangerZone.deactivateCourt") : t("dangerZone.activateCourt"),
-        description: court.isActive
-          ? t("dangerZone.deactivateCourtDescription")
-          : t("dangerZone.activateCourtDescription"),
-        buttonLabel: court.isActive ? t("dangerZone.deactivateCourt") : t("dangerZone.activateCourt"),
-        onAction: handleOpenToggleActiveModal,
-        isProcessing: isTogglingActive,
-        variant: court.isActive ? 'danger' : 'warning',
+        id: 'publish',
+        title: court.isPublished ? t("dangerZone.makeCourtPrivate") : t("dangerZone.makeCourtPublic"),
+        description: court.isPublished
+          ? t("dangerZone.unpublishCourtDescription")
+          : t("dangerZone.publishCourtDescription"),
+        buttonLabel: court.isPublished ? t("dangerZone.makeCourtPrivate") : t("dangerZone.makeCourtPublic"),
+        onAction: handleOpenPublishModal,
+        isProcessing: isTogglingPublish,
+        variant: court.isPublished ? 'danger' : 'warning',
         show: canManageCourt,
       },
       {
@@ -235,7 +275,7 @@ export default function CourtDetailPage({
         show: canManageCourt,
       },
     ];
-  }, [court, canManageCourt, isTogglingActive, submitting, t, handleOpenToggleActiveModal]);
+  }, [court, canManageCourt, isTogglingPublish, submitting, t, handleOpenPublishModal]);
 
   const handleOpenDetailsEdit = () => {
     setIsEditingDetails(true);
@@ -301,6 +341,7 @@ export default function CourtDetailPage({
         imageUrl={court.bannerData?.url}
         bannerAlignment={courtMetadata?.bannerAlignment || 'center'}
         imageAlt={`${court.name} banner`}
+        isPublished={court.isPublished}
         onEdit={handleOpenDetailsEdit}
       />
 
@@ -348,6 +389,32 @@ export default function CourtDetailPage({
             className={court.isActive ? "bg-red-500 hover:bg-red-600" : ""}
           >
             {isTogglingActive ? t("common.processing") : (court.isActive ? t("dangerZone.deactivateCourt") : t("dangerZone.activateCourt"))}
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Publish/Unpublish Confirmation Modal */}
+      <Modal
+        isOpen={isPublishModalOpen}
+        onClose={() => setIsPublishModalOpen(false)}
+        title={court.isPublished ? t("dangerZone.makeCourtPrivate") : t("dangerZone.makeCourtPublic")}
+      >
+        <p className="mb-4">
+          {court.isPublished
+            ? t("dangerZone.unpublishCourtConfirm", { name: court.name })
+            : t("dangerZone.publishCourtConfirm", { name: court.name })
+          }
+        </p>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setIsPublishModalOpen(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            onClick={handleTogglePublish}
+            disabled={isTogglingPublish}
+            className={court.isPublished ? "bg-red-500 hover:bg-red-600" : ""}
+          >
+            {isTogglingPublish ? t("common.processing") : (court.isPublished ? t("dangerZone.makeCourtPrivate") : t("dangerZone.makeCourtPublic"))}
           </Button>
         </div>
       </Modal>
