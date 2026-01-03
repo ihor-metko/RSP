@@ -558,14 +558,13 @@
 
 /* Contact list using im-* variables */
 .im-club-contact-list {
-  @apply space-y-4;
+  @apply space-y-2;
 }
 
 .im-club-contact-item {
   @apply flex items-start gap-3;
   transition: all 0.2s ease;
   padding: 8px;
-  margin: -8px;
   border-radius: 8px;
 }
 
