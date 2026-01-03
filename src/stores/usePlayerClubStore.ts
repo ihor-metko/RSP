@@ -2,6 +2,9 @@ import { create } from "zustand";
 import type { SportType } from "@/constants/sports";
 import type { Address } from "@/types/address";
 
+// Stable empty array to prevent unnecessary re-renders
+const EMPTY_ARRAY: never[] = [];
+
 /**
  * Player-visible club data types
  * These types represent public club information visible to all players
@@ -519,11 +522,11 @@ export const usePlayerClubStore = create<PlayerClubState>((set, get) => ({
 
   // Selector: Get courts for a club
   getCourtsForClub: (clubId: string) => {
-    return get().courtsByClubId[clubId] || [];
+    return get().courtsByClubId[clubId] || EMPTY_ARRAY;
   },
 
   // Selector: Get gallery for a club
   getGalleryForClub: (clubId: string) => {
-    return get().galleryByClubId[clubId] || [];
+    return get().galleryByClubId[clubId] || EMPTY_ARRAY;
   },
 }));

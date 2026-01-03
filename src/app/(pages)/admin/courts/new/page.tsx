@@ -166,12 +166,13 @@ export default function CreateCourtPage() {
     { value: "carpet", label: t("admin.courts.new.surfaces.carpet") },
   ];
 
-  const SLOT_LENGTHS: SelectOption[] = [
-    { value: "30", label: t("admin.courts.new.slotLengths.30") },
-    { value: "60", label: t("admin.courts.new.slotLengths.60") },
-    { value: "90", label: t("admin.courts.new.slotLengths.90") },
-    { value: "120", label: t("admin.courts.new.slotLengths.120") },
-  ];
+  // Slot lengths - commented out as currently unused
+  // const SLOT_LENGTHS: SelectOption[] = [
+  //   { value: "30", label: t("admin.courts.new.slotLengths.30") },
+  //   { value: "60", label: t("admin.courts.new.slotLengths.60") },
+  //   { value: "90", label: t("admin.courts.new.slotLengths.90") },
+  //   { value: "120", label: t("admin.courts.new.slotLengths.120") },
+  // ];
 
   // Form handling with react-hook-form
   const {

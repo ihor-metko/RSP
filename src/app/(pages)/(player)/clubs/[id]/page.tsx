@@ -21,6 +21,9 @@ import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilitySt
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
 
+// Stable empty array to prevent unnecessary re-renders
+const EMPTY_ARRAY: never[] = [];
+
 // Create a loading component wrapper
 function MapLoadingPlaceholder({ message }: { message: string }) {
   return (
@@ -107,25 +110,29 @@ export default function ClubDetailPage({
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
 
   // Use centralized player club store
+  // Split selectors to avoid circular dependencies
   const currentClub = usePlayerClubStore((state) => state.currentClub);
-  const ensureClubById = usePlayerClubStore((state) => state.ensureClubById);
-  const ensureCourtsByClubId = usePlayerClubStore((state) => state.ensureCourtsByClubId);
-  const ensureGalleryByClubId = usePlayerClubStore((state) => state.ensureGalleryByClubId);
   const loadingClubs = usePlayerClubStore((state) => state.loadingClubs);
   const loadingCourts = usePlayerClubStore((state) => state.loadingCourts);
   const clubsError = usePlayerClubStore((state) => state.clubsError);
+  const ensureClubById = usePlayerClubStore((state) => state.ensureClubById);
+  const ensureCourtsByClubId = usePlayerClubStore((state) => state.ensureCourtsByClubId);
+  const ensureGalleryByClubId = usePlayerClubStore((state) => state.ensureGalleryByClubId);
+  
+  // Get the club ID once - this is stable across renders once set
+  const clubId = currentClub?.id;
+  
+  // Subscribe to courts and gallery separately using the stable clubId
+  // Use a memoized selector that only changes when clubId changes
+  const rawCourts = usePlayerClubStore(
+    useCallback((state) => clubId ? (state.courtsByClubId[clubId] || EMPTY_ARRAY) : EMPTY_ARRAY, [clubId])
+  );
+  const gallery = usePlayerClubStore(
+    useCallback((state) => clubId ? (state.galleryByClubId[clubId] || EMPTY_ARRAY) : EMPTY_ARRAY, [clubId])
+  );
 
   // Map currentClub to ClubWithDetails (they should be compatible)
   const club = currentClub as ClubWithDetails | null;
-
-  // Get courts and gallery directly from store by subscribing to the courtsByClubId and galleryByClubId state
-  // This ensures the component re-renders when courts or gallery data changes
-  const rawCourts = usePlayerClubStore((state) => 
-    club ? state.getCourtsForClub(club.id) : []
-  );
-  const gallery = usePlayerClubStore((state) => 
-    club ? state.getGalleryForClub(club.id) : []
-  );
 
   // Transform courts to include imageUrl from bannerData for CourtCard compatibility
   const courts = useMemo(() => {
