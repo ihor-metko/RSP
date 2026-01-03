@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { IMLink, PageHeader } from "@/components/ui";
@@ -68,6 +68,9 @@ export default function ClubsPage() {
 
   // Use deferred loading to prevent flicker on fast responses
   const deferredLoading = useDeferredLoading(loading);
+  
+  // AbortController ref for cancelling in-flight requests
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Update URL when search params change
   const updateUrl = useCallback((params: SearchParams) => {
@@ -81,6 +84,15 @@ export default function ClubsPage() {
 
   const fetchClubs = useCallback(async (params: SearchParams) => {
     try {
+      // Cancel any in-flight request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      // Create new AbortController for this request
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+      
       setLoading(true);
       const urlParams = new URLSearchParams();
       if (params.q) urlParams.set("q", params.q);
@@ -88,7 +100,7 @@ export default function ClubsPage() {
       if (params.indoor) urlParams.set("indoor", "true");
 
       const url = `/api/clubs${urlParams.toString() ? `?${urlParams.toString()}` : ""}`;
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: abortController.signal });
 
       if (!response.ok) {
         throw new Error("Failed to fetch clubs");
@@ -96,7 +108,11 @@ export default function ClubsPage() {
       const data = await response.json();
       setClubs(data);
       setError("");
-    } catch {
+    } catch (err) {
+      // Ignore abort errors
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       setError(t("clubs.failedToLoad"));
     } finally {
       setLoading(false);
@@ -111,11 +127,12 @@ export default function ClubsPage() {
   }, [urlQ, urlCity, urlIndoor, fetchClubs]);
 
   // Handle search from PublicSearchBar
+  // Only updates URL - the useEffect below will handle the actual fetch
   const handleSearch = useCallback((params: SearchParams) => {
     setCurrentParams(params);
     updateUrl(params);
-    fetchClubs(params);
-  }, [updateUrl, fetchClubs]);
+    // Don't call fetchClubs here - let the useEffect handle it to avoid duplicate requests
+  }, [updateUrl]);
 
   const isInitialLoading = deferredLoading && clubs.length === 0;
 

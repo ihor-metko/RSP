@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Input, Button } from "@/components/ui";
@@ -46,11 +46,29 @@ export function PublicSearchBar({
   const router = useRouter();
   const [q, setQ] = useState(initialQ);
   const [city, setCity] = useState(initialCity);
+  
+  // Track if we're syncing from URL to prevent triggering debounced search
+  const isSyncingFromUrl = useRef(false);
+  // Track initial mount to distinguish from prop changes (for URL sync)
+  const isInitialMount = useRef(true);
+  // Skip next debounce when we manually call onSearch (e.g., clear filters)
+  const skipNextDebounce = useRef(false);
 
   // Sync with URL changes (for back/forward navigation)
   useEffect(() => {
+    // Skip on initial mount - only sync when props actually change
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    isSyncingFromUrl.current = true;
     setQ(initialQ);
     setCity(initialCity);
+    // Reset the flag on next tick to allow React state updates to complete
+    Promise.resolve().then(() => {
+      isSyncingFromUrl.current = false;
+    });
   }, [initialQ, initialCity, initialIndoor]);
 
   // Build URL with query params
@@ -76,7 +94,10 @@ export function PublicSearchBar({
       return;
     }
     
-    const params = { q, city };
+    // Normalize inputs: trim whitespace
+    const normalizedQ = q.trim();
+    const normalizedCity = city.trim();
+    const params = { q: normalizedQ, city: normalizedCity };
 
     if (navigateOnSearch) {
       router.push(buildSearchUrl(params));
@@ -94,17 +115,29 @@ export function PublicSearchBar({
     if (navigateOnSearch) {
       router.push(buildSearchUrl(defaultParams));
     } else if (onSearch) {
+      // Skip next debounce since we're calling onSearch directly
+      skipNextDebounce.current = true;
       onSearch(defaultParams);
     }
   };
 
   // Debounced live search for /clubs page (only when onSearch is provided and not navigating)
   useEffect(() => {
-    if (!onSearch || navigateOnSearch) return;
+    // Don't trigger search if we're just syncing from URL
+    if (!onSearch || navigateOnSearch || isSyncingFromUrl.current) return;
+    
+    // Skip if we just manually called onSearch (e.g., from handleClear)
+    if (skipNextDebounce.current) {
+      skipNextDebounce.current = false;
+      return;
+    }
 
     const handler = setTimeout(() => {
-      onSearch({ q, city });
-    }, 300);
+      // Normalize inputs: trim whitespace
+      const normalizedQ = q.trim();
+      const normalizedCity = city.trim();
+      onSearch({ q: normalizedQ, city: normalizedCity });
+    }, 500); // Increased from 300ms to 500ms for better debouncing
 
     return () => clearTimeout(handler);
   }, [q, city, onSearch, navigateOnSearch]);
