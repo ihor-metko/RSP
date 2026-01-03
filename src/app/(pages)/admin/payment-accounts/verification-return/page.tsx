@@ -37,6 +37,15 @@ export default function VerificationReturnPage() {
       return;
     }
 
+    // Helper function to stop polling and cleanup
+    const stopPolling = () => {
+      shouldStopPollingRef.current = true;
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+
     // Poll for verification payment status
     const pollStatus = async () => {
       // Prevent overlapping requests
@@ -68,21 +77,11 @@ export default function VerificationReturnPage() {
             setStatus("failed");
             setMessage(verificationPayment.errorMessage || t("messages.verificationFailed"));
           }
-          shouldStopPollingRef.current = true;
-          // Clear the interval immediately
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
+          stopPolling();
         } else if (verificationPayment.status === "failed" || verificationPayment.status === "expired") {
           setStatus("failed");
           setMessage(verificationPayment.errorMessage || t("messages.verificationFailed"));
-          shouldStopPollingRef.current = true;
-          // Clear the interval immediately
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
+          stopPolling();
         } else if (verificationPayment.status === "pending") {
           // Still pending, continue polling
           setStatus("pending");
@@ -92,24 +91,14 @@ export default function VerificationReturnPage() {
           if (pollingCountRef.current >= MAX_POLLING_ATTEMPTS) {
             setStatus("pending");
             setMessage("Verification is taking longer than expected. Please check back later.");
-            shouldStopPollingRef.current = true;
-            // Clear the interval immediately
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
-            }
+            stopPolling();
           }
         }
       } catch (error) {
         console.error("Error polling verification status:", error);
         setStatus("failed");
         setMessage(error instanceof Error ? error.message : "Failed to check verification status");
-        shouldStopPollingRef.current = true;
-        // Clear the interval immediately
-        if (pollIntervalRef.current) {
-          clearInterval(pollIntervalRef.current);
-          pollIntervalRef.current = null;
-        }
+        stopPolling();
       } finally {
         isPollingRef.current = false;
       }

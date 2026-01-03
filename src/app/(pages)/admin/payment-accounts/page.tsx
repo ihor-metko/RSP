@@ -475,6 +475,19 @@ export default function UnifiedPaymentAccountsPage() {
     // Reset stop flag when starting new polling session
     shouldStopPollingRef.current = false;
 
+    // Helper function to stop polling and cleanup timers
+    const stopPolling = () => {
+      shouldStopPollingRef.current = true;
+      if (initialTimeoutRef.current) {
+        clearTimeout(initialTimeoutRef.current);
+        initialTimeoutRef.current = null;
+      }
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+
     const pollVerificationStatus = async () => {
       // Skip if already polling or should stop
       if (isPollingRef.current || shouldStopPollingRef.current) return;
@@ -496,18 +509,7 @@ export default function UnifiedPaymentAccountsPage() {
 
         // Check if verification completed
         if (verificationPayment.status === "completed") {
-          // Stop polling
-          shouldStopPollingRef.current = true;
-          
-          // Clear intervals immediately
-          if (initialTimeoutRef.current) {
-            clearTimeout(initialTimeoutRef.current);
-            initialTimeoutRef.current = null;
-          }
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
+          stopPolling();
           
           // Close modal and refresh accounts
           handleCloseVerificationModal();
@@ -521,18 +523,7 @@ export default function UnifiedPaymentAccountsPage() {
           // Refresh the accounts list
           await fetchAccounts();
         } else if (verificationPayment.status === "failed" || verificationPayment.status === "expired") {
-          // Stop polling
-          shouldStopPollingRef.current = true;
-          
-          // Clear intervals immediately
-          if (initialTimeoutRef.current) {
-            clearTimeout(initialTimeoutRef.current);
-            initialTimeoutRef.current = null;
-          }
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
-          }
+          stopPolling();
           
           // Close modal and show error
           handleCloseVerificationModal();
