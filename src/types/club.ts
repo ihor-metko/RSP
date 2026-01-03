@@ -63,6 +63,7 @@ export interface ClubWithCounts extends Club {
   isPublic?: boolean;
   status: string;
   supportedSports?: SportType[];
+  organizationId: string;
   indoorCount?: number;
   outdoorCount?: number;
   courtCount?: number;
