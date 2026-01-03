@@ -203,7 +203,9 @@ export default function UnifiedPaymentAccountsPage() {
     return () => {
       clearInterval(pollInterval);
     };
-  }, [hasPendingAccounts, fetchAccounts]);
+  // fetchAccounts is intentionally not in dependencies to prevent polling restart on its recreation
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPendingAccounts]);
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
