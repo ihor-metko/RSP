@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { PlayerQuickBooking } from "@/components/PlayerQuickBooking";
@@ -90,7 +89,6 @@ export default function ClubDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const pathname = usePathname();
   const t = useTranslations();
   const { setActiveClubId } = useActiveClub();
 
