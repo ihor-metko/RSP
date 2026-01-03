@@ -11,7 +11,7 @@ import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
-import { Button, IMLink, ImageCarousel, CourtCarousel, EntityBanner } from "@/components/ui";
+import { Button, IMLink, ImageCarousel, CourtCarousel, EntityBanner, PlayerBackNavigation } from "@/components/ui";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
@@ -470,6 +470,9 @@ export default function ClubDetailPage({
 
       {/* Main Content */}
       <div className="entity-page-content">
+        {/* Back Navigation - Player only */}
+        <PlayerBackNavigation />
+        
         {/* Admin Link */}
         {user?.isRoot && (
           <div className="mb-4 text-right">

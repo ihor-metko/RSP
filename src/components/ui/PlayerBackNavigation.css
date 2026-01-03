@@ -1,0 +1,45 @@
+@reference "tailwindcss";
+
+/**
+ * PlayerBackNavigation Styles
+ * 
+ * A subtle, text-based back navigation element.
+ * - Neutral colors (gray/muted) - NOT purple
+ * - Slightly brighter on hover
+ * - Positioned top-left by default
+ * - Clean and minimal design
+ */
+
+.player-back-nav {
+  @apply inline-flex items-center gap-1 text-sm font-medium;
+  @apply transition-colors duration-200;
+  @apply cursor-pointer;
+  
+  /* Neutral muted color */
+  color: var(--rsp-muted-foreground, #9ca3af);
+  
+  /* Remove default button styling */
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+  
+  /* No focus outline (per copilot-settings.md) */
+  outline: none;
+}
+
+.player-back-nav:hover {
+  /* Slightly brighter on hover */
+  color: var(--rsp-foreground, #e5e7eb);
+}
+
+.player-back-nav:active {
+  /* Subtle indication on click */
+  opacity: 0.7;
+}
+
+/* Add arrow icon spacing if needed */
+.player-back-nav svg {
+  width: 1rem;
+  height: 1rem;
+}
