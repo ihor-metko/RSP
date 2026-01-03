@@ -11,7 +11,7 @@ import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
-import { Button, IMLink, Breadcrumbs, ImageCarousel, CourtCarousel, EntityBanner } from "@/components/ui";
+import { Button, IMLink, ImageCarousel, CourtCarousel, EntityBanner } from "@/components/ui";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
@@ -470,17 +470,6 @@ export default function ClubDetailPage({
 
       {/* Main Content */}
       <div className="entity-page-content">
-        {/* Breadcrumbs */}
-        <Breadcrumbs
-          items={[
-            { label: t("breadcrumbs.home"), href: "/" },
-            { label: t("breadcrumbs.clubs"), href: "/clubs" },
-            { label: club.name },
-          ]}
-          className="mb-6"
-          ariaLabel={t("breadcrumbs.navigation")}
-        />
-
         {/* Admin Link */}
         {user?.isRoot && (
           <div className="mb-4 text-right">

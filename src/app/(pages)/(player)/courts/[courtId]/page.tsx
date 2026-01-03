@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Card, Button, IMLink, Breadcrumbs } from "@/components/ui";
+import { Card, Button, IMLink } from "@/components/ui";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { useUserStore } from "@/stores/useUserStore";
@@ -310,18 +310,6 @@ export default function CourtDetailPage({
 
   return (
     <main className="tm-court-page min-h-screen p-8">
-      {/* Breadcrumbs */}
-      <Breadcrumbs
-        items={[
-          { label: t("breadcrumbs.home"), href: "/" },
-          { label: t("breadcrumbs.clubs"), href: "/clubs" },
-          ...(court.clubId ? [{ label: t("breadcrumbs.club"), href: `/clubs/${court.clubId}` }] : []),
-          { label: court.name },
-        ]}
-        className="mb-6"
-        ariaLabel={t("breadcrumbs.navigation")}
-      />
-
       {/* Toast notification */}
       {toast && (
         <div
