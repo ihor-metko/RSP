@@ -2609,7 +2609,8 @@
       "edit": "Edit",
       "disable": "Disable",
       "retryVerification": "Retry Technical Verification",
-      "verifyReal": "Verify Payment Account"
+      "verifyReal": "Verify Payment Account",
+      "verifying": "Verifying..."
     },
     "priorityInfo": {
       "title": "Payment Account Priority",
@@ -2629,7 +2630,14 @@
       "verificationStarted": "Verification started. Please wait...",
       "verificationInitiated": "Payment verification initiated. Redirecting to payment page...",
       "verificationComplete": "Payment account verified successfully!",
-      "verificationFailed": "Verification failed. Please try again."
+      "verificationFailed": "Verification failed. Please try again.",
+      "verificationInProgress": "Verifying payment account..."
+    },
+    "verificationModal": {
+      "title": "Verify Payment Account",
+      "description": "Complete the payment below to verify your payment account. A minimal verification payment (1 UAH) will be charged and sent directly to your merchant account.",
+      "iframeTitle": "Payment verification checkout",
+      "hint": "After completing the payment, this window will automatically close and your account status will be updated."
     }
   },
   "dangerZone": {

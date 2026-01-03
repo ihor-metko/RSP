@@ -18,6 +18,7 @@ interface PaymentAccountListProps {
   showScopeInfo?: boolean;
   canRetry?: boolean; // Whether user has permission to retry verification
   canVerifyReal?: boolean; // Whether user can initiate real payment verification
+  verifyingAccountId?: string | null; // ID of account currently being verified
 }
 
 export function PaymentAccountList({
@@ -32,6 +33,7 @@ export function PaymentAccountList({
   showScopeInfo = false,
   canRetry = false,
   canVerifyReal = false,
+  verifyingAccountId = null,
 }: PaymentAccountListProps) {
   const t = useTranslations("paymentAccount");
 
@@ -147,34 +149,57 @@ export function PaymentAccountList({
     {
       key: "actions",
       header: t("table.actions"),
-      render: (account) => (
-        <div className="im-table-actions">
-          <Button size="small" variant="outline" onClick={() => onEdit(account)}>
-            {t("actions.edit")}
-          </Button>
-          {/* Show "Verify Payment Account" button if not verified and technically OK or pending */}
-          {account.verificationLevel === PaymentAccountVerificationLevel.NOT_VERIFIED &&
-            (account.status === PaymentAccountStatus.TECHNICAL_OK || account.status === PaymentAccountStatus.PENDING) &&
-            canVerifyReal &&
-            onVerifyReal && (
-              <Button size="small" variant="primary" onClick={() => onVerifyReal(account)}>
-                {t("actions.verifyReal")}
+      render: (account) => {
+        const isVerifying = verifyingAccountId === account.id;
+        
+        return (
+          <div className="im-table-actions">
+            <Button size="small" variant="outline" onClick={() => onEdit(account)} disabled={isVerifying}>
+              {t("actions.edit")}
+            </Button>
+            {/* Show "Verify Payment Account" button if not verified and technically OK or pending */}
+            {account.verificationLevel === PaymentAccountVerificationLevel.NOT_VERIFIED &&
+              (account.status === PaymentAccountStatus.TECHNICAL_OK || account.status === PaymentAccountStatus.PENDING) &&
+              canVerifyReal &&
+              onVerifyReal && (
+                <div className="im-verification-button-wrapper">
+                  <Button 
+                    size="small" 
+                    variant="primary" 
+                    onClick={() => onVerifyReal(account)}
+                    disabled={isVerifying}
+                  >
+                    {isVerifying ? (
+                      <span className="im-button-content">
+                        <span className="im-button-spinner-small" />
+                        {t("actions.verifying")}
+                      </span>
+                    ) : (
+                      t("actions.verifyReal")
+                    )}
+                  </Button>
+                  {isVerifying && (
+                    <span className="im-helper-text-small">
+                      {t("messages.verificationInProgress")}
+                    </span>
+                  )}
+                </div>
+              )}
+            {/* Show "Retry Technical Verification" button if invalid */}
+            {account.status === PaymentAccountStatus.INVALID && canRetry && onRetry && (
+              <Button size="small" variant="primary" onClick={() => onRetry(account)} disabled={isVerifying}>
+                {t("actions.retryVerification")}
               </Button>
             )}
-          {/* Show "Retry Technical Verification" button if invalid */}
-          {account.status === PaymentAccountStatus.INVALID && canRetry && onRetry && (
-            <Button size="small" variant="primary" onClick={() => onRetry(account)}>
-              {t("actions.retryVerification")}
-            </Button>
-          )}
-          {/* Show disable button only for verified accounts */}
-          {account.verificationLevel === PaymentAccountVerificationLevel.VERIFIED && (
-            <Button size="small" variant="danger" onClick={() => onDisable(account)}>
-              {t("actions.disable")}
-            </Button>
-          )}
-        </div>
-      ),
+            {/* Show disable button only for verified accounts */}
+            {account.verificationLevel === PaymentAccountVerificationLevel.VERIFIED && (
+              <Button size="small" variant="danger" onClick={() => onDisable(account)} disabled={isVerifying}>
+                {t("actions.disable")}
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
