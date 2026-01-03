@@ -162,7 +162,7 @@ export function PaymentAccountList({
               (account.status === PaymentAccountStatus.TECHNICAL_OK || account.status === PaymentAccountStatus.PENDING) &&
               canVerifyReal &&
               onVerifyReal && (
-                <div className="im-button-content">
+                <div className="im-verification-button-wrapper">
                   <Button 
                     size="small" 
                     variant="primary" 

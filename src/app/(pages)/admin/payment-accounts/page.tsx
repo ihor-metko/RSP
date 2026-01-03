@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, ConfirmationModal, Card, Modal } from "@/components/ui";
@@ -63,6 +63,9 @@ export default function UnifiedPaymentAccountsPage() {
   const [verificationCheckoutUrl, setVerificationCheckoutUrl] = useState<string | null>(null);
   const [verifyingAccountId, setVerifyingAccountId] = useState<string | null>(null);
   const [verificationPaymentId, setVerificationPaymentId] = useState<string | null>(null);
+  
+  // Ref to prevent overlapping polling requests
+  const isPollingRef = useRef(false);
 
   // Determine user role
   const isOrgAdmin = adminStatus?.adminType === "organization_admin";
@@ -458,12 +461,10 @@ export default function UnifiedPaymentAccountsPage() {
       return;
     }
 
-    const pollingRef = { current: false }; // Prevent overlapping requests using object ref
-
     const pollVerificationStatus = async () => {
-      if (pollingRef.current) return; // Skip if already polling
+      if (isPollingRef.current) return; // Skip if already polling
       
-      pollingRef.current = true;
+      isPollingRef.current = true;
       try {
         const response = await fetch(`/api/admin/verification-payments/${verificationPaymentId}`);
         
@@ -502,7 +503,7 @@ export default function UnifiedPaymentAccountsPage() {
       } catch (error) {
         console.error("Error polling verification status:", error);
       } finally {
-        pollingRef.current = false;
+        isPollingRef.current = false;
       }
     };
 
@@ -676,6 +677,12 @@ export default function UnifiedPaymentAccountsPage() {
           {verificationCheckoutUrl && (
             <iframe
               src={verificationCheckoutUrl}
+              // Sandbox permissions required for WayForPay payment processing:
+              // - allow-scripts: Required for payment form functionality
+              // - allow-same-origin: Required for payment provider callbacks
+              // - allow-forms: Required for payment form submission
+              // - allow-popups: May be needed for 3D Secure authentication
+              // - allow-popups-to-escape-sandbox: For bank authentication windows
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox"
               className="verification-modal-iframe"
               title={t("paymentAccount.verificationModal.iframeTitle")}
