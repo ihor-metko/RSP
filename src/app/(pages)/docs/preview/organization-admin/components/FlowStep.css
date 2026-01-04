@@ -1,0 +1,100 @@
+@reference "tailwindcss";
+
+.im-flow-step {
+  position: relative;
+  display: flex;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.im-flow-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 20px;
+  top: 50px;
+  width: 2px;
+  height: calc(100% - 30px);
+  background-color: var(--im-border);
+}
+
+.im-step-number-wrapper {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.im-step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--im-primary);
+  color: var(--color-text-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  box-shadow: 0 2px 8px rgba(108, 99, 255, 0.2);
+}
+
+.im-step-content {
+  flex: 1;
+}
+
+.im-step-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--im-text-primary);
+  margin-bottom: var(--spacing-2);
+}
+
+.im-step-description {
+  font-size: var(--font-size-base);
+  color: var(--im-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-3);
+}
+
+.im-step-preview {
+  margin-top: var(--spacing-3);
+  padding: var(--spacing-3);
+  background-color: var(--im-bg-secondary);
+  border: 1px solid var(--im-border);
+  border-radius: var(--border-radius-sm);
+}
+
+/* Active state */
+.im-flow-step--active .im-step-number {
+  background-color: var(--im-primary);
+  box-shadow: 0 0 0 4px var(--color-primary-bg);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Completed state */
+.im-flow-step--completed .im-step-number {
+  background-color: var(--color-success);
+}
+
+.im-flow-step--completed .im-step-title {
+  color: var(--im-text-secondary);
+  text-decoration: line-through;
+}
+
+/* Disabled state */
+.im-flow-step--disabled {
+  opacity: 0.5;
+}
+
+.im-flow-step--disabled .im-step-number {
+  background-color: var(--im-muted);
+}

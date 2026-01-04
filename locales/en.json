@@ -3435,6 +3435,37 @@
         "createOrganization": "Create organization",
         "requestAccess": "Request access"
       }
+    },
+    "preview": {
+      "player": {
+        "title": "Player Interactive Showcase",
+        "subtitle": "Explore how the platform works from a player's perspective",
+        "stepTitle": "Quick Booking Flow",
+        "stepDescription": "See how easy it is for players to find and book a court",
+        "step1": {
+          "title": "Browse Available Courts",
+          "description": "Players can view all available courts with real-time availability"
+        },
+        "step2": {
+          "title": "Select Time Slot",
+          "description": "Choose a convenient time from the interactive calendar"
+        },
+        "step3": {
+          "title": "Confirm Booking",
+          "description": "Review details and complete the booking instantly"
+        },
+        "actionButton": "Start Booking Flow",
+        "nextStep": "Next Step",
+        "previousStep": "Previous Step",
+        "viewDetails": "View Details",
+        "tryDemo": "Try Interactive Demo"
+      },
+      "common": {
+        "simulationNote": "This is a demo environment. No real data will be created.",
+        "interactiveFlow": "Interactive Flow",
+        "demoMode": "Demo Mode",
+        "resetDemo": "Reset Demo"
+      }
     }
   }
 }
