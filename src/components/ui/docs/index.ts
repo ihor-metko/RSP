@@ -47,3 +47,6 @@ export type { DocsFeatureListProps } from "../DocsFeatureList";
 
 export { DocsSteps } from "../DocsSteps";
 export type { DocsStepsProps, DocsStep } from "../DocsSteps";
+
+export { DocsImagePlaceholder } from "../DocsImagePlaceholder";
+export type { DocsImagePlaceholderProps, UserRole } from "../DocsImagePlaceholder";

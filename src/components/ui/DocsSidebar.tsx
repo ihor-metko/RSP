@@ -17,7 +17,7 @@ export interface DocsSidebarGroup {
 }
 
 // Make props mutually exclusive using union types
-type DocsSidebarProps = {
+export type DocsSidebarProps = {
   currentPath: string;
 } & (
     | {

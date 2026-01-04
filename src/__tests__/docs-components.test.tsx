@@ -4,6 +4,7 @@ import {
   DocsRoleCard,
   DocsRoleGrid,
   DocsFeatureList,
+  DocsImagePlaceholder,
 } from "@/components/ui/docs";
 
 // Mock the IMLink component
@@ -127,5 +128,78 @@ describe("DocsFeatureList", () => {
 
     const featureList = container.querySelector(".im-docs-feature-list");
     expect(featureList).toBeInTheDocument();
+  });
+});
+
+describe("DocsImagePlaceholder", () => {
+  it("renders image with correct src path", () => {
+    render(
+      <DocsImagePlaceholder
+        role="club-admin"
+        step="quick-booking"
+        alt="Quick booking screenshot"
+      />
+    );
+
+    const img = screen.getByAltText("Quick booking screenshot");
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute("src", "/Storage/docs-screenshots/club-admin/quick-booking.png");
+  });
+
+  it("renders with caption when provided", () => {
+    render(
+      <DocsImagePlaceholder
+        role="root-admin"
+        step="create-organization"
+        alt="Organization creation"
+        caption="The organization creation form"
+      />
+    );
+
+    expect(screen.getByText("The organization creation form")).toBeInTheDocument();
+  });
+
+  it("applies correct CSS classes", () => {
+    const { container } = render(
+      <DocsImagePlaceholder
+        role="org-owner"
+        step="test"
+        alt="Test screenshot"
+      />
+    );
+
+    const figure = container.querySelector(".im-docs-screenshot");
+    expect(figure).toBeInTheDocument();
+  });
+
+  it("generates correct path for different roles", () => {
+    const roles = ["root-admin", "org-owner", "org-admin", "club-owner", "club-admin"] as const;
+    
+    roles.forEach((role) => {
+      const { container } = render(
+        <DocsImagePlaceholder
+          role={role}
+          step="test-step"
+          alt="Test"
+        />
+      );
+
+      const img = container.querySelector("img");
+      expect(img).toHaveAttribute("src", `/Storage/docs-screenshots/${role}/test-step.png`);
+    });
+  });
+
+  it("applies custom className when provided", () => {
+    const { container } = render(
+      <DocsImagePlaceholder
+        role="club-admin"
+        step="test"
+        alt="Test"
+        className="custom-class"
+      />
+    );
+
+    const figure = container.querySelector(".im-docs-screenshot");
+    expect(figure).toHaveClass("custom-class");
   });
 });
