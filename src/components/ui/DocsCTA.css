@@ -1,0 +1,35 @@
+@reference "tailwindcss";
+
+/* DocsCTA Component Styles */
+.im-docs-cta {
+  @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-base;
+  @apply transition-all duration-200 no-underline;
+  background-color: var(--im-primary);
+  color: white;
+  border: none;
+}
+
+.im-docs-cta:hover {
+  background-color: var(--im-primary-hover);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.im-docs-cta:active {
+  transform: translateY(0);
+}
+
+.im-docs-cta:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.dark .im-docs-cta {
+  background-color: var(--im-primary);
+}
+
+.dark .im-docs-cta:hover {
+  background-color: var(--im-primary-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}

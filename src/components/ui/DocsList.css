@@ -1,0 +1,26 @@
+@reference "tailwindcss";
+
+/* DocsList Component Styles */
+.im-docs-list {
+  @apply my-4 space-y-2;
+  color: var(--im-text-secondary);
+}
+
+.im-docs-list--bulleted {
+  @apply list-disc;
+  padding-left: 1.5rem;
+}
+
+.im-docs-list--numbered {
+  @apply list-decimal;
+  padding-left: 1.5rem;
+}
+
+.im-docs-list-item {
+  @apply leading-relaxed;
+  color: var(--im-text-secondary);
+}
+
+.im-docs-list-item::marker {
+  color: var(--im-primary);
+}

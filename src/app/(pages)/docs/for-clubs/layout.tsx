@@ -14,6 +14,7 @@ const docLinks = [
   { href: "/docs/for-clubs/booking-flow", label: "Booking Flow" },
   { href: "/docs/for-clubs/roles-and-control", label: "Roles & Access Control" },
   { href: "/docs/for-clubs/problems-we-solve", label: "Problems We Solve" },
+  { href: "/docs/for-clubs/components-example", label: "Components Example" },
 ];
 
 export default function DocsForClubsLayout({

@@ -1,0 +1,24 @@
+@reference "tailwindcss";
+
+/* DocsSection Component Styles */
+.im-docs-section {
+  @apply mb-8;
+}
+
+.im-docs-section-title {
+  @apply text-2xl font-semibold mb-3;
+  color: var(--im-text-primary);
+}
+
+.im-docs-section-content {
+  @apply text-base leading-relaxed;
+  color: var(--im-text-secondary);
+}
+
+.im-docs-section-content p {
+  @apply mb-4;
+}
+
+.im-docs-section-content p:last-child {
+  @apply mb-0;
+}
