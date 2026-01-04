@@ -32,6 +32,9 @@ export function PublicFooter() {
               <IMLink href="/clubs" className="im-public-footer-link">
                 {t("footer.clubs")}
               </IMLink>
+              <IMLink href="/docs/for-clubs/how-it-works" className="im-public-footer-link">
+                {t("footer.howItWorks")}
+              </IMLink>
               <IMLink href="/auth/sign-in" className="im-public-footer-link">
                 {t("common.signIn")}
               </IMLink>

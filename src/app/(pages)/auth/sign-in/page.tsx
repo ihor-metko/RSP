@@ -216,6 +216,19 @@ export default function SignInPage() {
             </IMLink>
           </p>
         </div>
+
+        {/* Club owners documentation link */}
+        <div className="im-auth-links" style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid var(--im-auth-input-border)" }}>
+          <p className="im-auth-link-text" style={{ fontSize: "0.875rem" }}>
+            {t("auth.runningPadelClub")}{" "}
+            <IMLink
+              href="/docs/for-clubs/overview"
+              className="im-auth-link"
+            >
+              {t("auth.learnHowPlatformWorks")} →
+            </IMLink>
+          </p>
+        </div>
       </div>
     </>
   );

@@ -7,7 +7,7 @@ import { DocsCTA } from "@/components/ui/DocsCTA";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("docs.gettingStarted");
-  
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function GettingStartedPage() {
   const t = await getTranslations("docs.gettingStarted");
-  
+
   return (
     <DocsPage title={t("title")}>
       <DocsSection title={t("intro.title")}>
@@ -26,7 +26,7 @@ export default async function GettingStartedPage() {
 
       <DocsSection title={t("onboarding.title")}>
         <p>{t("onboarding.intro")}</p>
-        
+
         <h3 className="im-docs-subsection-title">{t("onboarding.step1.title")}</h3>
         <p>{t("onboarding.step1.p1")}</p>
         <DocsList type="bulleted">

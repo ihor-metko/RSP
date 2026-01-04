@@ -37,28 +37,28 @@
   @apply m-0;
 }
 
-.im-docs-sidebar-link {
+a.im-docs-sidebar-link {
   @apply block px-3 py-2 rounded-lg text-sm font-medium transition-colors no-underline;
   color: var(--im-foreground);
   outline: none;
 }
 
-.im-docs-sidebar-link:hover {
+a.im-docs-sidebar-link:hover {
   background-color: var(--im-card-bg);
   color: var(--im-primary);
 }
 
-.im-docs-sidebar-link:focus,
-.im-docs-sidebar-link:focus-visible {
+a.im-docs-sidebar-link:focus,
+a.im-docs-sidebar-link:focus-visible {
   box-shadow: 0 0 0 2px var(--im-primary);
 }
 
-.im-docs-sidebar-link--active {
+a.im-docs-sidebar-link--active {
   background-color: var(--im-primary);
   color: white;
 }
 
-.im-docs-sidebar-link--active:hover {
+a.im-docs-sidebar-link--active:hover {
   background-color: var(--im-primary-hover);
   color: white;
 }

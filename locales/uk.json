@@ -239,7 +239,9 @@
     "emailPrefilledFromInvite": "Email попередньо заповнено з вашого запрошення",
     "continueWithGoogle": "Продовжити з Google",
     "signingInWithGoogle": "Вхід через Google...",
-    "orContinueWith": "Або продовжити з"
+    "orContinueWith": "Або продовжити з",
+    "runningPadelClub": "Керуєте падел-клубом?",
+    "learnHowPlatformWorks": "Дізнайтесь, як платформа працює для власників"
   },
   "invites": {
     "errorTitle": "Помилка запрошення",
@@ -1358,7 +1360,13 @@
     "privacy": "Політика конфіденційності",
     "terms": "Умови використання",
     "allRightsReserved": "Усі права захищено.",
-    "socialLinks": "Соціальні мережі"
+    "socialLinks": "Соціальні мережі",
+    "forClubOwners": "Для власників падел-клубів",
+    "howItWorks": "Як працює платформа"
+  },
+  "docs": {
+    "createOrganization": "Створити організацію",
+    "requestAccess": "Запросити доступ"
   },
   "wizard": {
     "progress": "Прогрес бронювання",

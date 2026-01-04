@@ -239,7 +239,9 @@
     "emailPrefilledFromInvite": "Email is pre-filled from your invitation",
     "continueWithGoogle": "Continue with Google",
     "signingInWithGoogle": "Signing in with Google...",
-    "orContinueWith": "Or continue with"
+    "orContinueWith": "Or continue with",
+    "runningPadelClub": "Running a padel club?",
+    "learnHowPlatformWorks": "Learn how the platform works for club owners"
   },
   "invites": {
     "errorTitle": "Invitation Error",
@@ -1418,7 +1420,13 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "allRightsReserved": "All rights reserved.",
-    "socialLinks": "Social Links"
+    "socialLinks": "Social Links",
+    "forClubOwners": "For padel club owners",
+    "howItWorks": "How the platform works"
+  },
+  "docs": {
+    "createOrganization": "Create organization",
+    "requestAccess": "Request access"
   },
   "wizard": {
     "progress": "Booking progress",
