@@ -50,8 +50,8 @@ describe("Admin Redirect Middleware", () => {
   }
 
   describe("config.matcher", () => {
-    it("should only match root path", () => {
-      expect(config.matcher).toEqual(["/"]);
+    it("should match root path and docs routes", () => {
+      expect(config.matcher).toEqual(["/", "/docs/for-clubs/:path*"]);
     });
   });
 
@@ -186,6 +186,107 @@ describe("Admin Redirect Middleware", () => {
 
       expect(response.status).toBe(200);
       expect(response.headers.get("location")).toBeNull();
+    });
+  });
+
+  describe("docs paths", () => {
+    it("should allow unauthenticated users to access docs", async () => {
+      mockAuth.mockReturnValue(null);
+
+      const request = createMockRequest("/docs/for-clubs/getting-started");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+    });
+
+    it("should allow non-admin authenticated users to access docs", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "user1", email: "player@test.com", isRoot: false },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: false,
+        adminType: "none",
+        managedIds: [],
+      });
+
+      const request = createMockRequest("/docs/for-clubs/overview");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(200);
+      expect(response.headers.get("location")).toBeNull();
+    });
+
+    it("should redirect root admin from docs to admin dashboard", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "admin1", email: "admin@test.com", isRoot: true },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: true,
+        adminType: "root_admin",
+        managedIds: [],
+      });
+
+      const request = createMockRequest("/docs/for-clubs/getting-started");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain(getAdminHomepage("root_admin"));
+    });
+
+    it("should redirect organization admin from docs to admin dashboard", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "org-admin1", email: "org-admin@test.com", isRoot: false },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: true,
+        adminType: "organization_admin",
+        managedIds: ["org-1"],
+      });
+
+      const request = createMockRequest("/docs/for-clubs/how-it-works");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain(getAdminHomepage("organization_admin"));
+    });
+
+    it("should redirect club admin from docs to admin dashboard", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "club-admin1", email: "club-admin@test.com", isRoot: false },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: true,
+        adminType: "club_admin",
+        managedIds: ["club-1"],
+      });
+
+      const request = createMockRequest("/docs/for-clubs/overview");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain(getAdminHomepage("club_admin"));
+    });
+
+    it("should redirect club owner from docs to admin dashboard", async () => {
+      mockAuth.mockReturnValue({
+        user: { id: "club-owner1", email: "club-owner@test.com", isRoot: false },
+      });
+      mockCheckUserAdminStatus.mockResolvedValue({
+        isAdmin: true,
+        adminType: "club_owner",
+        managedIds: ["club-1"],
+      });
+
+      const request = createMockRequest("/docs/for-clubs/getting-started");
+      const response = await middleware(request as Parameters<typeof middleware>[0], {} as Parameters<typeof middleware>[1]);
+
+      expect(response.status).toBe(307);
+      const locationHeader = response.headers.get("location");
+      expect(locationHeader).toContain(getAdminHomepage("club_owner"));
     });
   });
 

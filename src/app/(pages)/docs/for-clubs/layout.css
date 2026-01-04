@@ -55,3 +55,12 @@
   @apply text-base leading-relaxed;
   color: var(--im-text-secondary);
 }
+
+.im-docs-subsection-title {
+  @apply text-xl font-semibold mt-6 mb-3;
+  color: var(--im-text-primary);
+}
+
+.im-docs-cta-group {
+  @apply flex flex-wrap gap-4 mt-6;
+}
