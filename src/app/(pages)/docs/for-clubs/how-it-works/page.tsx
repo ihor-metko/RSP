@@ -4,6 +4,7 @@ import { DocsPage } from "@/components/ui/DocsPage";
 import { DocsSection } from "@/components/ui/DocsSection";
 import { DocsList } from "@/components/ui/DocsList";
 import { DocsNote } from "@/components/ui/DocsNote";
+import { DocsCTA } from "@/components/ui/DocsCTA";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("docs.howItWorks");
@@ -110,6 +111,15 @@ export default async function HowItWorksPage() {
         </DocsList>
         <p>{t("together.perspective")}</p>
         <p>{t("together.conclusion")}</p>
+
+        <div className="im-docs-cta-group">
+          <DocsCTA href="/docs/for-clubs/getting-started">
+            Get Started Now
+          </DocsCTA>
+          <DocsCTA href="/docs/for-clubs/booking-flow" variant="secondary">
+            Explore Booking Flow
+          </DocsCTA>
+        </div>
       </DocsSection>
     </DocsPage>
   );

@@ -4,6 +4,7 @@ import { DocsPage } from "@/components/ui/DocsPage";
 import { DocsSection } from "@/components/ui/DocsSection";
 import { DocsList } from "@/components/ui/DocsList";
 import { DocsNote } from "@/components/ui/DocsNote";
+import { DocsCTA } from "@/components/ui/DocsCTA";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("docs.multiClub");
@@ -93,6 +94,15 @@ export default async function MultiClubPage() {
         <DocsNote type="info">
           {t("gettingStarted.note")}
         </DocsNote>
+
+        <div className="im-docs-cta-group">
+          <DocsCTA href="/docs/for-clubs/getting-started">
+            Get Started
+          </DocsCTA>
+          <DocsCTA href="/docs/for-clubs/roles-and-control" variant="secondary">
+            Learn About Roles
+          </DocsCTA>
+        </div>
       </DocsSection>
     </DocsPage>
   );

@@ -4,6 +4,7 @@ import { DocsPage } from "@/components/ui/DocsPage";
 import { DocsSection } from "@/components/ui/DocsSection";
 import { DocsList } from "@/components/ui/DocsList";
 import { DocsNote } from "@/components/ui/DocsNote";
+import { DocsCTA } from "@/components/ui/DocsCTA";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("docs.rolesAndControl");
@@ -112,6 +113,15 @@ export default async function RolesAndControlPage() {
         <DocsNote type="info">
           {t("takeaway.note")}
         </DocsNote>
+
+        <div className="im-docs-cta-group">
+          <DocsCTA href="/docs/for-clubs/getting-started">
+            Get Started Now
+          </DocsCTA>
+          <DocsCTA href="/docs/for-clubs/multi-club" variant="secondary">
+            Explore Multi-Club
+          </DocsCTA>
+        </div>
       </DocsSection>
     </DocsPage>
   );

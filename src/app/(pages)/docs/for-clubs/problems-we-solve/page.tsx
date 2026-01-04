@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { DocsPage } from "@/components/ui/DocsPage";
 import { DocsSection } from "@/components/ui/DocsSection";
 import { DocsList } from "@/components/ui/DocsList";
+import { DocsCTA } from "@/components/ui/DocsCTA";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("docs.problemsWeSolve");
@@ -69,6 +70,15 @@ export default async function ProblemsWeSolvePage() {
           <li>{t("multiClub.issue6")}</li>
         </DocsList>
         <p>{t("multiClub.solution")}</p>
+
+        <div className="im-docs-cta-group">
+          <DocsCTA href="/docs/for-clubs/getting-started">
+            Get Started
+          </DocsCTA>
+          <DocsCTA href="/docs/for-clubs/how-it-works" variant="secondary">
+            See How It Works
+          </DocsCTA>
+        </div>
       </DocsSection>
     </DocsPage>
   );

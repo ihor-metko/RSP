@@ -6,6 +6,8 @@ export interface DocsCTAProps {
   href: string;
   /** Button content */
   children: React.ReactNode;
+  /** Button variant: primary or secondary */
+  variant?: "primary" | "secondary";
   /** Additional CSS classes */
   className?: string;
 }
@@ -25,16 +27,24 @@ export interface DocsCTAProps {
  * <DocsCTA href="/signup">
  *   Sign Up for Free Trial
  * </DocsCTA>
+ *
+ * @example
+ * <DocsCTA href="/docs/overview" variant="secondary">
+ *   Learn More
+ * </DocsCTA>
  */
 export function DocsCTA({
   href,
   children,
+  variant = "primary",
   className = "",
 }: DocsCTAProps) {
+  const variantClass = variant === "secondary" ? "im-docs-cta--secondary" : "im-docs-cta--primary";
+  
   return (
     <IMLink
       href={href}
-      className={`im-docs-cta ${className}`.trim()}
+      className={`im-docs-cta ${variantClass} ${className}`.trim()}
     >
       {children}
     </IMLink>

@@ -129,7 +129,7 @@ export default function ComponentsExamplePage() {
           <DocsCTA href="/docs/for-clubs/getting-started">
             Getting Started Guide
           </DocsCTA>
-          <DocsCTA href="/docs/for-clubs/overview">
+          <DocsCTA href="/docs/for-clubs/overview" variant="secondary">
             View Documentation
           </DocsCTA>
         </div>

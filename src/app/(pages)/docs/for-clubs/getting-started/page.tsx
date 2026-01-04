@@ -80,7 +80,7 @@ export default async function GettingStartedPage() {
           <DocsCTA href="/auth/sign-up">
             {t("ready.getStarted")}
           </DocsCTA>
-          <DocsCTA href="/auth/sign-in">
+          <DocsCTA href="/auth/sign-in" variant="secondary">
             {t("ready.requestAccess")}
           </DocsCTA>
         </div>

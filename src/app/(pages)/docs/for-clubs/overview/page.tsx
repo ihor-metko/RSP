@@ -4,6 +4,7 @@ import { DocsPage } from "@/components/ui/DocsPage";
 import { DocsSection } from "@/components/ui/DocsSection";
 import { DocsList } from "@/components/ui/DocsList";
 import { DocsNote } from "@/components/ui/DocsNote";
+import { DocsCTA } from "@/components/ui/DocsCTA";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("docs.overview");
@@ -64,6 +65,15 @@ export default async function OverviewPage() {
           <li>{t("coreCapabilities.item5")}</li>
           <li>{t("coreCapabilities.item6")}</li>
         </DocsList>
+        
+        <div className="im-docs-cta-group">
+          <DocsCTA href="/docs/for-clubs/getting-started">
+            Get Started
+          </DocsCTA>
+          <DocsCTA href="/docs/for-clubs/how-it-works" variant="secondary">
+            Learn How It Works
+          </DocsCTA>
+        </div>
       </DocsSection>
     </DocsPage>
   );
