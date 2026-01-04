@@ -43,15 +43,13 @@ export default function BookingFlowPage() {
         <p>
           As a club owner or administrator, you maintain complete visibility and control:
         </p>
-        <DocsList type="bulleted"
-          items={[
-            "See all bookings as they happen, in real-time",
-            "View upcoming reservations in your dashboard",
-            "Know exactly which courts are booked and when",
-            "Create bookings manually if needed (phone reservations, walk-ins)",
-            "Cancel or modify bookings when necessary"
-          ]}
-        />
+        <DocsList type="bulleted">
+          <li>See all bookings as they happen, in real-time</li>
+          <li>View upcoming reservations in your dashboard</li>
+          <li>Know exactly which courts are booked and when</li>
+          <li>Create bookings manually if needed (phone reservations, walk-ins)</li>
+          <li>Cancel or modify bookings when necessary</li>
+        </DocsList>
         <p>
           Every action is reflected immediately across the entire system—your staff, your dashboard, 
           and the player&apos;s view all stay synchronized.

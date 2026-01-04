@@ -43,15 +43,13 @@ export default function MultiClubPage() {
         <p>
           As an organization owner or administrator, you have a complete view across all your clubs:
         </p>
-        <DocsList type="bulleted"
-          items={[
-            "See performance and bookings across all locations",
-            "Set consistent branding and policies",
-            "Manage staff and assign them to specific clubs",
-            "Control who has access to what",
-            "View consolidated reports and analytics"
-          ]}
-        />
+        <DocsList type="bulleted">
+          <li>See performance and bookings across all locations</li>
+          <li>Set consistent branding and policies</li>
+          <li>Manage staff and assign them to specific clubs</li>
+          <li>Control who has access to what</li>
+          <li>View consolidated reports and analytics</li>
+        </DocsList>
         <p>
           Everything stays under one roof—no jumping between different systems or logging in multiple times.
         </p>
