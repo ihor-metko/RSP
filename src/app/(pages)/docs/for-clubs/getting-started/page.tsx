@@ -75,7 +75,7 @@ export default async function GettingStartedPage() {
             {t("ready.getStarted")}
           </DocsCTA>
           <DocsCTA href="/auth/sign-in">
-            {t("ready.signIn")}
+            {t("ready.requestAccess")}
           </DocsCTA>
         </div>
       </DocsSection>

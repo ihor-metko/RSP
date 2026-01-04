@@ -1424,10 +1424,6 @@
     "forClubOwners": "For padel club owners",
     "howItWorks": "How the platform works"
   },
-  "docs": {
-    "createOrganization": "Create organization",
-    "requestAccess": "Request access"
-  },
   "wizard": {
     "progress": "Booking progress",
     "steps": {
@@ -3435,7 +3431,9 @@
         "title": "Ready to Get Started?",
         "intro": "If you're ready to start using ArenaOne for your padel club, sign up to get access to the platform and begin setting up your organization.",
         "getStarted": "Get Started",
-        "signIn": "Sign In"
+        "signIn": "Sign In",
+        "createOrganization": "Create organization",
+        "requestAccess": "Request access"
       }
     }
   }
