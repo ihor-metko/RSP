@@ -1,85 +1,68 @@
 import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { DocsPage } from "@/components/ui/DocsPage";
 import { DocsSection } from "@/components/ui/DocsSection";
 import { DocsList } from "@/components/ui/DocsList";
 import { DocsNote } from "@/components/ui/DocsNote";
 
-export const metadata: Metadata = {
-  title: "Overview - ArenaOne for Clubs Documentation",
-  description: "Learn what ArenaOne is, who it's for, and how it helps padel clubs operate more efficiently.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("docs.overview");
+  
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  const t = await getTranslations("docs.overview");
+  
   return (
-    <DocsPage title="Overview">
-      <DocsSection title="What is ArenaOne?">
-        <p>
-          ArenaOne is a cloud-based management platform built specifically for padel clubs.
-          Whether you operate a single club or manage multiple facilities, ArenaOne provides
-          the tools to streamline your operations, automate bookings, and maintain full control
-          over your business.
-        </p>
-        <p>
-          The platform centralizes everything you need to run your club: court scheduling,
-          player bookings, availability management, and operational oversight—all accessible
-          from a single, unified interface.
-        </p>
+    <DocsPage title={t("title")}>
+      <DocsSection title={t("whatIsArenaOne.title")}>
+        <p>{t("whatIsArenaOne.p1")}</p>
+        <p>{t("whatIsArenaOne.p2")}</p>
       </DocsSection>
 
-      <DocsSection title="Who It's For">
-        <p>
-          ArenaOne is designed for padel club owners and organizations who need to:
-        </p>
+      <DocsSection title={t("whoItsFor.title")}>
+        <p>{t("whoItsFor.intro")}</p>
         <DocsList type="bulleted">
-          <li>Manage one or more padel facilities efficiently</li>
-          <li>Automate court bookings and reduce manual coordination</li>
-          <li>Gain real-time visibility into operations and revenue</li>
-          <li>Scale their business without adding administrative overhead</li>
-          <li>Provide a professional booking experience for their players</li>
+          <li>{t("whoItsFor.item1")}</li>
+          <li>{t("whoItsFor.item2")}</li>
+          <li>{t("whoItsFor.item3")}</li>
+          <li>{t("whoItsFor.item4")}</li>
+          <li>{t("whoItsFor.item5")}</li>
         </DocsList>
-        <p>
-          If you&apos;re currently managing bookings through WhatsApp, Excel spreadsheets, or
-          fragmented tools, ArenaOne helps you consolidate and professionalize your operations.
-        </p>
+        <p>{t("whoItsFor.outro")}</p>
       </DocsSection>
 
-      <DocsSection title="What This Platform Is NOT">
+      <DocsSection title={t("whatItIsNot.title")}>
         <DocsNote type="info">
-          ArenaOne is your operational management platform—not a replacement for your brand
-          or identity.
+          {t("whatItIsNot.note")}
         </DocsNote>
-        <p>
-          It&apos;s important to understand what ArenaOne does not do:
-        </p>
+        <p>{t("whatItIsNot.intro")}</p>
         <DocsList type="bulleted">
           <li>
-            <strong>Not a marketplace.</strong> ArenaOne is not a public directory or booking
-            marketplace. It&apos;s your private management system. Players book directly through
-            your club&apos;s presence on the platform.
+            <strong>{t("whatItIsNot.notMarketplace.title")}</strong> {t("whatItIsNot.notMarketplace.text")}
           </li>
           <li>
-            <strong>Not replacing your branding.</strong> Your club keeps its identity, name,
-            and customer relationships. ArenaOne works behind the scenes to power your operations.
+            <strong>{t("whatItIsNot.notReplacing.title")}</strong> {t("whatItIsNot.notReplacing.text")}
           </li>
           <li>
-            <strong>Not a third-party booking aggregator.</strong> You own your data, your
-            customer relationships, and your revenue. ArenaOne is a tool for your business,
-            not a middleman.
+            <strong>{t("whatItIsNot.notAggregator.title")}</strong> {t("whatItIsNot.notAggregator.text")}
           </li>
         </DocsList>
       </DocsSection>
 
-      <DocsSection title="Core Capabilities">
-        <p>
-          ArenaOne provides the essential capabilities padel clubs need to operate efficiently:
-        </p>
+      <DocsSection title={t("coreCapabilities.title")}>
+        <p>{t("coreCapabilities.intro")}</p>
         <DocsList type="bulleted">
-          <li>Automated court booking and scheduling</li>
-          <li>Real-time availability and calendar management</li>
-          <li>Centralized control for single or multi-club operations</li>
-          <li>Player management and booking history</li>
-          <li>Flexible pricing and special date configurations</li>
-          <li>Operational insights and visibility across your business</li>
+          <li>{t("coreCapabilities.item1")}</li>
+          <li>{t("coreCapabilities.item2")}</li>
+          <li>{t("coreCapabilities.item3")}</li>
+          <li>{t("coreCapabilities.item4")}</li>
+          <li>{t("coreCapabilities.item5")}</li>
+          <li>{t("coreCapabilities.item6")}</li>
         </DocsList>
       </DocsSection>
     </DocsPage>

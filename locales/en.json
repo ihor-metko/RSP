@@ -2971,5 +2971,472 @@
       "updateFailed": "Failed to update court",
       "imageUploadFailed": "Failed to upload image"
     }
+  },
+  "docs": {
+    "sidebar": {
+      "title": "Documentation",
+      "overview": "Overview",
+      "problemsWeSolve": "Problems We Solve",
+      "howItWorks": "How It Works",
+      "bookingFlow": "Booking Flow",
+      "multiClub": "Multi-Club",
+      "rolesAndControl": "Roles & Control",
+      "gettingStarted": "Getting Started"
+    },
+    "overview": {
+      "title": "Overview",
+      "metaTitle": "Overview - ArenaOne for Clubs Documentation",
+      "metaDescription": "Learn what ArenaOne is, who it's for, and how it helps padel clubs operate more efficiently.",
+      "whatIsArenaOne": {
+        "title": "What is ArenaOne?",
+        "p1": "ArenaOne is a cloud-based management platform built specifically for padel clubs. Whether you operate a single club or manage multiple facilities, ArenaOne provides the tools to streamline your operations, automate bookings, and maintain full control over your business.",
+        "p2": "The platform centralizes everything you need to run your club: court scheduling, player bookings, availability management, and operational oversight—all accessible from a single, unified interface."
+      },
+      "whoItsFor": {
+        "title": "Who It's For",
+        "intro": "ArenaOne is designed for padel club owners and organizations who need to:",
+        "item1": "Manage one or more padel facilities efficiently",
+        "item2": "Automate court bookings and reduce manual coordination",
+        "item3": "Gain real-time visibility into operations and revenue",
+        "item4": "Scale their business without adding administrative overhead",
+        "item5": "Provide a professional booking experience for their players",
+        "outro": "If you're currently managing bookings through WhatsApp, Excel spreadsheets, or fragmented tools, ArenaOne helps you consolidate and professionalize your operations."
+      },
+      "whatItIsNot": {
+        "title": "What This Platform Is NOT",
+        "note": "ArenaOne is your operational management platform—not a replacement for your brand or identity.",
+        "intro": "It's important to understand what ArenaOne does not do:",
+        "notMarketplace": {
+          "title": "Not a marketplace.",
+          "text": "ArenaOne is not a public directory or booking marketplace. It's your private management system. Players book directly through your club's presence on the platform."
+        },
+        "notReplacing": {
+          "title": "Not replacing your branding.",
+          "text": "Your club keeps its identity, name, and customer relationships. ArenaOne works behind the scenes to power your operations."
+        },
+        "notAggregator": {
+          "title": "Not a third-party booking aggregator.",
+          "text": "You own your data, your customer relationships, and your revenue. ArenaOne is a tool for your business, not a middleman."
+        }
+      },
+      "coreCapabilities": {
+        "title": "Core Capabilities",
+        "intro": "ArenaOne provides the essential capabilities padel clubs need to operate efficiently:",
+        "item1": "Automated court booking and scheduling",
+        "item2": "Real-time availability and calendar management",
+        "item3": "Centralized control for single or multi-club operations",
+        "item4": "Player management and booking history",
+        "item5": "Flexible pricing and special date configurations",
+        "item6": "Operational insights and visibility across your business"
+      }
+    },
+    "problemsWeSolve": {
+      "title": "Problems We Solve",
+      "metaTitle": "Problems We Solve - ArenaOne for Clubs Documentation",
+      "metaDescription": "Real operational challenges padel clubs face and how ArenaOne addresses them.",
+      "manualBookings": {
+        "title": "Manual Bookings",
+        "intro1": "Many padel clubs still handle bookings through WhatsApp messages, Instagram DMs, or phone calls. This creates constant interruptions, manual scheduling conflicts, and errors that frustrate both staff and players.",
+        "intro2": "Common issues with manual booking coordination:",
+        "issue1": "Staff spends hours responding to booking requests across multiple channels",
+        "issue2": "Double-bookings happen when messages overlap or get missed",
+        "issue3": "No clear record of who booked what, when, or whether they paid",
+        "issue4": "Players get frustrated waiting for confirmations or checking availability",
+        "issue5": "Impossible to accept bookings outside business hours",
+        "solution": "ArenaOne automates the entire booking process. Players see real-time availability, book instantly, and receive immediate confirmation. Your staff is freed from constant message management."
+      },
+      "fragmented": {
+        "title": "Excel Spreadsheets and Fragmented Systems",
+        "intro1": "Running a club with Excel sheets, paper calendars, or a patchwork of disconnected tools leads to data chaos. Information lives in different places, nothing syncs, and finding answers requires checking multiple sources.",
+        "intro2": "What this looks like in practice:",
+        "issue1": "Court schedules in one spreadsheet, player info in another",
+        "issue2": "Revenue tracking separate from booking records",
+        "issue3": "No single source of truth when conflicts or questions arise",
+        "issue4": "Time wasted manually copying data between systems",
+        "issue5": "Risk of losing data when files get corrupted or overwritten",
+        "solution": "ArenaOne unifies your data in one platform. Bookings, courts, players, and revenue all live together. Everything stays synchronized, and you can access any information instantly."
+      },
+      "visibility": {
+        "title": "Lack of Visibility and Control",
+        "intro1": "Without a centralized system, club owners often have no clear view of their business performance. How many bookings happened today? Which courts are most popular? Who are your regular players? These questions shouldn't require digging through messages or spreadsheets.",
+        "intro2": "Challenges of operating without visibility:",
+        "issue1": "Can't see booking patterns or peak times without manual analysis",
+        "issue2": "Difficult to identify underutilized courts or revenue opportunities",
+        "issue3": "No way to track player activity or booking history",
+        "issue4": "Hard to forecast revenue or plan capacity",
+        "issue5": "Staff makes decisions based on gut feeling instead of data",
+        "solution": "ArenaOne provides real-time visibility into every aspect of your club. See bookings as they happen, understand usage patterns, and make informed decisions based on actual data."
+      },
+      "multiClub": {
+        "title": "Managing Multiple Clubs",
+        "intro1": "Operating more than one club multiplies every operational challenge. Each location might use different processes, staff can't see across facilities, and you lack a consolidated view of your business.",
+        "intro2": "Multi-club management challenges:",
+        "issue1": "Each club operates as a separate silo with its own booking system",
+        "issue2": "No way to compare performance between locations",
+        "issue3": "Can't reassign bookings or share resources across clubs",
+        "issue4": "Reporting requires manually combining data from multiple sources",
+        "issue5": "Difficult to maintain consistent processes and standards",
+        "issue6": "Staff at one location can't help with another location's operations",
+        "solution": "ArenaOne is built for multi-club operations from the ground up. Manage all your facilities from a single interface, maintain consistent processes, and get consolidated reporting across your entire organization."
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "metaTitle": "How It Works - ArenaOne for Clubs Documentation",
+      "metaDescription": "Understanding the ArenaOne platform structure and how it helps your club operate efficiently.",
+      "structure": {
+        "title": "The Platform Structure",
+        "intro1": "ArenaOne is organized in a simple, logical hierarchy that mirrors how padel clubs actually operate. This structure helps you stay organized, scale your business, and maintain clear control over your operations.",
+        "intro2": "The hierarchy flows from top to bottom:",
+        "level1": "Organization — Your business entity (single club or multi-club company)",
+        "level2": "Clubs — Individual facilities within your organization",
+        "level3": "Courts — The actual padel courts at each club",
+        "level4": "Bookings — Player reservations for specific courts at specific times"
+      },
+      "organization": {
+        "title": "Organization: Your Business",
+        "intro1": "At the top level, your organization represents your entire business. This is the umbrella under which all your clubs operate.",
+        "intro2": "For single-club owners, your organization simply contains one club. For multi-club operators, your organization contains all your facilities, giving you a consolidated view of your entire business.",
+        "intro3": "Benefits of the organization level:",
+        "benefit1": "See performance across all your clubs in one place",
+        "benefit2": "Maintain consistent settings and processes",
+        "benefit3": "Manage staff who work across multiple locations",
+        "benefit4": "Access consolidated reporting and insights"
+      },
+      "clubs": {
+        "title": "Clubs: Your Facilities",
+        "intro1": "Each club represents a physical location with its own address, courts, and operating hours. Whether you have one club or ten, each is managed as a distinct facility within your organization.",
+        "intro2": "At the club level, you control:",
+        "control1": "Location details and contact information",
+        "control2": "Operating hours and availability schedules",
+        "control3": "Pricing rules and special date configurations",
+        "control4": "The courts available for booking",
+        "outro": "This structure allows each club to operate with its own identity and settings while remaining connected to your broader organization."
+      },
+      "courts": {
+        "title": "Courts: Your Bookable Resources",
+        "intro": "Courts are the actual padel courts at your club. Each court exists within a specific club and can be booked by players according to your availability and pricing rules.",
+        "define": "For each court, you define:",
+        "item1": "Court name or number (e.g., \"Court 1\", \"Center Court\")",
+        "item2": "When the court is available for bookings",
+        "item3": "Pricing for different times or days",
+        "item4": "Any special characteristics or notes"
+      },
+      "bookings": {
+        "title": "Bookings: Player Reservations",
+        "intro": "Bookings are player reservations for a specific court at a specific time. This is where everything comes together: a player selects a club, chooses a court, picks a time slot, and creates a booking.",
+        "handles": "The booking system handles:",
+        "item1": "Real-time availability checks to prevent conflicts",
+        "item2": "Immediate confirmation to players",
+        "item3": "Recording who booked what and when",
+        "item4": "Tracking booking status and history"
+      },
+      "whyMatters": {
+        "title": "Why This Structure Matters",
+        "intro": "This four-level hierarchy might seem simple, but it's intentionally designed to support how padel clubs actually work and grow.",
+        "note": "The structure ensures that as your business grows—adding more courts, opening new clubs, or expanding to new locations—the platform scales naturally without becoming more complicated to manage.",
+        "benefits": "Key benefits of this organizational approach:",
+        "benefit1": {
+          "title": "Clarity:",
+          "text": "Everyone understands which club, court, and time a booking refers to. No ambiguity, no confusion."
+        },
+        "benefit2": {
+          "title": "Scalability:",
+          "text": "Adding a new club or court doesn't disrupt existing operations. Everything stays organized."
+        },
+        "benefit3": {
+          "title": "Control:",
+          "text": "You can manage settings at the right level—organization-wide policies, club-specific rules, or court-level details."
+        },
+        "benefit4": {
+          "title": "Flexibility:",
+          "text": "Each club can operate differently while still being part of your larger business."
+        }
+      },
+      "together": {
+        "title": "Putting It All Together",
+        "intro": "When a player books a court, they're interacting with all four levels of this structure:",
+        "step1": "They select a club (from your organization)",
+        "step2": "They choose a court (at that club)",
+        "step3": "They pick a time slot (when that court is available)",
+        "step4": "They create a booking (reservation confirmed)",
+        "perspective": "From your perspective as the club owner, you see everything: which clubs are busiest, which courts are most popular, when peak booking times occur, and how your overall business is performing.",
+        "conclusion": "This simple structure keeps your operations organized today while supporting your growth tomorrow."
+      }
+    },
+    "bookingFlow": {
+      "title": "Booking Flow",
+      "metaTitle": "Booking Flow - ArenaOne for Clubs Documentation",
+      "metaDescription": "Understand how court bookings work from both player and club perspectives.",
+      "howWorks": {
+        "title": "How Booking Works",
+        "intro": "The booking process in ArenaOne is designed to be simple for players and transparent for club owners. Every booking happens in real-time, with immediate visibility for both parties.",
+        "outro": "This means no double bookings, no confusion, and complete control over your court availability."
+      },
+      "player": {
+        "title": "Player Perspective",
+        "intro": "When a player wants to book a court at your club, they go through a straightforward process:",
+        "step1": "Browse available clubs and view courts",
+        "step2": "Select their preferred date and time",
+        "step3": "See real-time availability instantly",
+        "step4": "Choose a court and confirm the booking",
+        "step5": "Receive immediate confirmation",
+        "note": "Players see availability as you set it. When you block a time slot or mark a court as unavailable, it disappears from their view immediately—no waiting, no sync delays."
+      },
+      "club": {
+        "title": "Club Perspective",
+        "intro": "As a club owner or administrator, you maintain complete visibility and control:",
+        "control1": "See all bookings as they happen, in real-time",
+        "control2": "View upcoming reservations in your dashboard",
+        "control3": "Know exactly which courts are booked and when",
+        "control4": "Create bookings manually if needed (phone reservations, walk-ins)",
+        "control5": "Cancel or modify bookings when necessary",
+        "outro": "Every action is reflected immediately across the entire system—your staff, your dashboard, and the player's view all stay synchronized."
+      },
+      "noDouble": {
+        "title": "No Double Bookings",
+        "intro": "The system prevents double bookings automatically. When a court is booked for a specific time:",
+        "item1": "That slot becomes unavailable to other players instantly",
+        "item2": "No two people can reserve the same court at the same time",
+        "item3": "Your calendar stays accurate without manual intervention",
+        "note": "This happens behind the scenes, so you don't have to worry about conflicts, overlapping reservations, or manual calendar management."
+      },
+      "confirmations": {
+        "title": "Booking Confirmations",
+        "intro": "Both players and your club receive clear confirmation of every booking:",
+        "item1": "Players get instant confirmation after completing their reservation",
+        "item2": "Your dashboard updates immediately",
+        "item3": "All booking details are visible: date, time, court, player information"
+      },
+      "changes": {
+        "title": "Managing Changes and Cancellations",
+        "intro": "Sometimes plans change. When a booking needs to be modified or cancelled:",
+        "item1": "Club admins can cancel or reschedule bookings from the dashboard",
+        "item2": "The court becomes available again immediately after cancellation",
+        "item3": "Changes are visible to everyone in real-time",
+        "warning": "Any changes you make are reflected instantly, so players always see the most current availability."
+      }
+    },
+    "multiClub": {
+      "title": "Multi-Club Management",
+      "metaTitle": "Multi-Club Management - ArenaOne for Clubs Documentation",
+      "metaDescription": "Manage multiple club locations under one organization with centralized control.",
+      "why": {
+        "title": "Why Multi-Club Support Matters",
+        "intro": "Whether you're running one club today or planning to expand, ArenaOne is designed to grow with you. Our multi-club capability is a core strength of the platform, not an add-on.",
+        "outro": "This means you can start with a single location and add more clubs whenever you're ready—without switching systems or rebuilding your setup."
+      },
+      "howWorks": {
+        "title": "How It Works",
+        "intro": "In ArenaOne, you create one organization that can contain multiple clubs. Think of your organization as your company or brand, and each club as a specific location.",
+        "item1": "One organization = your business or brand",
+        "item2": "Multiple clubs = your different locations",
+        "item3": "Each club has its own courts, pricing, and settings",
+        "item4": "All clubs share the same organizational control",
+        "note": "You don't pay extra to set up multiple clubs. Multi-club support is built into the platform from day one."
+      },
+      "centralized": {
+        "title": "Centralized Control",
+        "intro": "As an organization owner or administrator, you have a complete view across all your clubs:",
+        "item1": "See performance and bookings across all locations",
+        "item2": "Set consistent branding and policies",
+        "item3": "Manage staff and assign them to specific clubs",
+        "item4": "Control who has access to what",
+        "item5": "View consolidated reports and analytics",
+        "outro": "Everything stays under one roof—no jumping between different systems or logging in multiple times."
+      },
+      "individual": {
+        "title": "Individual Club Administration",
+        "intro": "While you maintain central oversight, each club can have its own dedicated administrators who manage:",
+        "item1": "Day-to-day operations at their specific location",
+        "item2": "Court schedules and availability",
+        "item3": "Bookings and player interactions",
+        "item4": "Pricing specific to their club (if needed)",
+        "note": "Club administrators only see and manage their own club. They can't access other clubs in your organization, which keeps operations secure and focused."
+      },
+      "whoBenefits": {
+        "title": "Who Benefits from Multi-Club",
+        "intro": "Multi-club support is valuable for different types of businesses:",
+        "type1": {
+          "title": "Single-club owners planning to grow:",
+          "text": "Set up your organization once, then add new locations as you expand without rebuilding your infrastructure."
+        },
+        "type2": {
+          "title": "Existing multi-location businesses:",
+          "text": "Consolidate all your clubs into one unified platform with centralized reporting and control."
+        },
+        "type3": {
+          "title": "Franchises or partnerships:",
+          "text": "Manage different clubs under one brand while giving local teams the autonomy they need."
+        }
+      },
+      "player": {
+        "title": "Player Experience Across Clubs",
+        "intro": "For players, multi-club support means convenience:",
+        "item1": "Browse and book courts at any of your club locations",
+        "item2": "See all your locations on one platform",
+        "item3": "Discover new locations easily",
+        "outro": "This increases visibility for each club and makes it easier for players to stay within your network, even when traveling or exploring new areas."
+      },
+      "gettingStarted": {
+        "title": "Getting Started with Multiple Clubs",
+        "intro": "Adding a new club to your organization is straightforward:",
+        "step1": "Go to your organization dashboard",
+        "step2": "Click to add a new club",
+        "step3": "Set up courts, pricing, and availability",
+        "step4": "Assign administrators if needed",
+        "step5": "Your new club is live",
+        "note": "Each club operates independently for bookings and scheduling, but you maintain full oversight and control from the organization level."
+      }
+    },
+    "rolesAndControl": {
+      "title": "Roles and Access Control",
+      "metaTitle": "Roles and Access Control - ArenaOne for Clubs Documentation",
+      "metaDescription": "Understanding who manages what in your organization and clubs.",
+      "why": {
+        "title": "Why Roles Matter",
+        "intro": "Running a successful club—or multiple clubs—means delegating responsibility without losing control. ArenaOne gives you different levels of access so the right people can do their jobs without interfering with others.",
+        "outro": "Everyone sees only what they're responsible for. This keeps things organized, secure, and efficient."
+      },
+      "orgOwner": {
+        "title": "Organization Owner",
+        "intro": "The Organization Owner is the person who created the organization. This is typically the business owner or founder.",
+        "manage": "What they manage:",
+        "item1": "The entire organization and all its clubs",
+        "item2": "Creating new clubs or closing existing ones",
+        "item3": "Appointing other administrators",
+        "item4": "Organization-wide settings and policies",
+        "item5": "Access to all data and reports across every club",
+        "note": "Think of the Organization Owner as having the master key—they can access everything and make any decision across the organization."
+      },
+      "orgAdmin": {
+        "title": "Organization Admin",
+        "intro": "An Organization Admin is someone you trust to help manage your organization. You can have multiple Organization Admins.",
+        "manage": "What they manage:",
+        "item1": "All clubs within the organization",
+        "item2": "Viewing performance across all locations",
+        "item3": "Helping with organization-level decisions",
+        "item4": "Assigning or managing club administrators",
+        "outro": "Organization Admins are useful if you have business partners, regional managers, or trusted staff who need to oversee operations but shouldn't be limited to a single club.",
+        "note": "Organization Admins can see and manage everything in your organization, similar to the owner—but they don't own the organization itself."
+      },
+      "clubAdmin": {
+        "title": "Club Admin",
+        "intro": "A Club Admin manages one specific club. They focus on the day-to-day operations of their location.",
+        "manage": "What they manage:",
+        "item1": "Bookings and schedules for their club",
+        "item2": "Court availability and pricing (if allowed)",
+        "item3": "Viewing reports for their club only",
+        "item4": "Handling player inquiries and issues",
+        "cannot": "What they cannot see:",
+        "cannot1": "Other clubs in your organization",
+        "cannot2": "Organization-wide settings or data",
+        "cannot3": "Information about other locations",
+        "note": "Club Admins are perfect for on-site managers or staff who need control over their location but shouldn't access other clubs or organization-level settings."
+      },
+      "whyWorks": {
+        "title": "Why This Structure Works",
+        "intro": "This role system gives you flexibility and security:",
+        "item1": {
+          "title": "Clear responsibility:",
+          "text": "Everyone knows what they're in charge of"
+        },
+        "item2": {
+          "title": "No confusion:",
+          "text": "People only see what they need to see"
+        },
+        "item3": {
+          "title": "Easy delegation:",
+          "text": "You can trust others to manage parts of your business"
+        },
+        "item4": {
+          "title": "Secure access:",
+          "text": "Sensitive data stays protected from unnecessary access"
+        }
+      },
+      "assigning": {
+        "title": "Assigning Roles",
+        "intro": "You can assign roles to people as your organization grows:",
+        "item1": "Invite someone and assign them as Organization Admin if they need full access",
+        "item2": "Assign someone as Club Admin if they should only manage a specific club",
+        "item3": "Change roles anytime as responsibilities shift",
+        "item4": "Remove access if someone leaves or their role changes",
+        "warning": "Always assign the minimum level of access someone needs to do their job. This keeps your organization secure and prevents accidental changes to settings they shouldn't touch."
+      },
+      "scenarios": {
+        "title": "Common Scenarios",
+        "single": {
+          "title": "Single club owner:",
+          "text": "You're the Organization Owner. You might assign a Club Admin to your on-site manager so they can handle daily bookings and operations."
+        },
+        "multi": {
+          "title": "Multi-club business:",
+          "text": "You're the Organization Owner. You assign Organization Admins to business partners or regional managers, and Club Admins to each location manager."
+        },
+        "growing": {
+          "title": "Growing from one to multiple clubs:",
+          "text": "Start as the Organization Owner with yourself managing everything. When you open a second club, assign a Club Admin to your first location so you can focus on the new one."
+        }
+      },
+      "takeaway": {
+        "title": "Key Takeaway",
+        "note": "The role system exists to make your life easier—not more complicated. You stay in control while giving trusted people the access they need to help your business succeed."
+      }
+    },
+    "gettingStarted": {
+      "title": "Getting Started",
+      "metaTitle": "Getting Started - ArenaOne for Clubs Documentation",
+      "metaDescription": "Learn how to set up your padel club on ArenaOne and start accepting bookings.",
+      "intro": {
+        "title": "How to Start Using the Platform",
+        "p1": "ArenaOne helps you manage your padel club operations from a single platform. Whether you operate a single club or multiple facilities, getting started is straightforward.",
+        "p2": "This guide walks you through the essential steps to set up your organization, configure your clubs and courts, and open bookings to players."
+      },
+      "onboarding": {
+        "title": "Onboarding Flow",
+        "intro": "Follow these steps to get your club up and running on ArenaOne:",
+        "step1": {
+          "title": "1. Create Your Organization",
+          "p1": "Your organization is the top-level entity that represents your business. All your clubs, courts, and bookings will be managed under this organization.",
+          "item1": "Provide your business name and contact details",
+          "item2": "Set up organization-level settings and preferences",
+          "item3": "Define admin roles and permissions for your team"
+        },
+        "step2": {
+          "title": "2. Add Your First Club",
+          "p1": "Each club represents a physical facility with its own location, courts, and operating hours.",
+          "item1": "Enter the club name and address",
+          "item2": "Add contact information and facility details",
+          "item3": "Configure club-specific settings"
+        },
+        "step3": {
+          "title": "3. Add Courts to Your Club",
+          "p1": "Courts are the bookable resources at your club. Each court can have its own availability and pricing rules.",
+          "item1": "Name each court (e.g., \"Court 1\", \"Center Court\")",
+          "item2": "Specify court type and surface details",
+          "item3": "Set up pricing for different times and days"
+        },
+        "step4": {
+          "title": "4. Set Working Hours",
+          "p1": "Define when your courts are available for bookings. You can set regular hours and handle special dates or holidays.",
+          "item1": "Configure standard operating hours for each day",
+          "item2": "Set special hours for holidays or events",
+          "item3": "Manage seasonal availability changes"
+        },
+        "step5": {
+          "title": "5. Open Bookings",
+          "p1": "Once your courts are configured, you can start accepting bookings from players. The platform handles availability checks, confirmations, and scheduling automatically.",
+          "item1": "Enable online booking for your courts",
+          "item2": "Set booking policies and restrictions",
+          "item3": "Monitor reservations through the admin dashboard"
+        }
+      },
+      "ready": {
+        "title": "Ready to Get Started?",
+        "intro": "If you're ready to start using ArenaOne for your padel club, sign up to get access to the platform and begin setting up your organization.",
+        "getStarted": "Get Started",
+        "signIn": "Sign In"
+      }
+    }
   }
 }

@@ -1,98 +1,85 @@
 import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { DocsPage } from "@/components/ui/DocsPage";
 import { DocsSection } from "@/components/ui/DocsSection";
 import { DocsList } from "@/components/ui/DocsList";
 import { DocsNote } from "@/components/ui/DocsNote";
 
-export const metadata: Metadata = {
-  title: "Booking Flow - ArenaOne for Clubs Documentation",
-  description: "Understand how court bookings work from both player and club perspectives.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("docs.bookingFlow");
+  
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
-export default function BookingFlowPage() {
+export default async function BookingFlowPage() {
+  const t = await getTranslations("docs.bookingFlow");
+  
   return (
-    <DocsPage title="Booking Flow">
-      <DocsSection title="How Booking Works">
-        <p>
-          The booking process in ArenaOne is designed to be simple for players and transparent for club owners.
-          Every booking happens in real-time, with immediate visibility for both parties.
-        </p>
-        <p>
-          This means no double bookings, no confusion, and complete control over your court availability.
-        </p>
+    <DocsPage title={t("title")}>
+      <DocsSection title={t("howWorks.title")}>
+        <p>{t("howWorks.intro")}</p>
+        <p>{t("howWorks.outro")}</p>
       </DocsSection>
 
-      <DocsSection title="Player Perspective">
-        <p>
-          When a player wants to book a court at your club, they go through a straightforward process:
-        </p>
+      <DocsSection title={t("player.title")}>
+        <p>{t("player.intro")}</p>
         <DocsList type="numbered">
-          <li>Browse available clubs and view courts</li>
-          <li>Select their preferred date and time</li>
-          <li>See real-time availability instantly</li>
-          <li>Choose a court and confirm the booking</li>
-          <li>Receive immediate confirmation</li>
+          <li>{t("player.step1")}</li>
+          <li>{t("player.step2")}</li>
+          <li>{t("player.step3")}</li>
+          <li>{t("player.step4")}</li>
+          <li>{t("player.step5")}</li>
         </DocsList>
         <DocsNote type="info">
-          Players see availability as you set it. When you block a time slot or mark a court as unavailable,
-          it disappears from their view immediately—no waiting, no sync delays.
+          {t("player.note")}
         </DocsNote>
       </DocsSection>
 
-      <DocsSection title="Club Perspective">
-        <p>
-          As a club owner or administrator, you maintain complete visibility and control:
-        </p>
+      <DocsSection title={t("club.title")}>
+        <p>{t("club.intro")}</p>
         <DocsList type="bulleted">
-          <li>See all bookings as they happen, in real-time</li>
-          <li>View upcoming reservations in your dashboard</li>
-          <li>Know exactly which courts are booked and when</li>
-          <li>Create bookings manually if needed (phone reservations, walk-ins)</li>
-          <li>Cancel or modify bookings when necessary</li>
+          <li>{t("club.control1")}</li>
+          <li>{t("club.control2")}</li>
+          <li>{t("club.control3")}</li>
+          <li>{t("club.control4")}</li>
+          <li>{t("club.control5")}</li>
         </DocsList>
-        <p>
-          Every action is reflected immediately across the entire system—your staff, your dashboard, 
-          and the player&apos;s view all stay synchronized.
-        </p>
+        <p>{t("club.outro")}</p>
       </DocsSection>
 
-      <DocsSection title="No Double Bookings">
-        <p>
-          The system prevents double bookings automatically. When a court is booked for a specific time:
-        </p>
+      <DocsSection title={t("noDouble.title")}>
+        <p>{t("noDouble.intro")}</p>
         <DocsList type="bulleted">
-          <li>That slot becomes unavailable to other players instantly</li>
-          <li>No two people can reserve the same court at the same time</li>
-          <li>Your calendar stays accurate without manual intervention</li>
+          <li>{t("noDouble.item1")}</li>
+          <li>{t("noDouble.item2")}</li>
+          <li>{t("noDouble.item3")}</li>
         </DocsList>
         <DocsNote type="info">
-          This happens behind the scenes, so you don&apos;t have to worry about conflicts, 
-          overlapping reservations, or manual calendar management.
+          {t("noDouble.note")}
         </DocsNote>
       </DocsSection>
 
-      <DocsSection title="Booking Confirmations">
-        <p>
-          Both players and your club receive clear confirmation of every booking:
-        </p>
+      <DocsSection title={t("confirmations.title")}>
+        <p>{t("confirmations.intro")}</p>
         <DocsList type="bulleted">
-          <li>Players get instant confirmation after completing their reservation</li>
-          <li>Your dashboard updates immediately</li>
-          <li>All booking details are visible: date, time, court, player information</li>
+          <li>{t("confirmations.item1")}</li>
+          <li>{t("confirmations.item2")}</li>
+          <li>{t("confirmations.item3")}</li>
         </DocsList>
       </DocsSection>
 
-      <DocsSection title="Managing Changes and Cancellations">
-        <p>
-          Sometimes plans change. When a booking needs to be modified or cancelled:
-        </p>
+      <DocsSection title={t("changes.title")}>
+        <p>{t("changes.intro")}</p>
         <DocsList type="bulleted">
-          <li>Club admins can cancel or reschedule bookings from the dashboard</li>
-          <li>The court becomes available again immediately after cancellation</li>
-          <li>Changes are visible to everyone in real-time</li>
+          <li>{t("changes.item1")}</li>
+          <li>{t("changes.item2")}</li>
+          <li>{t("changes.item3")}</li>
         </DocsList>
         <DocsNote type="warning">
-          Any changes you make are reflected instantly, so players always see the most current availability.
+          {t("changes.warning")}
         </DocsNote>
       </DocsSection>
     </DocsPage>

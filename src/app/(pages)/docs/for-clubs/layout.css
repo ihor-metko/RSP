@@ -14,6 +14,11 @@
   width: 100%;
 }
 
+/* Sidebar wrapper with language switcher */
+.im-docs-sidebar-wrapper {
+  @apply flex flex-col;
+}
+
 /* Content Area */
 .im-docs-content {
   @apply flex-1 mx-auto w-full overflow-y-auto;

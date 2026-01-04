@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { IMLink } from "./IMLink";
 import "./DocsSidebar.css";
 
@@ -14,11 +15,13 @@ export interface DocsSidebarProps {
 }
 
 export function DocsSidebar({ items, currentPath }: DocsSidebarProps) {
+  const t = useTranslations("docs.sidebar");
+  
   return (
     <aside className="im-docs-sidebar">
       <nav className="im-docs-sidebar-nav" aria-label="Documentation navigation">
         <div className="im-docs-sidebar-section">
-          <h3 className="im-docs-sidebar-title">Documentation</h3>
+          <h3 className="im-docs-sidebar-title">{t("title")}</h3>
           <ul className="im-docs-sidebar-list">
             {items.map((item) => {
               const isActive = currentPath === item.href;

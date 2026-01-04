@@ -1,104 +1,81 @@
 import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { DocsPage } from "@/components/ui/DocsPage";
 import { DocsSection } from "@/components/ui/DocsSection";
 import { DocsList } from "@/components/ui/DocsList";
 import { DocsCTA } from "@/components/ui/DocsCTA";
-import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Getting Started - ArenaOne for Clubs Documentation",
-  description: "Learn how to set up your padel club on ArenaOne and start accepting bookings.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("docs.gettingStarted");
+
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
 export default async function GettingStartedPage() {
-  const t = await getTranslations();
-  
+  const t = await getTranslations("docs.gettingStarted");
+
   return (
-    <DocsPage title="Getting Started">
-      <DocsSection title="How to Start Using the Platform">
-        <p>
-          ArenaOne helps you manage your padel club operations from a single platform.
-          Whether you operate a single club or multiple facilities, getting started is
-          straightforward.
-        </p>
-        <p>
-          This guide walks you through the essential steps to set up your organization,
-          configure your clubs and courts, and open bookings to players.
-        </p>
+    <DocsPage title={t("title")}>
+      <DocsSection title={t("intro.title")}>
+        <p>{t("intro.p1")}</p>
+        <p>{t("intro.p2")}</p>
       </DocsSection>
 
-      <DocsSection title="Onboarding Flow">
-        <p>
-          Follow these steps to get your club up and running on ArenaOne:
-        </p>
-        
-        <h3 className="im-docs-subsection-title">1. Create Your Organization</h3>
-        <p>
-          Your organization is the top-level entity that represents your business. All your
-          clubs, courts, and bookings will be managed under this organization.
-        </p>
+      <DocsSection title={t("onboarding.title")}>
+        <p>{t("onboarding.intro")}</p>
+
+        <h3 className="im-docs-subsection-title">{t("onboarding.step1.title")}</h3>
+        <p>{t("onboarding.step1.p1")}</p>
         <DocsList type="bulleted">
-          <li>Provide your business name and contact details</li>
-          <li>Set up organization-level settings and preferences</li>
-          <li>Define admin roles and permissions for your team</li>
+          <li>{t("onboarding.step1.item1")}</li>
+          <li>{t("onboarding.step1.item2")}</li>
+          <li>{t("onboarding.step1.item3")}</li>
         </DocsList>
 
-        <h3 className="im-docs-subsection-title">2. Add Your First Club</h3>
-        <p>
-          Each club represents a physical facility with its own location, courts, and
-          operating hours.
-        </p>
+        <h3 className="im-docs-subsection-title">{t("onboarding.step2.title")}</h3>
+        <p>{t("onboarding.step2.p1")}</p>
         <DocsList type="bulleted">
-          <li>Enter the club name and address</li>
-          <li>Add contact information and facility details</li>
-          <li>Configure club-specific settings</li>
+          <li>{t("onboarding.step2.item1")}</li>
+          <li>{t("onboarding.step2.item2")}</li>
+          <li>{t("onboarding.step2.item3")}</li>
         </DocsList>
 
-        <h3 className="im-docs-subsection-title">3. Add Courts to Your Club</h3>
-        <p>
-          Courts are the bookable resources at your club. Each court can have its own
-          availability and pricing rules.
-        </p>
+        <h3 className="im-docs-subsection-title">{t("onboarding.step3.title")}</h3>
+        <p>{t("onboarding.step3.p1")}</p>
         <DocsList type="bulleted">
-          <li>Name each court (e.g., &quot;Court 1&quot;, &quot;Center Court&quot;)</li>
-          <li>Specify court type and surface details</li>
-          <li>Set up pricing for different times and days</li>
+          <li>{t("onboarding.step3.item1")}</li>
+          <li>{t("onboarding.step3.item2")}</li>
+          <li>{t("onboarding.step3.item3")}</li>
         </DocsList>
 
-        <h3 className="im-docs-subsection-title">4. Set Working Hours</h3>
-        <p>
-          Define when your courts are available for bookings. You can set regular hours
-          and handle special dates or holidays.
-        </p>
+        <h3 className="im-docs-subsection-title">{t("onboarding.step4.title")}</h3>
+        <p>{t("onboarding.step4.p1")}</p>
         <DocsList type="bulleted">
-          <li>Configure standard operating hours for each day</li>
-          <li>Set special hours for holidays or events</li>
-          <li>Manage seasonal availability changes</li>
+          <li>{t("onboarding.step4.item1")}</li>
+          <li>{t("onboarding.step4.item2")}</li>
+          <li>{t("onboarding.step4.item3")}</li>
         </DocsList>
 
-        <h3 className="im-docs-subsection-title">5. Open Bookings</h3>
-        <p>
-          Once your courts are configured, you can start accepting bookings from players.
-          The platform handles availability checks, confirmations, and scheduling automatically.
-        </p>
+        <h3 className="im-docs-subsection-title">{t("onboarding.step5.title")}</h3>
+        <p>{t("onboarding.step5.p1")}</p>
         <DocsList type="bulleted">
-          <li>Enable online booking for your courts</li>
-          <li>Set booking policies and restrictions</li>
-          <li>Monitor reservations through the admin dashboard</li>
+          <li>{t("onboarding.step5.item1")}</li>
+          <li>{t("onboarding.step5.item2")}</li>
+          <li>{t("onboarding.step5.item3")}</li>
         </DocsList>
       </DocsSection>
 
-      <DocsSection title="Ready to Get Started?">
-        <p>
-          If you&apos;re ready to start using ArenaOne for your padel club, create your
-          organization to get access to the platform and begin setting up your club.
-        </p>
+      <DocsSection title={t("ready.title")}>
+        <p>{t("ready.intro")}</p>
         <div className="im-docs-cta-group">
           <DocsCTA href="/auth/sign-up">
-            {t("docs.createOrganization")}
+            {t("ready.getStarted")}
           </DocsCTA>
-          <DocsCTA href="/contact">
-            {t("docs.requestAccess")}
+          <DocsCTA href="/auth/sign-in">
+            {t("ready.signIn")}
           </DocsCTA>
         </div>
       </DocsSection>
