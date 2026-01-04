@@ -31,7 +31,7 @@ export { DocsCTA } from "../DocsCTA";
 export type { DocsCTAProps } from "../DocsCTA";
 
 export { DocsSidebar } from "../DocsSidebar";
-export type { DocsSidebarProps, DocsSidebarItem } from "../DocsSidebar";
+export type { DocsSidebarProps, DocsSidebarItem, DocsSidebarGroup } from "../DocsSidebar";
 
 export { DocsScreenshot } from "../DocsScreenshot";
 export type { DocsScreenshotProps } from "../DocsScreenshot";
