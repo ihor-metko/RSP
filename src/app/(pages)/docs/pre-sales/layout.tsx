@@ -47,7 +47,7 @@ export default function PreSalesDocsLayout({
       ];
     }
 
-    const links: { [key: string]: any[] } = {
+    const links: { [key: string]: Array<{ title: string; href: string }> } = {
       "root-admin": [
         { title: t("rootadmin.overview"), href: "/docs/pre-sales/root-admin/overview" },
         { title: t("rootadmin.create-organization"), href: "/docs/pre-sales/root-admin/create-organization" },
