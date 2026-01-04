@@ -6,8 +6,8 @@
 export default function PlayerPreviewPage() {
   return (
     <div className="im-page-container">
-      <h1 className="im-page-title">Player Preview</h1>
-      <p className="im-text-muted">
+      <h1 className="im-docs-page-title">Player Preview</h1>
+      <p className="im-docs-page-description">
         Player role documentation - Ready for static content and sandbox demo.
       </p>
     </div>
