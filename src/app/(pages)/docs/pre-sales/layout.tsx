@@ -24,14 +24,14 @@ export default function PreSalesDocsLayout({
   const breadcrumbs = [];
   breadcrumbs.push({ label: t("breadcrumbs.docs"), href: "/docs/for-clubs" });
   breadcrumbs.push({ label: t("breadcrumbs.preSales"), href: "/docs/pre-sales" });
-  
+
   if (currentRole) {
     const roleKey = currentRole.replace(/-/g, '');
     breadcrumbs.push({
       label: t(`breadcrumbs.${roleKey}`),
       href: `/docs/pre-sales/${currentRole}`,
     });
-    
+
     // Add page-specific breadcrumb if we're on a specific page
     const pageMatch = pathname.match(/\/docs\/pre-sales\/[^/]+\/([^/]+)/);
     if (pageMatch) {
@@ -39,8 +39,16 @@ export default function PreSalesDocsLayout({
     }
   }
 
-  // Build hierarchical sidebar with all roles and their pages
   const sidebarGroups = [
+    {
+      title: t("breadcrumbs.player"),
+      items: [
+        { title: t("player.overview"), href: "/docs/pre-sales/player/overview" },
+        { title: t("player.quick-booking"), href: "/docs/pre-sales/player/quick-booking" },
+        { title: t("player.calendar"), href: "/docs/pre-sales/player/calendar" },
+        { title: t("player.confirmation"), href: "/docs/pre-sales/player/confirmation" },
+      ],
+    },
     {
       title: t("breadcrumbs.rootadmin"),
       items: [
