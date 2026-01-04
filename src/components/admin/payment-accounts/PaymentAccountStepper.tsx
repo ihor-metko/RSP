@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Input, Modal, Stepper } from "@/components/ui";
 import type { Step } from "@/components/ui";
@@ -38,8 +38,6 @@ export function PaymentAccountStepper({
   onSubmit,
   account,
   mode,
-  scope,
-  onVerificationComplete,
 }: PaymentAccountStepperProps) {
   const t = useTranslations("paymentAccount.stepper");
   const tCommon = useTranslations("paymentAccount");
@@ -60,7 +58,6 @@ export function PaymentAccountStepper({
   const [verificationState, setVerificationState] = useState<VerificationState>({
     status: "idle",
   });
-  const [createdAccountId, setCreatedAccountId] = useState<string | null>(null);
 
   // Reset form when modal opens/closes or mode changes
   useEffect(() => {
@@ -90,7 +87,6 @@ export function PaymentAccountStepper({
       }
       setError(null);
       setVerificationState({ status: "idle" });
-      setCreatedAccountId(null);
     }
   }, [isOpen, mode, account]);
 
