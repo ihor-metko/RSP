@@ -28,48 +28,48 @@ export default async function ManageOrganizationPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Organization-Wide Control">
-          Organization Admins can manage key organizational settings and ensure consistency across all clubs.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="Administrative Capabilities">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsList
             type="bulleted"
             items={[
-              "View and update organization profile information",
-              "Monitor organization-wide statistics",
-              "Access financial reports and summaries",
-              "Review audit logs and system activities",
-              "Manage organization-level integrations",
-              "Configure notification settings",
+              t("subsection1.items.0"),
+              t("subsection1.items.1"),
+              t("subsection1.items.2"),
+              t("subsection1.items.3"),
+              t("subsection1.items.4"),
+              t("subsection1.items.5"),
             ]}
           />
         </DocsSubsection>
 
         <DocsScreenshot
-          alt="Organization Management Dashboard"
-          caption="The organization management interface with settings and analytics"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
-        <DocsSubsection title="Reporting & Analytics">
+        <DocsSubsection title={t("subsection2.title")}>
           <DocsList
             type="bulleted"
             items={[
-              "Generate organization-wide performance reports",
-              "Track key business metrics across all clubs",
-              "Export data for external analysis",
-              "Set up automated report delivery",
-              "Create custom dashboards",
+              t("subsection2.items.0"),
+              t("subsection2.items.1"),
+              t("subsection2.items.2"),
+              t("subsection2.items.3"),
+              t("subsection2.items.4"),
             ]}
           />
         </DocsSubsection>
 
         <DocsNote type="info">
-          Changes to organization settings may require approval from the Organization Owner depending on permission levels.
+          {t("note.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/org-admin/edit-settings">
-          Next: Edit Organization Settings
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>

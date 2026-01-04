@@ -28,46 +28,46 @@ export default async function ViewClubsPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Multi-Club Oversight">
-          Organization Admins can view and monitor all clubs within their organization from a single dashboard.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="Club Management Features">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsFeatureList
             features={[
-              "View all clubs in your organization",
-              "Monitor club performance metrics",
-              "Access club-level booking data",
-              "Review customer feedback and ratings",
-              "Track revenue across all clubs",
-              "Identify high-performing and underperforming locations",
+              t("subsection1.features.0"),
+              t("subsection1.features.1"),
+              t("subsection1.features.2"),
+              t("subsection1.features.3"),
+              t("subsection1.features.4"),
+              t("subsection1.features.5"),
             ]}
           />
         </DocsSubsection>
 
         <DocsScreenshot
-          alt="Clubs Overview Dashboard"
-          caption="The clubs dashboard showing all locations with key performance indicators"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
-        <DocsSubsection title="Club Analytics">
+        <DocsSubsection title={t("subsection2.title")}>
           <DocsFeatureList
             features={[
-              "Compare performance across multiple clubs",
-              "Aggregate booking statistics",
-              "Revenue trends and forecasts",
-              "Court utilization rates by location",
-              "Customer acquisition and retention metrics",
+              t("subsection2.features.0"),
+              t("subsection2.features.1"),
+              t("subsection2.features.2"),
+              t("subsection2.features.3"),
+              t("subsection2.features.4"),
             ]}
           />
         </DocsSubsection>
 
         <DocsNote type="info">
-          Organization Admins have read access to all clubs but cannot modify individual club settings without proper permissions.
+          {t("note.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/org-admin/manage-organization">
-          Next: Manage Organization Settings
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>

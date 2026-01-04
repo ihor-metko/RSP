@@ -3903,28 +3903,49 @@
           },
           "callout": {
             "title": "Centralized Configuration",
-            "content": "Manage organization settings that apply across all clubs in your organization."
+            "content": "Manage organization-wide settings to ensure consistency and compliance across all clubs in your organization."
           },
           "subsection1": {
             "title": "Configurable Settings",
-            "items": [
-              "Organization profile and branding",
-              "Payment and billing preferences",
-              "Notification and communication settings",
-              "Security and access policies",
-              "Integration configurations",
-              "Regional and language preferences"
+            "steps": [
+              {
+                "title": "Branding & Identity",
+                "description": "Set organization logo, colors, and branding guidelines for all clubs"
+              },
+              {
+                "title": "Payment Configuration",
+                "description": "Configure payment gateways, commission rates, and billing preferences"
+              },
+              {
+                "title": "Communication Settings",
+                "description": "Set up email templates, notification preferences, and SMS settings"
+              },
+              {
+                "title": "Booking Policies",
+                "description": "Define cancellation policies, refund rules, and booking restrictions"
+              },
+              {
+                "title": "Integration Settings",
+                "description": "Configure third-party integrations and API access"
+              }
             ]
           },
           "screenshot": {
-            "alt": "Settings Interface",
-            "caption": "Organization settings configuration panel"
+            "alt": "Settings Configuration Panel",
+            "caption": "The settings panel with various configuration options organized by category"
           },
-          "note": {
-            "content": "Some settings changes may affect all clubs within the organization."
+          "subsection2": {
+            "title": "Policy Management",
+            "content": "Establish and enforce organization-wide policies:"
+          },
+          "note1": {
+            "content": "Policy changes will affect all clubs in the organization. Review impact before applying changes."
+          },
+          "note2": {
+            "content": "Some advanced settings may require Organization Owner approval to modify."
           },
           "cta": {
-            "text": "Next: View Clubs",
+            "text": "Back to Clubs Overview",
             "href": "/docs/pre-sales/org-admin/view-clubs"
           }
         },
@@ -3937,29 +3958,39 @@
             "content": "Access a comprehensive view of all clubs within your organization, including performance metrics and status information."
           },
           "callout": {
-            "title": "Multi-Club Monitoring",
-            "content": "Monitor all clubs in your organization from a single dashboard."
+            "title": "Multi-Club Oversight",
+            "content": "Organization Admins can view and monitor all clubs within their organization from a single dashboard."
           },
           "subsection1": {
-            "title": "Club Information",
+            "title": "Club Management Features",
             "features": [
-              "View club details and status",
-              "Monitor booking activity",
-              "Track revenue per club",
-              "Access club-specific reports",
-              "Review customer feedback",
-              "Monitor court utilization"
+              "View all clubs in your organization",
+              "Monitor club performance metrics",
+              "Access club-level booking data",
+              "Review customer feedback and ratings",
+              "Track revenue across all clubs",
+              "Identify high-performing and underperforming locations"
             ]
           },
           "screenshot": {
-            "alt": "Clubs Dashboard",
-            "caption": "Overview of all clubs with key metrics"
+            "alt": "Clubs Overview Dashboard",
+            "caption": "The clubs dashboard showing all locations with key performance indicators"
+          },
+          "subsection2": {
+            "title": "Club Analytics",
+            "features": [
+              "Compare performance across multiple clubs",
+              "Aggregate booking statistics",
+              "Revenue trends and forecasts",
+              "Court utilization rates by location",
+              "Customer acquisition and retention metrics"
+            ]
           },
           "note": {
-            "content": "Organization Admins have read access to all club data but may need additional permissions to make changes."
+            "content": "Organization Admins have read access to all clubs but cannot modify individual club settings without proper permissions."
           },
           "cta": {
-            "text": "Back to Manage Organization",
+            "text": "Next: Manage Organization Settings",
             "href": "/docs/pre-sales/org-admin/manage-organization"
           }
         }

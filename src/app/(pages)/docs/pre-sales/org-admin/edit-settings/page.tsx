@@ -28,55 +28,55 @@ export default async function EditSettingsPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Centralized Configuration">
-          Manage organization-wide settings to ensure consistency and compliance across all clubs in your organization.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="Configurable Settings">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsSteps
             steps={[
               {
-                title: "Branding & Identity",
-                description: "Set organization logo, colors, and branding guidelines for all clubs",
+                title: t("subsection1.steps.0.title"),
+                description: t("subsection1.steps.0.description"),
               },
               {
-                title: "Payment Configuration",
-                description: "Configure payment gateways, commission rates, and billing preferences",
+                title: t("subsection1.steps.1.title"),
+                description: t("subsection1.steps.1.description"),
               },
               {
-                title: "Communication Settings",
-                description: "Set up email templates, notification preferences, and SMS settings",
+                title: t("subsection1.steps.2.title"),
+                description: t("subsection1.steps.2.description"),
               },
               {
-                title: "Booking Policies",
-                description: "Define cancellation policies, refund rules, and booking restrictions",
+                title: t("subsection1.steps.3.title"),
+                description: t("subsection1.steps.3.description"),
               },
               {
-                title: "Integration Settings",
-                description: "Configure third-party integrations and API access",
+                title: t("subsection1.steps.4.title"),
+                description: t("subsection1.steps.4.description"),
               },
             ]}
           />
         </DocsSubsection>
 
         <DocsScreenshot
-          alt="Settings Configuration Panel"
-          caption="The settings panel with various configuration options organized by category"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
-        <DocsSubsection title="Policy Management">
-          <p>Establish and enforce organization-wide policies:</p>
+        <DocsSubsection title={t("subsection2.title")}>
+          <p>{t("subsection2.content")}</p>
           <DocsNote type="warning">
-            Policy changes will affect all clubs in the organization. Review impact before applying changes.
+            {t("note1.content")}
           </DocsNote>
         </DocsSubsection>
 
         <DocsNote type="info">
-          Some advanced settings may require Organization Owner approval to modify.
+          {t("note2.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/org-admin/view-clubs">
-          Back to Clubs Overview
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>
