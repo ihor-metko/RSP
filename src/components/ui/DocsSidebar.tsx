@@ -15,17 +15,18 @@ export interface DocsSidebarGroup {
 }
 
 // Make props mutually exclusive using union types
-type DocsSidebarProps = 
+type DocsSidebarProps = {
+  currentPath: string;
+} & (
   | {
       items: DocsSidebarItem[];
       groups?: never;
-      currentPath: string;
     }
   | {
       items?: never;
       groups: DocsSidebarGroup[];
-      currentPath: string;
-    };
+    }
+);
 
 export function DocsSidebar({ items, groups, currentPath }: DocsSidebarProps) {
   const t = useTranslations("docs.sidebar");
