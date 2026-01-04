@@ -87,15 +87,15 @@ export default function GettingStartedPage() {
 
       <DocsSection title="Ready to Get Started?">
         <p>
-          If you&apos;re ready to start using ArenaOne for your padel club, take the next step
-          by creating your organization or requesting access to the platform.
+          If you&apos;re ready to start using ArenaOne for your padel club, sign up to get
+          access to the platform and begin setting up your organization.
         </p>
         <div className="im-docs-cta-group">
-          <DocsCTA href="/admin/organizations/new">
-            Create Organization
-          </DocsCTA>
           <DocsCTA href="/auth/sign-up">
-            Request Access
+            Get Started
+          </DocsCTA>
+          <DocsCTA href="/auth/sign-in">
+            Sign In
           </DocsCTA>
         </div>
       </DocsSection>
