@@ -5,8 +5,6 @@ import { useTranslations } from "next-intl";
 import { DocsSidebar } from "@/components/ui/DocsSidebar";
 import Header from "@/components/layout/Header";
 import { PublicFooter } from "@/components/layout";
-import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
-import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import "./layout.css";
 
 export default function DocsForClubsLayout({
@@ -16,7 +14,6 @@ export default function DocsForClubsLayout({
 }) {
   const pathname = usePathname();
   const t = useTranslations("docs.sidebar");
-  const currentLocale = useCurrentLocale();
 
   const docLinks = [
     { title: t("overview"), href: "/docs/for-clubs/overview" },
@@ -33,11 +30,9 @@ export default function DocsForClubsLayout({
       <Header />
       <div className="im-docs-container">
         <div className="im-docs-sidebar-wrapper">
-          <div className="im-docs-language-switcher">
-            <LanguageSwitcher currentLocale={currentLocale} />
-          </div>
           <DocsSidebar items={docLinks} currentPath={pathname} />
         </div>
+
         <main className="im-docs-content">
           {children}
         </main>

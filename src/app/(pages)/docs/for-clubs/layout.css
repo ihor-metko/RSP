@@ -18,11 +18,6 @@
   @apply flex flex-col;
 }
 
-.im-docs-language-switcher {
-  @apply px-6 py-4;
-  border-bottom: 1px solid var(--im-border-subtle);
-}
-
 /* Content Area */
 .im-docs-content {
   @apply flex-1 mx-auto w-full;
