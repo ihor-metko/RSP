@@ -5,6 +5,7 @@
   @apply min-h-screen flex flex-col;
   background-color: var(--im-bg-primary);
   color: var(--im-text-primary);
+  overflow: auto;
 }
 
 /* Container for sidebar and content */
@@ -20,7 +21,7 @@
 
 /* Content Area */
 .im-docs-content {
-  @apply flex-1 mx-auto w-full;
+  @apply flex-1 mx-auto w-full overflow-y-auto;
   max-width: 900px;
   padding: 3rem 2rem;
 }
