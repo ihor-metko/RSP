@@ -1,0 +1,42 @@
+@reference "tailwindcss";
+
+/* DocsSteps Component Styles */
+.im-docs-steps {
+  @apply flex flex-col gap-6 my-6;
+}
+
+.im-docs-step {
+  @apply flex gap-4 items-start;
+}
+
+.im-docs-step-number {
+  @apply flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold;
+  background-color: var(--im-accent-primary);
+  color: var(--im-text-on-accent);
+}
+
+.im-docs-step-content {
+  @apply flex-1;
+}
+
+.im-docs-step-title {
+  @apply text-lg font-semibold mb-2;
+  color: var(--im-text-primary);
+}
+
+.im-docs-step-description {
+  @apply text-base;
+  color: var(--im-text-secondary);
+}
+
+/* Add connecting line between steps except the last one */
+.im-docs-step:not(:last-child) {
+  @apply relative;
+}
+
+.im-docs-step:not(:last-child)::after {
+  content: "";
+  @apply absolute left-5 top-10 w-0.5 h-full;
+  background-color: var(--im-border-primary);
+  transform: translateX(-50%);
+}

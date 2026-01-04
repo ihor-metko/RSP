@@ -1,0 +1,8 @@
+@reference "tailwindcss";
+
+/* DocsRoleCard Component Styles */
+/* Note: Base .im-docs-role-card styles are in layout.css */
+
+.im-docs-role-card-icon {
+  @apply text-3xl mb-3 block;
+}

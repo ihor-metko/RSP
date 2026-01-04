@@ -1,0 +1,29 @@
+@reference "tailwindcss";
+
+/* DocsFeatureList Component Styles */
+.im-docs-feature-list {
+  @apply my-4;
+}
+
+.im-docs-feature-list-title {
+  @apply text-lg font-semibold mb-3;
+  color: var(--im-text-primary);
+}
+
+.im-docs-feature-list-items {
+  @apply space-y-2;
+}
+
+.im-docs-feature-list-item {
+  @apply flex items-start gap-3;
+}
+
+.im-docs-feature-list-icon {
+  @apply flex-shrink-0 text-lg mt-0.5;
+  color: var(--im-accent-primary);
+}
+
+.im-docs-feature-list-text {
+  @apply flex-1;
+  color: var(--im-text-secondary);
+}
