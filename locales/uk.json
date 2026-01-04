@@ -142,6 +142,7 @@
     "exampleModalContent": "Це приклад модального діалогу. Натисніть Escape або клікніть зовні, щоб закрити.",
     "heroHeadline": "Знайдіть ідеальний падел корт",
     "heroSubheadline": "Відкривайте та бронюйте корти в найкращих падел клубах поблизу",
+    "preSalesDocsButton": "Передпродажна демонстрація та документація",
     "popularClubs": "Популярні клуби",
     "whyChooseUs": "Чому обирають нас",
     "feature1Title": "Легке бронювання",
@@ -241,7 +242,9 @@
     "signingInWithGoogle": "Вхід через Google...",
     "orContinueWith": "Або продовжити з",
     "runningPadelClub": "Керуєте падел-клубом?",
-    "learnHowPlatformWorks": "Дізнайтесь, як платформа працює для власників"
+    "learnHowPlatformWorks": "Дізнайтесь, як платформа працює для власників",
+    "tryDemoAccount": "Хочете побачити це в дії?",
+    "viewPreSalesDocs": "Переглянути передпродажну демонстрацію та документацію"
   },
   "invites": {
     "errorTitle": "Помилка запрошення",

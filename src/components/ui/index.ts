@@ -82,7 +82,7 @@ export type { ClubStatisticsCardProps } from "./ClubStatisticsCard";
 export { UserSearchDropdown } from "./UserSearchDropdown";
 export type { UserSearchDropdownProps } from "./UserSearchDropdown";
 export { DocsSidebar } from "./DocsSidebar";
-export type { DocsSidebarItem, DocsSidebarProps } from "./DocsSidebar";
+export type { DocsSidebarItem, DocsSidebarGroup } from "./DocsSidebar";
 export { DocsPage } from "./DocsPage";
 export type { DocsPageProps } from "./DocsPage";
 export { DocsSection } from "./DocsSection";

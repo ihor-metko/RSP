@@ -24,14 +24,14 @@ export default function PreSalesDocsLayout({
   const breadcrumbs = [];
   breadcrumbs.push({ label: t("breadcrumbs.docs"), href: "/docs/for-clubs" });
   breadcrumbs.push({ label: t("breadcrumbs.preSales"), href: "/docs/pre-sales" });
-  
+
   if (currentRole) {
     const roleKey = currentRole.replace(/-/g, '');
     breadcrumbs.push({
       label: t(`breadcrumbs.${roleKey}`),
       href: `/docs/pre-sales/${currentRole}`,
     });
-    
+
     // Add page-specific breadcrumb if we're on a specific page
     const pageMatch = pathname.match(/\/docs\/pre-sales\/[^/]+\/([^/]+)/);
     if (pageMatch) {
@@ -39,60 +39,65 @@ export default function PreSalesDocsLayout({
     }
   }
 
-  // Define sidebar links based on current role
-  const getSidebarLinks = () => {
-    if (!currentRole) {
-      return [
-        { title: t("overview"), href: "/docs/pre-sales" },
-      ];
-    }
-
-    const links: { [key: string]: Array<{ title: string; href: string }> } = {
-      "root-admin": [
-        { title: t("rootadmin.overview"), href: "/docs/pre-sales/root-admin/overview" },
-        { title: t("rootadmin.create-organization"), href: "/docs/pre-sales/root-admin/create-organization" },
-        { title: t("rootadmin.view-org-admins"), href: "/docs/pre-sales/root-admin/view-org-admins" },
-      ],
-      "org-owner": [
-        { title: t("orgowner.create-club"), href: "/docs/pre-sales/org-owner/create-club" },
-        { title: t("orgowner.add-org-admin"), href: "/docs/pre-sales/org-owner/add-org-admin" },
-        { title: t("orgowner.access-control"), href: "/docs/pre-sales/org-owner/access-control" },
-      ],
-      "org-admin": [
-        { title: t("orgadmin.manage-organization"), href: "/docs/pre-sales/org-admin/manage-organization" },
-        { title: t("orgadmin.edit-settings"), href: "/docs/pre-sales/org-admin/edit-settings" },
-        { title: t("orgadmin.view-clubs"), href: "/docs/pre-sales/org-admin/view-clubs" },
-      ],
-      "club-owner": [
-        { title: t("clubowner.crud-courts"), href: "/docs/pre-sales/club-owner/crud-courts" },
-        { title: t("clubowner.working-hours"), href: "/docs/pre-sales/club-owner/working-hours" },
-        { title: t("clubowner.bookings-overview"), href: "/docs/pre-sales/club-owner/bookings-overview" },
-      ],
-      "club-admin": [
-        { title: t("clubadmin.edit-club"), href: "/docs/pre-sales/club-admin/edit-club" },
-        { title: t("clubadmin.crud-courts"), href: "/docs/pre-sales/club-admin/crud-courts" },
-        { title: t("clubadmin.working-hours"), href: "/docs/pre-sales/club-admin/working-hours" },
-        { title: t("clubadmin.bookings-overview"), href: "/docs/pre-sales/club-admin/bookings-overview" },
-      ],
-      "player": [
+  const sidebarGroups = [
+    {
+      title: t("breadcrumbs.player"),
+      items: [
         { title: t("player.overview"), href: "/docs/pre-sales/player/overview" },
         { title: t("player.quick-booking"), href: "/docs/pre-sales/player/quick-booking" },
         { title: t("player.calendar"), href: "/docs/pre-sales/player/calendar" },
         { title: t("player.confirmation"), href: "/docs/pre-sales/player/confirmation" },
       ],
-    };
-
-    return links[currentRole] || [];
-  };
-
-  const docLinks = getSidebarLinks();
+    },
+    {
+      title: t("breadcrumbs.rootadmin"),
+      items: [
+        { title: t("rootadmin.overview"), href: "/docs/pre-sales/root-admin/overview" },
+        { title: t("rootadmin.create-organization"), href: "/docs/pre-sales/root-admin/create-organization" },
+        { title: t("rootadmin.view-org-admins"), href: "/docs/pre-sales/root-admin/view-org-admins" },
+      ],
+    },
+    {
+      title: t("breadcrumbs.orgowner"),
+      items: [
+        { title: t("orgowner.create-club"), href: "/docs/pre-sales/org-owner/create-club" },
+        { title: t("orgowner.add-org-admin"), href: "/docs/pre-sales/org-owner/add-org-admin" },
+        { title: t("orgowner.access-control"), href: "/docs/pre-sales/org-owner/access-control" },
+      ],
+    },
+    {
+      title: t("breadcrumbs.orgadmin"),
+      items: [
+        { title: t("orgadmin.manage-organization"), href: "/docs/pre-sales/org-admin/manage-organization" },
+        { title: t("orgadmin.edit-settings"), href: "/docs/pre-sales/org-admin/edit-settings" },
+        { title: t("orgadmin.view-clubs"), href: "/docs/pre-sales/org-admin/view-clubs" },
+      ],
+    },
+    {
+      title: t("breadcrumbs.clubowner"),
+      items: [
+        { title: t("clubowner.crud-courts"), href: "/docs/pre-sales/club-owner/crud-courts" },
+        { title: t("clubowner.working-hours"), href: "/docs/pre-sales/club-owner/working-hours" },
+        { title: t("clubowner.bookings-overview"), href: "/docs/pre-sales/club-owner/bookings-overview" },
+      ],
+    },
+    {
+      title: t("breadcrumbs.clubadmin"),
+      items: [
+        { title: t("clubadmin.edit-club"), href: "/docs/pre-sales/club-admin/edit-club" },
+        { title: t("clubadmin.crud-courts"), href: "/docs/pre-sales/club-admin/crud-courts" },
+        { title: t("clubadmin.working-hours"), href: "/docs/pre-sales/club-admin/working-hours" },
+        { title: t("clubadmin.bookings-overview"), href: "/docs/pre-sales/club-admin/bookings-overview" },
+      ],
+    },
+  ];
 
   return (
     <div className="im-docs-layout">
       <Header />
       <div className="im-docs-container">
         <div className="im-docs-sidebar-wrapper">
-          <DocsSidebar items={docLinks} currentPath={pathname} />
+          <DocsSidebar groups={sidebarGroups} currentPath={pathname} />
         </div>
 
         <main className="im-docs-content">

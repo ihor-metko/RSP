@@ -142,6 +142,7 @@
     "exampleModalContent": "This is an example modal dialog. Press Escape or click outside to close.",
     "heroHeadline": "Find Your Perfect Padel Court",
     "heroSubheadline": "Discover and book courts at the best padel clubs near you",
+    "preSalesDocsButton": "Pre-Sales Demo & Documentation",
     "popularClubs": "Popular Clubs",
     "whyChooseUs": "Why Choose Us",
     "feature1Title": "Easy Booking",
@@ -241,7 +242,9 @@
     "signingInWithGoogle": "Signing in with Google...",
     "orContinueWith": "Or continue with",
     "runningPadelClub": "Running a padel club?",
-    "learnHowPlatformWorks": "Learn how the platform works for club owners"
+    "learnHowPlatformWorks": "Learn how the platform works for club owners",
+    "tryDemoAccount": "Want to see it in action?",
+    "viewPreSalesDocs": "View Pre-Sales Demo & Documentation"
   },
   "invites": {
     "errorTitle": "Invitation Error",

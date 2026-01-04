@@ -228,6 +228,15 @@ export default function SignInPage() {
               {t("auth.learnHowPlatformWorks")} →
             </IMLink>
           </p>
+          <p className="im-auth-link-text" style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}>
+            {t("auth.tryDemoAccount")}{" "}
+            <IMLink
+              href="/docs/pre-sales"
+              className="im-auth-link"
+            >
+              {t("auth.viewPreSalesDocs")} →
+            </IMLink>
+          </p>
         </div>
       </div>
     </>
