@@ -1,0 +1,21 @@
+@reference "tailwindcss";
+
+/* DocsPage Component Styles */
+.im-docs-page {
+  @apply flex flex-col gap-6;
+}
+
+.im-docs-page-title {
+  @apply text-3xl font-bold mb-4;
+  color: var(--im-text-primary);
+}
+
+.im-docs-page-sidebar {
+  @apply mb-6 p-4 rounded-lg;
+  background-color: var(--im-surface);
+  border: 1px solid var(--im-border);
+}
+
+.im-docs-page-content {
+  @apply flex flex-col gap-6;
+}
