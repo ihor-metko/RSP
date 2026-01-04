@@ -27,39 +27,39 @@ export default async function CrudCourtsPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsSubsection title="Adding a New Court">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsList
             type="numbered"
             items={[
-              "Navigate to the Courts management section",
-              "Click the 'Add Court' button",
-              "Enter court details (name, surface type, indoor/outdoor)",
-              "Configure court availability settings",
-              "Save the new court configuration",
+              t("subsection1.items.0"),
+              t("subsection1.items.1"),
+              t("subsection1.items.2"),
+              t("subsection1.items.3"),
+              t("subsection1.items.4"),
             ]}
           />
           <DocsScreenshot
-            alt="Add Court Form"
-            caption="The court creation form allows you to specify all court details"
+            alt={t("screenshot1.alt")}
+            caption={t("screenshot1.caption")}
           />
         </DocsSubsection>
 
-        <DocsSubsection title="Editing Court Details">
-          <p>You can modify court information at any time. Changes are immediately reflected in the booking system.</p>
+        <DocsSubsection title={t("subsection2.title")}>
+          <p>{t("subsection2.content")}</p>
           <DocsNote type="warning">
-            Modifying court availability may affect existing bookings. Review active reservations before making significant changes.
+            {t("note1.content")}
           </DocsNote>
         </DocsSubsection>
 
-        <DocsSubsection title="Removing Courts">
-          <p>Courts can be deactivated or permanently removed from your club.</p>
+        <DocsSubsection title={t("subsection3.title")}>
+          <p>{t("subsection3.content")}</p>
           <DocsNote type="info">
-            We recommend deactivating courts rather than deleting them to preserve historical booking data.
+            {t("note2.content")}
           </DocsNote>
         </DocsSubsection>
 
-        <DocsCTA href="/docs/pre-sales/club-owner/working-hours">
-          Next: Configure Working Hours
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>
