@@ -7,6 +7,7 @@ import {
   DocsNote,
   DocsCallout,
   DocsCTA,
+  DocsScreenshot,
 } from "@/components/ui/docs";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,41 +27,50 @@ export default async function CreateOrganizationPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Root Admin Capability">
-          Creating organizations is a core Root Admin function. You can set up multiple organizations to manage different business entities.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
         <DocsSteps
           steps={[
             {
-              title: "Access Organization Management",
-              description: "Navigate to the Organizations section from your Root Admin dashboard",
+              title: t("subsection1.steps.0.title"),
+              description: t("subsection1.steps.0.description"),
             },
             {
-              title: "Create New Organization",
-              description: "Click 'Create Organization' and enter basic information like name and description",
+              title: t("subsection1.steps.1.title"),
+              description: t("subsection1.steps.1.description"),
             },
             {
-              title: "Assign Organization Owner",
-              description: "Select or invite a user to be the Organization Owner who will manage the organization",
+              title: t("subsection1.steps.2.title"),
+              description: t("subsection1.steps.2.description"),
             },
             {
-              title: "Configure Settings",
-              description: "Set up organization-wide preferences, payment settings, and branding",
+              title: t("subsection1.steps.3.title"),
+              description: t("subsection1.steps.3.description"),
             },
             {
-              title: "Review and Activate",
-              description: "Review all information and activate the organization to make it operational",
+              title: t("subsection1.steps.4.title"),
+              description: t("subsection1.steps.4.description"),
+            },
+            {
+              title: t("subsection1.steps.5.title"),
+              description: t("subsection1.steps.5.description"),
             },
           ]}
         />
 
+        <DocsScreenshot
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
+        />
+
         <DocsNote type="info">
-          Organization Owners can create clubs and manage their own administrators once the organization is activated.
+          {t("note.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/root-admin/view-org-admins">
-          Learn About Managing Organization Admins
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>

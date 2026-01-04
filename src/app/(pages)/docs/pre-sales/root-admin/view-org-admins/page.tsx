@@ -28,50 +28,50 @@ export default async function ViewOrgAdminsPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="System-Wide Oversight">
-          Root Admins can view and manage all organization administrators across the entire platform, ensuring proper governance and security.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="Admin Management Features">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsFeatureList
             features={[
-              "View all organization owners and admins across the platform",
-              "Monitor admin activity and access patterns",
-              "Review permission assignments and role changes",
-              "Track admin login history and security events",
-              "Disable or remove admin access when necessary",
-              "Generate compliance and audit reports",
+              t("subsection1.features.0"),
+              t("subsection1.features.1"),
+              t("subsection1.features.2"),
+              t("subsection1.features.3"),
+              t("subsection1.features.4"),
+              t("subsection1.features.5"),
             ]}
           />
         </DocsSubsection>
 
         <DocsScreenshot
-          alt="Organization Admins Dashboard"
-          caption="The admin overview showing all organization administrators with their roles and status"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
-        <DocsSubsection title="Security Monitoring">
+        <DocsSubsection title={t("subsection2.title")}>
           <DocsFeatureList
             features={[
-              "Real-time alerts for suspicious admin activity",
-              "Failed login attempt tracking",
-              "Permission escalation monitoring",
-              "Multi-factor authentication enforcement",
-              "Session management and timeout controls",
+              t("subsection2.features.0"),
+              t("subsection2.features.1"),
+              t("subsection2.features.2"),
+              t("subsection2.features.3"),
+              t("subsection2.features.4"),
             ]}
           />
         </DocsSubsection>
 
         <DocsNote type="info">
-          Root Admin oversight ensures that organization administrators operate within proper boundaries and maintain platform security standards.
+          {t("note1.content")}
         </DocsNote>
 
         <DocsNote type="warning">
-          Use Root Admin privileges responsibly. All actions are logged and audited for security and compliance purposes.
+          {t("note2.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/root-admin/overview">
-          Back to Root Admin Overview
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>

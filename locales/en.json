@@ -3649,40 +3649,42 @@
             "content": "View and manage all organization administrators across the entire platform."
           },
           "callout": {
-            "title": "Platform Oversight",
-            "content": "Monitor all organization administrators and their activities across the platform."
+            "title": "System-Wide Oversight",
+            "content": "Root Admins can view and manage all organization administrators across the entire platform, ensuring proper governance and security."
           },
           "subsection1": {
-            "title": "Admin Overview",
+            "title": "Admin Management Features",
             "features": [
-              "View all organization administrators",
-              "See admin roles and permissions",
-              "Monitor admin activity logs",
-              "Review organization assignments",
-              "Track admin login history",
-              "Audit administrative actions"
+              "View all organization owners and admins across the platform",
+              "Monitor admin activity and access patterns",
+              "Review permission assignments and role changes",
+              "Track admin login history and security events",
+              "Disable or remove admin access when necessary",
+              "Generate compliance and audit reports"
             ]
           },
           "screenshot": {
-            "alt": "Org Admins Dashboard",
-            "caption": "Comprehensive view of all organization administrators"
+            "alt": "Organization Admins Dashboard",
+            "caption": "The admin overview showing all organization administrators with their roles and status"
           },
           "subsection2": {
-            "title": "Administrative Actions",
-            "content": "Root Admins can:",
-            "items": [
-              "View detailed admin profiles",
-              "Monitor cross-organization access",
-              "Review security events",
-              "Generate compliance reports",
-              "Revoke access if necessary"
+            "title": "Security Monitoring",
+            "features": [
+              "Real-time alerts for suspicious admin activity",
+              "Failed login attempt tracking",
+              "Permission escalation monitoring",
+              "Multi-factor authentication enforcement",
+              "Session management and timeout controls"
             ]
           },
-          "note": {
-            "content": "Direct management of organization administrators should typically be done by Organization Owners. Root Admins should only intervene when necessary."
+          "note1": {
+            "content": "Root Admin oversight ensures that organization administrators operate within proper boundaries and maintain platform security standards."
+          },
+          "note2": {
+            "content": "Use Root Admin privileges responsibly. All actions are logged and audited for security and compliance purposes."
           },
           "cta": {
-            "text": "Back to Overview",
+            "text": "Back to Root Admin Overview",
             "href": "/docs/pre-sales/root-admin/overview"
           }
         }
