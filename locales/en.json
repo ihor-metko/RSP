@@ -3463,7 +3463,8 @@
       "common": {
         "simulationNote": "This is a demo environment. No real data will be created.",
         "interactiveFlow": "Interactive Flow",
-        "demoMode": "Demo Mode"
+        "demoMode": "Demo Mode",
+        "resetDemo": "Reset Demo"
       }
     }
   }

@@ -6,7 +6,7 @@ import "./DocsSimulationCard.css";
 /**
  * DocsSimulationCard Component
  * Displays a simulation card for interactive documentation flows.
- * Used to showcase player role functionality in a demo environment.
+ * Used to showcase organization admin role functionality in a demo environment.
  * 
  * Features:
  * - Title, description, and visual preview

@@ -6,7 +6,7 @@ import "./FlowStep.css";
 /**
  * FlowStep Component
  * Represents a single step in an interactive documentation flow.
- * Used to guide users through player role functionality demonstrations.
+ * Used to guide users through organization admin role functionality demonstrations.
  * 
  * Features:
  * - Step number indicator with styling

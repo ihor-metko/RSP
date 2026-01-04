@@ -148,7 +148,7 @@ export default function PlayerPreviewPage() {
             )}
             {currentStep === steps.length - 1 && (
               <Button variant="outline" onClick={handleReset}>
-                Reset Demo
+                {t("docs.preview.common.resetDemo")}
               </Button>
             )}
           </>
