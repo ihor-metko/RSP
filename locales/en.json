@@ -3500,6 +3500,10 @@
           "clubAdmin": {
             "name": "Club Admin",
             "description": "Administrator managing day-to-day club operations, courts, and schedules."
+          },
+          "player": {
+            "name": "Player / Guest",
+            "description": "Players and guests can search for clubs, view court availability, and make bookings."
           }
         }
       },
@@ -3512,7 +3516,8 @@
           "orgowner": "Org Owner",
           "orgadmin": "Org Admin",
           "clubowner": "Club Owner",
-          "clubadmin": "Club Admin"
+          "clubadmin": "Club Admin",
+          "player": "Player"
         },
         "rootadmin": {
           "overview": "Overview",
@@ -3539,6 +3544,12 @@
           "crud-courts": "Manage Courts",
           "working-hours": "Working Hours",
           "bookings-overview": "Bookings Overview"
+        },
+        "player": {
+          "overview": "Overview",
+          "quick-booking": "Quick Booking",
+          "calendar": "Calendar",
+          "confirmation": "Confirmation"
         }
       },
       "rootAdmin": {
@@ -3692,6 +3703,60 @@
           "section1": {
             "title": "Viewing Bookings",
             "content": "Club Admins can view all bookings across club courts, monitor utilization, and access detailed booking information."
+          }
+        }
+      },
+      "player": {
+        "overview": {
+          "title": "Player Overview",
+          "metaTitle": "Player Overview - Pre-Sales Documentation",
+          "metaDescription": "Learn about player capabilities in ArenaOne platform.",
+          "section1": {
+            "title": "What is a Player?",
+            "content": "Players and guests can search for padel clubs, view court availability, make bookings, and manage their reservations through an intuitive interface."
+          },
+          "flows": {
+            "title": "Player Flows",
+            "description": "Explore the key player experience flows:",
+            "quickBooking": {
+              "name": "Quick Booking",
+              "description": "Search for clubs and select courts for immediate booking."
+            },
+            "calendar": {
+              "name": "Calendar",
+              "description": "View court availability across different clubs and time slots."
+            },
+            "confirmation": {
+              "name": "Booking Confirmation",
+              "description": "Review and confirm booking details before finalizing the reservation."
+            }
+          }
+        },
+        "quickBooking": {
+          "title": "Quick Booking",
+          "metaTitle": "Quick Booking - Player Documentation",
+          "metaDescription": "Search for clubs and book courts quickly and easily.",
+          "section1": {
+            "title": "Quick Booking Flow",
+            "content": "Players can quickly search for available clubs, browse court options, select their preferred time slot, and proceed to booking confirmation—all in a streamlined, user-friendly interface."
+          }
+        },
+        "calendar": {
+          "title": "Calendar",
+          "metaTitle": "Calendar - Player Documentation",
+          "metaDescription": "View court availability and schedules.",
+          "section1": {
+            "title": "Court Availability Calendar",
+            "content": "The calendar view allows players to see court availability across different days and times, making it easy to find the perfect slot for their game."
+          }
+        },
+        "confirmation": {
+          "title": "Booking Confirmation",
+          "metaTitle": "Booking Confirmation - Player Documentation",
+          "metaDescription": "Confirm and finalize your court booking.",
+          "section1": {
+            "title": "Confirming Your Booking",
+            "content": "Players can review all booking details—court, time, price, and club information—before confirming their reservation. Once confirmed, they receive a booking confirmation with all necessary details."
           }
         }
       }

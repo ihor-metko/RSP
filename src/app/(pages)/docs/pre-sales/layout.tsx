@@ -74,6 +74,12 @@ export default function PreSalesDocsLayout({
         { title: t("clubadmin.working-hours"), href: "/docs/pre-sales/club-admin/working-hours" },
         { title: t("clubadmin.bookings-overview"), href: "/docs/pre-sales/club-admin/bookings-overview" },
       ],
+      "player": [
+        { title: t("player.overview"), href: "/docs/pre-sales/player/overview" },
+        { title: t("player.quick-booking"), href: "/docs/pre-sales/player/quick-booking" },
+        { title: t("player.calendar"), href: "/docs/pre-sales/player/calendar" },
+        { title: t("player.confirmation"), href: "/docs/pre-sales/player/confirmation" },
+      ],
     };
 
     return links[currentRole] || [];

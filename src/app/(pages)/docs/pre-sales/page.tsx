@@ -42,6 +42,11 @@ export default async function PreSalesIndexPage() {
       description: t("roles.clubAdmin.description"),
       href: "/docs/pre-sales/club-admin/edit-club",
     },
+    {
+      name: t("roles.player.name"),
+      description: t("roles.player.description"),
+      href: "/docs/pre-sales/player/overview",
+    },
   ];
   
   return (
