@@ -3,7 +3,7 @@
 /* Documentation Layout Styles */
 .im-docs-layout {
   @apply min-h-screen flex flex-col;
-  background-color: var(--im-background);
+  background-color: var(--im-bg-primary);
   color: var(--im-text-primary);
 }
 
