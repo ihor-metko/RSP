@@ -29,59 +29,59 @@ export default async function AccessControlPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Granular Permissions">
-          ArenaOne provides a comprehensive role-based access control system to ensure security and proper authorization across your organization.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="Role Hierarchy">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsList
             type="numbered"
             items={[
-              "Organization Owner - Full control over the entire organization",
-              "Organization Admin - Manage clubs and settings with owner-defined permissions",
-              "Club Owner - Full control over assigned clubs",
-              "Club Admin - Manage day-to-day operations of assigned clubs",
-              "Player - Book courts and manage personal reservations",
+              t("subsection1.items.0"),
+              t("subsection1.items.1"),
+              t("subsection1.items.2"),
+              t("subsection1.items.3"),
+              t("subsection1.items.4"),
             ]}
           />
         </DocsSubsection>
 
         <DocsScreenshot
-          alt="Access Control Dashboard"
-          caption="The access control panel showing role assignments and permissions"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
-        <DocsSubsection title="Configurable Permissions">
+        <DocsSubsection title={t("subsection2.title")}>
           <DocsFeatureList
             features={[
-              "Assign roles at organization or club level",
-              "Create custom permission sets for specific needs",
-              "Temporarily grant elevated access for special tasks",
-              "Revoke access instantly when needed",
-              "Track permission changes in audit logs",
+              t("subsection2.features.0"),
+              t("subsection2.features.1"),
+              t("subsection2.features.2"),
+              t("subsection2.features.3"),
+              t("subsection2.features.4"),
             ]}
           />
         </DocsSubsection>
 
-        <DocsSubsection title="Best Practices">
+        <DocsSubsection title={t("subsection3.title")}>
           <DocsList
             type="bulleted"
             items={[
-              "Follow principle of least privilege - grant minimum necessary access",
-              "Regularly review and audit user permissions",
-              "Use specific roles rather than blanket admin access",
-              "Remove access immediately when personnel changes occur",
-              "Monitor audit logs for unusual activity",
+              t("subsection3.items.0"),
+              t("subsection3.items.1"),
+              t("subsection3.items.2"),
+              t("subsection3.items.3"),
+              t("subsection3.items.4"),
             ]}
           />
         </DocsSubsection>
 
         <DocsNote type="warning">
-          Access control changes take effect immediately. Review carefully before applying changes.
+          {t("note.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/org-owner/create-club">
-          Next: Create a New Club
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>

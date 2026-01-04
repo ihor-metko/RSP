@@ -28,59 +28,59 @@ export default async function AddOrgAdminPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Delegate Management">
-          Organization Owners can add administrators to help manage the organization and its clubs efficiently.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="Adding an Organization Admin">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsSteps
             steps={[
               {
-                title: "Access Admin Management",
-                description: "Navigate to the administrators section in your organization settings",
+                title: t("subsection1.steps.0.title"),
+                description: t("subsection1.steps.0.description"),
               },
               {
-                title: "Invite New Admin",
-                description: "Click 'Add Administrator' and enter their email address",
+                title: t("subsection1.steps.1.title"),
+                description: t("subsection1.steps.1.description"),
               },
               {
-                title: "Set Permissions",
-                description: "Define what access level and permissions the admin will have",
+                title: t("subsection1.steps.2.title"),
+                description: t("subsection1.steps.2.description"),
               },
               {
-                title: "Assign Responsibilities",
-                description: "Optionally specify which clubs or areas they will oversee",
+                title: t("subsection1.steps.3.title"),
+                description: t("subsection1.steps.3.description"),
               },
               {
-                title: "Send Invitation",
-                description: "The admin receives an email invitation to join the organization",
+                title: t("subsection1.steps.4.title"),
+                description: t("subsection1.steps.4.description"),
               },
               {
-                title: "Confirm Activation",
-                description: "Once they accept, the admin account is activated",
+                title: t("subsection1.steps.5.title"),
+                description: t("subsection1.steps.5.description"),
               },
             ]}
           />
         </DocsSubsection>
 
         <DocsScreenshot
-          alt="Add Administrator Interface"
-          caption="The admin invitation form with permission settings"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
-        <DocsSubsection title="Admin Permission Levels">
-          <p>You can grant different levels of access to organization admins based on their role and responsibilities.</p>
+        <DocsSubsection title={t("subsection2.title")}>
+          <p>{t("subsection2.content")}</p>
           <DocsNote type="info">
-            Admin permissions can be modified at any time by the Organization Owner.
+            {t("note1.content")}
           </DocsNote>
         </DocsSubsection>
 
         <DocsNote type="warning">
-          Organization Admins have significant access. Only invite trusted individuals with appropriate background.
+          {t("note2.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/org-owner/access-control">
-          Next: Understanding Access Control
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>

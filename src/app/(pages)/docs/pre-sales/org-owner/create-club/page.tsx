@@ -27,44 +27,44 @@ export default async function CreateClubPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Organization Owner Privilege">
-          As an Organization Owner, you can create and manage multiple clubs under your organization.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="Steps to Create a Club">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsList
             type="numbered"
             items={[
-              "Navigate to your organization dashboard",
-              "Click on 'Create New Club'",
-              "Fill in basic club information (name, description)",
-              "Add club location and contact details",
-              "Configure initial settings and working hours",
-              "Save and publish your club",
+              t("subsection1.items.0"),
+              t("subsection1.items.1"),
+              t("subsection1.items.2"),
+              t("subsection1.items.3"),
+              t("subsection1.items.4"),
+              t("subsection1.items.5"),
             ]}
           />
         </DocsSubsection>
 
-        <DocsSubsection title="Required Information">
-          <p>When creating a club, you&apos;ll need to provide:</p>
+        <DocsSubsection title={t("subsection2.title")}>
+          <p>{t("subsection2.content")}</p>
           <DocsList
             type="bulleted"
             items={[
-              "Club name and description",
-              "Physical address and location coordinates",
-              "Contact information (phone, email)",
-              "Business hours and operating schedule",
-              "Club administrator assignments",
+              t("subsection2.items.0"),
+              t("subsection2.items.1"),
+              t("subsection2.items.2"),
+              t("subsection2.items.3"),
+              t("subsection2.items.4"),
             ]}
           />
         </DocsSubsection>
 
         <DocsNote type="success">
-          Once created, your club will be immediately visible to potential customers on the platform.
+          {t("note.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/org-owner/add-org-admin">
-          Next: Add Organization Administrators
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>
