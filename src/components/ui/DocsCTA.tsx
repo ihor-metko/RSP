@@ -36,15 +36,13 @@ export interface DocsCTAProps {
 export function DocsCTA({
   href,
   children,
-  variant = "primary",
   className = "",
 }: DocsCTAProps) {
-  const variantClass = variant === "secondary" ? "im-docs-cta--secondary" : "im-docs-cta--primary";
-  
   return (
     <IMLink
       href={href}
-      className={`im-docs-cta ${variantClass} ${className}`.trim()}
+      asButton
+      className={`${className}`.trim()}
     >
       {children}
     </IMLink>
