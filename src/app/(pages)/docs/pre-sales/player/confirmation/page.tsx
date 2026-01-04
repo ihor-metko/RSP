@@ -28,49 +28,49 @@ export default async function ConfirmationPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Instant Confirmation">
-          Every booking is confirmed instantly. You&apos;ll receive immediate confirmation with all the details you need.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="What's Included in Your Confirmation">
+        <DocsSubsection title={t("subsection1.title")}>
           <DocsList
             type="bulleted"
             items={[
-              "Booking reference number for easy tracking",
-              "Club name, address, and contact information",
-              "Court details and surface type",
-              "Date, time, and duration of your reservation",
-              "Total cost and payment confirmation",
-              "Directions and parking information",
+              t("subsection1.items.0"),
+              t("subsection1.items.1"),
+              t("subsection1.items.2"),
+              t("subsection1.items.3"),
+              t("subsection1.items.4"),
+              t("subsection1.items.5"),
             ]}
           />
         </DocsSubsection>
 
         <DocsScreenshot
-          alt="Booking Confirmation"
-          caption="Your confirmation screen shows all booking details and options to modify or cancel"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
-        <DocsSubsection title="Managing Your Booking">
-          <p>From the confirmation page, you can:</p>
+        <DocsSubsection title={t("subsection2.title")}>
+          <p>{t("subsection2.content")}</p>
           <DocsList
             type="bulleted"
             items={[
-              "Add the booking to your calendar",
-              "Share booking details with friends",
-              "Get directions to the club",
-              "Modify your booking (subject to availability)",
-              "Cancel if your plans change",
+              t("subsection2.items.0"),
+              t("subsection2.items.1"),
+              t("subsection2.items.2"),
+              t("subsection2.items.3"),
+              t("subsection2.items.4"),
             ]}
           />
         </DocsSubsection>
 
         <DocsNote type="info">
-          You&apos;ll receive a reminder notification 24 hours and 1 hour before your booking time.
+          {t("note.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/player/overview">
-          Back to Player Overview
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>

@@ -53,6 +53,7 @@ export default async function PreSalesIndexPage() {
       name: t("roles.player.name"),
       description: t("roles.player.description"),
       href: "/docs/pre-sales/player/overview",
+      icon: "🎮",
     },
   ];
   

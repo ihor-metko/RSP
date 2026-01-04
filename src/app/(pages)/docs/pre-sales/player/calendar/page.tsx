@@ -28,33 +28,33 @@ export default async function CalendarPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Stay Organized">
-          Your personal booking calendar keeps all your reservations in one place, making it easy to manage your playing schedule.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
-        <DocsSubsection title="Calendar Features">
+        <DocsSubsection title={t("subsection.title")}>
           <DocsFeatureList
             features={[
-              "View all upcoming and past bookings",
-              "Filter by club or date range",
-              "Receive reminders before your booking time",
-              "Quick access to booking details and directions",
-              "Easy cancellation and modification options",
+              t("subsection.features.0"),
+              t("subsection.features.1"),
+              t("subsection.features.2"),
+              t("subsection.features.3"),
+              t("subsection.features.4"),
             ]}
           />
         </DocsSubsection>
 
         <DocsScreenshot
-          alt="Player Calendar View"
-          caption="The calendar view displays all your bookings with color-coded status indicators"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
         <DocsNote type="info">
-          You can sync your ArenaOne calendar with your personal calendar app to get reminders on all your devices.
+          {t("note.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/player/confirmation">
-          Next: Understanding Booking Confirmations
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>

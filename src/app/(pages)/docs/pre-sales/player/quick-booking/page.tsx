@@ -27,46 +27,46 @@ export default async function QuickBookingPage() {
       <DocsSection title={t("section1.title")}>
         <p>{t("section1.content")}</p>
 
-        <DocsCallout title="Fast & Simple">
-          Quick Booking allows you to reserve a court in just a few clicks. Perfect for spontaneous games or last-minute bookings.
+        <DocsCallout title={t("callout.title")}>
+          {t("callout.content")}
         </DocsCallout>
 
         <DocsSteps
           steps={[
             {
-              title: "Select a Club",
-              description: "Browse available clubs in your area or search for a specific venue",
+              title: t("steps.step1.title"),
+              description: t("steps.step1.description"),
             },
             {
-              title: "Choose Date & Time",
-              description: "Pick your preferred date and see real-time court availability",
+              title: t("steps.step2.title"),
+              description: t("steps.step2.description"),
             },
             {
-              title: "Select a Court",
-              description: "View available courts with details like surface type and pricing",
+              title: t("steps.step3.title"),
+              description: t("steps.step3.description"),
             },
             {
-              title: "Confirm Booking",
-              description: "Review your selection and complete the reservation",
+              title: t("steps.step4.title"),
+              description: t("steps.step4.description"),
             },
             {
-              title: "Receive Confirmation",
-              description: "Get instant confirmation via email and in-app notification",
+              title: t("steps.step5.title"),
+              description: t("steps.step5.description"),
             },
           ]}
         />
 
         <DocsScreenshot
-          alt="Quick Booking Interface"
-          caption="The quick booking interface shows real-time availability and court details"
+          alt={t("screenshot.alt")}
+          caption={t("screenshot.caption")}
         />
 
         <DocsNote type="success">
-          Your booking is confirmed instantly and the court is reserved exclusively for you during the selected time slot.
+          {t("note.content")}
         </DocsNote>
 
-        <DocsCTA href="/docs/pre-sales/player/calendar">
-          Next: View Your Bookings in Calendar
+        <DocsCTA href={t("cta.href")}>
+          {t("cta.text")}
         </DocsCTA>
       </DocsSection>
     </DocsPage>
