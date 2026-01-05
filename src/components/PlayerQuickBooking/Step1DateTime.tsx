@@ -22,6 +22,12 @@ interface Step1DateTimeProps {
 
 const TIME_OPTIONS = generateTimeOptions();
 
+// Translation key mapping for court types
+const COURT_TYPE_TRANSLATION_KEYS: Record<"Single" | "Double", string> = {
+  Single: "courts.padelCourtFormatSingle",
+  Double: "courts.padelCourtFormatDouble",
+};
+
 export function Step1DateTime({
   data,
   onChange,
@@ -98,7 +104,7 @@ export function Step1DateTime({
               name="court-type"
               options={availableCourtTypes.map((type) => ({
                 value: type,
-                label: t(type === "Single" ? "courts.padelCourtFormatSingle" : "courts.padelCourtFormatDouble"),
+                label: t(COURT_TYPE_TRANSLATION_KEYS[type]),
               }))}
               value={data.courtType}
               onChange={(value) => {
