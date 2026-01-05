@@ -441,7 +441,7 @@ export default function ClubDetailPage({
               id: club.id,
               name: club.name,
               slug: club.slug || null,
-              location: formattedAddress,
+              location: (club.address as { formattedAddress?: string })?.formattedAddress || "",
               city: (club.address as { city?: string })?.city || null,
               bannerData: club.bannerData || null,
               businessHours: club.businessHours || [],
