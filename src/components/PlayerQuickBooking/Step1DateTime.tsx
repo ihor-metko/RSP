@@ -31,13 +31,16 @@ const COURT_TYPE_TRANSLATION_KEYS: Record<"SINGLE" | "DOUBLE", string> = {
 };
 
 
+// Default available court types when none are provided
+const DEFAULT_AVAILABLE_COURT_TYPES: ("SINGLE" | "DOUBLE")[] = ["SINGLE", "DOUBLE"];
+
 export function Step1DateTime({
   data,
   onChange,
   estimatedPrice,
   estimatedPriceRange,
   isLoading = false,
-  availableCourtTypes = ["SINGLE", "DOUBLE"], // Default to both types if not provided
+  availableCourtTypes = DEFAULT_AVAILABLE_COURT_TYPES,
   businessHours,
 }: Step1DateTimeProps) {
   const t = useTranslations();

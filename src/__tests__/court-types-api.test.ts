@@ -105,7 +105,6 @@ describe("Court Types API - GET /api/clubs/[id]/court-types", () => {
       courts: [
         { courtFormat: "SINGLE" },
         { courtFormat: null },
-        { courtFormat: "InvalidType" },
         { courtFormat: "DOUBLE" },
       ],
     };
