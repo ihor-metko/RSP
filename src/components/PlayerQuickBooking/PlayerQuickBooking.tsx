@@ -20,7 +20,6 @@ import {
   getTodayDateString,
   calculateEndTime,
   determineVisibleSteps,
-  DURATION_OPTIONS,
   wouldEndAfterClosing,
 } from "./types";
 import "./PlayerQuickBooking.css";
