@@ -31,7 +31,7 @@
     "password": "Password",
     "address": "Address",
     "contact": "Contact",
-    "hours": "Hours",
+    "hours": "hours",
     "price": "Price",
     "date": "Date",
     "time": "Time",
@@ -41,7 +41,6 @@
     "inactive": "Inactive",
     "minutes": "minutes",
     "hour": "hour",
-    "hours": "hours",
     "days": "days",
     "perHour": "/ hour",
     "indoor": "Indoor",
@@ -1491,7 +1490,10 @@
     "actions": {
       "backToClubs": "Back to Clubs",
       "bookNewCourt": "Book a new court"
-    }
+    },
+    "payNow": "Pay Now",
+    "resumingPayment": "Loading...",
+    "reservationExpired": "Reservation expired - click to renew"
   },
   "footer": {
     "brandName": "ArenaOne",

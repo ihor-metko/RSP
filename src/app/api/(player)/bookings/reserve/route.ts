@@ -109,16 +109,8 @@ export async function POST(request: Request) {
         throw new Error("COURT_NOT_FOUND");
       }
 
-      // First, clean up expired reservations for this court
-      await tx.booking.deleteMany({
-        where: {
-          courtId: body.courtId,
-          status: "reserved",
-          reservationExpiresAt: {
-            lt: new Date(),
-          },
-        },
-      });
+      // Don't delete expired reservations - keep them for payment recovery
+      // Users can resume payment for their unpaid bookings
 
       // Check for overlapping bookings or active reservations
       const overlapping = await tx.booking.findFirst({

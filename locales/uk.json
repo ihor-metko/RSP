@@ -31,7 +31,7 @@
     "password": "Пароль",
     "address": "Адреса",
     "contact": "Контакт",
-    "hours": "Години",
+    "hours": "години",
     "price": "Ціна",
     "date": "Дата",
     "time": "Час",
@@ -41,7 +41,6 @@
     "inactive": "Неактивний",
     "minutes": "хвилин",
     "hour": "година",
-    "hours": "години",
     "days": "днів",
     "perHour": "/ година",
     "indoor": "Критий",
@@ -1429,7 +1428,10 @@
     "actions": {
       "backToClubs": "Назад до клубів",
       "bookNewCourt": "Забронювати новий корт"
-    }
+    },
+    "payNow": "Оплатити зараз",
+    "resumingPayment": "Завантаження...",
+    "reservationExpired": "Резервація завершилася - натисніть для оновлення"
   },
   "footer": {
     "brandName": "ArenaOne",

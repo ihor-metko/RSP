@@ -133,6 +133,44 @@
   align-self: flex-start;
 }
 
+.im-booking-status-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.im-booking-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.im-booking-warning {
+  font-size: 0.75rem;
+  color: var(--im-warning-text, #92400e);
+}
+
+.im-error-message {
+  padding: 0.75rem 1rem;
+  background-color: var(--im-error-bg, #fee2e2);
+  color: var(--im-error-text, #991b1b);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.dark .im-error-message {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.dark .im-booking-warning {
+  color: #fbbf24;
+}
+
 .im-status-badge--success {
   background-color: var(--im-success-bg, #dcfce7);
   color: var(--im-success-text, #166534);

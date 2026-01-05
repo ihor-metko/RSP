@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
 
     if (isUpcoming) {
       // Upcoming bookings: end time is in the future and has an active status
+      // Include "reserved" status for unpaid bookings that can still be paid
       whereClause.end = { gte: now };
       whereClause.status = { in: ["reserved", "paid", "confirmed"] };
     } else {
@@ -76,6 +77,9 @@ export async function GET(request: NextRequest) {
       end: booking.end.toISOString(),
       price: booking.price,
       status: booking.status,
+      bookingStatus: booking.bookingStatus,
+      paymentStatus: booking.paymentStatus,
+      reservationExpiresAt: booking.reservationExpiresAt?.toISOString() || null,
       court: {
         id: booking.court.id,
         name: booking.court.name,
