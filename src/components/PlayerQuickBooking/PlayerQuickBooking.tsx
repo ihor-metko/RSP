@@ -326,38 +326,15 @@ export function PlayerQuickBooking({
           .slice(0, 3); // Show up to 3 alternatives
       }
 
-      // Fetch price timeline for each court to get resolved prices
-      const courtsWithPrices = await Promise.all(
-        courts.map(async (court) => {
-          try {
-            const priceResponse = await fetch(
-              `/api/courts/${court.id}/price-timeline?date=${date}`
-            );
-            if (priceResponse.ok) {
-              const priceData = await priceResponse.json();
-              const segment = priceData.timeline.find(
-                (seg: { start: string; end: string; priceCents: number }) =>
-                  startTime >= seg.start && startTime < seg.end
-              );
-              const priceCents = segment
-                ? Math.round((segment.priceCents / MINUTES_PER_HOUR) * duration)
-                : Math.round((court.defaultPriceCents / MINUTES_PER_HOUR) * duration);
-              return { ...court, priceCents, available: true };
-            }
-          } catch {
-            // Ignore price fetch errors
-          }
-          return {
-            ...court,
-            priceCents: Math.round((court.defaultPriceCents / MINUTES_PER_HOUR) * duration),
-            available: true,
-          };
-        })
-      );
+      // Mark courts as available (priceCents comes from API response)
+      const courtsWithAvailability = courts.map(court => ({
+        ...court,
+        available: true,
+      }));
 
       setState((prev) => ({
         ...prev,
-        availableCourts: courtsWithPrices,
+        availableCourts: courtsWithAvailability,
         alternativeDurations: alternatives,
         isLoadingCourts: false,
       }));
@@ -393,7 +370,17 @@ export function PlayerQuickBooking({
           const courts: BookingCourt[] = data.availableCourts || [];
 
           if (courts.length > 0) {
-            const prices = courts.map(c => Math.round((c.defaultPriceCents / MINUTES_PER_HOUR) * duration));
+            // Use resolved prices from the API (priceCents includes court price rules)
+            // API should always provide priceCents for each court
+            const prices = courts.map(c => {
+              if (c.priceCents == null) {
+                console.warn(`Court ${c.id} missing priceCents, using default price`);
+                // Fallback: calculate price for the duration using the same formula as getResolvedPriceForSlot
+                // priceCents from API already includes duration, so fallback must too
+                return Math.round((c.defaultPriceCents / MINUTES_PER_HOUR) * duration);
+              }
+              return c.priceCents;
+            });
             const minPrice = Math.min(...prices);
             const maxPrice = Math.max(...prices);
             const avgPrice = Math.round(prices.reduce((sum, p) => sum + p, 0) / prices.length);

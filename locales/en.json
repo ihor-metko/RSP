@@ -1486,6 +1486,7 @@
     "estimatedPrice": "Estimated Price",
     "priceVariesByTime": "Final price may vary based on court selection",
     "priceRangeHint": "Price range based on available courts",
+    "noCourtsAvailable": "No courts available for the selected date and time.",
     "peakHoursHint": "Peak hours - courts may fill up quickly",
     "loadingClubs": "Loading clubs...",
     "loadingCourts": "Finding available courts...",

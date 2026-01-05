@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getResolvedPriceForSlot } from "@/lib/priceRules";
 
 // Business hours configuration (same as availability endpoint)
 const BUSINESS_START_HOUR = 9;
@@ -14,6 +15,14 @@ interface AvailableCourt {
   indoor: boolean;
   sportType: string;
   defaultPriceCents: number;
+  /**
+   * Resolved price for the requested time slot in cents.
+   * Calculated using court price rules for the specific date, time, and duration.
+   * This respects all CourtPriceRule configurations (SPECIFIC_DATE, SPECIFIC_DAY, 
+   * WEEKDAYS, WEEKENDS, ALL_DAYS, HOLIDAY) and falls back to defaultPriceCents
+   * if no rules are defined.
+   */
+  priceCents: number;
 }
 
 interface AvailableCourtsResponse {
@@ -175,6 +184,24 @@ export async function GET(
       }
 
       if (isAvailable) {
+        // Calculate resolved price for this court based on date, time, and duration
+        let resolvedPrice: number;
+        try {
+          resolvedPrice = await getResolvedPriceForSlot(
+            court.id,
+            dateParam,
+            timeStart,
+            duration
+          );
+        } catch (error) {
+          // If price resolution fails, fall back to default price calculation
+          // This ensures court availability is maintained even if pricing fails
+          if (process.env.NODE_ENV === "development") {
+            console.error(`Failed to resolve price for court ${court.id}:`, error);
+          }
+          resolvedPrice = Math.round((court.defaultPriceCents / 60) * duration);
+        }
+
         availableCourts.push({
           id: court.id,
           name: court.name,
@@ -184,6 +211,7 @@ export async function GET(
           indoor: court.indoor,
           sportType: court.sportType || "PADEL",
           defaultPriceCents: court.defaultPriceCents,
+          priceCents: resolvedPrice,
         });
       }
     }
