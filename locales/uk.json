@@ -408,7 +408,9 @@
         "save": "Зберегти",
         "saving": "Збереження..."
       }
-    }
+    },
+    "checkAvailability": "Перевірити доступність",
+    "noClubsDescription": "Ми працюємо над додаванням нових клубів до платформи."
   },
   "clubDetail": {
     "about": "Про клуб",
@@ -1201,7 +1203,21 @@
     },
     "playerQuickBooking": {
       "title": "Швидке бронювання"
-    }
+    },
+    "confirmTitle": "Підтвердження бронювання",
+    "confirmSubtitle": "Перегляньте деталі вашого бронювання",
+    "bookingDetails": "Деталі бронювання",
+    "clubPlaceholder": "Приклад клубу",
+    "courtPlaceholder": "Корт 1",
+    "datePlaceholder": "15 січня 2026",
+    "timePlaceholder": "14:00 - 15:30",
+    "pricePlaceholder": "€25.00",
+    "total": "Всього",
+    "confirmBooking": "Підтвердити бронювання",
+    "successTitle": "Бронювання підтверджено!",
+    "successMessage": "Ваше бронювання успішно підтверджено",
+    "referenceNumber": "Номер бронювання",
+    "bookAnother": "Забронювати інший корт"
   },
   "training": {
     "requestTraining": "Замовити тренування",
@@ -3911,5 +3927,20 @@
         }
       }
     }
+  },
+  "landing": {
+    "title": "ArenaOne",
+    "tagline": "Знайдіть та забронюйте корти для паделу поруч з вами",
+    "findCourt": "Знайти корт"
+  },
+  "availability": {
+    "title": "Перевірити доступність",
+    "selectDate": "Виберіть дату",
+    "selectTime": "Виберіть час",
+    "selectCourt": "Виберіть корт",
+    "datePickerPlaceholder": "Календар",
+    "timeSlotPlaceholder": "Часовий слот",
+    "courtPlaceholder": "Корт",
+    "courtDetailsPlaceholder": "Закритий / Відкритий"
   }
 }

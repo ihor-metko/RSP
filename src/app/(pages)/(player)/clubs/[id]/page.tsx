@@ -12,9 +12,11 @@ import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
 import { Button, IMLink, ImageCarousel, CourtCarousel, EntityBanner, EmptyState } from "@/components/ui";
+import { ClubMobileView } from "@/components/mobile-views";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
+import { useIsMobile } from "@/hooks";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
@@ -106,6 +108,7 @@ export default function ClubDetailPage({
   // Use store for auth
   const user = useUserStore((state) => state.user);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const isMobile = useIsMobile();
 
   // Use centralized player club store
   // Split selectors to avoid circular dependencies
@@ -401,6 +404,51 @@ export default function ClubDetailPage({
 
   if (!club) {
     return null;
+  }
+
+  // Mobile view - simplified skeleton
+  if (isMobile) {
+    const hasPublishedCourts = courts.length > 0;
+
+    const handleCheckAvailability = () => {
+      // Placeholder - navigate to availability page (to be implemented)
+      console.log("Navigate to availability page");
+    };
+
+    const handleQuickBooking = () => {
+      if (!isAuthenticated) {
+        setIsAuthPromptOpen(true);
+        return;
+      }
+      setIsQuickBookingOpen(true);
+    };
+
+    return (
+      <>
+        <ClubMobileView
+          club={club}
+          hasPublishedCourts={hasPublishedCourts}
+          loading={loadingClubs || loadingCourts}
+          onCheckAvailability={handleCheckAvailability}
+          onQuickBooking={handleQuickBooking}
+        />
+
+        {/* Keep modals for mobile */}
+        {isAuthenticated && (
+          <PlayerQuickBooking
+            preselectedClubId={club.id}
+            isOpen={isQuickBookingOpen}
+            onClose={() => setIsQuickBookingOpen(false)}
+            onBookingComplete={handleQuickBookingComplete}
+          />
+        )}
+
+        <AuthPromptModal
+          isOpen={isAuthPromptOpen}
+          onClose={() => setIsAuthPromptOpen(false)}
+        />
+      </>
+    );
   }
 
   // Prepare derived data

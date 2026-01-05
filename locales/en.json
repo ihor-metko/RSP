@@ -399,7 +399,9 @@
         "save": "Save",
         "saving": "Saving..."
       }
-    }
+    },
+    "checkAvailability": "Check Availability",
+    "noClubsDescription": "We are working on adding new clubs to the platform."
   },
   "clubDetail": {
     "about": "About",
@@ -1261,7 +1263,21 @@
     },
     "playerQuickBooking": {
       "title": "Quick Booking"
-    }
+    },
+    "confirmTitle": "Confirm Booking",
+    "confirmSubtitle": "Review your booking details",
+    "bookingDetails": "Booking Details",
+    "clubPlaceholder": "Example Club",
+    "courtPlaceholder": "Court 1",
+    "datePlaceholder": "January 15, 2026",
+    "timePlaceholder": "14:00 - 15:30",
+    "pricePlaceholder": "€25.00",
+    "total": "Total",
+    "confirmBooking": "Confirm Booking",
+    "successTitle": "Booking Confirmed!",
+    "successMessage": "Your booking has been successfully confirmed",
+    "referenceNumber": "Reference Number",
+    "bookAnother": "Book Another Court"
   },
   "training": {
     "requestTraining": "Request Training",
@@ -4627,5 +4643,20 @@
         }
       }
     }
+  },
+  "landing": {
+    "title": "ArenaOne",
+    "tagline": "Find and book padel courts near you",
+    "findCourt": "Find a court"
+  },
+  "availability": {
+    "title": "Check Availability",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time",
+    "selectCourt": "Select Court",
+    "datePickerPlaceholder": "Date picker",
+    "timeSlotPlaceholder": "Time slot",
+    "courtPlaceholder": "Court",
+    "courtDetailsPlaceholder": "Indoor / Outdoor"
   }
 }

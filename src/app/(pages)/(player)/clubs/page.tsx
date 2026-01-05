@@ -7,7 +7,8 @@ import { IMLink, PageHeader } from "@/components/ui";
 import { CardListSkeleton, PageHeaderSkeleton } from "@/components/ui/skeletons";
 import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
-import { useDeferredLoading } from "@/hooks";
+import { ClubsMobileView } from "@/components/mobile-views";
+import { useIsMobile, useDeferredLoading } from "@/hooks";
 import "@/components/ClubsList.css";
 
 /**
@@ -22,6 +23,8 @@ import "@/components/ClubsList.css";
  * types in the search bar, the currentParams state updates immediately (to keep the
  * input responsive), but the deferredParams lags behind. API calls are triggered only
  * by deferredParams changes, ensuring smooth UX without rapid re-renders during typing.
+ * 
+ * Mobile/Desktop: Uses conditional rendering based on viewport size.
  */
 
 interface ClubWithCounts {
@@ -56,6 +59,7 @@ export default function ClubsPage() {
   const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isMobile = useIsMobile();
 
   // Read initial values from URL
   const urlQ = searchParams.get("q") || "";
@@ -151,8 +155,26 @@ export default function ClubsPage() {
     // Don't call fetchClubs here - let the useEffect handle it to avoid duplicate requests
   }, [updateUrl]);
 
+  // Handle club click for mobile view
+  const handleClubClick = useCallback((clubId: string) => {
+    router.push(`/clubs/${clubId}`);
+  }, [router]);
+
   const isInitialLoading = deferredLoading && clubs.length === 0;
 
+  // Mobile view
+  if (isMobile) {
+    return (
+      <ClubsMobileView
+        clubs={clubs}
+        loading={isInitialLoading}
+        error={error}
+        onClubClick={handleClubClick}
+      />
+    );
+  }
+
+  // Desktop view
   if (error && clubs.length === 0) {
     return (
       <main className="tm-clubs-page">
