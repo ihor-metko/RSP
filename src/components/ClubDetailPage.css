@@ -447,9 +447,7 @@
 }
 
 /* ===== Description & Gallery Section (im-* classes) ===== */
-.im-club-description-gallery {
-  @apply mb-8;
-}
+.im-club-description-gallery {}
 
 .im-club-description-gallery-grid {
   @apply grid gap-6;

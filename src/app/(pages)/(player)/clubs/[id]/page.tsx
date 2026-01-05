@@ -486,22 +486,6 @@ export default function ClubDetailPage({
           </div>
         )}
 
-        {/* Empty State when no published courts */}
-        {!loadingCourts && courts.length === 0 && (
-          <EmptyState
-            title={t("clubs.noPublishedCourtsTitle")}
-            description={t("clubs.noPublishedCourtsDescription")}
-            icon={
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-              </svg>
-            }
-          />
-        )}
-
         {/* Weekly Availability Timeline */}
         {courts.length > 0 && (
           <section className="rsp-club-timeline-section mt-8">
@@ -518,6 +502,22 @@ export default function ClubDetailPage({
           <div className="im-club-description-gallery-grid">
             {/* Left Column - Description & Gallery */}
             <div className="im-club-description-gallery-left">
+              {/* Empty State when no published courts */}
+              {!loadingCourts && courts.length === 0 && (
+                <EmptyState
+                  title={t("clubs.noPublishedCourtsTitle")}
+                  description={t("clubs.noPublishedCourtsDescription")}
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" />
+                    </svg>
+                  }
+                />
+              )}
+
               {/* Description Card */}
               {club.longDescription && (
                 <div className="im-club-description-card">
@@ -661,7 +661,7 @@ export default function ClubDetailPage({
 
         {/* Map Section */}
         {hasValidCoordinates && (
-          <div className="rsp-club-info-card mb-8">
+          <div className="rsp-club-info-card">
             <h2 className="rsp-club-info-card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <polygon points="1,6 1,22 8,18 16,22 23,18 23,2 16,6 8,2 1,6" />

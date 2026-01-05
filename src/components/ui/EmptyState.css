@@ -8,7 +8,6 @@
   background-color: var(--im-surface-bg);
   border-radius: 12px;
   border: 1px solid var(--im-border-color);
-  margin: 2rem 0;
 }
 
 .im-empty-state-icon {
