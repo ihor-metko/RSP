@@ -25,8 +25,14 @@ interface AvailableCourt {
   priceCents: number;
 }
 
+interface AlternativeTimeSlot {
+  startTime: string;
+  availableCourtCount: number;
+}
+
 interface AvailableCourtsResponse {
   availableCourts: AvailableCourt[];
+  alternativeTimeSlots?: AlternativeTimeSlot[];
 }
 
 export async function GET(
@@ -226,8 +232,91 @@ export async function GET(
       }
     }
 
+    // If no courts available, find alternative time slots
+    let alternativeTimeSlots: AlternativeTimeSlot[] = [];
+    
+    if (availableCourts.length === 0) {
+      // Check alternative time slots (±2 hours from requested time, in 30-minute increments)
+      const alternativeTimes: string[] = [];
+      const [requestedHour, requestedMinute] = timeStart.split(":").map(Number);
+      const requestedTotalMinutes = requestedHour * 60 + requestedMinute;
+      
+      // Generate time slots 2 hours before and after the requested time
+      for (let offset = -120; offset <= 120; offset += 30) {
+        if (offset === 0) continue; // Skip the originally requested time
+        
+        const alternativeMinutes = requestedTotalMinutes + offset;
+        
+        // Ensure we stay within business hours
+        if (alternativeMinutes < BUSINESS_START_HOUR * 60 || alternativeMinutes >= BUSINESS_END_HOUR * 60) {
+          continue;
+        }
+        
+        // Check if the slot would end within business hours
+        const endMinutes = alternativeMinutes + duration;
+        if (endMinutes > BUSINESS_END_HOUR * 60) {
+          continue;
+        }
+        
+        const altHour = Math.floor(alternativeMinutes / 60);
+        const altMinute = alternativeMinutes % 60;
+        const altTimeString = `${altHour.toString().padStart(2, "0")}:${altMinute.toString().padStart(2, "0")}`;
+        alternativeTimes.push(altTimeString);
+      }
+      
+      // Check availability for each alternative time slot
+      for (const altTime of alternativeTimes) {
+        const altSlotStart = new Date(`${dateParam}T${altTime}:00.000Z`);
+        const altSlotEnd = new Date(altSlotStart.getTime() + duration * 60 * 1000);
+        
+        let availableCount = 0;
+        
+        for (const court of club.courts) {
+          const courtBookings = bookings.filter((b) => b.courtId === court.id);
+          let isAvailable = true;
+          
+          for (const booking of courtBookings) {
+            const bookingStart = new Date(booking.start);
+            const bookingEnd = new Date(booking.end);
+            
+            if (bookingStart < altSlotEnd && bookingEnd > altSlotStart) {
+              isAvailable = false;
+              break;
+            }
+          }
+          
+          if (isAvailable) {
+            availableCount++;
+          }
+        }
+        
+        if (availableCount > 0) {
+          alternativeTimeSlots.push({
+            startTime: altTime,
+            availableCourtCount: availableCount,
+          });
+        }
+      }
+      
+      // Sort by closest to original time and limit to top 5 alternatives
+      alternativeTimeSlots.sort((a, b) => {
+        const [aHour, aMinute] = a.startTime.split(":").map(Number);
+        const [bHour, bMinute] = b.startTime.split(":").map(Number);
+        const aTotalMinutes = aHour * 60 + aMinute;
+        const bTotalMinutes = bHour * 60 + bMinute;
+        
+        const aDiff = Math.abs(aTotalMinutes - requestedTotalMinutes);
+        const bDiff = Math.abs(bTotalMinutes - requestedTotalMinutes);
+        
+        return aDiff - bDiff;
+      });
+      
+      alternativeTimeSlots = alternativeTimeSlots.slice(0, 5);
+    }
+
     const response: AvailableCourtsResponse = {
       availableCourts,
+      ...(alternativeTimeSlots.length > 0 && { alternativeTimeSlots }),
     };
 
     return NextResponse.json(response);

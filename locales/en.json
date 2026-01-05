@@ -1263,6 +1263,7 @@
       "noCourtsAvailable": "No courts available at selected time.",
       "noCourtsForDuration": "No courts are available for the selected duration.",
       "alternativeDurationsAvailable": "We can suggest the closest available options:",
+      "alternativeTimeSlotsAvailable": "Try these alternative times:",
       "tryAnotherTime": "Try another time or check court schedules.",
       "availableCourts": "Available courts ({count})",
       "select": "Select"
