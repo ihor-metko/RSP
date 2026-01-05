@@ -248,9 +248,10 @@ export function PlayerQuickBooking({
     if (availableCourtTypes && availableCourtTypes.length > 0) {
       setState((prev) => {
         // If current selected court type is not available, switch to first available type
+        // Falls back to DEFAULT_COURT_TYPE if array is unexpectedly empty
         const newCourtType = availableCourtTypes.includes(prev.step1.courtType)
           ? prev.step1.courtType
-          : availableCourtTypes[0];
+          : (availableCourtTypes[0] || DEFAULT_COURT_TYPE);
 
         return {
           ...prev,

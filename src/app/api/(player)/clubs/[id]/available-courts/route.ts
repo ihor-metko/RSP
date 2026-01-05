@@ -353,8 +353,8 @@ export async function GET(
       });
       
       alternativeTimeSlots = alternativeTimeSlots.slice(0, 5);
-      } // Close the "if no shorter durations available" check
-    }
+      } // End of alternative time slots check (when no shorter durations available)
+    } // End of no courts available check
 
     const response: AvailableCourtsResponse = {
       availableCourts,
