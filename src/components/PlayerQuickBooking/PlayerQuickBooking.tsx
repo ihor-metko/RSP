@@ -8,6 +8,7 @@ import { useCourtAvailability } from "@/hooks/useCourtAvailability";
 import { Step0SelectClub } from "./Step0SelectClub";
 import { Step1DateTime } from "./Step1DateTime";
 import { Step2Courts } from "./Step2Courts";
+import { Step2_5Confirmation } from "./Step2_5Confirmation";
 import { Step3Payment } from "./Step3Payment";
 import { Step4Confirmation } from "./Step4Confirmation";
 import {
@@ -90,6 +91,8 @@ export function PlayerQuickBooking({
       },
       step3: {
         paymentMethod: null,
+        reservationId: null,
+        reservationExpiresAt: null,
       },
       step4: {
         bookingId: null,
@@ -141,6 +144,8 @@ export function PlayerQuickBooking({
         },
         step3: {
           paymentMethod: null,
+          reservationId: null,
+          reservationExpiresAt: null,
         },
         step4: {
           bookingId: null,
@@ -639,10 +644,13 @@ export function PlayerQuickBooking({
       }
       case 2:
         return !!state.step2.selectedCourtId;
+      case 2.5:
+        // Confirmation step - just verify selection before proceeding to payment
+        return !!state.step2.selectedCourtId && !!state.step2.selectedCourt;
       case 3:
-        return !!state.step3.paymentMethod && !state.isSubmitting;
+        return !!state.step3.paymentMethod && !state.isSubmitting && !!state.step3.reservationId;
       case 4:
-        return true; // Confirmation step
+        return true; // Final confirmation step
       default:
         return false;
     }
@@ -770,6 +778,17 @@ export function PlayerQuickBooking({
             />
           )}
 
+          {state.currentStep === 2.5 && (
+            <Step2_5Confirmation
+              club={state.step0.selectedClub}
+              date={state.step1.date}
+              startTime={state.step1.startTime}
+              duration={state.step1.duration}
+              court={state.step2.selectedCourt}
+              totalPrice={totalPrice}
+            />
+          )}
+
           {state.currentStep === 3 && (
             <Step3Payment
               club={state.step0.selectedClub}
@@ -782,6 +801,22 @@ export function PlayerQuickBooking({
               onSelectPaymentMethod={handleSelectPaymentMethod}
               isSubmitting={state.isSubmitting}
               submitError={state.submitError}
+              onReservationCreated={(reservationId, expiresAt) => {
+                setState((prev) => ({
+                  ...prev,
+                  step3: {
+                    ...prev.step3,
+                    reservationId,
+                    reservationExpiresAt: expiresAt,
+                  },
+                }));
+              }}
+              onReservationExpired={() => {
+                setState((prev) => ({
+                  ...prev,
+                  submitError: t("booking.reservationExpired"),
+                }));
+              }}
             />
           )}
 

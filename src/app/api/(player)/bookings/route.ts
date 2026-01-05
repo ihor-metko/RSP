@@ -119,13 +119,46 @@ export async function POST(request: Request) {
         throw new Error("COURT_NOT_FOUND");
       }
 
-      // Check for overlapping bookings for the selected courtId
+      // Clean up expired reservations for this court
+      await tx.booking.deleteMany({
+        where: {
+          courtId: body.courtId,
+          status: "reserved",
+          reservationExpiresAt: {
+            lt: new Date(),
+          },
+        },
+      });
+
+      // Check if there's an existing valid reservation for this exact slot and user
+      const existingReservation = await tx.booking.findFirst({
+        where: {
+          courtId: body.courtId,
+          userId: body.userId,
+          start: startTime,
+          end: endTime,
+          status: "reserved",
+          reservationExpiresAt: { gt: new Date() },
+        },
+      });
+
+      // Check for overlapping bookings or active reservations (excluding the user's own reservation)
       const overlappingBookings = await tx.booking.findFirst({
         where: {
           courtId: body.courtId,
           start: { lt: endTime },
           end: { gt: startTime },
-          status: { in: ["reserved", "paid"] },
+          OR: [
+            { status: "paid" },
+            {
+              AND: [
+                { status: "reserved" },
+                { reservationExpiresAt: { gt: new Date() } },
+                // Exclude the current user's own reservation
+                existingReservation ? { id: { not: existingReservation.id } } : {},
+              ],
+            },
+          ],
         },
       });
 
@@ -134,37 +167,74 @@ export async function POST(request: Request) {
         throw new Error("CONFLICT");
       }
 
-      // Create new booking with status = 'reserved' and resolved price
-      const newBooking = await tx.booking.create({
-        data: {
-          courtId: body.courtId,
-          userId: body.userId,
-          coachId: body.coachId || null,
-          start: startTime,
-          end: endTime,
-          price: resolvedPrice,
-          sportType: court.sportType || "PADEL",
-          status: "reserved",
-        },
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
-            },
+      let newBooking;
+
+      if (existingReservation) {
+        // Update existing reservation to paid status
+        newBooking = await tx.booking.update({
+          where: { id: existingReservation.id },
+          data: {
+            status: "paid",
+            bookingStatus: "Active",
+            paymentStatus: "Paid",
+            reservationExpiresAt: null, // Clear expiry since it's now paid
           },
-          coach: {
-            select: {
-              id: true,
-              user: {
-                select: {
-                  name: true,
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+            coach: {
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    name: true,
+                  },
                 },
               },
             },
           },
-        },
-      });
+        });
+      } else {
+        // No reservation exists - this shouldn't happen in the normal flow
+        // but we allow it for backward compatibility
+        // Create new booking with status = 'paid' and resolved price
+        newBooking = await tx.booking.create({
+          data: {
+            courtId: body.courtId,
+            userId: body.userId,
+            coachId: body.coachId || null,
+            start: startTime,
+            end: endTime,
+            price: resolvedPrice,
+            sportType: court.sportType || "PADEL",
+            status: "paid",
+            bookingStatus: "Active",
+            paymentStatus: "Paid",
+          },
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+            coach: {
+              select: {
+                id: true,
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
 
       // Update daily statistics reactively within the transaction
       await updateStatisticsForBooking(court.clubId, startTime, endTime);

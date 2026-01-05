@@ -60,6 +60,8 @@ export interface PlayerBookingStep2Data {
 
 export interface PlayerBookingStep3Data {
   paymentMethod: PaymentMethod | null;
+  reservationId: string | null;
+  reservationExpiresAt: string | null;
 }
 
 export interface PlayerBookingStep4Data {
@@ -315,11 +317,14 @@ export function determineVisibleSteps(
     steps.push({ id: 2, label: "selectCourt", isRequired: true });
   }
 
+  // Step 2.5: Confirmation (always required before payment)
+  steps.push({ id: 2.5, label: "confirmation", isRequired: true });
+
   // Step 3: Payment (always required for players)
   steps.push({ id: 3, label: "payment", isRequired: true });
 
   // Step 4: Confirmation (always shown)
-  steps.push({ id: 4, label: "confirmation", isRequired: true });
+  steps.push({ id: 4, label: "finalConfirmation", isRequired: true });
 
   return steps;
 }

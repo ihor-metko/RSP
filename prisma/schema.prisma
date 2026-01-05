@@ -451,23 +451,27 @@ model CoachTimeOff {
 }
 
 model Booking {
-  id            String    @id @default(uuid())
-  court         Court     @relation(fields: [courtId], references: [id])
-  courtId       String
-  user          User      @relation(fields: [userId], references: [id])
-  userId        String
-  coach         Coach?    @relation(fields: [coachId], references: [id])
-  coachId       String?
-  start         DateTime
-  end           DateTime
-  price         Int
-  sportType     SportType @default(PADEL) // Type of sport for this booking
-  status        String    @default("pending") // Legacy field for backward compatibility: "pending", "paid", "cancelled", etc.
-  bookingStatus String    @default("Pending") // Booking status: "Active", "Cancelled", "Completed", "No-show", "Pending"
-  paymentStatus String    @default("Unpaid") // Payment status: "Paid", "Unpaid", "Refunded", "PartiallyRefunded", "PaymentPending"
-  paymentId     String?
-  createdAt     DateTime  @default(now())
-  payments      Payment[]
+  id                   String    @id @default(uuid())
+  court                Court     @relation(fields: [courtId], references: [id])
+  courtId              String
+  user                 User      @relation(fields: [userId], references: [id])
+  userId               String
+  coach                Coach?    @relation(fields: [coachId], references: [id])
+  coachId              String?
+  start                DateTime
+  end                  DateTime
+  price                Int
+  sportType            SportType @default(PADEL) // Type of sport for this booking
+  status               String    @default("pending") // Legacy field for backward compatibility: "pending", "paid", "cancelled", etc.
+  bookingStatus        String    @default("Pending") // Booking status: "Active", "Cancelled", "Completed", "No-show", "Pending"
+  paymentStatus        String    @default("Unpaid") // Payment status: "Paid", "Unpaid", "Refunded", "PartiallyRefunded", "PaymentPending"
+  paymentId            String?
+  reservedAt           DateTime? // Timestamp when temporary reservation was created
+  reservationExpiresAt DateTime? // Timestamp when reservation expires (typically reservedAt + 5 minutes)
+  createdAt            DateTime  @default(now())
+  payments             Payment[]
+
+  @@index([reservationExpiresAt])
 }
 
 model Payment {
