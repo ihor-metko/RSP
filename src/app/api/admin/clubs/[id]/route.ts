@@ -65,7 +65,6 @@ export async function GET(
       bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
     };
 
-    console.log("Fetched club:", formattedClub);
     return NextResponse.json(formattedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

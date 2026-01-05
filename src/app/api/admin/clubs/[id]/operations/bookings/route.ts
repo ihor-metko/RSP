@@ -7,23 +7,23 @@ import { SportType } from "@/constants/sports";
 
 /**
  * GET /api/clubs/[clubId]/operations/bookings
- * 
+ *
  * Returns all bookings for a specific club on a given date.
  * Used by the club operations calendar view.
- * 
+ *
  * Access: Club Admins for this club, Organization Admins for the parent org, Root Admins
- * 
+ *
  * Query parameters:
  * - date: ISO date string (YYYY-MM-DD) - required
- * 
+ *
  * @example
  * GET /api/clubs/123/operations/bookings?date=2024-01-15
  */
 export async function GET(
   request: Request,
-  context: { params: Promise<{ clubId: string }> }
+  context: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<OperationsBooking[] | { error: string }>> {
-  const { clubId } = await context.params;
+  const { id: clubId } = await context.params;
   const url = new URL(request.url);
   const date = url.searchParams.get("date");
 
@@ -46,7 +46,7 @@ export async function GET(
 
   // First, try club admin authorization
   const clubAuthResult = await requireClubAdmin(clubId);
-  
+
   if (!clubAuthResult.authorized) {
     // If not club admin, check if organization admin
     // Need to get the club's organization first
@@ -60,7 +60,7 @@ export async function GET(
     }
 
     const orgAuthResult = await requireOrganizationAdmin(club.organizationId);
-    
+
     if (!orgAuthResult.authorized) {
       return orgAuthResult.response as NextResponse<{ error: string }>;
     }
@@ -119,7 +119,7 @@ export async function GET(
     const operationsBookings: OperationsBooking[] = bookings.map((booking) => {
       const startISO = booking.start.toISOString();
       const endISO = booking.end.toISOString();
-      
+
       // Migrate legacy status to new dual-status system
       const { bookingStatus, paymentStatus } = migrateLegacyStatus(booking.status);
 
