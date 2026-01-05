@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { SportType } from "@/constants/sports";
 import type { Address } from "@/types/address";
+import type { CourtFormat } from "@/types/court";
 
 // Stable empty array to prevent unnecessary re-renders
 const EMPTY_ARRAY: never[] = [];
@@ -18,6 +19,7 @@ interface PlayerClubCourt {
   surface: string | null;
   indoor: boolean;
   sportType?: SportType | null;
+  courtFormat?: CourtFormat | null;
   defaultPriceCents: number;
   bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
   createdAt?: string;

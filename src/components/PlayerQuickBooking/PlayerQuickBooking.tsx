@@ -501,7 +501,10 @@ export function PlayerQuickBooking({
   const handleSelectPaymentMethod = useCallback((method: PaymentMethod) => {
     setState((prev) => ({
       ...prev,
-      step3: { paymentMethod: method },
+      step3: {
+        ...prev.step3,
+        paymentMethod: method,
+      },
     }));
   }, []);
 

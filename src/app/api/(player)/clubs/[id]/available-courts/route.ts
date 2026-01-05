@@ -166,7 +166,7 @@ export async function GET(
         courts: {
           where: {
             isPublished: true, // Only return published courts for players
-            ...(courtTypeParam && { courtFormat: courtTypeParam }), // Filter by court format if provided
+            ...(courtTypeParam && { courtFormat: courtTypeParam as CourtFormat }), // Filter by court format if provided
           },
           select: {
             id: true,
