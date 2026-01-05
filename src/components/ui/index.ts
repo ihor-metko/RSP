@@ -99,3 +99,5 @@ export { DocsScreenshot } from "./DocsScreenshot";
 export type { DocsScreenshotProps } from "./DocsScreenshot";
 export { DocsCallout } from "./DocsCallout";
 export type { DocsCalloutProps } from "./DocsCallout";
+export { EmptyState } from "./EmptyState";
+

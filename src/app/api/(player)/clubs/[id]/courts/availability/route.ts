@@ -116,6 +116,9 @@ export async function GET(
       where: { id: clubId },
       include: {
         courts: {
+          where: {
+            isPublished: true, // Only return published courts for players
+          },
           select: {
             id: true,
             name: true,

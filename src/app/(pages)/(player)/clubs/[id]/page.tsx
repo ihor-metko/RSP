@@ -11,7 +11,7 @@ import { CourtAvailabilityModal } from "@/components/CourtAvailabilityModal";
 import { CourtScheduleModal } from "@/components/CourtScheduleModal";
 import { AuthPromptModal } from "@/components/AuthPromptModal";
 import { GalleryModal } from "@/components/GalleryModal";
-import { Button, IMLink, ImageCarousel, CourtCarousel, EntityBanner } from "@/components/ui";
+import { Button, IMLink, ImageCarousel, CourtCarousel, EntityBanner, EmptyState } from "@/components/ui";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
@@ -477,12 +477,30 @@ export default function ClubDetailPage({
           </div>
         )}
 
-        {/* Quick Actions Bar */}
-        <div className="rsp-club-actions-bar">
-          <Button onClick={handleQuickBookingClick} className="rsp-club-action-button" aria-label={t("clubs.quickBooking")}>
-            {t("clubs.quickBooking")}
-          </Button>
-        </div>
+        {/* Quick Actions Bar - Only show if there are published courts */}
+        {courts.length > 0 && (
+          <div className="rsp-club-actions-bar">
+            <Button onClick={handleQuickBookingClick} className="rsp-club-action-button" aria-label={t("clubs.quickBooking")}>
+              {t("clubs.quickBooking")}
+            </Button>
+          </div>
+        )}
+
+        {/* Empty State when no published courts */}
+        {!loadingCourts && courts.length === 0 && (
+          <EmptyState
+            title={t("clubs.noPublishedCourtsTitle")}
+            description={t("clubs.noPublishedCourtsDescription")}
+            icon={
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+              </svg>
+            }
+          />
+        )}
 
         {/* Weekly Availability Timeline */}
         {courts.length > 0 && (
@@ -667,52 +685,50 @@ export default function ClubDetailPage({
           </div>
         )}
 
-        {/* Courts Carousel Section */}
-        <section className="rsp-club-courts-section">
-          <div className="rsp-club-courts-header">
-            <h2 className="rsp-club-courts-title">{t("clubDetail.availableCourts")}</h2>
-          </div>
-          {loadingCourts ? (
-            <div className="rsp-club-loading-courts">
-              <p className="rsp-club-loading-text">{t("common.loading")}</p>
+        {/* Courts Carousel Section - Only show when there are courts */}
+        {courts.length > 0 && (
+          <section className="rsp-club-courts-section">
+            <div className="rsp-club-courts-header">
+              <h2 className="rsp-club-courts-title">{t("clubDetail.availableCourts")}</h2>
             </div>
-          ) : courts.length === 0 ? (
-            <div className="rsp-club-empty-courts">
-              <p className="rsp-club-empty-courts-text">{t("clubs.noCourts")}</p>
-            </div>
-          ) : (
-            <div className="im-court-carousel-section">
-              <CourtCarousel
-                items={courts}
-                itemKeyExtractor={(court) => court.id}
-                mobileVisible={1}
-                tabletVisible={2}
-                desktopVisible={3}
-                showIndicators={true}
-                showNavigation={true}
-                lazyLoad={true}
-                gap={16}
-                renderItem={(court) => (
-                  <CourtCard
-                    key={court.id}
-                    court={court}
-                    onBook={handleBookClick}
-                    onViewSchedule={handleViewSchedule}
-                    onCardClick={handleCardClick}
-                    isBookDisabled={!isAuthenticated}
-                    bookDisabledTooltip={t("auth.signInToBookTooltip")}
-                    availabilitySlots={courtAvailability[court.id] || []}
-                    isLoadingAvailability={availabilityLoading}
-                    maxVisibleSlots={6}
-                    showLegend={false}
-                    showAvailabilitySummary={true}
-                    showDetailedAvailability={false}
-                  />
-                )}
-              />
-            </div>
-          )}
-        </section>
+            {loadingCourts ? (
+              <div className="rsp-club-loading-courts">
+                <p className="rsp-club-loading-text">{t("common.loading")}</p>
+              </div>
+            ) : (
+              <div className="im-court-carousel-section">
+                <CourtCarousel
+                  items={courts}
+                  itemKeyExtractor={(court) => court.id}
+                  mobileVisible={1}
+                  tabletVisible={2}
+                  desktopVisible={3}
+                  showIndicators={true}
+                  showNavigation={true}
+                  lazyLoad={true}
+                  gap={16}
+                  renderItem={(court) => (
+                    <CourtCard
+                      key={court.id}
+                      court={court}
+                      onBook={handleBookClick}
+                      onViewSchedule={handleViewSchedule}
+                      onCardClick={handleCardClick}
+                      isBookDisabled={!isAuthenticated}
+                      bookDisabledTooltip={t("auth.signInToBookTooltip")}
+                      availabilitySlots={courtAvailability[court.id] || []}
+                      isLoadingAvailability={availabilityLoading}
+                      maxVisibleSlots={6}
+                      showLegend={false}
+                      showAvailabilitySummary={true}
+                      showDetailedAvailability={false}
+                    />
+                  )}
+                />
+              </div>
+            )}
+          </section>
+        )}
       </div>
 
       {/* Modals */}
