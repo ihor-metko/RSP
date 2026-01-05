@@ -1,3 +1,5 @@
+import { getTodayStr, getCurrentTimeInTimezone } from "@/utils/dateTime";
+
 /**
  * Types for PlayerQuickBooking
  * Universal booking mechanism for player users with support for preselected data
@@ -197,12 +199,12 @@ export function generateTimeOptionsForDate(
   }
 
   // Filter out past times if the date is today
-  // Import filterPastTimeSlots from utils/dateTime
-  // For now, we'll do inline filtering to avoid circular dependencies
-  const today = new Date().toISOString().split("T")[0];
+  // Use platform timezone for consistent behavior
+  const today = getTodayStr();
   if (date === today) {
-    const now = new Date();
-    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+    const currentTime = getCurrentTimeInTimezone();
+    const [currentHour, currentMinute] = currentTime.split(":").map(Number);
+    const currentTotalMinutes = currentHour * 60 + currentMinute;
     
     return options.filter((timeSlot) => {
       const [slotHour, slotMinute] = timeSlot.split(":").map(Number);
