@@ -366,6 +366,7 @@ export function PlayerQuickBooking({
           date,
           start: startTime,
           duration: duration.toString(),
+          courtType,
         });
         const response = await fetch(
           `/api/clubs/${clubId}/available-courts?${params}`
