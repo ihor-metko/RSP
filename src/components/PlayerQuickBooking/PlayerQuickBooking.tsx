@@ -21,6 +21,7 @@ import {
   calculateEndTime,
   determineVisibleSteps,
   DURATION_OPTIONS,
+  DEFAULT_COURT_TYPE,
 } from "./types";
 import "./PlayerQuickBooking.css";
 
@@ -61,12 +62,12 @@ export function PlayerQuickBooking({
   // Initialize state with preselected data
   const [state, setState] = useState<PlayerQuickBookingState>(() => {
     const initialDateTime: PlayerBookingStep1Data = preselectedDateTime 
-      ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || "Double" }
+      ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
       : {
           date: getTodayDateString(),
           startTime: "10:00",
           duration: MINUTES_PER_HOUR,
-          courtType: "Double",
+          courtType: DEFAULT_COURT_TYPE,
         };
 
     return {
@@ -107,12 +108,12 @@ export function PlayerQuickBooking({
   useEffect(() => {
     if (!isOpen) {
       const initialDateTime: PlayerBookingStep1Data = preselectedDateTime 
-        ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || "Double" }
+        ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
         : {
             date: getTodayDateString(),
             startTime: "10:00",
             duration: MINUTES_PER_HOUR,
-            courtType: "Double",
+            courtType: DEFAULT_COURT_TYPE,
           };
 
       setState({
@@ -292,9 +293,10 @@ export function PlayerQuickBooking({
       
       setState((prev) => {
         // If current selected court type is not available, switch to first available type
+        // Falls back to DEFAULT_COURT_TYPE if no types are available (shouldn't happen in practice)
         const newCourtType = availableTypes.includes(prev.step1.courtType) 
           ? prev.step1.courtType 
-          : availableTypes[0] || "Double";
+          : availableTypes[0] || DEFAULT_COURT_TYPE;
         
         return {
           ...prev,

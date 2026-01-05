@@ -102,6 +102,9 @@ export interface BookingStepConfig {
   isRequired: boolean;
 }
 
+// Default court type - Double courts are most common in Padel
+export const DEFAULT_COURT_TYPE: "Single" | "Double" = "Double";
+
 // Business hours configuration
 export const BUSINESS_START_HOUR = 8;
 export const BUSINESS_END_HOUR = 22;

@@ -96,16 +96,10 @@ export function Step1DateTime({
             <RadioGroup
               label={t("courts.courtType")}
               name="court-type"
-              options={[
-                availableCourtTypes.includes("Single") && {
-                  value: "Single",
-                  label: t("courts.padelCourtFormatSingle"),
-                },
-                availableCourtTypes.includes("Double") && {
-                  value: "Double",
-                  label: t("courts.padelCourtFormatDouble"),
-                },
-              ].filter(Boolean) as { value: string; label: string }[]}
+              options={availableCourtTypes.map((type) => ({
+                value: type,
+                label: t(type === "Single" ? "courts.padelCourtFormatSingle" : "courts.padelCourtFormatDouble"),
+              }))}
               value={data.courtType}
               onChange={(value) => {
                 if (value === "Single" || value === "Double") {
