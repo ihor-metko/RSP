@@ -46,7 +46,7 @@ interface CourtFormData {
   name: string;
   slug: string;
   type: string;
-  padelCourtFormat: string; // "single" | "double" - only for padel courts
+  courtFormat: string; // "SINGLE" | "DOUBLE" - only for padel courts
   surface: string;
   indoor: boolean;
   shortDescription: string;
@@ -73,7 +73,7 @@ const defaultFormValues: CourtFormData = {
   name: "",
   slug: "",
   type: "",
-  padelCourtFormat: "",
+  courtFormat: "",
   surface: "",
   indoor: false,
   shortDescription: "",
@@ -497,9 +497,9 @@ export default function CreateCourtPage() {
           break;
         case "basic":
           fieldsToValidate = ["name", "slug"];
-          // Add padelCourtFormat validation only if type is padel
+          // Add courtFormat validation only if type is padel
           if (watch("type") === "padel") {
-            fieldsToValidate.push("padelCourtFormat");
+            fieldsToValidate.push("courtFormat");
           }
           break;
         case "pricing-schedule":
@@ -552,20 +552,15 @@ export default function CreateCourtPage() {
     setError(null);
 
     try {
-      // Build metadata for padel courts
-      const metadata: Record<string, unknown> = {};
-      if (data.type === "padel" && data.padelCourtFormat) {
-        metadata.padelCourtFormat = data.padelCourtFormat;
-      }
-
       // Build payload
       const payload = {
         name: data.name.trim(),
         slug: data.slug.trim() || null,
         type: data.type || null,
+        courtFormat: data.type === "padel" && data.courtFormat ? data.courtFormat.toUpperCase() : null,
         surface: data.surface || null,
         indoor: data.indoor,
-        shortDescription: data.shortDescription || null,
+        description: data.shortDescription || null,
         defaultPriceCents: dollarsToCents(data.defaultPrice),
         defaultSlotLengthMinutes: data.defaultSlotLengthMinutes,
         // No courtOpenTime/courtCloseTime - courts inherit club schedule
@@ -573,11 +568,10 @@ export default function CreateCourtPage() {
         gallery: data.gallery
           .filter((img) => img.url && !img.error)
           .map((img) => ({ url: img.url, alt: img.alt })),
-        visibility,
+        isPublished: visibility === "published",
         tags: data.tags || null,
         maxPlayers: data.maxPlayers || null,
         notes: data.notes || null,
-        metadata: Object.keys(metadata).length > 0 ? JSON.stringify(metadata) : null,
       };
 
       const response = await fetch(`/api/admin/clubs/${targetClubId}/courts`, {
@@ -731,23 +725,23 @@ export default function CreateCourtPage() {
       {watch("type") === "padel" && (
         <div className="im-tab-section">
           <Controller
-            name="padelCourtFormat"
+            name="courtFormat"
             control={control}
             rules={{
-              required: watch("type") === "padel" ? t("admin.courts.new.errors.padelCourtFormatRequired") : false,
+              required: watch("type") === "padel" ? t("admin.courts.new.errors.courtFormatRequired") : false,
             }}
             render={({ field }) => (
               <RadioGroup
-                label={t("admin.courts.new.basicTab.padelCourtFormat") + " *"}
-                name="padelCourtFormat"
+                label={t("admin.courts.new.basicTab.courtFormat") + " *"}
+                name="courtFormat"
                 options={[
                   {
-                    value: "single",
-                    label: t("admin.courts.new.basicTab.padelCourtFormatSingle"),
+                    value: "SINGLE",
+                    label: t("admin.courts.new.basicTab.courtFormatSingle"),
                   },
                   {
-                    value: "double",
-                    label: t("admin.courts.new.basicTab.padelCourtFormatDouble"),
+                    value: "DOUBLE",
+                    label: t("admin.courts.new.basicTab.courtFormatDouble"),
                   },
                 ]}
                 value={field.value}
@@ -756,8 +750,8 @@ export default function CreateCourtPage() {
               />
             )}
           />
-          {errors.padelCourtFormat && (
-            <span className="im-error-text">{errors.padelCourtFormat.message}</span>
+          {errors.courtFormat && (
+            <span className="im-error-text">{errors.courtFormat.message}</span>
           )}
         </div>
       )}

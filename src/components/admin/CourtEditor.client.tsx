@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/components/ui";
 import { DetailedInfoTab, BannerTab } from "@/components/admin/EntityTabs";
 import type { DetailedInfoData, BannerData } from "@/components/admin/EntityTabs";
-import { parseCourtMetadata } from "@/utils/court-metadata";
+import { parseCourtBannerData } from "@/utils/court-metadata";
 import type { CourtDetail } from "@/types/court";
 import "@/components/admin/EntityTabs/EntityTabs.css";
 
@@ -27,17 +27,17 @@ export function CourtEditor({
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [pendingTabId, setPendingTabId] = useState<string | null>(null);
 
-  // Parse metadata from JSON string
-  const metadata = parseCourtMetadata(court.metadata);
+  // Parse bannerData from JSON string
+  const parsedBannerData = parseCourtBannerData(court.bannerData);
 
   const detailedInfoData: DetailedInfoData = {
     name: court.name,
-    description: metadata?.description || null,
+    description: court.description || null,
   };
 
   const bannerData: BannerData = {
-    heroImage: court.bannerData?.url ? { url: court.bannerData.url, key: "", preview: court.bannerData.url } : null,
-    bannerAlignment: metadata?.bannerAlignment || 'center',
+    heroImage: parsedBannerData?.url ? { url: parsedBannerData.url, key: "", preview: parsedBannerData.url } : null,
+    bannerAlignment: parsedBannerData?.bannerAlignment || 'center',
   };
 
   const handleTabChange = useCallback(async (newTabId: string) => {
@@ -76,20 +76,13 @@ export function CourtEditor({
   }, [onClose]);
 
   const handleDetailedInfoSave = useCallback(async (data: DetailedInfoData) => {
-    // Parse existing metadata and merge with new description
-    const existingMetadata = parseCourtMetadata(court.metadata);
-    const newMetadata = {
-      ...existingMetadata,
-      description: data.description,
-    };
-
-    // Update court with new name and metadata
+    // Update court with new name and description
     const response = await fetch(`/api/admin/courts/${court.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: data.name,
-        metadata: newMetadata,
+        description: data.description,
       }),
     });
 
@@ -100,35 +93,23 @@ export function CourtEditor({
 
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [court.id, court.metadata, onRefresh, t]);
+  }, [court.id, onRefresh, t]);
 
   const handleBannerSave = useCallback(async (file: File | null, alignment: 'top' | 'center' | 'bottom') => {
-    // Parse existing metadata and merge with new alignment
-    const existingMetadata = parseCourtMetadata(court.metadata);
-    const newMetadata = {
-      ...existingMetadata,
+    // Parse existing bannerData and merge with new alignment
+    const existingBannerData = parseCourtBannerData(court.bannerData);
+    const newBannerData = {
+      ...existingBannerData,
       bannerAlignment: alignment,
     };
 
-    // Update metadata with alignment first
-    const response = await fetch(`/api/admin/courts/${court.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        metadata: newMetadata,
-      }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || t("courts.errors.updateFailed"));
-    }
-
-    // Upload file if provided
+    // If we're uploading a new file, we need to upload it first
     if (file) {
       const bannerFormData = new FormData();
       bannerFormData.append("file", file);
       bannerFormData.append("type", "heroImage");
+      // Pass alignment as a parameter
+      bannerFormData.append("bannerAlignment", alignment);
 
       const bannerResponse = await fetch(`/api/images/courts/${court.id}/upload`, {
         method: "POST",
@@ -139,11 +120,27 @@ export function CourtEditor({
         const errorData = await bannerResponse.json();
         throw new Error(errorData.error || t("courts.errors.imageUploadFailed"));
       }
+    } else {
+      // Just update alignment without uploading new image
+      // We need to update the bannerData field directly via API
+      // This requires adding support to the court update endpoint
+      const response = await fetch(`/api/admin/courts/${court.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bannerData: JSON.stringify(newBannerData),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || t("courts.errors.updateFailed"));
+      }
     }
 
     await onRefresh();
     setHasUnsavedChanges(false);
-  }, [court.id, court.metadata, onRefresh, t]);
+  }, [court.id, court.bannerData, onRefresh, t]);
 
   return (
     <>

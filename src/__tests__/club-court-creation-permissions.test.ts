@@ -59,8 +59,8 @@ describe("POST /api/admin/clubs/:clubId/courts - Authorization", () => {
     surface: "artificial",
     indoor: true,
     sportType: "PADEL",
+    courtFormat: "DOUBLE",
     defaultPriceCents: 5000,
-    metadata: JSON.stringify({ padelCourtFormat: "double" }),
   };
 
   const mockClub = {
@@ -78,9 +78,9 @@ describe("POST /api/admin/clubs/:clubId/courts - Authorization", () => {
     surface: "artificial",
     indoor: true,
     sportType: "PADEL",
+    courtFormat: "DOUBLE",
     isActive: true,
     defaultPriceCents: 5000,
-    metadata: JSON.stringify({ padelCourtFormat: "double" }),
     createdAt: new Date(),
     updatedAt: new Date(),
   };

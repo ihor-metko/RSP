@@ -16,12 +16,12 @@ jest.mock("@/lib/prisma", () => ({
 
 // Mock auth and role checking
 jest.mock("@/lib/requireRole", () => ({
-  requireClubAdmin: jest.fn(),
+  requireClubManagement: jest.fn(),
 }));
 
 import { POST } from "@/app/api/admin/clubs/[id]/courts/route";
 import { prisma } from "@/lib/prisma";
-import { requireClubAdmin } from "@/lib/requireRole";
+import { requireClubManagement } from "@/lib/requireRole";
 
 describe("Padel Court Format - API", () => {
   beforeEach(() => {
@@ -39,8 +39,8 @@ describe("Padel Court Format - API", () => {
   };
 
   describe("POST /api/admin/clubs/:clubId/courts - Padel Court Format", () => {
-    it("should reject Padel court creation without format in metadata", async () => {
-      (requireClubAdmin as jest.Mock).mockResolvedValue(mockAuthResult);
+    it("should reject Padel court creation without courtFormat", async () => {
+      (requireClubManagement as jest.Mock).mockResolvedValue(mockAuthResult);
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
       const request = new Request("http://localhost:3000/api/admin/clubs/club-123/courts", {
@@ -51,7 +51,7 @@ describe("Padel Court Format - API", () => {
           type: "padel",
           indoor: false,
           defaultPriceCents: 5000,
-          // Missing metadata with padelCourtFormat
+          // Missing courtFormat
         }),
       });
 
@@ -59,11 +59,11 @@ describe("Padel Court Format - API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Padel courts must specify Single or Double format");
+      expect(data.error).toBe("Padel courts must specify SINGLE or DOUBLE format");
     });
 
     it("should reject Padel court creation with invalid format", async () => {
-      (requireClubAdmin as jest.Mock).mockResolvedValue(mockAuthResult);
+      (requireClubManagement as jest.Mock).mockResolvedValue(mockAuthResult);
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
       const request = new Request("http://localhost:3000/api/admin/clubs/club-123/courts", {
@@ -74,7 +74,7 @@ describe("Padel Court Format - API", () => {
           type: "padel",
           indoor: false,
           defaultPriceCents: 5000,
-          metadata: JSON.stringify({ padelCourtFormat: "invalid" }),
+          courtFormat: "invalid",
         }),
       });
 
@@ -82,11 +82,11 @@ describe("Padel Court Format - API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Padel court format must be either 'single' or 'double'");
+      expect(data.error).toBe("Court format must be either 'SINGLE' or 'DOUBLE'");
     });
 
-    it("should successfully create Padel court with single format", async () => {
-      (requireClubAdmin as jest.Mock).mockResolvedValue(mockAuthResult);
+    it("should successfully create Padel court with SINGLE format", async () => {
+      (requireClubManagement as jest.Mock).mockResolvedValue(mockAuthResult);
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
       const mockCourt = {
@@ -96,8 +96,8 @@ describe("Padel Court Format - API", () => {
         type: "padel",
         indoor: false,
         sportType: "PADEL",
+        courtFormat: "SINGLE",
         defaultPriceCents: 5000,
-        metadata: JSON.stringify({ padelCourtFormat: "single" }),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -112,7 +112,7 @@ describe("Padel Court Format - API", () => {
           type: "padel",
           indoor: false,
           defaultPriceCents: 5000,
-          metadata: JSON.stringify({ padelCourtFormat: "single" }),
+          courtFormat: "SINGLE",
         }),
       });
 
@@ -120,13 +120,11 @@ describe("Padel Court Format - API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(201);
-      expect(data.metadata).toBeTruthy();
-      const metadata = JSON.parse(data.metadata);
-      expect(metadata.padelCourtFormat).toBe("single");
+      expect(data.courtFormat).toBe("SINGLE");
     });
 
-    it("should successfully create Padel court with double format", async () => {
-      (requireClubAdmin as jest.Mock).mockResolvedValue(mockAuthResult);
+    it("should successfully create Padel court with DOUBLE format", async () => {
+      (requireClubManagement as jest.Mock).mockResolvedValue(mockAuthResult);
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
       const mockCourt = {
@@ -136,8 +134,8 @@ describe("Padel Court Format - API", () => {
         type: "padel",
         indoor: true,
         sportType: "PADEL",
+        courtFormat: "DOUBLE",
         defaultPriceCents: 6000,
-        metadata: JSON.stringify({ padelCourtFormat: "double" }),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -152,7 +150,7 @@ describe("Padel Court Format - API", () => {
           type: "padel",
           indoor: true,
           defaultPriceCents: 6000,
-          metadata: JSON.stringify({ padelCourtFormat: "double" }),
+          courtFormat: "DOUBLE",
         }),
       });
 
@@ -160,13 +158,11 @@ describe("Padel Court Format - API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(201);
-      expect(data.metadata).toBeTruthy();
-      const metadata = JSON.parse(data.metadata);
-      expect(metadata.padelCourtFormat).toBe("double");
+      expect(data.courtFormat).toBe("DOUBLE");
     });
 
-    it("should allow non-Padel courts without format metadata", async () => {
-      (requireClubAdmin as jest.Mock).mockResolvedValue(mockAuthResult);
+    it("should allow non-Padel courts without courtFormat", async () => {
+      (requireClubManagement as jest.Mock).mockResolvedValue(mockAuthResult);
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
       const mockCourt = {
@@ -176,8 +172,8 @@ describe("Padel Court Format - API", () => {
         type: "tennis",
         indoor: false,
         sportType: "TENNIS",
+        courtFormat: null,
         defaultPriceCents: 5000,
-        metadata: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -203,7 +199,7 @@ describe("Padel Court Format - API", () => {
     });
 
     it("should handle case-insensitive padel type check", async () => {
-      (requireClubAdmin as jest.Mock).mockResolvedValue(mockAuthResult);
+      (requireClubManagement as jest.Mock).mockResolvedValue(mockAuthResult);
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
       const request = new Request("http://localhost:3000/api/admin/clubs/club-123/courts", {
@@ -214,7 +210,7 @@ describe("Padel Court Format - API", () => {
           type: "Padel", // Capital P
           indoor: false,
           defaultPriceCents: 5000,
-          // Missing metadata
+          // Missing courtFormat
         }),
       });
 
@@ -222,7 +218,45 @@ describe("Padel Court Format - API", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Padel courts must specify Single or Double format");
+      expect(data.error).toBe("Padel courts must specify SINGLE or DOUBLE format");
+    });
+
+    it("should accept lowercase courtFormat and convert to uppercase", async () => {
+      (requireClubManagement as jest.Mock).mockResolvedValue(mockAuthResult);
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+
+      const mockCourt = {
+        id: "court-4",
+        clubId: "club-123",
+        name: "Court 4",
+        type: "padel",
+        indoor: false,
+        sportType: "PADEL",
+        courtFormat: "SINGLE",
+        defaultPriceCents: 5000,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      (prisma.court.create as jest.Mock).mockResolvedValue(mockCourt);
+
+      const request = new Request("http://localhost:3000/api/admin/clubs/club-123/courts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Court 4",
+          type: "padel",
+          indoor: false,
+          defaultPriceCents: 5000,
+          courtFormat: "single", // lowercase
+        }),
+      });
+
+      const response = await POST(request, { params: Promise.resolve({ id: "club-123" }) });
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.courtFormat).toBe("SINGLE");
     });
   });
 });

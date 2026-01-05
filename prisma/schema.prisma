@@ -48,6 +48,12 @@ enum SportType {
   BADMINTON
 }
 
+// Court format for specific sports (mainly Padel)
+enum CourtFormat {
+  SINGLE
+  DOUBLE
+}
+
 // Payment provider types
 enum PaymentProvider {
   WAYFORPAY
@@ -318,22 +324,22 @@ model ClubSpecialHours {
 }
 
 model Court {
-  id                String    @id @default(uuid())
+  id                String       @id @default(uuid())
   clubId            String
   name              String
-  slug              String?   @unique
+  slug              String?      @unique
   type              String?
   surface           String?
-  indoor            Boolean   @default(false)
-  sportType         SportType @default(PADEL) // Type of sport for this court
-  isActive          Boolean   @default(true)
-  description       String?   @db.Text // General information about the court (surface details, notes, etc.)
-  isPublished       Boolean   @default(false) // Whether the court is publicly visible/available
-  defaultPriceCents Int       @default(0)
-  bannerData        String?   @db.Text // JSON: { url: string; altText?: string; description?: string; position?: string }
-  metadata          String?   @db.Text // JSON string for additional metadata (e.g., bannerAlignment)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  indoor            Boolean      @default(false)
+  sportType         SportType    @default(PADEL) // Type of sport for this court
+  courtFormat       CourtFormat? // Court format (SINGLE/DOUBLE) - mainly for Padel courts
+  isActive          Boolean      @default(true)
+  description       String?      @db.Text // General information about the court (surface details, notes, etc.)
+  isPublished       Boolean      @default(false) // Whether the court is publicly visible/available
+  defaultPriceCents Int          @default(0)
+  bannerData        String?      @db.Text // JSON: { url: string; altText?: string; description?: string; position?: string; bannerAlignment?: string }
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   club            Club             @relation(fields: [clubId], references: [id])
   bookings        Booking[]
