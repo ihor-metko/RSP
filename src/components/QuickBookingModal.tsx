@@ -156,30 +156,40 @@ export function QuickBookingModal({
   // Reset search results when date/time/duration changes
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
-    setAvailableCourts([]);
-    setHasSearched(false);
-    setError(null);
+    resetSearchResults();
   };
 
   const handleTimeChange = (newTime: string) => {
     setStartTime(newTime);
-    setAvailableCourts([]);
-    setHasSearched(false);
-    setError(null);
+    resetSearchResults();
   };
 
   const handleDurationChange = (newDuration: number) => {
     setDuration(newDuration);
+    resetSearchResults();
+  };
+
+  const handleCourtTypeChange = (newCourtType: "Single" | "Double") => {
+    setCourtType(newCourtType);
+    resetSearchResults();
+  };
+
+  // Helper to reset search results when search parameters change
+  const resetSearchResults = () => {
     setAvailableCourts([]);
     setHasSearched(false);
     setError(null);
   };
 
-  const handleCourtTypeChange = (newCourtType: "Single" | "Double") => {
-    setCourtType(newCourtType);
-    setAvailableCourts([]);
-    setHasSearched(false);
-    setError(null);
+  // Get appropriate empty state message based on court type
+  const getEmptyStateMessage = () => {
+    if (courtType === "Single") {
+      return t("booking.quickBooking.noSingleCourtsAvailable");
+    }
+    if (courtType === "Double") {
+      return t("booking.quickBooking.noDoubleCourtsAvailable");
+    }
+    return t("booking.quickBooking.noCourtsAvailable");
   };
 
   return (
@@ -276,11 +286,7 @@ export function QuickBookingModal({
             {availableCourts.length === 0 ? (
               <div className="tm-quick-booking-empty">
                 <p className="tm-quick-booking-empty-text">
-                  {courtType === "Single" 
-                    ? t("booking.quickBooking.noSingleCourtsAvailable")
-                    : courtType === "Double"
-                    ? t("booking.quickBooking.noDoubleCourtsAvailable")
-                    : t("booking.quickBooking.noCourtsAvailable")}
+                  {getEmptyStateMessage()}
                 </p>
                 <p className="tm-quick-booking-empty-hint">
                   {t("booking.quickBooking.tryAnotherTime")}
