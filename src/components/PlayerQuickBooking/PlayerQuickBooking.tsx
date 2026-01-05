@@ -277,7 +277,7 @@ export function PlayerQuickBooking({
         date,
         start: startTime,
         duration: duration.toString(),
-        courtType,
+        ...(courtType && { courtType }), // Only include if courtType is defined
       });
 
       const response = await fetch(
@@ -309,7 +309,7 @@ export function PlayerQuickBooking({
                 date,
                 start: startTime,
                 duration: altDuration.toString(),
-                courtType,
+                ...(courtType && { courtType }), // Only include if courtType is defined
               });
               const altResponse = await fetch(
                 `/api/clubs/${clubId}/available-courts?${altParams}`

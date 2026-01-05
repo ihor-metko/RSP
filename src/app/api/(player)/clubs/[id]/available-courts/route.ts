@@ -37,6 +37,14 @@ export async function GET(
     const durationParam = url.searchParams.get("duration");
     const courtTypeParam = url.searchParams.get("courtType"); // Optional court type filter
 
+    // Validate court type if provided
+    if (courtTypeParam && courtTypeParam !== "Single" && courtTypeParam !== "Double") {
+      return NextResponse.json(
+        { error: "Invalid court type. Must be 'Single' or 'Double'" },
+        { status: 400 }
+      );
+    }
+
     // Validate required params
     const timeStart = startParam || fromParam;
     if (!dateParam || !timeStart) {

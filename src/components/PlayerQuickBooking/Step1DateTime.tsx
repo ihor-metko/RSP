@@ -104,7 +104,11 @@ export function Step1DateTime({
               },
             ]}
             value={data.courtType}
-            onChange={(value) => onChange({ courtType: value as "Single" | "Double" })}
+            onChange={(value) => {
+              if (value === "Single" || value === "Double") {
+                onChange({ courtType: value });
+              }
+            }}
             disabled={isLoading}
             className="rsp-wizard-court-type-group"
           />
