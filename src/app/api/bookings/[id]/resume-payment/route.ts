@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/requireRole";
+import { BOOKING_STATUS, PAYMENT_STATUS, RESERVATION_EXPIRATION_MS } from "@/types/booking";
 
 /**
  * POST /api/bookings/[id]/resume-payment
@@ -65,7 +66,7 @@ export async function POST(
     }
 
     // Check if booking is cancelled
-    if (booking.bookingStatus === "Cancelled") {
+    if (booking.bookingStatus === BOOKING_STATUS.CANCELLED) {
       return NextResponse.json(
         { error: "This booking has been cancelled" },
         { status: 400 }
@@ -73,7 +74,7 @@ export async function POST(
     }
 
     // Check if booking is already paid
-    if (booking.paymentStatus === "Paid") {
+    if (booking.paymentStatus === PAYMENT_STATUS.PAID) {
       return NextResponse.json(
         { error: "This booking has already been paid" },
         { status: 400 }
@@ -117,7 +118,7 @@ export async function POST(
     }
 
     // Extend the reservation expiration time (5 more minutes from now)
-    const newExpirationTime = new Date(Date.now() + 5 * 60 * 1000);
+    const newExpirationTime = new Date(Date.now() + RESERVATION_EXPIRATION_MS);
     
     await prisma.booking.update({
       where: { id: bookingId },

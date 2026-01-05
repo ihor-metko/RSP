@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/requireRole";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
+import { RESERVATION_EXPIRATION_MS } from "@/types/booking";
 
 interface ReservationRequest {
   courtId: string;
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
     }
 
     // Set reservation expiry time (5 minutes from now)
-    const reservationExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const reservationExpiresAt = new Date(Date.now() + RESERVATION_EXPIRATION_MS);
 
     // Create reservation in transaction
     const reservation = await prisma.$transaction(async (tx) => {

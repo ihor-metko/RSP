@@ -8,6 +8,7 @@ import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { useAuthGuardOnce } from "@/hooks";
 import { formatDateWithWeekday, formatTime } from "@/utils/date";
 import { useUserStore } from "@/stores/useUserStore";
+import { PAYMENT_STATUS } from "@/types/booking";
 import "./profile.css";
 
 interface Booking {
@@ -223,7 +224,7 @@ export default function PlayerProfilePage() {
                   </div>
                 )}
                 {upcomingBookings.map((booking) => {
-                  const isUnpaid = booking.paymentStatus === "Unpaid";
+                  const isUnpaid = booking.paymentStatus === PAYMENT_STATUS.UNPAID;
                   const isExpired = booking.reservationExpiresAt 
                     ? new Date(booking.reservationExpiresAt) < new Date()
                     : false;

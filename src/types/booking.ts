@@ -21,6 +21,33 @@ export type BookingStatus = "Active" | "Cancelled" | "Completed" | "No-show" | "
 export type PaymentStatus = "Paid" | "Unpaid" | "Refunded" | "PartiallyRefunded" | "PaymentPending";
 
 /**
+ * Payment status constants
+ */
+export const PAYMENT_STATUS = {
+  PAID: "Paid" as const,
+  UNPAID: "Unpaid" as const,
+  REFUNDED: "Refunded" as const,
+  PARTIALLY_REFUNDED: "PartiallyRefunded" as const,
+  PAYMENT_PENDING: "PaymentPending" as const,
+} as const;
+
+/**
+ * Booking status constants
+ */
+export const BOOKING_STATUS = {
+  ACTIVE: "Active" as const,
+  CANCELLED: "Cancelled" as const,
+  COMPLETED: "Completed" as const,
+  NO_SHOW: "No-show" as const,
+  PENDING: "Pending" as const,
+} as const;
+
+/**
+ * Reservation expiration time in milliseconds (5 minutes)
+ */
+export const RESERVATION_EXPIRATION_MS = 5 * 60 * 1000;
+
+/**
  * Legacy status types (for backward compatibility during migration)
  */
 export type LegacyBookingStatus = "pending" | "paid" | "cancelled" | "reserved" | "no-show" | "completed" | "ongoing";
