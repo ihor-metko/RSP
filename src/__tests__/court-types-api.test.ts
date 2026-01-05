@@ -22,9 +22,9 @@ describe("Court Types API - GET /api/clubs/[id]/court-types", () => {
     const mockClub = {
       id: "club-1",
       courts: [
-        { type: "Single" },
-        { type: "Double" },
-        { type: "Double" },
+        { courtFormat: "SINGLE" },
+        { courtFormat: "DOUBLE" },
+        { courtFormat: "DOUBLE" },
       ],
     };
 
@@ -37,15 +37,15 @@ describe("Court Types API - GET /api/clubs/[id]/court-types", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.availableTypes).toEqual(["Double", "Single"]); // Sorted alphabetically
+    expect(data.availableTypes).toEqual(["DOUBLE", "SINGLE"]); // Sorted alphabetically
   });
 
   it("should return only Single court type for a club with only Single courts", async () => {
     const mockClub = {
       id: "club-2",
       courts: [
-        { type: "Single" },
-        { type: "Single" },
+        { courtFormat: "SINGLE" },
+        { courtFormat: "SINGLE" },
       ],
     };
 
@@ -58,14 +58,14 @@ describe("Court Types API - GET /api/clubs/[id]/court-types", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.availableTypes).toEqual(["Single"]);
+    expect(data.availableTypes).toEqual(["SINGLE"]);
   });
 
   it("should return only Double court type for a club with only Double courts", async () => {
     const mockClub = {
       id: "club-3",
       courts: [
-        { type: "Double" },
+        { courtFormat: "DOUBLE" },
       ],
     };
 
@@ -78,7 +78,7 @@ describe("Court Types API - GET /api/clubs/[id]/court-types", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.availableTypes).toEqual(["Double"]);
+    expect(data.availableTypes).toEqual(["DOUBLE"]);
   });
 
   it("should return empty array for a club with no published courts", async () => {
@@ -103,10 +103,9 @@ describe("Court Types API - GET /api/clubs/[id]/court-types", () => {
     const mockClub = {
       id: "club-5",
       courts: [
-        { type: "Single" },
-        { type: null },
-        { type: "InvalidType" },
-        { type: "Double" },
+        { courtFormat: "SINGLE" },
+        { courtFormat: null },
+        { courtFormat: "DOUBLE" },
       ],
     };
 
@@ -119,7 +118,7 @@ describe("Court Types API - GET /api/clubs/[id]/court-types", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.availableTypes).toEqual(["Double", "Single"]); // Only valid types
+    expect(data.availableTypes).toEqual(["DOUBLE", "SINGLE"]); // Only valid types
   });
 
   it("should return 404 for non-existent club", async () => {

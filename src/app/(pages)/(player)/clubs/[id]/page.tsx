@@ -145,10 +145,10 @@ export default function ClubDetailPage({
   
   // Derive available court types from courts (to avoid separate API call)
   const availableCourtTypes = useMemo(() => {
-    const courtTypes = new Set<"Single" | "Double">();
+    const courtTypes = new Set<"SINGLE" | "DOUBLE">();
     rawCourts.forEach(court => {
-      if (court.type === "Single" || court.type === "Double") {
-        courtTypes.add(court.type);
+      if (court.courtFormat === "SINGLE" || court.courtFormat === "DOUBLE") {
+        courtTypes.add(court.courtFormat);
       }
     });
     return Array.from(courtTypes).sort(); // Sort for consistency

@@ -468,7 +468,7 @@ describe("PlayerQuickBooking - Preselection", () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining("courtType=Double")
+        expect.stringContaining("courtType=DOUBLE")
       );
     });
   });

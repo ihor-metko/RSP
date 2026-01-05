@@ -125,6 +125,7 @@ export async function GET(
             type: true,
             indoor: true,
             sportType: true,
+            courtFormat: true,
           },
           orderBy: { name: "asc" },
         },
@@ -297,6 +298,7 @@ export async function GET(
         type: c.type,
         indoor: c.indoor,
         sportType: c.sportType || "PADEL",
+        courtFormat: c.courtFormat,
       })),
       mode: modeParam || "rolling",
     };

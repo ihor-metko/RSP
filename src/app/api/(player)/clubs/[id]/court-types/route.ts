@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 interface CourtTypesResponse {
-  availableTypes: ("Single" | "Double")[];
+  availableTypes: ("SINGLE" | "DOUBLE")[];
 }
 
 export async function GET(
@@ -23,7 +23,7 @@ export async function GET(
             isPublished: true, // Only consider published courts
           },
           select: {
-            type: true,
+            courtFormat: true,
           },
         },
       },
@@ -33,12 +33,12 @@ export async function GET(
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
-    // Extract unique court types that are "Single" or "Double"
-    const courtTypes = new Set<"Single" | "Double">();
+    // Extract unique court formats (SINGLE/DOUBLE)
+    const courtTypes = new Set<"SINGLE" | "DOUBLE">();
     
     for (const court of club.courts) {
-      if (court.type === "Single" || court.type === "Double") {
-        courtTypes.add(court.type);
+      if (court.courtFormat === "SINGLE" || court.courtFormat === "DOUBLE") {
+        courtTypes.add(court.courtFormat);
       }
     }
 

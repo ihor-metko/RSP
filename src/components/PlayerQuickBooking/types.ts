@@ -50,7 +50,7 @@ export interface PlayerBookingStep1Data {
   date: string;
   startTime: string;
   duration: number;
-  courtType: "Single" | "Double";
+  courtType: "SINGLE" | "DOUBLE";
 }
 
 export interface PlayerBookingStep2Data {
@@ -88,7 +88,7 @@ export interface PlayerQuickBookingState {
   step4: PlayerBookingStep4Data;
   availableClubs: BookingClub[];
   availableCourts: BookingCourt[];
-  availableCourtTypes: ("Single" | "Double")[];
+  availableCourtTypes: ("SINGLE" | "DOUBLE")[];
   alternativeDurations: AlternativeDuration[];
   alternativeTimeSlots: AlternativeTimeSlot[];
   isLoadingClubs: boolean;
@@ -113,12 +113,12 @@ export interface PlayerQuickBookingProps {
     date: string;
     startTime: string;
     duration: number;
-    courtType?: "Single" | "Double";
+    courtType?: "SINGLE" | "DOUBLE";
   };
   // Optional club data (with business hours) to avoid fetching it again
   preselectedClubData?: BookingClub;
   // Available court types derived from courts (to avoid separate API call)
-  availableCourtTypes?: ("Single" | "Double")[];
+  availableCourtTypes?: ("SINGLE" | "DOUBLE")[];
 }
 
 export interface BookingStepConfig {
@@ -128,7 +128,7 @@ export interface BookingStepConfig {
 }
 
 // Default court type - Double courts are most common in Padel
-export const DEFAULT_COURT_TYPE: "Single" | "Double" = "Double";
+export const DEFAULT_COURT_TYPE: "SINGLE" | "DOUBLE" = "DOUBLE";
 export const DEFAULT_DURATION = 120; // 2 hours
 
 // Business hours configuration
