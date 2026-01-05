@@ -177,7 +177,6 @@ export default function PlayerProfilePage() {
             ) : upcomingBookings.length === 0 ? (
               <EmptyState
                 title={t("playerProfile.upcomingBookings.noBookings")}
-                description=""
               />
             ) : (
               <div className="im-bookings-list">
@@ -219,7 +218,6 @@ export default function PlayerProfilePage() {
             ) : pastBookings.length === 0 ? (
               <EmptyState
                 title={t("playerProfile.pastBookings.noBookings")}
-                description=""
               />
             ) : (
               <div className="im-bookings-list">
