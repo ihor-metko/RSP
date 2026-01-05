@@ -458,7 +458,7 @@ export function PlayerQuickBooking({
   }, []);
 
   // Handle alternative duration selection
-  const handleSelectAlternativeDuration = useCallback((duration: number) => {
+  const handleSelectAlternativeDuration = useCallback(async (duration: number) => {
     setState((prev) => ({
       ...prev,
       step1: { ...prev.step1, duration },
@@ -466,9 +466,14 @@ export function PlayerQuickBooking({
       step2: { selectedCourtId: null, selectedCourt: null },
       availableCourts: [],
       alternativeDurations: [],
+      isLoadingCourts: true,
     }));
-    // Re-fetch courts with new duration
-    fetchAvailableCourts();
+    
+    // Wait a tick for state to update, then fetch courts with new duration
+    // We need to refetch after state update to ensure the new duration is used
+    setTimeout(() => {
+      fetchAvailableCourts();
+    }, 0);
   }, [fetchAvailableCourts]);
 
   // Handle payment method selection

@@ -10,9 +10,7 @@ interface Step2CourtsProps {
   onSelectCourt: (court: BookingCourt) => void;
   isLoading: boolean;
   error: string | null;
-  // currentDuration is passed but not used in this component yet - may be used for displaying context in the future
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  currentDuration: number;
+  currentDuration?: number; // Optional - may be used for displaying context in the future
   alternativeDurations?: number[];
   onSelectAlternativeDuration?: (duration: number) => void;
 }
