@@ -58,6 +58,7 @@
     "draft": "Чернетка",
     "unpublished": "Неопубліковано",
     "archived": "Архівовано",
+    "court": "Корт",
     "courts": "Корти",
     "events": "Події",
     "settings": "Налаштування",
@@ -1203,6 +1204,7 @@
       "noCourtsAvailable": "Немає доступних кортів у вибраний час.",
       "noCourtsForDuration": "Немає доступних кортів для вибраної тривалості.",
       "alternativeDurationsAvailable": "Ми можемо запропонувати найближчі доступні варіанти:",
+      "alternativeTimeSlotsAvailable": "Спробуйте ці альтернативні часи:",
       "tryAnotherTime": "Спробуйте інший час або перевірте розклад кортів.",
       "availableCourts": "Доступні корти ({count})",
       "select": "Вибрати"

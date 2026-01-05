@@ -67,6 +67,11 @@ export interface PlayerBookingStep4Data {
 
 export type PaymentMethod = "card" | "apple_pay" | "google_pay";
 
+export interface AlternativeTimeSlot {
+  startTime: string;
+  availableCourtCount: number;
+}
+
 export interface PlayerQuickBookingState {
   currentStep: number;
   step0: PlayerBookingStep0Data;
@@ -78,6 +83,7 @@ export interface PlayerQuickBookingState {
   availableCourts: BookingCourt[];
   availableCourtTypes: ("Single" | "Double")[];
   alternativeDurations: number[];
+  alternativeTimeSlots: AlternativeTimeSlot[];
   isLoadingClubs: boolean;
   isLoadingCourts: boolean;
   isLoadingCourtTypes: boolean;

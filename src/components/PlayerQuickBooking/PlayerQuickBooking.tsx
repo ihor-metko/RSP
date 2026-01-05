@@ -20,7 +20,6 @@ import {
   getTodayDateString,
   calculateEndTime,
   determineVisibleSteps,
-  DURATION_OPTIONS,
   DEFAULT_COURT_TYPE,
   wouldEndAfterClosing,
 } from "./types";
@@ -93,6 +92,7 @@ export function PlayerQuickBooking({
       availableCourts: [],
       availableCourtTypes: [],
       alternativeDurations: [],
+      alternativeTimeSlots: [],
       isLoadingClubs: false,
       isLoadingCourts: false,
       isLoadingCourtTypes: false,
@@ -139,6 +139,7 @@ export function PlayerQuickBooking({
         availableCourts: [],
         availableCourtTypes: [],
         alternativeDurations: [],
+        alternativeTimeSlots: [],
         isLoadingClubs: false,
         isLoadingCourts: false,
         isLoadingCourtTypes: false,
@@ -367,43 +368,7 @@ export function PlayerQuickBooking({
 
       const data = await response.json();
       const courts: BookingCourt[] = data.availableCourts || [];
-
-      // If no courts available, check for alternative durations
-      let alternatives: number[] = [];
-      if (courts.length === 0) {
-        // Check other durations to find alternatives
-        const durationsToCheck = DURATION_OPTIONS.filter(d => d !== duration);
-        const alternativeChecks = await Promise.all(
-          durationsToCheck.map(async (altDuration) => {
-            try {
-              const altParams = new URLSearchParams({
-                date,
-                start: startTime,
-                duration: altDuration.toString(),
-                courtType,
-              });
-              const altResponse = await fetch(
-                `/api/clubs/${clubId}/available-courts?${altParams}`
-              );
-              if (altResponse.ok) {
-                const altData = await altResponse.json();
-                const altCourts: BookingCourt[] = altData.availableCourts || [];
-                return { duration: altDuration, hasAvailability: altCourts.length > 0 };
-              }
-            } catch {
-              // Ignore errors
-            }
-            return { duration: altDuration, hasAvailability: false };
-          })
-        );
-
-        // Get durations with available courts
-        alternatives = alternativeChecks
-          .filter(check => check.hasAvailability)
-          .map(check => check.duration)
-          .sort((a, b) => Math.abs(a - duration) - Math.abs(b - duration))
-          .slice(0, 3); // Show up to 3 alternatives
-      }
+      const alternativeTimeSlots = data.alternativeTimeSlots || [];
 
       // Mark courts as available (priceCents comes from API response)
       const courtsWithAvailability = courts.map(court => ({
@@ -414,7 +379,8 @@ export function PlayerQuickBooking({
       setState((prev) => ({
         ...prev,
         availableCourts: courtsWithAvailability,
-        alternativeDurations: alternatives,
+        alternativeTimeSlots,
+        alternativeDurations: [], // Clear alternative durations since we now use time slots
         isLoadingCourts: false,
       }));
     } catch {
@@ -546,20 +512,20 @@ export function PlayerQuickBooking({
     }));
   }, []);
 
-  // Handle alternative duration selection
-  const handleSelectAlternativeDuration = useCallback(async (duration: number) => {
+  // Handle alternative time slot selection
+  const handleSelectAlternativeTime = useCallback(async (startTime: string) => {
     setState((prev) => ({
       ...prev,
-      step1: { ...prev.step1, duration },
+      step1: { ...prev.step1, startTime },
       // Reset court selection
       step2: { selectedCourtId: null, selectedCourt: null },
       availableCourts: [],
-      alternativeDurations: [],
+      alternativeTimeSlots: [],
       isLoadingCourts: true,
     }));
 
-    // Wait a tick for state to update, then fetch courts with new duration
-    // We need to refetch after state update to ensure the new duration is used
+    // Wait a tick for state to update, then fetch courts with new time
+    // We need to refetch after state update to ensure the new time is used
     setTimeout(() => {
       fetchAvailableCourts();
     }, 0);
@@ -643,34 +609,41 @@ export function PlayerQuickBooking({
 
   // Navigate to next step
   const handleNext = useCallback(async () => {
-    const currentStepIndex = visibleSteps.findIndex((s) => s.id === state.currentStep);
-    if (currentStepIndex === -1) return;
+    setState((currentState) => {
+      const currentStepIndex = visibleSteps.findIndex((s) => s.id === currentState.currentStep);
+      if (currentStepIndex === -1) return currentState;
 
-    const currentStepConfig = visibleSteps[currentStepIndex];
+      const currentStepConfig = visibleSteps[currentStepIndex];
 
-    // If current step is 0 (club selection), fetch clubs if needed
-    if (currentStepConfig.id === 0 && state.availableClubs.length === 0 && !state.isLoadingClubs) {
-      await fetchAvailableClubs();
-    }
+      // If current step is 0 (club selection), fetch clubs if needed
+      if (currentStepConfig.id === 0 && currentState.availableClubs.length === 0 && !currentState.isLoadingClubs) {
+        fetchAvailableClubs();
+        return currentState;
+      }
 
-    // If moving to step 2 (courts), fetch available courts
-    if (currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 2) {
-      setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
-      await fetchAvailableCourts();
-      return;
-    }
+      // If moving to step 2 (courts), only fetch if we don't have courts data already
+      if (currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 2) {
+        // Only fetch if we don't have courts for the current selection
+        if (currentState.availableCourts.length === 0 && currentState.alternativeTimeSlots.length === 0 && !currentState.isLoadingCourts) {
+          fetchAvailableCourts();
+        }
+        return { ...currentState, currentStep: visibleSteps[currentStepIndex + 1].id };
+      }
 
-    // If current step is 3 (payment), submit booking
-    if (currentStepConfig.id === 3) {
-      await handleSubmit();
-      return;
-    }
+      // If current step is 3 (payment), submit booking
+      if (currentStepConfig.id === 3) {
+        handleSubmit();
+        return currentState;
+      }
 
-    // Move to next step
-    if (currentStepIndex + 1 < visibleSteps.length) {
-      setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
-    }
-  }, [state.currentStep, state.availableClubs, state.isLoadingClubs, visibleSteps, fetchAvailableClubs, fetchAvailableCourts, handleSubmit]);
+      // Move to next step
+      if (currentStepIndex + 1 < visibleSteps.length) {
+        return { ...currentState, currentStep: visibleSteps[currentStepIndex + 1].id };
+      }
+
+      return currentState;
+    });
+  }, [visibleSteps, fetchAvailableClubs, fetchAvailableCourts, handleSubmit]);
 
   // Navigate to previous step
   const handleBack = useCallback(() => {
@@ -829,9 +802,8 @@ export function PlayerQuickBooking({
               onSelectCourt={handleSelectCourt}
               isLoading={state.isLoadingCourts}
               error={state.courtsError}
-              currentDuration={state.step1.duration}
-              alternativeDurations={state.alternativeDurations}
-              onSelectAlternativeDuration={handleSelectAlternativeDuration}
+              alternativeTimeSlots={state.alternativeTimeSlots}
+              onSelectAlternativeTime={handleSelectAlternativeTime}
             />
           )}
 

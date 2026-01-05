@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { formatPrice } from "@/utils/price";
 import { BookingCourt } from "./types";
+import type { AlternativeTimeSlot } from "./types";
 
 interface Step2CourtsProps {
   courts: BookingCourt[];
@@ -10,9 +11,8 @@ interface Step2CourtsProps {
   onSelectCourt: (court: BookingCourt) => void;
   isLoading: boolean;
   error: string | null;
-  currentDuration?: number; // Optional - may be used for displaying context in the future
-  alternativeDurations?: number[];
-  onSelectAlternativeDuration?: (duration: number) => void;
+  alternativeTimeSlots?: AlternativeTimeSlot[];
+  onSelectAlternativeTime?: (startTime: string) => void;
 }
 
 export function Step2Courts({
@@ -21,19 +21,10 @@ export function Step2Courts({
   onSelectCourt,
   isLoading,
   error,
-  alternativeDurations = [],
-  onSelectAlternativeDuration,
+  alternativeTimeSlots = [],
+  onSelectAlternativeTime,
 }: Step2CourtsProps) {
   const t = useTranslations();
-
-  // Helper function to format duration for display
-  const formatDuration = (minutes: number): string => {
-    const hours = minutes / 60;
-    if (hours >= 1 && minutes % 60 === 0) {
-      return `${hours} ${hours === 1 ? t("common.hour") : t("common.hours")}`;
-    }
-    return `${minutes} ${t("common.minutes")}`;
-  };
 
   if (isLoading) {
     return (
@@ -70,10 +61,10 @@ export function Step2Courts({
       {courts.length === 0 ? (
         <div>
           <div className="rsp-wizard-alert rsp-wizard-alert--info" role="alert">
-            {t("booking.quickBooking.noCourtsForDuration")}
+            {t("booking.quickBooking.noCourtsAvailable")}
           </div>
           
-          {alternativeDurations.length > 0 && onSelectAlternativeDuration && (
+          {alternativeTimeSlots.length > 0 && onSelectAlternativeTime && (
             <div className="rsp-wizard-alternatives" style={{ marginTop: "1.5rem" }}>
               <p className="rsp-wizard-alternatives-title" style={{ 
                 fontSize: "0.875rem", 
@@ -81,19 +72,19 @@ export function Step2Courts({
                 marginBottom: "0.75rem",
                 opacity: 0.9
               }}>
-                {t("booking.quickBooking.alternativeDurationsAvailable")}
+                {t("booking.quickBooking.alternativeTimeSlotsAvailable")}
               </p>
               <div className="rsp-wizard-alternatives-grid" style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
                 gap: "0.75rem"
               }}>
-                {alternativeDurations.map((duration) => (
+                {alternativeTimeSlots.map((slot) => (
                   <button
-                    key={duration}
+                    key={slot.startTime}
                     type="button"
                     className="rsp-wizard-alternative-btn"
-                    onClick={() => onSelectAlternativeDuration(duration)}
+                    onClick={() => onSelectAlternativeTime(slot.startTime)}
                     style={{
                       padding: "0.75rem 1rem",
                       borderRadius: "0.5rem",
@@ -104,6 +95,10 @@ export function Step2Courts({
                       fontWeight: 500,
                       cursor: "pointer",
                       transition: "all 0.2s",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "0.25rem",
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
@@ -114,14 +109,17 @@ export function Step2Courts({
                       e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
                     }}
                   >
-                    {formatDuration(duration)}
+                    <span style={{ fontSize: "1rem" }}>{slot.startTime}</span>
+                    <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>
+                      {slot.availableCourtCount} {slot.availableCourtCount === 1 ? t("common.court") : t("common.courts")}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
           )}
           
-          {alternativeDurations.length === 0 && (
+          {alternativeTimeSlots.length === 0 && (
             <p className="mt-2 text-xs opacity-70">
               {t("booking.quickBooking.tryAnotherTime")}
             </p>

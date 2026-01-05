@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
 
-// Business hours configuration (same as availability endpoint)
-const BUSINESS_START_HOUR = 9;
+// Business hours configuration (aligned with frontend types.ts)
+const BUSINESS_START_HOUR = 8;
 const BUSINESS_END_HOUR = 22;
 
 interface AvailableCourt {
@@ -25,8 +25,44 @@ interface AvailableCourt {
   priceCents: number;
 }
 
+interface AlternativeTimeSlot {
+  startTime: string;
+  availableCourtCount: number;
+}
+
 interface AvailableCourtsResponse {
   availableCourts: AvailableCourt[];
+  alternativeTimeSlots?: AlternativeTimeSlot[];
+}
+
+interface Booking {
+  courtId: string;
+  start: Date;
+  end: Date;
+}
+
+/**
+ * Helper function to check if a court is available for a given time slot
+ */
+function isCourtAvailable(
+  courtId: string,
+  slotStart: Date,
+  slotEnd: Date,
+  bookings: Booking[]
+): boolean {
+  const courtBookings = bookings.filter((b) => b.courtId === courtId);
+  
+  for (const booking of courtBookings) {
+    const bookingStart = new Date(booking.start);
+    const bookingEnd = new Date(booking.end);
+    
+    // Check for overlap: booking overlaps if it starts before slot ends AND ends after slot starts
+    if (bookingStart < slotEnd && bookingEnd > slotStart) {
+      return false;
+    }
+  }
+  
+  return true;
 }
 
 export async function GET(
@@ -178,22 +214,7 @@ export async function GET(
     const availableCourts: AvailableCourt[] = [];
 
     for (const court of club.courts) {
-      // Check if there are any overlapping bookings for this court
-      const courtBookings = bookings.filter((b) => b.courtId === court.id);
-      let isAvailable = true;
-
-      for (const booking of courtBookings) {
-        const bookingStart = new Date(booking.start);
-        const bookingEnd = new Date(booking.end);
-
-        // Check for overlap: booking overlaps if it starts before slot ends AND ends after slot starts
-        if (bookingStart < slotEnd && bookingEnd > slotStart) {
-          isAvailable = false;
-          break;
-        }
-      }
-
-      if (isAvailable) {
+      if (isCourtAvailable(court.id, slotStart, slotEnd, bookings)) {
         // Calculate resolved price for this court based on date, time, and duration
         let resolvedPrice: number;
         try {
@@ -226,8 +247,78 @@ export async function GET(
       }
     }
 
+    // If no courts available, find alternative time slots
+    let alternativeTimeSlots: AlternativeTimeSlot[] = [];
+    
+    if (availableCourts.length === 0) {
+      // Check alternative time slots (±2 hours from requested time, in 30-minute increments)
+      const alternativeTimes: string[] = [];
+      const [requestedHour, requestedMinute] = timeStart.split(":").map(Number);
+      const requestedTotalMinutes = requestedHour * 60 + requestedMinute;
+      
+      // Generate time slots 2 hours before and after the requested time
+      for (let offset = -120; offset <= 120; offset += 30) {
+        if (offset === 0) continue; // Skip the originally requested time
+        
+        const alternativeMinutes = requestedTotalMinutes + offset;
+        
+        // Ensure we stay within business hours
+        if (alternativeMinutes < BUSINESS_START_HOUR * 60 || alternativeMinutes >= BUSINESS_END_HOUR * 60) {
+          continue;
+        }
+        
+        // Check if the slot would end within business hours
+        const endMinutes = alternativeMinutes + duration;
+        if (endMinutes > BUSINESS_END_HOUR * 60) {
+          continue;
+        }
+        
+        const altHour = Math.floor(alternativeMinutes / 60);
+        const altMinute = alternativeMinutes % 60;
+        const altTimeString = `${altHour.toString().padStart(2, "0")}:${altMinute.toString().padStart(2, "0")}`;
+        alternativeTimes.push(altTimeString);
+      }
+      
+      // Check availability for each alternative time slot
+      for (const altTime of alternativeTimes) {
+        const altSlotStart = new Date(`${dateParam}T${altTime}:00.000Z`);
+        const altSlotEnd = new Date(altSlotStart.getTime() + duration * 60 * 1000);
+        
+        let availableCount = 0;
+        
+        for (const court of club.courts) {
+          if (isCourtAvailable(court.id, altSlotStart, altSlotEnd, bookings)) {
+            availableCount++;
+          }
+        }
+        
+        if (availableCount > 0) {
+          alternativeTimeSlots.push({
+            startTime: altTime,
+            availableCourtCount: availableCount,
+          });
+        }
+      }
+      
+      // Sort by closest to original time and limit to top 5 alternatives
+      alternativeTimeSlots.sort((a, b) => {
+        const [aHour, aMinute] = a.startTime.split(":").map(Number);
+        const [bHour, bMinute] = b.startTime.split(":").map(Number);
+        const aTotalMinutes = aHour * 60 + aMinute;
+        const bTotalMinutes = bHour * 60 + bMinute;
+        
+        const aDiff = Math.abs(aTotalMinutes - requestedTotalMinutes);
+        const bDiff = Math.abs(bTotalMinutes - requestedTotalMinutes);
+        
+        return aDiff - bDiff;
+      });
+      
+      alternativeTimeSlots = alternativeTimeSlots.slice(0, 5);
+    }
+
     const response: AvailableCourtsResponse = {
       availableCourts,
+      ...(alternativeTimeSlots.length > 0 && { alternativeTimeSlots }),
     };
 
     return NextResponse.json(response);
