@@ -142,6 +142,18 @@ export default function ClubDetailPage({
       imageUrl: court.bannerData?.url || null,
     }));
   }, [rawCourts]);
+  
+  // Derive available court types from courts (to avoid separate API call)
+  const availableCourtTypes = useMemo(() => {
+    const courtTypes = new Set<"Single" | "Double">();
+    rawCourts.forEach(court => {
+      if (court.type === "Single" || court.type === "Double") {
+        courtTypes.add(court.type);
+      }
+    });
+    return Array.from(courtTypes).sort(); // Sort for consistency
+  }, [rawCourts]);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
   const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
@@ -446,6 +458,7 @@ export default function ClubDetailPage({
               bannerData: club.bannerData || null,
               businessHours: club.businessHours || [],
             } : undefined}
+            availableCourtTypes={availableCourtTypes.length > 0 ? availableCourtTypes : undefined}
             isOpen={isQuickBookingOpen}
             onClose={() => setIsQuickBookingOpen(false)}
             onBookingComplete={handleQuickBookingComplete}
@@ -813,6 +826,7 @@ export default function ClubDetailPage({
             bannerData: club.bannerData || null,
             businessHours: club.businessHours || [],
           } : undefined}
+          availableCourtTypes={availableCourtTypes.length > 0 ? availableCourtTypes : undefined}
           isOpen={isQuickBookingOpen}
           onClose={handleQuickBookingClose}
           onBookingComplete={handleQuickBookingComplete}

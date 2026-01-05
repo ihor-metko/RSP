@@ -72,6 +72,11 @@ export interface AlternativeTimeSlot {
   availableCourtCount: number;
 }
 
+export interface AlternativeDuration {
+  duration: number;
+  availableCourtCount: number;
+}
+
 export interface PlayerQuickBookingState {
   currentStep: number;
   step0: PlayerBookingStep0Data;
@@ -82,7 +87,7 @@ export interface PlayerQuickBookingState {
   availableClubs: BookingClub[];
   availableCourts: BookingCourt[];
   availableCourtTypes: ("Single" | "Double")[];
-  alternativeDurations: number[];
+  alternativeDurations: AlternativeDuration[];
   alternativeTimeSlots: AlternativeTimeSlot[];
   isLoadingClubs: boolean;
   isLoadingCourts: boolean;
@@ -110,6 +115,8 @@ export interface PlayerQuickBookingProps {
   };
   // Optional club data (with business hours) to avoid fetching it again
   preselectedClubData?: BookingClub;
+  // Available court types derived from courts (to avoid separate API call)
+  availableCourtTypes?: ("Single" | "Double")[];
 }
 
 export interface BookingStepConfig {

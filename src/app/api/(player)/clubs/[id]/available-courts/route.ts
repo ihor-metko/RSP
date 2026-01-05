@@ -30,9 +30,15 @@ interface AlternativeTimeSlot {
   availableCourtCount: number;
 }
 
+interface AlternativeDuration {
+  duration: number;
+  availableCourtCount: number;
+}
+
 interface AvailableCourtsResponse {
   availableCourts: AvailableCourt[];
   alternativeTimeSlots?: AlternativeTimeSlot[];
+  alternativeDurations?: AlternativeDuration[];
 }
 
 interface Booking {
@@ -247,10 +253,43 @@ export async function GET(
       }
     }
 
-    // If no courts available, find alternative time slots
+    // If no courts available, find alternative durations and time slots
+    const alternativeDurations: AlternativeDuration[] = [];
     let alternativeTimeSlots: AlternativeTimeSlot[] = [];
     
     if (availableCourts.length === 0) {
+      // First, try shorter durations for the same start time
+      // Standard duration options: 30, 60, 90, 120, 150, 180 minutes
+      const standardDurations = [30, 60, 90, 120, 150, 180];
+      const shorterDurations = standardDurations.filter(d => d < duration);
+      
+      for (const altDuration of shorterDurations.reverse()) { // Start with longest shorter duration
+        // Check if this duration would fit within business hours
+        const altSlotEnd = new Date(slotStart.getTime() + altDuration * 60 * 1000);
+        const altEndHour = altSlotEnd.getUTCHours() + altSlotEnd.getUTCMinutes() / 60;
+        
+        if (altEndHour > BUSINESS_END_HOUR) {
+          continue; // Skip durations that would go past closing time
+        }
+        
+        let availableCount = 0;
+        
+        for (const court of club.courts) {
+          if (isCourtAvailable(court.id, slotStart, altSlotEnd, bookings)) {
+            availableCount++;
+          }
+        }
+        
+        if (availableCount > 0) {
+          alternativeDurations.push({
+            duration: altDuration,
+            availableCourtCount: availableCount,
+          });
+        }
+      }
+      
+      // If no shorter durations available, find alternative time slots
+      if (alternativeDurations.length === 0) {
       // Check alternative time slots (±2 hours from requested time, in 30-minute increments)
       const alternativeTimes: string[] = [];
       const [requestedHour, requestedMinute] = timeStart.split(":").map(Number);
@@ -314,10 +353,12 @@ export async function GET(
       });
       
       alternativeTimeSlots = alternativeTimeSlots.slice(0, 5);
-    }
+      } // End of alternative time slots check (when no shorter durations available)
+    } // End of no courts available check
 
     const response: AvailableCourtsResponse = {
       availableCourts,
+      ...(alternativeDurations.length > 0 && { alternativeDurations }),
       ...(alternativeTimeSlots.length > 0 && { alternativeTimeSlots }),
     };
 
