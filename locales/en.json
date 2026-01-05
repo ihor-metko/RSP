@@ -1488,6 +1488,7 @@
     "priceRangeHint": "Price range based on available courts",
     "noCourtsAvailable": "No courts available for the selected date and time.",
     "peakHoursHint": "Peak hours - courts may fill up quickly",
+    "courtTypeHint": "Double — for a pair, Single — for one player",
     "loadingClubs": "Loading clubs...",
     "loadingCourts": "Finding available courts...",
     "selectClubDescription": "Choose a club where you'd like to play",

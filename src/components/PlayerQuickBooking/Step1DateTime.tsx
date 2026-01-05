@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Select, DateInput } from "@/components/ui";
+import { Select, DateInput, RadioGroup } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import {
   generateTimeOptions,
@@ -85,6 +85,49 @@ export function Step1DateTime({
               onChange={(value) => onChange({ duration: parseInt(value, 10) })}
               disabled={isLoading}
             />
+          </div>
+        </div>
+
+        {/* Court Type Selection */}
+        <div className="rsp-wizard-field">
+          <RadioGroup
+            label={t("courts.courtType")}
+            name="court-type"
+            options={[
+              {
+                value: "Single",
+                label: t("courts.padelCourtFormatSingle"),
+              },
+              {
+                value: "Double",
+                label: t("courts.padelCourtFormatDouble"),
+              },
+            ]}
+            value={data.courtType}
+            onChange={(value) => {
+              if (value === "Single" || value === "Double") {
+                onChange({ courtType: value });
+              }
+            }}
+            disabled={isLoading}
+            className="rsp-wizard-court-type-group"
+          />
+          <div className="rsp-wizard-hint rsp-wizard-hint--subtle">
+            <svg
+              className="rsp-wizard-hint-icon"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span>{t("wizard.courtTypeHint")}</span>
           </div>
         </div>
 

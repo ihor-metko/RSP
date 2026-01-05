@@ -60,11 +60,14 @@ export function PlayerQuickBooking({
 
   // Initialize state with preselected data
   const [state, setState] = useState<PlayerQuickBookingState>(() => {
-    const initialDateTime = preselectedDateTime || {
-      date: getTodayDateString(),
-      startTime: "10:00",
-      duration: MINUTES_PER_HOUR,
-    };
+    const initialDateTime: PlayerBookingStep1Data = preselectedDateTime 
+      ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || "Double" }
+      : {
+          date: getTodayDateString(),
+          startTime: "10:00",
+          duration: MINUTES_PER_HOUR,
+          courtType: "Double",
+        };
 
     return {
       currentStep: visibleSteps[0]?.id || 0,
@@ -101,11 +104,14 @@ export function PlayerQuickBooking({
   // Reset state when modal closes
   useEffect(() => {
     if (!isOpen) {
-      const initialDateTime = preselectedDateTime || {
-        date: getTodayDateString(),
-        startTime: "10:00",
-        duration: MINUTES_PER_HOUR,
-      };
+      const initialDateTime: PlayerBookingStep1Data = preselectedDateTime 
+        ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || "Double" }
+        : {
+            date: getTodayDateString(),
+            startTime: "10:00",
+            duration: MINUTES_PER_HOUR,
+            courtType: "Double",
+          };
 
       setState({
         currentStep: visibleSteps[0]?.id || 0,
@@ -266,11 +272,12 @@ export function PlayerQuickBooking({
     }));
 
     try {
-      const { date, startTime, duration } = state.step1;
+      const { date, startTime, duration, courtType } = state.step1;
       const params = new URLSearchParams({
         date,
         start: startTime,
         duration: duration.toString(),
+        courtType,
       });
 
       const response = await fetch(
@@ -302,6 +309,7 @@ export function PlayerQuickBooking({
                 date,
                 start: startTime,
                 duration: altDuration.toString(),
+                courtType,
               });
               const altResponse = await fetch(
                 `/api/clubs/${clubId}/available-courts?${altParams}`

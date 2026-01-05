@@ -44,6 +44,15 @@ export async function GET(
     const fromParam = url.searchParams.get("from"); // Alternative to start
     const toParam = url.searchParams.get("to"); // Alternative to duration
     const durationParam = url.searchParams.get("duration");
+    const courtTypeParam = url.searchParams.get("courtType"); // Optional court type filter
+
+    // Validate court type if provided
+    if (courtTypeParam && courtTypeParam !== "Single" && courtTypeParam !== "Double") {
+      return NextResponse.json(
+        { error: "Invalid court type. Must be 'Single' or 'Double'" },
+        { status: 400 }
+      );
+    }
 
     // Validate required params
     const timeStart = startParam || fromParam;
@@ -113,6 +122,7 @@ export async function GET(
         courts: {
           where: {
             isPublished: true, // Only return published courts for players
+            ...(courtTypeParam && { type: courtTypeParam }), // Filter by court type if provided
           },
           select: {
             id: true,

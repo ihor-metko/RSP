@@ -5,6 +5,21 @@ import React from "react";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { PlayerQuickBooking } from "@/components/PlayerQuickBooking";
 
+// Mock hooks and contexts
+jest.mock("@/hooks/useCourtAvailability", () => ({
+  useCourtAvailability: jest.fn(),
+}));
+
+jest.mock("@/stores/usePlayerClubStore", () => ({
+  usePlayerClubStore: jest.fn((selector) => {
+    const mockState = {
+      clubs: [],
+      fetchClubsIfNeeded: jest.fn(),
+    };
+    return selector ? selector(mockState) : mockState;
+  }),
+}));
+
 // Mock next-intl
 jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => {
@@ -24,6 +39,8 @@ jest.mock("next-intl", () => ({
       "common.date": "Date",
       "common.duration": "Duration",
       "common.minutes": "minutes",
+      "common.hour": "hour",
+      "common.hours": "hours",
       "common.cancel": "Cancel",
       "common.back": "Back",
       "common.processing": "Processing...",
@@ -31,6 +48,8 @@ jest.mock("next-intl", () => ({
       "booking.quickBooking.startTime": "Start Time",
       "wizard.estimatedPrice": "Estimated Price",
       "wizard.priceVariesByTime": "Final price may vary",
+      "wizard.priceRangeHint": "Price range based on available courts",
+      "wizard.courtTypeHint": "Double — for a pair, Single — for one player",
       "wizard.continue": "Continue",
       "wizard.confirmBooking": "Confirm Booking",
       "wizard.loadingClubs": "Loading clubs...",
@@ -47,6 +66,9 @@ jest.mock("next-intl", () => ({
       "wizard.bookingConfirmed": "Booking Confirmed!",
       "wizard.bookingConfirmedMessage": "Your court has been reserved successfully.",
       "auth.errorOccurred": "An error occurred",
+      "courts.courtType": "Court Type",
+      "courts.padelCourtFormatSingle": "Single",
+      "courts.padelCourtFormatDouble": "Double",
     };
     return translations[key] || key;
   },
@@ -89,6 +111,49 @@ jest.mock("@/components/ui", () => ({
           <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}
       </select>
+    </div>
+  ),
+  RadioGroup: ({ label, name, options, value, onChange, disabled }: {
+    label?: string;
+    name: string;
+    options: { value: string; label: string }[];
+    value: string;
+    onChange: (value: string) => void;
+    disabled?: boolean;
+  }) => (
+    <div data-testid={`radio-group-${name}`}>
+      {label && <span>{label}</span>}
+      <div role="radiogroup">
+        {options.map((opt) => (
+          <label key={opt.value}>
+            <input
+              type="radio"
+              name={name}
+              value={opt.value}
+              checked={value === opt.value}
+              onChange={(e) => onChange(e.target.value)}
+              disabled={disabled}
+            />
+            {opt.label}
+          </label>
+        ))}
+      </div>
+    </div>
+  ),
+  DateInput: ({ label, value, onChange, disabled }: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    disabled?: boolean;
+  }) => (
+    <div>
+      <label>{label}</label>
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+      />
     </div>
   ),
 }));
@@ -309,6 +374,102 @@ describe("PlayerQuickBooking - Preselection", () => {
     
     await waitFor(() => {
       expect(screen.getByText("Review and confirm payment")).toBeInTheDocument();
+    });
+  });
+
+  it("displays court type selection with Double selected by default", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ clubs: [] }),
+    });
+
+    await act(async () => {
+      render(<PlayerQuickBooking {...defaultProps} preselectedClubId="club-1" />);
+    });
+    
+    await waitFor(() => {
+      const radioGroup = screen.getByTestId("radio-group-court-type");
+      expect(radioGroup).toBeInTheDocument();
+    });
+
+    const doubleRadio = screen.getByLabelText("Double") as HTMLInputElement;
+    const singleRadio = screen.getByLabelText("Single") as HTMLInputElement;
+
+    expect(doubleRadio).toBeChecked();
+    expect(singleRadio).not.toBeChecked();
+  });
+
+  it("allows changing court type selection", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ clubs: [] }),
+    });
+
+    await act(async () => {
+      render(<PlayerQuickBooking {...defaultProps} preselectedClubId="club-1" />);
+    });
+    
+    await waitFor(() => {
+      expect(screen.getByTestId("radio-group-court-type")).toBeInTheDocument();
+    });
+
+    const singleRadio = screen.getByLabelText("Single") as HTMLInputElement;
+    const doubleRadio = screen.getByLabelText("Double") as HTMLInputElement;
+
+    // Initially Double should be selected
+    expect(doubleRadio).toBeChecked();
+    expect(singleRadio).not.toBeChecked();
+
+    // Click Single
+    await act(async () => {
+      fireEvent.click(singleRadio);
+    });
+
+    // Now Single should be selected
+    expect(singleRadio).toBeChecked();
+    expect(doubleRadio).not.toBeChecked();
+  });
+
+  it("includes court type in API request when fetching available courts", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ clubs: [] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ 
+          availableCourts: [
+            {
+              id: "court-1",
+              name: "Court 1",
+              type: "Double",
+              surface: "Grass",
+              indoor: false,
+              defaultPriceCents: 5000,
+            }
+          ] 
+        }),
+      });
+
+    await act(async () => {
+      render(<PlayerQuickBooking {...defaultProps} preselectedClubId="club-1" />);
+    });
+
+    // Move to step 2
+    await waitFor(() => {
+      expect(screen.getByText("wizard.continue")).toBeInTheDocument();
+    });
+
+    const continueButton = screen.getByText("wizard.continue");
+    await act(async () => {
+      fireEvent.click(continueButton);
+    });
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("courtType=Double")
+      );
     });
   });
 });

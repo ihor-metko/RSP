@@ -40,6 +40,7 @@ export interface PlayerBookingStep1Data {
   date: string;
   startTime: string;
   duration: number;
+  courtType: "Single" | "Double";
 }
 
 export interface PlayerBookingStep2Data {
@@ -89,6 +90,7 @@ export interface PlayerQuickBookingProps {
     date: string;
     startTime: string;
     duration: number;
+    courtType?: "Single" | "Double";
   };
 }
 

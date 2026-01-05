@@ -458,8 +458,27 @@
   font-size: var(--font-size-sm);
 }
 
+.rsp-wizard-hint--subtle {
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-xs);
+}
+
 .rsp-wizard-hint-icon {
   flex-shrink: 0;
+}
+
+/* Court Type Radio Group - Horizontal Layout */
+.rsp-wizard-court-type-group .im-radio-group-options {
+  flex-direction: row;
+  gap: var(--spacing-3);
+}
+
+.rsp-wizard-court-type-group .im-radio-option {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
 }
 
 .rsp-wizard-price-estimate {
