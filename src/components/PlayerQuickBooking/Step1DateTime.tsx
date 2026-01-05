@@ -126,7 +126,7 @@ export function Step1DateTime({
             )}
           </div>
           <div className="rsp-wizard-price-estimate-hint">
-            {estimatedPriceRange === null && estimatedPrice === null ? (
+            {estimatedPriceRange == null && estimatedPrice == null ? (
               t("wizard.noCourtsAvailable")
             ) : estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max ? (
               t("wizard.priceRangeHint")

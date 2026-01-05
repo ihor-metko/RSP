@@ -326,7 +326,7 @@ export function PlayerQuickBooking({
           .slice(0, 3); // Show up to 3 alternatives
       }
 
-      // Mark courts as available (priceCents already included from API)
+      // Mark courts as available (priceCents comes from API response)
       const courtsWithAvailability = courts.map(court => ({
         ...court,
         available: true,
@@ -373,7 +373,7 @@ export function PlayerQuickBooking({
             // Use resolved prices from the API (priceCents includes court price rules)
             // API should always provide priceCents for each court
             const prices = courts.map(c => {
-              if (c.priceCents === undefined || c.priceCents === null) {
+              if (c.priceCents == null) {
                 console.warn(`Court ${c.id} missing priceCents, using default price`);
                 // Fallback: calculate price for the duration using the same formula as getResolvedPriceForSlot
                 // priceCents from API already includes duration, so fallback must too
