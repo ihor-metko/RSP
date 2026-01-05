@@ -314,6 +314,7 @@ export function PlayerQuickBooking({
       const data = await response.json();
       const courts: BookingCourt[] = data.availableCourts || [];
       const alternativeTimeSlots = data.alternativeTimeSlots || [];
+      const alternativeDurations = data.alternativeDurations || [];
 
       // Mark courts as available (priceCents comes from API response)
       const courtsWithAvailability = courts.map(court => ({
@@ -325,7 +326,7 @@ export function PlayerQuickBooking({
         ...prev,
         availableCourts: courtsWithAvailability,
         alternativeTimeSlots,
-        alternativeDurations: [], // Clear alternative durations since we now use time slots
+        alternativeDurations,
         isLoadingCourts: false,
       }));
     } catch {
@@ -458,11 +459,31 @@ export function PlayerQuickBooking({
       step2: { selectedCourtId: null, selectedCourt: null },
       availableCourts: [],
       alternativeTimeSlots: [],
+      alternativeDurations: [],
       isLoadingCourts: true,
     }));
 
     // Wait a tick for state to update, then fetch courts with new time
     // We need to refetch after state update to ensure the new time is used
+    setTimeout(() => {
+      fetchAvailableCourts();
+    }, 0);
+  }, [fetchAvailableCourts]);
+
+  // Handle alternative duration selection
+  const handleSelectAlternativeDuration = useCallback(async (duration: number) => {
+    setState((prev) => ({
+      ...prev,
+      step1: { ...prev.step1, duration },
+      // Reset court selection
+      step2: { selectedCourtId: null, selectedCourt: null },
+      availableCourts: [],
+      alternativeTimeSlots: [],
+      alternativeDurations: [],
+      isLoadingCourts: true,
+    }));
+
+    // Wait a tick for state to update, then fetch courts with new duration
     setTimeout(() => {
       fetchAvailableCourts();
     }, 0);
@@ -739,6 +760,8 @@ export function PlayerQuickBooking({
               onSelectCourt={handleSelectCourt}
               isLoading={state.isLoadingCourts}
               error={state.courtsError}
+              alternativeDurations={state.alternativeDurations}
+              onSelectAlternativeDuration={handleSelectAlternativeDuration}
               alternativeTimeSlots={state.alternativeTimeSlots}
               onSelectAlternativeTime={handleSelectAlternativeTime}
             />
