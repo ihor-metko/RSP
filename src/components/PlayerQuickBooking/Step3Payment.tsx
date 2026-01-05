@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { formatPrice } from "@/utils/price";
-import { formatDateTimeLong } from "@/utils/date";
+import { formatDateTimeLong, formatDateLong } from "@/utils/date";
 import {
   PaymentMethod,
   BookingCourt,
@@ -166,25 +166,35 @@ export function Step3Payment({
 
   // Format date and time for display using locale-aware formatting
   const formatBookingDateTime = useCallback((dateStr: string, timeStr: string): string => {
-    // Validate time format (HH:MM)
-    if (!timeStr || !timeStr.includes(':')) {
-      return formatDateTimeLong(new Date(dateStr), locale);
+    try {
+      // Validate time format (HH:MM)
+      if (!timeStr || !timeStr.includes(':')) {
+        console.error('Invalid time format:', timeStr);
+        // Fallback: just show date without time if time is invalid
+        return formatDateLong(new Date(dateStr), locale);
+      }
+      
+      // Create a date object from the date string and time
+      const [hoursStr, minutesStr] = timeStr.split(':');
+      const hours = parseInt(hoursStr, 10);
+      const minutes = parseInt(minutesStr, 10);
+      
+      // Validate parsed values
+      if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+        console.error('Invalid time values:', { hours, minutes, timeStr });
+        // Fallback: just show date without time if parsed values are invalid
+        return formatDateLong(new Date(dateStr), locale);
+      }
+      
+      const dateTime = new Date(dateStr);
+      dateTime.setHours(hours, minutes, 0, 0);
+      
+      return formatDateTimeLong(dateTime, locale);
+    } catch (error) {
+      console.error('Error formatting booking date time:', error);
+      // Final fallback: show date only
+      return formatDateLong(new Date(dateStr), locale);
     }
-    
-    // Create a date object from the date string and time
-    const [hoursStr, minutesStr] = timeStr.split(':');
-    const hours = parseInt(hoursStr, 10);
-    const minutes = parseInt(minutesStr, 10);
-    
-    // Validate parsed values
-    if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-      return formatDateTimeLong(new Date(dateStr), locale);
-    }
-    
-    const dateTime = new Date(dateStr);
-    dateTime.setHours(hours, minutes, 0, 0);
-    
-    return formatDateTimeLong(dateTime, locale);
   }, [locale]);
 
   if (isCreatingReservation) {
