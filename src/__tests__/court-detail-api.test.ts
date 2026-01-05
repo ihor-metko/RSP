@@ -32,6 +32,7 @@ describe("GET /api/courts/[courtId]", () => {
       type: "padel",
       surface: "artificial",
       indoor: true,
+      isPublished: true, // Court must be published to be visible to players
       defaultPriceCents: 5000,
       clubId: "club-123",
       createdAt: new Date().toISOString(),
@@ -62,6 +63,33 @@ describe("GET /api/courts/[courtId]", () => {
     const request = createRequest("nonexistent-court");
     const response = await GET(request, {
       params: Promise.resolve({ courtId: "nonexistent-court" }),
+    });
+    const data = await response.json();
+
+    expect(response.status).toBe(404);
+    expect(data.error).toBe("Court not found");
+  });
+
+  it("should return 404 when court is not published", async () => {
+    const mockCourt = {
+      id: "court-123",
+      name: "Unpublished Court",
+      slug: "unpublished",
+      type: "padel",
+      surface: "artificial",
+      indoor: true,
+      isPublished: false, // Court is not published
+      defaultPriceCents: 5000,
+      clubId: "club-123",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    (prisma.court.findUnique as jest.Mock).mockResolvedValue(mockCourt);
+
+    const request = createRequest("court-123");
+    const response = await GET(request, {
+      params: Promise.resolve({ courtId: "court-123" }),
     });
     const data = await response.json();
 
