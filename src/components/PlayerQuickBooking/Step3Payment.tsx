@@ -77,7 +77,7 @@ export function Step3Payment({
 }: Step3PaymentProps) {
   const t = useTranslations();
   const endTime = calculateEndTime(startTime, duration);
-  
+
   const [reservationId, setReservationId] = useState<string | null>(null);
   const [reservationExpiresAt, setReservationExpiresAt] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
@@ -105,7 +105,6 @@ export function Step3Payment({
             courtId: court.id,
             startTime: startDateTime,
             endTime: endDateTime,
-            userId: "current-user", // Will be resolved by the API from session
           }),
         });
 
@@ -264,11 +263,10 @@ export function Step3Payment({
             role="radio"
             aria-checked={selectedPaymentMethod === method.id}
             aria-disabled={method.disabled}
-            className={`rsp-wizard-payment-method ${
-              selectedPaymentMethod === method.id
+            className={`rsp-wizard-payment-method ${selectedPaymentMethod === method.id
                 ? "rsp-wizard-payment-method--selected"
                 : ""
-            } ${method.disabled ? "rsp-wizard-payment-method--disabled" : ""}`}
+              } ${method.disabled ? "rsp-wizard-payment-method--disabled" : ""}`}
             onClick={() => !method.disabled && onSelectPaymentMethod(method.id)}
             disabled={isSubmitting || method.disabled}
           >

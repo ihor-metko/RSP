@@ -7,7 +7,6 @@ interface ReservationRequest {
   courtId: string;
   startTime: string;
   endTime: string;
-  userId: string;
 }
 
 /**
@@ -39,9 +38,9 @@ export async function POST(request: Request) {
     const body: ReservationRequest = await request.json();
 
     // Validate input
-    if (!body.courtId || !body.startTime || !body.endTime || !body.userId) {
+    if (!body.courtId || !body.startTime || !body.endTime) {
       return NextResponse.json(
-        { error: "Missing required fields: courtId, startTime, endTime, and userId are required" },
+        { error: "Missing required fields: courtId, startTime, endTime are required" },
         { status: 400 }
       );
     }
@@ -146,7 +145,7 @@ export async function POST(request: Request) {
       const newReservation = await tx.booking.create({
         data: {
           courtId: body.courtId,
-          userId: body.userId,
+          userId: authResult.userId,
           coachId: null,
           start: startTime,
           end: endTime,
@@ -176,6 +175,7 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
+    console.error("Error creating reservation:", error);
     if (error instanceof Error) {
       if (error.message === "CONFLICT") {
         return NextResponse.json(
