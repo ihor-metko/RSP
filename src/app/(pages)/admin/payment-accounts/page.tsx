@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { PageHeader, ConfirmationModal, Card } from "@/components/ui";
+import { PageHeader, ConfirmationModal, Card, Modal } from "@/components/ui";
 import { PaymentAccountList } from "@/components/admin/payment-accounts/PaymentAccountList";
 import { PaymentAccountForm, PaymentAccountFormData } from "@/components/admin/payment-accounts/PaymentAccountForm";
 import { useUserStore } from "@/stores/useUserStore";
@@ -57,6 +57,14 @@ export default function UnifiedPaymentAccountsPage() {
   const [accountToDisable, setAccountToDisable] = useState<MaskedPaymentAccount | null>(null);
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  
+  // Verification modal state
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+  const [verifyingAccountId, setVerifyingAccountId] = useState<string | null>(null);
+  const [verificationPaymentId, setVerificationPaymentId] = useState<string | null>(null);
+  
+  // Ref to prevent overlapping polling requests
+  const isPollingRef = useRef(false);
 
   // Determine user role
   const isOrgAdmin = adminStatus?.adminType === "organization_admin";
@@ -142,9 +150,10 @@ export default function UnifiedPaymentAccountsPage() {
         }
         const clubData = await clubResponse.json();
 
+        const clubName = assignedClubName || t("admin.club");
         setClubAccounts([{
           clubId: clubId,
-          clubName: assignedClubName || t("admin.club"),
+          clubName: clubName,
           accounts: clubData.paymentAccounts || [],
           isExpanded: true,
         }]);
@@ -163,7 +172,11 @@ export default function UnifiedPaymentAccountsPage() {
     } finally {
       setLoading(false);
     }
-  }, [isOrgOwner, isClubAdmin, orgId, clubId, clubs, assignedClubName, t]);
+  // Intentionally excluding `clubs`, `assignedClubName`, and `t` from dependencies:
+  // - These are captured from closure and don't affect the fetch logic
+  // - Including them causes unnecessary re-creation and polling restarts
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOrgOwner, isClubAdmin, orgId, clubId]);
 
   useEffect(() => {
     if ((orgId || clubId) && isLoggedIn && !isLoadingStore) {
@@ -192,7 +205,9 @@ export default function UnifiedPaymentAccountsPage() {
     return () => {
       clearInterval(pollInterval);
     };
-  }, [hasPendingAccounts, fetchAccounts]);
+  // fetchAccounts is intentionally not in dependencies to prevent polling restart on its recreation
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPendingAccounts]);
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ message, type });
@@ -388,6 +403,9 @@ export default function UnifiedPaymentAccountsPage() {
   const handleVerifyReal = async (account: MaskedPaymentAccount, clubId?: string) => {
     if (!user) return;
 
+    // Set loading state
+    setVerifyingAccountId(account.id);
+
     try {
       let url: string;
       if (account.scope === "ORGANIZATION" && orgId) {
@@ -411,16 +429,24 @@ export default function UnifiedPaymentAccountsPage() {
 
       const data = await response.json();
       
-      // Show success message
-      showToast(t("paymentAccount.messages.verificationInitiated"), "success");
-      
-      // Redirect to WayForPay checkout
+      // Open checkout in a new window and show modal with instructions
       if (data.verificationPayment?.checkoutUrl) {
-        window.location.href = data.verificationPayment.checkoutUrl;
+        // Open WayForPay checkout in a new window
+        window.open(data.verificationPayment.checkoutUrl, '_blank', 'noopener,noreferrer');
+        
+        // Show modal with instructions and start polling
+        setVerificationPaymentId(data.verificationPayment.id);
+        setIsVerificationModalOpen(true);
+        // Clear loading state after successfully opening modal
+        setVerifyingAccountId(null);
+      } else {
+        throw new Error("No checkout URL received");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to initiate real payment verification";
       showToast(errorMessage, "error");
+      // Clear loading state on error
+      setVerifyingAccountId(null);
     }
   };
 
@@ -431,6 +457,77 @@ export default function UnifiedPaymentAccountsPage() {
       )
     );
   };
+
+  const handleCloseVerificationModal = () => {
+    setIsVerificationModalOpen(false);
+    setVerificationPaymentId(null);
+  };
+
+  // Poll for verification payment status when modal is open
+  useEffect(() => {
+    if (!verificationPaymentId || !isVerificationModalOpen) {
+      return;
+    }
+
+    const pollVerificationStatus = async () => {
+      if (isPollingRef.current) return; // Skip if already polling
+      
+      isPollingRef.current = true;
+      try {
+        const response = await fetch(`/api/admin/verification-payments/${verificationPaymentId}`);
+        
+        if (!response.ok) {
+          return; // Continue polling
+        }
+
+        const data = await response.json();
+        const verificationPayment = data.verificationPayment;
+
+        if (!verificationPayment) {
+          return;
+        }
+
+        // Check if verification completed
+        if (verificationPayment.status === "completed") {
+          // Close modal and refresh accounts
+          handleCloseVerificationModal();
+          
+          if (verificationPayment.paymentAccount?.verificationLevel === "VERIFIED") {
+            showToast(t("paymentAccount.messages.verificationComplete"), "success");
+          } else {
+            showToast(verificationPayment.errorMessage || t("paymentAccount.messages.verificationFailed"), "error");
+          }
+          
+          // Refresh the accounts list
+          await fetchAccounts();
+        } else if (verificationPayment.status === "failed" || verificationPayment.status === "expired") {
+          // Close modal and show error
+          handleCloseVerificationModal();
+          showToast(verificationPayment.errorMessage || t("paymentAccount.messages.verificationFailed"), "error");
+          
+          // Refresh the accounts list
+          await fetchAccounts();
+        }
+      } catch (error) {
+        console.error("Error polling verification status:", error);
+      } finally {
+        isPollingRef.current = false;
+      }
+    };
+
+    // Initial poll after 2 seconds
+    const initialTimeout = setTimeout(pollVerificationStatus, 2000);
+
+    // Poll every 3 seconds
+    const pollInterval = setInterval(pollVerificationStatus, 3000);
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(pollInterval);
+    };
+  // fetchAccounts is intentionally not in dependencies to prevent polling restart on its recreation
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verificationPaymentId, isVerificationModalOpen, t]);
 
   if (isLoadingStore || (!orgId && !clubId)) {
     return <div className="im-loading">{t("common.loading")}</div>;
@@ -504,6 +601,7 @@ export default function UnifiedPaymentAccountsPage() {
             canVerifyReal={isOrgOwner}
             scope="ORGANIZATION"
             showScopeInfo={false}
+            verifyingAccountId={verifyingAccountId}
           />
         </div>
       )}
@@ -548,6 +646,7 @@ export default function UnifiedPaymentAccountsPage() {
                     canVerifyReal={true}
                     scope="CLUB"
                     showScopeInfo
+                    verifyingAccountId={verifyingAccountId}
                   />
                 </div>
               )}
@@ -574,6 +673,54 @@ export default function UnifiedPaymentAccountsPage() {
         confirmText={t("paymentAccount.disableModal.confirm")}
         cancelText={t("paymentAccount.disableModal.cancel")}
       />
+
+      {/* Verification Payment Modal */}
+      <Modal
+        isOpen={isVerificationModalOpen}
+        onClose={handleCloseVerificationModal}
+        title={t("paymentAccount.verificationModal.title")}
+      >
+        <div className="verification-modal-content">
+          <div className="verification-modal-instructions">
+            <div className="verification-modal-icon">💳</div>
+            <h3 className="verification-modal-heading">
+              {t("paymentAccount.verificationModal.windowOpened")}
+            </h3>
+            <p className="verification-modal-description">
+              {t("paymentAccount.verificationModal.description")}
+            </p>
+            <div className="verification-modal-steps">
+              <div className="verification-step">
+                <span className="verification-step-number">1</span>
+                <span className="verification-step-text">
+                  {t("paymentAccount.verificationModal.step1")}
+                </span>
+              </div>
+              <div className="verification-step">
+                <span className="verification-step-number">2</span>
+                <span className="verification-step-text">
+                  {t("paymentAccount.verificationModal.step2")}
+                </span>
+              </div>
+              <div className="verification-step">
+                <span className="verification-step-number">3</span>
+                <span className="verification-step-text">
+                  {t("paymentAccount.verificationModal.step3")}
+                </span>
+              </div>
+            </div>
+            <div className="verification-modal-status">
+              <div className="verification-modal-spinner"></div>
+              <p className="verification-modal-status-text">
+                {t("paymentAccount.verificationModal.waitingForPayment")}
+              </p>
+            </div>
+          </div>
+          <p className="im-helper-text verification-modal-hint">
+            {t("paymentAccount.verificationModal.hint")}
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,0 +1,32 @@
+@reference "tailwindcss";
+
+/* DocsCallout Component Styles */
+.im-docs-callout {
+  @apply my-6 p-6 rounded-lg;
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.05) 0%, rgba(26, 188, 156, 0.05) 100%);
+  border-left: 4px solid var(--im-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dark .im-docs-callout {
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.08) 0%, rgba(26, 188, 156, 0.08) 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.im-docs-callout-title {
+  @apply text-lg font-semibold mb-2;
+  color: var(--im-primary);
+}
+
+.im-docs-callout-content {
+  @apply text-base leading-relaxed;
+  color: var(--im-text-primary);
+}
+
+.im-docs-callout-content p {
+  @apply mb-3;
+}
+
+.im-docs-callout-content p:last-child {
+  @apply mb-0;
+}

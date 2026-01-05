@@ -1,0 +1,24 @@
+@reference "tailwindcss";
+
+/* DocsSubsection Component Styles */
+.im-docs-subsection {
+  @apply mt-6 mb-4;
+}
+
+.im-docs-subsection-title {
+  @apply text-xl font-semibold mb-3;
+  color: var(--im-text-primary);
+}
+
+.im-docs-subsection-content {
+  @apply text-base leading-relaxed;
+  color: var(--im-text-secondary);
+}
+
+.im-docs-subsection-content p {
+  @apply mb-4;
+}
+
+.im-docs-subsection-content p:last-child {
+  @apply mb-0;
+}

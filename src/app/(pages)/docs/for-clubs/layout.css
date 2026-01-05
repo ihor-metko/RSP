@@ -1,0 +1,72 @@
+@reference "tailwindcss";
+
+/* Documentation Layout Styles */
+.im-docs-layout {
+  @apply min-h-screen flex flex-col;
+  background-color: var(--im-bg-primary);
+  color: var(--im-text-primary);
+  overflow: auto;
+}
+
+/* Container for sidebar and content */
+.im-docs-container {
+  @apply flex flex-1;
+  width: 100%;
+}
+
+/* Sidebar wrapper with language switcher */
+.im-docs-sidebar-wrapper {
+  @apply flex flex-col;
+}
+
+/* Content Area */
+.im-docs-content {
+  @apply flex-1 mx-auto w-full overflow-y-auto;
+  max-width: 900px;
+  padding: 3rem 2rem;
+}
+
+@media (max-width: 1023px) {
+  .im-docs-content {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* Documentation page styles */
+.im-docs-page {
+  @apply flex flex-col gap-6;
+}
+
+.im-docs-title,
+.im-docs-page-title {
+  @apply text-3xl font-bold mb-4;
+  color: var(--im-text-primary);
+}
+
+.im-docs-page-description {
+  @apply text-lg mb-6;
+  color: var(--im-text-secondary);
+}
+
+.im-docs-section {
+  @apply mb-8;
+}
+
+.im-docs-section-title {
+  @apply text-2xl font-semibold mb-3;
+  color: var(--im-text-primary);
+}
+
+.im-docs-section-content {
+  @apply text-base leading-relaxed;
+  color: var(--im-text-secondary);
+}
+
+.im-docs-subsection-title {
+  @apply text-xl font-semibold mt-6 mb-3;
+  color: var(--im-text-primary);
+}
+
+.im-docs-cta-group {
+  @apply flex flex-wrap gap-4 mt-6;
+}

@@ -18,6 +18,15 @@ import {
 const VERIFICATION_AMOUNT = 100; // 1 UAH in kopiykas (minor units)
 const VERIFICATION_CURRENCY = "UAH";
 
+// Default phone number for verification payments when user doesn't have one
+// Format: Ukrainian mobile number (380 country code + 9 zeros)
+// This is required by WayForPay API but not validated for verification payments
+const DEFAULT_VERIFICATION_PHONE = "380000000000";
+
+// Default client info when user name is not available
+const DEFAULT_CLIENT_FIRST_NAME = "Verification";
+const DEFAULT_CLIENT_LAST_NAME = "User";
+
 /**
  * Initiate a real payment verification for a payment account
  *
@@ -39,6 +48,20 @@ export async function initiateRealPaymentVerification(
 
   if (!account) {
     throw new Error("Payment account not found");
+  }
+
+  // Get the user who initiated the verification for buyer context
+  const user = await prisma.user.findUnique({
+    where: { id: initiatedBy },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
   }
 
   // Decrypt credentials
@@ -68,7 +91,8 @@ export async function initiateRealPaymentVerification(
       merchantId,
       secretKey,
       orderReference,
-      verificationPayment.id
+      verificationPayment.id,
+      user
     );
   } else {
     throw new Error(`Unsupported payment provider: ${account.provider}`);
@@ -90,7 +114,11 @@ async function generateWayForPayCheckoutUrl(
   merchantAccount: string,
   secretKey: string,
   orderReference: string,
-  verificationPaymentId: string
+  verificationPaymentId: string,
+  user: {
+    name: string | null;
+    email: string;
+  }
 ): Promise<string> {
   const orderDate = Math.floor(Date.now() / 1000);
   const amount = (VERIFICATION_AMOUNT / 100).toString(); // Convert to major units (UAH)
@@ -101,6 +129,17 @@ async function generateWayForPayCheckoutUrl(
 
   // Get base URL for return/callback URLs
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  // Parse user name into first and last name components
+  // If user name is not available or empty, use default verification client info
+  let clientFirstName = DEFAULT_CLIENT_FIRST_NAME;
+  let clientLastName = DEFAULT_CLIENT_LAST_NAME;
+  
+  if (user.name && user.name.trim()) {
+    const nameParts = user.name.trim().split(/\s+/);
+    clientFirstName = nameParts[0];
+    clientLastName = nameParts.slice(1).join(" ") || DEFAULT_CLIENT_LAST_NAME;
+  }
 
   // Generate signature for PURCHASE request
   // Signature string: merchantAccount;merchantDomainName;orderReference;orderDate;amount;currency;productName;productCount;productPrice
@@ -136,6 +175,11 @@ async function generateWayForPayCheckoutUrl(
     productPrice: [productPrice],
     merchantSignature: signature,
     apiVersion: 1,
+    // Buyer context fields using actual user data for better fraud prevention
+    clientFirstName,
+    clientLastName,
+    clientEmail: user.email,
+    clientPhone: DEFAULT_VERIFICATION_PHONE, // User model doesn't have phone field
     // Return URLs
     returnUrl: `${baseUrl}/admin/payment-accounts/verification-return?id=${verificationPaymentId}`,
     serviceUrl: `${baseUrl}/api/webhooks/wayforpay/verification`,

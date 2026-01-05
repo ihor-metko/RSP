@@ -1,0 +1,77 @@
+@reference "tailwindcss";
+
+/* Pre-Sales Documentation Layout Styles */
+.im-docs-layout {
+  @apply min-h-screen flex flex-col;
+  background-color: var(--im-bg-primary);
+  color: var(--im-text-primary);
+  overflow: auto;
+}
+
+/* Container for sidebar and content */
+.im-docs-container {
+  @apply flex flex-1;
+  width: 100%;
+}
+
+/* Sidebar wrapper */
+.im-docs-sidebar-wrapper {
+  @apply flex flex-col;
+}
+
+/* Content Area */
+.im-docs-content {
+  @apply flex-1 mx-auto w-full overflow-y-auto;
+  max-width: 900px;
+  padding: 3rem 2rem;
+}
+
+/* Breadcrumbs wrapper */
+.im-docs-breadcrumbs-wrapper {
+  @apply mb-6;
+}
+
+/* Role card grid */
+.im-docs-role-grid {
+  @apply grid gap-6 mt-6;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Role card */
+.im-docs-role-card {
+  @apply block p-6 rounded-lg transition-all duration-200;
+  background-color: var(--im-bg-secondary);
+  border: 1px solid var(--im-border-primary);
+  text-decoration: none;
+}
+
+.im-docs-role-card:hover {
+  background-color: var(--im-bg-tertiary);
+  border-color: var(--im-accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  outline: none;
+}
+
+.im-docs-role-card:focus,
+.im-docs-role-card:focus-visible {
+  outline: none;
+  border-color: var(--im-accent-primary);
+  box-shadow: 0 0 0 3px rgba(var(--im-accent-primary-rgb), 0.2);
+}
+
+.im-docs-role-card-title {
+  @apply text-xl font-semibold mb-2;
+  color: var(--im-text-primary);
+}
+
+.im-docs-role-card-description {
+  @apply text-base;
+  color: var(--im-text-secondary);
+}
+
+@media (max-width: 1023px) {
+  .im-docs-content {
+    padding: 2rem 1.5rem;
+  }
+}

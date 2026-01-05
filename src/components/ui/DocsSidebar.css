@@ -1,0 +1,104 @@
+@reference "tailwindcss";
+
+/* Sidebar Styles */
+.im-docs-sidebar {
+  @apply hidden lg:flex flex-col;
+  width: 280px;
+  min-width: 280px;
+  background-color: var(--im-surface);
+  border-right: 1px solid var(--im-border);
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+.im-docs-sidebar-nav {
+  @apply flex flex-col p-6;
+}
+
+.im-docs-sidebar-section {
+  @apply mb-6;
+}
+
+.im-docs-sidebar-title {
+  @apply text-sm font-semibold uppercase tracking-wider mb-4;
+  color: var(--im-muted);
+}
+
+.im-docs-sidebar-list {
+  @apply flex flex-col gap-1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.im-docs-sidebar-item {
+  @apply m-0;
+}
+
+a.im-docs-sidebar-link {
+  @apply block px-3 py-2 rounded-md text-sm font-medium transition-colors no-underline;
+  color: var(--im-foreground);
+  outline: none;
+}
+
+a.im-docs-sidebar-link:hover {
+  background-color: var(--im-card-bg);
+  color: var(--im-primary);
+}
+
+a.im-docs-sidebar-link--active {
+  background-color: var(--im-primary);
+  color: white;
+}
+
+a.im-docs-sidebar-link--active:hover {
+  background-color: var(--im-primary-hover);
+  color: white;
+}
+
+/* Grouped sidebar styles */
+.im-docs-sidebar-group {
+  @apply mb-4;
+}
+
+.im-docs-sidebar-group-header {
+  @apply w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-semibold transition-colors cursor-pointer;
+  background: transparent;
+  border: none;
+  color: var(--im-foreground);
+  text-align: left;
+  outline: none;
+}
+
+.im-docs-sidebar-group-header:hover {
+  background-color: var(--im-card-bg);
+}
+
+.im-docs-sidebar-group-header:focus-visible {
+  outline: 2px solid var(--im-primary);
+  outline-offset: 2px;
+}
+
+.im-docs-sidebar-group-header--active {
+  color: var(--im-primary);
+  font-weight: 600;
+}
+
+.im-docs-sidebar-group-title {
+  @apply flex-1;
+}
+
+.im-docs-sidebar-group-icon {
+  @apply transition-transform duration-200;
+  color: var(--im-muted);
+}
+
+.im-docs-sidebar-group-icon--expanded {
+  @apply rotate-180;
+}
+
+.im-docs-sidebar-group-list {
+  @apply mt-1 pl-3;
+}

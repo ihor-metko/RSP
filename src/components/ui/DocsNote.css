@@ -1,0 +1,74 @@
+@reference "tailwindcss";
+
+/* DocsNote Component Styles */
+.im-docs-note {
+  @apply my-4 p-4 rounded-lg flex gap-3;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.im-docs-note-icon {
+  @apply flex-shrink-0 text-xl font-bold;
+  margin-top: 0.125rem;
+}
+
+.im-docs-note-content {
+  @apply flex-1 text-sm leading-relaxed;
+}
+
+/* Info variant */
+.im-docs-note--info {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.im-docs-note--info .im-docs-note-icon {
+  color: #60a5fa;
+}
+
+.im-docs-note--info .im-docs-note-content {
+  color: var(--im-text-primary);
+}
+
+.dark .im-docs-note--info {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Warning variant */
+.im-docs-note--warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.im-docs-note--warning .im-docs-note-icon {
+  color: #fbbf24;
+}
+
+.im-docs-note--warning .im-docs-note-content {
+  color: var(--im-text-primary);
+}
+
+.dark .im-docs-note--warning {
+  background-color: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+/* Success variant */
+.im-docs-note--success {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.im-docs-note--success .im-docs-note-icon {
+  color: #4ade80;
+}
+
+.im-docs-note--success .im-docs-note-content {
+  color: var(--im-text-primary);
+}
+
+.dark .im-docs-note--success {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+}

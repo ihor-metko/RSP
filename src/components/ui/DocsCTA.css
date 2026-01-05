@@ -1,0 +1,73 @@
+@reference "tailwindcss";
+
+/* DocsCTA Component Styles */
+.im-docs-cta {
+  @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-base;
+  @apply transition-all duration-200 no-underline;
+  border: none;
+}
+
+/* Primary variant (default) */
+.im-docs-cta--primary {
+  background-color: var(--im-primary);
+  color: white;
+}
+
+.im-docs-cta--primary:hover {
+  background-color: var(--im-primary-hover);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.im-docs-cta--primary:active {
+  transform: translateY(0);
+}
+
+.im-docs-cta--primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.dark .im-docs-cta--primary {
+  background-color: var(--im-primary);
+}
+
+.dark .im-docs-cta--primary:hover {
+  background-color: var(--im-primary-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Secondary variant */
+.im-docs-cta--secondary {
+  background-color: transparent;
+  color: var(--im-text-primary);
+  border: 2px solid var(--im-border);
+}
+
+.im-docs-cta--secondary:hover {
+  background-color: var(--im-bg-secondary);
+  color: var(--im-text-primary);
+  border-color: var(--im-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.im-docs-cta--secondary:active {
+  transform: translateY(0);
+}
+
+.im-docs-cta--secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.dark .im-docs-cta--secondary {
+  border-color: var(--im-border);
+}
+
+.dark .im-docs-cta--secondary:hover {
+  background-color: var(--im-bg-secondary);
+  border-color: var(--im-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}

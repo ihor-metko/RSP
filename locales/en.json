@@ -142,6 +142,7 @@
     "exampleModalContent": "This is an example modal dialog. Press Escape or click outside to close.",
     "heroHeadline": "Find Your Perfect Padel Court",
     "heroSubheadline": "Discover and book courts at the best padel clubs near you",
+    "preSalesDocsButton": "Pre-Sales Demo & Documentation",
     "popularClubs": "Popular Clubs",
     "whyChooseUs": "Why Choose Us",
     "feature1Title": "Easy Booking",
@@ -239,7 +240,11 @@
     "emailPrefilledFromInvite": "Email is pre-filled from your invitation",
     "continueWithGoogle": "Continue with Google",
     "signingInWithGoogle": "Signing in with Google...",
-    "orContinueWith": "Or continue with"
+    "orContinueWith": "Or continue with",
+    "runningPadelClub": "Running a padel club?",
+    "learnHowPlatformWorks": "Learn how the platform works for club owners",
+    "tryDemoAccount": "Want to see it in action?",
+    "viewPreSalesDocs": "View Pre-Sales Demo & Documentation"
   },
   "invites": {
     "errorTitle": "Invitation Error",
@@ -1418,7 +1423,9 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "allRightsReserved": "All rights reserved.",
-    "socialLinks": "Social Links"
+    "socialLinks": "Social Links",
+    "forClubOwners": "For padel club owners",
+    "howItWorks": "How the platform works"
   },
   "wizard": {
     "progress": "Booking progress",
@@ -2609,7 +2616,8 @@
       "edit": "Edit",
       "disable": "Disable",
       "retryVerification": "Retry Technical Verification",
-      "verifyReal": "Verify Payment Account"
+      "verifyReal": "Verify Payment Account",
+      "verifying": "Verifying..."
     },
     "priorityInfo": {
       "title": "Payment Account Priority",
@@ -2629,7 +2637,18 @@
       "verificationStarted": "Verification started. Please wait...",
       "verificationInitiated": "Payment verification initiated. Redirecting to payment page...",
       "verificationComplete": "Payment account verified successfully!",
-      "verificationFailed": "Verification failed. Please try again."
+      "verificationFailed": "Verification failed. Please try again.",
+      "verificationInProgress": "Verifying payment account..."
+    },
+    "verificationModal": {
+      "title": "Verify Payment Account",
+      "windowOpened": "Payment window opened",
+      "description": "Complete the payment in the opened window to verify your payment account. A minimal verification payment (1 UAH) will be charged and sent directly to your merchant account.",
+      "step1": "Complete the payment in the opened window",
+      "step2": "The payment is processed securely through WayForPay",
+      "step3": "Your account will be automatically verified after successful payment",
+      "waitingForPayment": "Waiting for payment confirmation...",
+      "hint": "This window will automatically close once the payment is confirmed. Do not close this window manually."
     }
   },
   "dangerZone": {
@@ -2950,6 +2969,1659 @@
     "errors": {
       "updateFailed": "Failed to update court",
       "imageUploadFailed": "Failed to upload image"
+    }
+  },
+  "docs": {
+    "sidebar": {
+      "title": "Documentation",
+      "overview": "Overview",
+      "problemsWeSolve": "Problems We Solve",
+      "howItWorks": "How It Works",
+      "bookingFlow": "Booking Flow",
+      "multiClub": "Multi-Club",
+      "rolesAndControl": "Roles & Control",
+      "gettingStarted": "Getting Started"
+    },
+    "overview": {
+      "title": "Overview",
+      "metaTitle": "Overview - ArenaOne for Clubs Documentation",
+      "metaDescription": "Learn what ArenaOne is, who it's for, and how it helps padel clubs operate more efficiently.",
+      "whatIsArenaOne": {
+        "title": "What is ArenaOne?",
+        "p1": "ArenaOne is a cloud-based management platform built specifically for padel clubs. Whether you operate a single club or manage multiple facilities, ArenaOne provides the tools to streamline your operations, automate bookings, and maintain full control over your business.",
+        "p2": "The platform centralizes everything you need to run your club: court scheduling, player bookings, availability management, and operational oversight—all accessible from a single, unified interface."
+      },
+      "whoItsFor": {
+        "title": "Who It's For",
+        "intro": "ArenaOne is designed for padel club owners and organizations who need to:",
+        "item1": "Manage one or more padel facilities efficiently",
+        "item2": "Automate court bookings and reduce manual coordination",
+        "item3": "Gain real-time visibility into operations and revenue",
+        "item4": "Scale their business without adding administrative overhead",
+        "item5": "Provide a professional booking experience for their players",
+        "outro": "If you're currently managing bookings through WhatsApp, Excel spreadsheets, or fragmented tools, ArenaOne helps you consolidate and professionalize your operations."
+      },
+      "whatItIsNot": {
+        "title": "What This Platform Is NOT",
+        "note": "ArenaOne is your operational management platform—not a replacement for your brand or identity.",
+        "intro": "It's important to understand what ArenaOne does not do:",
+        "notMarketplace": {
+          "title": "Not a marketplace.",
+          "text": "ArenaOne is not a public directory or booking marketplace. It's your private management system. Players book directly through your club's presence on the platform."
+        },
+        "notReplacing": {
+          "title": "Not replacing your branding.",
+          "text": "Your club keeps its identity, name, and customer relationships. ArenaOne works behind the scenes to power your operations."
+        },
+        "notAggregator": {
+          "title": "Not a third-party booking aggregator.",
+          "text": "You own your data, your customer relationships, and your revenue. ArenaOne is a tool for your business, not a middleman."
+        }
+      },
+      "coreCapabilities": {
+        "title": "Core Capabilities",
+        "intro": "ArenaOne provides the essential capabilities padel clubs need to operate efficiently:",
+        "item1": "Automated court booking and scheduling",
+        "item2": "Real-time availability and calendar management",
+        "item3": "Centralized control for single or multi-club operations",
+        "item4": "Player management and booking history",
+        "item5": "Flexible pricing and special date configurations",
+        "item6": "Operational insights and visibility across your business"
+      }
+    },
+    "problemsWeSolve": {
+      "title": "Problems We Solve",
+      "metaTitle": "Problems We Solve - ArenaOne for Clubs Documentation",
+      "metaDescription": "Real operational challenges padel clubs face and how ArenaOne addresses them.",
+      "manualBookings": {
+        "title": "Manual Bookings",
+        "intro1": "Many padel clubs still handle bookings through WhatsApp messages, Instagram DMs, or phone calls. This creates constant interruptions, manual scheduling conflicts, and errors that frustrate both staff and players.",
+        "intro2": "Common issues with manual booking coordination:",
+        "issue1": "Staff spends hours responding to booking requests across multiple channels",
+        "issue2": "Double-bookings happen when messages overlap or get missed",
+        "issue3": "No clear record of who booked what, when, or whether they paid",
+        "issue4": "Players get frustrated waiting for confirmations or checking availability",
+        "issue5": "Impossible to accept bookings outside business hours",
+        "solution": "ArenaOne automates the entire booking process. Players see real-time availability, book instantly, and receive immediate confirmation. Your staff is freed from constant message management."
+      },
+      "fragmented": {
+        "title": "Excel Spreadsheets and Fragmented Systems",
+        "intro1": "Running a club with Excel sheets, paper calendars, or a patchwork of disconnected tools leads to data chaos. Information lives in different places, nothing syncs, and finding answers requires checking multiple sources.",
+        "intro2": "What this looks like in practice:",
+        "issue1": "Court schedules in one spreadsheet, player info in another",
+        "issue2": "Revenue tracking separate from booking records",
+        "issue3": "No single source of truth when conflicts or questions arise",
+        "issue4": "Time wasted manually copying data between systems",
+        "issue5": "Risk of losing data when files get corrupted or overwritten",
+        "solution": "ArenaOne unifies your data in one platform. Bookings, courts, players, and revenue all live together. Everything stays synchronized, and you can access any information instantly."
+      },
+      "visibility": {
+        "title": "Lack of Visibility and Control",
+        "intro1": "Without a centralized system, club owners often have no clear view of their business performance. How many bookings happened today? Which courts are most popular? Who are your regular players? These questions shouldn't require digging through messages or spreadsheets.",
+        "intro2": "Challenges of operating without visibility:",
+        "issue1": "Can't see booking patterns or peak times without manual analysis",
+        "issue2": "Difficult to identify underutilized courts or revenue opportunities",
+        "issue3": "No way to track player activity or booking history",
+        "issue4": "Hard to forecast revenue or plan capacity",
+        "issue5": "Staff makes decisions based on gut feeling instead of data",
+        "solution": "ArenaOne provides real-time visibility into every aspect of your club. See bookings as they happen, understand usage patterns, and make informed decisions based on actual data."
+      },
+      "multiClub": {
+        "title": "Managing Multiple Clubs",
+        "intro1": "Operating more than one club multiplies every operational challenge. Each location might use different processes, staff can't see across facilities, and you lack a consolidated view of your business.",
+        "intro2": "Multi-club management challenges:",
+        "issue1": "Each club operates as a separate silo with its own booking system",
+        "issue2": "No way to compare performance between locations",
+        "issue3": "Can't reassign bookings or share resources across clubs",
+        "issue4": "Reporting requires manually combining data from multiple sources",
+        "issue5": "Difficult to maintain consistent processes and standards",
+        "issue6": "Staff at one location can't help with another location's operations",
+        "solution": "ArenaOne is built for multi-club operations from the ground up. Manage all your facilities from a single interface, maintain consistent processes, and get consolidated reporting across your entire organization."
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "metaTitle": "How It Works - ArenaOne for Clubs Documentation",
+      "metaDescription": "Understanding the ArenaOne platform structure and how it helps your club operate efficiently.",
+      "structure": {
+        "title": "The Platform Structure",
+        "intro1": "ArenaOne is organized in a simple, logical hierarchy that mirrors how padel clubs actually operate. This structure helps you stay organized, scale your business, and maintain clear control over your operations.",
+        "intro2": "The hierarchy flows from top to bottom:",
+        "level1": "Organization — Your business entity (single club or multi-club company)",
+        "level2": "Clubs — Individual facilities within your organization",
+        "level3": "Courts — The actual padel courts at each club",
+        "level4": "Bookings — Player reservations for specific courts at specific times"
+      },
+      "organization": {
+        "title": "Organization: Your Business",
+        "intro1": "At the top level, your organization represents your entire business. This is the umbrella under which all your clubs operate.",
+        "intro2": "For single-club owners, your organization simply contains one club. For multi-club operators, your organization contains all your facilities, giving you a consolidated view of your entire business.",
+        "intro3": "Benefits of the organization level:",
+        "benefit1": "See performance across all your clubs in one place",
+        "benefit2": "Maintain consistent settings and processes",
+        "benefit3": "Manage staff who work across multiple locations",
+        "benefit4": "Access consolidated reporting and insights"
+      },
+      "clubs": {
+        "title": "Clubs: Your Facilities",
+        "intro1": "Each club represents a physical location with its own address, courts, and operating hours. Whether you have one club or ten, each is managed as a distinct facility within your organization.",
+        "intro2": "At the club level, you control:",
+        "control1": "Location details and contact information",
+        "control2": "Operating hours and availability schedules",
+        "control3": "Pricing rules and special date configurations",
+        "control4": "The courts available for booking",
+        "outro": "This structure allows each club to operate with its own identity and settings while remaining connected to your broader organization."
+      },
+      "courts": {
+        "title": "Courts: Your Bookable Resources",
+        "intro": "Courts are the actual padel courts at your club. Each court exists within a specific club and can be booked by players according to your availability and pricing rules.",
+        "define": "For each court, you define:",
+        "item1": "Court name or number (e.g., \"Court 1\", \"Center Court\")",
+        "item2": "When the court is available for bookings",
+        "item3": "Pricing for different times or days",
+        "item4": "Any special characteristics or notes"
+      },
+      "bookings": {
+        "title": "Bookings: Player Reservations",
+        "intro": "Bookings are player reservations for a specific court at a specific time. This is where everything comes together: a player selects a club, chooses a court, picks a time slot, and creates a booking.",
+        "handles": "The booking system handles:",
+        "item1": "Real-time availability checks to prevent conflicts",
+        "item2": "Immediate confirmation to players",
+        "item3": "Recording who booked what and when",
+        "item4": "Tracking booking status and history"
+      },
+      "whyMatters": {
+        "title": "Why This Structure Matters",
+        "intro": "This four-level hierarchy might seem simple, but it's intentionally designed to support how padel clubs actually work and grow.",
+        "note": "The structure ensures that as your business grows—adding more courts, opening new clubs, or expanding to new locations—the platform scales naturally without becoming more complicated to manage.",
+        "benefits": "Key benefits of this organizational approach:",
+        "benefit1": {
+          "title": "Clarity:",
+          "text": "Everyone understands which club, court, and time a booking refers to. No ambiguity, no confusion."
+        },
+        "benefit2": {
+          "title": "Scalability:",
+          "text": "Adding a new club or court doesn't disrupt existing operations. Everything stays organized."
+        },
+        "benefit3": {
+          "title": "Control:",
+          "text": "You can manage settings at the right level—organization-wide policies, club-specific rules, or court-level details."
+        },
+        "benefit4": {
+          "title": "Flexibility:",
+          "text": "Each club can operate differently while still being part of your larger business."
+        }
+      },
+      "together": {
+        "title": "Putting It All Together",
+        "intro": "When a player books a court, they're interacting with all four levels of this structure:",
+        "step1": "They select a club (from your organization)",
+        "step2": "They choose a court (at that club)",
+        "step3": "They pick a time slot (when that court is available)",
+        "step4": "They create a booking (reservation confirmed)",
+        "perspective": "From your perspective as the club owner, you see everything: which clubs are busiest, which courts are most popular, when peak booking times occur, and how your overall business is performing.",
+        "conclusion": "This simple structure keeps your operations organized today while supporting your growth tomorrow."
+      }
+    },
+    "bookingFlow": {
+      "title": "Booking Flow",
+      "metaTitle": "Booking Flow - ArenaOne for Clubs Documentation",
+      "metaDescription": "Understand how court bookings work from both player and club perspectives.",
+      "howWorks": {
+        "title": "How Booking Works",
+        "intro": "The booking process in ArenaOne is designed to be simple for players and transparent for club owners. Every booking happens in real-time, with immediate visibility for both parties.",
+        "outro": "This means no double bookings, no confusion, and complete control over your court availability."
+      },
+      "player": {
+        "title": "Player Perspective",
+        "intro": "When a player wants to book a court at your club, they go through a straightforward process:",
+        "step1": "Browse available clubs and view courts",
+        "step2": "Select their preferred date and time",
+        "step3": "See real-time availability instantly",
+        "step4": "Choose a court and confirm the booking",
+        "step5": "Receive immediate confirmation",
+        "note": "Players see availability as you set it. When you block a time slot or mark a court as unavailable, it disappears from their view immediately—no waiting, no sync delays."
+      },
+      "club": {
+        "title": "Club Perspective",
+        "intro": "As a club owner or administrator, you maintain complete visibility and control:",
+        "control1": "See all bookings as they happen, in real-time",
+        "control2": "View upcoming reservations in your dashboard",
+        "control3": "Know exactly which courts are booked and when",
+        "control4": "Create bookings manually if needed (phone reservations, walk-ins)",
+        "control5": "Cancel or modify bookings when necessary",
+        "outro": "Every action is reflected immediately across the entire system—your staff, your dashboard, and the player's view all stay synchronized."
+      },
+      "noDouble": {
+        "title": "No Double Bookings",
+        "intro": "The system prevents double bookings automatically. When a court is booked for a specific time:",
+        "item1": "That slot becomes unavailable to other players instantly",
+        "item2": "No two people can reserve the same court at the same time",
+        "item3": "Your calendar stays accurate without manual intervention",
+        "note": "This happens behind the scenes, so you don't have to worry about conflicts, overlapping reservations, or manual calendar management."
+      },
+      "confirmations": {
+        "title": "Booking Confirmations",
+        "intro": "Both players and your club receive clear confirmation of every booking:",
+        "item1": "Players get instant confirmation after completing their reservation",
+        "item2": "Your dashboard updates immediately",
+        "item3": "All booking details are visible: date, time, court, player information"
+      },
+      "changes": {
+        "title": "Managing Changes and Cancellations",
+        "intro": "Sometimes plans change. When a booking needs to be modified or cancelled:",
+        "item1": "Club admins can cancel or reschedule bookings from the dashboard",
+        "item2": "The court becomes available again immediately after cancellation",
+        "item3": "Changes are visible to everyone in real-time",
+        "warning": "Any changes you make are reflected instantly, so players always see the most current availability."
+      }
+    },
+    "multiClub": {
+      "title": "Multi-Club Management",
+      "metaTitle": "Multi-Club Management - ArenaOne for Clubs Documentation",
+      "metaDescription": "Manage multiple club locations under one organization with centralized control.",
+      "why": {
+        "title": "Why Multi-Club Support Matters",
+        "intro": "Whether you're running one club today or planning to expand, ArenaOne is designed to grow with you. Our multi-club capability is a core strength of the platform, not an add-on.",
+        "outro": "This means you can start with a single location and add more clubs whenever you're ready—without switching systems or rebuilding your setup."
+      },
+      "howWorks": {
+        "title": "How It Works",
+        "intro": "In ArenaOne, you create one organization that can contain multiple clubs. Think of your organization as your company or brand, and each club as a specific location.",
+        "item1": "One organization = your business or brand",
+        "item2": "Multiple clubs = your different locations",
+        "item3": "Each club has its own courts, pricing, and settings",
+        "item4": "All clubs share the same organizational control",
+        "note": "You don't pay extra to set up multiple clubs. Multi-club support is built into the platform from day one."
+      },
+      "centralized": {
+        "title": "Centralized Control",
+        "intro": "As an organization owner or administrator, you have a complete view across all your clubs:",
+        "item1": "See performance and bookings across all locations",
+        "item2": "Set consistent branding and policies",
+        "item3": "Manage staff and assign them to specific clubs",
+        "item4": "Control who has access to what",
+        "item5": "View consolidated reports and analytics",
+        "outro": "Everything stays under one roof—no jumping between different systems or logging in multiple times."
+      },
+      "individual": {
+        "title": "Individual Club Administration",
+        "intro": "While you maintain central oversight, each club can have its own dedicated administrators who manage:",
+        "item1": "Day-to-day operations at their specific location",
+        "item2": "Court schedules and availability",
+        "item3": "Bookings and player interactions",
+        "item4": "Pricing specific to their club (if needed)",
+        "note": "Club administrators only see and manage their own club. They can't access other clubs in your organization, which keeps operations secure and focused."
+      },
+      "whoBenefits": {
+        "title": "Who Benefits from Multi-Club",
+        "intro": "Multi-club support is valuable for different types of businesses:",
+        "type1": {
+          "title": "Single-club owners planning to grow:",
+          "text": "Set up your organization once, then add new locations as you expand without rebuilding your infrastructure."
+        },
+        "type2": {
+          "title": "Existing multi-location businesses:",
+          "text": "Consolidate all your clubs into one unified platform with centralized reporting and control."
+        },
+        "type3": {
+          "title": "Franchises or partnerships:",
+          "text": "Manage different clubs under one brand while giving local teams the autonomy they need."
+        }
+      },
+      "player": {
+        "title": "Player Experience Across Clubs",
+        "intro": "For players, multi-club support means convenience:",
+        "item1": "Browse and book courts at any of your club locations",
+        "item2": "See all your locations on one platform",
+        "item3": "Discover new locations easily",
+        "outro": "This increases visibility for each club and makes it easier for players to stay within your network, even when traveling or exploring new areas."
+      },
+      "gettingStarted": {
+        "title": "Getting Started with Multiple Clubs",
+        "intro": "Adding a new club to your organization is straightforward:",
+        "step1": "Go to your organization dashboard",
+        "step2": "Click to add a new club",
+        "step3": "Set up courts, pricing, and availability",
+        "step4": "Assign administrators if needed",
+        "step5": "Your new club is live",
+        "note": "Each club operates independently for bookings and scheduling, but you maintain full oversight and control from the organization level."
+      }
+    },
+    "rolesAndControl": {
+      "title": "Roles and Access Control",
+      "metaTitle": "Roles and Access Control - ArenaOne for Clubs Documentation",
+      "metaDescription": "Understanding who manages what in your organization and clubs.",
+      "why": {
+        "title": "Why Roles Matter",
+        "intro": "Running a successful club—or multiple clubs—means delegating responsibility without losing control. ArenaOne gives you different levels of access so the right people can do their jobs without interfering with others.",
+        "outro": "Everyone sees only what they're responsible for. This keeps things organized, secure, and efficient."
+      },
+      "orgOwner": {
+        "title": "Organization Owner",
+        "intro": "The Organization Owner is the person who created the organization. This is typically the business owner or founder.",
+        "manage": "What they manage:",
+        "item1": "The entire organization and all its clubs",
+        "item2": "Creating new clubs or closing existing ones",
+        "item3": "Appointing other administrators",
+        "item4": "Organization-wide settings and policies",
+        "item5": "Access to all data and reports across every club",
+        "note": "Think of the Organization Owner as having the master key—they can access everything and make any decision across the organization."
+      },
+      "orgAdmin": {
+        "title": "Organization Admin",
+        "intro": "An Organization Admin is someone you trust to help manage your organization. You can have multiple Organization Admins.",
+        "manage": "What they manage:",
+        "item1": "All clubs within the organization",
+        "item2": "Viewing performance across all locations",
+        "item3": "Helping with organization-level decisions",
+        "item4": "Assigning or managing club administrators",
+        "outro": "Organization Admins are useful if you have business partners, regional managers, or trusted staff who need to oversee operations but shouldn't be limited to a single club.",
+        "note": "Organization Admins can see and manage everything in your organization, similar to the owner—but they don't own the organization itself."
+      },
+      "clubAdmin": {
+        "title": "Club Admin",
+        "intro": "A Club Admin manages one specific club. They focus on the day-to-day operations of their location.",
+        "manage": "What they manage:",
+        "item1": "Bookings and schedules for their club",
+        "item2": "Court availability and pricing (if allowed)",
+        "item3": "Viewing reports for their club only",
+        "item4": "Handling player inquiries and issues",
+        "cannot": "What they cannot see:",
+        "cannot1": "Other clubs in your organization",
+        "cannot2": "Organization-wide settings or data",
+        "cannot3": "Information about other locations",
+        "note": "Club Admins are perfect for on-site managers or staff who need control over their location but shouldn't access other clubs or organization-level settings."
+      },
+      "whyWorks": {
+        "title": "Why This Structure Works",
+        "intro": "This role system gives you flexibility and security:",
+        "item1": {
+          "title": "Clear responsibility:",
+          "text": "Everyone knows what they're in charge of"
+        },
+        "item2": {
+          "title": "No confusion:",
+          "text": "People only see what they need to see"
+        },
+        "item3": {
+          "title": "Easy delegation:",
+          "text": "You can trust others to manage parts of your business"
+        },
+        "item4": {
+          "title": "Secure access:",
+          "text": "Sensitive data stays protected from unnecessary access"
+        }
+      },
+      "assigning": {
+        "title": "Assigning Roles",
+        "intro": "You can assign roles to people as your organization grows:",
+        "item1": "Invite someone and assign them as Organization Admin if they need full access",
+        "item2": "Assign someone as Club Admin if they should only manage a specific club",
+        "item3": "Change roles anytime as responsibilities shift",
+        "item4": "Remove access if someone leaves or their role changes",
+        "warning": "Always assign the minimum level of access someone needs to do their job. This keeps your organization secure and prevents accidental changes to settings they shouldn't touch."
+      },
+      "scenarios": {
+        "title": "Common Scenarios",
+        "single": {
+          "title": "Single club owner:",
+          "text": "You're the Organization Owner. You might assign a Club Admin to your on-site manager so they can handle daily bookings and operations."
+        },
+        "multi": {
+          "title": "Multi-club business:",
+          "text": "You're the Organization Owner. You assign Organization Admins to business partners or regional managers, and Club Admins to each location manager."
+        },
+        "growing": {
+          "title": "Growing from one to multiple clubs:",
+          "text": "Start as the Organization Owner with yourself managing everything. When you open a second club, assign a Club Admin to your first location so you can focus on the new one."
+        }
+      },
+      "takeaway": {
+        "title": "Key Takeaway",
+        "note": "The role system exists to make your life easier—not more complicated. You stay in control while giving trusted people the access they need to help your business succeed."
+      }
+    },
+    "gettingStarted": {
+      "title": "Getting Started",
+      "metaTitle": "Getting Started - ArenaOne for Clubs Documentation",
+      "metaDescription": "Learn how to set up your padel club on ArenaOne and start accepting bookings.",
+      "intro": {
+        "title": "How to Start Using the Platform",
+        "p1": "ArenaOne helps you manage your padel club operations from a single platform. Whether you operate a single club or multiple facilities, getting started is straightforward.",
+        "p2": "This guide walks you through the essential steps to set up your organization, configure your clubs and courts, and open bookings to players."
+      },
+      "onboarding": {
+        "title": "Onboarding Flow",
+        "intro": "Follow these steps to get your club up and running on ArenaOne:",
+        "step1": {
+          "title": "1. Create Your Organization",
+          "p1": "Your organization is the top-level entity that represents your business. All your clubs, courts, and bookings will be managed under this organization.",
+          "item1": "Provide your business name and contact details",
+          "item2": "Set up organization-level settings and preferences",
+          "item3": "Define admin roles and permissions for your team"
+        },
+        "step2": {
+          "title": "2. Add Your First Club",
+          "p1": "Each club represents a physical facility with its own location, courts, and operating hours.",
+          "item1": "Enter the club name and address",
+          "item2": "Add contact information and facility details",
+          "item3": "Configure club-specific settings"
+        },
+        "step3": {
+          "title": "3. Add Courts to Your Club",
+          "p1": "Courts are the bookable resources at your club. Each court can have its own availability and pricing rules.",
+          "item1": "Name each court (e.g., \"Court 1\", \"Center Court\")",
+          "item2": "Specify court type and surface details",
+          "item3": "Set up pricing for different times and days"
+        },
+        "step4": {
+          "title": "4. Set Working Hours",
+          "p1": "Define when your courts are available for bookings. You can set regular hours and handle special dates or holidays.",
+          "item1": "Configure standard operating hours for each day",
+          "item2": "Set special hours for holidays or events",
+          "item3": "Manage seasonal availability changes"
+        },
+        "step5": {
+          "title": "5. Open Bookings",
+          "p1": "Once your courts are configured, you can start accepting bookings from players. The platform handles availability checks, confirmations, and scheduling automatically.",
+          "item1": "Enable online booking for your courts",
+          "item2": "Set booking policies and restrictions",
+          "item3": "Monitor reservations through the admin dashboard"
+        }
+      },
+      "ready": {
+        "title": "Ready to Get Started?",
+        "intro": "If you're ready to start using ArenaOne for your padel club, sign up to get access to the platform and begin setting up your organization.",
+        "getStarted": "Get Started",
+        "signIn": "Sign In",
+        "createOrganization": "Create organization",
+        "requestAccess": "Request access"
+      }
+    },
+    "preview": {
+      "player": {
+        "title": "Player Interactive Showcase",
+        "subtitle": "Explore how the platform works from a player's perspective",
+        "stepTitle": "Quick Booking Flow",
+        "stepDescription": "See how easy it is for players to find and book a court",
+        "step1": {
+          "title": "Browse Available Courts",
+          "description": "Players can view all available courts with real-time availability"
+        },
+        "step2": {
+          "title": "Select Time Slot",
+          "description": "Choose a convenient time from the interactive calendar"
+        },
+        "step3": {
+          "title": "Confirm Booking",
+          "description": "Review details and complete the booking instantly"
+        },
+        "actionButton": "Start Booking Flow",
+        "nextStep": "Next Step",
+        "previousStep": "Previous Step",
+        "viewDetails": "View Details",
+        "tryDemo": "Try Interactive Demo"
+      },
+      "common": {
+        "simulationNote": "This is a demo environment. No real data will be created.",
+        "interactiveFlow": "Interactive Flow",
+        "demoMode": "Demo Mode",
+        "resetDemo": "Reset Demo"
+      }
+    },
+    "preSales": {
+      "index": {
+        "title": "Pre-Sales Documentation",
+        "metaTitle": "Pre-Sales Documentation - ArenaOne",
+        "metaDescription": "Visual documentation for potential padel club owners exploring ArenaOne platform capabilities.",
+        "overview": {
+          "title": "Welcome to ArenaOne Pre-Sales Documentation",
+          "description": "This documentation provides a comprehensive overview of ArenaOne's capabilities for different user roles. Select a role below to explore the relevant features and workflows."
+        },
+        "selectRole": {
+          "title": "Select Your Role",
+          "description": "Choose a role to see the documentation relevant to your responsibilities:"
+        },
+        "roles": {
+          "rootAdmin": {
+            "name": "Root Admin",
+            "description": "Platform-level administrator with full system access and organization management capabilities."
+          },
+          "orgOwner": {
+            "name": "Organization Owner",
+            "description": "Owner of a padel organization who can create clubs and manage organization administrators."
+          },
+          "orgAdmin": {
+            "name": "Organization Admin",
+            "description": "Administrator managing organization settings, clubs, and operational oversight."
+          },
+          "clubOwner": {
+            "name": "Club Owner",
+            "description": "Owner of a padel club with full control over courts, schedules, and bookings."
+          },
+          "clubAdmin": {
+            "name": "Club Admin",
+            "description": "Administrator managing day-to-day club operations, courts, and schedules."
+          },
+          "player": {
+            "name": "Player / Guest",
+            "description": "Players and guests can search for clubs, view court availability, and make bookings."
+          }
+        }
+      },
+      "sidebar": {
+        "overview": "Overview",
+        "breadcrumbs": {
+          "docs": "Documentation",
+          "preSales": "Pre-Sales",
+          "rootadmin": "Root Admin",
+          "orgowner": "Org Owner",
+          "orgadmin": "Org Admin",
+          "clubowner": "Club Owner",
+          "clubadmin": "Club Admin",
+          "player": "Player"
+        },
+        "rootadmin": {
+          "overview": "Overview",
+          "create-organization": "Create Organization",
+          "view-org-admins": "View Org Admins"
+        },
+        "orgowner": {
+          "create-club": "Create Club",
+          "add-org-admin": "Add Org Admin",
+          "access-control": "Access Control"
+        },
+        "orgadmin": {
+          "manage-organization": "Manage Organization",
+          "edit-settings": "Edit Settings",
+          "view-clubs": "View Clubs"
+        },
+        "clubowner": {
+          "crud-courts": "Manage Courts",
+          "working-hours": "Working Hours",
+          "bookings-overview": "Bookings Overview"
+        },
+        "clubadmin": {
+          "edit-club": "Edit Club",
+          "crud-courts": "Manage Courts",
+          "working-hours": "Working Hours",
+          "bookings-overview": "Bookings Overview"
+        },
+        "player": {
+          "overview": "Overview",
+          "quick-booking": "Quick Booking",
+          "calendar": "Calendar",
+          "confirmation": "Confirmation",
+          "flow": "Player Flow"
+        }
+      },
+      "rootAdmin": {
+        "overview": {
+          "title": "Root Admin Overview",
+          "metaTitle": "Root Admin Overview - Pre-Sales Documentation",
+          "metaDescription": "Learn about Root Admin capabilities in ArenaOne platform.",
+          "section1": {
+            "title": "What is a Root Admin?",
+            "content": "Root Admins have the highest level of access in the ArenaOne platform. They can create and manage organizations, oversee all platform operations, and configure system-wide settings."
+          },
+          "callout": {
+            "title": "Key Responsibility",
+            "content": "As a Root Admin, you have full control over the ArenaOne platform, including the ability to create and manage organizations, assign administrators, and oversee system-wide settings."
+          },
+          "subsection": {
+            "title": "Core Capabilities",
+            "features": [
+              "Create and manage multiple organizations",
+              "Assign organization owners and administrators",
+              "Monitor system-wide statistics and usage",
+              "Configure global platform settings",
+              "Access all organization and club data"
+            ]
+          },
+          "note": {
+            "content": "Root Admin access is typically reserved for platform administrators and should be granted with care."
+          },
+          "screenshot": {
+            "alt": "Root Admin Dashboard",
+            "caption": "The Root Admin dashboard provides a comprehensive overview of all organizations and key metrics"
+          },
+          "cta": {
+            "text": "Learn How to Create Organizations",
+            "href": "/docs/pre-sales/root-admin/create-organization"
+          }
+        },
+        "createOrganization": {
+          "title": "Create Organization",
+          "metaTitle": "Create Organization - Root Admin Documentation",
+          "metaDescription": "Step-by-step guide for creating new organizations.",
+          "section1": {
+            "title": "Creating Organizations",
+            "content": "Root Admins can create new organizations to onboard clients onto the ArenaOne platform."
+          },
+          "callout": {
+            "title": "Platform Expansion",
+            "content": "Create organizations to onboard new clients and expand the ArenaOne platform."
+          },
+          "subsection1": {
+            "title": "Creation Process",
+            "steps": [
+              {
+                "title": "Access Organization Management",
+                "description": "Navigate to the organizations section from the Root Admin dashboard"
+              },
+              {
+                "title": "Click Create Organization",
+                "description": "Start the organization creation wizard"
+              },
+              {
+                "title": "Enter Basic Information",
+                "description": "Provide organization name, description, and contact details"
+              },
+              {
+                "title": "Assign Organization Owner",
+                "description": "Designate an Organization Owner who will manage the organization"
+              },
+              {
+                "title": "Configure Initial Settings",
+                "description": "Set up billing, preferences, and access controls"
+              },
+              {
+                "title": "Activate Organization",
+                "description": "Save and activate the new organization"
+              }
+            ]
+          },
+          "screenshot": {
+            "alt": "Create Organization Form",
+            "caption": "Step-by-step organization creation interface"
+          },
+          "note": {
+            "content": "Once created, the Organization Owner can begin adding clubs and managing their organization independently."
+          },
+          "cta": {
+            "text": "Next: View Organization Admins",
+            "href": "/docs/pre-sales/root-admin/view-org-admins"
+          }
+        },
+        "viewOrgAdmins": {
+          "title": "View Org Admins",
+          "metaTitle": "View Org Admins - Root Admin Documentation",
+          "metaDescription": "Monitor and manage organization administrators across the platform.",
+          "section1": {
+            "title": "Monitoring Organization Administrators",
+            "content": "View and manage all organization administrators across the entire platform."
+          },
+          "callout": {
+            "title": "System-Wide Oversight",
+            "content": "Root Admins can view and manage all organization administrators across the entire platform, ensuring proper governance and security."
+          },
+          "subsection1": {
+            "title": "Admin Management Features",
+            "features": [
+              "View all organization owners and admins across the platform",
+              "Monitor admin activity and access patterns",
+              "Review permission assignments and role changes",
+              "Track admin login history and security events",
+              "Disable or remove admin access when necessary",
+              "Generate compliance and audit reports"
+            ]
+          },
+          "screenshot": {
+            "alt": "Organization Admins Dashboard",
+            "caption": "The admin overview showing all organization administrators with their roles and status"
+          },
+          "subsection2": {
+            "title": "Security Monitoring",
+            "features": [
+              "Real-time alerts for suspicious admin activity",
+              "Failed login attempt tracking",
+              "Permission escalation monitoring",
+              "Multi-factor authentication enforcement",
+              "Session management and timeout controls"
+            ]
+          },
+          "note1": {
+            "content": "Root Admin oversight ensures that organization administrators operate within proper boundaries and maintain platform security standards."
+          },
+          "note2": {
+            "content": "Use Root Admin privileges responsibly. All actions are logged and audited for security and compliance purposes."
+          },
+          "cta": {
+            "text": "Back to Root Admin Overview",
+            "href": "/docs/pre-sales/root-admin/overview"
+          }
+        }
+      },
+      "orgOwner": {
+        "createClub": {
+          "title": "Create Club",
+          "metaTitle": "Create Club - Org Owner Documentation",
+          "metaDescription": "Create and configure new clubs in your organization.",
+          "section1": {
+            "title": "Creating a New Club",
+            "content": "Organization Owners can create and configure new clubs to expand their organization's presence."
+          },
+          "callout": {
+            "title": "Organization Owner Privilege",
+            "content": "As an Organization Owner, you can create and manage multiple clubs under your organization."
+          },
+          "subsection1": {
+            "title": "Steps to Create a Club",
+            "items": [
+              "Navigate to your organization dashboard",
+              "Click on 'Create New Club'",
+              "Fill in basic club information (name, description)",
+              "Add club location and contact details",
+              "Configure initial settings and working hours",
+              "Save and publish your club"
+            ]
+          },
+          "subsection2": {
+            "title": "Required Information",
+            "content": "When creating a club, you'll need to provide:",
+            "items": [
+              "Club name and description",
+              "Physical address and location coordinates",
+              "Contact information (phone, email)",
+              "Business hours and operating schedule",
+              "Club administrator assignments"
+            ]
+          },
+          "note": {
+            "content": "Once created, your club will be immediately visible to potential customers on the platform."
+          },
+          "cta": {
+            "text": "Next: Add Organization Administrators",
+            "href": "/docs/pre-sales/org-owner/add-org-admin"
+          }
+        },
+        "addOrgAdmin": {
+          "title": "Add Org Admin",
+          "metaTitle": "Add Org Admin - Org Owner Documentation",
+          "metaDescription": "Add and manage organization administrators.",
+          "section1": {
+            "title": "Adding Organization Administrators",
+            "content": "Delegate administrative responsibilities by adding Organization Admins who can help manage your organization."
+          },
+          "callout": {
+            "title": "Delegate Management",
+            "content": "Organization Owners can add administrators to help manage the organization and its clubs efficiently."
+          },
+          "subsection1": {
+            "title": "Adding an Organization Admin",
+            "steps": [
+              {
+                "title": "Access Admin Management",
+                "description": "Navigate to the administrators section in your organization settings"
+              },
+              {
+                "title": "Invite New Admin",
+                "description": "Click 'Add Administrator' and enter their email address"
+              },
+              {
+                "title": "Set Permissions",
+                "description": "Define what access level and permissions the admin will have"
+              },
+              {
+                "title": "Assign Responsibilities",
+                "description": "Optionally specify which clubs or areas they will oversee"
+              },
+              {
+                "title": "Send Invitation",
+                "description": "The admin receives an email invitation to join the organization"
+              },
+              {
+                "title": "Confirm Activation",
+                "description": "Once they accept, the admin account is activated"
+              }
+            ]
+          },
+          "screenshot": {
+            "alt": "Add Administrator Interface",
+            "caption": "The admin invitation form with permission settings"
+          },
+          "subsection2": {
+            "title": "Admin Permission Levels",
+            "content": "You can grant different levels of access to organization admins based on their role and responsibilities."
+          },
+          "note1": {
+            "content": "Admin permissions can be modified at any time by the Organization Owner."
+          },
+          "note2": {
+            "content": "Organization Admins have significant access. Only invite trusted individuals with appropriate background."
+          },
+          "cta": {
+            "text": "Next: Understanding Access Control",
+            "href": "/docs/pre-sales/org-owner/access-control"
+          }
+        },
+        "accessControl": {
+          "title": "Access Control",
+          "metaTitle": "Access Control - Org Owner Documentation",
+          "metaDescription": "Manage user access and permissions across your organization.",
+          "section1": {
+            "title": "Managing Access Control",
+            "content": "Control who has access to your organization and what they can do with granular permission management."
+          },
+          "callout": {
+            "title": "Granular Permissions",
+            "content": "ArenaOne provides a comprehensive role-based access control system to ensure security and proper authorization across your organization."
+          },
+          "subsection1": {
+            "title": "Role Hierarchy",
+            "items": [
+              "Organization Owner - Full control over the entire organization",
+              "Organization Admin - Manage clubs and settings with owner-defined permissions",
+              "Club Owner - Full control over assigned clubs",
+              "Club Admin - Manage day-to-day operations of assigned clubs",
+              "Player - Book courts and manage personal reservations"
+            ]
+          },
+          "screenshot": {
+            "alt": "Access Control Dashboard",
+            "caption": "The access control panel showing role assignments and permissions"
+          },
+          "subsection2": {
+            "title": "Configurable Permissions",
+            "features": [
+              "Assign roles at organization or club level",
+              "Create custom permission sets for specific needs",
+              "Temporarily grant elevated access for special tasks",
+              "Revoke access instantly when needed",
+              "Track permission changes in audit logs"
+            ]
+          },
+          "subsection3": {
+            "title": "Best Practices",
+            "items": [
+              "Follow principle of least privilege - grant minimum necessary access",
+              "Regularly review and audit user permissions",
+              "Use specific roles rather than blanket admin access",
+              "Remove access immediately when personnel changes occur",
+              "Monitor audit logs for unusual activity"
+            ]
+          },
+          "note": {
+            "content": "Access control changes take effect immediately. Review carefully before applying changes."
+          },
+          "cta": {
+            "text": "Next: Create a New Club",
+            "href": "/docs/pre-sales/org-owner/create-club"
+          }
+        }
+      },
+      "orgAdmin": {
+        "manageOrganization": {
+          "title": "Manage Organization",
+          "metaTitle": "Manage Organization - Org Admin Documentation",
+          "metaDescription": "Manage organization settings and operations.",
+          "section1": {
+            "title": "Organization Management",
+            "content": "Organization Admins oversee organization-wide settings, reporting, and operational management across all clubs."
+          },
+          "callout": {
+            "title": "Organization-Wide Control",
+            "content": "Organization Admins can manage key organizational settings and ensure consistency across all clubs."
+          },
+          "subsection1": {
+            "title": "Administrative Capabilities",
+            "items": [
+              "View and update organization profile information",
+              "Monitor organization-wide statistics",
+              "Access financial reports and summaries",
+              "Review audit logs and system activities",
+              "Manage organization-level integrations",
+              "Configure notification settings"
+            ]
+          },
+          "screenshot": {
+            "alt": "Organization Management Dashboard",
+            "caption": "The organization management interface with settings and analytics"
+          },
+          "subsection2": {
+            "title": "Reporting & Analytics",
+            "items": [
+              "Generate organization-wide performance reports",
+              "Track key business metrics across all clubs",
+              "Export data for external analysis",
+              "Set up automated report delivery",
+              "Create custom dashboards"
+            ]
+          },
+          "note": {
+            "content": "Changes to organization settings may require approval from the Organization Owner depending on permission levels."
+          },
+          "cta": {
+            "text": "Next: Edit Organization Settings",
+            "href": "/docs/pre-sales/org-admin/edit-settings"
+          }
+        },
+        "editSettings": {
+          "title": "Edit Settings",
+          "metaTitle": "Edit Settings - Org Admin Documentation",
+          "metaDescription": "Configure organization settings and preferences.",
+          "section1": {
+            "title": "Organization Settings",
+            "content": "Update organization-level configurations, preferences, and administrative settings."
+          },
+          "callout": {
+            "title": "Centralized Configuration",
+            "content": "Manage organization-wide settings to ensure consistency and compliance across all clubs in your organization."
+          },
+          "subsection1": {
+            "title": "Configurable Settings",
+            "steps": [
+              {
+                "title": "Branding & Identity",
+                "description": "Set organization logo, colors, and branding guidelines for all clubs"
+              },
+              {
+                "title": "Payment Configuration",
+                "description": "Configure payment gateways, commission rates, and billing preferences"
+              },
+              {
+                "title": "Communication Settings",
+                "description": "Set up email templates, notification preferences, and SMS settings"
+              },
+              {
+                "title": "Booking Policies",
+                "description": "Define cancellation policies, refund rules, and booking restrictions"
+              },
+              {
+                "title": "Integration Settings",
+                "description": "Configure third-party integrations and API access"
+              }
+            ]
+          },
+          "screenshot": {
+            "alt": "Settings Configuration Panel",
+            "caption": "The settings panel with various configuration options organized by category"
+          },
+          "subsection2": {
+            "title": "Policy Management",
+            "content": "Establish and enforce organization-wide policies:"
+          },
+          "note1": {
+            "content": "Policy changes will affect all clubs in the organization. Review impact before applying changes."
+          },
+          "note2": {
+            "content": "Some advanced settings may require Organization Owner approval to modify."
+          },
+          "cta": {
+            "text": "Back to Clubs Overview",
+            "href": "/docs/pre-sales/org-admin/view-clubs"
+          }
+        },
+        "viewClubs": {
+          "title": "View Clubs",
+          "metaTitle": "View Clubs - Org Admin Documentation",
+          "metaDescription": "View and monitor all clubs in your organization.",
+          "section1": {
+            "title": "Club Overview",
+            "content": "Access a comprehensive view of all clubs within your organization, including performance metrics and status information."
+          },
+          "callout": {
+            "title": "Multi-Club Oversight",
+            "content": "Organization Admins can view and monitor all clubs within their organization from a single dashboard."
+          },
+          "subsection1": {
+            "title": "Club Management Features",
+            "features": [
+              "View all clubs in your organization",
+              "Monitor club performance metrics",
+              "Access club-level booking data",
+              "Review customer feedback and ratings",
+              "Track revenue across all clubs",
+              "Identify high-performing and underperforming locations"
+            ]
+          },
+          "screenshot": {
+            "alt": "Clubs Overview Dashboard",
+            "caption": "The clubs dashboard showing all locations with key performance indicators"
+          },
+          "subsection2": {
+            "title": "Club Analytics",
+            "features": [
+              "Compare performance across multiple clubs",
+              "Aggregate booking statistics",
+              "Revenue trends and forecasts",
+              "Court utilization rates by location",
+              "Customer acquisition and retention metrics"
+            ]
+          },
+          "note": {
+            "content": "Organization Admins have read access to all clubs but cannot modify individual club settings without proper permissions."
+          },
+          "cta": {
+            "text": "Next: Manage Organization Settings",
+            "href": "/docs/pre-sales/org-admin/manage-organization"
+          }
+        }
+      },
+      "clubOwner": {
+        "crudCourts": {
+          "title": "Manage Courts",
+          "metaTitle": "Manage Courts - Club Owner Documentation",
+          "metaDescription": "Add, edit, and manage your club's courts as a club owner.",
+          "section1": {
+            "title": "Court Management",
+            "content": "As a Club Owner, you have complete control over your club's court infrastructure, including adding, modifying, and removing courts as your business grows."
+          },
+          "subsection1": {
+            "title": "Adding a New Court",
+            "items": [
+              "Navigate to the Courts management section",
+              "Click the 'Add Court' button",
+              "Enter court details (name, surface type, indoor/outdoor)",
+              "Configure court availability settings",
+              "Save the new court configuration"
+            ]
+          },
+          "screenshot1": {
+            "alt": "Add Court Form",
+            "caption": "The court creation form allows you to specify all court details"
+          },
+          "subsection2": {
+            "title": "Editing Court Details",
+            "content": "You can modify court information at any time. Changes are immediately reflected in the booking system."
+          },
+          "note1": {
+            "content": "Modifying court availability may affect existing bookings. Review active reservations before making significant changes."
+          },
+          "subsection3": {
+            "title": "Removing Courts",
+            "content": "Courts can be deactivated or permanently removed from your club."
+          },
+          "note2": {
+            "content": "We recommend deactivating courts rather than deleting them to preserve historical booking data."
+          },
+          "cta": {
+            "text": "Next: Configure Working Hours",
+            "href": "/docs/pre-sales/club-owner/working-hours"
+          }
+        },
+        "workingHours": {
+          "title": "Working Hours",
+          "metaTitle": "Working Hours - Club Owner Documentation",
+          "metaDescription": "Configure advanced scheduling features for your club.",
+          "section1": {
+            "title": "Advanced Scheduling",
+            "content": "Club Owners have access to advanced scheduling features including seasonal hours, dynamic pricing, and bulk schedule management."
+          },
+          "callout": {
+            "title": "Advanced Scheduling",
+            "content": "Club Owners have access to advanced scheduling features including seasonal hours, dynamic pricing, and bulk schedule management."
+          },
+          "subsection1": {
+            "title": "Seasonal Schedules",
+            "steps": [
+              {
+                "title": "Create Season Templates",
+                "description": "Define different schedules for summer, winter, or other periods"
+              },
+              {
+                "title": "Set Date Ranges",
+                "description": "Specify when each seasonal schedule is active"
+              },
+              {
+                "title": "Configure Hours",
+                "description": "Set appropriate operating hours for each season"
+              },
+              {
+                "title": "Apply to Courts",
+                "description": "Choose which courts use which seasonal schedules"
+              },
+              {
+                "title": "Review and Activate",
+                "description": "Confirm and activate seasonal schedules"
+              }
+            ]
+          },
+          "screenshot": {
+            "alt": "Seasonal Schedule Configuration",
+            "caption": "The seasonal schedule editor with calendar view and time slots"
+          },
+          "subsection2": {
+            "title": "Dynamic Pricing by Time",
+            "content": "Set different pricing rates for peak and off-peak hours to maximize revenue and manage demand."
+          },
+          "note1": {
+            "content": "Dynamic pricing automatically adjusts based on time of day and day of week."
+          },
+          "note2": {
+            "content": "Strategic use of seasonal schedules and dynamic pricing can increase revenue by up to 30%."
+          },
+          "cta": {
+            "text": "Back to Bookings Overview",
+            "href": "/docs/pre-sales/club-owner/bookings-overview"
+          }
+        },
+        "bookingsOverview": {
+          "title": "Bookings Overview",
+          "metaTitle": "Bookings Overview - Club Owner Documentation",
+          "metaDescription": "Monitor and manage all club bookings with advanced analytics.",
+          "section1": {
+            "title": "Bookings Management",
+            "content": "Track all reservations and manage your club's booking operations from a centralized dashboard with enhanced analytics."
+          },
+          "callout": {
+            "title": "Business Intelligence",
+            "content": "As a Club Owner, you get enhanced analytics and reporting capabilities to optimize your business operations."
+          },
+          "subsection1": {
+            "title": "Advanced Features",
+            "features": [
+              "Revenue analytics and trend reports",
+              "Court utilization and occupancy metrics",
+              "Peak hours and demand analysis",
+              "Customer behavior and booking patterns",
+              "Comparative performance across time periods",
+              "Export detailed reports for accounting"
+            ]
+          },
+          "screenshot": {
+            "alt": "Club Owner Analytics Dashboard",
+            "caption": "The analytics dashboard with revenue graphs and utilization metrics"
+          },
+          "subsection2": {
+            "title": "Financial Overview",
+            "features": [
+              "Daily, weekly, and monthly revenue summaries",
+              "Payment method breakdowns",
+              "Refund and cancellation tracking",
+              "Projected revenue based on confirmed bookings",
+              "Commission and fee calculations"
+            ]
+          },
+          "note": {
+            "content": "Use these insights to optimize pricing, identify peak demand periods, and maximize revenue."
+          },
+          "cta": {
+            "text": "Next: Manage Courts",
+            "href": "/docs/pre-sales/club-owner/crud-courts"
+          }
+        }
+      },
+      "clubAdmin": {
+        "editClub": {
+          "title": "Edit Club",
+          "metaTitle": "Edit Club - Club Admin Documentation",
+          "metaDescription": "Manage and update your club information and settings.",
+          "section1": {
+            "title": "Editing Club Information",
+            "content": "As a Club Admin, you have the ability to update your club's information, settings, and media to ensure customers have accurate and up-to-date details."
+          },
+          "callout": {
+            "title": "Keep Information Current",
+            "content": "Regularly update your club information to ensure customers have accurate details about your facility."
+          },
+          "subsection1": {
+            "title": "Editable Club Information",
+            "items": [
+              "Club name and description",
+              "Contact information (phone, email, website)",
+              "Physical address and location coordinates",
+              "Amenities and facilities available",
+              "Photos and promotional images",
+              "Social media links",
+              "Payment and cancellation policies"
+            ]
+          },
+          "screenshot": {
+            "alt": "Club Edit Form",
+            "caption": "The club editing interface with all fields and options"
+          },
+          "subsection2": {
+            "title": "Managing Club Media",
+            "content": "Upload and manage photos to showcase your facilities:",
+            "items": [
+              "Add high-quality photos of courts and amenities",
+              "Set a primary club image for listings",
+              "Organize images in a gallery",
+              "Remove outdated or low-quality images"
+            ]
+          },
+          "note1": {
+            "content": "Changes to club information are visible immediately to customers browsing the platform."
+          },
+          "note2": {
+            "content": "Complete and attractive club profiles receive more bookings from customers."
+          },
+          "cta": {
+            "text": "Back to Bookings Overview",
+            "href": "/docs/pre-sales/club-admin/bookings-overview"
+          }
+        },
+        "crudCourts": {
+          "title": "Manage Courts",
+          "metaTitle": "Manage Courts - Club Admin Documentation",
+          "metaDescription": "Add, edit, and manage your club's courts.",
+          "section1": {
+            "title": "Court Management",
+            "content": "As a Club Admin, you have full control over your club's courts, including adding, editing, and managing court availability."
+          },
+          "callout": {
+            "title": "Court Management",
+            "content": "As a Club Admin, you have full control over your club's courts, including adding, editing, and managing court availability."
+          },
+          "subsection1": {
+            "title": "Adding a New Court",
+            "steps": [
+              {
+                "title": "Navigate to Courts Section",
+                "description": "Access the court management area from your admin dashboard"
+              },
+              {
+                "title": "Click Add Court",
+                "description": "Start the court creation process"
+              },
+              {
+                "title": "Enter Court Details",
+                "description": "Provide court name, surface type (clay, hard, grass), and indoor/outdoor designation"
+              },
+              {
+                "title": "Set Pricing",
+                "description": "Configure hourly rates and any time-based pricing variations"
+              },
+              {
+                "title": "Configure Availability",
+                "description": "Set default availability hours for the court"
+              },
+              {
+                "title": "Save and Activate",
+                "description": "Save the court and make it available for bookings"
+              }
+            ]
+          },
+          "screenshot1": {
+            "alt": "Add Court Form",
+            "caption": "The court creation form with all configuration options"
+          },
+          "subsection2": {
+            "title": "Editing Existing Courts",
+            "content": "You can modify court details at any time, including:"
+          },
+          "note1": {
+            "content": "Changes to court details are reflected immediately in the booking system."
+          },
+          "subsection3": {
+            "title": "Court Status Management",
+            "content": "Courts can be temporarily disabled for maintenance or permanently removed if no longer in service."
+          },
+          "note2": {
+            "content": "Deactivating a court with existing bookings will require you to handle those reservations manually."
+          },
+          "cta": {
+            "text": "Next: Configure Working Hours",
+            "href": "/docs/pre-sales/club-admin/working-hours"
+          }
+        },
+        "workingHours": {
+          "title": "Working Hours",
+          "metaTitle": "Working Hours - Club Admin Documentation",
+          "metaDescription": "Configure your club's operating hours and schedules.",
+          "section1": {
+            "title": "Setting Working Hours",
+            "content": "Configure your club's operating hours to manage when courts are available for booking. Set different schedules for each day and handle special dates."
+          },
+          "callout": {
+            "title": "Flexible Scheduling",
+            "content": "Configure your club's operating hours to match your business needs, with support for different schedules per day and special dates."
+          },
+          "subsection1": {
+            "title": "Setting Regular Working Hours",
+            "steps": [
+              {
+                "title": "Access Working Hours Settings",
+                "description": "Navigate to the working hours configuration from your club settings"
+              },
+              {
+                "title": "Set Daily Schedule",
+                "description": "Configure opening and closing times for each day of the week"
+              },
+              {
+                "title": "Define Time Slots",
+                "description": "Set booking slot duration (e.g., 60 minutes, 90 minutes)"
+              },
+              {
+                "title": "Configure Breaks",
+                "description": "Add lunch breaks or maintenance windows if needed"
+              },
+              {
+                "title": "Save Schedule",
+                "description": "Apply the schedule to make it active"
+              }
+            ]
+          },
+          "screenshot": {
+            "alt": "Working Hours Configuration",
+            "caption": "The working hours interface with weekly schedule editor"
+          },
+          "subsection2": {
+            "title": "Special Dates & Exceptions",
+            "content": "You can set special hours for holidays, events, or maintenance days."
+          },
+          "note1": {
+            "content": "Special date configurations override regular working hours for specific dates."
+          },
+          "note2": {
+            "content": "Changing working hours will affect court availability. Existing bookings outside new hours will need to be addressed."
+          },
+          "cta": {
+            "text": "Next: Edit Club Information",
+            "href": "/docs/pre-sales/club-admin/edit-club"
+          }
+        },
+        "bookingsOverview": {
+          "title": "Bookings Overview",
+          "metaTitle": "Bookings Overview - Club Admin Documentation",
+          "metaDescription": "View and manage all club bookings.",
+          "section1": {
+            "title": "Managing Bookings",
+            "content": "The Bookings Overview dashboard provides a comprehensive view of all reservations, helping you efficiently manage your club's operations."
+          },
+          "callout": {
+            "title": "Real-Time Management",
+            "content": "The Bookings Overview dashboard gives you a complete view of all reservations, helping you manage your club efficiently."
+          },
+          "subsection1": {
+            "title": "Dashboard Capabilities",
+            "features": [
+              "View all bookings in a unified calendar view",
+              "Filter by court, date range, or booking status",
+              "See real-time availability across all courts",
+              "Track booking revenue and occupancy rates",
+              "Manage customer reservations and special requests",
+              "Handle cancellations and modifications"
+            ]
+          },
+          "screenshot": {
+            "alt": "Bookings Dashboard",
+            "caption": "The bookings dashboard displays all reservations with filtering and search options"
+          },
+          "subsection2": {
+            "title": "Booking Management Actions",
+            "content": "As a Club Admin, you can:",
+            "features": [
+              "Create manual bookings for walk-in customers",
+              "Modify existing reservations",
+              "Process refunds and cancellations",
+              "Block time slots for maintenance or events",
+              "Export booking data for reporting"
+            ]
+          },
+          "note": {
+            "content": "All booking changes are logged and customers receive automatic notifications about any modifications."
+          },
+          "cta": {
+            "text": "Next: Manage Courts",
+            "href": "/docs/pre-sales/club-admin/crud-courts"
+          }
+        }
+      },
+      "player": {
+        "overview": {
+          "title": "Player Overview",
+          "metaTitle": "Player Overview - Pre-Sales Documentation",
+          "metaDescription": "Learn about player capabilities in ArenaOne platform.",
+          "section1": {
+            "title": "What is a Player?",
+            "content": "Players and guests can search for padel clubs, view court availability, make bookings, and manage their reservations through an intuitive interface."
+          },
+          "flows": {
+            "title": "Player Flows",
+            "description": "Explore the key player experience flows:",
+            "quickBooking": {
+              "name": "Quick Booking",
+              "description": "Search for clubs and select courts for immediate booking."
+            },
+            "calendar": {
+              "name": "Calendar",
+              "description": "View court availability across different clubs and time slots."
+            },
+            "confirmation": {
+              "name": "Booking Confirmation",
+              "description": "Review and confirm booking details before finalizing the reservation."
+            },
+            "flow": {
+              "name": "Complete Player Flow",
+              "description": "Step-by-step guide through the complete player booking journey."
+            }
+          }
+        },
+        "quickBooking": {
+          "title": "Quick Booking",
+          "metaTitle": "Quick Booking - Player Documentation",
+          "metaDescription": "Search for clubs and book courts quickly and easily.",
+          "section1": {
+            "title": "Quick Booking Flow",
+            "content": "Players can quickly search for available clubs, browse court options, select their preferred time slot, and proceed to booking confirmation—all in a streamlined, user-friendly interface."
+          },
+          "callout": {
+            "title": "Fast & Simple",
+            "content": "Quick Booking allows you to reserve a court in just a few clicks. Perfect for spontaneous games or last-minute bookings."
+          },
+          "steps": {
+            "step1": {
+              "title": "Select a Club",
+              "description": "Browse available clubs in your area or search for a specific venue"
+            },
+            "step2": {
+              "title": "Choose Date & Time",
+              "description": "Pick your preferred date and see real-time court availability"
+            },
+            "step3": {
+              "title": "Select a Court",
+              "description": "View available courts with details like surface type and pricing"
+            },
+            "step4": {
+              "title": "Confirm Booking",
+              "description": "Review your selection and complete the reservation"
+            },
+            "step5": {
+              "title": "Receive Confirmation",
+              "description": "Get instant confirmation via email and in-app notification"
+            }
+          },
+          "screenshot": {
+            "alt": "Quick Booking Interface",
+            "caption": "The quick booking interface shows real-time availability and court details"
+          },
+          "note": {
+            "content": "Your booking is confirmed instantly and the court is reserved exclusively for you during the selected time slot."
+          },
+          "cta": {
+            "text": "Next: View Your Bookings in Calendar",
+            "href": "/docs/pre-sales/player/calendar"
+          }
+        },
+        "calendar": {
+          "title": "Calendar",
+          "metaTitle": "Calendar - Player Documentation",
+          "metaDescription": "View court availability and schedules.",
+          "section1": {
+            "title": "Court Availability Calendar",
+            "content": "The calendar view allows players to see court availability across different days and times, making it easy to find the perfect slot for their game."
+          },
+          "callout": {
+            "title": "Stay Organized",
+            "content": "Your personal booking calendar keeps all your reservations in one place, making it easy to manage your playing schedule."
+          },
+          "subsection": {
+            "title": "Calendar Features",
+            "features": [
+              "View all upcoming and past bookings",
+              "Filter by club or date range",
+              "Receive reminders before your booking time",
+              "Quick access to booking details and directions",
+              "Easy cancellation and modification options"
+            ]
+          },
+          "screenshot": {
+            "alt": "Player Calendar View",
+            "caption": "The calendar view displays all your bookings with color-coded status indicators"
+          },
+          "note": {
+            "content": "You can sync your ArenaOne calendar with your personal calendar app to get reminders on all your devices."
+          },
+          "cta": {
+            "text": "Next: Understanding Booking Confirmations",
+            "href": "/docs/pre-sales/player/confirmation"
+          }
+        },
+        "confirmation": {
+          "title": "Booking Confirmation",
+          "metaTitle": "Booking Confirmation - Player Documentation",
+          "metaDescription": "Confirm and finalize your court booking.",
+          "section1": {
+            "title": "Confirming Your Booking",
+            "content": "Players can review all booking details—court, time, price, and club information—before confirming their reservation. Once confirmed, they receive a booking confirmation with all necessary details."
+          },
+          "callout": {
+            "title": "Instant Confirmation",
+            "content": "Every booking is confirmed instantly. You'll receive immediate confirmation with all the details you need."
+          },
+          "subsection1": {
+            "title": "What's Included in Your Confirmation",
+            "items": [
+              "Booking reference number for easy tracking",
+              "Club name, address, and contact information",
+              "Court details and surface type",
+              "Date, time, and duration of your reservation",
+              "Total cost and payment confirmation",
+              "Directions and parking information"
+            ]
+          },
+          "screenshot": {
+            "alt": "Booking Confirmation",
+            "caption": "Your confirmation screen shows all booking details and options to modify or cancel"
+          },
+          "subsection2": {
+            "title": "Managing Your Booking",
+            "content": "From the confirmation page, you can:",
+            "items": [
+              "Add the booking to your calendar",
+              "Share booking details with friends",
+              "Get directions to the club",
+              "Modify your booking (subject to availability)",
+              "Cancel if your plans change"
+            ]
+          },
+          "note": {
+            "content": "You'll receive a reminder notification 24 hours and 1 hour before your booking time."
+          },
+          "cta": {
+            "text": "Back to Player Overview",
+            "href": "/docs/pre-sales/player/overview"
+          }
+        },
+        "flow": {
+          "title": "Player Flow",
+          "metaTitle": "Player Flow - Player Documentation",
+          "metaDescription": "Complete guide to the player booking experience.",
+          "intro": {
+            "title": "Player Booking Journey",
+            "content": "Discover clubs, view availability, authenticate, and complete your booking in a seamless flow."
+          },
+          "step1": {
+            "title": "1️⃣ Discover Clubs",
+            "description": "Browse and search for padel clubs in your area.",
+            "screenshot": {
+              "alt": "Clubs discovery page",
+              "caption": "Browse available clubs"
+            }
+          },
+          "step2": {
+            "title": "2️⃣ Club Details",
+            "description": "View club information, courts, facilities, and amenities.",
+            "screenshot": {
+              "alt": "Club details page",
+              "caption": "Detailed club overview"
+            }
+          },
+          "step3": {
+            "title": "3️⃣ Availability & Calendar Booking",
+            "description": "Check court availability and select your preferred time slot.",
+            "screenshot": {
+              "alt": "Calendar booking view",
+              "caption": "Select date and time for your booking"
+            }
+          },
+          "step4": {
+            "title": "4️⃣ Authentication Required (Auth Gate)",
+            "description": "Sign in or register to continue with your booking.",
+            "screenshot": {
+              "alt": "Login required modal",
+              "caption": "Authentication gate modal"
+            }
+          },
+          "step5": {
+            "title": "5️⃣ Login / Register",
+            "description": "Create an account or sign in with email or Google.",
+            "screenshot": {
+              "alt": "Login page",
+              "caption": "Sign in or register"
+            },
+            "note": "Quick sign-in with email or Google authentication."
+          },
+          "step6": {
+            "title": "6️⃣ Booking Success",
+            "description": "Receive confirmation and booking details.",
+            "screenshot": {
+              "alt": "Booking confirmation",
+              "caption": "Successful booking confirmation"
+            }
+          },
+          "quickBooking": {
+            "title": "⚡ Quick Booking",
+            "callout": {
+              "title": "Fast Track Booking",
+              "content": "Quick booking allows you to reserve a court in just 4 simple steps."
+            },
+            "step1": {
+              "title": "Date & Time",
+              "description": "Select your preferred date and time for the booking.",
+              "screenshot": {
+                "alt": "Quick booking date and time selection",
+                "caption": "Choose date and time"
+              }
+            },
+            "step2": {
+              "title": "Court Selection",
+              "description": "Choose from available courts based on your preferences.",
+              "screenshot": {
+                "alt": "Quick booking court selection",
+                "caption": "Select your preferred court"
+              }
+            },
+            "step3": {
+              "title": "Payment",
+              "description": "Complete payment for your booking.",
+              "screenshot": {
+                "alt": "Quick booking payment",
+                "caption": "Secure payment processing"
+              }
+            },
+            "step4": {
+              "title": "Success",
+              "description": "Your booking is confirmed and ready!",
+              "screenshot": {
+                "alt": "Quick booking success",
+                "caption": "Booking confirmed successfully"
+              }
+            }
+          },
+          "account": {
+            "title": "👤 Player Account",
+            "description": "View and manage all your upcoming and past bookings in one place.",
+            "screenshot": {
+              "alt": "Player account bookings list",
+              "caption": "Manage your bookings"
+            }
+          }
+        }
+      }
     }
   }
 }

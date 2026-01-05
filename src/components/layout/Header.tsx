@@ -281,6 +281,9 @@ export default function Header({ showSearch = false, hideProfile = false }: Head
                 />
               ) : (
                 <div className="im-header-auth-links">
+                  <IMLink href="/docs/for-clubs/overview" className="im-header-auth-link">
+                    {t("footer.forClubOwners")}
+                  </IMLink>
                   <IMLink href="/auth/sign-in" className="im-header-auth-link">
                     {t("common.signIn")}
                   </IMLink>

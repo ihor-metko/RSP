@@ -14,13 +14,17 @@ interface AuthRequest extends NextRequest {
 }
 
 /**
- * Middleware to redirect ALL admin users from the landing page to admin dashboard.
+ * Middleware to redirect admin users from public-facing pages.
  * 
  * Uses centralized role-checking utilities from @/utils/roleRedirect which follow
  * the unified authorization model.
  *
- * - Unauthenticated users: See public landing page
- * - Regular users (non-admin): See public landing page
+ * Protected routes:
+ * - "/" (landing page): Admins redirected to their dashboard
+ * - "/docs/for-clubs/**" (public documentation): Admins redirected to their dashboard
+ *
+ * - Unauthenticated users: See public content
+ * - Regular users (non-admin): See public content
  * - Root admin users (isRoot=true): Redirected to /admin/dashboard
  * - Organization admins: Redirected to /admin/dashboard
  * - Club admins: Redirected to /admin/dashboard
@@ -29,8 +33,11 @@ export default auth(async (req: AuthRequest) => {
   try {
     const { pathname } = req.nextUrl;
 
-    // Only apply to root path
-    if (pathname !== "/") {
+    // Apply to root path and public documentation
+    const isRootPath = pathname === "/";
+    const isDocsPath = pathname.startsWith("/docs/for-clubs");
+    
+    if (!isRootPath && !isDocsPath) {
       return NextResponse.next();
     }
 
@@ -54,7 +61,7 @@ export default auth(async (req: AuthRequest) => {
       return NextResponse.redirect(redirectUrl);
     }
 
-    // Non-admin authenticated users see the landing page
+    // Non-admin authenticated users see the public content
     return NextResponse.next();
   } catch (error) {
     // On error, default to allowing access (don't block public access)
@@ -64,9 +71,11 @@ export default auth(async (req: AuthRequest) => {
 });
 
 /**
- * Matcher configuration - only run middleware on root path
+ * Matcher configuration - run middleware on:
+ * - Root path "/"
+ * - Public documentation "/docs/for-clubs/:path*"
  * This prevents unnecessary processing for other routes
  */
 export const config = {
-  matcher: ["/"],
+  matcher: ["/", "/docs/for-clubs/:path*"],
 };

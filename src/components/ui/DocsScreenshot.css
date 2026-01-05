@@ -1,0 +1,40 @@
+@reference "tailwindcss";
+
+/* DocsScreenshot Component Styles */
+.im-docs-screenshot {
+  @apply my-6;
+}
+
+.im-docs-screenshot-container {
+  @apply rounded-lg overflow-hidden;
+  border: 1px solid var(--im-border);
+  background-color: var(--im-surface);
+}
+
+.im-docs-screenshot-image {
+  @apply w-full h-auto block;
+  max-height: 600px;
+  object-fit: contain;
+}
+
+.im-docs-screenshot-placeholder {
+  @apply flex flex-col items-center justify-center gap-3 py-16 px-8;
+  background-color: var(--im-bg-secondary);
+  min-height: 300px;
+}
+
+.im-docs-screenshot-placeholder-icon {
+  @apply text-5xl;
+  opacity: 0.3;
+}
+
+.im-docs-screenshot-placeholder-text {
+  @apply text-base text-center;
+  color: var(--im-text-secondary);
+  opacity: 0.6;
+}
+
+.im-docs-screenshot-caption {
+  @apply mt-3 text-sm text-center italic;
+  color: var(--im-text-secondary);
+}
