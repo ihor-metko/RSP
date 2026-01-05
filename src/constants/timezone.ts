@@ -55,7 +55,11 @@ export function getClubTimezone(clubTimezone: string | null | undefined): string
   
   // Validate the timezone
   if (!isValidIANATimezone(clubTimezone)) {
-    console.warn(`Invalid club timezone: ${clubTimezone}, falling back to default: ${DEFAULT_CLUB_TIMEZONE}`);
+    // Note: In production, consider using a proper logging service
+    // to avoid log pollution from malicious requests
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`Invalid club timezone: ${clubTimezone}, falling back to default: ${DEFAULT_CLUB_TIMEZONE}`);
+    }
     return DEFAULT_CLUB_TIMEZONE;
   }
   

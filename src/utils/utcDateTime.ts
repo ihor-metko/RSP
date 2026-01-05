@@ -45,8 +45,8 @@ export function isValidUTCString(dateString: string): boolean {
   // Verify the ISO string round-trips correctly
   // This catches edge cases like "2026-13-45T10:00:00Z"
   return date.toISOString() === dateString || 
-         // Also accept strings without milliseconds
-         date.toISOString().replace(/\.\d{3}/, '') === dateString;
+         // Also accept strings without milliseconds at the end
+         date.toISOString().replace(/\.\d{3}Z$/, 'Z') === dateString;
 }
 
 /**

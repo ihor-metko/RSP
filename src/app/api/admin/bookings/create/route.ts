@@ -147,15 +147,16 @@ export async function POST(request: Request) {
     }
 
     // Check for conflicting bookings using UTC-based overlap detection
+    // This checks if any existing booking overlaps with the requested new booking time slot
     const conflictingBooking = await prisma.booking.findFirst({
       where: {
         courtId,
         status: {
           in: ["pending", "paid", "reserved"],
         },
-        // Use Prisma's date comparison operators with UTC dates
-        start: { lt: end },
-        end: { gt: start },
+        // Overlap logic: existing booking starts before new booking ends AND ends after new booking starts
+        start: { lt: end },   // Existing booking starts before new booking ends
+        end: { gt: start },   // Existing booking ends after new booking starts
       },
     });
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
 import type { CourtFormat } from "@/types/court";
-import { createUTCDate, addMinutesUTC, doUTCRangesOverlap } from "@/utils/utcDateTime";
+import { createUTCDate, addMinutesUTC, doUTCRangesOverlap, getUTCDayBounds } from "@/utils/utcDateTime";
 
 // Business hours configuration (aligned with frontend types.ts)
 const BUSINESS_START_HOUR = 8;
@@ -214,11 +214,7 @@ export async function GET(
     }
 
     // Get all bookings for the club's courts on the specified date (UTC-based day boundaries)
-    const dayStart = createUTCDate(dateParam, "00:00");
-    const dayEnd = createUTCDate(dateParam, "23:59");
-    // Extend by 1 minute to include the last second of the day
-    dayEnd.setSeconds(59);
-    dayEnd.setMilliseconds(999);
+    const { startOfDay: dayStart, endOfDay: dayEnd } = getUTCDayBounds(dateParam);
 
     const bookings = await prisma.booking.findMany({
       where: {

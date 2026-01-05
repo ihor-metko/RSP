@@ -53,6 +53,10 @@ describe("Timezone Constants", () => {
     });
 
     it("should return default for invalid timezone", () => {
+      // Set NODE_ENV to development to enable logging
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+      
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       
       expect(getClubTimezone("Invalid/Timezone")).toBe(DEFAULT_CLUB_TIMEZONE);
@@ -61,15 +65,21 @@ describe("Timezone Constants", () => {
       );
       
       consoleWarnSpy.mockRestore();
+      process.env.NODE_ENV = originalEnv;
     });
 
     it("should return default for offset-based timezones", () => {
+      // Set NODE_ENV to development to enable logging
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'development';
+      
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       
       expect(getClubTimezone("UTC+2")).toBe(DEFAULT_CLUB_TIMEZONE);
       expect(getClubTimezone("GMT+2")).toBe(DEFAULT_CLUB_TIMEZONE);
       
       consoleWarnSpy.mockRestore();
+      process.env.NODE_ENV = originalEnv;
     });
   });
 });

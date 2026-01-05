@@ -5,7 +5,7 @@ import {
   getDatesFromStart,
   getWeekMonday,
 } from "@/utils/dateTime";
-import { createUTCDate, addMinutesUTC, doUTCRangesOverlap } from "@/utils/utcDateTime";
+import { createUTCDate, addMinutesUTC, doUTCRangesOverlap, getUTCDayBounds } from "@/utils/utcDateTime";
 
 // Business hours configuration
 const BUSINESS_START_HOUR = 8;
@@ -152,10 +152,8 @@ export async function GET(
     endDate.setDate(startDate.getDate() + numDays - 1);
 
     // Get all confirmed bookings for the period (UTC-based)
-    const periodStartUtc = createUTCDate(datesToShow[0], "00:00");
-    const periodEndUtc = createUTCDate(datesToShow[datesToShow.length - 1], "23:59");
-    periodEndUtc.setSeconds(59);
-    periodEndUtc.setMilliseconds(999);
+    const { startOfDay: periodStartUtc } = getUTCDayBounds(datesToShow[0]);
+    const { endOfDay: periodEndUtc } = getUTCDayBounds(datesToShow[datesToShow.length - 1]);
 
     const confirmedBookings = await prisma.booking.findMany({
       where: {
