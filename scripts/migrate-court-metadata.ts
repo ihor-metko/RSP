@@ -57,20 +57,25 @@ async function migrateCourtMetadata() {
         // Prepare updates
         const updates: {
           courtFormat?: 'SINGLE' | 'DOUBLE';
-          bannerData?: string;
+          bannerData?: BannerData;
           description?: string;
         } = {};
 
         // 1. Handle courtFormat (from padelCourtFormat)
         if (metadata.padelCourtFormat) {
-          updates.courtFormat = metadata.padelCourtFormat.toUpperCase() as 'SINGLE' | 'DOUBLE';
-          console.log(`  - Court "${court.name}": Setting courtFormat to ${updates.courtFormat}`);
+          const upperFormat = metadata.padelCourtFormat.toUpperCase();
+          if (upperFormat === 'SINGLE' || upperFormat === 'DOUBLE') {
+            updates.courtFormat = upperFormat;
+            console.log(`  - Court "${court.name}": Setting courtFormat to ${updates.courtFormat}`);
+          } else {
+            console.warn(`  - Court "${court.name}": Invalid format '${metadata.padelCourtFormat}', skipping`);
+          }
         }
 
         // 2. Handle bannerAlignment - merge into bannerData
         if (metadata.bannerAlignment) {
           existingBannerData.bannerAlignment = metadata.bannerAlignment;
-          updates.bannerData = JSON.stringify(existingBannerData);
+          updates.bannerData = existingBannerData;
           console.log(`  - Court "${court.name}": Moving bannerAlignment (${metadata.bannerAlignment}) to bannerData`);
         }
 
@@ -82,25 +87,23 @@ async function migrateCourtMetadata() {
 
         // Only update if there are changes
         if (Object.keys(updates).length > 0) {
-          await prisma.$executeRaw`
-            UPDATE "Court"
-            SET 
-              ${updates.courtFormat ? prisma.$queryRaw`"courtFormat" = ${updates.courtFormat}::text::"CourtFormat",` : prisma.$queryRaw``}
-              ${updates.bannerData ? prisma.$queryRaw`"bannerData" = ${updates.bannerData},` : prisma.$queryRaw``}
-              ${updates.description ? prisma.$queryRaw`description = ${updates.description},` : prisma.$queryRaw``}
-              metadata = NULL
-            WHERE id = ${court.id}
-          `;
+          await prisma.court.update({
+            where: { id: court.id },
+            data: {
+              ...updates,
+              ...(updates.bannerData && { bannerData: JSON.stringify(updates.bannerData) }),
+              metadata: null, // Clear metadata
+            },
+          });
           
           migrated++;
           console.log(`  ✓ Court "${court.name}" migrated successfully\n`);
         } else {
           // Just clear metadata if no meaningful data
-          await prisma.$executeRaw`
-            UPDATE "Court"
-            SET metadata = NULL
-            WHERE id = ${court.id}
-          `;
+          await prisma.court.update({
+            where: { id: court.id },
+            data: { metadata: null },
+          });
           skipped++;
           console.log(`  - Court "${court.name}": No data to migrate, cleared metadata\n`);
         }

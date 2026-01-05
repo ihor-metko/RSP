@@ -25,9 +25,7 @@ export function parseCourtBannerData(bannerData: string | Record<string, unknown
       altText: typeof parsed.altText === 'string' ? parsed.altText : undefined,
       description: typeof parsed.description === 'string' ? parsed.description : undefined,
       position: typeof parsed.position === 'string' ? parsed.position : undefined,
-      bannerAlignment: (parsed.bannerAlignment === 'top' || parsed.bannerAlignment === 'bottom') 
-        ? parsed.bannerAlignment 
-        : (parsed.bannerAlignment === 'center' ? 'center' : 'center'), // default to center
+      bannerAlignment: ['top', 'center', 'bottom'].includes(parsed.bannerAlignment) ? parsed.bannerAlignment : 'center',
     };
   } catch {
     return undefined;
