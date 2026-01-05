@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireClubManagement } from "@/lib/requireRole";
 import { Prisma } from "@prisma/client";
+import { extractCourtTypeFromMetadata } from "@/utils/court-metadata";
 
 /**
  * GET /api/admin/clubs/[clubId]/courts
@@ -232,9 +233,11 @@ export async function POST(
         );
       }
       
-      // Set the type field to capitalized format for Quick Booking compatibility
-      // "single" -> "Single", "double" -> "Double"
-      finalCourtType = format.charAt(0).toUpperCase() + format.slice(1);
+      // Extract and capitalize the court type from metadata
+      const extractedType = extractCourtTypeFromMetadata(metadata);
+      if (extractedType) {
+        finalCourtType = extractedType;
+      }
     }
 
     // Verify club exists

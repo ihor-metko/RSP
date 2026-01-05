@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin } from "@/lib/requireRole";
 import { isSupportedSport } from "@/constants/sports";
+import { extractCourtTypeFromMetadata } from "@/utils/court-metadata";
 
 /**
  * GET /api/admin/courts/[courtId]
@@ -213,21 +214,10 @@ export async function PATCH(
     
     // If metadata is provided and contains padelCourtFormat, use it to set the type field
     if (metadata !== undefined) {
-      let parsedMetadata: Record<string, unknown> | null = null;
-      
-      try {
-        parsedMetadata = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
-      } catch {
-        // Invalid metadata, will be stored as-is
-      }
-      
-      // If metadata contains padelCourtFormat, extract it and set as type
-      if (parsedMetadata && parsedMetadata.padelCourtFormat) {
-        const format = parsedMetadata.padelCourtFormat as string;
-        // Capitalize the format: "single" -> "Single", "double" -> "Double"
-        if (format === "single" || format === "double") {
-          finalCourtType = format.charAt(0).toUpperCase() + format.slice(1);
-        }
+      // Extract court type from metadata using utility function
+      const extractedType = extractCourtTypeFromMetadata(metadata);
+      if (extractedType) {
+        finalCourtType = extractedType;
       }
       
       updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
