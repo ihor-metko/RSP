@@ -259,7 +259,7 @@ export default function PlayerProfilePage() {
                               onClick={() => handleResumePayment(booking.id)}
                               disabled={resumingPayment === booking.id}
                               variant="primary"
-                              size="sm"
+                              size="small"
                             >
                               {resumingPayment === booking.id 
                                 ? t("playerProfile.resumingPayment") 
