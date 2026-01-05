@@ -153,6 +153,22 @@ export function QuickBookingModal({
     onClose();
   };
 
+  // Helper to reset search results when search parameters change
+  const resetSearchResults = () => {
+    setAvailableCourts([]);
+    setHasSearched(false);
+    setError(null);
+  };
+
+  // Get appropriate empty state message based on court type
+  const getEmptyStateMessage = () => {
+    if (courtType === "Single") {
+      return t("booking.quickBooking.noSingleCourtsAvailable");
+    }
+    // courtType === "Double"
+    return t("booking.quickBooking.noDoubleCourtsAvailable");
+  };
+
   // Reset search results when date/time/duration changes
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
@@ -172,24 +188,6 @@ export function QuickBookingModal({
   const handleCourtTypeChange = (newCourtType: "Single" | "Double") => {
     setCourtType(newCourtType);
     resetSearchResults();
-  };
-
-  // Helper to reset search results when search parameters change
-  const resetSearchResults = () => {
-    setAvailableCourts([]);
-    setHasSearched(false);
-    setError(null);
-  };
-
-  // Get appropriate empty state message based on court type
-  const getEmptyStateMessage = () => {
-    if (courtType === "Single") {
-      return t("booking.quickBooking.noSingleCourtsAvailable");
-    }
-    if (courtType === "Double") {
-      return t("booking.quickBooking.noDoubleCourtsAvailable");
-    }
-    return t("booking.quickBooking.noCourtsAvailable");
   };
 
   return (
