@@ -173,7 +173,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, description, isPublished, defaultPriceCents, metadata } = body;
+    const { name, slug, type, surface, indoor, sportType, description, isPublished, defaultPriceCents, courtFormat } = body;
 
     // Validate required fields
     if (!name || typeof name !== "string" || name.trim() === "") {
@@ -198,32 +198,19 @@ export async function POST(
       );
     }
 
-    // Validate Padel court format if type is padel
+    // Validate court format for padel courts
     if (type?.toLowerCase() === "padel") {
-      let parsedMetadata: Record<string, unknown> | null = null;
-      
-      if (metadata) {
-        try {
-          parsedMetadata = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
-        } catch {
-          return NextResponse.json(
-            { error: "Invalid metadata format" },
-            { status: 400 }
-          );
-        }
-      }
-
-      if (!parsedMetadata || !parsedMetadata.padelCourtFormat) {
+      if (!courtFormat) {
         return NextResponse.json(
-          { error: "Padel courts must specify Single or Double format" },
+          { error: "Padel courts must specify SINGLE or DOUBLE format" },
           { status: 400 }
         );
       }
 
-      const format = parsedMetadata.padelCourtFormat;
-      if (format !== "single" && format !== "double") {
+      const normalizedFormat = courtFormat.toUpperCase();
+      if (normalizedFormat !== "SINGLE" && normalizedFormat !== "DOUBLE") {
         return NextResponse.json(
-          { error: "Padel court format must be either 'single' or 'double'" },
+          { error: "Court format must be either 'SINGLE' or 'DOUBLE'" },
           { status: 400 }
         );
       }
@@ -251,11 +238,11 @@ export async function POST(
         surface: surface?.trim() || null,
         indoor: indoor ?? false,
         sportType: sportType || "PADEL",
+        courtFormat: courtFormat ? courtFormat.toUpperCase() : null,
         description: description?.trim() || null,
         isPublished: isPublished ?? false,
         isActive: true,
         defaultPriceCents: defaultPriceCents ?? 0,
-        metadata: metadata || null,
       },
       select: {
         id: true,
@@ -266,11 +253,11 @@ export async function POST(
         surface: true,
         indoor: true,
         sportType: true,
+        courtFormat: true,
         description: true,
         isPublished: true,
         isActive: true,
         defaultPriceCents: true,
-        metadata: true,
         createdAt: true,
         updatedAt: true,
       },

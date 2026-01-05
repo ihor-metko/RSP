@@ -75,6 +75,7 @@ export async function POST(
     formData = await request.formData();
     file = formData.get("file") as File | null;
     const imageType = formData.get("type") as string | null;
+    const bannerAlignment = formData.get("bannerAlignment") as string | null;
 
     if (!file) {
       return NextResponse.json(
@@ -138,6 +139,7 @@ export async function POST(
     const imageData = {
       ...existingData,
       url,
+      ...(bannerAlignment && { bannerAlignment }),
     };
 
     await prisma.court.update({
