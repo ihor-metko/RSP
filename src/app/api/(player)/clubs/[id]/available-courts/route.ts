@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
 
-// Business hours configuration (same as availability endpoint)
-const BUSINESS_START_HOUR = 9;
+// Business hours configuration (aligned with frontend types.ts)
+const BUSINESS_START_HOUR = 8;
 const BUSINESS_END_HOUR = 22;
 
 interface AvailableCourt {

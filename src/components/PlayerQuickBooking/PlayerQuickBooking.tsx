@@ -543,37 +543,41 @@ export function PlayerQuickBooking({
 
   // Navigate to next step
   const handleNext = useCallback(async () => {
-    const currentStepIndex = visibleSteps.findIndex((s) => s.id === state.currentStep);
-    if (currentStepIndex === -1) return;
+    setState((currentState) => {
+      const currentStepIndex = visibleSteps.findIndex((s) => s.id === currentState.currentStep);
+      if (currentStepIndex === -1) return currentState;
 
-    const currentStepConfig = visibleSteps[currentStepIndex];
+      const currentStepConfig = visibleSteps[currentStepIndex];
 
-    // If current step is 0 (club selection), fetch clubs if needed
-    if (currentStepConfig.id === 0 && state.availableClubs.length === 0 && !state.isLoadingClubs) {
-      await fetchAvailableClubs();
-    }
-
-    // If moving to step 2 (courts), only fetch if we don't have courts data already
-    if (currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 2) {
-      setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
-      // Only fetch if we don't have courts for the current selection
-      if (state.availableCourts.length === 0 && state.alternativeTimeSlots.length === 0 && !state.isLoadingCourts) {
-        await fetchAvailableCourts();
+      // If current step is 0 (club selection), fetch clubs if needed
+      if (currentStepConfig.id === 0 && currentState.availableClubs.length === 0 && !currentState.isLoadingClubs) {
+        fetchAvailableClubs();
+        return currentState;
       }
-      return;
-    }
 
-    // If current step is 3 (payment), submit booking
-    if (currentStepConfig.id === 3) {
-      await handleSubmit();
-      return;
-    }
+      // If moving to step 2 (courts), only fetch if we don't have courts data already
+      if (currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 2) {
+        // Only fetch if we don't have courts for the current selection
+        if (currentState.availableCourts.length === 0 && currentState.alternativeTimeSlots.length === 0 && !currentState.isLoadingCourts) {
+          fetchAvailableCourts();
+        }
+        return { ...currentState, currentStep: visibleSteps[currentStepIndex + 1].id };
+      }
 
-    // Move to next step
-    if (currentStepIndex + 1 < visibleSteps.length) {
-      setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
-    }
-  }, [state.currentStep, state.availableClubs, state.availableCourts, state.alternativeTimeSlots, state.isLoadingClubs, state.isLoadingCourts, visibleSteps, fetchAvailableClubs, fetchAvailableCourts, handleSubmit]);
+      // If current step is 3 (payment), submit booking
+      if (currentStepConfig.id === 3) {
+        handleSubmit();
+        return currentState;
+      }
+
+      // Move to next step
+      if (currentStepIndex + 1 < visibleSteps.length) {
+        return { ...currentState, currentStep: visibleSteps[currentStepIndex + 1].id };
+      }
+      
+      return currentState;
+    });
+  }, [visibleSteps, fetchAvailableClubs, fetchAvailableCourts, handleSubmit]);
 
   // Navigate to previous step
   const handleBack = useCallback(() => {
