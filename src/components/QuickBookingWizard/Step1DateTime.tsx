@@ -9,7 +9,6 @@ import {
   DURATION_OPTIONS,
   isPeakHour,
   WizardStep1Data,
-  DEFAULT_DURATION,
 } from "./types";
 import { filterPastTimeSlots } from "@/utils/dateTime";
 

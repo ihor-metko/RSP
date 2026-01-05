@@ -1,3 +1,4 @@
+import Image from "next/image";
 import "./DocsScreenshot.css";
 
 export interface DocsScreenshotProps {
@@ -41,11 +42,13 @@ export function DocsScreenshot({
     <figure className={`im-docs-screenshot ${className}`.trim()}>
       <div className="im-docs-screenshot-container">
         {src ? (
-          <img 
+          <Image 
             src={src} 
             alt={alt} 
             className="im-docs-screenshot-image"
-            loading="lazy"
+            width={800}
+            height={600}
+            style={{ objectFit: 'contain' }}
           />
         ) : (
           <div className="im-docs-screenshot-placeholder">
