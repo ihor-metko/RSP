@@ -73,6 +73,7 @@ export interface PlayerQuickBookingState {
   clubsError: string | null;
   courtsError: string | null;
   estimatedPrice: number | null;
+  estimatedPriceRange: { min: number; max: number } | null;
   isSubmitting: boolean;
   submitError: string | null;
 }

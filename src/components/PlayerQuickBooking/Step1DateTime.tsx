@@ -15,6 +15,7 @@ interface Step1DateTimeProps {
   data: PlayerBookingStep1Data;
   onChange: (data: Partial<PlayerBookingStep1Data>) => void;
   estimatedPrice: number | null;
+  estimatedPriceRange?: { min: number; max: number } | null;
   isLoading?: boolean;
 }
 
@@ -24,6 +25,7 @@ export function Step1DateTime({
   data,
   onChange,
   estimatedPrice,
+  estimatedPriceRange,
   isLoading = false,
 }: Step1DateTimeProps) {
   const t = useTranslations();
@@ -113,14 +115,20 @@ export function Step1DateTime({
             {t("wizard.estimatedPrice")}
           </div>
           <div className="rsp-wizard-price-estimate-value">
-            {estimatedPrice !== null ? (
+            {estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max ? (
+              <>
+                {formatPrice(estimatedPriceRange.min)} - {formatPrice(estimatedPriceRange.max)}
+              </>
+            ) : estimatedPrice !== null ? (
               formatPrice(estimatedPrice)
             ) : (
               <span className="opacity-50">--</span>
             )}
           </div>
           <div className="rsp-wizard-price-estimate-hint">
-            {t("wizard.priceVariesByTime")}
+            {estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max
+              ? t("wizard.priceRangeHint")
+              : t("wizard.priceVariesByTime")}
           </div>
         </div>
       </div>

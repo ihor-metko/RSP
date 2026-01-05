@@ -1485,6 +1485,7 @@
     "step3Title": "Review and confirm payment",
     "estimatedPrice": "Estimated Price",
     "priceVariesByTime": "Final price may vary based on court selection",
+    "priceRangeHint": "Price range based on available courts",
     "peakHoursHint": "Peak hours - courts may fill up quickly",
     "loadingClubs": "Loading clubs...",
     "loadingCourts": "Finding available courts...",

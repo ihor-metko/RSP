@@ -92,6 +92,7 @@ export function PlayerQuickBooking({
       clubsError: null,
       courtsError: null,
       estimatedPrice: null,
+      estimatedPriceRange: null,
       isSubmitting: false,
       submitError: null,
     };
@@ -132,6 +133,7 @@ export function PlayerQuickBooking({
         clubsError: null,
         courtsError: null,
         estimatedPrice: null,
+        estimatedPriceRange: null,
         isSubmitting: false,
         submitError: null,
       });
@@ -391,12 +393,22 @@ export function PlayerQuickBooking({
           const courts: BookingCourt[] = data.availableCourts || [];
 
           if (courts.length > 0) {
-            const avgPrice = Math.round(
-              courts.reduce((sum, c) => sum + (c.defaultPriceCents / MINUTES_PER_HOUR) * duration, 0) / courts.length
-            );
-            setState((prev) => ({ ...prev, estimatedPrice: avgPrice }));
+            const prices = courts.map(c => Math.round((c.defaultPriceCents / MINUTES_PER_HOUR) * duration));
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const avgPrice = Math.round(prices.reduce((sum, p) => sum + p, 0) / prices.length);
+            
+            setState((prev) => ({ 
+              ...prev, 
+              estimatedPrice: avgPrice,
+              estimatedPriceRange: { min: minPrice, max: maxPrice }
+            }));
           } else {
-            setState((prev) => ({ ...prev, estimatedPrice: null }));
+            setState((prev) => ({ 
+              ...prev, 
+              estimatedPrice: null,
+              estimatedPriceRange: null
+            }));
           }
         }
       } catch {
@@ -698,6 +710,7 @@ export function PlayerQuickBooking({
               data={state.step1}
               onChange={handleStep1Change}
               estimatedPrice={state.estimatedPrice}
+              estimatedPriceRange={state.estimatedPriceRange}
               isLoading={false}
             />
           )}
