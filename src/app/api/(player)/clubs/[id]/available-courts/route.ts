@@ -35,6 +35,36 @@ interface AvailableCourtsResponse {
   alternativeTimeSlots?: AlternativeTimeSlot[];
 }
 
+interface Booking {
+  courtId: string;
+  start: Date;
+  end: Date;
+}
+
+/**
+ * Helper function to check if a court is available for a given time slot
+ */
+function isCourtAvailable(
+  courtId: string,
+  slotStart: Date,
+  slotEnd: Date,
+  bookings: Booking[]
+): boolean {
+  const courtBookings = bookings.filter((b) => b.courtId === courtId);
+  
+  for (const booking of courtBookings) {
+    const bookingStart = new Date(booking.start);
+    const bookingEnd = new Date(booking.end);
+    
+    // Check for overlap: booking overlaps if it starts before slot ends AND ends after slot starts
+    if (bookingStart < slotEnd && bookingEnd > slotStart) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -184,22 +214,7 @@ export async function GET(
     const availableCourts: AvailableCourt[] = [];
 
     for (const court of club.courts) {
-      // Check if there are any overlapping bookings for this court
-      const courtBookings = bookings.filter((b) => b.courtId === court.id);
-      let isAvailable = true;
-
-      for (const booking of courtBookings) {
-        const bookingStart = new Date(booking.start);
-        const bookingEnd = new Date(booking.end);
-
-        // Check for overlap: booking overlaps if it starts before slot ends AND ends after slot starts
-        if (bookingStart < slotEnd && bookingEnd > slotStart) {
-          isAvailable = false;
-          break;
-        }
-      }
-
-      if (isAvailable) {
+      if (isCourtAvailable(court.id, slotStart, slotEnd, bookings)) {
         // Calculate resolved price for this court based on date, time, and duration
         let resolvedPrice: number;
         try {
@@ -272,20 +287,7 @@ export async function GET(
         let availableCount = 0;
         
         for (const court of club.courts) {
-          const courtBookings = bookings.filter((b) => b.courtId === court.id);
-          let isAvailable = true;
-          
-          for (const booking of courtBookings) {
-            const bookingStart = new Date(booking.start);
-            const bookingEnd = new Date(booking.end);
-            
-            if (bookingStart < altSlotEnd && bookingEnd > altSlotStart) {
-              isAvailable = false;
-              break;
-            }
-          }
-          
-          if (isAvailable) {
+          if (isCourtAvailable(court.id, altSlotStart, altSlotEnd, bookings)) {
             availableCount++;
           }
         }
