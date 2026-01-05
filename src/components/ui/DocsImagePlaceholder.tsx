@@ -45,7 +45,7 @@ export function DocsImagePlaceholder({
   const [imageLoadError, setImageLoadError] = useState(false);
 
   // Generate the image path based on role and step
-  const imagePath = `/storage/docs-screenshots/${role}/${step}.${format}`;
+  const imagePath = `/docs-screenshots/${role}/${step}.${format}`;
 
   return (
     <figure className={`im-docs-screenshot ${className}`.trim()}>

@@ -11,7 +11,7 @@ import {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("docs.preSales.player.flow");
-  
+
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PlayerFlowPage() {
   const t = await getTranslations("docs.preSales.player.flow");
-  
+
   return (
     <DocsPage title={t("title")}>
       <DocsSection title={t("intro.title")}>
@@ -158,7 +158,7 @@ export default async function PlayerFlowPage() {
         <p>{t("account.description")}</p>
         <DocsImagePlaceholder
           role="player"
-          step="player__account__bookings-list"
+          step="player__account"
           format="webp"
           alt={t("account.screenshot.alt")}
           caption={t("account.screenshot.caption")}
