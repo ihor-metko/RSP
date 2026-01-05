@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import "./DocsScreenshot.css";
 
 export type UserRole = "root-admin" | "org-owner" | "org-admin" | "club-owner" | "club-admin" | "player";
@@ -51,11 +52,13 @@ export function DocsImagePlaceholder({
     <figure className={`im-docs-screenshot ${className}`.trim()}>
       <div className="im-docs-screenshot-container">
         {!imageLoadError ? (
-          <img
+          <Image
             src={imagePath}
             alt={alt}
             className="im-docs-screenshot-image"
-            loading="lazy"
+            width={800}
+            height={600}
+            style={{ objectFit: 'contain' }}
             onError={() => setImageLoadError(true)}
           />
         ) : (

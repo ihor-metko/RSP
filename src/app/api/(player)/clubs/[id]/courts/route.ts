@@ -47,7 +47,6 @@ export async function GET(
         isPublished: true,
         defaultPriceCents: true,
         bannerData: true,
-        metadata: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -56,7 +55,6 @@ export async function GET(
     // Parse JSON fields and format response
     const formattedCourts = courts.map(court => {
       let bannerData = null;
-      let metadata = null;
       
       try {
         bannerData = court.bannerData ? JSON.parse(court.bannerData) : null;
@@ -66,18 +64,9 @@ export async function GET(
         }
       }
       
-      try {
-        metadata = court.metadata ? JSON.parse(court.metadata) : null;
-      } catch (error) {
-        if (process.env.NODE_ENV === "development") {
-          console.error(`Failed to parse metadata for court ${court.id}:`, error);
-        }
-      }
-      
       return {
         ...court,
         bannerData,
-        metadata,
       };
     });
 

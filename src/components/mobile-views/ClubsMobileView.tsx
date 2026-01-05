@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { EmptyState } from "@/components/ui";
 import { CardListSkeleton } from "@/components/ui/skeletons";
@@ -109,10 +110,13 @@ export function ClubsMobileView({
             {/* Club Logo */}
             {club.logoData?.url && (
               <div className="im-mobile-club-card-logo">
-                <img
+                <Image
                   src={club.logoData.url}
                   alt={club.logoData.altText || club.name}
                   className="im-mobile-club-card-logo-img"
+                  width={64}
+                  height={64}
+                  style={{ objectFit: 'contain' }}
                 />
               </div>
             )}
