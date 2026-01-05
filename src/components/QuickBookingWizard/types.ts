@@ -63,7 +63,7 @@ export const WIZARD_STEPS = [
 // Business hours configuration
 export const BUSINESS_START_HOUR = 9;
 export const BUSINESS_END_HOUR = 22;
-export const DURATION_OPTIONS = [30, 60, 90, 120, 150, 180];
+export const DURATION_OPTIONS = [60, 90, 120, 150, 180];
 export const DEFAULT_DURATION = 120; // 2 hours
 
 // Peak hours (17:00 - 21:00 weekdays, 10:00 - 14:00 weekends)
@@ -71,13 +71,13 @@ export function isPeakHour(date: string, time: string): boolean {
   const dateObj = new Date(date);
   const dayOfWeek = dateObj.getDay();
   const hour = parseInt(time.split(":")[0], 10);
-  
+
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  
+
   if (isWeekend) {
     return hour >= 10 && hour < 14;
   }
-  
+
   return hour >= 17 && hour < 21;
 }
 

@@ -45,7 +45,7 @@ function generateTimeOptions(): string[] {
   return options;
 }
 
-const DURATION_OPTIONS = [30, 60, 90, 120, 150, 180];
+const DURATION_OPTIONS = [60, 90, 120, 150, 180];
 const DEFAULT_DURATION = 120; // 2 hours
 
 export function QuickBookingModal({

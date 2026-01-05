@@ -134,7 +134,7 @@ export const DEFAULT_DURATION = 120; // 2 hours
 // Business hours configuration
 export const BUSINESS_START_HOUR = 8;
 export const BUSINESS_END_HOUR = 22;
-export const DURATION_OPTIONS = [30, 60, 90, 120, 150, 180];
+export const DURATION_OPTIONS = [60, 90, 120, 150, 180];
 
 // Get business hours for a specific date
 export function getBusinessHoursForDate(
@@ -170,7 +170,7 @@ export function generateTimeOptionsForDate(
   businessHours?: ClubBusinessHours[]
 ): string[] {
   const hours = getBusinessHoursForDate(date, businessHours);
-  
+
   if (!hours) {
     return []; // Club is closed
   }
@@ -210,7 +210,7 @@ export function wouldEndAfterClosing(
   businessHours?: ClubBusinessHours[]
 ): boolean {
   const hours = getBusinessHoursForDate(date, businessHours);
-  
+
   if (!hours) {
     return true; // Club is closed
   }
@@ -241,13 +241,13 @@ export function isPeakHour(date: string, time: string): boolean {
   const dateObj = new Date(date);
   const dayOfWeek = dateObj.getDay();
   const hour = parseInt(time.split(":")[0], 10);
-  
+
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  
+
   if (isWeekend) {
     return hour >= 10 && hour < 14;
   }
-  
+
   return hour >= 17 && hour < 21;
 }
 
@@ -299,27 +299,27 @@ export function determineVisibleSteps(
   preselectedDateTime?: { date: string; startTime: string; duration: number }
 ): BookingStepConfig[] {
   const steps: BookingStepConfig[] = [];
-  
+
   // Step 0: Club Selection (skip if preselected)
   if (!preselectedClubId) {
     steps.push({ id: 0, label: "selectClub", isRequired: true });
   }
-  
+
   // Step 1: Date & Time (skip if preselected)
   if (!preselectedDateTime) {
     steps.push({ id: 1, label: "dateTime", isRequired: true });
   }
-  
+
   // Step 2: Court Selection (skip if preselected)
   if (!preselectedCourtId) {
     steps.push({ id: 2, label: "selectCourt", isRequired: true });
   }
-  
+
   // Step 3: Payment (always required for players)
   steps.push({ id: 3, label: "payment", isRequired: true });
-  
+
   // Step 4: Confirmation (always shown)
   steps.push({ id: 4, label: "confirmation", isRequired: true });
-  
+
   return steps;
 }

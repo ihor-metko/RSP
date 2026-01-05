@@ -55,7 +55,7 @@ type PaymentMethod = "card" | "apple_pay" | "google_pay";
 const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 22;
 const MINUTES_PER_HOUR = 60;
-const DURATION_OPTIONS = [30, 60, 90, 120];
+const DURATION_OPTIONS = [60, 90, 120];
 
 // Get today's date in YYYY-MM-DD format
 function getTodayDateString(): string {
