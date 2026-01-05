@@ -209,18 +209,21 @@ export async function PATCH(
     if (name !== undefined) updateData.name = name.trim();
     if (slug !== undefined) updateData.slug = slug?.trim() || null;
     
-    // Handle type field - extract from metadata if it's a Padel court
+    // Handle type field
+    // Explicit type parameter takes precedence over metadata extraction
     let finalCourtType = type !== undefined ? (type?.trim() || null) : undefined;
     
-    // If metadata is provided and contains padelCourtFormat, use it to set the type field
+    // If metadata is provided, store it
     if (metadata !== undefined) {
-      // Extract court type from metadata using utility function
-      const extractedType = extractCourtTypeFromMetadata(metadata);
-      if (extractedType) {
-        finalCourtType = extractedType;
-      }
-      
       updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
+      
+      // Only extract type from metadata if type was not explicitly provided
+      if (type === undefined) {
+        const extractedType = extractCourtTypeFromMetadata(metadata);
+        if (extractedType) {
+          finalCourtType = extractedType;
+        }
+      }
     }
     
     if (finalCourtType !== undefined) updateData.type = finalCourtType;

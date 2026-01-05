@@ -49,29 +49,15 @@ export function parseCourtMetadata(metadata: string | Record<string, unknown> | 
 export function extractCourtTypeFromMetadata(
   metadata: string | Record<string, unknown> | null | undefined
 ): string | null {
-  if (!metadata) {
+  // Reuse existing parser for consistency
+  const parsed = parseCourtMetadata(metadata);
+  
+  if (!parsed || !parsed.padelCourtFormat) {
     return null;
   }
 
-  let parsedMetadata: Record<string, unknown> | null = null;
-
-  try {
-    parsedMetadata = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
-  } catch {
-    // Invalid metadata format, return null
-    return null;
-  }
-
-  // Check if metadata contains padelCourtFormat
-  if (parsedMetadata && parsedMetadata.padelCourtFormat) {
-    const format = parsedMetadata.padelCourtFormat as string;
-
-    // Only process if format is "single" or "double"
-    if (format === "single" || format === "double") {
-      // Capitalize format: "single" -> "Single", "double" -> "Double"
-      return format.charAt(0).toUpperCase() + format.slice(1);
-    }
-  }
-
-  return null;
+  const format = parsed.padelCourtFormat;
+  
+  // Capitalize format: "single" -> "Single", "double" -> "Double"
+  return format.charAt(0).toUpperCase() + format.slice(1);
 }
