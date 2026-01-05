@@ -2,6 +2,10 @@
  * Court type localization helper
  */
 
+// Court type constants for type safety
+const COURT_TYPE_SINGLE = 'single';
+const COURT_TYPE_DOUBLE = 'double';
+
 /**
  * Get localized label for court type
  * @param type - Court type string (e.g., "single", "double", "SINGLE", "DOUBLE")
@@ -15,11 +19,13 @@ export function getCourtTypeLabel(
   if (!type) return "";
   
   const normalizedType = type.toLowerCase();
-  if (normalizedType === "single") {
+  
+  if (normalizedType === COURT_TYPE_SINGLE) {
     return t("court.type.single");
-  } else if (normalizedType === "double") {
+  } else if (normalizedType === COURT_TYPE_DOUBLE) {
     return t("court.type.double");
   }
+  
   // Fallback to original type if no translation exists
   return type;
 }
