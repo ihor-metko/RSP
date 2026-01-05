@@ -304,7 +304,7 @@
 
 /* Wizard Step Title */
 .rsp-wizard-step-title {
-  @apply text-base font-medium mb-4;
+  @apply text-base font-medium;
   color: var(--rsp-foreground);
   opacity: 0.8;
 }

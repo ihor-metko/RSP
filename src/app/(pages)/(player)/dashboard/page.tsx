@@ -151,7 +151,7 @@ export default function PlayerDashboardPage() {
     setBookingsError(null);
 
     try {
-      const response = await fetch(`/api/bookings?userId=${userId}&upcoming=true`);
+      const response = await fetch(`/api/bookings?upcoming=true`);
       if (response.ok) {
         const data = await response.json();
         setUpcomingBookings(Array.isArray(data) ? data : data.bookings || []);
@@ -567,20 +567,16 @@ export default function PlayerDashboardPage() {
                   {t("playerDashboard.navigation.home")}
                 </span>
               </IMLink>
-              <button
-                onClick={() => {
-                  // TODO: Navigate to profile page when implemented
-                  // For now, show user is already logged in
-                }}
-                className="tm-nav-link flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-default opacity-50"
-                disabled
+              <IMLink
+                href="/profile"
+                className="tm-nav-link flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-label={t("playerDashboard.navigation.profile")}
               >
                 <span className="text-2xl mb-2">👤</span>
                 <span className="text-sm font-medium text-center">
                   {t("playerDashboard.navigation.profile")}
                 </span>
-              </button>
+              </IMLink>
             </div>
           </Card>
         </section>
