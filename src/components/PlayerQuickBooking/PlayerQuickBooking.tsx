@@ -373,7 +373,9 @@ export function PlayerQuickBooking({
         courtsError: t("auth.errorOccurred"),
       }));
     }
-  }, [state.step0.selectedClubId, state.step1, preselectedClubId, t]);
+    // Destructure step1 properties to avoid object reference changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.step0.selectedClubId, state.step1.date, state.step1.startTime, state.step1.duration, state.step1.courtType, preselectedClubId, t]);
 
   // Fetch estimated price when date/time/duration changes
   useEffect(() => {
@@ -445,7 +447,9 @@ export function PlayerQuickBooking({
     if (isOpen && (state.currentStep === 1 || (visibleSteps[0]?.id === 1 && state.currentStep === visibleSteps[0]?.id))) {
       fetchEstimatedPrice();
     }
-  }, [isOpen, state.step0.selectedClubId, state.step1, state.currentStep, preselectedClubId, visibleSteps]);
+    // Destructure step1 properties to avoid object reference changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, state.step0.selectedClubId, state.step1.date, state.step1.startTime, state.step1.duration, state.step1.courtType, state.currentStep, preselectedClubId]);
 
   // Handle club selection
   const handleSelectClub = useCallback((club: BookingClub) => {
