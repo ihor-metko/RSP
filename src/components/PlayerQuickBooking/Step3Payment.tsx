@@ -60,6 +60,12 @@ const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: React.ReactNode
   },
 ];
 
+// Time validation constants
+const MIN_HOUR = 0;
+const MAX_HOUR = 23;
+const MIN_MINUTE = 0;
+const MAX_MINUTE = 59;
+
 export function Step3Payment({
   club,
   date,
@@ -166,29 +172,32 @@ export function Step3Payment({
 
   // Format date and time for display using locale-aware formatting
   const formatBookingDateTime = useCallback((dateStr: string, timeStr: string): string => {
+    // Fallback function for when time parsing fails
+    const fallbackToDateOnly = (errorMsg: string, context?: Record<string, unknown>) => {
+      console.error(errorMsg, context || timeStr);
+      return formatDateLong(new Date(dateStr), locale);
+    };
+
     try {
       // Validate time format (HH:MM)
       if (!timeStr || !timeStr.includes(':')) {
-        console.error('Invalid time format:', timeStr);
-        // Fallback: just show date without time if time is invalid
-        return formatDateLong(new Date(dateStr), locale);
+        return fallbackToDateOnly('Invalid time format');
       }
       
       // Split time and validate we have exactly 2 parts
       const timeParts = timeStr.split(':');
       if (timeParts.length !== 2) {
-        console.error('Invalid time format - expected HH:MM:', timeStr);
-        return formatDateLong(new Date(dateStr), locale);
+        return fallbackToDateOnly('Invalid time format - expected HH:MM');
       }
       
       // Parse and validate hours and minutes
       const hours = parseInt(timeParts[0], 10);
       const minutes = parseInt(timeParts[1], 10);
       
-      if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-        console.error('Invalid time values:', { hours, minutes, timeStr });
-        // Fallback: just show date without time if parsed values are invalid
-        return formatDateLong(new Date(dateStr), locale);
+      if (isNaN(hours) || isNaN(minutes) || 
+          hours < MIN_HOUR || hours > MAX_HOUR || 
+          minutes < MIN_MINUTE || minutes > MAX_MINUTE) {
+        return fallbackToDateOnly('Invalid time values', { hours, minutes, timeStr });
       }
       
       // Create date time with the parsed time
@@ -197,9 +206,7 @@ export function Step3Payment({
       
       return formatDateTimeLong(dateTime, locale);
     } catch (error) {
-      console.error('Error formatting booking date time:', error);
-      // Final fallback: show date only
-      return formatDateLong(new Date(dateStr), locale);
+      return fallbackToDateOnly('Error formatting booking date time', { error });
     }
   }, [locale]);
 
