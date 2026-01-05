@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, IMLink } from "@/components/ui";
-import { useUserStore } from "@/stores/useUserStore";
 import "./MobileViews.css";
 
 /**
  * LandingMobileView
- * 
+ *
  * Mobile-first landing page skeleton for player flow.
  * Shows hero section with primary CTA to find courts and secondary CTA for auth.
  * Auto-redirects logged-in users to /clubs.
@@ -17,14 +15,6 @@ import "./MobileViews.css";
 export function LandingMobileView() {
   const t = useTranslations();
   const router = useRouter();
-  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
-
-  // Auto-redirect logged-in users to clubs page
-  useEffect(() => {
-    if (isLoggedIn) {
-      router.push("/clubs");
-    }
-  }, [isLoggedIn, router]);
 
   return (
     <div className="im-mobile-landing">
@@ -61,11 +51,11 @@ export function LandingMobileView() {
 
         {/* Secondary CTA */}
         <div className="im-mobile-landing-secondary-actions">
-          <IMLink href="/auth/signin" className="im-mobile-landing-link">
+          <IMLink href="/auth/sign-in" className="im-mobile-landing-link">
             {t("auth.signIn")}
           </IMLink>
           <span className="im-mobile-landing-separator">/</span>
-          <IMLink href="/auth/signup" className="im-mobile-landing-link">
+          <IMLink href="/auth/sign-up" className="im-mobile-landing-link">
             {t("auth.signUp")}
           </IMLink>
         </div>

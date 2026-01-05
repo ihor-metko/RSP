@@ -212,6 +212,8 @@
   },
   "auth": {
     "login": "Login",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
     "signInTitle": "Sign In",
     "signInSubtitle": "Welcome back! Please sign in to continue.",
     "signingIn": "Signing in...",
