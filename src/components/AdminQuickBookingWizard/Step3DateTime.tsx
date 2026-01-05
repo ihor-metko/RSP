@@ -25,6 +25,8 @@ export function Step3DateTime({
 
   // Filter time options to exclude past times for today
   const TIME_OPTIONS = filterPastTimeSlots(generateTimeOptions(), data.date);
+  const hasNoTimeSlots = TIME_OPTIONS.length === 0;
+  const isToday = data.date === getTodayDateString();
 
   return (
     <div className="rsp-admin-wizard-step">
@@ -68,7 +70,7 @@ export function Step3DateTime({
             }))}
             value={data.startTime}
             onChange={(value) => onChange({ startTime: value })}
-            disabled={isLoading}
+            disabled={isLoading || hasNoTimeSlots}
             className="rsp-booking-select"
           />
 
@@ -86,6 +88,13 @@ export function Step3DateTime({
             className="rsp-booking-select"
           />
         </div>
+
+        {/* Show warning when no time slots available for today */}
+        {hasNoTimeSlots && isToday && (
+          <div className="rsp-admin-wizard-warning" role="alert">
+            {t("adminWizard.noTimeSlotsAvailable")}
+          </div>
+        )}
       </div>
     </div>
   );

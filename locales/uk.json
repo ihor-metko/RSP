@@ -1309,7 +1309,12 @@
     "noAvailableAtTime": "Немає доступних кортів у цей час. Спробуйте інший слот.",
     "noAvailabilityData": "Немає даних про доступність",
     "showMoreSlots": "Показати більше часових слотів",
-    "moreSlots": "більше"
+    "moreSlots": "більше",
+    "courtType": "Формат корту",
+    "type": {
+      "single": "Одиночний",
+      "double": "Парний"
+    }
   },
   "weeklyAvailability": {
     "title": "Тижнева доступність кортів",
@@ -2407,6 +2412,7 @@
     "creatingUser": "Створення...",
     "selectDateTime": "Виберіть дату та час",
     "selectDateTimeDescription": "Оберіть час проведення бронювання",
+    "noTimeSlotsAvailable": "Немає доступних часових слотів для сьогодні. Будь ласка, оберіть іншу дату.",
     "selectCourtDescription": "Оберіть доступний корт для обраного часу",
     "selected": "Обрано",
     "confirmBooking": "Підтвердити бронювання",

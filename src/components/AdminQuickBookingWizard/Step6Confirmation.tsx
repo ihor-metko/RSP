@@ -7,6 +7,7 @@ import {
   formatTimeDisplay,
   calculateEndTime,
 } from "./types";
+import { getCourtTypeLabel } from "./utils/courtTypeLabel";
 import type {
   WizardOrganization,
   WizardClub,
@@ -181,7 +182,7 @@ export function Step6Confirmation({
               </span>
               <span className="rsp-admin-wizard-summary-value">
                 {court.name}
-                {court.type && ` - ${court.type}`}
+                {court.type && ` - ${getCourtTypeLabel(court.type, t)}`}
               </span>
             </div>
           )}

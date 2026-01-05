@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Card, Button } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
+import { getCourtTypeLabel } from "./utils/courtTypeLabel";
 import type { WizardCourt } from "./types";
 
 interface Step4CourtsProps {
@@ -73,7 +74,7 @@ export function Step4Courts({
                         <div className="rsp-wizard-court-details">
                           {court.type && (
                             <span className="rsp-badge rsp-badge-type">
-                              {court.type}
+                              {getCourtTypeLabel(court.type, t)}
                             </span>
                           )}
                           {court.surface && (

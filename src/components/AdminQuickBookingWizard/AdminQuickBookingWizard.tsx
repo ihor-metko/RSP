@@ -74,7 +74,7 @@ export function AdminQuickBookingWizard({
       },
       stepDateTime: {
         date: predefinedData?.date || getTodayDateString(),
-        startTime: predefinedData?.startTime || "10:00",
+        startTime: predefinedData?.startTime || "",
         duration: predefinedData?.duration || DEFAULT_DURATION,
       },
       stepCourt: {
@@ -177,7 +177,7 @@ export function AdminQuickBookingWizard({
         },
         stepDateTime: {
           date: predefinedData?.date || getTodayDateString(),
-          startTime: predefinedData?.startTime || "10:00",
+          startTime: predefinedData?.startTime || "",
           duration: predefinedData?.duration || DEFAULT_DURATION,
         },
         stepCourt: {
@@ -257,7 +257,7 @@ export function AdminQuickBookingWizard({
     if (isOpen && predefinedData) {
       const newDateTime = {
         date: predefinedData.date || getTodayDateString(),
-        startTime: predefinedData.startTime || "10:00",
+        startTime: predefinedData.startTime || "",
         duration: predefinedData.duration || DEFAULT_DURATION,
       };
       

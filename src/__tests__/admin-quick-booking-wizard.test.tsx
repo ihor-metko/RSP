@@ -28,6 +28,7 @@ jest.mock("next-intl", () => ({
       "adminWizard.existingUser": "Existing User",
       "adminWizard.selectDateTime": "Select Date and Time",
       "adminWizard.selectDateTimeDescription": "Choose when the booking will take place",
+      "adminWizard.noTimeSlotsAvailable": "No available time slots left for today. Please select another date.",
       "wizard.step2Title": "Choose an available court",
       "adminWizard.confirmBooking": "Confirm Booking",
       "adminWizard.confirmBookingDescription": "Review the booking details and confirm",
@@ -50,6 +51,8 @@ jest.mock("next-intl", () => ({
       "adminWizard.noOrganizationsAvailable": "No organizations available",
       "adminWizard.noClubsAvailable": "No clubs available",
       "adminWizard.noUsersAvailable": "No users available",
+      "court.type.single": "Single",
+      "court.type.double": "Double",
     };
     return translations[key] || key;
   },

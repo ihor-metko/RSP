@@ -1371,7 +1371,12 @@
     "noAvailableAtTime": "No courts available at this time. Try another slot.",
     "noAvailabilityData": "No availability data",
     "showMoreSlots": "Show more time slots",
-    "moreSlots": "more"
+    "moreSlots": "more",
+    "courtType": "Court Format",
+    "type": {
+      "single": "Single",
+      "double": "Double"
+    }
   },
   "weeklyAvailability": {
     "title": "Weekly Court Availability",
@@ -1580,6 +1585,7 @@
     "creatingUser": "Creating...",
     "selectDateTime": "Select Date and Time",
     "selectDateTimeDescription": "Choose when the booking will take place",
+    "noTimeSlotsAvailable": "No available time slots left for today. Please select another date.",
     "selectCourtDescription": "Choose an available court for the selected time",
     "selected": "Selected",
     "confirmBooking": "Confirm Booking",

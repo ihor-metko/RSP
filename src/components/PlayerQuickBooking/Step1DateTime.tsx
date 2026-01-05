@@ -26,8 +26,8 @@ interface Step1DateTimeProps {
 
 // Translation key mapping for court types
 const COURT_TYPE_TRANSLATION_KEYS: Record<"SINGLE" | "DOUBLE", string> = {
-  SINGLE: "courts.padelCourtFormatSingle",
-  DOUBLE: "courts.padelCourtFormatDouble",
+  SINGLE: "court.type.single",
+  DOUBLE: "court.type.double",
 };
 
 
@@ -123,7 +123,7 @@ export function Step1DateTime({
         {availableCourtTypes.length > 0 && (
           <div className="rsp-wizard-field">
             <RadioGroup
-              label={t("courts.courtType")}
+              label={t("court.courtType")}
               name="court-type"
               options={availableCourtTypes.map((type) => ({
                 value: type,
