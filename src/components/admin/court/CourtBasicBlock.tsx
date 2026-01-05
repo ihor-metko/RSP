@@ -2,10 +2,11 @@
 
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, RadioGroup } from "@/components/ui";
 import { SectionEditModal } from "@/components/admin/club/SectionEditModal";
 import { formatPrice, centsToDollars, dollarsToCents } from "@/utils/price";
 import { SportType, SPORT_TYPE_OPTIONS, getSportName } from "@/constants/sports";
+import type { CourtFormat } from "@/types/court";
 import type { CourtDetail } from "./types";
 import "./CourtBasicBlock.css";
 
@@ -18,6 +19,7 @@ interface CourtBasicBlockProps {
     surface: string;
     indoor: boolean;
     sportType: SportType;
+    courtFormat?: CourtFormat | null;
     description?: string | null;
     isPublished: boolean;
     defaultPriceCents: number;
@@ -37,6 +39,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
     surface: court.surface || "",
     indoor: court.indoor,
     sportType: court.sportType || SportType.PADEL,
+    courtFormat: court.courtFormat || null,
     description: court.description || "",
     isPublished: court.isPublished ?? false,
     defaultPriceCents: court.defaultPriceCents,
@@ -50,6 +53,7 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
       surface: court.surface || "",
       indoor: court.indoor,
       sportType: court.sportType || SportType.PADEL,
+      courtFormat: court.courtFormat || null,
       description: court.description || "",
       isPublished: court.isPublished ?? false,
       defaultPriceCents: court.defaultPriceCents,
@@ -119,6 +123,11 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
       errors.defaultPriceCents = t("courtDetail.blocks.basicInformation.priceNonNegative");
     }
 
+    // Validate courtFormat for Padel courts
+    if (formData.sportType === SportType.PADEL && !formData.courtFormat) {
+      errors.courtFormat = t("courtDetail.blocks.basicInformation.courtFormatRequired");
+    }
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       // Focus first invalid field
@@ -133,7 +142,12 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
     setFieldErrors({});
 
     try {
-      await onUpdate(formData);
+      // Prepare payload with courtFormat
+      const payload = {
+        ...formData,
+        courtFormat: formData.sportType === SportType.PADEL ? (formData.courtFormat as CourtFormat) : null,
+      };
+      await onUpdate(payload);
       setIsEditing(false);
     } catch (err: unknown) {
       // Handle server errors
@@ -212,6 +226,17 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
               {court.sportType ? getSportName(court.sportType as SportType) : "Padel"}
             </span>
           </div>
+
+          {court.courtFormat && (
+            <div className="im-block-row">
+              <span className="im-block-label">{t("courtDetail.blocks.basicInformation.courtFormat")}</span>
+              <span className="im-block-value">
+                {court.courtFormat === "SINGLE" 
+                  ? t("courtDetail.blocks.basicInformation.courtFormatSingle") 
+                  : t("courtDetail.blocks.basicInformation.courtFormatDouble")}
+              </span>
+            </div>
+          )}
 
           <div className="im-block-row">
             <span className="im-block-label">{t("courtDetail.blocks.basicInformation.environment")}</span>
@@ -339,6 +364,43 @@ export function CourtBasicBlock({ court, onUpdate }: CourtBasicBlockProps) {
             ))}
           </select>
         </div>
+
+        {formData.sportType === SportType.PADEL && (
+          <div className="im-modal-field">
+            <RadioGroup
+              label={t("courtDetail.blocks.basicInformation.courtFormatLabel")}
+              name="courtFormat"
+              options={[
+                {
+                  value: "SINGLE",
+                  label: t("courtDetail.blocks.basicInformation.courtFormatSingle"),
+                },
+                {
+                  value: "DOUBLE",
+                  label: t("courtDetail.blocks.basicInformation.courtFormatDouble"),
+                },
+              ]}
+              value={formData.courtFormat || ""}
+              onChange={(value) => {
+                // Validate value before setting
+                if (value === 'SINGLE' || value === 'DOUBLE') {
+                  setFormData((prev) => ({ ...prev, courtFormat: value as CourtFormat }));
+                  if (fieldErrors.courtFormat) {
+                    setFieldErrors((prev) => {
+                      const updated = { ...prev };
+                      delete updated.courtFormat;
+                      return updated;
+                    });
+                  }
+                }
+              }}
+              disabled={isSaving}
+            />
+            {fieldErrors.courtFormat && (
+              <span id="courtFormat-error" className="im-field-error">{fieldErrors.courtFormat}</span>
+            )}
+          </div>
+        )}
 
         <div className="im-modal-field">
           <label className="rsp-label mb-1 block text-sm font-medium">

@@ -17,6 +17,7 @@ jest.mock("@/components/admin/club/SectionEditModal.css", () => ({}));
 jest.mock("@/components/ui/Modal.css", () => ({}));
 jest.mock("@/components/ui/Button.css", () => ({}));
 jest.mock("@/components/ui/Input.css", () => ({}));
+jest.mock("@/components/ui/RadioGroup.css", () => ({}));
 
 const mockCourt: CourtDetail = {
   id: "court-123",
@@ -25,6 +26,8 @@ const mockCourt: CourtDetail = {
   type: "padel",
   surface: "artificial",
   indoor: true,
+  sportType: "PADEL",
+  courtFormat: "SINGLE",
   defaultPriceCents: 5000,
   createdAt: "2024-01-01T00:00:00.000Z",
   updatedAt: "2024-01-02T00:00:00.000Z",
@@ -102,10 +105,10 @@ describe("CourtBasicBlock", () => {
     fireEvent.change(nameInput, { target: { value: "" } });
 
     // Submit
-    const saveButton = screen.getByRole("button", { name: /save changes/i });
+    const saveButton = screen.getByRole("button", { name: /saveChanges/i });
     fireEvent.click(saveButton);
 
-    expect(await screen.findByText("Name is required")).toBeInTheDocument();
+    expect(await screen.findByText("courtDetail.blocks.basicInformation.nameRequired")).toBeInTheDocument();
     expect(mockOnUpdate).not.toHaveBeenCalled();
   });
 
@@ -120,10 +123,10 @@ describe("CourtBasicBlock", () => {
     fireEvent.change(nameInput, { target: { value: "A" } });
 
     // Submit
-    const saveButton = screen.getByRole("button", { name: /save changes/i });
+    const saveButton = screen.getByRole("button", { name: /saveChanges/i });
     fireEvent.click(saveButton);
 
-    expect(await screen.findByText("Name must be at least 2 characters")).toBeInTheDocument();
+    expect(await screen.findByText("courtDetail.blocks.basicInformation.nameMinLength")).toBeInTheDocument();
     expect(mockOnUpdate).not.toHaveBeenCalled();
   });
 
@@ -138,11 +141,11 @@ describe("CourtBasicBlock", () => {
     fireEvent.change(slugInput, { target: { value: "Invalid Slug!" } });
 
     // Submit
-    const saveButton = screen.getByRole("button", { name: /save changes/i });
+    const saveButton = screen.getByRole("button", { name: /saveChanges/i });
     fireEvent.click(saveButton);
 
     expect(
-      await screen.findByText("Slug must contain only lowercase letters, numbers, and hyphens")
+      await screen.findByText("courtDetail.blocks.basicInformation.slugInvalid")
     ).toBeInTheDocument();
     expect(mockOnUpdate).not.toHaveBeenCalled();
   });
@@ -160,7 +163,7 @@ describe("CourtBasicBlock", () => {
     fireEvent.change(nameInput, { target: { value: "Updated Court" } });
 
     // Submit
-    const saveButton = screen.getByRole("button", { name: /save changes/i });
+    const saveButton = screen.getByRole("button", { name: /saveChanges/i });
     fireEvent.click(saveButton);
 
     await waitFor(() => {
@@ -204,11 +207,74 @@ describe("CourtBasicBlock", () => {
     fireEvent.click(screen.getByRole("button", { name: /edit/i }));
 
     // Submit
-    const saveButton = screen.getByRole("button", { name: /save changes/i });
+    const saveButton = screen.getByRole("button", { name: /saveChanges/i });
     fireEvent.click(saveButton);
 
     await waitFor(() => {
       expect(screen.getByText("This slug is already in use")).toBeInTheDocument();
+    });
+  });
+
+  it("should display court format for Padel courts", () => {
+    render(<CourtBasicBlock court={mockCourt} onUpdate={mockOnUpdate} />);
+
+    expect(screen.getByText("courtDetail.blocks.basicInformation.courtFormat")).toBeInTheDocument();
+    expect(screen.getByText("courtDetail.blocks.basicInformation.courtFormatSingle")).toBeInTheDocument();
+  });
+
+  it("should show court format options in edit modal for Padel courts", () => {
+    render(<CourtBasicBlock court={mockCourt} onUpdate={mockOnUpdate} />);
+
+    // Open modal
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // Check that court format label and options are present
+    expect(screen.getByText("courtDetail.blocks.basicInformation.courtFormatLabel")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /courtFormatSingle/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /courtFormatDouble/i })).toBeInTheDocument();
+  });
+
+  it("should validate court format is required for Padel courts", async () => {
+    const padelCourtWithoutFormat: CourtDetail = {
+      ...mockCourt,
+      courtFormat: null,
+    };
+
+    render(<CourtBasicBlock court={padelCourtWithoutFormat} onUpdate={mockOnUpdate} />);
+
+    // Open modal
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // Submit without selecting court format
+    const saveButton = screen.getByRole("button", { name: /saveChanges/i });
+    fireEvent.click(saveButton);
+
+    expect(await screen.findByText("courtDetail.blocks.basicInformation.courtFormatRequired")).toBeInTheDocument();
+    expect(mockOnUpdate).not.toHaveBeenCalled();
+  });
+
+  it("should save court format when changed", async () => {
+    mockOnUpdate.mockResolvedValue({ ...mockCourt, courtFormat: "DOUBLE" });
+
+    render(<CourtBasicBlock court={mockCourt} onUpdate={mockOnUpdate} />);
+
+    // Open modal
+    fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+
+    // Change court format
+    const doubleRadio = screen.getByRole("radio", { name: /double/i });
+    fireEvent.click(doubleRadio);
+
+    // Submit
+    const saveButton = screen.getByRole("button", { name: /saveChanges/i });
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(mockOnUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          courtFormat: "DOUBLE",
+        })
+      );
     });
   });
 });
