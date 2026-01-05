@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, IMLink } from "@/components/ui";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore, useIsLoggedIn } from "@/stores/useUserStore";
 import "./MobileViews.css";
 
 /**
@@ -17,7 +17,7 @@ import "./MobileViews.css";
 export function LandingMobileView() {
   const t = useTranslations();
   const router = useRouter();
-  const isLoggedIn = useUserStore(state => state.isLoggedIn);
+  const isLoggedIn = useIsLoggedIn();
   const isHydrated = useUserStore(state => state.isHydrated);
 
   // Auto-redirect logged-in users to /clubs
