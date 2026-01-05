@@ -1293,6 +1293,19 @@
     "playerQuickBooking": {
       "title": "Quick Booking"
     },
+    "summary": {
+      "title": "Booking Summary",
+      "club": "Club",
+      "court": "Court",
+      "date": "Date",
+      "duration": "Duration",
+      "courtType": "Court Type",
+      "total": "Total"
+    },
+    "courtType": {
+      "single": "Single",
+      "double": "Double"
+    },
     "confirmTitle": "Confirm Booking",
     "confirmSubtitle": "Review your booking details",
     "bookingDetails": "Booking Details",

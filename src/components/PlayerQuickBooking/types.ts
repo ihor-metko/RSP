@@ -29,6 +29,7 @@ export interface BookingCourt {
   type: string | null;
   surface: string | null;
   indoor: boolean;
+  courtFormat?: "SINGLE" | "DOUBLE" | null; // Court format for Padel courts
   defaultPriceCents: number;
   priceCents?: number; // Resolved price for the selected slot
   available?: boolean;
@@ -276,22 +277,6 @@ export function calculateEndTime(startTime: string, durationMinutes: number): st
   const endHour = Math.floor(totalMinutes / 60) % 24;
   const endMinute = totalMinutes % 60;
   return `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
-}
-
-// Format date for display
-export function formatDateDisplay(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-// Format time for display
-export function formatTimeDisplay(startTime: string, endTime: string): string {
-  return `${startTime} - ${endTime}`;
 }
 
 // Determine which steps should be visible based on preselected data

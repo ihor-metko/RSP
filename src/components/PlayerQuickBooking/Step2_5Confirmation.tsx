@@ -5,8 +5,6 @@ import { formatPrice } from "@/utils/price";
 import {
   BookingCourt,
   BookingClub,
-  formatDateDisplay,
-  formatTimeDisplay,
   calculateEndTime,
 } from "./types";
 
@@ -17,6 +15,22 @@ interface Step2_5ConfirmationProps {
   duration: number;
   court: BookingCourt | null;
   totalPrice: number;
+}
+
+// Format date for display
+export function formatDateDisplay(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString(undefined, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+// Format time for display
+export function formatTimeDisplay(startTime: string, endTime: string): string {
+  return `${startTime} - ${endTime}`;
 }
 
 export function Step2_5Confirmation({

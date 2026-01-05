@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { formatPrice } from "@/utils/price";
+import { formatDateTimeLong, formatDateLong } from "@/utils/date";
 import {
   PaymentMethod,
   BookingCourt,
   BookingClub,
-  formatDateDisplay,
-  formatTimeDisplay,
   calculateEndTime,
 } from "./types";
 
@@ -61,6 +60,12 @@ const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: React.ReactNode
   },
 ];
 
+// Time validation constants
+const MIN_HOUR = 0;
+const MAX_HOUR = 23;
+const MIN_MINUTE = 0;
+const MAX_MINUTE = 59;
+
 export function Step3Payment({
   club,
   date,
@@ -76,6 +81,7 @@ export function Step3Payment({
   onReservationExpired,
 }: Step3PaymentProps) {
   const t = useTranslations();
+  const locale = useLocale();
   const endTime = calculateEndTime(startTime, duration);
 
   const [reservationId, setReservationId] = useState<string | null>(null);
@@ -163,6 +169,46 @@ export function Step3Payment({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   }, []);
 
+  // Format date and time for display using locale-aware formatting
+  const formatBookingDateTime = useCallback((dateStr: string, timeStr: string): string => {
+    // Fallback function for when time parsing fails
+    const fallbackToDateOnly = (errorMsg: string, context?: Record<string, unknown>) => {
+      console.error(errorMsg, context ?? timeStr);
+      return formatDateLong(new Date(dateStr), locale);
+    };
+
+    try {
+      // Validate time format (HH:MM)
+      if (!timeStr || !timeStr.includes(':')) {
+        return fallbackToDateOnly('Invalid time format');
+      }
+      
+      // Split time and validate we have exactly 2 parts
+      const timeParts = timeStr.split(':');
+      if (timeParts.length !== 2) {
+        return fallbackToDateOnly('Invalid time format - expected HH:MM');
+      }
+      
+      // Parse and validate hours and minutes
+      const hours = parseInt(timeParts[0], 10);
+      const minutes = parseInt(timeParts[1], 10);
+      
+      if (isNaN(hours) || isNaN(minutes) || 
+          hours < MIN_HOUR || hours > MAX_HOUR || 
+          minutes < MIN_MINUTE || minutes > MAX_MINUTE) {
+        return fallbackToDateOnly('Invalid time values', { hours, minutes, timeStr });
+      }
+      
+      // Create date time with the parsed time
+      const dateTime = new Date(dateStr);
+      dateTime.setHours(hours, minutes, 0, 0);
+      
+      return formatDateTimeLong(dateTime, locale);
+    } catch (error) {
+      return fallbackToDateOnly('Error formatting booking date time', { error });
+    }
+  }, [locale, formatDateLong, formatDateTimeLong]);
+
   if (isCreatingReservation) {
     return (
       <div className="rsp-wizard-step-content">
@@ -216,36 +262,42 @@ export function Step3Payment({
         <div className="rsp-wizard-summary-card">
           {club && (
             <div className="rsp-wizard-summary-row">
-              <span className="rsp-wizard-summary-label">{t("wizard.club")}</span>
+              <span className="rsp-wizard-summary-label">{t("booking.summary.club")}</span>
               <span className="rsp-wizard-summary-value">{club.name}</span>
             </div>
           )}
           <div className="rsp-wizard-summary-row">
-            <span className="rsp-wizard-summary-label">{t("common.date")}</span>
-            <span className="rsp-wizard-summary-value">{formatDateDisplay(date)}</span>
+            <span className="rsp-wizard-summary-label">{t("booking.summary.date")}</span>
+            <span className="rsp-wizard-summary-value">{formatBookingDateTime(date, startTime)}</span>
           </div>
           <div className="rsp-wizard-summary-row">
-            <span className="rsp-wizard-summary-label">{t("common.time")}</span>
-            <span className="rsp-wizard-summary-value">
-              {formatTimeDisplay(startTime, endTime)}
-            </span>
-          </div>
-          <div className="rsp-wizard-summary-row">
-            <span className="rsp-wizard-summary-label">{t("common.duration")}</span>
+            <span className="rsp-wizard-summary-label">{t("booking.summary.duration")}</span>
             <span className="rsp-wizard-summary-value">
               {duration} {t("common.minutes")}
             </span>
           </div>
           {court && (
-            <div className="rsp-wizard-summary-row">
-              <span className="rsp-wizard-summary-label">{t("wizard.court")}</span>
-              <span className="rsp-wizard-summary-value">{court.name}</span>
-            </div>
+            <>
+              <div className="rsp-wizard-summary-row">
+                <span className="rsp-wizard-summary-label">{t("booking.summary.court")}</span>
+                <span className="rsp-wizard-summary-value">{court.name}</span>
+              </div>
+              {court.courtFormat && (
+                <div className="rsp-wizard-summary-row">
+                  <span className="rsp-wizard-summary-label">{t("booking.summary.courtType")}</span>
+                  <span className="rsp-wizard-summary-value">
+                    {court.courtFormat === "SINGLE" 
+                      ? t("booking.courtType.single") 
+                      : t("booking.courtType.double")}
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
 
         <div className="rsp-wizard-total">
-          <span className="rsp-wizard-total-label">{t("wizard.total")}</span>
+          <span className="rsp-wizard-total-label">{t("booking.summary.total")}</span>
           <span className="rsp-wizard-total-value">{formatPrice(totalPrice)}</span>
         </div>
       </div>
