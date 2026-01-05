@@ -40,6 +40,8 @@
     "active": "Active",
     "inactive": "Inactive",
     "minutes": "minutes",
+    "hour": "hour",
+    "hours": "hours",
     "days": "days",
     "perHour": "/ hour",
     "indoor": "Indoor",
@@ -1259,6 +1261,8 @@
       "findAvailableCourts": "Find available courts",
       "searching": "Searching...",
       "noCourtsAvailable": "No courts available at selected time.",
+      "noCourtsForDuration": "No courts are available for the selected duration.",
+      "alternativeDurationsAvailable": "We can suggest the closest available options:",
       "tryAnotherTime": "Try another time or check court schedules.",
       "availableCourts": "Available courts ({count})",
       "select": "Select"

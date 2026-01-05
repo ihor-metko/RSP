@@ -67,6 +67,7 @@ export interface PlayerQuickBookingState {
   step4: PlayerBookingStep4Data;
   availableClubs: BookingClub[];
   availableCourts: BookingCourt[];
+  alternativeDurations: number[];
   isLoadingClubs: boolean;
   isLoadingCourts: boolean;
   clubsError: string | null;
@@ -97,9 +98,9 @@ export interface BookingStepConfig {
 }
 
 // Business hours configuration
-export const BUSINESS_START_HOUR = 9;
+export const BUSINESS_START_HOUR = 8;
 export const BUSINESS_END_HOUR = 22;
-export const DURATION_OPTIONS = [30, 60, 90, 120];
+export const DURATION_OPTIONS = [30, 60, 90, 120, 150, 180];
 
 // Peak hours (17:00 - 21:00 weekdays, 10:00 - 14:00 weekends)
 export function isPeakHour(date: string, time: string): boolean {

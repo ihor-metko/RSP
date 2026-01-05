@@ -10,6 +10,9 @@ interface Step2CourtsProps {
   onSelectCourt: (court: BookingCourt) => void;
   isLoading: boolean;
   error: string | null;
+  currentDuration: number;
+  alternativeDurations?: number[];
+  onSelectAlternativeDuration?: (duration: number) => void;
 }
 
 export function Step2Courts({
@@ -18,8 +21,20 @@ export function Step2Courts({
   onSelectCourt,
   isLoading,
   error,
+  currentDuration,
+  alternativeDurations = [],
+  onSelectAlternativeDuration,
 }: Step2CourtsProps) {
   const t = useTranslations();
+
+  // Helper function to format duration for display
+  const formatDuration = (minutes: number): string => {
+    const hours = minutes / 60;
+    if (hours >= 1 && minutes % 60 === 0) {
+      return `${hours} ${hours === 1 ? t("common.hour") : t("common.hours")}`;
+    }
+    return `${minutes} ${t("common.minutes")}`;
+  };
 
   if (isLoading) {
     return (
@@ -54,11 +69,64 @@ export function Step2Courts({
       </h2>
 
       {courts.length === 0 ? (
-        <div className="rsp-wizard-alert rsp-wizard-alert--error" role="alert">
-          {t("booking.quickBooking.noCourtsAvailable")}
-          <p className="mt-1 text-xs opacity-70">
-            {t("booking.quickBooking.tryAnotherTime")}
-          </p>
+        <div>
+          <div className="rsp-wizard-alert rsp-wizard-alert--info" role="alert">
+            {t("booking.quickBooking.noCourtsForDuration")}
+          </div>
+          
+          {alternativeDurations.length > 0 && onSelectAlternativeDuration && (
+            <div className="rsp-wizard-alternatives" style={{ marginTop: "1.5rem" }}>
+              <p className="rsp-wizard-alternatives-title" style={{ 
+                fontSize: "0.875rem", 
+                fontWeight: 500, 
+                marginBottom: "0.75rem",
+                opacity: 0.9
+              }}>
+                {t("booking.quickBooking.alternativeDurationsAvailable")}
+              </p>
+              <div className="rsp-wizard-alternatives-grid" style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                gap: "0.75rem"
+              }}>
+                {alternativeDurations.map((duration) => (
+                  <button
+                    key={duration}
+                    type="button"
+                    className="rsp-wizard-alternative-btn"
+                    onClick={() => onSelectAlternativeDuration(duration)}
+                    style={{
+                      padding: "0.75rem 1rem",
+                      borderRadius: "0.5rem",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      background: "rgba(255, 255, 255, 0.05)",
+                      color: "inherit",
+                      fontSize: "0.875rem",
+                      fontWeight: 500,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+                      e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                    }}
+                  >
+                    {formatDuration(duration)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {alternativeDurations.length === 0 && (
+            <p className="mt-2 text-xs opacity-70">
+              {t("booking.quickBooking.tryAnotherTime")}
+            </p>
+          )}
         </div>
       ) : (
         <>

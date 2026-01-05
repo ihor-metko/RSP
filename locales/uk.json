@@ -40,6 +40,8 @@
     "active": "Активний",
     "inactive": "Неактивний",
     "minutes": "хвилин",
+    "hour": "година",
+    "hours": "години",
     "days": "днів",
     "perHour": "/ година",
     "indoor": "Критий",
@@ -1199,6 +1201,8 @@
       "findAvailableCourts": "Знайти доступні корти",
       "searching": "Пошук...",
       "noCourtsAvailable": "Немає доступних кортів у вибраний час.",
+      "noCourtsForDuration": "Немає доступних кортів для вибраної тривалості.",
+      "alternativeDurationsAvailable": "Ми можемо запропонувати найближчі доступні варіанти:",
       "tryAnotherTime": "Спробуйте інший час або перевірте розклад кортів.",
       "availableCourts": "Доступні корти ({count})",
       "select": "Вибрати"

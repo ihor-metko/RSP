@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Select } from "@/components/ui";
+import { Select, DateInput } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import {
   generateTimeOptions,
@@ -36,20 +36,15 @@ export function Step1DateTime({
       </h2>
 
       <div className="rsp-wizard-form">
-        {/* Date Input */}
+        {/* Date Input with Calendar */}
         <div className="rsp-wizard-field">
-          <label htmlFor="wizard-date" className="rsp-wizard-label">
-            {t("common.date")}
-          </label>
-          <input
-            id="wizard-date"
-            type="date"
-            className="rsp-wizard-input"
+          <DateInput
+            label={t("common.date")}
             value={data.date}
-            onChange={(e) => onChange({ date: e.target.value })}
-            min={getTodayDateString()}
+            onChange={(date) => onChange({ date })}
+            minDate={getTodayDateString()}
             disabled={isLoading}
-            aria-describedby={isPeak ? "peak-hint" : undefined}
+            aria-label={t("common.date")}
           />
         </div>
 
@@ -74,10 +69,16 @@ export function Step1DateTime({
             <Select
               id="wizard-duration"
               label={t("common.duration")}
-              options={DURATION_OPTIONS.map((mins) => ({
-                value: String(mins),
-                label: `${mins} ${t("common.minutes")}`,
-              }))}
+              options={DURATION_OPTIONS.map((mins) => {
+                const hours = mins / 60;
+                const label = hours >= 1 && mins % 60 === 0
+                  ? `${hours} ${hours === 1 ? t("common.hour") : t("common.hours")}`
+                  : `${mins} ${t("common.minutes")}`;
+                return {
+                  value: String(mins),
+                  label,
+                };
+              })}
               value={String(data.duration)}
               onChange={(value) => onChange({ duration: parseInt(value, 10) })}
               disabled={isLoading}
