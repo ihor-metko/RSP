@@ -198,6 +198,10 @@ export async function POST(
       );
     }
 
+    // Determine the final court type value
+    // For Padel courts, extract format from metadata and use it as the type
+    let finalCourtType = type?.trim() || null;
+    
     // Validate Padel court format if type is padel
     if (type?.toLowerCase() === "padel") {
       let parsedMetadata: Record<string, unknown> | null = null;
@@ -227,6 +231,10 @@ export async function POST(
           { status: 400 }
         );
       }
+      
+      // Set the type field to capitalized format for Quick Booking compatibility
+      // "single" -> "Single", "double" -> "Double"
+      finalCourtType = format.charAt(0).toUpperCase() + format.slice(1);
     }
 
     // Verify club exists
@@ -247,7 +255,7 @@ export async function POST(
         clubId,
         name: name.trim(),
         slug: slug?.trim() || null,
-        type: type?.trim() || null,
+        type: finalCourtType,
         surface: surface?.trim() || null,
         indoor: indoor ?? false,
         sportType: sportType || "PADEL",

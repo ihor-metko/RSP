@@ -207,7 +207,33 @@ export async function PATCH(
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name.trim();
     if (slug !== undefined) updateData.slug = slug?.trim() || null;
-    if (type !== undefined) updateData.type = type?.trim() || null;
+    
+    // Handle type field - extract from metadata if it's a Padel court
+    let finalCourtType = type !== undefined ? (type?.trim() || null) : undefined;
+    
+    // If metadata is provided and contains padelCourtFormat, use it to set the type field
+    if (metadata !== undefined) {
+      let parsedMetadata: Record<string, unknown> | null = null;
+      
+      try {
+        parsedMetadata = typeof metadata === "string" ? JSON.parse(metadata) : metadata;
+      } catch {
+        // Invalid metadata, will be stored as-is
+      }
+      
+      // If metadata contains padelCourtFormat, extract it and set as type
+      if (parsedMetadata && parsedMetadata.padelCourtFormat) {
+        const format = parsedMetadata.padelCourtFormat as string;
+        // Capitalize the format: "single" -> "Single", "double" -> "Double"
+        if (format === "single" || format === "double") {
+          finalCourtType = format.charAt(0).toUpperCase() + format.slice(1);
+        }
+      }
+      
+      updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
+    }
+    
+    if (finalCourtType !== undefined) updateData.type = finalCourtType;
     if (surface !== undefined) updateData.surface = surface?.trim() || null;
     if (indoor !== undefined) updateData.indoor = indoor;
     if (sportType !== undefined) updateData.sportType = sportType;
@@ -215,7 +241,6 @@ export async function PATCH(
     if (isPublished !== undefined) updateData.isPublished = isPublished;
     if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
     if (isActive !== undefined) updateData.isActive = isActive;
-    if (metadata !== undefined) updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
 
     const updatedCourt = await prisma.court.update({
       where: { id: courtId },
