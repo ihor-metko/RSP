@@ -142,7 +142,7 @@ export default function ClubDetailPage({
       imageUrl: court.bannerData?.url || null,
     }));
   }, [rawCourts]);
-  
+
   // Derive available court types from courts (to avoid separate API call)
   const availableCourtTypes = useMemo(() => {
     const courtTypes = new Set<"SINGLE" | "DOUBLE">();
@@ -153,7 +153,7 @@ export default function ClubDetailPage({
     });
     return Array.from(courtTypes).sort(); // Sort for consistency
   }, [rawCourts]);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
   const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
@@ -558,7 +558,7 @@ export default function ClubDetailPage({
 
         {/* Weekly Availability Timeline */}
         {courts.length > 0 && (
-          <section className="rsp-club-timeline-section mt-8">
+          <section className="rsp-club-timeline-section">
             <WeeklyAvailabilityTimeline
               key={timelineKey}
               clubId={club.id}
