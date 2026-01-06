@@ -18,7 +18,8 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { useIsMobile } from "@/hooks";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
-import { getTodayStr } from "@/utils/dateTime";
+import { getTodayStr, clubLocalToUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
@@ -342,8 +343,14 @@ export default function ClubDetailPage({
       setIsAuthPromptOpen(true);
       return;
     }
-    const startDateTime = `${date}T${startTime}:00.000Z`;
-    const endDateTime = `${date}T${endTime}:00.000Z`;
+    
+    // Get club timezone with fallback to default
+    const clubTimezone = getClubTimezone(club?.timezone);
+    
+    // Convert club-local time to UTC before creating booking slot
+    const startDateTime = clubLocalToUTC(date, startTime, clubTimezone);
+    const endDateTime = clubLocalToUTC(date, endTime, clubTimezone);
+    
     setPreselectedSlot({ startTime: startDateTime, endTime: endDateTime });
     setSelectedCourtId(courtId);
     setIsCourtAvailabilityOpen(false);
