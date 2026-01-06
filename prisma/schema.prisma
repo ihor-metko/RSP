@@ -451,25 +451,26 @@ model CoachTimeOff {
 }
 
 model Booking {
-  id                   String    @id @default(uuid())
-  court                Court     @relation(fields: [courtId], references: [id])
+  id                   String          @id @default(uuid())
+  court                Court           @relation(fields: [courtId], references: [id])
   courtId              String
-  user                 User      @relation(fields: [userId], references: [id])
+  user                 User            @relation(fields: [userId], references: [id])
   userId               String
-  coach                Coach?    @relation(fields: [coachId], references: [id])
+  coach                Coach?          @relation(fields: [coachId], references: [id])
   coachId              String?
   start                DateTime
   end                  DateTime
   price                Int
-  sportType            SportType @default(PADEL) // Type of sport for this booking
-  status               String    @default("pending") // Legacy field for backward compatibility: "pending", "paid", "cancelled", etc.
-  bookingStatus        String    @default("Confirmed") // Booking status: "UPCOMING", "Cancelled", "Completed", "No-show", "Confirmed"
-  paymentStatus        String    @default("Unpaid") // Payment status: "Paid", "Unpaid", "Refunded"
+  sportType            SportType       @default(PADEL) // Type of sport for this booking
+  status               String          @default("pending") // Legacy field for backward compatibility: "pending", "paid", "cancelled", etc.
+  bookingStatus        String          @default("Confirmed") // Booking status: "UPCOMING", "Cancelled", "Completed", "No-show", "Confirmed"
+  paymentStatus        String          @default("Unpaid") // Payment status: "Paid", "Unpaid", "Refunded"
   paymentId            String?
   reservedAt           DateTime? // Timestamp when temporary reservation was created
   reservationExpiresAt DateTime? // Timestamp when reservation expires (typically reservedAt + 5 minutes)
-  createdAt            DateTime  @default(now())
+  createdAt            DateTime        @default(now())
   payments             Payment[]
+  paymentIntents       PaymentIntent[] // Payment intents for this booking
 
   @@index([reservationExpiresAt])
 }
@@ -482,6 +483,47 @@ model Payment {
   status    String
   amount    Int
   createdAt DateTime @default(now())
+}
+
+// Payment Intent - tracks payment processing for bookings
+// Provides idempotency, audit trail, and safe callback handling
+model PaymentIntent {
+  id               String         @id @default(uuid())
+  bookingId        String
+  booking          Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  paymentAccountId String
+  paymentAccount   PaymentAccount @relation(fields: [paymentAccountId], references: [id])
+  provider         PaymentProvider
+  orderReference   String         @unique // Unique order reference for payment provider
+  amount           Int // Amount in minor units (e.g., 100 = 1 UAH)
+  currency         String         @default("UAH")
+  status           String         @default("pending") // "pending", "paid", "failed", "cancelled"
+
+  // Payment callback data
+  transactionId String? // Provider transaction ID
+  authCode      String? // Authorization code
+  cardPan       String? // Masked card number
+  cardType      String? // Card type (Visa, MasterCard, etc.)
+
+  // Signature validation
+  signatureValid Boolean? // Whether the callback signature was valid
+
+  // Callback data (JSON) for audit
+  callbackData String? @db.Text
+
+  // Error tracking
+  errorMessage String? @db.Text
+
+  // Audit fields
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime? // When the payment was completed/failed
+
+  @@index([bookingId])
+  @@index([paymentAccountId])
+  @@index([orderReference])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model PricingRule {
@@ -589,8 +631,9 @@ model PaymentAccount {
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   club         Club?         @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
-  // Relations
+  // Payment relations
   verificationPayments VerificationPayment[] // Verification payment intents
+  paymentIntents       PaymentIntent[] // Booking payment intents
 
   @@unique([provider, scope, organizationId, clubId])
   @@index([organizationId])
