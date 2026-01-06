@@ -30,6 +30,9 @@ export function Step1DateTime({
 
   // Filter time options to exclude past times for today
   const TIME_OPTIONS = filterPastTimeSlots(generateTimeOptions(), data.date);
+  
+  // Determine aria-describedby for start time select
+  const startTimeAriaDescribedBy = isPeak && data.startTime ? "peak-hint" : undefined;
 
   return (
     <div className="rsp-wizard-step-content" role="group" aria-labelledby="step1-title">
@@ -69,7 +72,7 @@ export function Step1DateTime({
               onChange={(value) => onChange({ startTime: value })}
               disabled={isLoading}
               placeholder={t("booking.quickBooking.selectStartTime")}
-              aria-describedby={isPeak && data.startTime ? "peak-hint" : undefined}
+              aria-describedby={startTimeAriaDescribedBy}
             />
           </div>
 

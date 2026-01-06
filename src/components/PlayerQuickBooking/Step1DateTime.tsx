@@ -59,6 +59,20 @@ export function Step1DateTime({
 
   // Get valid durations for the selected start time
   const validDurations = getValidDurations(data.date, data.startTime, businessHours);
+  
+  // Determine price estimate hint message
+  const getPriceEstimateHint = () => {
+    if (!data.startTime) {
+      return null;
+    }
+    if (estimatedPriceRange == null && estimatedPrice == null) {
+      return t("wizard.noCourtsAvailable");
+    }
+    if (estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max) {
+      return t("wizard.priceRangeHint");
+    }
+    return t("wizard.priceVariesByTime");
+  };
 
   return (
     <div className="rsp-wizard-step-content" role="group" aria-labelledby="step1-title">
@@ -182,15 +196,7 @@ export function Step1DateTime({
             )}
           </div>
           <div className="rsp-wizard-price-estimate-hint">
-            {!data.startTime ? (
-              ""
-            ) : estimatedPriceRange == null && estimatedPrice == null ? (
-              t("wizard.noCourtsAvailable")
-            ) : estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max ? (
-              t("wizard.priceRangeHint")
-            ) : (
-              t("wizard.priceVariesByTime")
-            )}
+            {getPriceEstimateHint()}
           </div>
         </div>
 
