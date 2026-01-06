@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { PriceSegment } from "@/types/court";
+import { utcToClubLocalDate, utcToClubLocalTime } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 
 // Re-export PriceSegment for backward compatibility
 export type { PriceSegment };
@@ -67,6 +69,12 @@ function getDayOfWeek(dateStr: string): number {
 /**
  * Get resolved price for a slot based on court price rules.
  * 
+ * IMPORTANT TIMEZONE HANDLING:
+ * - This function expects UTC date/time parameters
+ * - Price rules are stored in club-local time
+ * - The function converts UTC inputs to club-local before matching rules
+ * - This ensures correct price matching across different timezones and DST transitions
+ * 
  * Resolution order:
  * 1. Find any CourtPriceRule with exact date that contains the slot
  * 2. Otherwise find rules with dayOfWeek matching the date's weekday
@@ -76,16 +84,18 @@ function getDayOfWeek(dateStr: string): number {
  * overlapping minutes × price rate per minute.
  * 
  * @param courtId - The court ID
- * @param date - Date string in YYYY-MM-DD format
- * @param startTime - Start time in "HH:MM" format
+ * @param utcDateStr - UTC date string in YYYY-MM-DD format
+ * @param utcStartTime - UTC start time in "HH:MM" format
  * @param durationMinutes - Duration in minutes
+ * @param clubTimezone - IANA timezone string (e.g., "Europe/Kyiv")
  * @returns Price in cents
  */
 export async function getResolvedPriceForSlot(
   courtId: string,
-  date: string,
-  startTime: string,
-  durationMinutes: number
+  utcDateStr: string,
+  utcStartTime: string,
+  durationMinutes: number,
+  clubTimezone: string
 ): Promise<number> {
   // Fetch court for default price
   const court = await prisma.court.findUnique({
@@ -97,12 +107,20 @@ export async function getResolvedPriceForSlot(
     throw new Error("Court not found");
   }
 
-  // Calculate end time in minutes
-  const startMins = timeToMinutes(normalizeTime(startTime));
+  // Convert UTC date/time to club-local time for price rule matching
+  // Price rules are stored in club-local time (e.g., "10:00-11:00" means 10am at the club)
+  // We need to convert the booking's UTC time to club time to find matching rules
+  const utcISOString = `${utcDateStr}T${utcStartTime}:00.000Z`;
+  const clubLocalDate = utcToClubLocalDate(utcISOString, clubTimezone);
+  const clubLocalStartTime = utcToClubLocalTime(utcISOString, clubTimezone);
+
+  // Calculate end time in minutes (in club-local time)
+  // Calculate end time in minutes (in club-local time)
+  const startMins = timeToMinutes(normalizeTime(clubLocalStartTime));
   const endMins = startMins + durationMinutes;
 
-  // Get price timeline for the day
-  const timeline = await getPriceTimelineForDay(courtId, date);
+  // Get price timeline for the day (using club-local date)
+  const timeline = await getPriceTimelineForDay(courtId, clubLocalDate);
 
   if (timeline.length === 0) {
     // No rules, use default price

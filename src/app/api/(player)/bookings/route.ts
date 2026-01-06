@@ -90,14 +90,40 @@ export async function POST(request: Request) {
     const dateStr = getUTCDateString(startTime);
     const startTimeStr = getUTCTimeString(startTime);
 
+    // Fetch court and club timezone for price calculation
+    const courtForTimezone = await prisma.court.findUnique({
+      where: { id: body.courtId },
+      select: {
+        clubId: true,
+        club: {
+          select: {
+            timezone: true,
+          },
+        },
+      },
+    });
+
+    if (!courtForTimezone) {
+      return NextResponse.json(
+        { error: "Court not found" },
+        { status: 400 }
+      );
+    }
+
+    // Get club timezone (with fallback to default)
+    const clubTimezone = courtForTimezone.club.timezone || "Europe/Kyiv";
+
     // Calculate resolved price using price rules
+    // NOTE: Price rules are stored in club-local time, so we pass UTC time + club timezone
+    // The function will convert UTC to club-local before matching rules
     let resolvedPrice: number;
     try {
       resolvedPrice = await getResolvedPriceForSlot(
         body.courtId,
         dateStr,
         startTimeStr,
-        durationMinutes
+        durationMinutes,
+        clubTimezone
       );
     } catch (priceError) {
       if (priceError instanceof Error && priceError.message === "Court not found") {

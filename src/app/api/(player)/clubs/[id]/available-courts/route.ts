@@ -173,7 +173,8 @@ export async function GET(
     // Check if club exists and get its courts
     const club = await prisma.club.findUnique({
       where: { id: clubId },
-      include: {
+      select: {
+        timezone: true,
         courts: {
           where: {
             isPublished: true, // Only return published courts for players
@@ -197,6 +198,9 @@ export async function GET(
     if (!club) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
+
+    // Get club timezone (with fallback to default)
+    const clubTimezone = club.timezone || "Europe/Kyiv";
 
     // Parse requested slot times - ensure UTC interpretation
     const [startHour] = timeStart.split(":").map(Number);
@@ -235,13 +239,16 @@ export async function GET(
     for (const court of club.courts) {
       if (isCourtAvailable(court.id, slotStart, slotEnd, bookings)) {
         // Calculate resolved price for this court based on date, time, and duration
+        // NOTE: Price rules are stored in club-local time
+        // dateParam and timeStart are already in UTC format, clubTimezone enables conversion
         let resolvedPrice: number;
         try {
           resolvedPrice = await getResolvedPriceForSlot(
             court.id,
             dateParam,
             timeStart,
-            duration
+            duration,
+            clubTimezone
           );
         } catch (error) {
           // If price resolution fails, fall back to default price calculation
