@@ -2,13 +2,13 @@ import type { BookingStatus, PaymentStatus, LegacyBookingStatus, DynamicBookingS
 
 /**
  * Calculate the dynamic status of a booking based on current time
- * 
+ *
  * Dynamic status rules:
  * - If booking is cancelled or no-show, return the persistent status
  * - Reserved: now < startAt (booking hasn't started yet)
  * - Ongoing: startAt <= now < endAt (booking is currently happening)
  * - Completed: now >= endAt (booking has finished)
- * 
+ *
  * @param start - Booking start time (ISO string or Date)
  * @param end - Booking end time (ISO string or Date)
  * @param persistentStatus - The status stored in the database
@@ -46,7 +46,7 @@ export function calculateBookingStatus(
 /**
  * Get the dynamic status only (without considering persistent statuses)
  * Useful for determining if a booking should be marked as completed/no-show
- * 
+ *
  * @param start - Booking start time
  * @param end - Booking end time
  * @param now - Current time for comparison
@@ -72,7 +72,7 @@ export function getDynamicStatus(
 
 /**
  * Check if a legacy status is terminal (cannot be changed by time-based logic)
- * 
+ *
  * @param status - Legacy booking status to check
  * @returns true if status is terminal
  */
@@ -82,7 +82,7 @@ export function isTerminalLegacyStatus(status: LegacyBookingStatus): boolean {
 
 /**
  * Check if a status is terminal (cannot be changed by time-based logic)
- * 
+ *
  * @param status - Booking status to check
  * @returns true if status is terminal
  */
@@ -93,7 +93,7 @@ export function isTerminalStatus(status: BookingStatus): boolean {
 /**
  * Check if a booking should be marked as completed (for batch processing)
  * Returns true if the booking has ended and is not already in a terminal state
- * 
+ *
  * @param end - Booking end time
  * @param persistentStatus - The current status in database (supports both legacy and new statuses)
  * @param now - Current time for comparison
@@ -119,7 +119,7 @@ export function shouldMarkAsCompleted(
 
 /**
  * Get human-readable status label
- * 
+ *
  * @param status - Booking status
  * @returns Human-readable label
  */
@@ -136,7 +136,7 @@ export function getStatusLabel(status: BookingStatus): string {
 
 /**
  * Get status color class for UI
- * 
+ *
  * @param status - Booking status
  * @returns CSS class suffix for status styling
  */
@@ -154,7 +154,7 @@ export function getStatusColorClass(status: BookingStatus): string {
 /**
  * Type guard to safely cast string to LegacyBookingStatus
  * This is for backward compatibility with the old single-status system.
- * 
+ *
  * @param status - Status string from database
  * @returns The status as LegacyBookingStatus type
  */
@@ -168,11 +168,11 @@ export function toBookingStatus(status: string): LegacyBookingStatus {
     "no-show",
     "completed",
   ];
-  
+
   if (validStatuses.includes(status as LegacyBookingStatus)) {
     return status as LegacyBookingStatus;
   }
-  
+
   // Default to reserved for unknown statuses
   return "reserved";
 }
@@ -183,7 +183,7 @@ export function toBookingStatus(status: string): LegacyBookingStatus {
 
 /**
  * Type guard to safely cast string to new BookingStatus
- * 
+ *
  * @param status - Status string from database
  * @returns The status as BookingStatus type
  */
@@ -195,18 +195,18 @@ export function toNewBookingStatus(status: string): BookingStatus {
     "No-show",
     "Pending",
   ];
-  
+
   if (validStatuses.includes(status as BookingStatus)) {
     return status as BookingStatus;
   }
-  
+
   // Default to Pending for unknown statuses
   return "Pending";
 }
 
 /**
  * Type guard to safely cast string to PaymentStatus
- * 
+ *
  * @param status - Status string from database
  * @returns The status as PaymentStatus type
  */
@@ -215,21 +215,19 @@ export function toPaymentStatus(status: string): PaymentStatus {
     "Paid",
     "Unpaid",
     "Refunded",
-    "PartiallyRefunded",
-    "PaymentPending",
   ];
-  
+
   if (validStatuses.includes(status as PaymentStatus)) {
     return status as PaymentStatus;
   }
-  
+
   // Default to Unpaid for unknown statuses
   return "Unpaid";
 }
 
 /**
  * Get human-readable label for new BookingStatus
- * 
+ *
  * @param status - Booking status
  * @returns Human-readable label
  */
@@ -246,7 +244,7 @@ export function getBookingStatusLabel(status: BookingStatus): string {
 
 /**
  * Get human-readable label for PaymentStatus
- * 
+ *
  * @param status - Payment status
  * @returns Human-readable label
  */
@@ -255,15 +253,13 @@ export function getPaymentStatusLabel(status: PaymentStatus): string {
     Paid: "Paid",
     Unpaid: "Unpaid",
     Refunded: "Refunded",
-    PartiallyRefunded: "Partially Refunded",
-    PaymentPending: "Payment Pending",
   };
   return labels[status] || status;
 }
 
 /**
  * Get status color class for new BookingStatus
- * 
+ *
  * @param status - Booking status
  * @returns CSS class suffix for status styling
  */
@@ -280,7 +276,7 @@ export function getBookingStatusColorClass(status: BookingStatus): string {
 
 /**
  * Get status color class for PaymentStatus
- * 
+ *
  * @param status - Payment status
  * @returns CSS class suffix for status styling
  */
@@ -289,15 +285,13 @@ export function getPaymentStatusColorClass(status: PaymentStatus): string {
     Paid: "success",
     Unpaid: "warning",
     Refunded: "info",
-    PartiallyRefunded: "info",
-    PaymentPending: "warning",
   };
   return colorMap[status] || "neutral";
 }
 
 /**
  * Check if a booking status allows cancellation
- * 
+ *
  * @param status - Booking status to check
  * @returns true if booking can be cancelled
  */
@@ -307,7 +301,7 @@ export function canCancelBooking(status: BookingStatus): boolean {
 
 /**
  * Migrate legacy status to new dual-status system
- * 
+ *
  * @param legacyStatus - Old status string
  * @returns Object with bookingStatus and paymentStatus
  */

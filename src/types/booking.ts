@@ -15,10 +15,8 @@ export type BookingStatus = "Active" | "Cancelled" | "Completed" | "No-show" | "
  * - Paid: Payment has been completed
  * - Unpaid: Payment has not been made
  * - Refunded: Payment has been fully refunded
- * - PartiallyRefunded: Payment has been partially refunded
- * - PaymentPending: Payment is being processed
  */
-export type PaymentStatus = "Paid" | "Unpaid" | "Refunded" | "PartiallyRefunded" | "PaymentPending";
+export type PaymentStatus = "Paid" | "Unpaid" | "Refunded";
 
 /**
  * Payment status constants
@@ -27,8 +25,6 @@ export const PAYMENT_STATUS = {
   PAID: "Paid" as const,
   UNPAID: "Unpaid" as const,
   REFUNDED: "Refunded" as const,
-  PARTIALLY_REFUNDED: "PartiallyRefunded" as const,
-  PAYMENT_PENDING: "PaymentPending" as const,
 } as const;
 
 /**

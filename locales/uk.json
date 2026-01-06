@@ -2398,9 +2398,7 @@
     "bookingStatusPending": "Очікує",
     "paymentStatusPaid": "Оплачено",
     "paymentStatusUnpaid": "Не оплачено",
-    "paymentStatusRefunded": "Повернено",
-    "paymentStatusPartiallyRefunded": "Частково повернено",
-    "paymentStatusPaymentPending": "Очікується оплата"
+    "paymentStatusRefunded": "Повернено"
   },
   "adminWizard": {
     "title": "Створити бронювання",

@@ -2516,9 +2516,7 @@
     "bookingStatusPending": "Pending",
     "paymentStatusPaid": "Paid",
     "paymentStatusUnpaid": "Unpaid",
-    "paymentStatusRefunded": "Refunded",
-    "paymentStatusPartiallyRefunded": "Partially Refunded",
-    "paymentStatusPaymentPending": "Payment Pending"
+    "paymentStatusRefunded": "Refunded"
   },
   "bookingsOverview": {
     "title": "Bookings Overview",
