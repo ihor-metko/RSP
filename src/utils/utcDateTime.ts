@@ -197,3 +197,44 @@ export function getNowUTC(): Date {
 export function getTodayUTC(): string {
   return getUTCDateString(getNowUTC());
 }
+
+/**
+ * Get dates starting from a given date for a specified number of days (UTC-based)
+ * @param startDateString - Starting date in YYYY-MM-DD format
+ * @param numDays - Number of days to generate
+ * @returns Array of date strings in YYYY-MM-DD format
+ */
+export function getDatesFromStartUTC(startDateString: string, numDays: number): string[] {
+  if (!isValidDateString(startDateString)) {
+    throw new Error(`Invalid date format: ${startDateString}. Expected YYYY-MM-DD`);
+  }
+  
+  const dates: string[] = [];
+  const startDate = new Date(startDateString + 'T00:00:00.000Z');
+  
+  for (let i = 0; i < numDays; i++) {
+    const date = new Date(startDate);
+    date.setUTCDate(date.getUTCDate() + i);
+    dates.push(getUTCDateString(date));
+  }
+  
+  return dates;
+}
+
+/**
+ * Get the Monday of the week containing the given date (UTC-based)
+ * @param dateString - Date in YYYY-MM-DD format
+ * @returns Date string in YYYY-MM-DD format representing Monday of that week
+ */
+export function getWeekMondayUTC(dateString: string): string {
+  if (!isValidDateString(dateString)) {
+    throw new Error(`Invalid date format: ${dateString}. Expected YYYY-MM-DD`);
+  }
+  
+  const date = new Date(dateString + 'T00:00:00.000Z');
+  const dayOfWeek = date.getUTCDay();
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  
+  date.setUTCDate(date.getUTCDate() + mondayOffset);
+  return getUTCDateString(date);
+}
