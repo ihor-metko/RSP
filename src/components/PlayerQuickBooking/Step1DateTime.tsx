@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 import { Select, DateInput, RadioGroup } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import {
@@ -60,8 +61,8 @@ export function Step1DateTime({
   // Get valid durations for the selected start time
   const validDurations = getValidDurations(data.date, data.startTime, businessHours);
   
-  // Determine price estimate hint message
-  const getPriceEstimateHint = () => {
+  // Determine price estimate hint message (memoized to prevent unnecessary re-renders)
+  const priceEstimateHint = useMemo(() => {
     if (!data.startTime) {
       return null;
     }
@@ -72,7 +73,7 @@ export function Step1DateTime({
       return t("wizard.priceRangeHint");
     }
     return t("wizard.priceVariesByTime");
-  };
+  }, [data.startTime, estimatedPriceRange, estimatedPrice, t]);
 
   return (
     <div className="rsp-wizard-step-content" role="group" aria-labelledby="step1-title">
@@ -196,7 +197,7 @@ export function Step1DateTime({
             )}
           </div>
           <div className="rsp-wizard-price-estimate-hint">
-            {getPriceEstimateHint()}
+            {priceEstimateHint}
           </div>
         </div>
 
