@@ -774,7 +774,7 @@ export function PlayerQuickBooking({
           setState((prev) => ({
             ...prev,
             isSubmitting: false,
-            submitError: t("wizard.paymentWindowBlocked") || "Payment window was blocked. Please allow pop-ups for this site and try again.",
+            submitError: t("wizard.paymentWindowBlocked"),
           }));
         } else {
           // Payment window opened successfully
