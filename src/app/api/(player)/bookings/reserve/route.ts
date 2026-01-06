@@ -151,7 +151,7 @@ export async function POST(request: Request) {
           price: resolvedPrice,
           sportType: court.sportType || "PADEL",
           status: LEGACY_STATUS.RESERVED,
-          bookingStatus: BOOKING_STATUS.PENDING,
+          bookingStatus: BOOKING_STATUS.CONFIRMED,
           paymentStatus: PAYMENT_STATUS.UNPAID,
           reservedAt: new Date(),
           reservationExpiresAt: reservationExpiresAt,

@@ -140,7 +140,7 @@ export function BookingListWithWebSocket({
                       borderRadius: '4px',
                       fontSize: '12px',
                       backgroundColor:
-                        booking.bookingStatus === 'Active'
+                        booking.bookingStatus === 'UPCOMING'
                           ? '#10b981'
                           : booking.bookingStatus === 'Cancelled'
                           ? '#ef4444'

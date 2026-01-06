@@ -178,7 +178,7 @@ export async function POST(request: Request) {
           where: { id: existingReservation.id },
           data: {
             status: LEGACY_STATUS.PAID,
-            bookingStatus: BOOKING_STATUS.ACTIVE,
+            bookingStatus: BOOKING_STATUS.UPCOMING,
             paymentStatus: PAYMENT_STATUS.PAID,
             reservationExpiresAt: null, // Clear expiry since it's now paid
           },
@@ -215,7 +215,7 @@ export async function POST(request: Request) {
             price: resolvedPrice,
             sportType: court.sportType || "PADEL",
             status: LEGACY_STATUS.PAID,
-            bookingStatus: BOOKING_STATUS.ACTIVE,
+            bookingStatus: BOOKING_STATUS.UPCOMING,
             paymentStatus: PAYMENT_STATUS.PAID,
           },
           include: {
