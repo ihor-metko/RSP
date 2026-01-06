@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { formatPrice } from "@/utils/price";
-import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import {
   WizardCourt,
   PaymentProvider,
@@ -40,7 +40,25 @@ export function Step4Payment({
   bookingId,
 }: Step4PaymentProps) {
   const t = useTranslations();
-  const { theme } = useTheme();
+  const [isDark, setIsDark] = useState(false);
+
+  // Detect dark mode from document class
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkDarkMode();
+    
+    // Watch for dark mode changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
+  }, []);
 
   // Success state
   if (isComplete && bookingId) {
@@ -152,7 +170,7 @@ export function Step4Payment({
               disabled={isSubmitting}
             >
               <img
-                src={theme === "dark" ? provider.logoDark : provider.logoLight}
+                src={isDark ? provider.logoDark : provider.logoLight}
                 alt={provider.displayName}
                 className="rsp-wizard-payment-provider-logo"
                 loading="lazy"
