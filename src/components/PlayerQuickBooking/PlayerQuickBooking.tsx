@@ -68,6 +68,9 @@ export function PlayerQuickBooking({
   // Track previous step1 values to prevent unnecessary API calls
   const prevStep1ParamsRef = useRef<string>("");
   const prevCourtsParamsRef = useRef<string>("");
+  
+  // Track if a reservation request is in progress to prevent duplicates
+  const isReservingRef = useRef<boolean>(false);
 
   // Initialize state with preselected data
   const [state, setState] = useState<PlayerQuickBookingState>(() => {
@@ -123,6 +126,7 @@ export function PlayerQuickBooking({
       // Reset tracking refs
       prevStep1ParamsRef.current = "";
       prevCourtsParamsRef.current = "";
+      isReservingRef.current = false; // Reset reservation lock
       
       const initialDateTime: PlayerBookingStep1Data = preselectedDateTime
         ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
@@ -547,6 +551,108 @@ export function PlayerQuickBooking({
     }));
   }, []);
 
+  // Create reservation when transitioning from Step 2.5 to Step 3
+  const handleCreateReservation = useCallback(async () => {
+    const { step1, step2 } = state;
+    const court = step2.selectedCourt;
+
+    if (!court) {
+      return false;
+    }
+
+    // Prevent duplicate reservation requests
+    if (isReservingRef.current) {
+      console.log("Reservation already in progress, skipping duplicate request");
+      return false;
+    }
+
+    // If we already have a valid reservation, don't create another one
+    if (state.step3.reservationId && state.step3.reservationExpiresAt) {
+      const expiresAt = new Date(state.step3.reservationExpiresAt);
+      if (expiresAt > new Date()) {
+        console.log("Valid reservation already exists, skipping duplicate request");
+        return true; // Proceed to payment step
+      }
+    }
+
+    isReservingRef.current = true;
+    setState((prev) => ({ ...prev, isSubmitting: true, submitError: null }));
+
+    try {
+      const startDateTime = `${step1.date}T${step1.startTime}:00.000Z`;
+      const endTime = calculateEndTime(step1.startTime, step1.duration);
+      const endDateTime = `${step1.date}T${endTime}:00.000Z`;
+
+      const response = await fetch("/api/bookings/reserve", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          courtId: court.id,
+          startTime: startDateTime,
+          endTime: endDateTime,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 409) {
+        // 409 Conflict - slot is already reserved
+        // This could be from:
+        // 1. Our own duplicate request (safe to proceed)
+        // 2. Another user's reservation (should show error)
+        
+        // Check if we already have a reservation for this exact slot
+        // If we don't have a reservationId yet, this is likely another user's reservation
+        if (!state.step3.reservationId) {
+          setState((prev) => ({
+            ...prev,
+            isSubmitting: false,
+            submitError: t("booking.slotNoLongerAvailable"),
+          }));
+          return false;
+        }
+        
+        // We have a reservationId, so this 409 is likely from our duplicate request
+        // Proceed to payment step
+        console.log("409 received but we have an existing reservation, proceeding to payment");
+        setState((prev) => ({ ...prev, isSubmitting: false }));
+        return true;
+      }
+
+      if (!response.ok) {
+        setState((prev) => ({
+          ...prev,
+          isSubmitting: false,
+          submitError: data.error || t("auth.errorOccurred"),
+        }));
+        return false;
+      }
+
+      // Successful reservation created
+      setState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+        step3: {
+          ...prev.step3,
+          reservationId: data.reservationId,
+          reservationExpiresAt: data.expiresAt,
+        },
+      }));
+      return true;
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+        submitError: t("auth.errorOccurred"),
+      }));
+      return false;
+    } finally {
+      isReservingRef.current = false;
+    }
+  }, [state, t]);
+
   // Submit booking
   const handleSubmit = useCallback(async () => {
     const { step0, step1, step2, step3 } = state;
@@ -624,41 +730,48 @@ export function PlayerQuickBooking({
 
   // Navigate to next step
   const handleNext = useCallback(async () => {
-    setState((currentState) => {
-      const currentStepIndex = visibleSteps.findIndex((s) => s.id === currentState.currentStep);
-      if (currentStepIndex === -1) return currentState;
+    const currentStepIndex = visibleSteps.findIndex((s) => s.id === state.currentStep);
+    if (currentStepIndex === -1) return;
 
-      const currentStepConfig = visibleSteps[currentStepIndex];
+    const currentStepConfig = visibleSteps[currentStepIndex];
 
-      // If current step is 0 (club selection), fetch clubs if needed
-      if (currentStepConfig.id === 0 && currentState.availableClubs.length === 0 && !currentState.isLoadingClubs) {
-        fetchAvailableClubs();
-        return currentState;
+    // If current step is 0 (club selection), fetch clubs if needed
+    if (currentStepConfig.id === 0 && state.availableClubs.length === 0 && !state.isLoadingClubs) {
+      fetchAvailableClubs();
+      return;
+    }
+
+    // If moving to step 2 (courts), only fetch if we don't have courts data already
+    if (currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 2) {
+      // Only fetch if we don't have courts for the current selection
+      if (state.availableCourts.length === 0 && state.alternativeTimeSlots.length === 0 && !state.isLoadingCourts) {
+        fetchAvailableCourts();
       }
+      setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
+      return;
+    }
 
-      // If moving to step 2 (courts), only fetch if we don't have courts data already
-      if (currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 2) {
-        // Only fetch if we don't have courts for the current selection
-        if (currentState.availableCourts.length === 0 && currentState.alternativeTimeSlots.length === 0 && !currentState.isLoadingCourts) {
-          fetchAvailableCourts();
-        }
-        return { ...currentState, currentStep: visibleSteps[currentStepIndex + 1].id };
+    // If moving from step 2.5 (confirmation) to step 3 (payment), create reservation first
+    if (currentStepConfig.id === 2.5 && currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 3) {
+      const reservationCreated = await handleCreateReservation();
+      if (reservationCreated) {
+        setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
       }
+      // If reservation failed, stay on current step (error will be shown)
+      return;
+    }
 
-      // If current step is 3 (payment), submit booking
-      if (currentStepConfig.id === 3) {
-        handleSubmit();
-        return currentState;
-      }
+    // If current step is 3 (payment), submit booking
+    if (currentStepConfig.id === 3) {
+      handleSubmit();
+      return;
+    }
 
-      // Move to next step
-      if (currentStepIndex + 1 < visibleSteps.length) {
-        return { ...currentState, currentStep: visibleSteps[currentStepIndex + 1].id };
-      }
-
-      return currentState;
-    });
-  }, [visibleSteps, fetchAvailableClubs, fetchAvailableCourts, handleSubmit]);
+    // Move to next step
+    if (currentStepIndex + 1 < visibleSteps.length) {
+      setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
+    }
+  }, [visibleSteps, state.currentStep, state.availableClubs.length, state.isLoadingClubs, state.availableCourts.length, state.alternativeTimeSlots.length, state.isLoadingCourts, fetchAvailableClubs, fetchAvailableCourts, handleCreateReservation, handleSubmit]);
 
   // Navigate to previous step
   const handleBack = useCallback(() => {
@@ -835,6 +948,7 @@ export function PlayerQuickBooking({
               duration={state.step1.duration}
               court={state.step2.selectedCourt}
               totalPrice={totalPrice}
+              submitError={state.submitError}
             />
           )}
 
@@ -850,16 +964,7 @@ export function PlayerQuickBooking({
               onSelectPaymentMethod={handleSelectPaymentMethod}
               isSubmitting={state.isSubmitting}
               submitError={state.submitError}
-              onReservationCreated={(reservationId, expiresAt) => {
-                setState((prev) => ({
-                  ...prev,
-                  step3: {
-                    ...prev.step3,
-                    reservationId,
-                    reservationExpiresAt: expiresAt,
-                  },
-                }));
-              }}
+              reservationExpiresAt={state.step3.reservationExpiresAt}
               onReservationExpired={() => {
                 setState((prev) => ({
                   ...prev,
@@ -922,6 +1027,8 @@ export function PlayerQuickBooking({
                   <span className="rsp-wizard-spinner" aria-hidden="true" />
                   {t("common.processing")}
                 </>
+              ) : state.currentStep === 2.5 ? (
+                t("wizard.confirmAndReserve")
               ) : state.currentStep === 3 ? (
                 t("wizard.confirmBooking")
               ) : (

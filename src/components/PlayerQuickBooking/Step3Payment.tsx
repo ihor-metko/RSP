@@ -10,7 +10,6 @@ import {
   PaymentMethod,
   BookingCourt,
   BookingClub,
-  calculateEndTime,
 } from "./types";
 
 interface Step3PaymentProps {
@@ -24,7 +23,7 @@ interface Step3PaymentProps {
   onSelectPaymentMethod: (method: PaymentMethod) => void;
   isSubmitting: boolean;
   submitError: string | null;
-  onReservationCreated?: (reservationId: string, expiresAt: string) => void;
+  reservationExpiresAt: string | null;
   onReservationExpired?: () => void;
 }
 
@@ -79,72 +78,16 @@ export function Step3Payment({
   onSelectPaymentMethod,
   isSubmitting,
   submitError,
-  onReservationCreated,
+  reservationExpiresAt: reservationExpiresAtProp,
   onReservationExpired,
 }: Step3PaymentProps) {
   const t = useTranslations();
   const locale = useLocale();
-  const endTime = calculateEndTime(startTime, duration);
 
-  const [reservationId, setReservationId] = useState<string | null>(null);
-  const [reservationExpiresAt, setReservationExpiresAt] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [reservationError, setReservationError] = useState<string | null>(null);
-  const [isCreatingReservation, setIsCreatingReservation] = useState(false);
 
-  // Create reservation on mount
-  useEffect(() => {
-    const createReservation = async () => {
-      if (!court || reservationId) return;
-
-      setIsCreatingReservation(true);
-      setReservationError(null);
-
-      try {
-        // Get club timezone with fallback to default
-        const clubTimezone = getClubTimezone(club?.timezone);
-        
-        // Convert club-local time to UTC before sending to API
-        const startDateTime = clubLocalToUTC(date, startTime, clubTimezone);
-        const endDateTime = clubLocalToUTC(date, endTime, clubTimezone);
-
-        const response = await fetch("/api/bookings/reserve", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            courtId: court.id,
-            startTime: startDateTime,
-            endTime: endDateTime,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (response.status === 409) {
-          setReservationError(t("booking.slotNoLongerAvailable"));
-          onReservationExpired?.();
-          return;
-        }
-
-        if (!response.ok) {
-          setReservationError(data.error || t("auth.errorOccurred"));
-          return;
-        }
-
-        setReservationId(data.reservationId);
-        setReservationExpiresAt(data.expiresAt);
-        onReservationCreated?.(data.reservationId, data.expiresAt);
-      } catch {
-        setReservationError(t("auth.errorOccurred"));
-      } finally {
-        setIsCreatingReservation(false);
-      }
-    };
-
-    createReservation();
-  }, [court, club, date, startTime, endTime, reservationId, t, onReservationCreated, onReservationExpired]);
+  // Use reservation expiry from parent
+  const reservationExpiresAt = reservationExpiresAtProp;
 
   // Update countdown timer
   useEffect(() => {
@@ -188,55 +131,32 @@ export function Step3Payment({
       if (!timeStr || !timeStr.includes(':')) {
         return fallbackToDateOnly('Invalid time format');
       }
-      
+
       // Split time and validate we have exactly 2 parts
       const timeParts = timeStr.split(':');
       if (timeParts.length !== 2) {
         return fallbackToDateOnly('Invalid time format - expected HH:MM');
       }
-      
+
       // Parse and validate hours and minutes
       const hours = parseInt(timeParts[0], 10);
       const minutes = parseInt(timeParts[1], 10);
-      
-      if (isNaN(hours) || isNaN(minutes) || 
-          hours < MIN_HOUR || hours > MAX_HOUR || 
-          minutes < MIN_MINUTE || minutes > MAX_MINUTE) {
+
+      if (isNaN(hours) || isNaN(minutes) ||
+        hours < MIN_HOUR || hours > MAX_HOUR ||
+        minutes < MIN_MINUTE || minutes > MAX_MINUTE) {
         return fallbackToDateOnly('Invalid time values', { hours, minutes, timeStr });
       }
-      
+
       // Create date time with the parsed time
       const dateTime = new Date(dateStr);
       dateTime.setHours(hours, minutes, 0, 0);
-      
+
       return formatDateTimeLong(dateTime, locale);
     } catch (error) {
       return fallbackToDateOnly('Error formatting booking date time', { error });
     }
-  }, [locale, formatDateLong, formatDateTimeLong]);
-
-  if (isCreatingReservation) {
-    return (
-      <div className="rsp-wizard-step-content">
-        <h2 className="rsp-wizard-step-title">{t("wizard.step3Title")}</h2>
-        <div className="rsp-wizard-loading" aria-busy="true" aria-live="polite">
-          <div className="rsp-wizard-spinner" role="progressbar" />
-          <span className="rsp-wizard-loading-text">{t("wizard.reservingSlot")}</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (reservationError) {
-    return (
-      <div className="rsp-wizard-step-content">
-        <h2 className="rsp-wizard-step-title">{t("wizard.step3Title")}</h2>
-        <div className="rsp-wizard-alert rsp-wizard-alert--error" role="alert">
-          {reservationError}
-        </div>
-      </div>
-    );
-  }
+  }, [locale]);
 
   return (
     <div className="rsp-wizard-step-content" role="group" aria-labelledby="step3-title">
@@ -245,7 +165,7 @@ export function Step3Payment({
       </h2>
 
       {/* Reservation Timer */}
-      {reservationId && timeRemaining > 0 && (
+      {timeRemaining > 0 && (
         <div className="rsp-wizard-reservation-timer" role="timer" aria-live="polite">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
@@ -292,8 +212,8 @@ export function Step3Payment({
                 <div className="rsp-wizard-summary-row">
                   <span className="rsp-wizard-summary-label">{t("booking.summary.courtType")}</span>
                   <span className="rsp-wizard-summary-value">
-                    {court.courtFormat === "SINGLE" 
-                      ? t("booking.courtType.single") 
+                    {court.courtFormat === "SINGLE"
+                      ? t("booking.courtType.single")
                       : t("booking.courtType.double")}
                   </span>
                 </div>
@@ -322,8 +242,8 @@ export function Step3Payment({
             aria-checked={selectedPaymentMethod === method.id}
             aria-disabled={method.disabled}
             className={`rsp-wizard-payment-method ${selectedPaymentMethod === method.id
-                ? "rsp-wizard-payment-method--selected"
-                : ""
+              ? "rsp-wizard-payment-method--selected"
+              : ""
               } ${method.disabled ? "rsp-wizard-payment-method--disabled" : ""}`}
             onClick={() => !method.disabled && onSelectPaymentMethod(method.id)}
             disabled={isSubmitting || method.disabled}

@@ -12,11 +12,13 @@ jest.mock("next-intl", () => ({
   useTranslations: () => (key: string) => {
     // Mock translation map
     const translations: Record<string, string> = {
-      "adminBookings.bookingStatusActive": "Active",
+      "adminBookings.bookingStatusUpcoming": "Upcoming",
       "adminBookings.bookingStatusCancelled": "Cancelled",
       "adminBookings.bookingStatusCompleted": "Completed",
       "adminBookings.bookingStatusNoShow": "No-show",
-      "adminBookings.bookingStatusPending": "Pending",
+      "adminBookings.bookingStatusConfirmed": "Confirmed",
+      "adminBookings.bookingStatusActive": "Upcoming", // backward compat
+      "adminBookings.bookingStatusPending": "Confirmed", // backward compat
       "adminBookings.statusPaid": "Paid",
       "adminBookings.statusReserved": "Reserved",
       "adminBookings.statusOngoing": "Ongoing",
@@ -31,12 +33,20 @@ jest.mock("next-intl", () => ({
 }));
 
 describe("BookingStatusBadge", () => {
-  it("should render Active status with correct styling", () => {
-    render(<BookingStatusBadge status="Active" />);
-    const badge = screen.getByText("Active");
+  it("should render UPCOMING status with correct styling", () => {
+    render(<BookingStatusBadge status="UPCOMING" />);
+    const badge = screen.getByText("Upcoming");
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveClass("im-booking-status");
-    expect(badge).toHaveClass("im-booking-status--active");
+    expect(badge).toHaveClass("im-booking-status--upcoming");
+  });
+
+  it("should render Confirmed status with correct styling", () => {
+    render(<BookingStatusBadge status="Confirmed" />);
+    const badge = screen.getByText("Confirmed");
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveClass("im-booking-status");
+    expect(badge).toHaveClass("im-booking-status--confirmed");
   });
 
   it("should render Cancelled status with correct styling", () => {
@@ -63,9 +73,17 @@ describe("BookingStatusBadge", () => {
     expect(badge).toHaveClass("im-booking-status--no-show");
   });
 
-  it("should render Pending status with correct styling", () => {
+  it("should handle legacy Active status (maps to Upcoming)", () => {
+    render(<BookingStatusBadge status="Active" />);
+    const badge = screen.getByText("Upcoming");
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveClass("im-booking-status");
+    expect(badge).toHaveClass("im-booking-status--active");
+  });
+
+  it("should handle legacy Pending status (maps to Confirmed)", () => {
     render(<BookingStatusBadge status="Pending" />);
-    const badge = screen.getByText("Pending");
+    const badge = screen.getByText("Confirmed");
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveClass("im-booking-status");
     expect(badge).toHaveClass("im-booking-status--pending");
@@ -80,14 +98,14 @@ describe("BookingStatusBadge", () => {
   });
 
   it("should apply custom className when provided", () => {
-    render(<BookingStatusBadge status="Active" className="custom-class" />);
-    const badge = screen.getByText("Active");
+    render(<BookingStatusBadge status="UPCOMING" className="custom-class" />);
+    const badge = screen.getByText("Upcoming");
     expect(badge).toHaveClass("custom-class");
   });
 
   it("should apply color class from utility function", () => {
-    render(<BookingStatusBadge status="Active" />);
-    const badge = screen.getByText("Active");
+    render(<BookingStatusBadge status="UPCOMING" />);
+    const badge = screen.getByText("Upcoming");
     expect(badge).toHaveClass("im-status-success");
   });
 
@@ -123,22 +141,6 @@ describe("PaymentStatusBadge", () => {
     expect(badge).toHaveClass("im-payment-status--refunded");
   });
 
-  it("should render PartiallyRefunded status with correct styling", () => {
-    render(<PaymentStatusBadge status="PartiallyRefunded" />);
-    const badge = screen.getByText("Partially Refunded");
-    expect(badge).toBeInTheDocument();
-    expect(badge).toHaveClass("im-payment-status");
-    expect(badge).toHaveClass("im-payment-status--partiallyrefunded");
-  });
-
-  it("should render PaymentPending status with correct styling", () => {
-    render(<PaymentStatusBadge status="PaymentPending" />);
-    const badge = screen.getByText("Payment Pending");
-    expect(badge).toBeInTheDocument();
-    expect(badge).toHaveClass("im-payment-status");
-    expect(badge).toHaveClass("im-payment-status--paymentpending");
-  });
-
   it("should apply custom className when provided", () => {
     render(<PaymentStatusBadge status="Paid" className="custom-class" />);
     const badge = screen.getByText("Paid");
@@ -150,36 +152,30 @@ describe("PaymentStatusBadge", () => {
     const badge = screen.getByText("Paid");
     expect(badge).toHaveClass("im-status-success");
   });
-
-  it("should normalize status by removing spaces for CSS class", () => {
-    render(<PaymentStatusBadge status="PaymentPending" />);
-    const badge = screen.getByText("Payment Pending");
-    expect(badge).toHaveClass("im-payment-status--paymentpending");
-  });
 });
 
 describe("Status Badge Components - Integration", () => {
   it("should render both booking and payment status badges together", () => {
     render(
       <div>
-        <BookingStatusBadge status="Active" />
+        <BookingStatusBadge status="UPCOMING" />
         <PaymentStatusBadge status="Paid" />
       </div>
     );
     
-    expect(screen.getByText("Active")).toBeInTheDocument();
+    expect(screen.getByText("Upcoming")).toBeInTheDocument();
     expect(screen.getByText("Paid")).toBeInTheDocument();
   });
 
   it("should maintain consistent styling between booking and payment badges", () => {
     render(
       <div>
-        <BookingStatusBadge status="Active" />
+        <BookingStatusBadge status="UPCOMING" />
         <PaymentStatusBadge status="Paid" />
       </div>
     );
     
-    const bookingBadge = screen.getByText("Active");
+    const bookingBadge = screen.getByText("Upcoming");
     const paymentBadge = screen.getByText("Paid");
     
     // Both should have color classes

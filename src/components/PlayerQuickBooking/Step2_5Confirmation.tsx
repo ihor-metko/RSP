@@ -15,6 +15,7 @@ interface Step2_5ConfirmationProps {
   duration: number;
   court: BookingCourt | null;
   totalPrice: number;
+  submitError?: string | null;
 }
 
 // Format date for display
@@ -40,6 +41,7 @@ export function Step2_5Confirmation({
   duration,
   court,
   totalPrice,
+  submitError,
 }: Step2_5ConfirmationProps) {
   const t = useTranslations();
   const endTime = calculateEndTime(startTime, duration);
@@ -53,6 +55,12 @@ export function Step2_5Confirmation({
       <p className="rsp-wizard-step-description">
         {t("wizard.confirmBookingDetailsDescription")}
       </p>
+
+      {submitError && (
+        <div className="rsp-wizard-alert rsp-wizard-alert--error" role="alert">
+          {submitError}
+        </div>
+      )}
 
       {/* Booking Summary */}
       <div className="rsp-wizard-summary">
