@@ -56,13 +56,14 @@ jest.mock("@/components/ui", () => ({
       </div>
     );
   },
-  Select: ({ id, label, options, value, onChange, disabled }: {
+  Select: ({ id, label, options, value, onChange, disabled, placeholder }: {
     id: string;
     label: string;
     options: { value: string; label: string }[];
     value: string;
     onChange: (value: string) => void;
     disabled?: boolean;
+    placeholder?: string;
   }) => (
     <div>
       <label htmlFor={id}>{label}</label>
@@ -72,6 +73,7 @@ jest.mock("@/components/ui", () => ({
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
       >
+        {placeholder && <option value="">{placeholder}</option>}
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}
@@ -180,12 +182,28 @@ describe("QuickBookingWizard", () => {
       }),
     });
 
+    let rerender: any;
     await act(async () => {
-      render(<QuickBookingWizard {...defaultProps} />);
+      const result = render(<QuickBookingWizard {...defaultProps} />);
+      rerender = result.rerender;
     });
     
+    // Select a start time first (required after removing default)
+    const startTimeSelect = screen.getByLabelText("Start Time") as HTMLSelectElement;
+    
     await act(async () => {
-      fireEvent.click(screen.getByText("Continue"));
+      fireEvent.change(startTimeSelect, { target: { value: "10:00" } });
+      // Force a rerender to pick up state changes
+      if (rerender) rerender(<QuickBookingWizard {...defaultProps} />);
+    });
+    
+    // Small delay to allow async state updates
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    const continueButton = screen.getByText("Continue") as HTMLButtonElement;
+    
+    await act(async () => {
+      fireEvent.click(continueButton);
     });
 
     await waitFor(() => {
