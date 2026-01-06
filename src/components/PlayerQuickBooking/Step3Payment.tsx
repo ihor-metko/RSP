@@ -129,27 +129,27 @@ export function Step3Payment({
       if (!timeStr || !timeStr.includes(':')) {
         return fallbackToDateOnly('Invalid time format');
       }
-      
+
       // Split time and validate we have exactly 2 parts
       const timeParts = timeStr.split(':');
       if (timeParts.length !== 2) {
         return fallbackToDateOnly('Invalid time format - expected HH:MM');
       }
-      
+
       // Parse and validate hours and minutes
       const hours = parseInt(timeParts[0], 10);
       const minutes = parseInt(timeParts[1], 10);
-      
-      if (isNaN(hours) || isNaN(minutes) || 
-          hours < MIN_HOUR || hours > MAX_HOUR || 
-          minutes < MIN_MINUTE || minutes > MAX_MINUTE) {
+
+      if (isNaN(hours) || isNaN(minutes) ||
+        hours < MIN_HOUR || hours > MAX_HOUR ||
+        minutes < MIN_MINUTE || minutes > MAX_MINUTE) {
         return fallbackToDateOnly('Invalid time values', { hours, minutes, timeStr });
       }
-      
+
       // Create date time with the parsed time
       const dateTime = new Date(dateStr);
       dateTime.setHours(hours, minutes, 0, 0);
-      
+
       return formatDateTimeLong(dateTime, locale);
     } catch (error) {
       return fallbackToDateOnly('Error formatting booking date time', { error });
@@ -163,7 +163,7 @@ export function Step3Payment({
       </h2>
 
       {/* Reservation Timer */}
-      {reservationId && timeRemaining > 0 && (
+      {timeRemaining > 0 && (
         <div className="rsp-wizard-reservation-timer" role="timer" aria-live="polite">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
@@ -210,8 +210,8 @@ export function Step3Payment({
                 <div className="rsp-wizard-summary-row">
                   <span className="rsp-wizard-summary-label">{t("booking.summary.courtType")}</span>
                   <span className="rsp-wizard-summary-value">
-                    {court.courtFormat === "SINGLE" 
-                      ? t("booking.courtType.single") 
+                    {court.courtFormat === "SINGLE"
+                      ? t("booking.courtType.single")
                       : t("booking.courtType.double")}
                   </span>
                 </div>
@@ -240,8 +240,8 @@ export function Step3Payment({
             aria-checked={selectedPaymentMethod === method.id}
             aria-disabled={method.disabled}
             className={`rsp-wizard-payment-method ${selectedPaymentMethod === method.id
-                ? "rsp-wizard-payment-method--selected"
-                : ""
+              ? "rsp-wizard-payment-method--selected"
+              : ""
               } ${method.disabled ? "rsp-wizard-payment-method--disabled" : ""}`}
             onClick={() => !method.disabled && onSelectPaymentMethod(method.id)}
             disabled={isSubmitting || method.disabled}
