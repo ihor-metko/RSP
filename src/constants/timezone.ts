@@ -111,17 +111,18 @@ export function getTimezoneOffset(timezone: string): string {
     }
     
     // Fallback to manual calculation if formatToParts doesn't work
+    // Note: This is a safety net that should rarely execute
     const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
     const tzDate = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
     
     const offsetMinutes = Math.round((tzDate.getTime() - utcDate.getTime()) / (1000 * 60));
-    const offsetHours = offsetMinutes / 60;
     
-    // Format the offset
-    if (offsetHours === 0) {
+    // Handle the unlikely case of zero offset
+    if (offsetMinutes === 0) {
       return 'UTC+0';
     }
     
+    const offsetHours = offsetMinutes / 60;
     const sign = offsetHours > 0 ? '+' : '';
     const minutes = Math.abs(offsetMinutes) % 60;
     

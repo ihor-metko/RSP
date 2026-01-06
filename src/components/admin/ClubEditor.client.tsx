@@ -308,12 +308,14 @@ export function ClubEditor({
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ error: "Invalid response format" }));
       throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
     }
 
     // Get updated club data from response
-    const updatedClub = await response.json();
+    const updatedClub = await response.json().catch(() => {
+      throw new Error("Invalid response format");
+    });
 
     // Update store reactively - no page reload needed
     updateClubInStore(club.id, updatedClub);
