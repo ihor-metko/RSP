@@ -60,7 +60,7 @@ export function Step1DateTime({
 
   // Get valid durations for the selected start time
   const validDurations = getValidDurations(data.date, data.startTime, businessHours);
-  
+
   // Determine price estimate hint message (memoized to prevent unnecessary re-renders)
   const priceEstimateHint = useMemo(() => {
     if (!data.startTime) {
@@ -185,7 +185,7 @@ export function Step1DateTime({
           </div>
           <div className="rsp-wizard-price-estimate-value">
             {!data.startTime ? (
-              <span className="opacity-50">{t("booking.quickBooking.selectStartTimeToSeePrice")}</span>
+              <span className="opacity-50 text-base">{t("booking.quickBooking.selectStartTimeToSeePrice")}</span>
             ) : estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max ? (
               <>
                 {formatPrice(estimatedPriceRange.min)} - {formatPrice(estimatedPriceRange.max)}
