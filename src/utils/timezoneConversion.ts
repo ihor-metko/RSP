@@ -46,10 +46,6 @@ export function toUtcFromClubTime(
     throw new Error(`Invalid time format: ${timeString}. Expected HH:MM`);
   }
   
-  // Create a date-time string in ISO 8601 format without timezone
-  // This represents the LOCAL time in the club's timezone
-  const localDateTimeString = `${dateString}T${timeString}:00`;
-  
   // Parse the local date-time using Intl API to get UTC timestamp
   // We create a formatter for the club timezone and parse the components
   const [year, month, day] = dateString.split('-').map(Number);
