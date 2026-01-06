@@ -108,7 +108,6 @@ export const COMMON_TIMEZONES = [
   { value: "America/Vancouver", label: "America/Vancouver (PST/PDT)", region: "North America" },
   { value: "America/Mexico_City", label: "America/Mexico City (CST/CDT)", region: "North America" },
   { value: "America/Anchorage", label: "America/Anchorage (AKST/AKDT)", region: "North America" },
-  { value: "America/Honolulu", label: "America/Honolulu (HST)", region: "North America" },
   
   // South America
   { value: "America/Sao_Paulo", label: "America/São Paulo (BRT/BRST)", region: "South America" },

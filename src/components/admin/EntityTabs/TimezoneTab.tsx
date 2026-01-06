@@ -107,7 +107,7 @@ export function TimezoneTab({
       )}
 
       {showWarning && (
-        <div className="im-entity-tab-warning" role="alert">
+        <div id="timezone-warning" className="im-entity-tab-warning" role="alert">
           <svg 
             className="im-entity-tab-warning-icon" 
             viewBox="0 0 24 24" 
