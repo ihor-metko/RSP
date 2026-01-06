@@ -451,6 +451,7 @@ export default function ClubDetailPage({
               slug: club.slug || null,
               location: (club.address as { formattedAddress?: string })?.formattedAddress || "",
               city: (club.address as { city?: string })?.city || null,
+              timezone: club.timezone || null,
               bannerData: club.bannerData || null,
               businessHours: club.businessHours || [],
             } : undefined}
@@ -819,6 +820,7 @@ export default function ClubDetailPage({
             slug: club.slug || null,
             location: formattedAddress,
             city: (club.address as { city?: string })?.city || null,
+            timezone: club.timezone || null,
             bannerData: club.bannerData || null,
             businessHours: club.businessHours || [],
           } : undefined}

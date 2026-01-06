@@ -1,9 +1,9 @@
 /**
  * Date and time utilities for the application
- * 
+ *
  * IMPORTANT: This file contains LEGACY timezone utilities.
  * For new backend code, use @/utils/utcDateTime instead.
- * 
+ *
  * These utilities use PLATFORM_TIMEZONE which is club-specific.
  * Backend should operate on UTC only.
  */
@@ -19,7 +19,7 @@ export const PLATFORM_TIMEZONE = DEFAULT_CLUB_TIMEZONE;
  * Returns UTC Date objects that represent the start and end of the day in Europe/Kyiv
  * @param dateParam Date string in YYYY-MM-DD format
  * @returns Object with startOfDay and endOfDay Date objects (in UTC)
- * 
+ *
  * Example: For date "2024-01-05" in Europe/Kyiv (UTC+2):
  * - startOfDay: 2024-01-04T22:00:00.000Z (which is 2024-01-05 00:00:00 in Kyiv)
  * - endOfDay: 2024-01-05T21:59:59.999Z (which is 2024-01-05 23:59:59.999 in Kyiv)
@@ -33,24 +33,24 @@ export function createDayRange(dateParam: string): {
   if (!dateRegex.test(dateParam)) {
     throw new Error(`Invalid date format: ${dateParam}. Expected YYYY-MM-DD format.`);
   }
-  
+
   // Parse the date components
   const [year, month, day] = dateParam.split('-').map(Number);
-  
+
   // Validate date values
   if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
     throw new Error(`Invalid date values in: ${dateParam}`);
   }
-  
+
   // Create a date at noon on the target day to determine the timezone offset for that day
   // This handles DST transitions correctly
   const middayUTC = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-  
+
   // Validate that the date is valid (catches invalid dates like Feb 30)
   if (isNaN(middayUTC.getTime())) {
     throw new Error(`Invalid date: ${dateParam}`);
   }
-  
+
   // Use formatToParts to reliably extract hour and minute in platform timezone
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: PLATFORM_TIMEZONE,
@@ -58,29 +58,29 @@ export function createDayRange(dateParam: string): {
     minute: "numeric",
     hour12: false,
   });
-  
+
   const parts = formatter.formatToParts(middayUTC);
   const hourPart = parts.find(p => p.type === 'hour');
   const minutePart = parts.find(p => p.type === 'minute');
-  
+
   // Validate that we got the expected parts
   if (!hourPart || !minutePart) {
     throw new Error(`Failed to parse timezone offset for date ${dateParam}`);
   }
-  
+
   const platformHour = parseInt(hourPart.value, 10);
   const platformMinute = parseInt(minutePart.value, 10);
-  
+
   // Calculate the offset: how many hours ahead is platform timezone from UTC
   const offsetHours = platformHour - 12;
   const offsetMinutes = platformMinute;
   const offsetMs = (offsetHours * 60 + offsetMinutes) * 60 * 1000;
-  
+
   // Now calculate UTC times that correspond to midnight and end-of-day in platform timezone
   // If platform is UTC+2, midnight in platform is 22:00 previous day UTC
   const startOfDayUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0) - offsetMs);
   const endOfDayUTC = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999) - offsetMs);
-  
+
   return { startOfDay: startOfDayUTC, endOfDay: endOfDayUTC };
 }
 
@@ -197,12 +197,12 @@ export function doTimesOverlap(
   const [e1h, e1m] = end1.split(":").map(Number);
   const [s2h, s2m] = start2.split(":").map(Number);
   const [e2h, e2m] = end2.split(":").map(Number);
-  
+
   const start1Minutes = s1h * 60 + s1m;
   const end1Minutes = e1h * 60 + e1m;
   const start2Minutes = s2h * 60 + s2m;
   const end2Minutes = e2h * 60 + e2m;
-  
+
   return start1Minutes < end2Minutes && start2Minutes < end1Minutes;
 }
 
@@ -312,6 +312,159 @@ export function filterPastTimeSlots(timeSlots: string[], dateStr: string): strin
     const slotTotalMinutes = slotHour * 60 + slotMinute;
     return slotTotalMinutes > currentTotalMinutes;
   });
+}
+
+/**
+ * Convert club-local date and time to UTC ISO string
+ * Uses Intl.DateTimeFormat to properly handle timezone conversions and DST
+ *
+ * @param dateStr Date string in YYYY-MM-DD format (club local date)
+ * @param timeStr Time string in HH:MM format (club local time)
+ * @param clubTimezone IANA timezone string (e.g., "Europe/Kyiv")
+ * @returns UTC ISO string (e.g., "2026-01-06T08:00:00.000Z")
+ *
+ * @example
+ * // User selects 10:00 in Kyiv timezone (UTC+2)
+ * clubLocalToUTC("2026-01-06", "10:00", "Europe/Kyiv")
+ * // Returns: "2026-01-06T08:00:00.000Z"
+ */
+export function clubLocalToUTC(
+  dateStr: string,
+  timeStr: string,
+  clubTimezone: string
+): string {
+  // Parse components
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const [hours, minutes] = timeStr.split(":").map(Number);
+
+  // Create a date-time string in ISO format without timezone (local interpretation)
+  const localDateTimeStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}T${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:00`;
+
+  // Create a formatter that will interpret this date in the club's timezone
+  // and give us the parts as they would appear in that timezone
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: clubTimezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  // To find the UTC timestamp that corresponds to the local time in the club's timezone,
+  // we use an iterative approach:
+  // 1. Start with a guess (interpret as UTC)
+  // 2. See what that time looks like in the club timezone
+  // 3. Adjust and repeat until we find the right UTC time
+
+  // Initial guess: assume the local time string is UTC
+  const guessUTC = new Date(`${localDateTimeStr}Z`);
+
+  // Check what this UTC time looks like in the club timezone
+  const parts = formatter.formatToParts(guessUTC);
+  const tzYear = parseInt(parts.find(p => p.type === 'year')?.value || '0', 10);
+  const tzMonth = parseInt(parts.find(p => p.type === 'month')?.value || '0', 10);
+  const tzDay = parseInt(parts.find(p => p.type === 'day')?.value || '0', 10);
+  const tzHour = parseInt(parts.find(p => p.type === 'hour')?.value || '0', 10);
+  const tzMinute = parseInt(parts.find(p => p.type === 'minute')?.value || '0', 10);
+
+  // Calculate the difference
+  const targetDate = new Date(year, month - 1, day, hours, minutes);
+  const currentDate = new Date(tzYear, tzMonth - 1, tzDay, tzHour, tzMinute);
+  const diffMs = targetDate.getTime() - currentDate.getTime();
+
+  // Adjust our guess
+  const correctUTC = new Date(guessUTC.getTime() + diffMs);
+
+  return correctUTC.toISOString();
+}
+
+/**
+ * Convert UTC ISO string to club-local time string (HH:MM format)
+ *
+ * @param utcISOString UTC ISO string (e.g., "2026-01-06T08:00:00.000Z")
+ * @param clubTimezone IANA timezone string (e.g., "Europe/Kyiv")
+ * @returns Time string in HH:MM format in club's local timezone
+ *
+ * @example
+ * // Convert UTC time to Kyiv timezone (UTC+2)
+ * utcToClubLocalTime("2026-01-06T08:00:00.000Z", "Europe/Kyiv")
+ * // Returns: "10:00"
+ */
+export function utcToClubLocalTime(
+  utcISOString: string,
+  clubTimezone: string
+): string {
+  const date = new Date(utcISOString);
+
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: clubTimezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return formatter.format(date);
+}
+
+/**
+ * Convert UTC ISO string to club-local date string (YYYY-MM-DD format)
+ *
+ * @param utcISOString UTC ISO string (e.g., "2026-01-06T22:00:00.000Z")
+ * @param clubTimezone IANA timezone string (e.g., "Europe/Kyiv")
+ * @returns Date string in YYYY-MM-DD format in club's local timezone
+ *
+ * @example
+ * // Convert UTC time to Kyiv timezone (UTC+2)
+ * utcToClubLocalDate("2026-01-06T22:00:00.000Z", "Europe/Kyiv")
+ * // Returns: "2026-01-07" (next day in Kyiv)
+ */
+export function utcToClubLocalDate(
+  utcISOString: string,
+  clubTimezone: string
+): string {
+  const date = new Date(utcISOString);
+
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: clubTimezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  return formatter.format(date);
+}
+
+/**
+ * Get today's date in a specific timezone
+ * @param clubTimezone IANA timezone string (e.g., "Europe/Kyiv")
+ * @returns Date string in YYYY-MM-DD format
+ */
+export function getTodayInClubTimezone(clubTimezone: string): string {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: clubTimezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(new Date());
+}
+
+/**
+ * Get current time in a specific timezone
+ * @param clubTimezone IANA timezone string (e.g., "Europe/Kyiv")
+ * @returns Time string in HH:MM format
+ */
+export function getCurrentTimeInClubTimezone(clubTimezone: string): string {
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: clubTimezone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  return formatter.format(new Date());
 }
 
 /**

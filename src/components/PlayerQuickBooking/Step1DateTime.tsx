@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useMemo } from "react";
 import { Select, DateInput, RadioGroup } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
 import {
@@ -60,6 +61,20 @@ export function Step1DateTime({
   // Get valid durations for the selected start time
   const validDurations = getValidDurations(data.date, data.startTime, businessHours);
 
+  // Determine price estimate hint message (memoized to prevent unnecessary re-renders)
+  const priceEstimateHint = useMemo(() => {
+    if (!data.startTime) {
+      return null;
+    }
+    if (estimatedPriceRange == null && estimatedPrice == null) {
+      return t("wizard.noCourtsAvailable");
+    }
+    if (estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max) {
+      return t("wizard.priceRangeHint");
+    }
+    return t("wizard.priceVariesByTime");
+  }, [data.startTime, estimatedPriceRange, estimatedPrice, t]);
+
   return (
     <div className="rsp-wizard-step-content" role="group" aria-labelledby="step1-title">
       <h2 className="rsp-wizard-step-title" id="step1-title">
@@ -92,7 +107,8 @@ export function Step1DateTime({
               value={data.startTime}
               onChange={(value) => onChange({ startTime: value })}
               disabled={isLoading}
-              aria-describedby={isPeak ? "peak-hint" : undefined}
+              placeholder={t("booking.quickBooking.selectStartTime")}
+              aria-describedby={isPeak && data.startTime ? "peak-hint" : undefined}
             />
           </div>
 
@@ -142,7 +158,7 @@ export function Step1DateTime({
         )}
 
         {/* Peak hours hint */}
-        {isPeak && (
+        {isPeak && data.startTime && (
           <div className="rsp-wizard-hint" id="peak-hint" role="note">
             <svg
               className="rsp-wizard-hint-icon"
@@ -168,7 +184,9 @@ export function Step1DateTime({
             {t("wizard.estimatedPrice")}
           </div>
           <div className="rsp-wizard-price-estimate-value">
-            {estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max ? (
+            {!data.startTime ? (
+              <span className="opacity-50 text-base">{t("booking.quickBooking.selectStartTimeToSeePrice")}</span>
+            ) : estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max ? (
               <>
                 {formatPrice(estimatedPriceRange.min)} - {formatPrice(estimatedPriceRange.max)}
               </>
@@ -179,18 +197,12 @@ export function Step1DateTime({
             )}
           </div>
           <div className="rsp-wizard-price-estimate-hint">
-            {estimatedPriceRange == null && estimatedPrice == null ? (
-              t("wizard.noCourtsAvailable")
-            ) : estimatedPriceRange && estimatedPriceRange.min !== estimatedPriceRange.max ? (
-              t("wizard.priceRangeHint")
-            ) : (
-              t("wizard.priceVariesByTime")
-            )}
+            {priceEstimateHint}
           </div>
         </div>
 
         {/* Warning message if booking ends after closing - moved to bottom */}
-        {endsAfterClosing && (
+        {endsAfterClosing && data.startTime && (
           <div className="rsp-wizard-hint" role="alert" style={{ marginTop: "1rem", color: "var(--color-warning, #f59e0b)" }}>
             <svg
               className="rsp-wizard-hint-icon"

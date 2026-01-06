@@ -1,12 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import {
-  getTodayInTimezone,
-  getDatesFromStart,
-  getWeekMonday,
-  getTodayStr,
-} from "@/utils/dateTime";
-import { createUTCDate, doUTCRangesOverlap, getUTCDayBounds } from "@/utils/utcDateTime";
+import { createUTCDate, doUTCRangesOverlap, getUTCDayBounds, getTodayUTC, getDatesFromStartUTC, getWeekMondayUTC } from "@/utils/utcDateTime";
 
 // Business hours configuration
 const BUSINESS_START_HOUR = 8;
@@ -55,9 +49,11 @@ interface WeeklyAvailabilityResponse {
   mode?: "rolling" | "calendar";
 }
 
-// Helper to get day name using native Date API
-function getDayName(date: Date): string {
-  return date.toLocaleDateString("en-US", { weekday: "long" });
+// Helper to get day name from UTC date string (YYYY-MM-DD format)
+// Returns the day name in English (e.g., "Monday", "Tuesday")
+function getDayName(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00.000Z');
+  return date.toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
 }
 
 export async function GET(
@@ -93,32 +89,30 @@ export async function GET(
       }
     }
 
-    let startDate: Date;
-    const today = getTodayInTimezone();
-    const todayStr = getTodayStr();
+    let startDateStr: string;
+    const todayStr = getTodayUTC();
     
     if (startParam) {
-      startDate = new Date(startParam);
-      if (isNaN(startDate.getTime())) {
+      // Validate date format
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(startParam)) {
         return NextResponse.json(
           { error: "Invalid start format. Use YYYY-MM-DD" },
           { status: 400 }
         );
       }
+      startDateStr = startParam;
     } else {
       // Default behavior based on mode:
-      // - rolling (default): start from today
-      // - calendar: start from this week's Monday
+      // - rolling (default): start from today (UTC)
+      // - calendar: start from this week's Monday (UTC)
       if (modeParam === "calendar") {
-        startDate = getWeekMonday(today);
+        startDateStr = getWeekMondayUTC(todayStr);
       } else {
-        // Default to rolling mode: start from today
-        startDate = today;
+        // Default to rolling mode: start from today (UTC)
+        startDateStr = todayStr;
       }
     }
-
-    // Set to start of day
-    startDate.setHours(0, 0, 0, 0);
 
     // Check if club exists and get its courts
     const club = await prisma.club.findUnique({
@@ -145,10 +139,8 @@ export async function GET(
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
-    // Get dates for the requested period
-    const datesToShow = getDatesFromStart(startDate, numDays);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + numDays - 1);
+    // Get dates for the requested period (UTC-based)
+    const datesToShow = getDatesFromStartUTC(startDateStr, numDays);
 
     // Get all confirmed bookings for the period (UTC-based)
     const { startOfDay: periodStartUtc } = getUTCDayBounds(datesToShow[0]);
@@ -187,9 +179,9 @@ export async function GET(
     const days: DayAvailability[] = [];
 
     for (const dateStr of datesToShow) {
-      const date = new Date(dateStr);
-      const dayOfWeek = date.getDay();
-      const dayName = getDayName(date);
+      const date = new Date(dateStr + 'T00:00:00.000Z');
+      const dayOfWeek = date.getUTCDay();
+      const dayName = getDayName(dateStr);
       const isToday = dateStr === todayStr;
 
       const hours: HourSlotAvailability[] = [];

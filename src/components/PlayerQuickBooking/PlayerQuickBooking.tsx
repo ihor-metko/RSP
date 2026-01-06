@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Modal } from "@/components/ui";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useCourtAvailability } from "@/hooks/useCourtAvailability";
+import { clubLocalToUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import { Step0SelectClub } from "./Step0SelectClub";
 import { Step1DateTime } from "./Step1DateTime";
 import { Step2Courts } from "./Step2Courts";
@@ -76,7 +78,7 @@ export function PlayerQuickBooking({
       ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
       : {
         date: getTodayDateString(),
-        startTime: "10:00",
+        startTime: "",
         duration: DEFAULT_DURATION,
         courtType: DEFAULT_COURT_TYPE,
       };
@@ -130,7 +132,7 @@ export function PlayerQuickBooking({
         ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
         : {
           date: getTodayDateString(),
-          startTime: "10:00",
+          startTime: "",
           duration: DEFAULT_DURATION,
           courtType: DEFAULT_COURT_TYPE,
         };
@@ -216,6 +218,7 @@ export function PlayerQuickBooking({
       slug: null, // PlayerClub doesn't have slug field
       location: club.address?.formattedAddress || "",
       city: club.address?.city || undefined,
+      timezone: club.timezone || undefined,
       bannerData: club.bannerData || undefined,
     })),
     [clubsFromStore]
@@ -279,6 +282,7 @@ export function PlayerQuickBooking({
   // Fetch available courts for step 2
   const fetchAvailableCourts = useCallback(async () => {
     const clubId = state.step0.selectedClubId || preselectedClubId;
+    const selectedClub = state.step0.selectedClub || preselectedClubData;
     if (!clubId) return;
 
     const { date, startTime, duration, courtType } = state.step1;
@@ -301,9 +305,21 @@ export function PlayerQuickBooking({
     }));
 
     try {
+      // Get club timezone (with fallback to default)
+      const clubTimezone = getClubTimezone(selectedClub?.timezone);
+      
+      // Convert club local time to UTC for API call
+      const utcISOString = clubLocalToUTC(date, startTime, clubTimezone);
+      const utcDate = new Date(utcISOString);
+      
+      // Extract UTC time in HH:MM format for API
+      const utcHours = utcDate.getUTCHours().toString().padStart(2, '0');
+      const utcMinutes = utcDate.getUTCMinutes().toString().padStart(2, '0');
+      const utcTimeString = `${utcHours}:${utcMinutes}`;
+
       const params = new URLSearchParams({
         date,
-        start: startTime,
+        start: utcTimeString, // Send UTC time
         duration: duration.toString(),
         courtType,
       });
@@ -349,15 +365,26 @@ export function PlayerQuickBooking({
     }
     // Destructure step1 properties to avoid object reference changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.step0.selectedClubId, state.step1.date, state.step1.startTime, state.step1.duration, state.step1.courtType, preselectedClubId, t]);
+  }, [state.step0.selectedClubId, state.step0.selectedClub, state.step1.date, state.step1.startTime, state.step1.duration, state.step1.courtType, preselectedClubId, preselectedClubData, t]);
 
   // Fetch estimated price when date/time/duration changes
   useEffect(() => {
     const fetchEstimatedPrice = async () => {
       const clubId = state.step0.selectedClubId || preselectedClubId;
+      const selectedClub = state.step0.selectedClub || preselectedClubData;
       if (!clubId) return;
 
       const { date, startTime, duration, courtType } = state.step1;
+      
+      // Don't fetch price if startTime is not selected
+      if (!startTime) {
+        setState((prev) => ({
+          ...prev,
+          estimatedPrice: null,
+          estimatedPriceRange: null
+        }));
+        return;
+      }
       
       // Create a unique key for current parameters to prevent redundant requests
       const currentParams = `${clubId}-${date}-${startTime}-${duration}-${courtType}`;
@@ -371,9 +398,21 @@ export function PlayerQuickBooking({
       prevStep1ParamsRef.current = currentParams;
 
       try {
+        // Get club timezone (with fallback to default)
+        const clubTimezone = getClubTimezone(selectedClub?.timezone);
+        
+        // Convert club local time to UTC for API call
+        const utcISOString = clubLocalToUTC(date, startTime, clubTimezone);
+        const utcDate = new Date(utcISOString);
+        
+        // Extract UTC time in HH:MM format for API
+        const utcHours = utcDate.getUTCHours().toString().padStart(2, '0');
+        const utcMinutes = utcDate.getUTCMinutes().toString().padStart(2, '0');
+        const utcTimeString = `${utcHours}:${utcMinutes}`;
+
         const params = new URLSearchParams({
           date,
-          start: startTime,
+          start: utcTimeString, // Send UTC time
           duration: duration.toString(),
           courtType,
         });
@@ -424,7 +463,7 @@ export function PlayerQuickBooking({
     }
     // Destructure step1 properties to avoid object reference changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, state.step0.selectedClubId, state.step1.date, state.step1.startTime, state.step1.duration, state.step1.courtType, state.currentStep, preselectedClubId]);
+  }, [isOpen, state.step0.selectedClubId, state.step0.selectedClub, state.step1.date, state.step1.startTime, state.step1.duration, state.step1.courtType, state.currentStep, preselectedClubId, preselectedClubData]);
 
   // Handle club selection
   const handleSelectClub = useCallback((club: BookingClub) => {
@@ -616,8 +655,9 @@ export function PlayerQuickBooking({
 
   // Submit booking
   const handleSubmit = useCallback(async () => {
-    const { step1, step2, step3 } = state;
+    const { step0, step1, step2, step3 } = state;
     const court = step2.selectedCourt;
+    const selectedClub = step0.selectedClub || preselectedClubData;
 
     if (!court || !step3.paymentMethod) {
       return;
@@ -626,9 +666,15 @@ export function PlayerQuickBooking({
     setState((prev) => ({ ...prev, isSubmitting: true, submitError: null }));
 
     try {
-      const startDateTime = `${step1.date}T${step1.startTime}:00.000Z`;
-      const endTime = calculateEndTime(step1.startTime, step1.duration);
-      const endDateTime = `${step1.date}T${endTime}:00.000Z`;
+      // Get club timezone (with fallback to default)
+      const clubTimezone = getClubTimezone(selectedClub?.timezone);
+      
+      // Convert club local start time to UTC
+      const startDateTime = clubLocalToUTC(step1.date, step1.startTime, clubTimezone);
+      
+      // Calculate end time in club timezone
+      const endTimeLocal = calculateEndTime(step1.startTime, step1.duration);
+      const endDateTime = clubLocalToUTC(step1.date, endTimeLocal, clubTimezone);
 
       const response = await fetch("/api/bookings", {
         method: "POST",
@@ -637,8 +683,8 @@ export function PlayerQuickBooking({
         },
         body: JSON.stringify({
           courtId: court.id,
-          startTime: startDateTime,
-          endTime: endDateTime,
+          startTime: startDateTime, // Already in UTC ISO format
+          endTime: endDateTime, // Already in UTC ISO format
           userId: "current-user", // Will be resolved by the API from session
         }),
       });
@@ -680,7 +726,7 @@ export function PlayerQuickBooking({
         submitError: t("auth.errorOccurred"),
       }));
     }
-  }, [state, t]);
+  }, [state, preselectedClubData, t]);
 
   // Navigate to next step
   const handleNext = useCallback(async () => {

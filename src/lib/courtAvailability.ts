@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { createUTCDate, doUTCRangesOverlap, addMinutesUTC } from "@/utils/utcDateTime";
+import { createUTCDate, addMinutesUTC } from "@/utils/utcDateTime";
 
 // Training session duration in minutes
 const TRAINING_DURATION_MINUTES = 60;

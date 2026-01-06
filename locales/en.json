@@ -1279,6 +1279,9 @@
     "quickBooking": {
       "title": "Quick booking",
       "startTime": "Start time",
+      "selectStartTime": "Select start time",
+      "selectStartTimeToSeePrice": "Select start time to see price",
+      "selectStartTimeFirst": "Please select a start time first",
       "findAvailableCourts": "Find available courts",
       "searching": "Searching...",
       "noCourtsAvailable": "No courts available at selected time.",

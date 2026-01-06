@@ -19,6 +19,7 @@ interface Club {
   id: string;
   name: string;
   location: string;
+  timezone?: string | null;
   logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
 }
 
@@ -95,6 +96,7 @@ export default function PlayerDashboardPage() {
     id: club.id,
     name: club.name,
     location: club.address?.formattedAddress || "",
+    timezone: club.timezone || null,
     address: club.address || null,
     logoData: club.logoData,
   })), [clubsFromStore]);
@@ -586,6 +588,7 @@ export default function PlayerDashboardPage() {
       {selectedClubId && (
         <QuickBookingModal
           clubId={selectedClubId}
+          clubTimezone={clubs.find(c => c.id === selectedClubId)?.timezone || null}
           isOpen={isQuickBookingOpen}
           onClose={() => setIsQuickBookingOpen(false)}
           onSelectCourt={handleQuickBookingSelectCourt}

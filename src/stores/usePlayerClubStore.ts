@@ -57,6 +57,7 @@ export interface PlayerClub {
   openingHours?: string | null;
   logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
   bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+  timezone?: string | null;
   tags?: string | null;
   createdAt: string;
   indoorCount: number;

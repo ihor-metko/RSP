@@ -6,7 +6,7 @@ import type { OperationsBooking } from "@/types/booking";
 import { migrateLegacyStatus } from "@/utils/bookingStatus";
 import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
 import { updateStatisticsForBooking } from "@/services/statisticsService";
-import { isValidUTCString, doUTCRangesOverlap } from "@/utils/utcDateTime";
+import { isValidUTCString } from "@/utils/utcDateTime";
 
 /**
  * POST /api/admin/bookings/create
@@ -172,8 +172,8 @@ export async function POST(request: Request) {
       (end.getTime() - start.getTime()) / (1000 * 60)
     );
 
-    // Fetch price timeline
-    const startTimeStr = `${start.getHours().toString().padStart(2, "0")}:${start.getMinutes().toString().padStart(2, "0")}`;
+    // Fetch price timeline - use UTC time for price lookup
+    const startTimeStr = `${start.getUTCHours().toString().padStart(2, "0")}:${start.getUTCMinutes().toString().padStart(2, "0")}`;
     const dateStr = start.toISOString().split("T")[0];
 
     let priceCents = Math.round((court.defaultPriceCents / 60) * durationMinutes);
