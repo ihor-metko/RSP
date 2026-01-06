@@ -118,6 +118,36 @@ export function shouldMarkAsCompleted(
 }
 
 /**
+ * Check if a booking should be cancelled due to payment timeout
+ * Returns true if the booking is Confirmed with Unpaid status and the payment timeout has expired
+ *
+ * @param bookingStatus - The booking status
+ * @param paymentStatus - The payment status
+ * @param createdAt - When the booking was created (or when it was confirmed)
+ * @param paymentTimeoutMs - Payment timeout in milliseconds
+ * @param now - Current time for comparison
+ * @returns true if booking should be cancelled due to payment timeout
+ */
+export function shouldCancelUnpaidBooking(
+  bookingStatus: BookingStatus | string,
+  paymentStatus: PaymentStatus | string,
+  createdAt: string | Date,
+  paymentTimeoutMs: number,
+  now: Date = new Date()
+): boolean {
+  // Only cancel if booking is Confirmed and payment is Unpaid
+  if (bookingStatus !== "Confirmed" || paymentStatus !== "Unpaid") {
+    return false;
+  }
+
+  const createdTime = new Date(createdAt).getTime();
+  const currentTime = now.getTime();
+  const timeElapsed = currentTime - createdTime;
+
+  return timeElapsed >= paymentTimeoutMs;
+}
+
+/**
  * Get human-readable status label
  *
  * @param status - Booking status

@@ -2400,7 +2400,9 @@
     "bookingStatusPending": "Підтверджено",
     "paymentStatusPaid": "Оплачено",
     "paymentStatusUnpaid": "Не оплачено",
-    "paymentStatusRefunded": "Повернено"
+    "paymentStatusRefunded": "Повернено",
+    "cancelledDueToNonPayment": "Скасовано через неоплату",
+    "paymentTimeoutExpired": "Не оплачено / час минув"
   },
   "adminWizard": {
     "title": "Створити бронювання",

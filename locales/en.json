@@ -2518,7 +2518,9 @@
     "bookingStatusPending": "Confirmed",
     "paymentStatusPaid": "Paid",
     "paymentStatusUnpaid": "Unpaid",
-    "paymentStatusRefunded": "Refunded"
+    "paymentStatusRefunded": "Refunded",
+    "cancelledDueToNonPayment": "Cancelled due to non-payment",
+    "paymentTimeoutExpired": "Not paid / Time expired"
   },
   "bookingsOverview": {
     "title": "Bookings Overview",

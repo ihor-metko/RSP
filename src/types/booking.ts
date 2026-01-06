@@ -44,6 +44,12 @@ export const BOOKING_STATUS = {
 export const RESERVATION_EXPIRATION_MS = 5 * 60 * 1000;
 
 /**
+ * Payment timeout in milliseconds (30 minutes)
+ * After this time, unpaid confirmed bookings will be automatically cancelled
+ */
+export const PAYMENT_TIMEOUT_MS = 30 * 60 * 1000;
+
+/**
  * Legacy status types (for backward compatibility during migration)
  */
 export type LegacyBookingStatus = "pending" | "paid" | "cancelled" | "reserved" | "no-show" | "completed" | "ongoing";
