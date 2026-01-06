@@ -159,6 +159,7 @@ export function Step3Payment({
       console.log('[Step3Payment] Received payment status update:', data);
 
       // Verify this update is for our payment
+      // Note: reservationId in state is actually the booking ID
       if (data.paymentIntentId !== paymentIntentId || data.bookingId !== reservationId) {
         console.log('[Step3Payment] Ignoring update for different payment', {
           expected: { paymentIntentId, reservationId },

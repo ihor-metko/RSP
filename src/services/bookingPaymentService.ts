@@ -411,6 +411,7 @@ export async function handleBookingPaymentCallback(
     );
 
     // Emit WebSocket event to notify user about successful payment
+    // Using dynamic import to avoid circular dependency (socketEmitters imports this service)
     const { emitPaymentStatusUpdate } = await import("@/lib/socketEmitters");
     emitPaymentStatusUpdate({
       bookingId: paymentIntent.bookingId,
@@ -432,6 +433,7 @@ export async function handleBookingPaymentCallback(
     });
 
     // Emit WebSocket event to notify user about failed payment
+    // Using dynamic import to avoid circular dependency
     const { emitPaymentStatusUpdate } = await import("@/lib/socketEmitters");
     emitPaymentStatusUpdate({
       bookingId: paymentIntent.bookingId,
@@ -455,7 +457,8 @@ export async function handleBookingPaymentCallback(
       },
     });
 
-    // Emit WebSocket event to notify user about failed payment
+    // Emit WebSocket event to notify user about failed payment (invalid signature)
+    // Using dynamic import to avoid circular dependency
     const { emitPaymentStatusUpdate } = await import("@/lib/socketEmitters");
     emitPaymentStatusUpdate({
       bookingId: paymentIntent.bookingId,
