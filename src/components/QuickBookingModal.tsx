@@ -4,7 +4,8 @@ import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Modal, Button, Card, Select } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
-import { filterPastTimeSlots, getTodayStr } from "@/utils/dateTime";
+import { filterPastTimeSlots, getTodayStr, clubLocalToUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import "./QuickBookingModal.css";
 
 interface AvailableCourt {
@@ -20,6 +21,7 @@ interface AvailableCourt {
 
 interface QuickBookingModalProps {
   clubId: string;
+  clubTimezone?: string | null; // IANA timezone string
   isOpen: boolean;
   onClose: () => void;
   onSelectCourt: (courtId: string, date: string, startTime: string, endTime: string, priceCents?: number) => void;
@@ -45,6 +47,7 @@ const DEFAULT_DURATION = 120; // 2 hours
 
 export function QuickBookingModal({
   clubId,
+  clubTimezone,
   isOpen,
   onClose,
   onSelectCourt,
@@ -67,9 +70,21 @@ export function QuickBookingModal({
     setHasSearched(true);
 
     try {
+      // Get club timezone (with fallback to default)
+      const timezone = getClubTimezone(clubTimezone);
+      
+      // Convert club local time to UTC for API call
+      const utcISOString = clubLocalToUTC(date, startTime, timezone);
+      const utcDate = new Date(utcISOString);
+      
+      // Extract UTC time in HH:MM format for API
+      const utcHours = utcDate.getUTCHours().toString().padStart(2, '0');
+      const utcMinutes = utcDate.getUTCMinutes().toString().padStart(2, '0');
+      const utcTimeString = `${utcHours}:${utcMinutes}`;
+
       const params = new URLSearchParams({
         date,
-        start: startTime,
+        start: utcTimeString, // Send UTC time
         duration: duration.toString(),
       });
       const response = await fetch(
@@ -124,7 +139,7 @@ export function QuickBookingModal({
     } finally {
       setIsLoading(false);
     }
-  }, [clubId, date, startTime, duration, t]);
+  }, [clubId, clubTimezone, date, startTime, duration, t]);
 
   const handleSelectCourt = (court: AvailableCourt) => {
     // Calculate end time based on start time and duration

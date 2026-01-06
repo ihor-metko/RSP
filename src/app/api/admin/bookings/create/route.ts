@@ -6,7 +6,7 @@ import type { OperationsBooking } from "@/types/booking";
 import { migrateLegacyStatus } from "@/utils/bookingStatus";
 import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
 import { updateStatisticsForBooking } from "@/services/statisticsService";
-import { isValidUTCString, doUTCRangesOverlap } from "@/utils/utcDateTime";
+import { isValidUTCString } from "@/utils/utcDateTime";
 
 /**
  * POST /api/admin/bookings/create

@@ -11,6 +11,7 @@ export interface BookingClub {
   slug: string | null;
   location: string;
   city?: string | null;
+  timezone?: string | null; // IANA timezone string (e.g., "Europe/Kyiv")
   bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
   businessHours?: ClubBusinessHours[];
 }
@@ -312,4 +313,20 @@ export function determineVisibleSteps(
   steps.push({ id: 4, label: "finalConfirmation", isRequired: true });
 
   return steps;
+}
+
+// Format date for display (e.g., "Monday, January 6, 2026")
+export function formatDateDisplay(dateString: string): string {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}
+
+// Format time range for display (e.g., "10:00 - 12:00")
+export function formatTimeDisplay(startTime: string, endTime: string): string {
+  return `${startTime} - ${endTime}`;
 }
