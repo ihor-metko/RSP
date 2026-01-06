@@ -170,8 +170,8 @@ async function checkBookingAccess(
     return { hasAccess: false, booking: null };
   }
 
-  // Club admin can access bookings for their managed clubs
-  if (adminType === "club_admin") {
+  // Club owner/admin can access bookings for their managed clubs
+  if (adminType === "club_owner" || adminType === "club_admin") {
     const clubId = booking.court.clubId;
     if (managedIds.includes(clubId)) {
       return { hasAccess: true, booking };

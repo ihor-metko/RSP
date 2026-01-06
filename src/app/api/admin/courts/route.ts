@@ -56,8 +56,8 @@ export async function GET(request: Request) {
           },
         },
       };
-    } else if (authResult.adminType === "club_admin") {
-      // Club admin sees only courts in their managed clubs
+    } else if (authResult.adminType === "club_admin" || authResult.adminType === "club_owner") {
+      // Club owner/admin sees only courts in their managed clubs
       whereClause = {
         clubId: {
           in: authResult.managedIds,

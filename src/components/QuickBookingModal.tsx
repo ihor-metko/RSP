@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Modal, Button, Card, Select } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
-import { filterPastTimeSlots } from "@/utils/dateTime";
+import { filterPastTimeSlots, getTodayStr } from "@/utils/dateTime";
 import "./QuickBookingModal.css";
 
 interface AvailableCourt {
@@ -29,11 +29,6 @@ interface QuickBookingModalProps {
 const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 22;
 
-// Get today's date in YYYY-MM-DD format
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
 // Generate time options for the dropdown
 function generateTimeOptions(): string[] {
   const options: string[] = [];
@@ -55,7 +50,7 @@ export function QuickBookingModal({
   onSelectCourt,
 }: QuickBookingModalProps) {
   const t = useTranslations();
-  const [date, setDate] = useState<string>(getTodayDateString());
+  const [date, setDate] = useState<string>(getTodayStr());
   const [startTime, setStartTime] = useState<string>("10:00");
   const [duration, setDuration] = useState<number>(DEFAULT_DURATION);
   const [availableCourts, setAvailableCourts] = useState<AvailableCourt[]>([]);
@@ -188,7 +183,7 @@ export function QuickBookingModal({
               className="tm-booking-select"
               value={date}
               onChange={(e) => handleDateChange(e.target.value)}
-              min={getTodayDateString()}
+              min={getTodayStr()}
               disabled={isLoading}
             />
           </div>

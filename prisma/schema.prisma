@@ -254,7 +254,7 @@ model Club {
   logoData          String?                 @db.Text // JSON: { url: string; altText?: string; thumbnailUrl?: string }
   bannerData        String?                 @db.Text // JSON: { url: string; altText?: string; description?: string; position?: string }
   defaultCurrency   String?                 @default("USD")
-  timezone          String?                 @default("UTC")
+  timezone          String                  @default("Europe/Kyiv")
   isPublic          Boolean                 @default(true)
   status            String                  @default("active") // "active", "draft", "suspended"
   tags              String? // JSON array of tags

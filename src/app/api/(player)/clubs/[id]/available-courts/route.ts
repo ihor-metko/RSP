@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getResolvedPriceForSlot } from "@/lib/priceRules";
 import type { CourtFormat } from "@/types/court";
+import { createUTCDate, addMinutesUTC, doUTCRangesOverlap, getUTCDayBounds } from "@/utils/utcDateTime";
 
 // Business hours configuration (aligned with frontend types.ts)
 const BUSINESS_START_HOUR = 8;
@@ -51,6 +52,7 @@ interface Booking {
 
 /**
  * Helper function to check if a court is available for a given time slot
+ * Uses UTC-based overlap detection
  */
 function isCourtAvailable(
   courtId: string,
@@ -64,8 +66,8 @@ function isCourtAvailable(
     const bookingStart = new Date(booking.start);
     const bookingEnd = new Date(booking.end);
     
-    // Check for overlap: booking overlaps if it starts before slot ends AND ends after slot starts
-    if (bookingStart < slotEnd && bookingEnd > slotStart) {
+    // Check for overlap using UTC timestamps: booking overlaps if it starts before slot ends AND ends after slot starts
+    if (doUTCRangesOverlap(bookingStart, bookingEnd, slotStart, slotEnd)) {
       return false;
     }
   }
@@ -89,6 +91,15 @@ export async function GET(
     const toParam = url.searchParams.get("to"); // Alternative to duration
     const durationParam = url.searchParams.get("duration");
     const courtTypeParam = url.searchParams.get("courtType"); // Optional court type filter
+
+    /**
+     * IMPORTANT TIMEZONE RULE:
+     * This API endpoint expects all datetime parameters in UTC.
+     * The frontend MUST convert club local time to UTC before calling this endpoint.
+     * 
+     * Example: If club is in Europe/Kyiv (UTC+2) and user selects 10:00 local time,
+     * frontend should send start=08:00 (UTC equivalent).
+     */
 
     // Validate court type if provided
     if (courtTypeParam && courtTypeParam !== "SINGLE" && courtTypeParam !== "DOUBLE") {
@@ -187,10 +198,10 @@ export async function GET(
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
-    // Parse requested slot times
+    // Parse requested slot times - ensure UTC interpretation
     const [startHour] = timeStart.split(":").map(Number);
-    const slotStart = new Date(`${dateParam}T${timeStart}:00.000Z`);
-    const slotEnd = new Date(slotStart.getTime() + duration * 60 * 1000);
+    const slotStart = createUTCDate(dateParam, timeStart);
+    const slotEnd = addMinutesUTC(slotStart, duration);
 
     // Validate slot is within business hours
     const endHour = slotEnd.getUTCHours() + slotEnd.getUTCMinutes() / 60;
@@ -202,9 +213,8 @@ export async function GET(
       return NextResponse.json(response);
     }
 
-    // Get all bookings for the club's courts on the specified date
-    const dayStart = new Date(`${dateParam}T00:00:00.000Z`);
-    const dayEnd = new Date(`${dateParam}T23:59:59.999Z`);
+    // Get all bookings for the club's courts on the specified date (UTC-based day boundaries)
+    const { startOfDay: dayStart, endOfDay: dayEnd } = getUTCDayBounds(dateParam);
 
     const bookings = await prisma.booking.findMany({
       where: {
@@ -269,7 +279,7 @@ export async function GET(
       
       for (const altDuration of shorterDurations.reverse()) { // Start with longest shorter duration
         // Check if this duration would fit within business hours
-        const altSlotEnd = new Date(slotStart.getTime() + altDuration * 60 * 1000);
+        const altSlotEnd = addMinutesUTC(slotStart, altDuration);
         const altEndHour = altSlotEnd.getUTCHours() + altSlotEnd.getUTCMinutes() / 60;
         
         if (altEndHour > BUSINESS_END_HOUR) {
@@ -324,8 +334,8 @@ export async function GET(
       
       // Check availability for each alternative time slot
       for (const altTime of alternativeTimes) {
-        const altSlotStart = new Date(`${dateParam}T${altTime}:00.000Z`);
-        const altSlotEnd = new Date(altSlotStart.getTime() + duration * 60 * 1000);
+        const altSlotStart = createUTCDate(dateParam, altTime);
+        const altSlotEnd = addMinutesUTC(altSlotStart, duration);
         
         let availableCount = 0;
         

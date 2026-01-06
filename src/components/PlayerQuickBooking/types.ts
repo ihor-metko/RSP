@@ -1,4 +1,4 @@
-import { filterPastTimeSlots } from "@/utils/dateTime";
+import { filterPastTimeSlots, getTodayStr } from "@/utils/dateTime";
 
 /**
  * Types for PlayerQuickBooking
@@ -267,7 +267,7 @@ export function generateTimeOptions(): string[] {
 
 // Get today's date in YYYY-MM-DD format
 export function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
+  return getTodayStr();
 }
 
 // Calculate end time based on start time and duration

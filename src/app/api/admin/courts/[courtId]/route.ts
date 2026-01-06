@@ -53,8 +53,8 @@ export async function GET(
       if (!authResult.managedIds.includes(court.club.organizationId || "")) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
-    } else if (authResult.adminType === "club_admin") {
-      // Club admin can only access courts in their managed clubs
+    } else if (authResult.adminType === "club_owner" || authResult.adminType === "club_admin") {
+      // Club owner/admin can only access courts in their managed clubs
       if (!authResult.managedIds.includes(court.clubId)) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
@@ -119,8 +119,8 @@ export async function PATCH(
       if (!authResult.managedIds.includes(existingCourt.club.organizationId || "")) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
-    } else if (authResult.adminType === "club_admin") {
-      // Club admin can only update courts in their managed clubs
+    } else if (authResult.adminType === "club_owner" || authResult.adminType === "club_admin") {
+      // Club owner/admin can only update courts in their managed clubs
       if (!authResult.managedIds.includes(existingCourt.clubId)) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
@@ -301,8 +301,8 @@ export async function DELETE(
       if (!authResult.managedIds.includes(existingCourt.club.organizationId || "")) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
-    } else if (authResult.adminType === "club_admin") {
-      // Club admin can only delete courts in their managed clubs
+    } else if (authResult.adminType === "club_owner" || authResult.adminType === "club_admin") {
+      // Club owner/admin can only delete courts in their managed clubs
       if (!authResult.managedIds.includes(existingCourt.clubId)) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }

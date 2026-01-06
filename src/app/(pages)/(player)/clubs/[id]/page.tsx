@@ -18,6 +18,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { useIsMobile } from "@/hooks";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
+import { getTodayStr } from "@/utils/dateTime";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
@@ -79,11 +80,6 @@ interface ClubWithDetails {
 interface Slot {
   startTime: string;
   endTime: string;
-}
-
-// Helper to get today's date in YYYY-MM-DD format
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
 }
 
 export default function ClubDetailPage({
@@ -179,7 +175,7 @@ export default function ClubDetailPage({
 
   // Fetch availability for all courts
   const fetchAvailability = useCallback(async (courts: Court[]) => {
-    const today = getTodayDateString();
+    const today = getTodayStr();
     setAvailabilityLoading(true);
 
     try {

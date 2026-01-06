@@ -5,6 +5,7 @@ import {
   getDatesFromStart,
   getWeekMonday,
 } from "@/utils/dateTime";
+import { createUTCDate, addMinutesUTC, doUTCRangesOverlap, getUTCDayBounds } from "@/utils/utcDateTime";
 
 // Business hours configuration
 const BUSINESS_START_HOUR = 8;
@@ -65,6 +66,15 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const clubId = resolvedParams.id;
+
+    /**
+     * IMPORTANT TIMEZONE RULE:
+     * This API returns availability based on UTC date boundaries.
+     * All booking start/end times are in UTC.
+     * Frontend is responsible for:
+     * 1. Converting club timezone to UTC when interpreting results
+     * 2. Displaying times in club local timezone to users
+     */
 
     const url = new URL(request.url);
     
@@ -141,9 +151,9 @@ export async function GET(
     const endDate = new Date(startDate);
     endDate.setDate(startDate.getDate() + numDays - 1);
 
-    // Get all confirmed bookings for the period
-    const periodStartUtc = new Date(`${datesToShow[0]}T00:00:00.000Z`);
-    const periodEndUtc = new Date(`${datesToShow[datesToShow.length - 1]}T23:59:59.999Z`);
+    // Get all confirmed bookings for the period (UTC-based)
+    const { startOfDay: periodStartUtc } = getUTCDayBounds(datesToShow[0]);
+    const { endOfDay: periodEndUtc } = getUTCDayBounds(datesToShow[datesToShow.length - 1]);
 
     const confirmedBookings = await prisma.booking.findMany({
       where: {
@@ -186,8 +196,9 @@ export async function GET(
       const hours: HourSlotAvailability[] = [];
 
       for (let hour = BUSINESS_START_HOUR; hour < BUSINESS_END_HOUR; hour++) {
-        const slotStart = new Date(`${dateStr}T${hour.toString().padStart(2, "0")}:00:00.000Z`);
-        const slotEnd = new Date(`${dateStr}T${(hour + 1).toString().padStart(2, "0")}:00:00.000Z`);
+        // Create UTC time boundaries for this hour slot
+        const slotStart = createUTCDate(dateStr, `${hour.toString().padStart(2, "0")}:00`);
+        const slotEnd = createUTCDate(dateStr, `${(hour + 1).toString().padStart(2, "0")}:00`);
 
         const courts: CourtAvailabilityStatus[] = [];
         let availableCount = 0;
@@ -206,8 +217,8 @@ export async function GET(
             const bookingStart = new Date(booking.start);
             const bookingEnd = new Date(booking.end);
 
-            // Check for overlap
-            if (bookingStart < slotEnd && bookingEnd > slotStart) {
+            // Check for overlap using UTC-based comparison
+            if (doUTCRangesOverlap(bookingStart, bookingEnd, slotStart, slotEnd)) {
               // If the booking completely covers the slot or overlaps, mark as pending
               if (bookingStart <= slotStart && bookingEnd >= slotEnd) {
                 status = "pending";
@@ -225,8 +236,8 @@ export async function GET(
               const bookingStart = new Date(booking.start);
               const bookingEnd = new Date(booking.end);
 
-              // Check for overlap
-              if (bookingStart < slotEnd && bookingEnd > slotStart) {
+              // Check for overlap using UTC-based comparison
+              if (doUTCRangesOverlap(bookingStart, bookingEnd, slotStart, slotEnd)) {
                 // If the booking completely covers the slot, it's booked
                 if (bookingStart <= slotStart && bookingEnd >= slotEnd) {
                   status = "booked";

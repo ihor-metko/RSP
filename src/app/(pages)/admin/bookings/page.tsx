@@ -12,6 +12,7 @@ import { BookingDetailsModal } from "@/components/admin/BookingDetailsModal";
 import { formatDateTime, calculateDuration, getInitials } from "@/utils/bookingFormatters";
 import { useListController, useDeferredLoading } from "@/hooks";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
+import { getTodayInTimezone, getDateString } from "@/utils/dateTime";
 import {
   ListControllerProvider,
   ListToolbar,
@@ -178,24 +179,24 @@ export default function AdminBookingsPage() {
 
   // Quick presets for common date ranges
   const getQuickPresets = () => {
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
+    const today = getTodayInTimezone();
+    const todayStr = getDateString(today);
 
     const next7Days = new Date(today);
     next7Days.setDate(next7Days.getDate() + 7);
-    const next7DaysStr = next7Days.toISOString().split("T")[0];
+    const next7DaysStr = getDateString(next7Days);
 
     const startOfWeek = new Date(today);
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
     startOfWeek.setHours(0, 0, 0, 0);
-    const startOfWeekStr = startOfWeek.toISOString().split("T")[0];
+    const startOfWeekStr = getDateString(startOfWeek);
 
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(endOfWeek.getDate() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
-    const endOfWeekStr = endOfWeek.toISOString().split("T")[0];
+    const endOfWeekStr = getDateString(endOfWeek);
 
     return [
       {
@@ -226,12 +227,12 @@ export default function AdminBookingsPage() {
     if (adminStatus) {
       try {
         // Fetch clubs once at the beginning if needed
-        if (adminStatus.adminType === "club_admin" || adminStatus.adminType === "organization_admin") {
+        if (adminStatus.adminType === "club_admin" || adminStatus.adminType === "club_owner" || adminStatus.adminType === "organization_admin") {
           await fetchClubsIfNeeded();
         }
 
-        if (adminStatus.adminType === "club_admin" && adminStatus.managedIds.length > 0) {
-          // For Club Admin: Preselect the first managed club and fetch its organization
+        if ((adminStatus.adminType === "club_admin" || adminStatus.adminType === "club_owner") && adminStatus.managedIds.length > 0) {
+          // For Club Admin/Owner: Preselect the first managed club and fetch its organization
           const clubId = adminStatus.managedIds[0];
           
           // Find the club in the clubs array

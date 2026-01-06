@@ -1,21 +1,87 @@
 /**
  * Date and time utilities for the application
+ * 
+ * IMPORTANT: This file contains LEGACY timezone utilities.
+ * For new backend code, use @/utils/utcDateTime instead.
+ * 
+ * These utilities use PLATFORM_TIMEZONE which is club-specific.
+ * Backend should operate on UTC only.
  */
 
+import { DEFAULT_CLUB_TIMEZONE } from "@/constants/timezone";
+
+// Platform timezone (Europe/Kyiv)
+// @deprecated Use club.timezone instead for club-specific operations
+export const PLATFORM_TIMEZONE = DEFAULT_CLUB_TIMEZONE;
+
 /**
- * Create start and end of day Date objects for a given date string
+ * Create start and end of day Date objects for a given date string in platform timezone
+ * Returns UTC Date objects that represent the start and end of the day in Europe/Kyiv
  * @param dateParam Date string in YYYY-MM-DD format
- * @returns Object with startOfDay and endOfDay Date objects
+ * @returns Object with startOfDay and endOfDay Date objects (in UTC)
+ * 
+ * Example: For date "2024-01-05" in Europe/Kyiv (UTC+2):
+ * - startOfDay: 2024-01-04T22:00:00.000Z (which is 2024-01-05 00:00:00 in Kyiv)
+ * - endOfDay: 2024-01-05T21:59:59.999Z (which is 2024-01-05 23:59:59.999 in Kyiv)
  */
 export function createDayRange(dateParam: string): {
   startOfDay: Date;
   endOfDay: Date;
 } {
-  const startOfDay = new Date(dateParam);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(dateParam);
-  endOfDay.setHours(23, 59, 59, 999);
-  return { startOfDay, endOfDay };
+  // Validate date format (YYYY-MM-DD)
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(dateParam)) {
+    throw new Error(`Invalid date format: ${dateParam}. Expected YYYY-MM-DD format.`);
+  }
+  
+  // Parse the date components
+  const [year, month, day] = dateParam.split('-').map(Number);
+  
+  // Validate date values
+  if (isNaN(year) || isNaN(month) || isNaN(day) || month < 1 || month > 12 || day < 1 || day > 31) {
+    throw new Error(`Invalid date values in: ${dateParam}`);
+  }
+  
+  // Create a date at noon on the target day to determine the timezone offset for that day
+  // This handles DST transitions correctly
+  const middayUTC = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  
+  // Validate that the date is valid (catches invalid dates like Feb 30)
+  if (isNaN(middayUTC.getTime())) {
+    throw new Error(`Invalid date: ${dateParam}`);
+  }
+  
+  // Use formatToParts to reliably extract hour and minute in platform timezone
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: PLATFORM_TIMEZONE,
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  });
+  
+  const parts = formatter.formatToParts(middayUTC);
+  const hourPart = parts.find(p => p.type === 'hour');
+  const minutePart = parts.find(p => p.type === 'minute');
+  
+  // Validate that we got the expected parts
+  if (!hourPart || !minutePart) {
+    throw new Error(`Failed to parse timezone offset for date ${dateParam}`);
+  }
+  
+  const platformHour = parseInt(hourPart.value, 10);
+  const platformMinute = parseInt(minutePart.value, 10);
+  
+  // Calculate the offset: how many hours ahead is platform timezone from UTC
+  const offsetHours = platformHour - 12;
+  const offsetMinutes = platformMinute;
+  const offsetMs = (offsetHours * 60 + offsetMinutes) * 60 * 1000;
+  
+  // Now calculate UTC times that correspond to midnight and end-of-day in platform timezone
+  // If platform is UTC+2, midnight in platform is 22:00 previous day UTC
+  const startOfDayUTC = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0) - offsetMs);
+  const endOfDayUTC = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999) - offsetMs);
+  
+  return { startOfDay: startOfDayUTC, endOfDay: endOfDayUTC };
 }
 
 /**
@@ -149,9 +215,6 @@ export function isValidDayOfWeek(day: unknown): day is number {
   return typeof day === "number" && Number.isInteger(day) && day >= 0 && day <= 6;
 }
 
-// Platform timezone (Europe/Kyiv)
-export const PLATFORM_TIMEZONE = "Europe/Kyiv";
-
 /**
  * Get today's date in the platform timezone (Europe/Kyiv)
  * This ensures consistent date calculations across the platform
@@ -173,7 +236,7 @@ export function getTodayInTimezone(): Date {
  * @returns Date string in YYYY-MM-DD format
  */
 export function getTodayStr(): string {
-  return getTodayInTimezone().toISOString().split("T")[0];
+  return getDateString(getTodayInTimezone());
 }
 
 /**

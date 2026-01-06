@@ -7,6 +7,8 @@
  * - ClubAdmin: Skips organization and club selection (preselected)
  */
 
+import { getTodayStr } from "@/utils/dateTime";
+
 export interface WizardCourt {
   id: string;
   name: string;
@@ -209,7 +211,7 @@ export function generateTimeOptions(): string[] {
 
 // Get today's date in YYYY-MM-DD format
 export function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
+  return getTodayStr();
 }
 
 // Calculate end time based on start time and duration

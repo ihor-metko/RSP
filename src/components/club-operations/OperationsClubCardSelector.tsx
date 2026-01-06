@@ -71,8 +71,8 @@ export function OperationsClubCardSelector({
       return clubs.filter((club) => managedOrgIds.has(club.organizationId));
     }
 
-    // Club admins should only see their assigned club(s)
-    if (adminStatus?.adminType === "club_admin") {
+    // Club owners/admins should only see their assigned club(s)
+    if (adminStatus?.adminType === "club_admin" || adminStatus?.adminType === "club_owner") {
       const managedClubIds = new Set(adminStatus.managedIds);
       return clubs.filter((club) => managedClubIds.has(club.id));
     }

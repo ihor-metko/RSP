@@ -8,6 +8,7 @@ import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
 import { formatDateWithWeekday, formatTime, formatDateLong } from "@/utils/date";
+import { getTodayStr } from "@/utils/dateTime";
 import "./PersonalizedSection.css";
 
 interface UpcomingBooking {
@@ -56,11 +57,6 @@ const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 22;
 const MINUTES_PER_HOUR = 60;
 const DURATION_OPTIONS = [60, 90, 120];
-
-// Get today's date in YYYY-MM-DD format
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
-}
 
 // Generate time options for the dropdown
 function generateTimeOptions(): string[] {
@@ -128,7 +124,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [selectedClubId, setSelectedClubId] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayStr());
   const [selectedStartTime, setSelectedStartTime] = useState<string>("10:00");
   const [selectedDuration, setSelectedDuration] = useState<number>(60);
   const [availableCourts, setAvailableCourts] = useState<WizardCourt[]>([]);
@@ -369,7 +365,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     setIsWizardOpen(true);
     setWizardStep(1);
     setSelectedClubId("");
-    setSelectedDate(getTodayDateString());
+    setSelectedDate(getTodayStr());
     setSelectedStartTime("10:00");
     setSelectedDuration(60);
     setAvailableCourts([]);
@@ -676,7 +672,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                       className="rsp-wizard-input"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      min={getTodayDateString()}
+                      min={getTodayStr()}
                     />
                   </div>
 

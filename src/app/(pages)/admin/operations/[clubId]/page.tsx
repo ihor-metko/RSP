@@ -9,6 +9,7 @@ import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useAdminCourtsStore } from "@/stores/useAdminCourtsStore";
 import { useBookingStore } from "@/stores/useBookingStore";
 import { useActiveClub } from "@/contexts/ClubContext";
+import { getTodayStr } from "@/utils/dateTime";
 import {
   DayCalendar,
   TodayBookingsList,
@@ -65,8 +66,7 @@ export default function ClubOperationsPage() {
 
   // Local state
   const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
+    return getTodayStr();
   });
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [isBookingWizardOpen, setIsBookingWizardOpen] = useState(false);
@@ -109,13 +109,13 @@ export default function ClubOperationsPage() {
       return;
     }
 
-    // For Club Admin, verify they have access to this specific club
+    // For Club Admin/Owner, verify they have access to this specific club
     // Note: We check managedIds (which contains all club IDs they can manage)
     // rather than assignedClub, which is only the first club for navigation
-    if (adminStatus.adminType === "club_admin") {
+    if (adminStatus.adminType === "club_admin" || adminStatus.adminType === "club_owner") {
       const hasAccess = adminStatus.managedIds.includes(clubId);
       if (!hasAccess) {
-        console.warn("Club Admin attempted to access unauthorized club");
+        console.warn("Club Admin/Owner attempted to access unauthorized club");
         setAccessDenied(true);
         return;
       }
@@ -216,8 +216,7 @@ export default function ClubOperationsPage() {
 
   // Go to today
   const handleToday = () => {
-    const today = new Date();
-    setSelectedDate(today.toISOString().split("T")[0]);
+    setSelectedDate(getTodayStr());
   };
 
   // Go back to club list
