@@ -73,7 +73,7 @@ export function PlayerQuickBooking({
       ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
       : {
         date: getTodayDateString(),
-        startTime: "10:00",
+        startTime: "",
         duration: DEFAULT_DURATION,
         courtType: DEFAULT_COURT_TYPE,
       };
@@ -126,7 +126,7 @@ export function PlayerQuickBooking({
         ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
         : {
           date: getTodayDateString(),
-          startTime: "10:00",
+          startTime: "",
           duration: DEFAULT_DURATION,
           courtType: DEFAULT_COURT_TYPE,
         };
@@ -354,6 +354,16 @@ export function PlayerQuickBooking({
       if (!clubId) return;
 
       const { date, startTime, duration, courtType } = state.step1;
+      
+      // Don't fetch price if startTime is not selected
+      if (!startTime) {
+        setState((prev) => ({
+          ...prev,
+          estimatedPrice: null,
+          estimatedPriceRange: null
+        }));
+        return;
+      }
       
       // Create a unique key for current parameters to prevent redundant requests
       const currentParams = `${clubId}-${date}-${startTime}-${duration}-${courtType}`;

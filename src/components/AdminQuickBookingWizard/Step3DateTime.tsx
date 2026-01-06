@@ -71,6 +71,7 @@ export function Step3DateTime({
             value={data.startTime}
             onChange={(value) => onChange({ startTime: value })}
             disabled={isLoading || hasNoTimeSlots}
+            placeholder={t("booking.quickBooking.selectStartTime")}
             className="rsp-booking-select"
           />
 
