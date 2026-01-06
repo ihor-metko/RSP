@@ -2,13 +2,13 @@ import { SportType } from "@/constants/sports";
 
 /**
  * Booking status - represents the state of the reservation
- * - Active: Booking is active and confirmed
+ * - UPCOMING: Booking is confirmed and scheduled for the future
  * - Cancelled: Booking has been cancelled
  * - Completed: Booking has been completed
  * - No-show: User did not show up for the booking
- * - Pending: Booking is awaiting confirmation
+ * - Confirmed: Booking is confirmed and awaiting payment
  */
-export type BookingStatus = "Active" | "Cancelled" | "Completed" | "No-show" | "Pending";
+export type BookingStatus = "UPCOMING" | "Cancelled" | "Completed" | "No-show" | "Confirmed";
 
 /**
  * Payment status - represents the financial state of the booking
@@ -31,11 +31,11 @@ export const PAYMENT_STATUS = {
  * Booking status constants
  */
 export const BOOKING_STATUS = {
-  ACTIVE: "Active" as const,
+  UPCOMING: "UPCOMING" as const,
   CANCELLED: "Cancelled" as const,
   COMPLETED: "Completed" as const,
   NO_SHOW: "No-show" as const,
-  PENDING: "Pending" as const,
+  CONFIRMED: "Confirmed" as const,
 } as const;
 
 /**

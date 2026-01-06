@@ -125,8 +125,8 @@ export function shouldMarkAsCompleted(
  */
 export function getStatusLabel(status: BookingStatus): string {
   const labels: Record<BookingStatus, string> = {
-    "Active": "Active",
-    "Pending": "Pending",
+    "UPCOMING": "Upcoming",
+    "Confirmed": "Confirmed",
     "Completed": "Completed",
     "Cancelled": "Cancelled",
     "No-show": "No-show",
@@ -142,8 +142,8 @@ export function getStatusLabel(status: BookingStatus): string {
  */
 export function getStatusColorClass(status: BookingStatus): string {
   const colorMap: Record<BookingStatus, string> = {
-    "Active": "active",
-    "Pending": "warning",
+    "UPCOMING": "active",
+    "Confirmed": "warning",
     "Completed": "neutral",
     "Cancelled": "danger",
     "No-show": "danger",
@@ -183,25 +183,36 @@ export function toBookingStatus(status: string): LegacyBookingStatus {
 
 /**
  * Type guard to safely cast string to new BookingStatus
+ * Includes backward compatibility for legacy status names
  *
  * @param status - Status string from database
  * @returns The status as BookingStatus type
  */
 export function toNewBookingStatus(status: string): BookingStatus {
   const validStatuses: BookingStatus[] = [
-    "Active",
+    "UPCOMING",
     "Cancelled",
     "Completed",
     "No-show",
-    "Pending",
+    "Confirmed",
   ];
 
   if (validStatuses.includes(status as BookingStatus)) {
     return status as BookingStatus;
   }
 
-  // Default to Pending for unknown statuses
-  return "Pending";
+  // Backward compatibility: map old status names to new ones
+  const legacyMapping: Record<string, BookingStatus> = {
+    "Active": "UPCOMING",
+    "Pending": "Confirmed",
+  };
+
+  if (legacyMapping[status]) {
+    return legacyMapping[status];
+  }
+
+  // Default to Confirmed for unknown statuses
+  return "Confirmed";
 }
 
 /**
@@ -233,11 +244,11 @@ export function toPaymentStatus(status: string): PaymentStatus {
  */
 export function getBookingStatusLabel(status: BookingStatus): string {
   const labels: Record<BookingStatus, string> = {
-    Active: "Active",
+    UPCOMING: "Upcoming",
     Cancelled: "Cancelled",
     Completed: "Completed",
     "No-show": "No-show",
-    Pending: "Pending",
+    Confirmed: "Confirmed",
   };
   return labels[status] || status;
 }
@@ -265,11 +276,11 @@ export function getPaymentStatusLabel(status: PaymentStatus): string {
  */
 export function getBookingStatusColorClass(status: BookingStatus): string {
   const colorMap: Record<BookingStatus, string> = {
-    Active: "success",
+    UPCOMING: "success",
     Cancelled: "danger",
     Completed: "neutral",
     "No-show": "danger",
-    Pending: "warning",
+    Confirmed: "warning",
   };
   return colorMap[status] || "neutral";
 }
@@ -296,7 +307,7 @@ export function getPaymentStatusColorClass(status: PaymentStatus): string {
  * @returns true if booking can be cancelled
  */
 export function canCancelBooking(status: BookingStatus): boolean {
-  return status === "Active" || status === "Pending";
+  return status === "UPCOMING" || status === "Confirmed";
 }
 
 /**
@@ -310,14 +321,17 @@ export function migrateLegacyStatus(legacyStatus: string): {
   paymentStatus: PaymentStatus;
 } {
   const mappings: Record<string, { bookingStatus: BookingStatus; paymentStatus: PaymentStatus }> = {
-    paid: { bookingStatus: "Active", paymentStatus: "Paid" },
-    pending: { bookingStatus: "Pending", paymentStatus: "Unpaid" },
+    paid: { bookingStatus: "UPCOMING", paymentStatus: "Paid" },
+    pending: { bookingStatus: "Confirmed", paymentStatus: "Unpaid" },
     cancelled: { bookingStatus: "Cancelled", paymentStatus: "Unpaid" },
-    reserved: { bookingStatus: "Active", paymentStatus: "Unpaid" },
+    reserved: { bookingStatus: "UPCOMING", paymentStatus: "Unpaid" },
     completed: { bookingStatus: "Completed", paymentStatus: "Paid" },
     "no-show": { bookingStatus: "No-show", paymentStatus: "Unpaid" },
-    ongoing: { bookingStatus: "Active", paymentStatus: "Paid" },
+    ongoing: { bookingStatus: "UPCOMING", paymentStatus: "Paid" },
+    // Support for old status names (backward compatibility)
+    Active: { bookingStatus: "UPCOMING", paymentStatus: "Paid" },
+    Pending: { bookingStatus: "Confirmed", paymentStatus: "Unpaid" },
   };
 
-  return mappings[legacyStatus] || { bookingStatus: "Pending", paymentStatus: "Unpaid" };
+  return mappings[legacyStatus] || { bookingStatus: "Confirmed", paymentStatus: "Unpaid" };
 }
