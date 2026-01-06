@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { formatPrice } from "@/utils/price";
 import { formatDateTimeLong, formatDateLong } from "@/utils/date";
-import { clubLocalToUTC } from "@/utils/dateTime";
-import { getClubTimezone } from "@/constants/timezone";
 import {
   PaymentMethod,
   BookingCourt,
