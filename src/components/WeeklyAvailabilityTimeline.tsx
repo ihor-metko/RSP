@@ -560,8 +560,6 @@ export function WeeklyAvailabilityTimeline({
                 })}
               </div>
             );
-              </div>
-            );
           })}
         </div>
 

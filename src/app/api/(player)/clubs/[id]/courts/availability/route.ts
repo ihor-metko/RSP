@@ -4,9 +4,7 @@ import {
   createUTCDate, 
   doUTCRangesOverlap, 
   getUTCDayBounds, 
-  getTodayUTC, 
   getDatesFromStartUTC, 
-  getWeekMondayUTC,
   getTodayInTimezone,
   getWeekMondayInTimezone,
   isPastDayInTimezone

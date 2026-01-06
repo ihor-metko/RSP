@@ -98,10 +98,19 @@
   @apply contents;
 }
 
+.tm-weekly-grid-row--past {
+  opacity: 0.5;
+}
+
 .tm-weekly-grid-day-label {
   @apply p-2 text-xs font-medium flex items-center;
   background-color: var(--rsp-card-bg);
   color: var(--rsp-foreground);
+}
+
+.tm-weekly-grid-day-label--past {
+  opacity: 0.6;
+  font-style: italic;
 }
 
 /* Today highlighting */
