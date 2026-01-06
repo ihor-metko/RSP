@@ -30,6 +30,9 @@ export function Step1DateTime({
 
   // Filter time options to exclude past times for today
   const TIME_OPTIONS = filterPastTimeSlots(generateTimeOptions(), data.date);
+  
+  // Determine aria-describedby for start time select
+  const startTimeAriaDescribedBy = isPeak && data.startTime ? "peak-hint" : undefined;
 
   return (
     <div className="rsp-wizard-step-content" role="group" aria-labelledby="step1-title">
@@ -68,7 +71,8 @@ export function Step1DateTime({
               value={data.startTime}
               onChange={(value) => onChange({ startTime: value })}
               disabled={isLoading}
-              aria-describedby={isPeak ? "peak-hint" : undefined}
+              placeholder={t("booking.quickBooking.selectStartTime")}
+              aria-describedby={startTimeAriaDescribedBy}
             />
           </div>
 
@@ -88,7 +92,7 @@ export function Step1DateTime({
         </div>
 
         {/* Peak hours hint */}
-        {isPeak && (
+        {isPeak && data.startTime && (
           <div className="rsp-wizard-hint" id="peak-hint" role="note">
             <svg
               className="rsp-wizard-hint-icon"
@@ -114,14 +118,16 @@ export function Step1DateTime({
             {t("wizard.estimatedPrice")}
           </div>
           <div className="rsp-wizard-price-estimate-value">
-            {estimatedPrice !== null ? (
+            {!data.startTime ? (
+              <span className="opacity-50">{t("booking.quickBooking.selectStartTimeToSeePrice")}</span>
+            ) : estimatedPrice !== null ? (
               formatPrice(estimatedPrice)
             ) : (
               <span className="opacity-50">--</span>
             )}
           </div>
           <div className="rsp-wizard-price-estimate-hint">
-            {t("wizard.priceVariesByTime")}
+            {data.startTime && t("wizard.priceVariesByTime")}
           </div>
         </div>
       </div>

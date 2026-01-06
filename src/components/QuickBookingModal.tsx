@@ -54,7 +54,7 @@ export function QuickBookingModal({
 }: QuickBookingModalProps) {
   const t = useTranslations();
   const [date, setDate] = useState<string>(getTodayStr());
-  const [startTime, setStartTime] = useState<string>("10:00");
+  const [startTime, setStartTime] = useState<string>("");
   const [duration, setDuration] = useState<number>(DEFAULT_DURATION);
   const [availableCourts, setAvailableCourts] = useState<AvailableCourt[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +65,12 @@ export function QuickBookingModal({
   const timeOptions = filterPastTimeSlots(generateTimeOptions(), date);
 
   const handleFindCourts = useCallback(async () => {
+    // Don't search if startTime is not selected
+    if (!startTime) {
+      setError(t("booking.quickBooking.selectStartTimeFirst"));
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setHasSearched(true);
@@ -214,6 +220,7 @@ export function QuickBookingModal({
             value={startTime}
             onChange={(value) => handleTimeChange(value)}
             disabled={isLoading}
+            placeholder={t("booking.quickBooking.selectStartTime")}
             className="tm-booking-select"
           />
 
@@ -233,7 +240,7 @@ export function QuickBookingModal({
 
           {/* Find courts button */}
           <div className="tm-quick-booking-search">
-            <Button onClick={handleFindCourts} disabled={isLoading}>
+            <Button onClick={handleFindCourts} disabled={isLoading || !startTime}>
               {isLoading ? t("booking.quickBooking.searching") : t("booking.quickBooking.findAvailableCourts")}
             </Button>
           </div>

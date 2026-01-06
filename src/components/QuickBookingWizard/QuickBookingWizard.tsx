@@ -26,7 +26,7 @@ const initialState: WizardState = {
   currentStep: 1,
   step1: {
     date: getTodayDateString(),
-    startTime: "10:00",
+    startTime: "",
     duration: DEFAULT_DURATION, // Default 2 hours
   },
   step2: {
@@ -66,6 +66,12 @@ export function QuickBookingWizard({
   useEffect(() => {
     const fetchEstimatedPrice = async () => {
       const { date, startTime, duration } = state.step1;
+      
+      // Don't fetch price if startTime is not selected
+      if (!startTime) {
+        setState((prev) => ({ ...prev, estimatedPrice: null }));
+        return;
+      }
       
       try {
         const params = new URLSearchParams({

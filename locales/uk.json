@@ -1217,6 +1217,9 @@
     "quickBooking": {
       "title": "Швидке бронювання",
       "startTime": "Час початку",
+      "selectStartTime": "Виберіть час початку",
+      "selectStartTimeToSeePrice": "Виберіть час початку, щоб побачити ціну",
+      "selectStartTimeFirst": "Будь ласка, спочатку виберіть час початку",
       "findAvailableCourts": "Знайти доступні корти",
       "searching": "Пошук...",
       "noCourtsAvailable": "Немає доступних кортів у вибраний час.",
