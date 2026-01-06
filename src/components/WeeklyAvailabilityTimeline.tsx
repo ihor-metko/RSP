@@ -23,7 +23,9 @@ import "./WeeklyAvailabilityTimeline.css";
  * 
  * MODES:
  * - Rolling (default): Shows today + next 6 days. First day is always "Today".
+ *   Uses getRolling7Days() helper for date generation.
  * - Calendar: Shows Monday→Sunday of the current week. Past days are visually disabled.
+ *   Uses getCalendarWeekDays() helper for date generation.
  * 
  * BLOCKING RULES (client-side):
  * - Past days: Any day before the current local date is blocked

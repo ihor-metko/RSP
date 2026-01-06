@@ -4,8 +4,9 @@ import {
   getTodayInTimezone,
   getDatesFromStart,
   getWeekMonday,
+  getTodayStr,
 } from "@/utils/dateTime";
-import { createUTCDate, addMinutesUTC, doUTCRangesOverlap, getUTCDayBounds } from "@/utils/utcDateTime";
+import { createUTCDate, doUTCRangesOverlap, getUTCDayBounds } from "@/utils/utcDateTime";
 
 // Business hours configuration
 const BUSINESS_START_HOUR = 8;
@@ -94,6 +95,7 @@ export async function GET(
 
     let startDate: Date;
     const today = getTodayInTimezone();
+    const todayStr = getTodayStr();
     
     if (startParam) {
       startDate = new Date(startParam);
@@ -117,9 +119,6 @@ export async function GET(
 
     // Set to start of day
     startDate.setHours(0, 0, 0, 0);
-    
-    // Format today's date for comparison
-    const todayStr = today.toISOString().split("T")[0];
 
     // Check if club exists and get its courts
     const club = await prisma.club.findUnique({
