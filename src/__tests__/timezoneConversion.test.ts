@@ -4,6 +4,7 @@
 import {
   toUtcFromClubTime,
   toClubTimeFromUtc,
+  toUtcDateTimeComponents,
   getCurrentDateInClubTimezone,
   getCurrentTimeInClubTimezone,
   formatDateInClubTimezone,
@@ -163,6 +164,40 @@ describe("Timezone Conversion Utilities", () => {
       const parsed = new Date(result);
       expect(isNaN(parsed.getTime())).toBe(false);
       expect(parsed.toISOString()).toBe(result);
+    });
+  });
+
+  describe("toUtcDateTimeComponents", () => {
+    it("should convert club local time to UTC date and time components", () => {
+      const result = toUtcDateTimeComponents("2026-01-06", "10:00", "Europe/Kyiv");
+      
+      expect(result.date).toBe("2026-01-06");
+      expect(result.time).toBe("08:00");
+    });
+
+    it("should handle date boundary crossing", () => {
+      // 00:00 in Kyiv (UTC+2) = 22:00 previous day UTC
+      const result = toUtcDateTimeComponents("2026-01-06", "00:00", "Europe/Kyiv");
+      
+      expect(result.date).toBe("2026-01-05");
+      expect(result.time).toBe("22:00");
+    });
+
+    it("should work with different timezones", () => {
+      // America/New_York is UTC-5 in winter
+      // 10:00 in New York = 15:00 UTC
+      const result = toUtcDateTimeComponents("2026-01-06", "10:00", "America/New_York");
+      
+      expect(result.date).toBe("2026-01-06");
+      expect(result.time).toBe("15:00");
+    });
+
+    it("should handle midnight crossing to next day", () => {
+      // 23:00 in Kyiv (UTC+2) = 21:00 UTC (same day)
+      const result = toUtcDateTimeComponents("2026-01-06", "23:00", "Europe/Kyiv");
+      
+      expect(result.date).toBe("2026-01-06");
+      expect(result.time).toBe("21:00");
     });
   });
 

@@ -93,6 +93,43 @@ export function toUtcFromClubTime(
 }
 
 /**
+ * Convert club local date and time to UTC date and time components
+ * Used for API calls that expect separate date and time parameters
+ * 
+ * @param dateString - Date in YYYY-MM-DD format (club local date)
+ * @param timeString - Time in HH:MM format (club local time)
+ * @param clubTimezone - Club's IANA timezone
+ * @returns Object with UTC date (YYYY-MM-DD) and time (HH:MM)
+ * 
+ * @example
+ * // User in Europe/Kyiv (UTC+2) selects "2026-01-06" at "10:00"
+ * toUtcDateTimeComponents("2026-01-06", "10:00", "Europe/Kyiv")
+ * // Returns: { date: "2026-01-06", time: "08:00" }
+ */
+export function toUtcDateTimeComponents(
+  dateString: string,
+  timeString: string,
+  clubTimezone: string | null | undefined
+): {
+  date: string;
+  time: string;
+} {
+  const utcDate = toUtcFromClubTime(dateString, timeString, clubTimezone);
+  
+  // Extract UTC date and time components
+  const year = utcDate.getUTCFullYear();
+  const month = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(utcDate.getUTCDate()).padStart(2, '0');
+  const hours = String(utcDate.getUTCHours()).padStart(2, '0');
+  const minutes = String(utcDate.getUTCMinutes()).padStart(2, '0');
+  
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${minutes}`,
+  };
+}
+
+/**
  * Convert a UTC date to club local timezone
  * 
  * @param utcDate - UTC Date object or ISO string

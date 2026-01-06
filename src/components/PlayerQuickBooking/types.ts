@@ -11,6 +11,7 @@ export interface BookingClub {
   slug: string | null;
   location: string;
   city?: string | null;
+  timezone?: string | null;
   bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
   businessHours?: ClubBusinessHours[];
 }
