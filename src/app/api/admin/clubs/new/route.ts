@@ -185,7 +185,7 @@ export async function POST(request: Request) {
           email: body.email || null,
           website: body.website || null,
           socialLinks: body.socialLinks || null,
-          defaultCurrency: body.defaultCurrency || "USD",
+          defaultCurrency: body.defaultCurrency || "UAH",
           timezone: body.timezone || "UTC",
           isPublic: body.isPublic ?? true,
           tags: body.tags || null,
