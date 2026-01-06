@@ -1580,6 +1580,7 @@
     "confirmBooking": "Confirm Booking",
     "confirmAndReserve": "Confirm & Reserve",
     "continue": "Continue",
+    "paymentWindowBlocked": "Payment window was blocked. Please allow pop-ups for this site and try again.",
     "bookingConfirmed": "Booking Confirmed!",
     "bookingConfirmedMessage": "Your court has been reserved successfully.",
     "bookingReference": "Booking Reference",

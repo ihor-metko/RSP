@@ -762,11 +762,28 @@ export function PlayerQuickBooking({
         return;
       }
 
-      // Redirect to payment gateway checkout URL
+      // Open payment gateway checkout URL in a new window/tab
+      // This preserves the booking context and allows the user to return to this page
       // The payment webhook will update the booking status to PAID when payment succeeds
-      // On return, user will be redirected to /player/bookings?payment=return
+      // On return, user will be redirected to /player/bookings?payment=return in the payment window
       if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+        const paymentWindow = window.open(data.checkoutUrl, '_blank', 'noopener,noreferrer');
+        
+        if (!paymentWindow) {
+          // Pop-up was blocked - show error message
+          setState((prev) => ({
+            ...prev,
+            isSubmitting: false,
+            submitError: t("wizard.paymentWindowBlocked") || "Payment window was blocked. Please allow pop-ups for this site and try again.",
+          }));
+        } else {
+          // Payment window opened successfully
+          // Reset submitting state so user can close the modal if needed
+          setState((prev) => ({
+            ...prev,
+            isSubmitting: false,
+          }));
+        }
       } else {
         setState((prev) => ({
           ...prev,
