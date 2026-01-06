@@ -748,7 +748,7 @@ export function PlayerQuickBooking({
         setState((prev) => ({
           ...prev,
           isSubmitting: false,
-          submitError: data.error || t("booking.slotAlreadyBooked"),
+          submitError: data.error || t("auth.errorOccurred"),
         }));
         return;
       }

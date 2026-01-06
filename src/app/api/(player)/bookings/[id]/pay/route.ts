@@ -52,7 +52,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "paymentProvider is required and must be a valid payment provider (WAYFORPAY or LIQPAY)",
+            "paymentProvider is required and must be a valid payment provider",
         },
         { status: 400 }
       );
@@ -287,7 +287,7 @@ async function generateWayForPayCheckoutUrl(
       transactionType: "CREATE_INVOICE",
       ...paymentRequest,
     }),
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(15000), // 15 second timeout for external API
   });
 
   if (!response.ok) {
@@ -305,8 +305,8 @@ async function generateWayForPayCheckoutUrl(
   }
 
   console.error(
-    "[WayForPay] Failed to get checkout URL. Reason code:",
-    data.reasonCode || "N/A"
+    "[WayForPay] Failed to get checkout URL. Response:",
+    JSON.stringify(data)
   );
 
   throw new Error("Failed to generate WayForPay checkout URL. Please try again later.");
