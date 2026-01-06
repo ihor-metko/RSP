@@ -553,8 +553,9 @@ export function PlayerQuickBooking({
 
   // Create reservation when transitioning from Step 2.5 to Step 3
   const handleCreateReservation = useCallback(async () => {
-    const { step1, step2 } = state;
+    const { step0, step1, step2 } = state;
     const court = step2.selectedCourt;
+    const selectedClub = step0.selectedClub || preselectedClubData;
 
     if (!court) {
       return false;
@@ -579,9 +580,15 @@ export function PlayerQuickBooking({
     setState((prev) => ({ ...prev, isSubmitting: true, submitError: null }));
 
     try {
-      const startDateTime = `${step1.date}T${step1.startTime}:00.000Z`;
-      const endTime = calculateEndTime(step1.startTime, step1.duration);
-      const endDateTime = `${step1.date}T${endTime}:00.000Z`;
+      // Get club timezone (with fallback to default)
+      const clubTimezone = getClubTimezone(selectedClub?.timezone);
+      
+      // Convert club local start time to UTC
+      const startDateTime = clubLocalToUTC(step1.date, step1.startTime, clubTimezone);
+      
+      // Calculate end time in club timezone
+      const endTimeLocal = calculateEndTime(step1.startTime, step1.duration);
+      const endDateTime = clubLocalToUTC(step1.date, endTimeLocal, clubTimezone);
 
       const response = await fetch("/api/bookings/reserve", {
         method: "POST",
@@ -590,8 +597,8 @@ export function PlayerQuickBooking({
         },
         body: JSON.stringify({
           courtId: court.id,
-          startTime: startDateTime,
-          endTime: endDateTime,
+          startTime: startDateTime, // Already in UTC ISO format
+          endTime: endDateTime, // Already in UTC ISO format
         }),
       });
 
