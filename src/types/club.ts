@@ -70,7 +70,6 @@ export interface ClubWithCounts extends Club {
   bookingCount?: number;
   organization?: ClubOrganizationInfo | null;
   admins?: ClubAdminInfo[];
-  timezone?: string | null;
 }
 
 export interface ClubFormData {
