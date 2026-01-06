@@ -4,7 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Card, Button, Select } from "@/components/ui";
 import type { SelectOption } from "@/components/ui/Select";
-import { COMMON_TIMEZONES, DEFAULT_CLUB_TIMEZONE } from "@/constants/timezone";
+import { COMMON_TIMEZONES, DEFAULT_CLUB_TIMEZONE, getTimezoneOffset } from "@/constants/timezone";
 
 export interface TimezoneData {
   timezone: string | null;
@@ -21,7 +21,7 @@ export function TimezoneTab({
   initialData, 
   onSave, 
   disabled = false, 
-  translationNamespace = "clubDetail.tabs" 
+  translationNamespace = "clubs.tabs" 
 }: TimezoneTabProps) {
   const t = useTranslations(translationNamespace);
   const tCommon = useTranslations("common");
@@ -31,12 +31,15 @@ export function TimezoneTab({
   const [hasChanges, setHasChanges] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
 
-  // Convert COMMON_TIMEZONES to SelectOption format
+  // Convert COMMON_TIMEZONES to SelectOption format with dynamic UTC offset
   const timezoneOptions: SelectOption[] = useMemo(() => {
-    return COMMON_TIMEZONES.map(tz => ({
-      value: tz.value,
-      label: tz.label,
-    }));
+    return COMMON_TIMEZONES.map(tz => {
+      const offset = getTimezoneOffset(tz.value);
+      return {
+        value: tz.value,
+        label: `${tz.value} (${offset})`,
+      };
+    });
   }, []);
 
   const handleTimezoneChange = useCallback((value: string) => {

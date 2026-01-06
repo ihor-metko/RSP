@@ -312,13 +312,14 @@ export function ClubEditor({
       throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
     }
 
-    // Refetch club data to ensure UI is updated with the new timezone
-    if (onRefresh) {
-      await onRefresh();
-    }
+    // Get updated club data from response
+    const updatedClub = await response.json();
+
+    // Update store reactively - no page reload needed
+    updateClubInStore(club.id, updatedClub);
 
     setHasUnsavedChanges(false);
-  }, [club.id, onRefresh, t]);
+  }, [club.id, t, updateClubInStore]);
 
   return (
     <>

@@ -162,12 +162,40 @@ export async function PATCH(
     if (bannerData !== undefined) updateData.bannerData = bannerData ? JSON.stringify(bannerData) : null;
     if (timezone !== undefined) updateData.timezone = timezone;
 
-    await prisma.club.update({
+    const updatedClub = await prisma.club.update({
       where: { id: clubId },
       data: updateData,
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        courts: {
+          orderBy: { name: "asc" },
+        },
+        gallery: {
+          orderBy: { sortOrder: "asc" },
+        },
+        businessHours: {
+          orderBy: { dayOfWeek: "asc" },
+        },
+      },
     });
 
-    return NextResponse.json({ success: true });
+    // Parse JSON fields for consistent response format
+    const parsedAddress = parseAddress(updatedClub.address);
+
+    const formattedClub = {
+      ...updatedClub,
+      address: parsedAddress || null,
+      logoData: updatedClub.logoData ? JSON.parse(updatedClub.logoData) : null,
+      bannerData: updatedClub.bannerData ? JSON.parse(updatedClub.bannerData) : null,
+    };
+
+    return NextResponse.json(formattedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club:", error);

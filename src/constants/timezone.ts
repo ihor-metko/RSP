@@ -67,6 +67,44 @@ export function getClubTimezone(clubTimezone: string | null | undefined): string
 }
 
 /**
+ * Get UTC offset string for a timezone (e.g., "UTC+2", "UTC-5")
+ * @param timezone - IANA timezone string
+ * @returns UTC offset string (e.g., "UTC+2", "UTC-5", "UTC+0")
+ */
+export function getTimezoneOffset(timezone: string): string {
+  try {
+    // Create a date formatter for the timezone
+    const now = new Date();
+    
+    // Get the offset in minutes
+    // We use a trick: format the date in UTC and in the target timezone,
+    // then compare the hour difference
+    const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const tzDate = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+    
+    const offsetMinutes = (tzDate.getTime() - utcDate.getTime()) / (1000 * 60);
+    const offsetHours = offsetMinutes / 60;
+    
+    // Format the offset
+    if (offsetHours === 0) {
+      return 'UTC+0';
+    }
+    
+    const sign = offsetHours > 0 ? '+' : '';
+    const hours = Math.floor(Math.abs(offsetHours));
+    const minutes = Math.abs(offsetMinutes) % 60;
+    
+    if (minutes === 0) {
+      return `UTC${sign}${offsetHours > 0 ? hours : -hours}`;
+    } else {
+      return `UTC${sign}${offsetHours > 0 ? hours : -hours}:${minutes.toString().padStart(2, '0')}`;
+    }
+  } catch {
+    return 'UTC+0';
+  }
+}
+
+/**
  * Common IANA timezones for club selection
  * Organized by region for better UX
  */
