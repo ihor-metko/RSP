@@ -379,8 +379,8 @@ export default function ClubDetailPage({
     setGalleryIndex(index);
   };
 
-  // Loading skeleton
-  if (loadingClubs && !club) {
+  // Loading skeleton - show while loading OR when no club data yet and no error
+  if (loadingClubs || (!club && !clubsError)) {
     return (
       <main className="rsp-club-detail-page">
         <div className="rsp-club-skeleton-hero" />
@@ -397,13 +397,11 @@ export default function ClubDetailPage({
     );
   }
 
-  // Error state
-  if (clubsError || (!loadingClubs && !club)) {
-    const errorMessage = clubsError
-      ? (clubsError.includes("404") || clubsError.includes("not found")
-        ? t("clubs.clubNotFound")
-        : clubsError)
-      : t("clubs.clubNotFound");
+  // Error state - only show when there's an actual API error
+  if (clubsError) {
+    const errorMessage = clubsError.includes("404") || clubsError.includes("not found")
+      ? t("clubs.clubNotFound")
+      : clubsError;
 
     return (
       <main className="rsp-club-detail-page p-8">
