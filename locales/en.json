@@ -1524,7 +1524,8 @@
       "selectClub": "Select Club",
       "payment": "Payment",
       "confirmation": "Confirm Details",
-      "finalConfirmation": "Confirmation"
+      "finalConfirmation": "Confirmation",
+      "reviewConfirm": "Review & Confirm"
     },
     "step0Title": "Select a club",
     "step1Title": "Select date, time and duration",
@@ -1567,7 +1568,15 @@
     "bookingConfirmedMessage": "Your court has been reserved successfully.",
     "bookingReference": "Booking Reference",
     "bookingDetails": "Booking Details",
-    "closeAndViewBookings": "Close"
+    "closeAndViewBookings": "Close",
+    "reviewAndConfirm": "Review and Confirm Your Booking",
+    "reviewBookingDetails": "Please review your booking details carefully before proceeding to payment.",
+    "selectPaymentProvider": "Select Payment Provider",
+    "loadingProviders": "Loading payment providers...",
+    "noPaymentProvidersAvailable": "No payment providers are configured for this club. Please contact the club for assistance.",
+    "pay": "Pay",
+    "confirmAndProceed": "Confirm & Continue to Payment",
+    "courtType": "Court Type"
   },
   "adminWizard": {
     "title": "Create Booking",

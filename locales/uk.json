@@ -1461,7 +1461,8 @@
       "selectCourt": "Вибір корту",
       "selectClub": "Вибір клубу",
       "payment": "Оплата",
-      "confirmation": "Підтвердження"
+      "confirmation": "Підтвердження",
+      "reviewConfirm": "Перегляд та Підтвердження"
     },
     "step0Title": "Виберіть клуб",
     "step1Title": "Виберіть дату, час та тривалість",
@@ -1504,7 +1505,15 @@
     "bookingConfirmedMessage": "Ваш корт успішно заброньований.",
     "bookingReference": "Номер бронювання",
     "bookingDetails": "Деталі бронювання",
-    "closeAndViewBookings": "Закрити"
+    "closeAndViewBookings": "Закрити",
+    "reviewAndConfirm": "Перегляньте та Підтвердіть Ваше Бронювання",
+    "reviewBookingDetails": "Будь ласка, уважно перегляньте деталі бронювання перед переходом до оплати.",
+    "selectPaymentProvider": "Оберіть Платіжну Систему",
+    "loadingProviders": "Завантаження платіжних систем...",
+    "noPaymentProvidersAvailable": "Для цього клубу не налаштовано платіжні системи. Будь ласка, зв'яжіться з клубом для отримання допомоги.",
+    "pay": "Оплатити",
+    "confirmAndProceed": "Підтвердити та Перейти до Оплати",
+    "courtType": "Тип Корту"
   },
   "breadcrumbs": {
     "home": "Головна",
