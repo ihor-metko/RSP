@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import type { PriceSegment } from "@/types/court";
 import { utcToClubLocalDate, utcToClubLocalTime } from "@/utils/dateTime";
-import { getClubTimezone } from "@/constants/timezone";
 
 // Re-export PriceSegment for backward compatibility
 export type { PriceSegment };
@@ -114,7 +113,6 @@ export async function getResolvedPriceForSlot(
   const clubLocalDate = utcToClubLocalDate(utcISOString, clubTimezone);
   const clubLocalStartTime = utcToClubLocalTime(utcISOString, clubTimezone);
 
-  // Calculate end time in minutes (in club-local time)
   // Calculate end time in minutes (in club-local time)
   const startMins = timeToMinutes(normalizeTime(clubLocalStartTime));
   const endMins = startMins + durationMinutes;
