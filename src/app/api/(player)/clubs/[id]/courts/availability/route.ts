@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createUTCDate, doUTCRangesOverlap, getUTCDayBounds, getTodayUTC, getDatesFromStartUTC, getWeekMondayUTC } from "@/utils/utcDateTime";
+import { 
+  createUTCDate, 
+  doUTCRangesOverlap, 
+  getUTCDayBounds, 
+  getTodayUTC, 
+  getDatesFromStartUTC, 
+  getWeekMondayUTC,
+  getTodayInTimezone,
+  getWeekMondayInTimezone,
+  isPastDayInTimezone
+} from "@/utils/utcDateTime";
 
 // Business hours configuration
 const BUSINESS_START_HOUR = 8;
@@ -34,6 +44,7 @@ interface DayAvailability {
   dayName: string;
   hours: HourSlotAvailability[];
   isToday?: boolean;
+  isPast?: boolean; // True if this day is before today in club timezone
 }
 
 interface WeeklyAvailabilityResponse {
@@ -65,12 +76,11 @@ export async function GET(
     const clubId = resolvedParams.id;
 
     /**
-     * IMPORTANT TIMEZONE RULE:
-     * This API returns availability based on UTC date boundaries.
-     * All booking start/end times are in UTC.
-     * Frontend is responsible for:
-     * 1. Converting club timezone to UTC when interpreting results
-     * 2. Displaying times in club local timezone to users
+     * IMPORTANT TIMEZONE RULE (UPDATED):
+     * This API uses CLUB TIMEZONE to determine "today" and week boundaries.
+     * - "Today" is calculated in the club's timezone, not UTC or server timezone
+     * - All booking start/end times are stored and compared in UTC
+     * - Frontend receives dates in YYYY-MM-DD format with proper timezone context
      */
 
     const url = new URL(request.url);
@@ -89,32 +99,7 @@ export async function GET(
       }
     }
 
-    let startDateStr: string;
-    const todayStr = getTodayUTC();
-    
-    if (startParam) {
-      // Validate date format
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateRegex.test(startParam)) {
-        return NextResponse.json(
-          { error: "Invalid start format. Use YYYY-MM-DD" },
-          { status: 400 }
-        );
-      }
-      startDateStr = startParam;
-    } else {
-      // Default behavior based on mode:
-      // - rolling (default): start from today (UTC)
-      // - calendar: start from this week's Monday (UTC)
-      if (modeParam === "calendar") {
-        startDateStr = getWeekMondayUTC(todayStr);
-      } else {
-        // Default to rolling mode: start from today (UTC)
-        startDateStr = todayStr;
-      }
-    }
-
-    // Check if club exists and get its courts
+    // Check if club exists and get its timezone
     const club = await prisma.club.findUnique({
       where: { id: clubId },
       include: {
@@ -137,6 +122,34 @@ export async function GET(
 
     if (!club) {
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
+    }
+
+    // Use club timezone to determine "today"
+    const clubTimezone = club.timezone || "Europe/Kyiv";
+    const todayInClubTz = getTodayInTimezone(clubTimezone);
+
+    let startDateStr: string;
+    
+    if (startParam) {
+      // Validate date format
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(startParam)) {
+        return NextResponse.json(
+          { error: "Invalid start format. Use YYYY-MM-DD" },
+          { status: 400 }
+        );
+      }
+      startDateStr = startParam;
+    } else {
+      // Default behavior based on mode (using club timezone):
+      // - rolling (default): start from today in club timezone
+      // - calendar: start from this week's Monday in club timezone
+      if (modeParam === "calendar") {
+        startDateStr = getWeekMondayInTimezone(clubTimezone);
+      } else {
+        // Default to rolling mode: start from today in club timezone
+        startDateStr = todayInClubTz;
+      }
     }
 
     // Get dates for the requested period (UTC-based)
@@ -182,7 +195,8 @@ export async function GET(
       const date = new Date(dateStr + 'T00:00:00.000Z');
       const dayOfWeek = date.getUTCDay();
       const dayName = getDayName(dateStr);
-      const isToday = dateStr === todayStr;
+      const isToday = dateStr === todayInClubTz;
+      const isPast = isPastDayInTimezone(dateStr, clubTimezone);
 
       const hours: HourSlotAvailability[] = [];
 
@@ -287,6 +301,7 @@ export async function GET(
         dayName,
         hours,
         isToday,
+        isPast,
       });
     }
 

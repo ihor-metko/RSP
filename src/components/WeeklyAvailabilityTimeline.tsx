@@ -485,10 +485,11 @@ export function WeeklyAvailabilityTimeline({
             const localizedDayName = getLocalizedDayName(day.date, locale, "short");
             const { day: dayOfMonth } = parseDateComponents(day.date);
             const isToday = day.isToday || day.date === currentTodayStr;
+            const isPastDay = day.isPast || false;
             
             return (
-              <div key={day.date} className={`tm-weekly-grid-row ${isToday ? "tm-weekly-grid-row--today" : ""}`} role="row">
-                <div className={`tm-weekly-grid-day-label ${isToday ? "tm-weekly-grid-day-label--today" : ""}`} role="rowheader">
+              <div key={day.date} className={`tm-weekly-grid-row ${isToday ? "tm-weekly-grid-row--today" : ""} ${isPastDay ? "tm-weekly-grid-row--past" : ""}`} role="row">
+                <div className={`tm-weekly-grid-day-label ${isToday ? "tm-weekly-grid-day-label--today" : ""} ${isPastDay ? "tm-weekly-grid-day-label--past" : ""}`} role="rowheader">
                   {isToday ? (
                     <>
                       <span className="tm-today-label">{t("todayLabel")}</span>
@@ -506,6 +507,7 @@ export function WeeklyAvailabilityTimeline({
                   )}
                 </div>
                 {day.hours.map((slot) => {
+                  // Use client-side blocking logic in combination with server isPast flag
                   const blockStatus = isSlotBlocked(day.date, slot.hour, now);
                   const { isBlocked, reason } = blockStatus;
                   const blockReasonText = getBlockReasonText(reason);
@@ -556,6 +558,8 @@ export function WeeklyAvailabilityTimeline({
                     </div>
                   );
                 })}
+              </div>
+            );
               </div>
             );
           })}

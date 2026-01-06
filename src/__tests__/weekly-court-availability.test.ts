@@ -31,6 +31,7 @@ describe("GET /api/clubs/[id]/courts/availability", () => {
   const mockClub = {
     id: "club-123",
     name: "Test Club",
+    timezone: "Europe/Kyiv",
     courts: [
       {
         id: "court-1",
@@ -462,6 +463,59 @@ describe("GET /api/clubs/[id]/courts/availability", () => {
       expect(data.days[0].dayOfWeek).toBe(1);
       // Last day should be Sunday (dayOfWeek = 0)
       expect(data.days[6].dayOfWeek).toBe(0);
+    });
+
+    it("should mark past days with isPast flag in calendar mode", async () => {
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+      (prisma.booking.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const request = createRequestWithParams("club-123", { mode: "calendar" });
+      const response = await GET(request, {
+        params: Promise.resolve({ id: "club-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.mode).toBe("calendar");
+      
+      // Check that each day has isPast field defined
+      data.days.forEach((day: { date: string; isPast?: boolean; isToday?: boolean }) => {
+        expect(typeof day.isPast).toBe("boolean");
+      });
+      
+      // At least one day should be marked as today
+      const todayDay = data.days.find((d: { isToday?: boolean }) => d.isToday === true);
+      expect(todayDay).toBeDefined();
+      
+      // Today should not be marked as past
+      if (todayDay) {
+        expect(todayDay.isPast).toBe(false);
+      }
+    });
+
+    it("should not include past days in rolling mode", async () => {
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+      (prisma.booking.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const request = createRequestWithParams("club-123", { mode: "rolling" });
+      const response = await GET(request, {
+        params: Promise.resolve({ id: "club-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.mode).toBe("rolling");
+      
+      // In rolling mode, no day should be marked as past (all days >= today)
+      const pastDays = data.days.filter((d: { isPast?: boolean }) => d.isPast === true);
+      expect(pastDays.length).toBe(0);
+      
+      // First day should be today
+      expect(data.days[0].isToday).toBe(true);
     });
   });
 });

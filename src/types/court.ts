@@ -154,6 +154,7 @@ export interface DayAvailability {
   dayName: string;
   hours: HourSlotAvailability[];
   isToday?: boolean;
+  isPast?: boolean; // True if this day is before today in club timezone
 }
 
 export type AvailabilityMode = "rolling" | "calendar";

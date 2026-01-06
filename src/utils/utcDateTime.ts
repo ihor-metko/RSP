@@ -238,3 +238,48 @@ export function getWeekMondayUTC(dateString: string): string {
   date.setUTCDate(date.getUTCDate() + mondayOffset);
   return getUTCDateString(date);
 }
+
+/**
+ * Get today's date in a specific timezone (YYYY-MM-DD format)
+ * This is the correct way to determine "today" for a club in a specific timezone
+ * 
+ * @param timezone - IANA timezone string (e.g., "Europe/Kyiv", "America/New_York")
+ * @returns Today's date string in YYYY-MM-DD format in the specified timezone
+ * 
+ * @example
+ * // When UTC is 2026-01-06 23:00 and timezone is Europe/Kyiv (UTC+2)
+ * getTodayInTimezone("Europe/Kyiv") // Returns "2026-01-07"
+ */
+export function getTodayInTimezone(timezone: string): string {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(new Date());
+}
+
+/**
+ * Get the Monday of the week containing today in a specific timezone
+ * 
+ * @param timezone - IANA timezone string (e.g., "Europe/Kyiv")
+ * @returns Date string in YYYY-MM-DD format representing Monday of this week in the timezone
+ */
+export function getWeekMondayInTimezone(timezone: string): string {
+  const todayInTz = getTodayInTimezone(timezone);
+  return getWeekMondayUTC(todayInTz);
+}
+
+/**
+ * Check if a date is before today in a specific timezone
+ * Used to determine if a day is in the past for a club
+ * 
+ * @param dateString - Date in YYYY-MM-DD format to check
+ * @param timezone - IANA timezone string (e.g., "Europe/Kyiv")
+ * @returns true if the date is before today in the specified timezone
+ */
+export function isPastDayInTimezone(dateString: string, timezone: string): boolean {
+  const todayInTz = getTodayInTimezone(timezone);
+  return dateString < todayInTz;
+}
