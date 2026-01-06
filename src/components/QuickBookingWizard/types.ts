@@ -29,19 +29,35 @@ export interface WizardStep2Data {
 }
 
 export interface WizardStep3Data {
-  paymentMethod: PaymentMethod | null;
+  // Step 3 is now "Review & Confirm" - no data to store, just viewing
+}
+
+export interface WizardStep4Data {
+  selectedProviderId: string | null;
 }
 
 export type PaymentMethod = "card" | "apple_pay" | "google_pay";
+
+export interface PaymentProvider {
+  id: string;
+  name: string;
+  displayName: string;
+  logoLight: string;
+  logoDark: string;
+}
 
 export interface WizardState {
   currentStep: number;
   step1: WizardStep1Data;
   step2: WizardStep2Data;
   step3: WizardStep3Data;
+  step4: WizardStep4Data;
   availableCourts: WizardCourt[];
+  availableProviders: PaymentProvider[];
   isLoadingCourts: boolean;
+  isLoadingProviders: boolean;
   courtsError: string | null;
+  providersError: string | null;
   estimatedPrice: number | null;
   isSubmitting: boolean;
   submitError: string | null;
@@ -59,7 +75,8 @@ export interface QuickBookingWizardProps {
 export const WIZARD_STEPS = [
   { id: 1, label: "dateTime" },
   { id: 2, label: "selectCourt" },
-  { id: 3, label: "payment" },
+  { id: 3, label: "reviewConfirm" },
+  { id: 4, label: "payment" },
 ] as const;
 
 // Business hours configuration

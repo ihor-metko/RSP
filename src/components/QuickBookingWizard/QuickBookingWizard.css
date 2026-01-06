@@ -503,3 +503,69 @@
     grid-template-columns: 1fr;
   }
 }
+/* Payment Providers (Step 4) */
+.rsp-wizard-payment-providers {
+  @apply grid gap-4 mt-4;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.rsp-wizard-payment-provider {
+  @apply p-6 rounded-lg cursor-pointer flex flex-col items-center justify-center gap-3 transition-all;
+  background-color: var(--rsp-card-bg);
+  border: 2px solid var(--rsp-border);
+  min-height: 100px;
+}
+
+.rsp-wizard-payment-provider:hover:not(:disabled) {
+  border-color: var(--rsp-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.rsp-wizard-payment-provider--selected {
+  border-color: var(--rsp-primary);
+  background-color: rgba(26, 188, 156, 0.05);
+}
+
+.dark .rsp-wizard-payment-provider--selected {
+  background-color: rgba(108, 99, 255, 0.1);
+}
+
+.rsp-wizard-payment-provider:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+.rsp-wizard-payment-provider-logo {
+  @apply h-12 object-contain;
+  max-width: 120px;
+}
+
+.rsp-wizard-payment-provider-label {
+  @apply text-sm font-medium text-center;
+  color: var(--rsp-foreground);
+}
+
+/* Compact summary for Step 4 */
+.rsp-wizard-summary--compact .rsp-wizard-summary-card {
+  @apply p-3;
+}
+
+.rsp-wizard-summary-card--compact .rsp-wizard-summary-row {
+  @apply text-sm py-1;
+}
+
+.rsp-wizard-step-title {
+  @apply text-lg font-semibold mb-2;
+  color: var(--rsp-foreground);
+}
+
+.rsp-wizard-step-description {
+  @apply text-sm mb-4;
+  color: var(--rsp-foreground-muted);
+}
+
+@media (max-width: 640px) {
+  .rsp-wizard-payment-providers {
+    grid-template-columns: 1fr;
+  }
+}

@@ -7,13 +7,14 @@ import { clubLocalToUTC } from "@/utils/dateTime";
 import { getClubTimezone } from "@/constants/timezone";
 import { Step1DateTime } from "./Step1DateTime";
 import { Step2Courts } from "./Step2Courts";
-import { Step3Payment } from "./Step3Payment";
+import { Step3ReviewConfirm } from "./Step3ReviewConfirm";
+import { Step4Payment } from "./Step4Payment";
 import {
   QuickBookingWizardProps,
   WizardState,
   WizardStep1Data,
   WizardCourt,
-  PaymentMethod,
+  PaymentProvider,
   WIZARD_STEPS,
   getTodayDateString,
   calculateEndTime,
@@ -35,12 +36,16 @@ const initialState: WizardState = {
     selectedCourtId: null,
     selectedCourt: null,
   },
-  step3: {
-    paymentMethod: null,
+  step3: {},
+  step4: {
+    selectedProviderId: null,
   },
   availableCourts: [],
+  availableProviders: [],
   isLoadingCourts: false,
+  isLoadingProviders: false,
   courtsError: null,
+  providersError: null,
   estimatedPrice: null,
   isSubmitting: false,
   submitError: null,
@@ -212,6 +217,44 @@ export function QuickBookingWizard({
     }
   }, [clubId, state.step1, t]);
 
+  // Fetch available payment providers when moving to step 4
+  const fetchAvailableProviders = useCallback(async () => {
+    setState((prev) => ({
+      ...prev,
+      isLoadingProviders: true,
+      providersError: null,
+    }));
+
+    try {
+      const response = await fetch(`/api/clubs/${clubId}/payment-providers`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setState((prev) => ({
+          ...prev,
+          isLoadingProviders: false,
+          providersError: errorData.error || t("auth.errorOccurred"),
+        }));
+        return;
+      }
+
+      const data = await response.json();
+      const providers: PaymentProvider[] = data.providers || [];
+
+      setState((prev) => ({
+        ...prev,
+        availableProviders: providers,
+        isLoadingProviders: false,
+      }));
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        isLoadingProviders: false,
+        providersError: t("auth.errorOccurred"),
+      }));
+    }
+  }, [clubId, t]);
+
   // Handle step 1 data changes
   const handleStep1Change = useCallback((data: Partial<WizardStep1Data>) => {
     setState((prev) => ({
@@ -234,19 +277,19 @@ export function QuickBookingWizard({
     }));
   }, []);
 
-  // Handle payment method selection
-  const handleSelectPaymentMethod = useCallback((method: PaymentMethod) => {
+  // Handle payment provider selection
+  const handleSelectProvider = useCallback((providerId: string) => {
     setState((prev) => ({
       ...prev,
-      step3: { paymentMethod: method },
+      step4: { selectedProviderId: providerId },
     }));
   }, []);
 
   // Submit booking
   const handleSubmit = useCallback(async () => {
-    const { step1, step2, step3 } = state;
+    const { step1, step2, step4 } = state;
 
-    if (!step2.selectedCourt || !step3.paymentMethod) {
+    if (!step2.selectedCourt || !step4.selectedProviderId) {
       return;
     }
 
@@ -271,6 +314,7 @@ export function QuickBookingWizard({
           startTime: startDateTime,
           endTime: endDateTime,
           userId: "current-user", // Will be resolved by the API from session
+          paymentProviderId: step4.selectedProviderId,
         }),
       });
 
@@ -329,9 +373,12 @@ export function QuickBookingWizard({
     } else if (state.currentStep === 2) {
       setState((prev) => ({ ...prev, currentStep: 3 }));
     } else if (state.currentStep === 3) {
+      setState((prev) => ({ ...prev, currentStep: 4 }));
+      await fetchAvailableProviders();
+    } else if (state.currentStep === 4) {
       await handleSubmit();
     }
-  }, [state.currentStep, fetchAvailableCourts, handleSubmit]);
+  }, [state.currentStep, fetchAvailableCourts, fetchAvailableProviders, handleSubmit]);
 
   // Navigate to previous step
   const handleBack = useCallback(() => {
@@ -350,7 +397,10 @@ export function QuickBookingWizard({
       case 2:
         return !!state.step2.selectedCourtId;
       case 3:
-        return !!state.step3.paymentMethod && !state.isSubmitting;
+        // Review step - just need to have a court selected
+        return !!state.step2.selectedCourtId;
+      case 4:
+        return !!state.step4.selectedProviderId && !state.isSubmitting;
       default:
         return false;
     }
@@ -441,14 +491,28 @@ export function QuickBookingWizard({
           )}
 
           {state.currentStep === 3 && (
-            <Step3Payment
+            <Step3ReviewConfirm
               date={state.step1.date}
               startTime={state.step1.startTime}
               duration={state.step1.duration}
               court={state.step2.selectedCourt}
               totalPrice={totalPrice}
-              selectedPaymentMethod={state.step3.paymentMethod}
-              onSelectPaymentMethod={handleSelectPaymentMethod}
+              submitError={state.submitError}
+            />
+          )}
+
+          {state.currentStep === 4 && (
+            <Step4Payment
+              date={state.step1.date}
+              startTime={state.step1.startTime}
+              duration={state.step1.duration}
+              court={state.step2.selectedCourt}
+              totalPrice={totalPrice}
+              availableProviders={state.availableProviders}
+              selectedProviderId={state.step4.selectedProviderId}
+              onSelectProvider={handleSelectProvider}
+              isLoadingProviders={state.isLoadingProviders}
+              providersError={state.providersError}
               isSubmitting={state.isSubmitting}
               submitError={state.submitError}
               isComplete={state.isComplete}
@@ -496,8 +560,10 @@ export function QuickBookingWizard({
                   <span className="rsp-wizard-spinner" aria-hidden="true" />
                   {t("common.processing")}
                 </>
+              ) : state.currentStep === 4 ? (
+                t("wizard.pay")
               ) : state.currentStep === 3 ? (
-                t("wizard.confirmBooking")
+                t("wizard.confirmAndProceed")
               ) : (
                 <>
                   {t("wizard.continue")}
