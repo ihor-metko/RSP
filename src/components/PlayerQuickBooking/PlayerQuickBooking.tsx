@@ -523,6 +523,25 @@ export function PlayerQuickBooking({
       availableCourts: [],
       step2: { selectedCourtId: null, selectedCourt: null },
     }));
+
+    // Preload payment providers for better UX (non-blocking)
+    // This improves user experience by loading provider data early
+    const preloadProviders = async () => {
+      try {
+        const response = await fetch(`/api/(player)/clubs/${club.id}/payment-providers`);
+        if (response.ok) {
+          const data = await response.json();
+          const providers: PaymentProviderInfo[] = data.providers || [];
+          setState((prev) => ({
+            ...prev,
+            availablePaymentProviders: providers,
+          }));
+        }
+      } catch {
+        // Silently fail - providers will be fetched again when needed
+      }
+    };
+    preloadProviders();
   }, []);
 
   // Handle step 1 data changes

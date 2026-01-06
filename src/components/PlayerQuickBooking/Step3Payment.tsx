@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { formatPrice } from "@/utils/price";
 import { formatDateTimeLong, formatDateLong } from "@/utils/date";
 import Image from "next/image";
+import { useTheme } from "@/hooks/useTheme";
 import {
   PaymentProviderInfo,
   BookingCourt,
@@ -54,9 +55,9 @@ export function Step3Payment({
 }: Step3PaymentProps) {
   const t = useTranslations();
   const locale = useLocale();
+  const theme = useTheme();
 
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   // Use reservation expiry from parent
   const reservationExpiresAt = reservationExpiresAtProp;
@@ -82,25 +83,6 @@ export function Step3Payment({
 
     return () => clearInterval(interval);
   }, [reservationExpiresAt, onReservationExpired]);
-
-  // Detect theme for logo selection
-  useEffect(() => {
-    const detectTheme = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setTheme(isDark ? "dark" : "light");
-    };
-
-    detectTheme();
-
-    // Watch for theme changes
-    const observer = new MutationObserver(detectTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   // Format time remaining
   const formatTimeRemaining = useCallback((seconds: number): string => {
@@ -258,6 +240,11 @@ export function Step3Payment({
                   width={80}
                   height={32}
                   style={{ objectFit: "contain" }}
+                  onError={(e) => {
+                    // Fallback to text display if logo fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
                 />
               </div>
               <span className="rsp-wizard-payment-method-label">

@@ -22,10 +22,17 @@ export async function GET(
     // Get payment account status for the club
     const status = await getPaymentAccountStatus(clubId);
 
-    // If no payment is configured or not available, return empty list
+    // Only return providers that have completed real payment verification (VERIFIED status)
+    // Empty list is returned if:
+    // - No payment account is configured (!status.isConfigured)
+    // - Payment account is not verified (!status.isAvailable)
+    // - Provider is not set (!status.provider)
     if (!status.isConfigured || !status.isAvailable || !status.provider) {
       return NextResponse.json({
         providers: [],
+        message: status.isConfigured && !status.isAvailable 
+          ? "Payment provider not yet verified" 
+          : "No payment provider configured",
       });
     }
 
