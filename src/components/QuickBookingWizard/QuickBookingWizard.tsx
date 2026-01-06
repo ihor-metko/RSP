@@ -58,24 +58,31 @@ export function QuickBookingWizard({
   const [state, setState] = useState<WizardState>(initialState);
   const [clubTimezone, setClubTimezone] = useState<string | null>(null);
 
-  // Fetch club timezone
+  // Fetch club timezone (memoized to avoid refetching)
   useEffect(() => {
     const fetchClubTimezone = async () => {
+      // Skip if we already have the timezone
+      if (clubTimezone) return;
+      
       try {
         const response = await fetch(`/api/clubs/${clubId}`);
         if (response.ok) {
           const clubData = await response.json();
           setClubTimezone(clubData.timezone || null);
         }
-      } catch {
-        // Silently fail, will use default timezone
+      } catch (error) {
+        // Log error in development, but continue with default timezone
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to fetch club timezone:', error);
+        }
+        // Fallback to null will use default timezone
       }
     };
 
-    if (isOpen && clubId) {
+    if (isOpen && clubId && !clubTimezone) {
       fetchClubTimezone();
     }
-  }, [clubId, isOpen]);
+  }, [clubId, isOpen, clubTimezone]);
 
   // Reset state when modal closes
   useEffect(() => {
