@@ -131,7 +131,8 @@ export function PriceRuleForm({
 
     try {
       // Convert club-local times to UTC before sending to API
-      const referenceDate = formData.ruleType === "SPECIFIC_DATE" && formData.date
+      // Use specific date for SPECIFIC_DATE rules to handle DST correctly
+      const referenceDate = formData.ruleType === "SPECIFIC_DATE" && formData.date && formData.date.trim()
         ? formData.date
         : undefined;
       

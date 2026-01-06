@@ -339,49 +339,53 @@ export default function PriceRulesPage({
                     </td>
                   </tr>
                 ) : (
-                  rules.map((rule) => {
-                    // Convert UTC times to club-local times for display
+                  (() => {
+                    // Get club timezone once for all rules
                     const clubTimezone = getClubTimezone(court?.club?.timezone);
-                    const localStartTime = timeOfDayFromUTC(rule.startTime, clubTimezone);
-                    const localEndTime = timeOfDayFromUTC(rule.endTime, clubTimezone);
                     
-                    return (
-                      <tr
-                        key={rule.id}
-                        className="border-b hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                        style={{ borderColor: "var(--rsp-border)" }}
-                      >
-                        <td className="py-3 px-4">
-                          <span className="text-xs px-2 py-1 rounded-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                            {getRuleTypeLabel(rule.ruleType)}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-medium">{formatRuleDay(rule)}</span>
-                        </td>
-                        <td className="py-3 px-4">{localStartTime}</td>
-                        <td className="py-3 px-4">{localEndTime}</td>
-                        <td className="py-3 px-4">{formatPrice(rule.priceCents)}</td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              onClick={() => handleOpenEditModal(rule)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="outline"
-                              onClick={() => handleOpenDeleteModal(rule)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
+                    return rules.map((rule) => {
+                      // Convert UTC times to club-local times for display
+                      const localStartTime = timeOfDayFromUTC(rule.startTime, clubTimezone);
+                      const localEndTime = timeOfDayFromUTC(rule.endTime, clubTimezone);
+                      
+                      return (
+                        <tr
+                          key={rule.id}
+                          className="border-b hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                          style={{ borderColor: "var(--rsp-border)" }}
+                        >
+                          <td className="py-3 px-4">
+                            <span className="text-xs px-2 py-1 rounded-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                              {getRuleTypeLabel(rule.ruleType)}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-medium">{formatRuleDay(rule)}</span>
+                          </td>
+                          <td className="py-3 px-4">{localStartTime}</td>
+                          <td className="py-3 px-4">{localEndTime}</td>
+                          <td className="py-3 px-4">{formatPrice(rule.priceCents)}</td>
+                          <td className="py-3 px-4 text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => handleOpenEditModal(rule)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => handleOpenDeleteModal(rule)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    });
+                  })()
                 )}
               </tbody>
             </table>
@@ -395,27 +399,34 @@ export default function PriceRulesPage({
         onClose={handleCloseModal}
         title={editingRule ? "Edit Price Rule" : "Add Price Rule"}
       >
-        <PriceRuleForm
-          initialValues={
-            editingRule
-              ? {
-                ruleType: editingRule.ruleType,
-                dayOfWeek: editingRule.dayOfWeek,
-                date: editingRule.date,
-                holidayId: editingRule.holidayId,
-                // Convert UTC times to club-local times for editing
-                startTime: timeOfDayFromUTC(editingRule.startTime, getClubTimezone(court?.club?.timezone)),
-                endTime: timeOfDayFromUTC(editingRule.endTime, getClubTimezone(court?.club?.timezone)),
-                priceCents: editingRule.priceCents,
+        {(() => {
+          // Get club timezone once for the modal
+          const clubTimezone = getClubTimezone(court?.club?.timezone);
+          
+          return (
+            <PriceRuleForm
+              initialValues={
+                editingRule
+                  ? {
+                    ruleType: editingRule.ruleType,
+                    dayOfWeek: editingRule.dayOfWeek,
+                    date: editingRule.date,
+                    holidayId: editingRule.holidayId,
+                    // Convert UTC times to club-local times for editing
+                    startTime: timeOfDayFromUTC(editingRule.startTime, clubTimezone),
+                    endTime: timeOfDayFromUTC(editingRule.endTime, clubTimezone),
+                    priceCents: editingRule.priceCents,
+                  }
+                  : undefined
               }
-              : undefined
-          }
-          onSubmit={handleSubmit}
-          onCancel={handleCloseModal}
-          isSubmitting={submitting}
-          holidays={holidays}
-          clubTimezone={court?.club?.timezone}
-        />
+              onSubmit={handleSubmit}
+              onCancel={handleCloseModal}
+              isSubmitting={submitting}
+              holidays={holidays}
+              clubTimezone={court?.club?.timezone}
+            />
+          );
+        })()}
       </Modal>
 
       {/* Delete Confirmation Modal */}
