@@ -70,7 +70,7 @@ export default function PlayerDashboardPage() {
   const router = useRouter();
   const t = useTranslations();
   const currentLocale = useCurrentLocale();
-  
+
   // Auth guard: Require authentication, redirect root admins to admin dashboard
   const { isHydrated, isLoading, isLoggedIn, user } = useAuthGuardOnce({
     requireAuth: true,
@@ -88,9 +88,9 @@ export default function PlayerDashboardPage() {
   const clubsFromStore = usePlayerClubStore((state) => state.clubs);
   const clubsLoading = usePlayerClubStore((state) => state.loading);
   const fetchClubsFromStore = usePlayerClubStore((state) => state.fetchClubsIfNeeded);
-  
+
   const [selectedClubId, setSelectedClubId] = useState<string>("");
-  
+
   // Map store clubs to local Club type (memoized to avoid unnecessary re-renders)
   const clubs: Club[] = useMemo(() => clubsFromStore.map((club) => ({
     id: club.id,
@@ -137,7 +137,7 @@ export default function PlayerDashboardPage() {
       console.warn("Error fetching clubs:", error);
     }
   }, [fetchClubsFromStore]);
-  
+
   // Set first club as default when clubs are loaded
   useEffect(() => {
     if (clubs.length > 0 && !selectedClubId) {
