@@ -8,7 +8,8 @@ import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
 import { formatDateWithWeekday, formatTime, formatDateLong } from "@/utils/date";
-import { getTodayStr } from "@/utils/dateTime";
+import { getTodayStr, clubLocalToUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import "./PersonalizedSection.css";
 
 interface UpcomingBooking {
@@ -308,9 +309,16 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     setSubmitError(null);
 
     try {
-      const startDateTime = `${selectedDate}T${selectedStartTime}:00.000Z`;
-      const endTime = calculateEndTime(selectedStartTime, selectedDuration);
-      const endDateTime = `${selectedDate}T${endTime}:00.000Z`;
+      // Get selected club to access timezone
+      const selectedClub = clubs.find(c => c.id === selectedClubId);
+      
+      // Get club timezone with fallback to default
+      const clubTimezone = getClubTimezone(selectedClub?.timezone);
+      
+      // Convert club-local time to UTC before sending to API
+      const startDateTime = clubLocalToUTC(selectedDate, selectedStartTime, clubTimezone);
+      const endTimeLocal = calculateEndTime(selectedStartTime, selectedDuration);
+      const endDateTime = clubLocalToUTC(selectedDate, endTimeLocal, clubTimezone);
 
       const response = await fetch("/api/bookings", {
         method: "POST",
