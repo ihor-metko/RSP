@@ -835,6 +835,38 @@
   font-weight: 500;
 }
 
+/* Payment Provider Logo */
+.rsp-wizard-payment-method-logo {
+  height: 32px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+}
+
+/* Payment Section */
+.rsp-wizard-payment-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+}
+
+.rsp-wizard-payment-section-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Payment Providers Loading */
+.rsp-wizard-payment-providers-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-6);
+  color: var(--color-text-secondary);
+}
+
 /* Price Note */
 .rsp-wizard-price-note {
   font-size: var(--font-size-sm);

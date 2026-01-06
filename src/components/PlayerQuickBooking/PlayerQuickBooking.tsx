@@ -96,6 +96,7 @@ export function PlayerQuickBooking({
       },
       step3: {
         paymentMethod: null,
+        selectedProviderId: null,
         reservationId: null,
         reservationExpiresAt: null,
       },
@@ -106,13 +107,16 @@ export function PlayerQuickBooking({
       availableClubs: [],
       availableCourts: [],
       availableCourtTypes: availableCourtTypes || [],
+      availablePaymentProviders: [],
       alternativeDurations: [],
       alternativeTimeSlots: [],
       isLoadingClubs: false,
       isLoadingCourts: false,
       isLoadingCourtTypes: false,
+      isLoadingPaymentProviders: false,
       clubsError: null,
       courtsError: null,
+      paymentProvidersError: null,
       estimatedPrice: null,
       estimatedPriceRange: null,
       isSubmitting: false,
@@ -150,6 +154,7 @@ export function PlayerQuickBooking({
         },
         step3: {
           paymentMethod: null,
+          selectedProviderId: null,
           reservationId: null,
           reservationExpiresAt: null,
         },
@@ -160,13 +165,16 @@ export function PlayerQuickBooking({
         availableClubs: [],
         availableCourts: [],
         availableCourtTypes: availableCourtTypes || [],
+        availablePaymentProviders: [],
         alternativeDurations: [],
         alternativeTimeSlots: [],
         isLoadingClubs: false,
         isLoadingCourts: false,
         isLoadingCourtTypes: false,
+        isLoadingPaymentProviders: false,
         clubsError: null,
         courtsError: null,
+        paymentProvidersError: null,
         estimatedPrice: null,
         estimatedPriceRange: null,
         isSubmitting: false,
@@ -541,15 +549,58 @@ export function PlayerQuickBooking({
   }, [fetchAvailableCourts]);
 
   // Handle payment method selection
-  const handleSelectPaymentMethod = useCallback((method: PaymentMethod) => {
+  const handleSelectProvider = useCallback((providerId: string) => {
     setState((prev) => ({
       ...prev,
       step3: {
         ...prev.step3,
-        paymentMethod: method,
+        selectedProviderId: providerId,
       },
     }));
   }, []);
+
+  // Fetch payment providers when entering step 3
+  const fetchPaymentProviders = useCallback(async () => {
+    const clubId = state.step0.selectedClubId || preselectedClubId;
+    
+    if (!clubId) {
+      return;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      isLoadingPaymentProviders: true,
+      paymentProvidersError: null,
+    }));
+
+    try {
+      const response = await fetch(`/api/(player)/clubs/${clubId}/payment-providers`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        setState((prev) => ({
+          ...prev,
+          isLoadingPaymentProviders: false,
+          paymentProvidersError: errorData.error || t("auth.errorOccurred"),
+        }));
+        return;
+      }
+
+      const data = await response.json();
+      
+      setState((prev) => ({
+        ...prev,
+        availablePaymentProviders: data.providers || [],
+        isLoadingPaymentProviders: false,
+      }));
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        isLoadingPaymentProviders: false,
+        paymentProvidersError: t("auth.errorOccurred"),
+      }));
+    }
+  }, [state.step0.selectedClubId, preselectedClubId, t]);
 
   // Create reservation when transitioning from Step 2.5 to Step 3
   const handleCreateReservation = useCallback(async () => {
@@ -755,6 +806,8 @@ export function PlayerQuickBooking({
     if (currentStepConfig.id === 2.5 && currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 3) {
       const reservationCreated = await handleCreateReservation();
       if (reservationCreated) {
+        // Fetch payment providers when moving to step 3
+        await fetchPaymentProviders();
         setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
       }
       // If reservation failed, stay on current step (error will be shown)
@@ -771,7 +824,7 @@ export function PlayerQuickBooking({
     if (currentStepIndex + 1 < visibleSteps.length) {
       setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
     }
-  }, [visibleSteps, state.currentStep, state.availableClubs.length, state.isLoadingClubs, state.availableCourts.length, state.alternativeTimeSlots.length, state.isLoadingCourts, fetchAvailableClubs, fetchAvailableCourts, handleCreateReservation, handleSubmit]);
+  }, [visibleSteps, state.currentStep, state.availableClubs.length, state.isLoadingClubs, state.availableCourts.length, state.alternativeTimeSlots.length, state.isLoadingCourts, fetchAvailableClubs, fetchAvailableCourts, handleCreateReservation, fetchPaymentProviders, handleSubmit]);
 
   // Navigate to previous step
   const handleBack = useCallback(() => {
@@ -810,7 +863,7 @@ export function PlayerQuickBooking({
         // Confirmation step - just verify selection before proceeding to payment
         return !!state.step2.selectedCourtId && !!state.step2.selectedCourt;
       case 3:
-        return !!state.step3.paymentMethod && !state.isSubmitting && !!state.step3.reservationId;
+        return !!state.step3.selectedProviderId && !state.isSubmitting && !!state.step3.reservationId;
       case 4:
         return true; // Final confirmation step
       default:
@@ -960,8 +1013,11 @@ export function PlayerQuickBooking({
               duration={state.step1.duration}
               court={state.step2.selectedCourt}
               totalPrice={totalPrice}
-              selectedPaymentMethod={state.step3.paymentMethod}
-              onSelectPaymentMethod={handleSelectPaymentMethod}
+              selectedProviderId={state.step3.selectedProviderId}
+              onSelectProvider={handleSelectProvider}
+              availableProviders={state.availablePaymentProviders}
+              isLoadingProviders={state.isLoadingPaymentProviders}
+              providersError={state.paymentProvidersError}
               isSubmitting={state.isSubmitting}
               submitError={state.submitError}
               reservationExpiresAt={state.step3.reservationExpiresAt}

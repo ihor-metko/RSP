@@ -62,6 +62,7 @@ export interface PlayerBookingStep2Data {
 
 export interface PlayerBookingStep3Data {
   paymentMethod: PaymentMethod | null;
+  selectedProviderId: string | null; // Selected payment provider ID
   reservationId: string | null;
   reservationExpiresAt: string | null;
 }
@@ -72,6 +73,16 @@ export interface PlayerBookingStep4Data {
 }
 
 export type PaymentMethod = "card" | "apple_pay" | "google_pay";
+
+/**
+ * Payment provider information returned from the API
+ */
+export interface PaymentProviderInfo {
+  id: string; // Provider enum value (e.g., "WAYFORPAY", "LIQPAY")
+  name: string; // Display name (e.g., "WayForPay", "LiqPay")
+  logoLight: string; // Logo URL for light theme
+  logoDark: string; // Logo URL for dark theme
+}
 
 export interface AlternativeTimeSlot {
   startTime: string;
@@ -93,13 +104,16 @@ export interface PlayerQuickBookingState {
   availableClubs: BookingClub[];
   availableCourts: BookingCourt[];
   availableCourtTypes: ("SINGLE" | "DOUBLE")[];
+  availablePaymentProviders: PaymentProviderInfo[]; // Available payment providers for the club
   alternativeDurations: AlternativeDuration[];
   alternativeTimeSlots: AlternativeTimeSlot[];
   isLoadingClubs: boolean;
   isLoadingCourts: boolean;
   isLoadingCourtTypes: boolean;
+  isLoadingPaymentProviders: boolean; // Loading state for payment providers
   clubsError: string | null;
   courtsError: string | null;
+  paymentProvidersError: string | null; // Error state for payment providers
   estimatedPrice: number | null;
   estimatedPriceRange: { min: number; max: number } | null;
   isSubmitting: boolean;
