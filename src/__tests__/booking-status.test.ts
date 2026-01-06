@@ -216,39 +216,34 @@ describe("Booking Status Utilities", () => {
 
   describe("getStatusLabel", () => {
     it("should return human-readable labels for all statuses", () => {
-      expect(getStatusLabel("pending")).toBe("Pending");
-      expect(getStatusLabel("paid")).toBe("Paid");
-      expect(getStatusLabel("reserved")).toBe("Reserved");
-      expect(getStatusLabel("ongoing")).toBe("Ongoing");
-      expect(getStatusLabel("completed")).toBe("Completed");
-      expect(getStatusLabel("cancelled")).toBe("Cancelled");
-      expect(getStatusLabel("no-show")).toBe("No-show");
+      expect(getStatusLabel("Confirmed")).toBe("Confirmed");
+      expect(getStatusLabel("UPCOMING")).toBe("Upcoming");
+      expect(getStatusLabel("Completed")).toBe("Completed");
+      expect(getStatusLabel("Cancelled")).toBe("Cancelled");
+      expect(getStatusLabel("No-show")).toBe("No-show");
     });
   });
 
   describe("getStatusColorClass", () => {
     it("should return correct color classes for all statuses", () => {
-      expect(getStatusColorClass("pending")).toBe("warning");
-      expect(getStatusColorClass("paid")).toBe("success");
-      expect(getStatusColorClass("reserved")).toBe("info");
-      expect(getStatusColorClass("ongoing")).toBe("active");
-      expect(getStatusColorClass("completed")).toBe("neutral");
-      expect(getStatusColorClass("cancelled")).toBe("danger");
-      expect(getStatusColorClass("no-show")).toBe("danger");
+      expect(getStatusColorClass("Confirmed")).toBe("warning");
+      expect(getStatusColorClass("UPCOMING")).toBe("active");
+      expect(getStatusColorClass("Completed")).toBe("neutral");
+      expect(getStatusColorClass("Cancelled")).toBe("danger");
+      expect(getStatusColorClass("No-show")).toBe("danger");
     });
   });
 
   describe("isTerminalStatus", () => {
     it("should return true for terminal statuses", () => {
-      expect(isTerminalStatus("cancelled")).toBe(true);
-      expect(isTerminalStatus("no-show")).toBe(true);
-      expect(isTerminalStatus("completed")).toBe(true);
+      expect(isTerminalStatus("Cancelled")).toBe(true);
+      expect(isTerminalStatus("No-show")).toBe(true);
+      expect(isTerminalStatus("Completed")).toBe(true);
     });
 
     it("should return false for non-terminal statuses", () => {
-      expect(isTerminalStatus("pending")).toBe(false);
-      expect(isTerminalStatus("paid")).toBe(false);
-      expect(isTerminalStatus("reserved")).toBe(false);
+      expect(isTerminalStatus("Confirmed")).toBe(false);
+      expect(isTerminalStatus("UPCOMING")).toBe(false);
     });
   });
 

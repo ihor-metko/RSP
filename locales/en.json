@@ -2513,16 +2513,16 @@
     "bookingNotFound": "Booking not found",
     "bookingStatus": "Booking Status",
     "paymentStatus": "Payment Status",
-    "bookingStatusActive": "Active",
+    "bookingStatusUpcoming": "Upcoming",
     "bookingStatusCancelled": "Cancelled",
     "bookingStatusCompleted": "Completed",
     "bookingStatusNoShow": "No-show",
-    "bookingStatusPending": "Pending",
+    "bookingStatusConfirmed": "Confirmed",
+    "bookingStatusActive": "Upcoming",
+    "bookingStatusPending": "Confirmed",
     "paymentStatusPaid": "Paid",
     "paymentStatusUnpaid": "Unpaid",
-    "paymentStatusRefunded": "Refunded",
-    "paymentStatusPartiallyRefunded": "Partially Refunded",
-    "paymentStatusPaymentPending": "Payment Pending"
+    "paymentStatusRefunded": "Refunded"
   },
   "bookingsOverview": {
     "title": "Bookings Overview",

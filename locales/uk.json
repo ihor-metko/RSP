@@ -2395,16 +2395,16 @@
     "bookingNotFound": "Бронювання не знайдено",
     "bookingStatus": "Статус",
     "paymentStatus": "Оплата",
-    "bookingStatusActive": "Активний",
+    "bookingStatusUpcoming": "Майбутнє",
     "bookingStatusCancelled": "Скасовано",
     "bookingStatusCompleted": "Завершено",
     "bookingStatusNoShow": "Не з'явився",
-    "bookingStatusPending": "Очікує",
+    "bookingStatusConfirmed": "Підтверджено",
+    "bookingStatusActive": "Майбутнє",
+    "bookingStatusPending": "Підтверджено",
     "paymentStatusPaid": "Оплачено",
     "paymentStatusUnpaid": "Не оплачено",
-    "paymentStatusRefunded": "Повернено",
-    "paymentStatusPartiallyRefunded": "Частково повернено",
-    "paymentStatusPaymentPending": "Очікується оплата"
+    "paymentStatusRefunded": "Повернено"
   },
   "adminWizard": {
     "title": "Створити бронювання",

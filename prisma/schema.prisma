@@ -463,8 +463,8 @@ model Booking {
   price                Int
   sportType            SportType @default(PADEL) // Type of sport for this booking
   status               String    @default("pending") // Legacy field for backward compatibility: "pending", "paid", "cancelled", etc.
-  bookingStatus        String    @default("Pending") // Booking status: "Active", "Cancelled", "Completed", "No-show", "Pending"
-  paymentStatus        String    @default("Unpaid") // Payment status: "Paid", "Unpaid", "Refunded", "PartiallyRefunded", "PaymentPending"
+  bookingStatus        String    @default("Confirmed") // Booking status: "UPCOMING", "Cancelled", "Completed", "No-show", "Confirmed"
+  paymentStatus        String    @default("Unpaid") // Payment status: "Paid", "Unpaid", "Refunded"
   paymentId            String?
   reservedAt           DateTime? // Timestamp when temporary reservation was created
   reservationExpiresAt DateTime? // Timestamp when reservation expires (typically reservedAt + 5 minutes)
