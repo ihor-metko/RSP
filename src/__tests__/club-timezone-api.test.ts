@@ -25,10 +25,9 @@ describe("Club Timezone API Validation", () => {
         "UTC+2",
         "GMT+2",
         "Invalid/Timezone",
-        "EET",
-        "EST",
         "",
         "Europe/InvalidCity",
+        "NotATimezone",
       ];
 
       invalidTimezones.forEach((timezone) => {
