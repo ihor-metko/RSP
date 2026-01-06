@@ -67,6 +67,77 @@ export function getClubTimezone(clubTimezone: string | null | undefined): string
 }
 
 /**
+ * Get UTC offset string for a timezone (e.g., "UTC+2", "UTC-5")
+ * @param timezone - IANA timezone string
+ * @returns UTC offset string (e.g., "UTC+2", "UTC-5", "UTC+0")
+ */
+export function getTimezoneOffset(timezone: string): string {
+  try {
+    // Use Intl.DateTimeFormat to get reliable timezone offset
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'longOffset',
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const timeZonePart = parts.find(part => part.type === 'timeZoneName');
+    
+    if (timeZonePart?.value) {
+      // timeZoneName: "longOffset" gives us "GMT" (for UTC) or "GMT-05:00", "GMT+02:00"
+      const gmtValue = timeZonePart.value;
+      
+      // Handle UTC/GMT specially
+      if (gmtValue === 'GMT') {
+        return 'UTC+0';
+      }
+      
+      // Parse offset like "GMT-05:00" or "GMT+02:00"
+      const match = gmtValue.match(/GMT([+-])(\d{2}):(\d{2})/);
+      if (match) {
+        const [, sign, hours, minutes] = match;
+        const hoursNum = parseInt(hours, 10);
+        const minutesNum = parseInt(minutes, 10);
+        
+        if (minutesNum === 0) {
+          return `UTC${sign}${hoursNum}`;
+        } else {
+          return `UTC${sign}${hoursNum}:${minutes}`;
+        }
+      }
+      
+      // Fallback: just replace GMT with UTC
+      return gmtValue.replace('GMT', 'UTC');
+    }
+    
+    // Fallback to manual calculation if formatToParts doesn't work
+    // Note: This is a safety net that should rarely execute
+    const utcDate = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const tzDate = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+    
+    const offsetMinutes = Math.round((tzDate.getTime() - utcDate.getTime()) / (1000 * 60));
+    
+    // Handle the unlikely case of zero offset
+    if (offsetMinutes === 0) {
+      return 'UTC+0';
+    }
+    
+    const offsetHours = offsetMinutes / 60;
+    const sign = offsetHours > 0 ? '+' : '';
+    const minutes = Math.abs(offsetMinutes) % 60;
+    
+    if (minutes === 0) {
+      return `UTC${sign}${Math.floor(offsetHours)}`;
+    } else {
+      const hoursPart = Math.floor(offsetHours);
+      return `UTC${sign}${hoursPart}:${minutes.toString().padStart(2, '0')}`;
+    }
+  } catch {
+    return 'UTC+0';
+  }
+}
+
+/**
  * Common IANA timezones for club selection
  * Organized by region for better UX
  */

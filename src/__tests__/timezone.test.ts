@@ -6,6 +6,7 @@ import {
   PLATFORM_TIMEZONE,
   isValidIANATimezone,
   getClubTimezone,
+  getTimezoneOffset,
   COMMON_TIMEZONES,
 } from "@/constants/timezone";
 
@@ -81,6 +82,39 @@ describe("Timezone Constants", () => {
       
       consoleWarnSpy.mockRestore();
       process.env.NODE_ENV = originalEnv;
+    });
+  });
+
+  describe("getTimezoneOffset", () => {
+    it("should return UTC offset for UTC timezone", () => {
+      const offset = getTimezoneOffset("UTC");
+      expect(offset).toBe("UTC+0");
+    });
+
+    it("should return valid offset format for known timezones", () => {
+      // Test various timezones - offsets may vary based on DST
+      const offset1 = getTimezoneOffset("America/New_York");
+      expect(offset1).toMatch(/^UTC[+-]\d+(:\d{2})?$/);
+      
+      const offset2 = getTimezoneOffset("Europe/London");
+      expect(offset2).toMatch(/^UTC[+-]\d+(:\d{2})?$/);
+      
+      const offset3 = getTimezoneOffset("Asia/Tokyo");
+      expect(offset3).toMatch(/^UTC[+-]\d+(:\d{2})?$/);
+    });
+
+    it("should handle invalid timezone gracefully", () => {
+      const offset = getTimezoneOffset("Invalid/Timezone");
+      expect(offset).toBe("UTC+0");
+    });
+
+    it("should return consistent format", () => {
+      // All offsets should start with "UTC"
+      const timezones = ["Europe/Kyiv", "America/Los_Angeles", "Asia/Dubai"];
+      timezones.forEach((tz) => {
+        const offset = getTimezoneOffset(tz);
+        expect(offset.startsWith("UTC")).toBe(true);
+      });
     });
   });
 
