@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <rect width="200" height="60" fill="#1A1A1A" rx="4"/>
+  <circle cx="40" cy="30" r="12" fill="#666"/>
+  <text x="100" y="35" font-family="Arial, sans-serif" font-size="16" font-weight="500" fill="#CCC" text-anchor="middle">
+    Payment Provider
+  </text>
+</svg>

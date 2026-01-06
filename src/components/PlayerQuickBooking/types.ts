@@ -61,7 +61,7 @@ export interface PlayerBookingStep2Data {
 }
 
 export interface PlayerBookingStep3Data {
-  paymentMethod: PaymentMethod | null;
+  paymentProvider: PaymentProviderInfo | null;
   reservationId: string | null;
   reservationExpiresAt: string | null;
 }
@@ -71,6 +71,15 @@ export interface PlayerBookingStep4Data {
   confirmed: boolean;
 }
 
+export interface PaymentProviderInfo {
+  id: string;
+  name: string;
+  displayName: string;
+  logoLight: string;
+  logoDark: string;
+}
+
+// Legacy type for backwards compatibility
 export type PaymentMethod = "card" | "apple_pay" | "google_pay";
 
 export interface AlternativeTimeSlot {
@@ -93,13 +102,16 @@ export interface PlayerQuickBookingState {
   availableClubs: BookingClub[];
   availableCourts: BookingCourt[];
   availableCourtTypes: ("SINGLE" | "DOUBLE")[];
+  availablePaymentProviders: PaymentProviderInfo[];
   alternativeDurations: AlternativeDuration[];
   alternativeTimeSlots: AlternativeTimeSlot[];
   isLoadingClubs: boolean;
   isLoadingCourts: boolean;
   isLoadingCourtTypes: boolean;
+  isLoadingPaymentProviders: boolean;
   clubsError: string | null;
   courtsError: string | null;
+  paymentProvidersError: string | null;
   estimatedPrice: number | null;
   estimatedPriceRange: { min: number; max: number } | null;
   isSubmitting: boolean;

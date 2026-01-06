@@ -66,8 +66,8 @@ export interface PlayerClub {
 
 /**
  * Detailed player club info (without courts, coaches, and gallery)
- * Courts: Fetch separately via /api/(player)/clubs/[id]/courts
- * Gallery: Fetch separately via /api/(player)/clubs/[id]/gallery
+ * Courts: Fetch separately via /api/clubs/[id]/courts
+ * Gallery: Fetch separately via /api/clubs/[id]/gallery
  * Coaches: Removed per requirements
  */
 export interface PlayerClubDetail {

@@ -19,7 +19,7 @@ import {
   PlayerBookingStep1Data,
   BookingCourt,
   BookingClub,
-  PaymentMethod,
+  PaymentProviderInfo,
   getTodayDateString,
   calculateEndTime,
   determineVisibleSteps,
@@ -68,7 +68,7 @@ export function PlayerQuickBooking({
   // Track previous step1 values to prevent unnecessary API calls
   const prevStep1ParamsRef = useRef<string>("");
   const prevCourtsParamsRef = useRef<string>("");
-  
+
   // Track if a reservation request is in progress to prevent duplicates
   const isReservingRef = useRef<boolean>(false);
 
@@ -95,7 +95,7 @@ export function PlayerQuickBooking({
         selectedCourt: null,
       },
       step3: {
-        paymentMethod: null,
+        paymentProvider: null,
         reservationId: null,
         reservationExpiresAt: null,
       },
@@ -106,13 +106,16 @@ export function PlayerQuickBooking({
       availableClubs: [],
       availableCourts: [],
       availableCourtTypes: availableCourtTypes || [],
+      availablePaymentProviders: [],
       alternativeDurations: [],
       alternativeTimeSlots: [],
       isLoadingClubs: false,
       isLoadingCourts: false,
       isLoadingCourtTypes: false,
+      isLoadingPaymentProviders: false,
       clubsError: null,
       courtsError: null,
+      paymentProvidersError: null,
       estimatedPrice: null,
       estimatedPriceRange: null,
       isSubmitting: false,
@@ -127,7 +130,7 @@ export function PlayerQuickBooking({
       prevStep1ParamsRef.current = "";
       prevCourtsParamsRef.current = "";
       isReservingRef.current = false; // Reset reservation lock
-      
+
       const initialDateTime: PlayerBookingStep1Data = preselectedDateTime
         ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
         : {
@@ -149,7 +152,7 @@ export function PlayerQuickBooking({
           selectedCourt: null,
         },
         step3: {
-          paymentMethod: null,
+          paymentProvider: null,
           reservationId: null,
           reservationExpiresAt: null,
         },
@@ -160,13 +163,16 @@ export function PlayerQuickBooking({
         availableClubs: [],
         availableCourts: [],
         availableCourtTypes: availableCourtTypes || [],
+        availablePaymentProviders: [],
         alternativeDurations: [],
         alternativeTimeSlots: [],
         isLoadingClubs: false,
         isLoadingCourts: false,
         isLoadingCourtTypes: false,
+        isLoadingPaymentProviders: false,
         clubsError: null,
         courtsError: null,
+        paymentProvidersError: null,
         estimatedPrice: null,
         estimatedPriceRange: null,
         isSubmitting: false,
@@ -286,15 +292,15 @@ export function PlayerQuickBooking({
     if (!clubId) return;
 
     const { date, startTime, duration, courtType } = state.step1;
-    
+
     // Create a unique key for current parameters to prevent redundant requests
     const currentParams = `${clubId}-${date}-${startTime}-${duration}-${courtType}`;
-    
+
     // Skip if parameters haven't changed
     if (prevCourtsParamsRef.current === currentParams) {
       return;
     }
-    
+
     // Update the reference
     prevCourtsParamsRef.current = currentParams;
 
@@ -307,11 +313,11 @@ export function PlayerQuickBooking({
     try {
       // Get club timezone (with fallback to default)
       const clubTimezone = getClubTimezone(selectedClub?.timezone);
-      
+
       // Convert club local time to UTC for API call
       const utcISOString = clubLocalToUTC(date, startTime, clubTimezone);
       const utcDate = new Date(utcISOString);
-      
+
       // Extract UTC time in HH:MM format for API
       const utcHours = utcDate.getUTCHours().toString().padStart(2, '0');
       const utcMinutes = utcDate.getUTCMinutes().toString().padStart(2, '0');
@@ -367,6 +373,46 @@ export function PlayerQuickBooking({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.step0.selectedClubId, state.step0.selectedClub, state.step1.date, state.step1.startTime, state.step1.duration, state.step1.courtType, preselectedClubId, preselectedClubData, t]);
 
+  // Fetch available payment providers for a club
+  const fetchPaymentProviders = useCallback(async () => {
+    const clubId = state.step0.selectedClubId || preselectedClubId;
+    if (!clubId) return;
+
+    setState((prev) => ({
+      ...prev,
+      isLoadingPaymentProviders: true,
+      paymentProvidersError: null,
+    }));
+
+    try {
+      const response = await fetch(`/api/clubs/${clubId}/payment-providers`);
+
+      if (!response.ok) {
+        setState((prev) => ({
+          ...prev,
+          isLoadingPaymentProviders: false,
+          paymentProvidersError: t("auth.errorOccurred"),
+        }));
+        return;
+      }
+
+      const data = await response.json();
+      const providers: PaymentProviderInfo[] = data.providers || [];
+
+      setState((prev) => ({
+        ...prev,
+        availablePaymentProviders: providers,
+        isLoadingPaymentProviders: false,
+      }));
+    } catch {
+      setState((prev) => ({
+        ...prev,
+        isLoadingPaymentProviders: false,
+        paymentProvidersError: t("auth.errorOccurred"),
+      }));
+    }
+  }, [state.step0.selectedClubId, preselectedClubId, t]);
+
   // Fetch estimated price when date/time/duration changes
   useEffect(() => {
     const fetchEstimatedPrice = async () => {
@@ -375,7 +421,7 @@ export function PlayerQuickBooking({
       if (!clubId) return;
 
       const { date, startTime, duration, courtType } = state.step1;
-      
+
       // Don't fetch price if startTime is not selected
       if (!startTime) {
         setState((prev) => ({
@@ -385,26 +431,26 @@ export function PlayerQuickBooking({
         }));
         return;
       }
-      
+
       // Create a unique key for current parameters to prevent redundant requests
       const currentParams = `${clubId}-${date}-${startTime}-${duration}-${courtType}`;
-      
+
       // Skip if parameters haven't changed
       if (prevStep1ParamsRef.current === currentParams) {
         return;
       }
-      
+
       // Update the reference
       prevStep1ParamsRef.current = currentParams;
 
       try {
         // Get club timezone (with fallback to default)
         const clubTimezone = getClubTimezone(selectedClub?.timezone);
-        
+
         // Convert club local time to UTC for API call
         const utcISOString = clubLocalToUTC(date, startTime, clubTimezone);
         const utcDate = new Date(utcISOString);
-        
+
         // Extract UTC time in HH:MM format for API
         const utcHours = utcDate.getUTCHours().toString().padStart(2, '0');
         const utcMinutes = utcDate.getUTCMinutes().toString().padStart(2, '0');
@@ -477,6 +523,25 @@ export function PlayerQuickBooking({
       availableCourts: [],
       step2: { selectedCourtId: null, selectedCourt: null },
     }));
+
+    // Preload payment providers for better UX (non-blocking)
+    // This improves user experience by loading provider data early
+    const preloadProviders = async () => {
+      try {
+        const response = await fetch(`/api/clubs/${club.id}/payment-providers`);
+        if (response.ok) {
+          const data = await response.json();
+          const providers: PaymentProviderInfo[] = data.providers || [];
+          setState((prev) => ({
+            ...prev,
+            availablePaymentProviders: providers,
+          }));
+        }
+      } catch {
+        // Silently fail - providers will be fetched again when needed
+      }
+    };
+    preloadProviders();
   }, []);
 
   // Handle step 1 data changes
@@ -540,13 +605,13 @@ export function PlayerQuickBooking({
     }, 0);
   }, [fetchAvailableCourts]);
 
-  // Handle payment method selection
-  const handleSelectPaymentMethod = useCallback((method: PaymentMethod) => {
+  // Handle payment provider selection
+  const handleSelectPaymentProvider = useCallback((provider: PaymentProviderInfo) => {
     setState((prev) => ({
       ...prev,
       step3: {
         ...prev.step3,
-        paymentMethod: method,
+        paymentProvider: provider,
       },
     }));
   }, []);
@@ -602,7 +667,7 @@ export function PlayerQuickBooking({
         // This could be from:
         // 1. Our own duplicate request (safe to proceed)
         // 2. Another user's reservation (should show error)
-        
+
         // Check if we already have a reservation for this exact slot
         // If we don't have a reservationId yet, this is likely another user's reservation
         if (!state.step3.reservationId) {
@@ -613,7 +678,7 @@ export function PlayerQuickBooking({
           }));
           return false;
         }
-        
+
         // We have a reservationId, so this 409 is likely from our duplicate request
         // Proceed to payment step
         console.log("409 received but we have an existing reservation, proceeding to payment");
@@ -659,7 +724,7 @@ export function PlayerQuickBooking({
     const court = step2.selectedCourt;
     const selectedClub = step0.selectedClub || preselectedClubData;
 
-    if (!court || !step3.paymentMethod) {
+    if (!court || !step3.paymentProvider) {
       return;
     }
 
@@ -668,10 +733,10 @@ export function PlayerQuickBooking({
     try {
       // Get club timezone (with fallback to default)
       const clubTimezone = getClubTimezone(selectedClub?.timezone);
-      
+
       // Convert club local start time to UTC
       const startDateTime = clubLocalToUTC(step1.date, step1.startTime, clubTimezone);
-      
+
       // Calculate end time in club timezone
       const endTimeLocal = calculateEndTime(step1.startTime, step1.duration);
       const endDateTime = clubLocalToUTC(step1.date, endTimeLocal, clubTimezone);
@@ -755,6 +820,10 @@ export function PlayerQuickBooking({
     if (currentStepConfig.id === 2.5 && currentStepIndex + 1 < visibleSteps.length && visibleSteps[currentStepIndex + 1].id === 3) {
       const reservationCreated = await handleCreateReservation();
       if (reservationCreated) {
+        // Fetch payment providers before moving to payment step
+        if (state.availablePaymentProviders.length === 0 && !state.isLoadingPaymentProviders) {
+          await fetchPaymentProviders();
+        }
         setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
       }
       // If reservation failed, stay on current step (error will be shown)
@@ -771,7 +840,7 @@ export function PlayerQuickBooking({
     if (currentStepIndex + 1 < visibleSteps.length) {
       setState((prev) => ({ ...prev, currentStep: visibleSteps[currentStepIndex + 1].id }));
     }
-  }, [visibleSteps, state.currentStep, state.availableClubs.length, state.isLoadingClubs, state.availableCourts.length, state.alternativeTimeSlots.length, state.isLoadingCourts, fetchAvailableClubs, fetchAvailableCourts, handleCreateReservation, handleSubmit]);
+  }, [visibleSteps, state.currentStep, state.availableClubs.length, state.isLoadingClubs, state.availableCourts.length, state.alternativeTimeSlots.length, state.isLoadingCourts, state.availablePaymentProviders.length, state.isLoadingPaymentProviders, fetchAvailableClubs, fetchAvailableCourts, fetchPaymentProviders, handleCreateReservation, handleSubmit]);
 
   // Navigate to previous step
   const handleBack = useCallback(() => {
@@ -810,7 +879,7 @@ export function PlayerQuickBooking({
         // Confirmation step - just verify selection before proceeding to payment
         return !!state.step2.selectedCourtId && !!state.step2.selectedCourt;
       case 3:
-        return !!state.step3.paymentMethod && !state.isSubmitting && !!state.step3.reservationId;
+        return !!state.step3.paymentProvider && !state.isSubmitting && !!state.step3.reservationId;
       case 4:
         return true; // Final confirmation step
       default:
@@ -960,10 +1029,13 @@ export function PlayerQuickBooking({
               duration={state.step1.duration}
               court={state.step2.selectedCourt}
               totalPrice={totalPrice}
-              selectedPaymentMethod={state.step3.paymentMethod}
-              onSelectPaymentMethod={handleSelectPaymentMethod}
+              availablePaymentProviders={state.availablePaymentProviders}
+              selectedPaymentProvider={state.step3.paymentProvider}
+              onSelectPaymentProvider={handleSelectPaymentProvider}
               isSubmitting={state.isSubmitting}
+              isLoadingProviders={state.isLoadingPaymentProviders}
               submitError={state.submitError}
+              providersError={state.paymentProvidersError}
               reservationExpiresAt={state.step3.reservationExpiresAt}
               onReservationExpired={() => {
                 setState((prev) => ({

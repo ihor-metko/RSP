@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { formatPrice } from "@/utils/price";
 import { formatDateTimeLong, formatDateLong } from "@/utils/date";
+import Image from "next/image";
+import { useTheme } from "@/hooks/useTheme";
 import {
-  PaymentMethod,
+  PaymentProviderInfo,
   BookingCourt,
   BookingClub,
 } from "./types";
@@ -17,47 +19,16 @@ interface Step3PaymentProps {
   duration: number;
   court: BookingCourt | null;
   totalPrice: number;
-  selectedPaymentMethod: PaymentMethod | null;
-  onSelectPaymentMethod: (method: PaymentMethod) => void;
+  availablePaymentProviders: PaymentProviderInfo[];
+  selectedPaymentProvider: PaymentProviderInfo | null;
+  onSelectPaymentProvider: (provider: PaymentProviderInfo) => void;
   isSubmitting: boolean;
+  isLoadingProviders: boolean;
   submitError: string | null;
+  providersError: string | null;
   reservationExpiresAt: string | null;
   onReservationExpired?: () => void;
 }
-
-const PAYMENT_METHODS: { id: PaymentMethod; label: string; icon: React.ReactNode; disabled?: boolean }[] = [
-  {
-    id: "card",
-    label: "wizard.payWithCard",
-    disabled: false,
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-        <line x1="1" y1="10" x2="23" y2="10" />
-      </svg>
-    ),
-  },
-  {
-    id: "apple_pay",
-    label: "wizard.applePay",
-    disabled: true,
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.0425 7.97573C17.0008 7.98573 15.9808 8.31073 15.9808 9.57823C15.9808 11.0407 17.3225 11.5507 17.365 11.5607C17.3558 11.5907 17.1283 12.3782 16.5467 13.1957C16.0392 13.8982 15.5075 14.5982 14.6817 14.5982C13.8558 14.5982 13.6167 14.1232 12.6617 14.1232C11.7292 14.1232 11.3742 14.6182 10.6175 14.6182C9.86083 14.6182 9.34083 13.9582 8.75333 13.1582C8.06083 12.2007 7.5 10.7282 7.5 9.33323C7.5 7.19823 8.90833 6.06573 10.295 6.06573C11.1017 6.06573 11.7742 6.58573 12.2733 6.58573C12.75 6.58573 13.5058 6.04573 14.4333 6.04573C14.7683 6.04573 16.0392 6.06573 16.9825 7.28323C16.9117 7.32073 17.085 7.96573 17.0425 7.97573ZM14.375 4.79573C14.755 4.34073 15.02 3.70573 15.02 3.07073C15.02 2.98323 15.0117 2.89573 15 2.82323C14.3825 2.84573 13.6417 3.22573 13.195 3.74573C12.8475 4.14573 12.5275 4.78073 12.5275 5.42573C12.5275 5.52323 12.5425 5.62073 12.5533 5.65573C12.5992 5.66573 12.6717 5.67823 12.7442 5.67823C13.2967 5.67823 13.9683 5.31573 14.375 4.79573Z" />
-      </svg>
-    ),
-  },
-  {
-    id: "google_pay",
-    label: "wizard.googlePay",
-    disabled: true,
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.48 10.92V13.97H16.74C16.53 15.13 15.38 17.32 12.48 17.32C9.97 17.32 7.9 15.22 7.9 12.5C7.9 9.78 9.97 7.68 12.48 7.68C13.99 7.68 15 8.33 15.6 8.89L17.87 6.71C16.33 5.27 14.37 4.5 12.48 4.5C8.32 4.5 4.9 7.92 4.9 12.08C4.9 16.24 8.32 19.66 12.48 19.66C16.95 19.66 19.94 16.43 19.94 12.08C19.94 11.58 19.9 11.2 19.82 10.82H12.48V10.92Z" />
-      </svg>
-    ),
-  },
-];
 
 // Time validation constants
 const MIN_HOUR = 0;
@@ -72,15 +43,19 @@ export function Step3Payment({
   duration,
   court,
   totalPrice,
-  selectedPaymentMethod,
-  onSelectPaymentMethod,
+  availablePaymentProviders,
+  selectedPaymentProvider,
+  onSelectPaymentProvider,
   isSubmitting,
+  isLoadingProviders,
   submitError,
+  providersError,
   reservationExpiresAt: reservationExpiresAtProp,
   onReservationExpired,
 }: Step3PaymentProps) {
   const t = useTranslations();
   const locale = useLocale();
+  const theme = useTheme();
 
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
@@ -226,38 +201,59 @@ export function Step3Payment({
         </div>
       </div>
 
-      {/* Payment Methods */}
-      <div
-        className="rsp-wizard-payment-methods"
-        role="radiogroup"
-        aria-label={t("wizard.selectPaymentMethod")}
-      >
-        {PAYMENT_METHODS.map((method) => (
-          <button
-            key={method.id}
-            type="button"
-            role="radio"
-            aria-checked={selectedPaymentMethod === method.id}
-            aria-disabled={method.disabled}
-            className={`rsp-wizard-payment-method ${selectedPaymentMethod === method.id
-              ? "rsp-wizard-payment-method--selected"
-              : ""
-              } ${method.disabled ? "rsp-wizard-payment-method--disabled" : ""}`}
-            onClick={() => !method.disabled && onSelectPaymentMethod(method.id)}
-            disabled={isSubmitting || method.disabled}
-          >
-            <span aria-hidden="true">{method.icon}</span>
-            <span className="rsp-wizard-payment-method-label">
-              {t(method.label)}
-            </span>
-            {method.disabled && (
-              <span className="rsp-wizard-payment-method-badge">
-                {t("wizard.comingSoon")}
+      {/* Payment Providers */}
+      {isLoadingProviders ? (
+        <div className="rsp-wizard-loading">
+          {t("wizard.loadingPaymentProviders")}
+        </div>
+      ) : providersError ? (
+        <div className="rsp-wizard-alert rsp-wizard-alert--error" role="alert">
+          {providersError}
+        </div>
+      ) : availablePaymentProviders.length === 0 ? (
+        <div className="rsp-wizard-alert rsp-wizard-alert--warning" role="alert">
+          {t("wizard.noPaymentProvidersAvailable")}
+        </div>
+      ) : (
+        <div
+          className="rsp-wizard-payment-methods"
+          role="radiogroup"
+          aria-label={t("wizard.selectPaymentProvider")}
+        >
+          {availablePaymentProviders.map((provider) => (
+            <button
+              key={provider.id}
+              type="button"
+              role="radio"
+              aria-checked={selectedPaymentProvider?.id === provider.id}
+              className={`rsp-wizard-payment-method ${selectedPaymentProvider?.id === provider.id
+                ? "rsp-wizard-payment-method--selected"
+                : ""
+                }`}
+              onClick={() => onSelectPaymentProvider(provider)}
+              disabled={isSubmitting}
+            >
+              <div className="rsp-wizard-payment-method-logo">
+                <Image
+                  src={theme === "dark" ? provider.logoDark : provider.logoLight}
+                  alt={provider.displayName}
+                  width={80}
+                  height={32}
+                  style={{ objectFit: "contain" }}
+                  onError={(e) => {
+                    // Fallback to text display if logo fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                />
+              </div>
+              <span className="rsp-wizard-payment-method-label">
+                {provider.displayName}
               </span>
-            )}
-          </button>
-        ))}
-      </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
