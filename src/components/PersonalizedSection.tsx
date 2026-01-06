@@ -312,8 +312,18 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
       // Get selected club to access timezone
       const selectedClub = clubs.find(c => c.id === selectedClubId);
       
+      // Validate that we have the club data
+      if (!selectedClub) {
+        setSubmitError(t("auth.errorOccurred"));
+        setIsSubmitting(false);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Selected club not found in clubs list:', selectedClubId);
+        }
+        return;
+      }
+      
       // Get club timezone with fallback to default
-      const clubTimezone = getClubTimezone(selectedClub?.timezone);
+      const clubTimezone = getClubTimezone(selectedClub.timezone);
       
       // Convert club-local time to UTC before sending to API
       const startDateTime = clubLocalToUTC(selectedDate, selectedStartTime, clubTimezone);
