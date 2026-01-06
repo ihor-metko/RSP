@@ -22,14 +22,14 @@ export async function GET(
     const status = await getPaymentAccountStatus(clubId);
 
     // If no payment account is configured or not available, return empty array
-    if (!status.isConfigured || !status.isAvailable) {
+    if (!status.isConfigured || !status.isAvailable || !status.provider) {
       return NextResponse.json({
         providers: [],
       });
     }
 
     // Map provider enum to display information
-    const providerInfo = getProviderInfo(status.provider!);
+    const providerInfo = getProviderInfo(status.provider);
 
     return NextResponse.json({
       providers: [
