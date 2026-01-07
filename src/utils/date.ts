@@ -198,3 +198,28 @@ export function formatDateSimple(date: string | Date, locale: string): string {
   
   return dateObj.toLocaleDateString(intlLocale);
 }
+
+/**
+ * Format payment deadline with time and date
+ * Used for displaying payment deadlines in a concise format
+ * @param date Date string or Date object
+ * @param locale Current application locale
+ * @returns Formatted deadline string with time and date in "HH:MM DD.MM.YYYY" format
+ * @example
+ * formatPaymentDeadline('2026-01-07T15:30:00Z', 'en') // "15:30 07.01.2026"
+ * formatPaymentDeadline('2026-01-07T15:30:00Z', 'uk') // "15:30 07.01.2026"
+ * Note: Time is formatted using locale-specific conventions, but date always uses DD.MM.YYYY format
+ */
+export function formatPaymentDeadline(date: string | Date, locale: string): string {
+  const dateObj = toDate(date);
+  
+  // Reuse existing formatTime function for consistency
+  const time = formatTime(date, locale);
+  
+  // Format date in DD.MM.YYYY format
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const year = dateObj.getFullYear();
+  
+  return `${time} ${day}.${month}.${year}`;
+}
