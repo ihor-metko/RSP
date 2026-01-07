@@ -1527,6 +1527,8 @@
     "payNow": "Pay Now",
     "resumingPayment": "Loading...",
     "reservationExpired": "Reservation expired - click to renew",
+    "payBy": "Pay by {deadline}",
+    "paymentWarning": "If not paid by the deadline, the reservation will be cancelled.",
     "activityHistory": {
       "title": "Activity History",
       "noHistory": "No activity to display",

@@ -198,3 +198,29 @@ export function formatDateSimple(date: string | Date, locale: string): string {
   
   return dateObj.toLocaleDateString(intlLocale);
 }
+
+/**
+ * Format payment deadline with time and date (e.g., "15:30 07.01.2026" in English, "15:30 07.01.2026" in Ukrainian)
+ * Used for displaying payment deadlines in a concise format
+ * @param date Date string or Date object
+ * @param locale Current application locale
+ * @returns Formatted deadline string with time and date
+ */
+export function formatPaymentDeadline(date: string | Date, locale: string): string {
+  const dateObj = toDate(date);
+  const intlLocale = getIntlLocale(locale);
+  
+  // Format time (e.g., "15:30")
+  const time = dateObj.toLocaleTimeString(intlLocale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  
+  // Format date in DD.MM.YYYY format
+  const day = dateObj.getDate().toString().padStart(2, '0');
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+  const year = dateObj.getFullYear();
+  
+  return `${time} ${day}.${month}.${year}`;
+}

@@ -159,6 +159,25 @@
   flex-wrap: wrap;
 }
 
+.im-payment-deadline {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.im-payment-deadline-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--im-text-primary);
+}
+
+.im-payment-warning {
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--im-text-secondary);
+  margin: 0.5rem 0 0 0;
+  font-style: italic;
+}
+
 .im-booking-warning {
   font-size: 0.75rem;
   color: var(--im-warning-text, #92400e);

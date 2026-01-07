@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button, Card, EmptyState } from "@/components/ui";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { useAuthGuardOnce } from "@/hooks";
-import { formatDateWithWeekday, formatTime } from "@/utils/date";
+import { formatDateWithWeekday, formatTime, formatPaymentDeadline } from "@/utils/date";
 import { useUserStore } from "@/stores/useUserStore";
 import { PAYMENT_STATUS } from "@/types/booking";
 import "./profile.css";
@@ -351,6 +351,15 @@ export default function PlayerProfilePage() {
                           </div>
                           {isUnpaid && (
                             <div className="im-booking-actions">
+                              {booking.reservationExpiresAt && (
+                                <div className="im-payment-deadline">
+                                  <span className="im-payment-deadline-label">
+                                    {t("playerProfile.payBy", { 
+                                      deadline: formatPaymentDeadline(booking.reservationExpiresAt, currentLocale) 
+                                    })}
+                                  </span>
+                                </div>
+                              )}
                               <Button
                                 onClick={() => handleResumePayment(booking.id)}
                                 disabled={resumingPayment === booking.id}
@@ -361,6 +370,9 @@ export default function PlayerProfilePage() {
                                   ? t("playerProfile.resumingPayment") 
                                   : t("playerProfile.payNow")}
                               </Button>
+                              <p className="im-payment-warning">
+                                {t("playerProfile.paymentWarning")}
+                              </p>
                               {isExpired && (
                                 <span className="im-booking-warning">
                                   {t("playerProfile.reservationExpired")}
