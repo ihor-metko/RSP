@@ -57,6 +57,7 @@ export function ResumePaymentModal({
   const [error, setError] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [isExpired, setIsExpired] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
 
   // Fetch booking details and extend reservation when modal opens
   useEffect(() => {
@@ -136,7 +137,7 @@ export function ResumePaymentModal({
 
     const updateTimer = () => {
       const now = new Date().getTime();
-      const expiresAt = new Date(bookingInfo.reservationExpiresAt!).getTime();
+      const expiresAt = new Date(bookingInfo.reservationExpiresAt || '').getTime();
       const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
 
       setTimeRemaining(remaining);
@@ -213,9 +214,13 @@ export function ResumePaymentModal({
         return;
       }
 
-      // Open payment gateway checkout URL
+      // Open payment gateway checkout URL with security parameters
       if (data.checkoutUrl) {
-        const paymentWindow = window.open(data.checkoutUrl, '_blank', 'noopener,noreferrer');
+        const paymentWindow = window.open(
+          data.checkoutUrl, 
+          '_blank', 
+          'width=600,height=700,scrollbars=yes,resizable=yes,noopener,noreferrer'
+        );
         
         if (!paymentWindow) {
           setError(t("wizard.paymentWindowBlocked"));
@@ -357,21 +362,28 @@ export function ResumePaymentModal({
                     disabled={isSubmitting || timeRemaining === 0}
                   >
                     <div className="rsp-wizard-payment-method-logo">
-                      <Image
-                        src={theme === "dark" ? provider.logoDark : provider.logoLight}
-                        alt={provider.displayName}
-                        width={80}
-                        height={32}
-                        style={{ objectFit: "contain" }}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = "none";
-                        }}
-                      />
+                      {!imageErrors[provider.id] ? (
+                        <Image
+                          src={theme === "dark" ? provider.logoDark : provider.logoLight}
+                          alt={provider.displayName}
+                          width={80}
+                          height={32}
+                          style={{ objectFit: "contain" }}
+                          onError={() => {
+                            setImageErrors(prev => ({ ...prev, [provider.id]: true }));
+                          }}
+                        />
+                      ) : (
+                        <span className="rsp-wizard-payment-method-label">
+                          {provider.displayName}
+                        </span>
+                      )}
                     </div>
-                    <span className="rsp-wizard-payment-method-label">
-                      {provider.displayName}
-                    </span>
+                    {!imageErrors[provider.id] && (
+                      <span className="rsp-wizard-payment-method-label">
+                        {provider.displayName}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
