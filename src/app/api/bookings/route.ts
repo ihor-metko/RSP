@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/requireRole";
-import { LEGACY_STATUS } from "@/types/booking";
+import { LEGACY_STATUS, BOOKING_STATUS } from "@/types/booking";
 
 /**
  * GET /api/bookings
@@ -36,8 +36,11 @@ export async function GET(request: NextRequest) {
       userId: string;
       end?: { gte: Date } | { lt: Date };
       status?: { in: string[] };
+      bookingStatus?: { not: string };
     } = {
       userId,
+      // Exclude cancelled bookings from both upcoming and past bookings
+      bookingStatus: { not: BOOKING_STATUS.CANCELLED },
     };
 
     if (isUpcoming) {
@@ -80,6 +83,7 @@ export async function GET(request: NextRequest) {
       status: booking.status,
       bookingStatus: booking.bookingStatus,
       paymentStatus: booking.paymentStatus,
+      cancelReason: booking.cancelReason,
       reservationExpiresAt: booking.reservationExpiresAt?.toISOString() || null,
       court: {
         id: booking.court.id,

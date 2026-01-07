@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { shouldMarkAsCompleted, shouldCancelUnpaidBooking } from "@/utils/bookingStatus";
-import { PAYMENT_TIMEOUT_MS, BOOKING_STATUS, PAYMENT_STATUS } from "@/types/booking";
+import { PAYMENT_TIMEOUT_MS, BOOKING_STATUS, PAYMENT_STATUS, CANCEL_REASON } from "@/types/booking";
 import { sendBookingCancellationEmail } from "@/services/emailService";
 
 /**
@@ -134,6 +134,7 @@ export async function POST(request: Request) {
         data: {
           bookingStatus: BOOKING_STATUS.CANCELLED,
           status: "cancelled", // Update legacy status as well
+          cancelReason: CANCEL_REASON.PAYMENT_TIMEOUT, // Set cancel reason for activity history
         },
       });
       cancelledCount = cancelResult.count;

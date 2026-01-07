@@ -1464,7 +1464,12 @@
     },
     "payNow": "Оплатити зараз",
     "resumingPayment": "Завантаження...",
-    "reservationExpired": "Резервація завершилася - натисніть для оновлення"
+    "reservationExpired": "Резервація завершилася - натисніть для оновлення",
+    "activityHistory": {
+      "title": "Історія активності",
+      "noHistory": "Немає історії для відображення",
+      "cancelledPaymentTimeout": "Скасовано — оплата не завершена вчасно"
+    }
   },
   "footer": {
     "brandName": "ArenaOne",

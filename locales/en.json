@@ -1526,7 +1526,12 @@
     },
     "payNow": "Pay Now",
     "resumingPayment": "Loading...",
-    "reservationExpired": "Reservation expired - click to renew"
+    "reservationExpired": "Reservation expired - click to renew",
+    "activityHistory": {
+      "title": "Activity History",
+      "noHistory": "No activity to display",
+      "cancelledPaymentTimeout": "Cancelled — payment not completed in time"
+    }
   },
   "footer": {
     "brandName": "ArenaOne",

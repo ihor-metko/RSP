@@ -82,6 +82,17 @@
   border-color: var(--im-primary-hover, var(--rsp-primary-hover));
 }
 
+/* Muted booking item for activity history */
+.im-booking-item--muted {
+  opacity: 0.7;
+}
+
+.im-booking-item--muted:hover {
+  background-color: var(--im-surface-bg, var(--rsp-card-bg));
+  border-color: var(--im-border-color, var(--rsp-border));
+  cursor: default;
+}
+
 .im-booking-details {
   display: flex;
   flex-direction: column;
@@ -191,6 +202,11 @@
   color: var(--im-default-text, #4b5563);
 }
 
+.im-status-badge--neutral {
+  background-color: var(--im-neutral-bg, #f3f4f6);
+  color: var(--im-neutral-text, #6b7280);
+}
+
 /* Loading Skeleton */
 .im-bookings-loading {
   display: flex;
@@ -242,6 +258,11 @@
 
 .dark .im-status-badge--default {
   background-color: rgba(107, 114, 128, 0.2);
+  color: #9ca3af;
+}
+
+.dark .im-status-badge--neutral {
+  background-color: rgba(107, 114, 128, 0.15);
   color: #9ca3af;
 }
 

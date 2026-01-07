@@ -466,6 +466,7 @@ model Booking {
   bookingStatus        String          @default("Confirmed") // Booking status: "UPCOMING", "Cancelled", "Completed", "No-show", "Confirmed"
   paymentStatus        String          @default("Unpaid") // Payment status: "Paid", "Unpaid", "Refunded"
   paymentId            String?
+  cancelReason         String? // Reason for cancellation: "PAYMENT_TIMEOUT", "USER_CANCELLED", "ADMIN_CANCELLED", etc.
   reservedAt           DateTime? // Timestamp when temporary reservation was created
   reservationExpiresAt DateTime? // Timestamp when reservation expires (typically reservedAt + 5 minutes)
   createdAt            DateTime        @default(now())

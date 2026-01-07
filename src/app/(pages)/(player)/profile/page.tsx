@@ -20,6 +20,7 @@ interface Booking {
   status: string;
   bookingStatus: string;
   paymentStatus: string;
+  cancelReason?: string | null;
   reservationExpiresAt: string | null;
   court?: {
     id: string;
@@ -47,8 +48,10 @@ export default function PlayerProfilePage() {
   // State for bookings
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
   const [pastBookings, setPastBookings] = useState<Booking[]>([]);
+  const [activityHistory, setActivityHistory] = useState<Booking[]>([]);
   const [upcomingLoading, setUpcomingLoading] = useState(true);
   const [pastLoading, setPastLoading] = useState(true);
+  const [activityLoading, setActivityLoading] = useState(true);
   const [resumingPayment, setResumingPayment] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
@@ -102,6 +105,27 @@ export default function PlayerProfilePage() {
     }
   }, [user?.id, router]);
 
+  // Fetch activity history (cancelled unpaid bookings)
+  const fetchActivityHistory = useCallback(async () => {
+    if (!user?.id) return;
+
+    setActivityLoading(true);
+
+    try {
+      const response = await fetch(`/api/activity-history`);
+      if (response.ok) {
+        const data = await response.json();
+        setActivityHistory(Array.isArray(data) ? data : []);
+      } else if (response.status === 401) {
+        router.push("/auth/sign-in");
+      }
+    } catch (error) {
+      console.error("Failed to fetch activity history:", error);
+    } finally {
+      setActivityLoading(false);
+    }
+  }, [user?.id, router]);
+
   // Resume payment for unpaid booking
   const handleResumePayment = useCallback(async (bookingId: string) => {
     setResumingPayment(bookingId);
@@ -145,8 +169,9 @@ export default function PlayerProfilePage() {
     if (isLoggedIn && user && !user.isRoot) {
       fetchUpcomingBookings();
       fetchPastBookings();
+      fetchActivityHistory();
     }
-  }, [isLoggedIn, user, fetchUpcomingBookings, fetchPastBookings]);
+  }, [isLoggedIn, user, fetchUpcomingBookings, fetchPastBookings, fetchActivityHistory]);
 
   // Get status badge class
   const getStatusBadgeClass = (status: string) => {
@@ -320,6 +345,47 @@ export default function PlayerProfilePage() {
                       </div>
                       <span className={`im-status-badge ${getStatusBadgeClass(booking.status)}`}>
                         {t(`common.${booking.status}`) || booking.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </section>
+
+        {/* Activity History Section */}
+        <section className="im-profile-section">
+          <Card title={t("playerProfile.activityHistory.title")}>
+            {activityLoading ? (
+              <div className="im-bookings-loading">
+                {[1, 2].map((i) => (
+                  <div key={i} className="im-booking-skeleton" />
+                ))}
+              </div>
+            ) : activityHistory.length === 0 ? (
+              <EmptyState
+                title={t("playerProfile.activityHistory.noHistory")}
+              />
+            ) : (
+              <div className="im-bookings-list">
+                {activityHistory.map((booking) => (
+                  <div key={booking.id} className="im-booking-item im-booking-item--muted">
+                    <div className="im-booking-details">
+                      <div className="im-booking-time">
+                        <span className="im-booking-date">
+                          {formatDateWithWeekday(booking.start, currentLocale)}
+                        </span>
+                        <span className="im-booking-time-range">
+                          {formatTime(booking.start, currentLocale)} - {formatTime(booking.end, currentLocale)}
+                        </span>
+                      </div>
+                      <div className="im-booking-location">
+                        <span className="im-booking-club">{booking.court?.club?.name || ""}</span>
+                        <span className="im-booking-court">{booking.court?.name || ""}</span>
+                      </div>
+                      <span className="im-status-badge im-status-badge--neutral">
+                        {t("playerProfile.activityHistory.cancelledPaymentTimeout")}
                       </span>
                     </div>
                   </div>
