@@ -1614,6 +1614,8 @@
     "confirmAndReserve": "Confirm & Reserve",
     "continue": "Continue",
     "paymentWindowBlocked": "Payment window was blocked. Please allow pop-ups for this site and try again.",
+    "resumePaymentTitle": "Complete Payment",
+    "resumePaymentInfo": "Complete payment for your reserved booking. Your booking details cannot be changed.",
     "bookingConfirmed": "Booking Confirmed!",
     "bookingConfirmedMessage": "Your court has been reserved successfully.",
     "bookingReference": "Booking Reference",

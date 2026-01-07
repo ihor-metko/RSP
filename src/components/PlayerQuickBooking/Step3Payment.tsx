@@ -28,6 +28,7 @@ interface Step3PaymentProps {
   providersError: string | null;
   reservationExpiresAt: string | null;
   onReservationExpired?: () => void;
+  readOnlyMode?: boolean; // Indicates booking details are locked (resume payment flow)
 }
 
 // Time validation constants
@@ -52,6 +53,7 @@ export function Step3Payment({
   providersError,
   reservationExpiresAt: reservationExpiresAtProp,
   onReservationExpired,
+  readOnlyMode = false,
 }: Step3PaymentProps) {
   const t = useTranslations();
   const locale = useLocale();
@@ -134,8 +136,15 @@ export function Step3Payment({
   return (
     <div className="rsp-wizard-step-content" role="group" aria-labelledby="step3-title">
       <h2 className="rsp-wizard-step-title" id="step3-title">
-        {t("wizard.step3Title")}
+        {readOnlyMode ? t("wizard.resumePaymentTitle") : t("wizard.step3Title")}
       </h2>
+
+      {/* Read-only mode indicator */}
+      {readOnlyMode && (
+        <div className="rsp-wizard-alert rsp-wizard-alert--info" role="status">
+          {t("wizard.resumePaymentInfo")}
+        </div>
+      )}
 
       {/* Reservation Timer */}
       {timeRemaining > 0 && (
@@ -231,7 +240,7 @@ export function Step3Payment({
                 : ""
                 }`}
               onClick={() => onSelectPaymentProvider(provider)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || timeRemaining === 0}
             >
               <div className="rsp-wizard-payment-method-logo">
                 <Image

@@ -42,6 +42,7 @@ export async function POST(
               select: {
                 id: true,
                 name: true,
+                timezone: true,
               },
             },
           },
@@ -135,6 +136,7 @@ export async function POST(
         courtName: booking.court.name,
         clubId: booking.court.clubId,
         clubName: booking.court.club.name,
+        clubTimezone: booking.court.club.timezone,
         startTime: booking.start.toISOString(),
         endTime: booking.end.toISOString(),
         price: booking.price,

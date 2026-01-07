@@ -41,6 +41,8 @@ export function PlayerQuickBooking({
   preselectedDateTime,
   preselectedClubData,
   availableCourtTypes,
+  resumePaymentMode = false,
+  resumePaymentBooking,
 }: PlayerQuickBookingProps) {
   const t = useTranslations();
 
@@ -50,7 +52,7 @@ export function PlayerQuickBooking({
 
   // Real-time availability updates via WebSocket
   useCourtAvailability(
-    preselectedClubId || null,
+    preselectedClubId || resumePaymentBooking?.clubId || null,
     () => {
       // Refetch courts when availability changes
       if (state.currentStep === 2 && (state.step0.selectedClubId || preselectedClubId)) {
@@ -59,10 +61,15 @@ export function PlayerQuickBooking({
     }
   );
 
-  // Determine visible steps based on preselected data
+  // Determine visible steps based on preselected data or resume payment mode
   const visibleSteps = useMemo(
-    () => determineVisibleSteps(preselectedClubId, preselectedCourtId, preselectedDateTime),
-    [preselectedClubId, preselectedCourtId, preselectedDateTime]
+    () => determineVisibleSteps(
+      preselectedClubId || resumePaymentBooking?.clubId,
+      preselectedCourtId || resumePaymentBooking?.courtId,
+      preselectedDateTime,
+      resumePaymentMode
+    ),
+    [preselectedClubId, preselectedCourtId, preselectedDateTime, resumePaymentMode, resumePaymentBooking]
   );
 
   // Track previous step1 values to prevent unnecessary API calls
@@ -72,8 +79,78 @@ export function PlayerQuickBooking({
   // Track if a reservation request is in progress to prevent duplicates
   const isReservingRef = useRef<boolean>(false);
 
-  // Initialize state with preselected data
+  // Initialize state with preselected data or resume payment data
   const [state, setState] = useState<PlayerQuickBookingState>(() => {
+    // In resume payment mode, initialize from resumePaymentBooking
+    if (resumePaymentMode && resumePaymentBooking) {
+      const initialDateTime: PlayerBookingStep1Data = {
+        date: resumePaymentBooking.date,
+        startTime: resumePaymentBooking.startTime,
+        duration: resumePaymentBooking.duration,
+        courtType: resumePaymentBooking.courtType || DEFAULT_COURT_TYPE,
+      };
+
+      const initialClub: BookingClub = {
+        id: resumePaymentBooking.clubId,
+        name: resumePaymentBooking.clubName,
+        slug: null,
+        location: "",
+        timezone: resumePaymentBooking.timezone || null,
+      };
+
+      const initialCourt: BookingCourt = {
+        id: resumePaymentBooking.courtId,
+        name: resumePaymentBooking.courtName,
+        slug: null,
+        type: null,
+        surface: null,
+        indoor: false,
+        courtFormat: resumePaymentBooking.courtType || null,
+        defaultPriceCents: resumePaymentBooking.price,
+        priceCents: resumePaymentBooking.price,
+      };
+
+      return {
+        currentStep: visibleSteps[0]?.id || 3, // Start at payment step
+        step0: {
+          selectedClubId: resumePaymentBooking.clubId,
+          selectedClub: initialClub,
+        },
+        step1: initialDateTime,
+        step2: {
+          selectedCourtId: resumePaymentBooking.courtId,
+          selectedCourt: initialCourt,
+        },
+        step3: {
+          paymentProvider: null,
+          reservationId: resumePaymentBooking.bookingId, // Use existing booking ID
+          reservationExpiresAt: resumePaymentBooking.reservationExpiresAt,
+        },
+        step4: {
+          bookingId: null,
+          confirmed: false,
+        },
+        availableClubs: [],
+        availableCourts: [],
+        availableCourtTypes: availableCourtTypes || [],
+        availablePaymentProviders: [],
+        alternativeDurations: [],
+        alternativeTimeSlots: [],
+        isLoadingClubs: false,
+        isLoadingCourts: false,
+        isLoadingCourtTypes: false,
+        isLoadingPaymentProviders: false,
+        clubsError: null,
+        courtsError: null,
+        paymentProvidersError: null,
+        estimatedPrice: resumePaymentBooking.price,
+        estimatedPriceRange: null,
+        isSubmitting: false,
+        submitError: null,
+      };
+    }
+
+    // Normal mode initialization
     const initialDateTime: PlayerBookingStep1Data = preselectedDateTime
       ? { ...preselectedDateTime, courtType: preselectedDateTime.courtType || DEFAULT_COURT_TYPE }
       : {
@@ -123,9 +200,9 @@ export function PlayerQuickBooking({
     };
   });
 
-  // Reset state when modal closes
+  // Reset state when modal closes (only in normal mode, not resume payment)
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen && !resumePaymentMode) {
       // Reset tracking refs
       prevStep1ParamsRef.current = "";
       prevCourtsParamsRef.current = "";
@@ -179,7 +256,7 @@ export function PlayerQuickBooking({
         submitError: null,
       });
     }
-  }, [isOpen, preselectedClubId, preselectedCourtId, preselectedDateTime, preselectedClubData, availableCourtTypes, visibleSteps]);
+  }, [isOpen, resumePaymentMode, preselectedClubId, preselectedCourtId, preselectedDateTime, preselectedClubData, availableCourtTypes, visibleSteps]);
 
   // Fetch court data if preselected
   useEffect(() => {
@@ -369,7 +446,7 @@ export function PlayerQuickBooking({
 
   // Fetch available payment providers for a club
   const fetchPaymentProviders = useCallback(async () => {
-    const clubId = state.step0.selectedClubId || preselectedClubId;
+    const clubId = state.step0.selectedClubId || preselectedClubId || resumePaymentBooking?.clubId;
     if (!clubId) return;
 
     setState((prev) => ({
@@ -405,7 +482,7 @@ export function PlayerQuickBooking({
         paymentProvidersError: t("auth.errorOccurred"),
       }));
     }
-  }, [state.step0.selectedClubId, preselectedClubId, t]);
+  }, [state.step0.selectedClubId, preselectedClubId, resumePaymentBooking, t]);
 
   // Fetch estimated price when date/time/duration changes
   useEffect(() => {
@@ -885,8 +962,21 @@ export function PlayerQuickBooking({
       case 2.5:
         // Confirmation step - just verify selection before proceeding to payment
         return !!state.step2.selectedCourtId && !!state.step2.selectedCourt;
-      case 3:
-        return !!state.step3.paymentProvider && !state.isSubmitting && !!state.step3.reservationId;
+      case 3: {
+        // Check if payment provider is selected and reservation exists
+        if (!state.step3.paymentProvider || !state.step3.reservationId || state.isSubmitting) {
+          return false;
+        }
+        // Check if reservation is expired
+        if (state.step3.reservationExpiresAt) {
+          const now = new Date();
+          const expiresAt = new Date(state.step3.reservationExpiresAt);
+          if (expiresAt <= now) {
+            return false; // Expired reservation, disable payment
+          }
+        }
+        return true;
+      }
       case 4:
         return true; // Final confirmation step
       default:
@@ -929,6 +1019,13 @@ export function PlayerQuickBooking({
       fetchAvailableClubs();
     }
   }, [isOpen, visibleSteps, state.availableClubs.length, fetchAvailableClubs]);
+
+  // Fetch payment providers when opening in resume payment mode
+  useEffect(() => {
+    if (isOpen && resumePaymentMode && state.availablePaymentProviders.length === 0) {
+      fetchPaymentProviders();
+    }
+  }, [isOpen, resumePaymentMode, state.availablePaymentProviders.length, fetchPaymentProviders]);
 
   return (
     <Modal
@@ -1051,6 +1148,7 @@ export function PlayerQuickBooking({
                   submitError: t("booking.reservationExpired"),
                 }));
               }}
+              readOnlyMode={resumePaymentMode}
             />
           )}
 

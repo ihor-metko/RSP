@@ -135,6 +135,22 @@ export interface PlayerQuickBookingProps {
   preselectedClubData?: BookingClub;
   // Available court types derived from courts (to avoid separate API call)
   availableCourtTypes?: ("SINGLE" | "DOUBLE")[];
+  // Resume payment mode - open directly on payment step with existing booking
+  resumePaymentMode?: boolean;
+  resumePaymentBooking?: {
+    bookingId: string;
+    clubId: string;
+    clubName: string;
+    courtId: string;
+    courtName: string;
+    courtType?: "SINGLE" | "DOUBLE";
+    date: string; // YYYY-MM-DD format
+    startTime: string; // HH:MM format in club timezone
+    duration: number; // in minutes
+    price: number; // in cents
+    reservationExpiresAt: string | null; // ISO timestamp
+    timezone?: string; // Club timezone
+  };
 }
 
 export interface BookingStepConfig {
@@ -297,9 +313,17 @@ export function calculateEndTime(startTime: string, durationMinutes: number): st
 export function determineVisibleSteps(
   preselectedClubId?: string,
   preselectedCourtId?: string,
-  preselectedDateTime?: { date: string; startTime: string; duration: number }
+  preselectedDateTime?: { date: string; startTime: string; duration: number },
+  resumePaymentMode?: boolean
 ): BookingStepConfig[] {
   const steps: BookingStepConfig[] = [];
+
+  // In resume payment mode, only show payment step
+  if (resumePaymentMode) {
+    steps.push({ id: 3, label: "payment", isRequired: true });
+    steps.push({ id: 4, label: "finalConfirmation", isRequired: true });
+    return steps;
+  }
 
   // Step 0: Club Selection (skip if preselected)
   if (!preselectedClubId) {
