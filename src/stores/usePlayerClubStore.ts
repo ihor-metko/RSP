@@ -62,6 +62,7 @@ export interface PlayerClub {
   createdAt: string;
   indoorCount: number;
   outdoorCount: number;
+  publishedCourtsCount: number;
 }
 
 /**

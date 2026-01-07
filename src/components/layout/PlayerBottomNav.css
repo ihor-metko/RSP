@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/**
+ * PlayerBottomNav Component Styles
+ *
+ * Mobile-only sticky bottom navigation for player-facing UI
+ * Uses im-* class prefix and global CSS variables
+ *
+ * CSS Variables used:
+ * - --im-surface: Background color
+ * - --im-foreground: Text color
+ * - --im-primary: Primary/accent color (cyan/emerald for active state)
+ * - --im-border: Border color
+ * - --im-muted: Muted text color
+ */
+
+/* Navigation container - sticky at bottom */
+.im-player-bottom-nav {
+  @apply fixed bottom-0 left-0 right-0 z-40;
+  @apply flex items-center justify-around;
+  background-color: var(--im-surface);
+  border-top: 1px solid var(--im-border);
+  height: 56px;
+  /* Add subtle shadow for separation from content */
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Hide on desktop (md breakpoint = 768px) */
+@media (min-width: 768px) {
+  .im-player-bottom-nav {
+    display: none;
+  }
+}
+
+/* Navigation item */
+.im-player-bottom-nav-item {
+  @apply flex flex-col items-center justify-center gap-1;
+  @apply transition-colors no-underline;
+  /* Touch-friendly minimum target size: 48-50px */
+  min-width: 64px;
+  min-height: 48px;
+  padding: 4px 8px;
+  color: var(--im-muted);
+  flex: 1;
+  max-width: 120px;
+}
+
+/* Hover state */
+.im-player-bottom-nav-item:hover,
+.im-player-bottom-nav-item:focus {
+  color: var(--im-foreground);
+}
+
+/* Active state - highlighted with primary color (cyan/emerald) */
+.im-player-bottom-nav-item--active {
+  color: var(--im-primary);
+}
+
+.im-player-bottom-nav-item--active .im-player-bottom-nav-icon {
+  color: var(--im-primary);
+}
+
+.im-player-bottom-nav-item--active .im-player-bottom-nav-label {
+  color: var(--im-primary);
+  font-weight: 500;
+}
+
+/* Icon styling */
+.im-player-bottom-nav-icon {
+  @apply flex-shrink-0;
+  width: 24px;
+  height: 24px;
+  color: currentColor;
+  transition: color 0.2s ease;
+}
+
+/* Label styling */
+.im-player-bottom-nav-label {
+  font-size: 0.6875rem; /* 11px */
+  line-height: 1;
+  text-align: center;
+  color: currentColor;
+  transition: color 0.2s ease, font-weight 0.2s ease;
+  font-weight: 400;
+}
+
+/* Focus visible for accessibility */
+.im-player-bottom-nav-item:focus-visible {
+  outline: 2px solid var(--im-primary);
+  outline-offset: -2px;
+  border-radius: 4px;
+}

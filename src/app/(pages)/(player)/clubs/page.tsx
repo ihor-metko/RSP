@@ -9,6 +9,7 @@ import { PublicClubCard } from "@/components/PublicClubCard";
 import { PublicSearchBar, SearchParams } from "@/components/PublicSearchBar";
 import { ClubsMobileView } from "@/components/mobile-views";
 import { useIsMobile, useDeferredLoading } from "@/hooks";
+import type { Address } from "@/types/address";
 import "@/components/ClubsList.css";
 
 /**
@@ -31,8 +32,7 @@ interface ClubWithCounts {
   id: string;
   name: string;
   shortDescription?: string | null;
-  location: string;
-  city?: string | null;
+  address?: Address | null;
   contactInfo?: string | null;
   openingHours?: string | null;
   logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
@@ -42,6 +42,7 @@ interface ClubWithCounts {
   createdAt: string;
   indoorCount: number;
   outdoorCount: number;
+  publishedCourtsCount: number;
 }
 
 // Helper function to determine empty state message

@@ -1,0 +1,275 @@
+@reference "tailwindcss";
+
+/**
+ * PlayerMobileHeader Component Styles
+ *
+ * Mobile-first header for player-facing UI
+ * Uses im-* class prefix and global CSS variables
+ *
+ * CSS Variables used:
+ * - --im-surface: Background color
+ * - --im-foreground: Text color
+ * - --im-primary: Primary/accent color
+ * - --im-border: Border color
+ * - --im-card-bg: Card/drawer background
+ * - --im-muted: Muted text color
+ * - --im-icon-color: Icon color
+ * - --im-logo-cyan: Logo cyan color
+ * - --im-logo-emerald: Logo emerald color
+ */
+
+/* Header container */
+.im-player-mobile-header {
+  @apply sticky top-0 z-50 flex items-center justify-between px-4 py-3;
+  background-color: var(--im-surface);
+  border-bottom: 1px solid var(--im-border);
+  height: 56px;
+}
+
+/* Hamburger button */
+.im-player-mobile-header-hamburger {
+  @apply p-2 rounded-md transition-colors;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--im-foreground);
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.im-player-mobile-header-hamburger:hover,
+.im-player-mobile-header-hamburger:focus {
+  background-color: var(--im-card-bg);
+}
+
+/* Logo */
+.im-player-mobile-header-logo-link {
+  @apply flex items-center no-underline;
+  flex: 1;
+  justify-content: center;
+}
+
+.im-player-mobile-header-logo {
+  @apply font-sans font-extrabold;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.im-player-mobile-header-logo-arena {
+  color: var(--im-logo-cyan);
+}
+
+.im-player-mobile-header-logo-one {
+  color: var(--im-logo-emerald);
+}
+
+/* Right section */
+.im-player-mobile-header-right {
+  @apply flex items-center;
+  min-width: 40px;
+  justify-content: flex-end;
+}
+
+/* Login button */
+.im-player-mobile-header-login {
+  @apply p-2 rounded-md transition-colors flex items-center justify-center no-underline;
+  background: transparent;
+  border: 1px solid var(--im-border);
+  color: var(--im-foreground);
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.im-player-mobile-header-login:hover,
+.im-player-mobile-header-login:focus {
+  background-color: var(--im-card-bg);
+  color: var(--im-primary);
+}
+
+/* Avatar */
+.im-player-mobile-header-avatar {
+  @apply rounded-full flex items-center justify-center font-medium no-underline;
+  width: 40px;
+  height: 40px;
+  background-color: var(--im-primary);
+  color: white;
+  transition: transform 0.2s ease;
+}
+
+.im-player-mobile-header-avatar:hover,
+.im-player-mobile-header-avatar:focus {
+  transform: scale(1.05);
+}
+
+.im-player-mobile-header-avatar-text {
+  font-size: 0.875rem;
+}
+
+/* Loading skeleton */
+.im-player-mobile-header-skeleton {
+  @apply animate-pulse rounded-full;
+  width: 40px;
+  height: 40px;
+  background-color: var(--im-border);
+}
+
+/* Icon styling */
+.im-player-mobile-header-icon {
+  @apply flex-shrink-0;
+  width: 20px;
+  height: 20px;
+  color: currentColor;
+}
+
+/* Drawer overlay */
+.im-player-mobile-drawer-overlay {
+  @apply fixed inset-0 z-40;
+  background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Drawer */
+.im-player-mobile-drawer {
+  @apply fixed top-0 left-0 bottom-0 flex flex-col;
+  width: 280px;
+  max-width: 85vw;
+  background-color: var(--im-surface);
+  border-right: 1px solid var(--im-border);
+  animation: slideIn 0.3s ease;
+  overflow-y: auto;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Drawer header */
+.im-player-mobile-drawer-header {
+  @apply flex items-center gap-3 p-4 border-b;
+  border-color: var(--im-border);
+  background-color: var(--im-card-bg);
+}
+
+.im-player-mobile-drawer-avatar {
+  @apply rounded-full flex items-center justify-center font-medium;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background-color: var(--im-primary);
+  color: white;
+  font-size: 1.125rem;
+}
+
+.im-player-mobile-drawer-user-info {
+  @apply flex flex-col overflow-hidden;
+}
+
+.im-player-mobile-drawer-user-name {
+  @apply font-medium truncate;
+  color: var(--im-foreground);
+  font-size: 0.9375rem;
+}
+
+.im-player-mobile-drawer-user-email {
+  @apply text-sm truncate;
+  color: var(--im-muted);
+}
+
+/* Drawer navigation */
+.im-player-mobile-drawer-nav {
+  @apply flex flex-col py-2 flex-1;
+}
+
+.im-player-mobile-drawer-link {
+  @apply flex items-center gap-3 px-4 py-3 transition-colors no-underline;
+  color: var(--im-foreground);
+  font-size: 0.9375rem;
+}
+
+.im-player-mobile-drawer-link:hover,
+.im-player-mobile-drawer-link:focus {
+  background-color: var(--im-card-bg);
+  color: var(--im-primary);
+}
+
+.im-player-mobile-drawer-link:hover .im-player-mobile-header-icon,
+.im-player-mobile-drawer-link:focus .im-player-mobile-header-icon {
+  color: var(--im-primary);
+}
+
+/* Drawer footer */
+.im-player-mobile-drawer-footer {
+  @apply p-4 border-t;
+  border-color: var(--im-border);
+}
+
+/* Logout button */
+.im-player-mobile-drawer-logout {
+  @apply flex items-center gap-3 w-full px-4 py-3 rounded-md transition-colors;
+  background: transparent;
+  border: 1px solid var(--im-border);
+  color: var(--im-foreground);
+  cursor: pointer;
+  font-size: 0.9375rem;
+}
+
+.im-player-mobile-drawer-logout:hover,
+.im-player-mobile-drawer-logout:focus {
+  background-color: var(--im-card-bg);
+  border-color: var(--im-primary);
+  color: var(--im-primary);
+}
+
+.im-player-mobile-drawer-logout:hover .im-player-mobile-header-icon,
+.im-player-mobile-drawer-logout:focus .im-player-mobile-header-icon {
+  color: var(--im-primary);
+}
+
+/* Auth links */
+.im-player-mobile-drawer-auth {
+  @apply flex flex-col gap-2;
+}
+
+.im-player-mobile-drawer-auth-link {
+  @apply px-4 py-3 rounded-md transition-colors text-center no-underline font-medium;
+  color: var(--im-foreground);
+  border: 1px solid var(--im-border);
+  font-size: 0.9375rem;
+}
+
+.im-player-mobile-drawer-auth-link:hover,
+.im-player-mobile-drawer-auth-link:focus {
+  background-color: var(--im-card-bg);
+  color: var(--im-primary);
+}
+
+.im-player-mobile-drawer-auth-link--primary {
+  background-color: var(--im-primary);
+  border-color: var(--im-primary);
+  color: white;
+}
+
+.im-player-mobile-drawer-auth-link--primary:hover,
+.im-player-mobile-drawer-auth-link--primary:focus {
+  background-color: var(--im-primary-hover);
+  color: white;
+}

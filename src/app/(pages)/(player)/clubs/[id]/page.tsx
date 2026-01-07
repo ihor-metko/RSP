@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { BookingModal } from "@/components/booking/BookingModal";
 import { PlayerQuickBooking } from "@/components/PlayerQuickBooking";
@@ -90,6 +91,7 @@ export default function ClubDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const t = useTranslations();
+  const router = useRouter();
   const { setActiveClubId } = useActiveClub();
 
   // Day names for business hours
@@ -431,8 +433,8 @@ export default function ClubDetailPage({
     const hasPublishedCourts = courts.length > 0;
 
     const handleCheckAvailability = () => {
-      // Placeholder - navigate to availability page (to be implemented)
-      console.log("Navigate to availability page");
+      // Navigate to availability page
+      router.push(`/clubs/${club.id}/availability`);
     };
 
     const handleQuickBooking = () => {

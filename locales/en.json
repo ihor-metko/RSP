@@ -134,7 +134,10 @@
     "paymentStatusRefunded": "Refunded",
     "Cancelled": "Cancelled",
     "Confirmed": "Confirmed",
-    "no-show": "No-show"
+    "no-show": "No-show",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "retry": "Retry"
   },
   "entityBanner": {
     "edit": "Edit",
@@ -314,6 +317,8 @@
     "loadingClubs": "Loading clubs...",
     "failedToLoad": "Failed to load clubs. Please try again later.",
     "noClubs": "No clubs available yet.",
+    "noAddress": "No address",
+    "availableCourts": "Available Courts",
     "updateSuccess": "Club updated successfully!",
     "errors": {
       "updateFailed": "Failed to update club",
@@ -1499,7 +1504,8 @@
       "myTrainings": "My Trainings",
       "browseClubs": "Browse Clubs",
       "home": "Home",
-      "profile": "Profile"
+      "profile": "Profile",
+      "bookings": "My Bookings"
     },
     "bookingDetails": {
       "title": "Booking Details"
@@ -1563,7 +1569,9 @@
     "allRightsReserved": "All rights reserved.",
     "socialLinks": "Social Links",
     "forClubOwners": "For padel club owners",
-    "howItWorks": "How the platform works"
+    "howItWorks": "How the platform works",
+    "getStarted": "Get Started",
+    "documentation": "Documentation"
   },
   "wizard": {
     "progress": "Booking progress",
@@ -4802,17 +4810,33 @@
   },
   "landing": {
     "title": "ArenaOne",
-    "tagline": "Find and book padel courts near you",
-    "findCourt": "Find a court"
+    "tagline": "Find and book a court in a minute",
+    "findCourt": "Find a court",
+    "myBookings": "My Bookings",
+    "nextBooking": "Next Booking",
+    "viewBooking": "View",
+    "unknownClub": "Unknown Club"
   },
   "availability": {
     "title": "Check Availability",
     "selectDate": "Select Date",
     "selectTime": "Select Time",
     "selectCourt": "Select Court",
+    "date": "Date",
+    "time": "Time",
+    "court": "Court",
     "datePickerPlaceholder": "Date picker",
     "timeSlotPlaceholder": "Time slot",
     "courtPlaceholder": "Court",
-    "courtDetailsPlaceholder": "Indoor / Outdoor"
+    "courtDetailsPlaceholder": "Indoor / Outdoor",
+    "noAvailableSlots": "No Available Slots",
+    "noAvailableSlotsDescription": "There are no available slots for the next 14 days. Please check back later.",
+    "noTimeSlotsAvailable": "No Time Slots Available",
+    "noTimeSlotsDescription": "All time slots are booked for this date. Please select another date.",
+    "noCourtsAvailable": "No Courts Available",
+    "noCourtsDescription": "All courts are booked for this time slot. Please select another time.",
+    "courtsAvailable": "courts available",
+    "continueToBooking": "Continue to Booking",
+    "failedToLoadAvailability": "Failed to load availability data. Please try again."
   }
 }

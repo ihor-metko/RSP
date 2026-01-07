@@ -81,51 +81,65 @@ export async function GET(request: Request) {
           select: {
             id: true,
             indoor: true,
+            isPublished: true,
           },
         },
       },
     });
 
     // Process clubs to add indoor/outdoor counts and apply city filter
-    const clubsWithCounts = clubs.map((club) => {
-      const indoorCount = club.courts.filter((c) => c.indoor).length;
-      const outdoorCount = club.courts.filter((c) => !c.indoor).length;
-
-      // Filter by indoor param if provided
-      if (indoor === "true" && indoorCount === 0) {
-        return null;
-      }
-
-      // Parse address from JSON if available
-      const parsedAddress = parseAddress(club.address);
-
-      // Apply case-insensitive city filter (post-fetch)
-      if (city && parsedAddress?.city) {
-        const cityLower = city.toLowerCase();
-        const clubCityLower = parsedAddress.city.toLowerCase();
-        if (!clubCityLower.includes(cityLower)) {
+    // Only show clubs with published courts (isPublished = true)
+    const clubsWithCounts = clubs
+      .map((club) => {
+        // Count only published courts
+        const publishedCourts = club.courts.filter((c) => c.isPublished);
+        const publishedCourtsCount = publishedCourts.length;
+        
+        // Early exit: Filter out clubs with no published courts
+        if (publishedCourtsCount === 0) {
           return null;
         }
-      } else if (city && !parsedAddress?.city) {
-        // If city filter is provided but club has no city, exclude it
-        return null;
-      }
+        
+        const indoorCount = publishedCourts.filter((c) => c.indoor).length;
+        const outdoorCount = publishedCourts.filter((c) => !c.indoor).length;
 
-      return {
-        id: club.id,
-        name: club.name,
-        shortDescription: club.shortDescription,
-        address: parsedAddress || null,
-        contactInfo: club.contactInfo,
-        openingHours: club.openingHours,
-        logoData: safeJsonParse(club.logoData),
-        bannerData: safeJsonParse(club.bannerData),
-        tags: club.tags,
-        createdAt: club.createdAt,
-        indoorCount,
-        outdoorCount,
-      };
-    }).filter((club): club is NonNullable<typeof club> => club !== null);
+        // Early exit: Filter by indoor param if provided
+        if (indoor === "true" && indoorCount === 0) {
+          return null;
+        }
+
+        // Parse address from JSON if available
+        const parsedAddress = parseAddress(club.address);
+
+        // Early exit: Apply case-insensitive city filter (post-fetch)
+        if (city && parsedAddress?.city) {
+          const cityLower = city.toLowerCase();
+          const clubCityLower = parsedAddress.city.toLowerCase();
+          if (!clubCityLower.includes(cityLower)) {
+            return null;
+          }
+        } else if (city && !parsedAddress?.city) {
+          // If city filter is provided but club has no city, exclude it
+          return null;
+        }
+
+        return {
+          id: club.id,
+          name: club.name,
+          shortDescription: club.shortDescription,
+          address: parsedAddress || null,
+          contactInfo: club.contactInfo,
+          openingHours: club.openingHours,
+          logoData: safeJsonParse(club.logoData),
+          bannerData: safeJsonParse(club.bannerData),
+          tags: club.tags,
+          createdAt: club.createdAt,
+          indoorCount,
+          outdoorCount,
+          publishedCourtsCount,
+        };
+      })
+      .filter((club): club is NonNullable<typeof club> => club !== null);
 
     return NextResponse.json(clubsWithCounts);
   } catch (error) {

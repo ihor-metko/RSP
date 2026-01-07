@@ -314,6 +314,8 @@
     "loadingClubs": "Завантаження клубів...",
     "failedToLoad": "Не вдалося завантажити клуби. Спробуйте пізніше.",
     "noClubs": "Клубів поки немає.",
+    "noAddress": "Немає адреси",
+    "availableCourts": "Доступні корти",
     "updateSuccess": "Клуб успішно оновлено!",
     "errors": {
       "updateFailed": "Не вдалося оновити клуб",
@@ -1437,7 +1439,8 @@
       "myTrainings": "Мої тренування",
       "browseClubs": "Переглянути клуби",
       "home": "Головна",
-      "profile": "Профіль"
+      "profile": "Профіль",
+      "bookings": "Мої Бронювання"
     },
     "bookingDetails": {
       "title": "Деталі бронювання"
@@ -1501,7 +1504,9 @@
     "allRightsReserved": "Усі права захищено.",
     "socialLinks": "Соціальні мережі",
     "forClubOwners": "Для власників падел-клубів",
-    "howItWorks": "Як працює платформа"
+    "howItWorks": "Як працює платформа",
+    "getStarted": "Почати",
+    "documentation": "Документація"
   },
   "wizard": {
     "progress": "Прогрес бронювання",
@@ -4083,8 +4088,12 @@
   },
   "landing": {
     "title": "ArenaOne",
-    "tagline": "Знайдіть та забронюйте корти для паделу поруч з вами",
-    "findCourt": "Знайти корт"
+    "tagline": "Знайдіть і забронюйте корт за хвилину",
+    "findCourt": "Знайти корт",
+    "myBookings": "Мої бронювання",
+    "nextBooking": "Наступне бронювання",
+    "viewBooking": "Переглянути",
+    "unknownClub": "Невідомий клуб"
   },
   "availability": {
     "title": "Перевірити доступність",
