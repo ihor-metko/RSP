@@ -2820,6 +2820,87 @@
       "step3": "Your account will be automatically verified after successful payment",
       "waitingForPayment": "Waiting for payment confirmation...",
       "hint": "This window will automatically close once the payment is confirmed. Do not close this window manually."
+    },
+    "stepper": {
+      "title": {
+        "add": "Add Payment Account",
+        "edit": "Edit Payment Account"
+      },
+      "steps": {
+        "provider": {
+          "label": "Provider",
+          "description": "Select payment provider",
+          "title": "Select Payment Provider",
+          "subtitle": "Choose the payment provider for this account"
+        },
+        "accountInfo": {
+          "label": "Account Info",
+          "description": "Account details",
+          "title": "Account Information",
+          "subtitle": "Enter account name and optional description",
+          "displayNamePlaceholder": "e.g., Main Account, Test Account",
+          "displayNameHint": "This name helps you identify the account in the system",
+          "descriptionLabel": "Description (Optional)",
+          "descriptionPlaceholder": "e.g., Primary account for club payments",
+          "descriptionHint": "Optional notes about this payment account"
+        },
+        "credentials": {
+          "label": "Credentials",
+          "description": "Payment credentials",
+          "title": "Payment Credentials",
+          "subtitle": "Enter your merchant credentials from the payment provider",
+          "securityTitle": "Secure Storage",
+          "securityMessage": "All credentials are encrypted and stored securely. They are never visible after submission."
+        },
+        "verification": {
+          "label": "Verification",
+          "description": "Status check",
+          "title": "Technical Verification",
+          "subtitle": "Checking your payment account credentials"
+        }
+      },
+      "providerInfo": {
+        "wayforpay": {
+          "title": "WayForPay",
+          "description": "Ukrainian payment gateway supporting Visa, Mastercard, Google Pay, and Apple Pay."
+        },
+        "liqpay": {
+          "title": "LiqPay",
+          "description": "Popular payment system in Ukraine from PrivatBank, supporting multiple payment methods."
+        }
+      },
+      "validation": {
+        "providerRequired": "Please select a payment provider",
+        "displayNameRequired": "Account name is required",
+        "merchantIdRequired": "Merchant ID is required",
+        "secretKeyRequired": "Secret Key is required",
+        "merchantPasswordRequired": "Merchant password is required for WayForPay"
+      },
+      "verification": {
+        "pending": "Preparing Verification",
+        "pendingMessage": "Setting up your payment account...",
+        "verifying": "Verifying Credentials",
+        "verifyingMessage": "Please wait while we verify your payment credentials...",
+        "checking": "Checking credentials...",
+        "success": "Technical verification completed successfully",
+        "successTitle": "Verification Successful",
+        "successMessage": "Your payment account credentials have been verified and are ready to use.",
+        "error": "Verification failed",
+        "errorTitle": "Verification Failed",
+        "errorMessage": "Unable to verify your payment credentials. Please check and try again.",
+        "nextStepsTitle": "Next Steps",
+        "nextStep1": "You can now perform a real payment verification to activate the account",
+        "nextStep2": "Real verification requires a minimal test payment (1 UAH) that goes to your account",
+        "editCredentials": "Edit Credentials"
+      },
+      "navigation": {
+        "back": "Back",
+        "next": "Next",
+        "submitAndVerify": "Submit & Verify",
+        "submitting": "Submitting...",
+        "finish": "Finish",
+        "close": "Close"
+      }
     }
   },
   "dangerZone": {

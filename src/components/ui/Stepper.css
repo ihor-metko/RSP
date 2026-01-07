@@ -1,0 +1,138 @@
+/* Stepper indicator */
+.im-stepper-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.im-stepper-indicator-step-wrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 200px;
+}
+
+.im-stepper-indicator-step-wrapper:first-child {
+  flex: 0 0 auto;
+}
+
+.im-stepper-indicator-line {
+  flex: 1;
+  height: 2px;
+  background-color: var(--rsp-border);
+  opacity: 0.3;
+  transition: all 0.3s ease;
+}
+
+.im-stepper-indicator-line--completed {
+  background-color: var(--rsp-primary);
+  opacity: 1;
+}
+
+.im-stepper-indicator-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: default;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.im-stepper-indicator-step:focus,
+.im-stepper-indicator-step:focus-visible,
+.im-stepper-indicator-step:active,
+.im-stepper-indicator-step:hover {
+  outline: none;
+}
+
+.im-stepper-indicator-step:not(:disabled) {
+  cursor: pointer;
+}
+
+.im-stepper-indicator-step:not(:disabled):hover .im-stepper-indicator-number {
+  transform: scale(1.1);
+}
+
+.im-stepper-indicator-number {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 2px solid var(--rsp-border);
+  background-color: var(--rsp-background);
+  color: var(--rsp-foreground);
+  opacity: 0.5;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.im-stepper-indicator-step--active .im-stepper-indicator-number {
+  border-color: var(--rsp-primary);
+  background-color: var(--rsp-primary);
+  color: white;
+  opacity: 1;
+  box-shadow: 0 0 0 4px rgba(var(--rsp-primary-rgb), 0.2);
+}
+
+.im-stepper-indicator-step--completed .im-stepper-indicator-number {
+  border-color: var(--rsp-primary);
+  background-color: var(--rsp-primary);
+  color: white;
+  opacity: 1;
+}
+
+.im-stepper-indicator-text {
+  display: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.im-stepper-indicator-label {
+  font-size: 0.875rem;
+  color: var(--rsp-foreground);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.im-stepper-indicator-step--active .im-stepper-indicator-label {
+  color: var(--rsp-primary);
+}
+
+.im-stepper-indicator-description {
+  font-size: 0.75rem;
+  color: var(--rsp-foreground);
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .im-stepper-indicator-text {
+    display: flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .im-stepper-indicator {
+    padding: 0 2rem;
+  }
+
+  .im-stepper-indicator-step-wrapper {
+    max-width: 250px;
+  }
+
+  .im-stepper-indicator-number {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1rem;
+  }
+}

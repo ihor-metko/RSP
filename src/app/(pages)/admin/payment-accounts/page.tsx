@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { PageHeader, ConfirmationModal, Card, Modal } from "@/components/ui";
 import { PaymentAccountList } from "@/components/admin/payment-accounts/PaymentAccountList";
-import { PaymentAccountForm, PaymentAccountFormData } from "@/components/admin/payment-accounts/PaymentAccountForm";
+import { PaymentAccountStepper, PaymentAccountFormData } from "@/components/admin/payment-accounts/PaymentAccountStepper";
 import { useUserStore } from "@/stores/useUserStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
@@ -276,6 +276,13 @@ export default function UnifiedPaymentAccountsPage() {
           payload.displayName = formData.displayName.trim();
         }
 
+        // Add merchantPassword to providerConfig for WayForPay
+        if (formData.merchantPassword && formData.merchantPassword.trim()) {
+          payload.providerConfig = {
+            merchantPassword: formData.merchantPassword.trim(),
+          };
+        }
+
         const response = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -308,6 +315,13 @@ export default function UnifiedPaymentAccountsPage() {
         // Only include displayName if it has a value
         if (formData.displayName && formData.displayName.trim()) {
           payload.displayName = formData.displayName.trim();
+        }
+
+        // Add merchantPassword to providerConfig for WayForPay
+        if (formData.merchantPassword && formData.merchantPassword.trim()) {
+          payload.providerConfig = {
+            merchantPassword: formData.merchantPassword.trim(),
+          };
         }
 
         const response = await fetch(url, {
@@ -655,13 +669,12 @@ export default function UnifiedPaymentAccountsPage() {
         </div>
       )}
 
-      <PaymentAccountForm
+      <PaymentAccountStepper
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
         account={selectedAccount}
         mode={formMode}
-        scope={selectedScope}
       />
 
       <ConfirmationModal
