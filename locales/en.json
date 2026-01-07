@@ -4804,7 +4804,8 @@
     "findCourt": "Find a court",
     "myBookings": "My Bookings",
     "nextBooking": "Next Booking",
-    "viewBooking": "View"
+    "viewBooking": "View",
+    "unknownClub": "Unknown Club"
   },
   "availability": {
     "title": "Check Availability",

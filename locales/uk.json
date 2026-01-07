@@ -4085,7 +4085,8 @@
     "findCourt": "Знайти корт",
     "myBookings": "Мої бронювання",
     "nextBooking": "Наступне бронювання",
-    "viewBooking": "Переглянути"
+    "viewBooking": "Переглянути",
+    "unknownClub": "Невідомий клуб"
   },
   "availability": {
     "title": "Перевірити доступність",

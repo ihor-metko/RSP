@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useEffect, useState } from "react";
 import { Button, IMLink } from "@/components/ui";
 import { useUserStore } from "@/stores/useUserStore";
+import { formatDateTime } from "@/utils/date";
 import "./MobileViews.css";
 
 /**
@@ -19,6 +20,7 @@ import "./MobileViews.css";
  */
 export function LandingMobileView() {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isHydrated = useUserStore((state) => state.isHydrated);
@@ -39,16 +41,20 @@ export function LandingMobileView() {
     const fetchNextBooking = async () => {
       try {
         const response = await fetch("/api/bookings?upcoming=true&take=1");
-        if (response.ok) {
-          const bookings = await response.json();
-          if (bookings.length > 0) {
-            const booking = bookings[0];
-            setNextBooking({
-              clubName: booking.court?.club?.name || "Unknown Club",
-              dateTime: new Date(booking.start).toLocaleString(),
-              bookingId: booking.id,
-            });
-          }
+        
+        if (!response.ok) {
+          console.error("Failed to fetch next booking:", response.status);
+          return;
+        }
+        
+        const bookings = await response.json();
+        if (bookings.length > 0) {
+          const booking = bookings[0];
+          setNextBooking({
+            clubName: booking.court?.club?.name || t("landing.unknownClub"),
+            dateTime: formatDateTime(booking.start, locale),
+            bookingId: booking.id,
+          });
         }
       } catch (error) {
         console.error("Failed to fetch next booking:", error);
@@ -56,7 +62,7 @@ export function LandingMobileView() {
     };
 
     fetchNextBooking();
-  }, [isLoggedIn, isHydrated]);
+  }, [isLoggedIn, isHydrated, locale, t]);
 
   return (
     <div className="im-mobile-landing">
