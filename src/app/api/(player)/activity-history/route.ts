@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/requireRole";
-import { BOOKING_STATUS, PAYMENT_STATUS } from "@/types/booking";
+import { BOOKING_STATUS } from "@/types/booking";
 
 /**
  * GET /api/(player)/activity-history
