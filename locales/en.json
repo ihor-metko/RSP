@@ -134,7 +134,13 @@
     "paymentStatusRefunded": "Refunded",
     "Cancelled": "Cancelled",
     "Confirmed": "Confirmed",
-    "no-show": "No-show"
+    "no-show": "No-show",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "retry": "Retry"
+  },
+  "errors": {
+    "failedToLoadAvailability": "Failed to load availability data. Please try again."
   },
   "entityBanner": {
     "edit": "Edit",
@@ -4815,9 +4821,20 @@
     "selectDate": "Select Date",
     "selectTime": "Select Time",
     "selectCourt": "Select Court",
+    "date": "Date",
+    "time": "Time",
+    "court": "Court",
     "datePickerPlaceholder": "Date picker",
     "timeSlotPlaceholder": "Time slot",
     "courtPlaceholder": "Court",
-    "courtDetailsPlaceholder": "Indoor / Outdoor"
+    "courtDetailsPlaceholder": "Indoor / Outdoor",
+    "noAvailableSlots": "No Available Slots",
+    "noAvailableSlotsDescription": "There are no available slots for the next 14 days. Please check back later.",
+    "noTimeSlotsAvailable": "No Time Slots Available",
+    "noTimeSlotsDescription": "All time slots are booked for this date. Please select another date.",
+    "noCourtsAvailable": "No Courts Available",
+    "noCourtsDescription": "All courts are booked for this time slot. Please select another time.",
+    "courtsAvailable": "courts available",
+    "continueToBooking": "Continue to Booking"
   }
 }
