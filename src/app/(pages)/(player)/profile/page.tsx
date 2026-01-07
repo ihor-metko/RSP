@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, EmptyState } from "@/components/ui";
@@ -10,30 +10,10 @@ import { useAuthGuardOnce } from "@/hooks";
 import { formatDateWithWeekday, formatTime, formatPaymentDeadline } from "@/utils/date";
 import { formatPrice } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
+import { ProfileBooking, useProfileStore } from "@/stores/useProfileStore";
 import { PAYMENT_STATUS, type BookingStatus, type PaymentStatus } from "@/types/booking";
 import { getPlayerBookingDisplayStatus } from "@/utils/bookingDisplayStatus";
 import "./profile.css";
-
-interface Booking {
-  id: string;
-  courtId: string;
-  start: string;
-  end: string;
-  price: number;
-  status: string;
-  bookingStatus: string;
-  paymentStatus: string;
-  cancelReason?: string | null;
-  reservationExpiresAt: string | null;
-  court?: {
-    id: string;
-    name: string;
-    club?: {
-      id: string;
-      name: string;
-    };
-  };
-}
 
 export default function PlayerProfilePage() {
   const router = useRouter();
@@ -48,27 +28,29 @@ export default function PlayerProfilePage() {
   // Get user info from store
   const userEmail = useUserStore((state) => state.user?.email);
 
-  // State for bookings
-  const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
-  const [pastBookings, setPastBookings] = useState<Booking[]>([]);
-  const [activityHistory, setActivityHistory] = useState<Booking[]>([]);
-  const [upcomingLoading, setUpcomingLoading] = useState(true);
-  const [pastLoading, setPastLoading] = useState(true);
-  const [activityLoading, setActivityLoading] = useState(true);
+  // Get profile data from store
+  const upcomingBookings = useProfileStore((state) => state.upcomingBookings);
+  const pastBookings = useProfileStore((state) => state.pastBookings);
+  const activityHistory = useProfileStore((state) => state.activityHistory);
+  const loading = useProfileStore((state) => state.loading);
+  const upcomingLoading = useProfileStore((state) => state.upcomingLoading);
+  const pastLoading = useProfileStore((state) => state.pastLoading);
+  const activityLoading = useProfileStore((state) => state.activityLoading);
+  const hasMoreUpcoming = useProfileStore((state) => state.hasMoreUpcoming);
+  const hasMorePast = useProfileStore((state) => state.hasMorePast);
+  const hasMoreActivity = useProfileStore((state) => state.hasMoreActivity);
+  const fetchProfileDataIfNeeded = useProfileStore((state) => state.fetchProfileDataIfNeeded);
+  const invalidateProfile = useProfileStore((state) => state.invalidateProfile);
+  const loadMoreUpcoming = useProfileStore((state) => state.loadMoreUpcoming);
+  const loadMorePast = useProfileStore((state) => state.loadMorePast);
+  const loadMoreActivity = useProfileStore((state) => state.loadMoreActivity);
+
+  // Local state for payment operations
   const [resumingPayment, setResumingPayment] = useState<string | null>(null);
   const [cancellingBooking, setCancellingBooking] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
-  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
-
-  // Pagination state
-  const ITEMS_PER_PAGE = 5;
-  const [hasMoreUpcoming, setHasMoreUpcoming] = useState(true);
-  const [hasMorePast, setHasMorePast] = useState(true);
-  const [hasMoreActivity, setHasMoreActivity] = useState(true);
-  const [loadingMoreUpcoming, setLoadingMoreUpcoming] = useState(false);
-  const [loadingMorePast, setLoadingMorePast] = useState(false);
-  const [loadingMoreActivity, setLoadingMoreActivity] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<ProfileBooking | null>(null);
 
   // Redirect root admins to admin dashboard
   useEffect(() => {
@@ -77,123 +59,6 @@ export default function PlayerProfilePage() {
       router.push("/admin/dashboard");
     }
   }, [isHydrated, isLoading, user, router]);
-
-  // Fetch upcoming bookings
-  const fetchUpcomingBookings = useCallback(async (loadMore = false) => {
-    if (!user?.id) return;
-
-    if (loadMore) {
-      setLoadingMoreUpcoming(true);
-    } else {
-      setUpcomingLoading(true);
-    }
-
-    try {
-      const skip = loadMore ? upcomingBookings.length : 0;
-      const response = await fetch(`/api/bookings?upcoming=true&skip=${skip}&take=${ITEMS_PER_PAGE}`);
-      if (response.ok) {
-        const data = await response.json();
-        const newBookings = Array.isArray(data) ? data : [];
-
-        if (loadMore) {
-          setUpcomingBookings(prev => [...prev, ...newBookings]);
-        } else {
-          setUpcomingBookings(newBookings);
-        }
-
-        // If we got fewer items than requested, there are no more items
-        setHasMoreUpcoming(newBookings.length === ITEMS_PER_PAGE);
-      } else if (response.status === 401) {
-        router.push("/auth/sign-in");
-      }
-    } catch (error) {
-      console.error("Failed to fetch upcoming bookings:", error);
-    } finally {
-      if (loadMore) {
-        setLoadingMoreUpcoming(false);
-      } else {
-        setUpcomingLoading(false);
-      }
-    }
-  }, [user?.id, router, upcomingBookings.length]);
-
-  // Fetch past bookings
-  const fetchPastBookings = useCallback(async (loadMore = false) => {
-    if (!user?.id) return;
-
-    if (loadMore) {
-      setLoadingMorePast(true);
-    } else {
-      setPastLoading(true);
-    }
-
-    try {
-      const skip = loadMore ? pastBookings.length : 0;
-      const response = await fetch(`/api/bookings?upcoming=false&skip=${skip}&take=${ITEMS_PER_PAGE}`);
-      if (response.ok) {
-        const data = await response.json();
-        const newBookings = Array.isArray(data) ? data : [];
-
-        if (loadMore) {
-          setPastBookings(prev => [...prev, ...newBookings]);
-        } else {
-          setPastBookings(newBookings);
-        }
-
-        // If we got fewer items than requested, there are no more items
-        setHasMorePast(newBookings.length === ITEMS_PER_PAGE);
-      } else if (response.status === 401) {
-        router.push("/auth/sign-in");
-      }
-    } catch (error) {
-      console.error("Failed to fetch past bookings:", error);
-    } finally {
-      if (loadMore) {
-        setLoadingMorePast(false);
-      } else {
-        setPastLoading(false);
-      }
-    }
-  }, [user?.id, router, pastBookings.length]);
-
-  // Fetch activity history (cancelled unpaid bookings)
-  const fetchActivityHistory = useCallback(async (loadMore = false) => {
-    if (!user?.id) return;
-
-    if (loadMore) {
-      setLoadingMoreActivity(true);
-    } else {
-      setActivityLoading(true);
-    }
-
-    try {
-      const skip = loadMore ? activityHistory.length : 0;
-      const response = await fetch(`/api/activity-history?skip=${skip}&take=${ITEMS_PER_PAGE}`);
-      if (response.ok) {
-        const data = await response.json();
-        const newHistory = Array.isArray(data) ? data : [];
-
-        if (loadMore) {
-          setActivityHistory(prev => [...prev, ...newHistory]);
-        } else {
-          setActivityHistory(newHistory);
-        }
-
-        // If we got fewer items than requested, there are no more items
-        setHasMoreActivity(newHistory.length === ITEMS_PER_PAGE);
-      } else if (response.status === 401) {
-        router.push("/auth/sign-in");
-      }
-    } catch (error) {
-      console.error("Failed to fetch activity history:", error);
-    } finally {
-      if (loadMore) {
-        setLoadingMoreActivity(false);
-      } else {
-        setActivityLoading(false);
-      }
-    }
-  }, [user?.id, router, activityHistory.length]);
 
   // Resume payment for unpaid booking
   const handleResumePayment = useCallback(async (bookingId: string) => {
@@ -223,18 +88,21 @@ export default function PlayerProfilePage() {
       // flow is integrated.
       console.log("Payment resumed:", data);
 
-      // Refresh bookings to show updated expiration time
-      await fetchUpcomingBookings();
+      // Invalidate profile data to trigger refresh on next access
+      invalidateProfile();
+
+      // Refresh profile data to show updated expiration time
+      await fetchProfileDataIfNeeded({ force: true });
     } catch (error) {
       console.error("Error resuming payment:", error);
       setPaymentError("An error occurred while resuming payment");
     } finally {
       setResumingPayment(null);
     }
-  }, [fetchUpcomingBookings]);
+  }, [invalidateProfile, fetchProfileDataIfNeeded]);
 
   // Handle cancel booking button click
-  const handleCancelClick = useCallback((booking: Booking) => {
+  const handleCancelClick = useCallback((booking: ProfileBooking) => {
     setBookingToCancel(booking);
     setShowCancelModal(true);
   }, []);
@@ -260,14 +128,13 @@ export default function PlayerProfilePage() {
       // Close modal and refresh bookings
       setShowCancelModal(false);
       setBookingToCancel(null);
-      await fetchUpcomingBookings();
     } catch (error) {
       console.error("Error cancelling booking:", error);
       setPaymentError("An error occurred while cancelling the booking");
     } finally {
       setCancellingBooking(null);
     }
-  }, [bookingToCancel, fetchUpcomingBookings]);
+  }, [bookingToCancel]);
 
   // Handle close cancel modal
   const handleCloseCancelModal = useCallback(() => {
@@ -275,14 +142,12 @@ export default function PlayerProfilePage() {
     setBookingToCancel(null);
   }, []);
 
-  // Initial data fetch
+  // Initial data fetch - only fetch if user is logged in and not root admin
   useEffect(() => {
     if (isLoggedIn && user && !user.isRoot) {
-      fetchUpcomingBookings();
-      fetchPastBookings();
-      fetchActivityHistory();
+      fetchProfileDataIfNeeded();
     }
-  }, [isLoggedIn, user, fetchUpcomingBookings, fetchPastBookings, fetchActivityHistory]);
+  }, [isLoggedIn, user, fetchProfileDataIfNeeded]);
 
   // Get status badge class based on combined display status
   const getStatusBadgeClass = (displayStatus: string) => {
@@ -365,7 +230,7 @@ export default function PlayerProfilePage() {
         {/* Upcoming Bookings Section */}
         <section className="im-profile-section">
           <Card title={t("playerProfile.upcomingBookings.title")}>
-            {upcomingLoading ? (
+            {loading && upcomingBookings.length === 0 ? (
               <div className="im-bookings-loading">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="im-booking-skeleton" />
@@ -471,11 +336,11 @@ export default function PlayerProfilePage() {
                 {hasMoreUpcoming && (
                   <div style={{ marginTop: "1rem", textAlign: "center" }}>
                     <Button
-                      onClick={() => fetchUpcomingBookings(true)}
-                      disabled={loadingMoreUpcoming}
+                      onClick={() => loadMoreUpcoming()}
+                      disabled={upcomingLoading}
                       variant="outline"
                     >
-                      {loadingMoreUpcoming ? t("playerProfile.loading") : t("playerProfile.loadMore")}
+                      {upcomingLoading ? t("playerProfile.loading") : t("playerProfile.loadMore")}
                     </Button>
                   </div>
                 )}
@@ -487,7 +352,7 @@ export default function PlayerProfilePage() {
         {/* Past Bookings Section */}
         <section className="im-profile-section">
           <Card title={t("playerProfile.pastBookings.title")}>
-            {pastLoading ? (
+            {loading && pastBookings.length === 0 ? (
               <div className="im-bookings-loading">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="im-booking-skeleton" />
@@ -539,11 +404,11 @@ export default function PlayerProfilePage() {
                 {hasMorePast && (
                   <div style={{ marginTop: "1rem", textAlign: "center" }}>
                     <Button
-                      onClick={() => fetchPastBookings(true)}
-                      disabled={loadingMorePast}
+                      onClick={() => loadMorePast()}
+                      disabled={pastLoading}
                       variant="outline"
                     >
-                      {loadingMorePast ? t("playerProfile.loading") : t("playerProfile.loadMore")}
+                      {pastLoading ? t("playerProfile.loading") : t("playerProfile.loadMore")}
                     </Button>
                   </div>
                 )}
@@ -555,7 +420,7 @@ export default function PlayerProfilePage() {
         {/* Activity History Section */}
         <section className="im-profile-section">
           <Card title={t("playerProfile.activityHistory.title")}>
-            {activityLoading ? (
+            {loading && activityHistory.length === 0 ? (
               <div className="im-bookings-loading">
                 {[1, 2].map((i) => (
                   <div key={i} className="im-booking-skeleton" />
@@ -595,11 +460,11 @@ export default function PlayerProfilePage() {
                 {hasMoreActivity && (
                   <div style={{ marginTop: "1rem", textAlign: "center" }}>
                     <Button
-                      onClick={() => fetchActivityHistory(true)}
-                      disabled={loadingMoreActivity}
+                      onClick={() => loadMoreActivity()}
+                      disabled={activityLoading}
                       variant="outline"
                     >
-                      {loadingMoreActivity ? t("playerProfile.loading") : t("playerProfile.loadMore")}
+                      {activityLoading ? t("playerProfile.loading") : t("playerProfile.loadMore")}
                     </Button>
                   </div>
                 )}
