@@ -8,7 +8,8 @@ import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { useAuthGuardOnce } from "@/hooks";
 import { formatDateWithWeekday, formatTime } from "@/utils/date";
 import { useUserStore } from "@/stores/useUserStore";
-import { PAYMENT_STATUS } from "@/types/booking";
+import { PAYMENT_STATUS, type BookingStatus, type PaymentStatus } from "@/types/booking";
+import { getPlayerBookingDisplayStatus } from "@/utils/bookingDisplayStatus";
 import "./profile.css";
 
 interface Booking {
@@ -236,20 +237,37 @@ export default function PlayerProfilePage() {
     }
   }, [isLoggedIn, user, fetchUpcomingBookings, fetchPastBookings, fetchActivityHistory]);
 
-  // Get status badge class
-  const getStatusBadgeClass = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "paid":
-      case "confirmed":
-      case "completed":
-        return "im-status-badge--success";
-      case "reserved":
-        return "im-status-badge--warning";
-      case "cancelled":
-        return "im-status-badge--error";
-      default:
-        return "im-status-badge--default";
+  // Get status badge class based on combined display status
+  const getStatusBadgeClass = (displayStatus: string) => {
+    const status = displayStatus.toLowerCase();
+    
+    // Error states (cancelled, no-show, missed) - highest priority
+    // Note: "Cancelled (Refunded)" will match here and show as error, which is correct
+    if (status.includes("cancelled") || 
+        status.includes("no-show") || 
+        status.includes("missed")) {
+      return "im-status-badge--error";
     }
+    
+    // Info states (refunded) - for standalone refunded status
+    if (status.includes("refunded")) {
+      return "im-status-badge--info";
+    }
+    
+    // Warning states (awaiting payment, payment pending)
+    if (status.includes("awaiting payment") || 
+        status.includes("payment pending")) {
+      return "im-status-badge--warning";
+    }
+    
+    // Success states (completed, booked, confirmed without payment issues)
+    if (status.includes("completed") || 
+        status.includes("booked") ||
+        status === "confirmed") {
+      return "im-status-badge--success";
+    }
+    
+    return "im-status-badge--default";
   };
 
   // Loading state
@@ -324,6 +342,12 @@ export default function PlayerProfilePage() {
                       ? new Date(booking.reservationExpiresAt) < new Date()
                       : false;
                     
+                    // Get combined display status
+                    const displayStatus = getPlayerBookingDisplayStatus(
+                      booking.bookingStatus as BookingStatus,
+                      booking.paymentStatus as PaymentStatus
+                    );
+                    
                     return (
                       <div key={booking.id} className="im-booking-item">
                         <div className="im-booking-details">
@@ -340,14 +364,9 @@ export default function PlayerProfilePage() {
                             <span className="im-booking-court">{booking.court?.name || ""}</span>
                           </div>
                           <div className="im-booking-status-row">
-                            <span className={`im-status-badge ${getStatusBadgeClass(booking.status)}`}>
-                              {t(`common.${booking.status}`) || booking.status}
+                            <span className={`im-status-badge ${getStatusBadgeClass(displayStatus)}`}>
+                              {displayStatus}
                             </span>
-                            {isUnpaid && (
-                              <span className="im-status-badge im-status-badge--warning">
-                                {t("common.paymentStatusUnpaid")}
-                              </span>
-                            )}
                           </div>
                           {isUnpaid && (
                             <div className="im-booking-actions">
@@ -405,27 +424,35 @@ export default function PlayerProfilePage() {
             ) : (
               <>
                 <div className="im-bookings-list">
-                  {pastBookings.map((booking) => (
-                    <div key={booking.id} className="im-booking-item">
-                      <div className="im-booking-details">
-                        <div className="im-booking-time">
-                          <span className="im-booking-date">
-                            {formatDateWithWeekday(booking.start, currentLocale)}
-                          </span>
-                          <span className="im-booking-time-range">
-                            {formatTime(booking.start, currentLocale)} - {formatTime(booking.end, currentLocale)}
+                  {pastBookings.map((booking) => {
+                    // Get combined display status
+                    const displayStatus = getPlayerBookingDisplayStatus(
+                      booking.bookingStatus as BookingStatus,
+                      booking.paymentStatus as PaymentStatus
+                    );
+                    
+                    return (
+                      <div key={booking.id} className="im-booking-item">
+                        <div className="im-booking-details">
+                          <div className="im-booking-time">
+                            <span className="im-booking-date">
+                              {formatDateWithWeekday(booking.start, currentLocale)}
+                            </span>
+                            <span className="im-booking-time-range">
+                              {formatTime(booking.start, currentLocale)} - {formatTime(booking.end, currentLocale)}
+                            </span>
+                          </div>
+                          <div className="im-booking-location">
+                            <span className="im-booking-club">{booking.court?.club?.name || ""}</span>
+                            <span className="im-booking-court">{booking.court?.name || ""}</span>
+                          </div>
+                          <span className={`im-status-badge ${getStatusBadgeClass(displayStatus)}`}>
+                            {displayStatus}
                           </span>
                         </div>
-                        <div className="im-booking-location">
-                          <span className="im-booking-club">{booking.court?.club?.name || ""}</span>
-                          <span className="im-booking-court">{booking.court?.name || ""}</span>
-                        </div>
-                        <span className={`im-status-badge ${getStatusBadgeClass(booking.status)}`}>
-                          {t(`common.${booking.status}`) || booking.status}
-                        </span>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {hasMorePast && (
                   <div style={{ marginTop: "1rem", textAlign: "center" }}>
