@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui";
 import { useCourtAvailability } from "@/hooks/useCourtAvailability";
-import { isSlotBlocked } from "@/utils/slotBlocking";
 import {
   getTodayInTimezone,
   getTodayStr,

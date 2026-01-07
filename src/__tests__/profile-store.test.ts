@@ -210,12 +210,11 @@ describe("useProfileStore", () => {
         });
 
       let promise1: Promise<unknown>;
-      let promise2: Promise<unknown>;
 
       await act(async () => {
         // Start both fetches in the same tick to test inflight guard
         promise1 = useProfileStore.getState().fetchProfileData();
-        promise2 = useProfileStore.getState().fetchProfileData();
+        void useProfileStore.getState().fetchProfileData(); // Second fetch should be ignored
         
         await promise1;
       });

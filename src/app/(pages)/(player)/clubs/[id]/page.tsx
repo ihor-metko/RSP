@@ -19,7 +19,7 @@ import { useProfileStore } from "@/stores/useProfileStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { useIsMobile } from "@/hooks";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
-import { getTodayStr, clubLocalToUTC, utcToClubLocalTime, timeOfDayFromUTC } from "@/utils/dateTime";
+import { getTodayStr, clubLocalToUTC, timeOfDayFromUTC } from "@/utils/dateTime";
 import { getClubTimezone } from "@/constants/timezone";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
