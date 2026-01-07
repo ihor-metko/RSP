@@ -3,7 +3,7 @@ import { create } from "zustand";
 /**
  * Player booking type for profile display
  */
-interface ProfileBooking {
+export interface ProfileBooking {
   id: string;
   courtId: string;
   start: string;
@@ -88,7 +88,7 @@ interface ProfileState {
   fetchProfileDataIfNeeded: (options?: { force?: boolean }) => Promise<ProfileData>;
   refreshProfileData: () => Promise<ProfileData>;
   invalidateProfile: () => void;
-  
+
   // Pagination actions
   loadMoreUpcoming: () => Promise<void>;
   loadMorePast: () => Promise<void>;
@@ -111,28 +111,28 @@ const CACHE_DURATION_MS = 5 * 60 * 1000;
 
 /**
  * Zustand store for managing player profile bookings
- * 
+ *
  * This store is the single source of truth for profile-related data:
  * - Upcoming bookings (unpaid and paid)
  * - Past bookings (completed, no-show, etc.)
  * - Activity history (cancelled unpaid bookings)
- * 
+ *
  * Features:
  * - Lazy loading with inflight guards
  * - Pagination support for all three data sources
  * - Cache management with invalidation
  * - Navigation-aware behavior (only refetch if stale/invalidated)
- * 
+ *
  * Usage:
  * ```tsx
  * const upcomingBookings = useProfileStore(state => state.upcomingBookings);
  * const fetchProfileData = useProfileStore(state => state.fetchProfileData);
  * const invalidateProfile = useProfileStore(state => state.invalidateProfile);
- * 
+ *
  * useEffect(() => {
  *   fetchProfileDataIfNeeded();
  * }, []);
- * 
+ *
  * // After booking/payment:
  * invalidateProfile();
  * ```

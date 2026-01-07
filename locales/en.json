@@ -1525,10 +1525,18 @@
       "bookNewCourt": "Book a new court"
     },
     "payNow": "Pay Now",
+    "cancelBooking": "Cancel booking",
+    "cancellingBooking": "Cancelling...",
     "resumingPayment": "Loading...",
     "reservationExpired": "Reservation expired - click to renew",
     "payBy": "Pay by {deadline}",
     "paymentWarning": "If not paid by the deadline, the reservation will be cancelled.",
+    "cancelConfirmation": {
+      "title": "Cancel reservation?",
+      "message": "This reservation is not paid yet. Once cancelled, the slot will be released.",
+      "confirm": "Cancel booking",
+      "keep": "Keep reservation"
+    },
     "activityHistory": {
       "title": "Activity History",
       "noHistory": "No activity to display",

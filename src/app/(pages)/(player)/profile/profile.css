@@ -137,6 +137,25 @@
   line-height: 1.3;
 }
 
+.im-booking-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.im-booking-price-label {
+  font-size: 0.8125rem;
+  color: var(--im-text-secondary);
+  line-height: 1.3;
+}
+
+.im-booking-price-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--im-text-primary);
+  line-height: 1.3;
+}
+
 /* Status Badge */
 .im-status-badge {
   display: inline-block;
@@ -161,6 +180,13 @@
   align-items: center;
   margin-top: 0.5rem;
   flex-wrap: wrap;
+}
+
+.im-booking-action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
 }
 
 .im-payment-deadline {
@@ -306,6 +332,31 @@
   background-color: var(--im-skeleton-dark-bg, #374151);
 }
 
+/* Cancel booking modal details */
+.im-cancel-booking-details {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--im-surface-bg, var(--rsp-card-bg));
+  border: 1px solid var(--im-border-color, var(--rsp-border));
+  border-radius: 8px;
+}
+
+.im-cancel-booking-details p {
+  margin: 0.5rem 0;
+  font-size: 0.875rem;
+  color: var(--im-text-secondary);
+}
+
+.im-cancel-booking-details p:first-child {
+  margin-top: 0;
+}
+
+.im-cancel-booking-details p:last-child {
+  margin-bottom: 0;
+  font-weight: 600;
+  color: var(--im-text-primary);
+}
+
 /* Responsive Design - Desktop Only (No Mobile Adjustments) */
 @media (min-width: 768px) {
   .im-player-profile {
@@ -343,6 +394,11 @@
   .im-booking-location {
     flex: 1 1 auto;
     min-width: 220px;
+  }
+
+  .im-booking-price {
+    flex: 0 0 auto;
+    min-width: 100px;
   }
 
   .im-booking-status-row {
