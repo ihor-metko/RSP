@@ -2,6 +2,7 @@ import {
   calculateBookingStatus,
   getDynamicStatus,
   shouldMarkAsCompleted,
+  shouldCancelUnpaidBooking,
   getStatusLabel,
   getStatusColorClass,
   isTerminalStatus,
@@ -216,39 +217,34 @@ describe("Booking Status Utilities", () => {
 
   describe("getStatusLabel", () => {
     it("should return human-readable labels for all statuses", () => {
-      expect(getStatusLabel("pending")).toBe("Pending");
-      expect(getStatusLabel("paid")).toBe("Paid");
-      expect(getStatusLabel("reserved")).toBe("Reserved");
-      expect(getStatusLabel("ongoing")).toBe("Ongoing");
-      expect(getStatusLabel("completed")).toBe("Completed");
-      expect(getStatusLabel("cancelled")).toBe("Cancelled");
-      expect(getStatusLabel("no-show")).toBe("No-show");
+      expect(getStatusLabel("Confirmed")).toBe("Confirmed");
+      expect(getStatusLabel("UPCOMING")).toBe("Upcoming");
+      expect(getStatusLabel("Completed")).toBe("Completed");
+      expect(getStatusLabel("Cancelled")).toBe("Cancelled");
+      expect(getStatusLabel("No-show")).toBe("No-show");
     });
   });
 
   describe("getStatusColorClass", () => {
     it("should return correct color classes for all statuses", () => {
-      expect(getStatusColorClass("pending")).toBe("warning");
-      expect(getStatusColorClass("paid")).toBe("success");
-      expect(getStatusColorClass("reserved")).toBe("info");
-      expect(getStatusColorClass("ongoing")).toBe("active");
-      expect(getStatusColorClass("completed")).toBe("neutral");
-      expect(getStatusColorClass("cancelled")).toBe("danger");
-      expect(getStatusColorClass("no-show")).toBe("danger");
+      expect(getStatusColorClass("Confirmed")).toBe("warning");
+      expect(getStatusColorClass("UPCOMING")).toBe("active");
+      expect(getStatusColorClass("Completed")).toBe("neutral");
+      expect(getStatusColorClass("Cancelled")).toBe("danger");
+      expect(getStatusColorClass("No-show")).toBe("danger");
     });
   });
 
   describe("isTerminalStatus", () => {
     it("should return true for terminal statuses", () => {
-      expect(isTerminalStatus("cancelled")).toBe(true);
-      expect(isTerminalStatus("no-show")).toBe(true);
-      expect(isTerminalStatus("completed")).toBe(true);
+      expect(isTerminalStatus("Cancelled")).toBe(true);
+      expect(isTerminalStatus("No-show")).toBe(true);
+      expect(isTerminalStatus("Completed")).toBe(true);
     });
 
     it("should return false for non-terminal statuses", () => {
-      expect(isTerminalStatus("pending")).toBe(false);
-      expect(isTerminalStatus("paid")).toBe(false);
-      expect(isTerminalStatus("reserved")).toBe(false);
+      expect(isTerminalStatus("Confirmed")).toBe(false);
+      expect(isTerminalStatus("UPCOMING")).toBe(false);
     });
   });
 
@@ -268,4 +264,108 @@ describe("Booking Status Utilities", () => {
       expect(toBookingStatus("")).toBe("reserved");
     });
   });
+
+  describe("shouldCancelUnpaidBooking", () => {
+    it("should return true for Confirmed + Unpaid bookings with expired reservation", () => {
+      const now = new Date("2024-01-15T14:00:00Z");
+      const reservationExpiresAt = new Date("2024-01-15T13:00:00Z"); // Expired 1 hour ago
+      
+      // Should cancel if reservation has expired
+      expect(
+        shouldCancelUnpaidBooking(
+          "Confirmed",
+          "Unpaid",
+          reservationExpiresAt.toISOString(),
+          now
+        )
+      ).toBe(true);
+    });
+
+    it("should return false for Confirmed + Unpaid bookings with non-expired reservation", () => {
+      const now = new Date("2024-01-15T14:00:00Z");
+      const reservationExpiresAt = new Date("2024-01-15T14:10:00Z"); // Expires in 10 minutes
+      
+      // Should NOT cancel if reservation hasn't expired yet
+      expect(
+        shouldCancelUnpaidBooking(
+          "Confirmed",
+          "Unpaid",
+          reservationExpiresAt.toISOString(),
+          now
+        )
+      ).toBe(false);
+    });
+
+    it("should return false for Confirmed + Paid bookings", () => {
+      const now = new Date("2024-01-15T14:00:00Z");
+      const reservationExpiresAt = new Date("2024-01-15T13:00:00Z"); // Expired 1 hour ago
+      
+      expect(
+        shouldCancelUnpaidBooking(
+          "Confirmed",
+          "Paid",
+          reservationExpiresAt.toISOString(),
+          now
+        )
+      ).toBe(false);
+    });
+
+    it("should return false for UPCOMING + Unpaid bookings", () => {
+      const now = new Date("2024-01-15T14:00:00Z");
+      const reservationExpiresAt = new Date("2024-01-15T13:00:00Z"); // Expired 1 hour ago
+      
+      expect(
+        shouldCancelUnpaidBooking(
+          "UPCOMING",
+          "Unpaid",
+          reservationExpiresAt.toISOString(),
+          now
+        )
+      ).toBe(false);
+    });
+
+    it("should return false for Cancelled bookings", () => {
+      const now = new Date("2024-01-15T14:00:00Z");
+      const reservationExpiresAt = new Date("2024-01-15T13:00:00Z"); // Expired 1 hour ago
+      
+      expect(
+        shouldCancelUnpaidBooking(
+          "Cancelled",
+          "Unpaid",
+          reservationExpiresAt.toISOString(),
+          now
+        )
+      ).toBe(false);
+    });
+
+    it("should handle exactly at expiry time", () => {
+      const now = new Date("2024-01-15T14:30:00Z");
+      const reservationExpiresAt = new Date("2024-01-15T14:30:00Z"); // Exactly at expiry
+      
+      // Should cancel at exactly the expiry time
+      expect(
+        shouldCancelUnpaidBooking(
+          "Confirmed",
+          "Unpaid",
+          reservationExpiresAt.toISOString(),
+          now
+        )
+      ).toBe(true);
+    });
+
+    it("should return false for bookings without reservationExpiresAt (backwards compatibility)", () => {
+      const now = new Date("2024-01-15T14:00:00Z");
+      
+      // Should NOT cancel if reservationExpiresAt is null
+      expect(
+        shouldCancelUnpaidBooking(
+          "Confirmed",
+          "Unpaid",
+          null,
+          now
+        )
+      ).toBe(false);
+    });
+  });
 });
+

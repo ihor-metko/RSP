@@ -12,3 +12,6 @@ export type { LogoData } from './LogoTab';
 
 export { BannerTab } from './BannerTab';
 export type { BannerData } from './BannerTab';
+
+export { TimezoneTab } from './TimezoneTab';
+export type { TimezoneData } from './TimezoneTab';

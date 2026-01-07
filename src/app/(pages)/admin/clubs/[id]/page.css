@@ -430,12 +430,13 @@
 }
 
 /* Section view components */
-.im-section-view {
-  min-height: 100px;
-}
+.im-section-view {}
 
 .im-section-view-row {
   display: flex;
+}
+
+.im-section-view-row:not(:last-child) {
   margin-bottom: 0.5rem;
 }
 

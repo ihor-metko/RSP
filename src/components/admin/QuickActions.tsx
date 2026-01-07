@@ -96,15 +96,18 @@ export interface QuickActionsProps {
 export default function QuickActions({ organizationId, clubId }: QuickActionsProps) {
   const t = useTranslations();
   const hasRole = useUserStore((state) => state.hasRole);
+  const adminStatus = useUserStore((state) => state.adminStatus);
+  
   // Check user roles
   const isRootAdmin = hasRole("ROOT_ADMIN");
   const isOrgAdmin = hasRole("ORGANIZATION_ADMIN");
-  const isClubAdmin = hasRole("CLUB_ADMIN");
+  // Club admins and owners are identified via adminStatus, not global roles
+  const isClubLevelAdmin = adminStatus?.adminType === "club_admin" || adminStatus?.adminType === "club_owner";
 
   // Determine which actions to show
   const canCreateClub = isRootAdmin || isOrgAdmin;
   const canInviteAdmin = isRootAdmin || isOrgAdmin;
-  const canCreateCourt = isClubAdmin && clubId;
+  const canCreateCourt = isClubLevelAdmin && clubId;
 
   // If no actions are available, don't render
   if (!canCreateClub && !canInviteAdmin && !canCreateCourt) {

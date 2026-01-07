@@ -1,11 +1,13 @@
 /**
  * Types for AdminQuickBookingWizard
- * 
+ *
  * This wizard supports multi-step booking flow for admins:
  * - RootAdmin: All steps including organization selection
  * - SuperAdmin (OrgAdmin): All steps except organization (preselected)
  * - ClubAdmin: Skips organization and club selection (preselected)
  */
+
+import { getTodayStr } from "@/utils/dateTime";
 
 export interface WizardCourt {
   id: string;
@@ -31,6 +33,7 @@ export interface WizardClub {
   name: string;
   organizationId: string;
   organizationName?: string;
+  timezone?: string | null; // IANA timezone string (e.g., "Europe/Kyiv")
 }
 
 export interface WizardUser {
@@ -101,22 +104,22 @@ export interface WizardState {
   stepDateTime: WizardStepDateTime;
   stepCourt: WizardStepCourt;
   stepConfirmation: WizardStepConfirmation;
-  
+
   availableOrganizations: WizardOrganization[];
   availableClubs: WizardClub[];
   availableUsers: WizardUser[];
   availableCourts: WizardCourt[];
-  
+
   isLoadingOrganizations: boolean;
   isLoadingClubs: boolean;
   isLoadingUsers: boolean;
   isLoadingCourts: boolean;
-  
+
   organizationsError: string | null;
   clubsError: string | null;
   usersError: string | null;
   courtsError: string | null;
-  
+
   isSubmitting: boolean;
   submitError: string | null;
   isComplete: boolean;
@@ -151,14 +154,14 @@ export const ADMIN_WIZARD_STEPS: WizardStepConfig[] = [
   {
     id: 1,
     label: "organization", // Step 1: Select Organization
-    shouldShow: (adminType, predefinedData) => 
+    shouldShow: (adminType, predefinedData) =>
       adminType === "root_admin" && !predefinedData?.organizationId,
   },
   {
     id: 2,
     label: "club", // Step 2: Select Club
-    shouldShow: (adminType, predefinedData) => 
-      (adminType === "root_admin" || adminType === "organization_admin") && 
+    shouldShow: (adminType, predefinedData) =>
+      (adminType === "root_admin" || adminType === "organization_admin") &&
       !predefinedData?.clubId,
   },
   {
@@ -193,7 +196,8 @@ export const ADMIN_WIZARD_STEPS: WizardStepConfig[] = [
 // Business hours configuration
 export const BUSINESS_START_HOUR = 9;
 export const BUSINESS_END_HOUR = 22;
-export const DURATION_OPTIONS = [30, 60, 90, 120];
+export const DURATION_OPTIONS = [60, 90, 120, 150, 180];
+export const DEFAULT_DURATION = 120; // 2 hours
 
 // Generate time options for the dropdown
 export function generateTimeOptions(): string[] {
@@ -208,7 +212,7 @@ export function generateTimeOptions(): string[] {
 
 // Get today's date in YYYY-MM-DD format
 export function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
+  return getTodayStr();
 }
 
 // Calculate end time based on start time and duration
@@ -269,11 +273,11 @@ export function getNextStepId(
 ): number | null {
   const visibleSteps = getVisibleSteps(adminType, predefinedData);
   const currentIndex = visibleSteps.findIndex((s) => s.id === currentStepId);
-  
+
   if (currentIndex === -1 || currentIndex === visibleSteps.length - 1) {
     return null;
   }
-  
+
   return visibleSteps[currentIndex + 1].id;
 }
 
@@ -287,11 +291,11 @@ export function getPreviousStepId(
 ): number | null {
   const visibleSteps = getVisibleSteps(adminType, predefinedData);
   const currentIndex = visibleSteps.findIndex((s) => s.id === currentStepId);
-  
+
   if (currentIndex <= 0) {
     return null;
   }
-  
+
   return visibleSteps[currentIndex - 1].id;
 }
 

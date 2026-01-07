@@ -33,8 +33,6 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
-  const [bannerUrl, setBannerUrl] = useState<string | null>(club.bannerData?.url || null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(club.logoData?.url || null);
   const [gallery, setGallery] = useState<GalleryImage[]>(() =>
     club.gallery.map((img) => ({
       id: img.id,
@@ -45,13 +43,9 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
     }))
   );
 
-  const heroInputRef = useRef<HTMLInputElement>(null);
-  const logoInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const handleEdit = useCallback(() => {
-    setBannerUrl(club.bannerData?.url || null);
-    setLogoUrl(club.logoData?.url || null);
     setGallery(
       club.gallery.map((img) => ({
         id: img.id,
@@ -92,50 +86,6 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
 
     return response.json();
   }, [club.id, t]);
-
-  const handleHeroUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      setIsUploading(true);
-      setError("");
-      try {
-        const { url } = await uploadFile(file);
-        setBannerUrl(url);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : t("failedToUploadHeroImage"));
-      } finally {
-        setIsUploading(false);
-        if (heroInputRef.current) {
-          heroInputRef.current.value = "";
-        }
-      }
-    },
-    [uploadFile, t]
-  );
-
-  const handleLogoUpload = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      setIsUploading(true);
-      setError("");
-      try {
-        const { url } = await uploadFile(file);
-        setLogoUrl(url);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : t("failedToUploadLogo"));
-      } finally {
-        setIsUploading(false);
-        if (logoInputRef.current) {
-          logoInputRef.current.value = "";
-        }
-      }
-    },
-    [uploadFile, t]
-  );
 
   const handleGalleryUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,10 +145,6 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
     setGallery((prev) => prev.filter((_, i) => i !== index));
   }, [club.id, gallery, t]);
 
-  const handleSetHeroFromGallery = useCallback((imageUrl: string) => {
-    setBannerUrl(imageUrl);
-  }, []);
-
   const handleSave = useCallback(async () => {
     setIsSaving(true);
     setError("");
@@ -207,8 +153,6 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          bannerData: bannerUrl ? { url: bannerUrl } : null,
-          logoData: logoUrl ? { url: logoUrl } : null,
           gallery: gallery.map((img, index) => ({
             id: img.id,
             imageUrl: img.imageUrl,
@@ -236,7 +180,7 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
     } finally {
       setIsSaving(false);
     }
-  }, [bannerUrl, logoUrl, gallery, club.id, updateClubInStore, t]);
+  }, [gallery, club.id, updateClubInStore, t]);
 
   return (
     <>
@@ -295,82 +239,6 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
         {error && <div className="im-section-edit-modal-error">{error}</div>}
 
         <div className="im-gallery-edit-section">
-          <h3 className="im-gallery-edit-section-title">{t("heroImage")}</h3>
-          <div className="im-gallery-edit-hero">
-            {isValidImageUrl(bannerUrl) ? (
-              <div className="im-gallery-edit-hero-preview">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={getImageUrl(bannerUrl) ?? ""} alt={t("heroPreviewAlt")} />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setBannerUrl(null)}
-                  className="im-gallery-edit-remove"
-                  disabled={isSaving || isUploading}
-                >
-                  ✕
-                </Button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="im-gallery-edit-upload-btn"
-                onClick={() => heroInputRef.current?.click()}
-                disabled={isSaving || isUploading}
-              >
-                {isUploading ? t("uploading") : t("uploadHeroImage")}
-              </button>
-            )}
-            <input
-              ref={heroInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleHeroUpload}
-              className="hidden"
-              disabled={isSaving || isUploading}
-            />
-          </div>
-        </div>
-
-        <div className="im-gallery-edit-section">
-          <h3 className="im-gallery-edit-section-title">{t("logo")}</h3>
-          <div className="im-gallery-edit-logo">
-            {isValidImageUrl(logoUrl) ? (
-              <div className="im-gallery-edit-logo-preview">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={getImageUrl(logoUrl) ?? ""} alt={t("logoPreviewAlt")} />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setLogoUrl(null)}
-                  className="im-gallery-edit-remove"
-                  disabled={isSaving || isUploading}
-                >
-                  ✕
-                </Button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="im-gallery-edit-upload-btn"
-                onClick={() => logoInputRef.current?.click()}
-                disabled={isSaving || isUploading}
-              >
-                {isUploading ? t("uploading") : t("uploadLogo")}
-              </button>
-            )}
-            <input
-              ref={logoInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleLogoUpload}
-              className="hidden"
-              disabled={isSaving || isUploading}
-            />
-          </div>
-        </div>
-
-        <div className="im-gallery-edit-section">
           <div className="im-gallery-edit-section-header">
             <h3 className="im-gallery-edit-section-title">{t("galleryImages")}</h3>
             <Button
@@ -401,15 +269,6 @@ export function ClubGalleryView({ club, disabled = false, disabledTooltip }: Clu
                     alt={img.altText || t("galleryImageIndexAlt", { index: index + 1 })}
                   />
                   <div className="im-gallery-edit-item-actions">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleSetHeroFromGallery(img.imageUrl)}
-                      className="im-gallery-edit-set-hero"
-                      disabled={isSaving || isUploading}
-                    >
-                      {t("setAsHero")}
-                    </Button>
                     <Button
                       type="button"
                       variant="outline"

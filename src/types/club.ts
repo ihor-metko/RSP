@@ -63,6 +63,7 @@ export interface ClubWithCounts extends Club {
   isPublic?: boolean;
   status: string;
   supportedSports?: SportType[];
+  timezone?: string | null;
   indoorCount?: number;
   outdoorCount?: number;
   courtCount?: number;
@@ -254,7 +255,7 @@ export function parseClubMetadata(metadataString: string | null | undefined): Cl
 
 /**
  * Helper function to parse logo data from JSON string
- * 
+ *
  * @param logoData - JSON string from database
  * @returns Parsed logo data or undefined if invalid
  */
@@ -272,7 +273,7 @@ export function parseLogoData(logoData: string | null | undefined): LogoData | u
 
 /**
  * Helper function to parse banner data from JSON string
- * 
+ *
  * @param bannerData - JSON string from database
  * @returns Parsed banner data or undefined if invalid
  */

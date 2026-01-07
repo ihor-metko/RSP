@@ -26,6 +26,7 @@ export interface ClubBusinessHour {
 export interface CourtClub {
   id: string;
   name: string;
+  timezone?: string | null;
   businessHours: ClubBusinessHour[];
 }
 

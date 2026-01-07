@@ -615,7 +615,7 @@ export function ClubForm() {
                 name="defaultCurrency"
                 value={formData.defaultCurrency}
                 onChange={handleInputChange}
-                placeholder="USD"
+                placeholder="UAH"
                 disabled={isSubmitting}
               />
             </div>

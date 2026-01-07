@@ -29,6 +29,7 @@ import {
   WizardStepDateTime,
   getTodayDateString,
   getFirstVisibleStepId,
+  DEFAULT_DURATION,
 } from "./types";
 import "./AdminQuickBookingWizard.css";
 
@@ -73,8 +74,8 @@ export function AdminQuickBookingWizard({
       },
       stepDateTime: {
         date: predefinedData?.date || getTodayDateString(),
-        startTime: predefinedData?.startTime || "10:00",
-        duration: predefinedData?.duration || MINUTES_PER_HOUR,
+        startTime: predefinedData?.startTime || "",
+        duration: predefinedData?.duration || DEFAULT_DURATION,
       },
       stepCourt: {
         selectedCourtId: predefinedData?.courtId || null,
@@ -126,6 +127,7 @@ export function AdminQuickBookingWizard({
 
   const { courts, isLoading: isLoadingCourts, error: courtsError, fetchCourts } = useWizardCourts({
     clubId: state.stepClub.selectedClubId,
+    clubTimezone: state.stepClub.selectedClub?.timezone,
     dateTime: state.stepDateTime,
   });
 
@@ -176,8 +178,8 @@ export function AdminQuickBookingWizard({
         },
         stepDateTime: {
           date: predefinedData?.date || getTodayDateString(),
-          startTime: predefinedData?.startTime || "10:00",
-          duration: predefinedData?.duration || MINUTES_PER_HOUR,
+          startTime: predefinedData?.startTime || "",
+          duration: predefinedData?.duration || DEFAULT_DURATION,
         },
         stepCourt: {
           selectedCourtId: predefinedData?.courtId || null,
@@ -256,8 +258,8 @@ export function AdminQuickBookingWizard({
     if (isOpen && predefinedData) {
       const newDateTime = {
         date: predefinedData.date || getTodayDateString(),
-        startTime: predefinedData.startTime || "10:00",
-        duration: predefinedData.duration || MINUTES_PER_HOUR,
+        startTime: predefinedData.startTime || "",
+        duration: predefinedData.duration || DEFAULT_DURATION,
       };
       
       setState((prev) => ({
@@ -597,6 +599,7 @@ export function AdminQuickBookingWizard({
               data={state.stepDateTime}
               onChange={handleDateTimeChange}
               isLoading={false}
+              clubTimezone={state.stepClub.selectedClub?.timezone}
             />
           )}
 

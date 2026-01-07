@@ -80,6 +80,75 @@
   color: var(--error-color, #dc2626);
 }
 
+/* Tab Warning Banner */
+.im-entity-tab-warning {
+  margin: 0 1.5rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--warning-bg, #fffbeb);
+  border: 1px solid var(--warning-border, #fde68a);
+  color: var(--warning-color, #d97706);
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.im-entity-tab-warning-icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+}
+
+.im-entity-tab-warning strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.im-entity-tab-warning p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* Tab Info Section */
+.im-entity-tab-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--info-bg, #eff6ff);
+  border: 1px solid var(--info-border, #bfdbfe);
+}
+
+.im-entity-tab-info-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: var(--info-color, #1e40af);
+}
+
+.im-entity-tab-info-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--info-text, #1e3a8a);
+}
+
+.im-entity-tab-info-list li {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.im-entity-tab-info-list li:last-child {
+  margin-bottom: 0;
+}
+
+.im-entity-tab-field-hint {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
 /* Logo Preview */
 .im-logo-preview-container {
   display: flex;
@@ -153,6 +222,25 @@
     background-color: var(--error-bg, rgba(239, 68, 68, 0.1));
     border-color: var(--error-border, rgba(239, 68, 68, 0.3));
     color: var(--error-color, #fca5a5);
+  }
+
+  .im-entity-tab-warning {
+    background-color: var(--warning-bg, rgba(245, 158, 11, 0.1));
+    border-color: var(--warning-border, rgba(245, 158, 11, 0.3));
+    color: var(--warning-color, #fbbf24);
+  }
+
+  .im-entity-tab-info {
+    background-color: var(--info-bg, rgba(59, 130, 246, 0.1));
+    border-color: var(--info-border, rgba(59, 130, 246, 0.3));
+  }
+
+  .im-entity-tab-info-title {
+    color: var(--info-color, #60a5fa);
+  }
+
+  .im-entity-tab-info-list {
+    color: var(--info-text, #93c5fd);
   }
 
   .im-logo-preview-container {

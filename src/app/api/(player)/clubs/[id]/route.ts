@@ -36,8 +36,8 @@ export async function GET(
     const parsedAddress = parseAddress(club.address);
 
     // Return optimized club details (without courts, coaches, and gallery)
-    // Courts: Available via /api/(player)/clubs/[id]/courts
-    // Gallery: Available via /api/(player)/clubs/[id]/gallery
+    // Courts: Available via /api/clubs/[id]/courts
+    // Gallery: Available via /api/clubs/[id]/gallery
     // Coaches: Removed per requirements
     return NextResponse.json({
       id: club.id,

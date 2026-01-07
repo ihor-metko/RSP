@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { createUTCDate, addMinutesUTC } from "@/utils/utcDateTime";
 
 // Training session duration in minutes
 const TRAINING_DURATION_MINUTES = 60;
@@ -44,6 +45,13 @@ export interface AvailableCourtResult {
 
 /**
  * Find available courts for a given time slot at a club
+ * 
+ * IMPORTANT: All parameters must be in UTC
+ * @param clubId - Club ID
+ * @param date - Date in YYYY-MM-DD format (UTC)
+ * @param time - Time in HH:MM format (UTC)
+ * @param durationMinutes - Duration in minutes
+ * @returns List of available courts
  */
 export async function findAvailableCourts(
   clubId: string,
@@ -61,9 +69,9 @@ export async function findAvailableCourts(
     return [];
   }
 
-  // Calculate start and end times
-  const startTime = new Date(`${date}T${time}:00.000Z`);
-  const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
+  // Calculate start and end times in UTC
+  const startTime = createUTCDate(date, time);
+  const endTime = addMinutesUTC(startTime, durationMinutes);
 
   // Find courts without overlapping bookings
   const availableCourts: AvailableCourtResult[] = [];
@@ -92,6 +100,14 @@ export async function findAvailableCourts(
 
 /**
  * Check if a court is available for a given time slot
+ * 
+ * IMPORTANT: All parameters must be in UTC
+ * @param courtId - Court ID
+ * @param date - Date in YYYY-MM-DD format (UTC)
+ * @param time - Time in HH:MM format (UTC)
+ * @param durationMinutes - Duration in minutes
+ * @param excludeBookingId - Optional booking ID to exclude from check
+ * @returns true if court is available
  */
 export async function isCourtAvailable(
   courtId: string,
@@ -100,8 +116,8 @@ export async function isCourtAvailable(
   durationMinutes: number = TRAINING_DURATION_MINUTES,
   excludeBookingId?: string
 ): Promise<boolean> {
-  const startTime = new Date(`${date}T${time}:00.000Z`);
-  const endTime = new Date(startTime.getTime() + durationMinutes * 60 * 1000);
+  const startTime = createUTCDate(date, time);
+  const endTime = addMinutesUTC(startTime, durationMinutes);
 
   const whereClause: {
     courtId: string;

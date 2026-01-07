@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Tooltip } from "@/components/ui";
 import { SectionEditModal } from "./SectionEditModal";
 import { BusinessHoursField } from "../BusinessHoursField.client";
 import { validateBusinessHours } from "../WorkingHoursEditor.client";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
+import { timeOfDayFromUTC, timeOfDayToUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import type { BusinessHour } from "@/types/admin";
 import type { ClubDetail, ClubBusinessHours } from "@/types/club";
 import { DAY_TRANSLATION_KEYS } from "@/constants/workingHours";
@@ -18,15 +20,30 @@ interface ClubHoursViewProps {
   disabledTooltip?: string;
 }
 
-function initializeBusinessHours(existing: ClubBusinessHours[]): BusinessHour[] {
+/**
+ * Initialize business hours for editing
+ * Converts UTC times from the database to club-local times for display
+ */
+function initializeBusinessHours(
+  existing: ClubBusinessHours[],
+  clubTimezone: string
+): BusinessHour[] {
   const hours: BusinessHour[] = [];
   for (let i = 0; i < 7; i++) {
     const existingHour = existing.find((h) => h.dayOfWeek === i);
     if (existingHour) {
+      // Convert UTC times to club-local times for display
+      const openTime = existingHour.openTime && !existingHour.isClosed
+        ? timeOfDayFromUTC(existingHour.openTime, clubTimezone)
+        : existingHour.openTime;
+      const closeTime = existingHour.closeTime && !existingHour.isClosed
+        ? timeOfDayFromUTC(existingHour.closeTime, clubTimezone)
+        : existingHour.closeTime;
+      
       hours.push({
         dayOfWeek: i,
-        openTime: existingHour.openTime,
-        closeTime: existingHour.closeTime,
+        openTime,
+        closeTime,
         isClosed: existingHour.isClosed,
       });
     } else {
@@ -41,21 +58,60 @@ function initializeBusinessHours(existing: ClubBusinessHours[]): BusinessHour[] 
   return hours;
 }
 
+/**
+ * Convert business hours from club-local to UTC for API submission
+ */
+function convertBusinessHoursToUTC(
+  hours: BusinessHour[],
+  clubTimezone: string
+): BusinessHour[] {
+  return hours.map((hour) => {
+    if (hour.isClosed || !hour.openTime || !hour.closeTime) {
+      return hour;
+    }
+    
+    // Convert club-local times to UTC
+    return {
+      ...hour,
+      openTime: timeOfDayToUTC(hour.openTime, clubTimezone),
+      closeTime: timeOfDayToUTC(hour.closeTime, clubTimezone),
+    };
+  });
+}
+
 export function ClubHoursView({ club, disabled = false, disabledTooltip }: ClubHoursViewProps) {
   const t = useTranslations();
   const updateClubInStore = useAdminClubStore((state) => state.updateClubInStore);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
+  
+  // Get club timezone with fallback
+  const clubTimezone = getClubTimezone(club.timezone);
+  
+  // Convert stored UTC hours to club-local for display
+  const displayHours = useMemo(() => {
+    return club.businessHours.map((hour) => {
+      if (hour.isClosed || !hour.openTime || !hour.closeTime) {
+        return hour;
+      }
+      return {
+        ...hour,
+        openTime: timeOfDayFromUTC(hour.openTime, clubTimezone),
+        closeTime: timeOfDayFromUTC(hour.closeTime, clubTimezone),
+      };
+    });
+  }, [club.businessHours, clubTimezone]);
+  
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>(() =>
-    initializeBusinessHours(club.businessHours)
+    initializeBusinessHours(club.businessHours, clubTimezone)
   );
 
   const handleEdit = useCallback(() => {
-    setBusinessHours(initializeBusinessHours(club.businessHours));
+    setBusinessHours(initializeBusinessHours(club.businessHours, clubTimezone));
     setError("");
     setIsEditing(true);
-  }, [club]);
+  }, [club.businessHours, clubTimezone]);
 
   const handleClose = useCallback(() => {
     setIsEditing(false);
@@ -63,7 +119,7 @@ export function ClubHoursView({ club, disabled = false, disabledTooltip }: ClubH
   }, []);
 
   const handleSave = useCallback(async () => {
-    // Validate business hours
+    // Validate business hours (in club-local time)
     const validationError = validateBusinessHours(businessHours);
     if (validationError) {
       setError(validationError);
@@ -73,11 +129,14 @@ export function ClubHoursView({ club, disabled = false, disabledTooltip }: ClubH
     setIsSaving(true);
     setError("");
     try {
+      // Convert club-local times to UTC before sending to backend
+      const businessHoursUTC = convertBusinessHoursToUTC(businessHours, clubTimezone);
+      
       const businessHoursResponse = await fetch(`/api/admin/clubs/${club.id}/business-hours`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          businessHours,
+          businessHours: businessHoursUTC,
         }),
       });
 
@@ -98,7 +157,7 @@ export function ClubHoursView({ club, disabled = false, disabledTooltip }: ClubH
     } finally {
       setIsSaving(false);
     }
-  }, [businessHours, club.id, updateClubInStore, t]);
+  }, [businessHours, club.id, clubTimezone, updateClubInStore, t]);
 
   return (
     <>
@@ -120,8 +179,8 @@ export function ClubHoursView({ club, disabled = false, disabledTooltip }: ClubH
 
       <div className="im-section-view">
         <div className="im-hours-view-weekly">
-          {club.businessHours.length > 0 ? (
-            club.businessHours.map((hour) => (
+          {displayHours.length > 0 ? (
+            displayHours.map((hour) => (
               <div key={hour.dayOfWeek} className="im-hours-view-row">
                 <span className="im-hours-view-day">
                   {t(DAY_TRANSLATION_KEYS[hour.dayOfWeek])}

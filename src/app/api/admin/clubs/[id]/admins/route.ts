@@ -183,26 +183,42 @@ export async function POST(
 
     const isRoot = session.user.isRoot ?? false;
 
-    // Check if user has permission for WRITE access (Root or Organization Admin only)
+    // Check if user has permission for WRITE access
+    // Allowed: Root Admin, Organization Admin, Club Owner
     if (!isRoot) {
-      if (!club.organizationId) {
-        // Club has no organization - only root admin can modify
-        return NextResponse.json(
-          { error: "Forbidden" },
-          { status: 403 }
-        );
-      }
+      let hasPermission = false;
 
-      const orgMembership = await prisma.membership.findUnique({
+      // Check if user is Club Owner
+      const clubMembership = await prisma.clubMembership.findUnique({
         where: {
-          userId_organizationId: {
+          userId_clubId: {
             userId: session.user.id,
-            organizationId: club.organizationId,
+            clubId,
           },
         },
       });
 
-      if (!orgMembership || orgMembership.role !== MembershipRole.ORGANIZATION_ADMIN) {
+      if (clubMembership?.role === ClubMembershipRole.CLUB_OWNER) {
+        hasPermission = true;
+      }
+
+      // If not Club Owner, check if user is Organization Admin
+      if (!hasPermission && club.organizationId) {
+        const orgMembership = await prisma.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId: session.user.id,
+              organizationId: club.organizationId,
+            },
+          },
+        });
+
+        if (orgMembership?.role === MembershipRole.ORGANIZATION_ADMIN) {
+          hasPermission = true;
+        }
+      }
+
+      if (!hasPermission) {
         return NextResponse.json(
           { error: "Forbidden" },
           { status: 403 }
@@ -404,26 +420,42 @@ export async function DELETE(
 
     const isRoot = session.user.isRoot ?? false;
 
-    // Check if user has permission for WRITE access (Root or Organization Admin only)
+    // Check if user has permission for WRITE access
+    // Allowed: Root Admin, Organization Admin, Club Owner
     if (!isRoot) {
-      if (!club.organizationId) {
-        // Club has no organization - only root admin can modify
-        return NextResponse.json(
-          { error: "Forbidden" },
-          { status: 403 }
-        );
-      }
+      let hasPermission = false;
 
-      const orgMembership = await prisma.membership.findUnique({
+      // Check if user is Club Owner
+      const clubMembership = await prisma.clubMembership.findUnique({
         where: {
-          userId_organizationId: {
+          userId_clubId: {
             userId: session.user.id,
-            organizationId: club.organizationId,
+            clubId,
           },
         },
       });
 
-      if (!orgMembership || orgMembership.role !== MembershipRole.ORGANIZATION_ADMIN) {
+      if (clubMembership?.role === ClubMembershipRole.CLUB_OWNER) {
+        hasPermission = true;
+      }
+
+      // If not Club Owner, check if user is Organization Admin
+      if (!hasPermission && club.organizationId) {
+        const orgMembership = await prisma.membership.findUnique({
+          where: {
+            userId_organizationId: {
+              userId: session.user.id,
+              organizationId: club.organizationId,
+            },
+          },
+        });
+
+        if (orgMembership?.role === MembershipRole.ORGANIZATION_ADMIN) {
+          hasPermission = true;
+        }
+      }
+
+      if (!hasPermission) {
         return NextResponse.json(
           { error: "Forbidden" },
           { status: 403 }

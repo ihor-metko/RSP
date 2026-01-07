@@ -16,6 +16,7 @@ import {
   formatWeekdayShort,
   formatDateNoYear,
   formatDateSimple,
+  formatPaymentDeadline,
 } from '@/utils/date';
 
 describe('Date Formatting Utilities', () => {
@@ -218,6 +219,46 @@ describe('Date Formatting Utilities', () => {
       const result = formatDateSimple(testDate, 'uk');
       expect(result).toContain('2');
       expect(result).toContain('2024');
+    });
+  });
+
+  describe('formatPaymentDeadline', () => {
+    it('should format payment deadline in English with time and date', () => {
+      // Using a specific date: January 7, 2026, 15:30 UTC
+      const deadline = new Date('2026-01-07T15:30:00Z');
+      const result = formatPaymentDeadline(deadline, 'en');
+      // Should contain time and date in DD.MM.YYYY format
+      expect(result).toMatch(/\d{2}:\d{2} \d{2}\.\d{2}\.\d{4}/);
+      expect(result).toContain('07.01.2026');
+    });
+
+    it('should format payment deadline in Ukrainian with time and date', () => {
+      const deadline = new Date('2026-01-07T15:30:00Z');
+      const result = formatPaymentDeadline(deadline, 'uk');
+      // Should contain time and date in DD.MM.YYYY format
+      expect(result).toMatch(/\d{2}:\d{2} \d{2}\.\d{2}\.\d{4}/);
+      expect(result).toContain('07.01.2026');
+    });
+
+    it('should accept string input', () => {
+      const deadlineString = '2026-01-07T15:30:00Z';
+      const result = formatPaymentDeadline(deadlineString, 'en');
+      expect(result).toMatch(/\d{2}:\d{2} \d{2}\.\d{2}\.\d{4}/);
+    });
+
+    it('should use 24-hour time format', () => {
+      const afternoonDeadline = new Date('2026-01-07T22:45:00Z');
+      const result = formatPaymentDeadline(afternoonDeadline, 'en');
+      // Should not contain AM/PM
+      expect(result).not.toMatch(/am|pm/i);
+      expect(result).toMatch(/\d{2}:\d{2} \d{2}\.\d{2}\.\d{4}/);
+    });
+
+    it('should pad single-digit dates and months with zeros', () => {
+      const earlyDate = new Date('2026-03-05T09:05:00Z');
+      const result = formatPaymentDeadline(earlyDate, 'en');
+      // Should have proper zero-padding
+      expect(result).toContain('05.03.2026');
     });
   });
 

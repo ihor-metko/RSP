@@ -83,8 +83,8 @@ export function OperationsClubSelector({
       return clubs.filter((club) => managedOrgIds.has(club.organizationId));
     }
 
-    // Club admins should only see their assigned club(s)
-    if (adminStatus?.adminType === "club_admin") {
+    // Club owners/admins should only see their assigned club(s)
+    if (adminStatus?.adminType === "club_admin" || adminStatus?.adminType === "club_owner") {
       const managedClubIds = new Set(adminStatus.managedIds);
       return clubs.filter((club) => managedClubIds.has(club.id));
     }
@@ -94,7 +94,7 @@ export function OperationsClubSelector({
   }, [clubs, adminStatus, user]);
 
   // Auto-select if Org Admin has only one club
-  // Note: Club Admins are handled in the Operations page itself (auto-select on mount)
+  // Note: Club Owners/Admins are handled in the Operations page itself (auto-select on mount)
   // This only applies to Org Admins who have exactly one club in their organization
   useEffect(() => {
     if (

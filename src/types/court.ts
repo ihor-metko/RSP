@@ -1,5 +1,8 @@
 import { SportType } from "@/constants/sports";
 
+// Court format enum matching Prisma schema
+export type CourtFormat = 'SINGLE' | 'DOUBLE';
+
 export interface Court {
   id: string;
   name: string;
@@ -9,12 +12,12 @@ export interface Court {
   surface?: string | null;
   indoor: boolean;
   sportType?: SportType | null;
+  courtFormat?: CourtFormat | null; // Court format (SINGLE/DOUBLE) - mainly for Padel
   description?: string | null;
   isPublished?: boolean;
   defaultPriceCents: number;
   imageUrl?: string | null;
-  bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
-  metadata?: Record<string, unknown> | null;
+  bannerData?: { url: string; altText?: string; description?: string; position?: string; bannerAlignment?: string } | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -76,6 +79,7 @@ export interface CreateCourtPayload {
   surface?: string | null;
   indoor?: boolean;
   sportType?: SportType;
+  courtFormat?: CourtFormat | null;
   description?: string | null;
   isPublished?: boolean;
   defaultPriceCents?: number;
@@ -91,6 +95,7 @@ export interface UpdateCourtPayload {
   surface?: string | null;
   indoor?: boolean;
   sportType?: SportType;
+  courtFormat?: CourtFormat | null;
   description?: string | null;
   isPublished?: boolean;
   defaultPriceCents?: number;
@@ -163,6 +168,7 @@ export interface WeeklyAvailabilityResponse {
     type: string | null;
     indoor: boolean;
     sportType?: string;
+    courtFormat?: CourtFormat | null;
   }>;
   mode?: AvailabilityMode;
 }

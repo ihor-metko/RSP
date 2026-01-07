@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { EmptyState } from "@/components/ui";
 import { CardListSkeleton } from "@/components/ui/skeletons";
@@ -25,7 +26,7 @@ interface ClubsMobileViewProps {
 
 /**
  * ClubsMobileView
- * 
+ *
  * Mobile-first vertical list of clubs.
  * Shows only clubs with published courts.
  * Displays skeleton loaders while loading.
@@ -103,7 +104,7 @@ export function ClubsMobileView({
       <div className="im-mobile-clubs-list">
         {clubs.map((club) => {
           const formattedAddress = formatAddress(club.address);
-          
+
           return (
             <button
               key={club.id}
@@ -144,7 +145,7 @@ export function ClubsMobileView({
                   </svg>
                   <span>{formattedAddress || t("clubs.noAddress")}</span>
                 </div>
-                
+
                 {/* Available Courts Badge */}
                 <div className="im-mobile-club-card-badge">
                   <span className="im-mobile-club-card-badge-text">

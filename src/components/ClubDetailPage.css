@@ -437,9 +437,7 @@
 }
 
 /* ===== Timeline Section ===== */
-.rsp-club-timeline-section {
-  @apply mb-8;
-}
+.rsp-club-timeline-section {}
 
 /* ===== Training Button ===== */
 .rsp-club-training-section {

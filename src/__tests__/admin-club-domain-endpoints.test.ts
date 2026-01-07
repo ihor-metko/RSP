@@ -13,6 +13,7 @@ jest.mock("@/lib/prisma", () => ({
     clubBusinessHours: {
       deleteMany: jest.fn(),
       createMany: jest.fn(),
+      findMany: jest.fn(),
     },
     clubSpecialHours: {
       deleteMany: jest.fn(),
@@ -47,7 +48,7 @@ import { PATCH as PatchSpecialHours } from "@/app/api/admin/clubs/[id]/special-h
 import { PATCH as PatchMedia } from "@/app/api/admin/clubs/[id]/media/route";
 import { PATCH as PatchContacts } from "@/app/api/admin/clubs/[id]/contacts/route";
 import { PATCH as PatchLocation } from "@/app/api/admin/clubs/[id]/address/route";
-import { PATCH as PatchMetadata } from "@/app/api/admin/clubs/[id]/metadata/route";
+// import { PATCH as PatchMetadata } from "@/app/api/admin/clubs/[id]/metadata/route"; // TODO: Route doesn't exist
 import { PATCH as PatchCoaches } from "@/app/api/admin/clubs/[id]/coaches/route";
 import { prisma } from "@/lib/prisma";
 
@@ -221,7 +222,10 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.id).toBe("club-123");
+      expect(data.name).toBe("Updated Club");
+      expect(data.shortDescription).toBe("Updated description");
+      expect(data.isPublic).toBe(false);
       expect(prisma.club.update).toHaveBeenCalledWith({
         where: { id: "club-123" },
         data: {
@@ -229,6 +233,7 @@ describe("Admin Club Domain-Specific APIs", () => {
           shortDescription: "Updated description",
           isPublic: false,
         },
+        include: expect.any(Object),
       });
     });
   });
@@ -268,18 +273,22 @@ describe("Admin Club Domain-Specific APIs", () => {
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
-      const updatedClub = {
-        ...mockClub,
-        courts: [],
-        coaches: [],
-        gallery: [],
-        businessHours: [
-          { dayOfWeek: 1, openTime: "09:00", closeTime: "21:00", isClosed: false },
-        ],
-        specialHours: [],
-      };
+      const updatedBusinessHours = [
+        { dayOfWeek: 1, openTime: "09:00", closeTime: "21:00", isClosed: false },
+      ];
 
-      (prisma.$transaction as jest.Mock).mockResolvedValue(updatedClub);
+      // Mock the transaction to handle deleteMany and createMany
+      (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        return callback({
+          clubBusinessHours: {
+            deleteMany: jest.fn(),
+            createMany: jest.fn(),
+          },
+        });
+      });
+
+      // Mock findMany to return updated business hours
+      (prisma.clubBusinessHours.findMany as jest.Mock).mockResolvedValue(updatedBusinessHours);
 
       const request = new Request(
         "http://localhost:3000/api/admin/clubs/club-123/business-hours",
@@ -298,7 +307,8 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.id).toBe("club-123");
+      expect(data.businessHours).toEqual(updatedBusinessHours);
       expect(prisma.$transaction).toHaveBeenCalled();
     });
   });
@@ -373,7 +383,7 @@ describe("Admin Club Domain-Specific APIs", () => {
     });
   });
 
-  describe("PATCH /api/admin/clubs/[id]/location", () => {
+  describe("PATCH /api/admin/clubs/[id]/address", () => {
     it("should return 400 when address is empty", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "admin-123", isRoot: true },
@@ -382,10 +392,10 @@ describe("Admin Club Domain-Specific APIs", () => {
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
       const request = new Request(
-        "http://localhost:3000/api/admin/clubs/club-123/location",
+        "http://localhost:3000/api/admin/clubs/club-123/address",
         {
           method: "PATCH",
-          body: JSON.stringify({ location: "" }),
+          body: JSON.stringify(null),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -404,28 +414,19 @@ describe("Admin Club Domain-Specific APIs", () => {
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
-      const updatedClub = {
-        ...mockClub,
-        location: "456 New Street",
-        city: "New City",
-        country: "New Country",
-        courts: [],
-        coaches: [],
-        gallery: [],
-        businessHours: [],
-        specialHours: [],
-      };
-
-      (prisma.club.update as jest.Mock).mockResolvedValue(updatedClub);
+      (prisma.club.update as jest.Mock).mockResolvedValue({});
 
       const request = new Request(
-        "http://localhost:3000/api/admin/clubs/club-123/location",
+        "http://localhost:3000/api/admin/clubs/club-123/address",
         {
           method: "PATCH",
           body: JSON.stringify({
-            location: "456 New Street",
+            street: "456 New Street",
             city: "New City",
             country: "New Country",
+            postalCode: "12345",
+            lat: 40.7128,
+            lng: -74.0060,
           }),
           headers: { "Content-Type": "application/json" },
         }
@@ -435,7 +436,8 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.id).toBe("club-123");
+      expect(data.address).toBeDefined();
     });
   });
 
@@ -447,19 +449,15 @@ describe("Admin Club Domain-Specific APIs", () => {
 
       (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
 
-      const updatedClub = {
-        ...mockClub,
+      const updatedData = {
+        id: "club-123",
         phone: "+1234567890",
         email: "test@example.com",
         website: "https://example.com",
-        courts: [],
-        coaches: [],
-        gallery: [],
-        businessHours: [],
-        specialHours: [],
+        address: null,
       };
 
-      (prisma.club.update as jest.Mock).mockResolvedValue(updatedClub);
+      (prisma.club.update as jest.Mock).mockResolvedValue(updatedData);
 
       const request = new Request(
         "http://localhost:3000/api/admin/clubs/club-123/contacts",
@@ -478,54 +476,39 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.id).toBe("club-123");
+      expect(data.phone).toBe("+1234567890");
+      expect(data.email).toBe("test@example.com");
+      expect(data.website).toBe("https://example.com");
     });
   });
 
-  describe("PATCH /api/admin/clubs/[id]/metadata", () => {
-    it("should update metadata successfully", async () => {
-      mockAuth.mockResolvedValue({
-        user: { id: "admin-123", isRoot: true },
-      });
+  // TODO: Metadata route doesn't exist - commenting out this test
+  // describe("PATCH /api/admin/clubs/[id]/metadata", () => {
+  //   it("should return 501 Not Implemented (metadata is internal-only)", async () => {
+  //     mockAuth.mockResolvedValue({
+  //       user: { id: "admin-123", isRoot: true },
+  //     });
 
-      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+  //     const request = new Request(
+  //       "http://localhost:3000/api/admin/clubs/club-123/metadata",
+  //       {
+  //         method: "PATCH",
+  //         body: JSON.stringify({
+  //           metadata: { logoTheme: "dark", bannerAlignment: "top" },
+  //         }),
+  //         headers: { "Content-Type": "application/json" },
+  //       }
+  //     );
 
-      const updatedClub = {
-        ...mockClub,
-        metadata: JSON.stringify({ logoTheme: "dark", bannerAlignment: "top" }),
-        courts: [],
-        coaches: [],
-        gallery: [],
-        businessHours: [],
-        specialHours: [],
-      };
+  //     const response = await PatchMetadata(request, { params: mockParams });
+  //     const data = await response.json();
 
-      (prisma.club.update as jest.Mock).mockResolvedValue(updatedClub);
-
-      const request = new Request(
-        "http://localhost:3000/api/admin/clubs/club-123/metadata",
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            metadata: { logoTheme: "dark", bannerAlignment: "top" },
-          }),
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      const response = await PatchMetadata(request, { params: mockParams });
-      await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
-      expect(prisma.club.update).toHaveBeenCalledWith({
-        where: { id: "club-123" },
-        data: {
-          metadata: JSON.stringify({ logoTheme: "dark", bannerAlignment: "top" }),
-        },
-      });
-    });
-  });
+  //     expect(response.status).toBe(501);
+  //     expect(data.error).toContain("Metadata");
+  //     expect(data.error).toContain("internal-only");
+  //   });
+  // });
 
   describe("PATCH /api/admin/clubs/[id]/media", () => {
     it("should update media successfully", async () => {
@@ -565,7 +548,11 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data).toMatchObject({
+        id: "club-123",
+        logoData: JSON.stringify({ url: "/logo.jpg" }),
+        bannerData: JSON.stringify({ url: "/banner.jpg" }),
+      });
       expect(prisma.$transaction).toHaveBeenCalled();
     });
   });
@@ -654,7 +641,8 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.id).toBe("club-123");
+      expect(data.name).toBe("Updated by Club Admin");
     });
 
     it("should allow club_owner to update club business hours", async () => {
@@ -678,16 +666,18 @@ describe("Admin Club Domain-Specific APIs", () => {
         { dayOfWeek: 2, openTime: "09:00", closeTime: "18:00", isClosed: false },
       ];
 
-      const updatedClub = {
-        ...mockClub,
-        courts: [],
-        coaches: [],
-        gallery: [],
-        businessHours,
-        specialHours: [],
-      };
+      // Mock the transaction to handle deleteMany and createMany
+      (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        return callback({
+          clubBusinessHours: {
+            deleteMany: jest.fn(),
+            createMany: jest.fn(),
+          },
+        });
+      });
 
-      (prisma.$transaction as jest.Mock).mockResolvedValue(updatedClub);
+      // Mock findMany to return updated business hours
+      (prisma.clubBusinessHours.findMany as jest.Mock).mockResolvedValue(businessHours);
 
       const request = new Request(
         "http://localhost:3000/api/admin/clubs/club-123/business-hours",
@@ -702,7 +692,8 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.id).toBe("club-123");
+      expect(data.businessHours).toEqual(businessHours);
     });
 
     it("should allow club_admin to update club location", async () => {
@@ -719,27 +710,22 @@ describe("Admin Club Domain-Specific APIs", () => {
         .mockResolvedValueOnce({ id: "club-123", organizationId: "org-1" })
         .mockResolvedValueOnce(mockClub);
 
-      const updatedClub = {
-        ...mockClub,
-        location: "456 New Street",
+      const address = {
+        street: "456 New Street",
         city: "New City",
-        courts: [],
-        coaches: [],
-        gallery: [],
-        businessHours: [],
-        specialHours: [],
+        country: "US",
+        postalCode: "12345",
+        lat: 40.7128,
+        lng: -74.0060,
       };
 
-      (prisma.club.update as jest.Mock).mockResolvedValue(updatedClub);
+      (prisma.club.update as jest.Mock).mockResolvedValue({});
 
       const request = new Request(
-        "http://localhost:3000/api/admin/clubs/club-123/location",
+        "http://localhost:3000/api/admin/clubs/club-123/address",
         {
           method: "PATCH",
-          body: JSON.stringify({
-            location: "456 New Street",
-            city: "New City",
-          }),
+          body: JSON.stringify(address),
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -748,7 +734,8 @@ describe("Admin Club Domain-Specific APIs", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
+      expect(data.id).toBe("club-123");
+      expect(data.address).toBeDefined();
     });
 
     it("should deny club_admin access to another club", async () => {

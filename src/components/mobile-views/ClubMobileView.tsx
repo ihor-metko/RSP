@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Button, EmptyState } from "@/components/ui";
 import "./MobileViews.css";
@@ -57,10 +58,13 @@ export function ClubMobileView({
         {/* Banner Image */}
         {club.bannerData?.url && (
           <div className="im-mobile-club-banner">
-            <img
+            <Image
               src={club.bannerData.url}
               alt={club.bannerData.altText || club.name}
               className="im-mobile-club-banner-img"
+              width={800}
+              height={400}
+              style={{ objectFit: 'cover' }}
             />
           </div>
         )}
@@ -70,10 +74,13 @@ export function ClubMobileView({
           {/* Logo */}
           {club.logoData?.url && (
             <div className="im-mobile-club-logo">
-              <img
+              <Image
                 src={club.logoData.url}
                 alt={club.logoData.altText || club.name}
                 className="im-mobile-club-logo-img"
+                width={80}
+                height={80}
+                style={{ objectFit: 'contain' }}
               />
             </div>
           )}

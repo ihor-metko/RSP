@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
 import { useOrganizationStore } from "@/stores/useOrganizationStore";
 import type { WizardClub, AdminType, PredefinedData } from "../types";
+import { ClubWithCounts } from "@/types/club";
 
 interface UseWizardClubsOptions {
   isOpen: boolean;
@@ -60,7 +61,7 @@ export function useWizardClubs({
       await fetchClubsIfNeeded();
 
       // Map clubs from store to wizard format
-      let mappedClubs: WizardClub[] = storeClubs.map((club) => {
+      let mappedClubs: WizardClub[] = storeClubs.map((club: ClubWithCounts) => {
         // Find organization name from organizations store
         const org = organizations.find(o => o.id === club.organizationId);
         return {
@@ -68,6 +69,7 @@ export function useWizardClubs({
           name: club.name,
           organizationId: club.organizationId || "",
           organizationName: org?.name,
+          timezone: club.timezone || null,
         };
       });
 

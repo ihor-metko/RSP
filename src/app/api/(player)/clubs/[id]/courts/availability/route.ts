@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import {
-  getTodayInTimezone,
-  getDatesFromStart,
-  getWeekMonday,
-} from "@/utils/dateTime";
+import { createUTCDate, doUTCRangesOverlap, getUTCDayBounds, getTodayUTC, getDatesFromStartUTC, getWeekMondayUTC } from "@/utils/utcDateTime";
 
 // Business hours configuration
 const BUSINESS_START_HOUR = 8;
@@ -53,9 +49,11 @@ interface WeeklyAvailabilityResponse {
   mode?: "rolling" | "calendar";
 }
 
-// Helper to get day name using native Date API
-function getDayName(date: Date): string {
-  return date.toLocaleDateString("en-US", { weekday: "long" });
+// Helper to get day name from UTC date string (YYYY-MM-DD format)
+// Returns the day name in English (e.g., "Monday", "Tuesday")
+function getDayName(dateStr: string): string {
+  const date = new Date(dateStr + 'T00:00:00.000Z');
+  return date.toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" });
 }
 
 export async function GET(
@@ -65,6 +63,15 @@ export async function GET(
   try {
     const resolvedParams = await params;
     const clubId = resolvedParams.id;
+
+    /**
+     * IMPORTANT TIMEZONE RULE:
+     * This API returns availability based on UTC date boundaries.
+     * All booking start/end times are in UTC.
+     * Frontend is responsible for:
+     * 1. Converting club timezone to UTC when interpreting results
+     * 2. Displaying times in club local timezone to users
+     */
 
     const url = new URL(request.url);
     
@@ -82,34 +89,30 @@ export async function GET(
       }
     }
 
-    let startDate: Date;
-    const today = getTodayInTimezone();
+    let startDateStr: string;
+    const todayStr = getTodayUTC();
     
     if (startParam) {
-      startDate = new Date(startParam);
-      if (isNaN(startDate.getTime())) {
+      // Validate date format
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(startParam)) {
         return NextResponse.json(
           { error: "Invalid start format. Use YYYY-MM-DD" },
           { status: 400 }
         );
       }
+      startDateStr = startParam;
     } else {
       // Default behavior based on mode:
-      // - rolling (default): start from today
-      // - calendar: start from this week's Monday
+      // - rolling (default): start from today (UTC)
+      // - calendar: start from this week's Monday (UTC)
       if (modeParam === "calendar") {
-        startDate = getWeekMonday(today);
+        startDateStr = getWeekMondayUTC(todayStr);
       } else {
-        // Default to rolling mode: start from today
-        startDate = today;
+        // Default to rolling mode: start from today (UTC)
+        startDateStr = todayStr;
       }
     }
-
-    // Set to start of day
-    startDate.setHours(0, 0, 0, 0);
-    
-    // Format today's date for comparison
-    const todayStr = today.toISOString().split("T")[0];
 
     // Check if club exists and get its courts
     const club = await prisma.club.findUnique({
@@ -125,6 +128,7 @@ export async function GET(
             type: true,
             indoor: true,
             sportType: true,
+            courtFormat: true,
           },
           orderBy: { name: "asc" },
         },
@@ -135,14 +139,12 @@ export async function GET(
       return NextResponse.json({ error: "Club not found" }, { status: 404 });
     }
 
-    // Get dates for the requested period
-    const datesToShow = getDatesFromStart(startDate, numDays);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + numDays - 1);
+    // Get dates for the requested period (UTC-based)
+    const datesToShow = getDatesFromStartUTC(startDateStr, numDays);
 
-    // Get all confirmed bookings for the period
-    const periodStartUtc = new Date(`${datesToShow[0]}T00:00:00.000Z`);
-    const periodEndUtc = new Date(`${datesToShow[datesToShow.length - 1]}T23:59:59.999Z`);
+    // Get all confirmed bookings for the period (UTC-based)
+    const { startOfDay: periodStartUtc } = getUTCDayBounds(datesToShow[0]);
+    const { endOfDay: periodEndUtc } = getUTCDayBounds(datesToShow[datesToShow.length - 1]);
 
     const confirmedBookings = await prisma.booking.findMany({
       where: {
@@ -177,16 +179,17 @@ export async function GET(
     const days: DayAvailability[] = [];
 
     for (const dateStr of datesToShow) {
-      const date = new Date(dateStr);
-      const dayOfWeek = date.getDay();
-      const dayName = getDayName(date);
+      const date = new Date(dateStr + 'T00:00:00.000Z');
+      const dayOfWeek = date.getUTCDay();
+      const dayName = getDayName(dateStr);
       const isToday = dateStr === todayStr;
 
       const hours: HourSlotAvailability[] = [];
 
       for (let hour = BUSINESS_START_HOUR; hour < BUSINESS_END_HOUR; hour++) {
-        const slotStart = new Date(`${dateStr}T${hour.toString().padStart(2, "0")}:00:00.000Z`);
-        const slotEnd = new Date(`${dateStr}T${(hour + 1).toString().padStart(2, "0")}:00:00.000Z`);
+        // Create UTC time boundaries for this hour slot
+        const slotStart = createUTCDate(dateStr, `${hour.toString().padStart(2, "0")}:00`);
+        const slotEnd = createUTCDate(dateStr, `${(hour + 1).toString().padStart(2, "0")}:00`);
 
         const courts: CourtAvailabilityStatus[] = [];
         let availableCount = 0;
@@ -205,8 +208,8 @@ export async function GET(
             const bookingStart = new Date(booking.start);
             const bookingEnd = new Date(booking.end);
 
-            // Check for overlap
-            if (bookingStart < slotEnd && bookingEnd > slotStart) {
+            // Check for overlap using UTC-based comparison
+            if (doUTCRangesOverlap(bookingStart, bookingEnd, slotStart, slotEnd)) {
               // If the booking completely covers the slot or overlaps, mark as pending
               if (bookingStart <= slotStart && bookingEnd >= slotEnd) {
                 status = "pending";
@@ -224,8 +227,8 @@ export async function GET(
               const bookingStart = new Date(booking.start);
               const bookingEnd = new Date(booking.end);
 
-              // Check for overlap
-              if (bookingStart < slotEnd && bookingEnd > slotStart) {
+              // Check for overlap using UTC-based comparison
+              if (doUTCRangesOverlap(bookingStart, bookingEnd, slotStart, slotEnd)) {
                 // If the booking completely covers the slot, it's booked
                 if (bookingStart <= slotStart && bookingEnd >= slotEnd) {
                   status = "booked";
@@ -297,6 +300,7 @@ export async function GET(
         type: c.type,
         indoor: c.indoor,
         sportType: c.sportType || "PADEL",
+        courtFormat: c.courtFormat,
       })),
       mode: modeParam || "rolling",
     };

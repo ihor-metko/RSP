@@ -3,12 +3,15 @@
  */
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { clubLocalToUTCTime } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import type { WizardCourt, WizardStepDateTime } from "../types";
 
 const MINUTES_PER_HOUR = 60;
 
 interface UseWizardCourtsOptions {
   clubId: string | null;
+  clubTimezone: string | null | undefined;
   dateTime: WizardStepDateTime;
 }
 
@@ -26,6 +29,7 @@ interface UseWizardCourtsReturn {
  */
 export function useWizardCourts({
   clubId,
+  clubTimezone,
   dateTime,
 }: UseWizardCourtsOptions): UseWizardCourtsReturn {
   const t = useTranslations();
@@ -43,9 +47,16 @@ export function useWizardCourts({
 
     try {
       const { date, startTime, duration } = dateTime;
+      
+      // Get club timezone (with fallback to default)
+      const timezone = getClubTimezone(clubTimezone);
+      
+      // Convert club local time to UTC time string (HH:MM format) for API
+      const utcTimeString = clubLocalToUTCTime(date, startTime, timezone);
+      
       const params = new URLSearchParams({
         date,
-        start: startTime,
+        start: utcTimeString, // Send UTC time
         duration: duration.toString(),
       });
 
@@ -103,7 +114,7 @@ export function useWizardCourts({
     } finally {
       setIsLoading(false);
     }
-  }, [clubId, dateTime, t]);
+  }, [clubId, clubTimezone, dateTime, t]);
 
   return {
     courts,

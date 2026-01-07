@@ -1,6 +1,10 @@
 /**
  * Slot blocking utility for WeeklyAvailabilityTimeline
  * 
+ * @deprecated This function is currently used for testing the blocking logic only.
+ * The actual blocking implementation in WeeklyAvailabilityTimeline is done inline
+ * with timezone conversion to properly handle club timezones.
+ * 
  * BLOCKING RULES (client-side):
  * - Past days: Any day before the current local date is blocked
  * - Today: Slots with slotStartHour < currentLocalHour are blocked

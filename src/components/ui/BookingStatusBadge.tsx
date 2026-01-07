@@ -49,12 +49,14 @@ export function BookingStatusBadge({
   
   // Map status to translation key
   const translationMap: Record<string, string> = {
-    active: t("adminBookings.bookingStatusActive"),
+    upcoming: t("adminBookings.bookingStatusUpcoming"),
     cancelled: t("adminBookings.bookingStatusCancelled"),
     completed: t("adminBookings.bookingStatusCompleted"),
     "no-show": t("adminBookings.bookingStatusNoShow"),
-    pending: t("adminBookings.bookingStatusPending"),
+    confirmed: t("adminBookings.bookingStatusConfirmed"),
     // Legacy statuses for backward compatibility
+    active: t("adminBookings.bookingStatusUpcoming"), // Map old Active to new Upcoming
+    pending: t("adminBookings.bookingStatusConfirmed"), // Map old Pending to new Confirmed
     paid: t("adminBookings.statusPaid"),
     reserved: t("adminBookings.statusReserved"),
     ongoing: t("adminBookings.statusOngoing"),

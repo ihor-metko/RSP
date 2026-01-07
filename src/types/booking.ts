@@ -2,28 +2,64 @@ import { SportType } from "@/constants/sports";
 
 /**
  * Booking status - represents the state of the reservation
- * - Active: Booking is active and confirmed
+ * - UPCOMING: Booking is confirmed and scheduled for the future
  * - Cancelled: Booking has been cancelled
  * - Completed: Booking has been completed
  * - No-show: User did not show up for the booking
- * - Pending: Booking is awaiting confirmation
+ * - Confirmed: Booking is confirmed and awaiting payment
  */
-export type BookingStatus = "Active" | "Cancelled" | "Completed" | "No-show" | "Pending";
+export type BookingStatus = "UPCOMING" | "Cancelled" | "Completed" | "No-show" | "Confirmed";
 
 /**
  * Payment status - represents the financial state of the booking
  * - Paid: Payment has been completed
  * - Unpaid: Payment has not been made
  * - Refunded: Payment has been fully refunded
- * - PartiallyRefunded: Payment has been partially refunded
- * - PaymentPending: Payment is being processed
  */
-export type PaymentStatus = "Paid" | "Unpaid" | "Refunded" | "PartiallyRefunded" | "PaymentPending";
+export type PaymentStatus = "Paid" | "Unpaid" | "Refunded";
+
+/**
+ * Payment status constants
+ */
+export const PAYMENT_STATUS = {
+  PAID: "Paid" as const,
+  UNPAID: "Unpaid" as const,
+  REFUNDED: "Refunded" as const,
+} as const;
+
+/**
+ * Booking status constants
+ */
+export const BOOKING_STATUS = {
+  UPCOMING: "UPCOMING" as const,
+  CANCELLED: "Cancelled" as const,
+  COMPLETED: "Completed" as const,
+  NO_SHOW: "No-show" as const,
+  CONFIRMED: "Confirmed" as const,
+} as const;
+
+/**
+ * Reservation expiration time in milliseconds (15 minutes)
+ */
+export const RESERVATION_EXPIRATION_MS = 15 * 60 * 1000;
 
 /**
  * Legacy status types (for backward compatibility during migration)
  */
 export type LegacyBookingStatus = "pending" | "paid" | "cancelled" | "reserved" | "no-show" | "completed" | "ongoing";
+
+/**
+ * Legacy status constants (for backward compatibility)
+ */
+export const LEGACY_STATUS = {
+  PENDING: "pending" as const,
+  PAID: "paid" as const,
+  CANCELLED: "cancelled" as const,
+  RESERVED: "reserved" as const,
+  NO_SHOW: "no-show" as const,
+  COMPLETED: "completed" as const,
+  ONGOING: "ongoing" as const,
+} as const;
 
 /**
  * Dynamic booking status types (calculated on the fly)
@@ -32,6 +68,23 @@ export type LegacyBookingStatus = "pending" | "paid" | "cancelled" | "reserved" 
  * - completed: now >= endAt
  */
 export type DynamicBookingStatus = "reserved" | "ongoing" | "completed";
+
+/**
+ * Cancel reason types
+ * - PAYMENT_TIMEOUT: Booking was cancelled because payment was not completed in time
+ * - USER_CANCELLED: User manually cancelled the booking
+ * - ADMIN_CANCELLED: Admin cancelled the booking
+ */
+export type CancelReason = "PAYMENT_TIMEOUT" | "USER_CANCELLED" | "ADMIN_CANCELLED";
+
+/**
+ * Cancel reason constants
+ */
+export const CANCEL_REASON = {
+  PAYMENT_TIMEOUT: "PAYMENT_TIMEOUT" as const,
+  USER_CANCELLED: "USER_CANCELLED" as const,
+  ADMIN_CANCELLED: "ADMIN_CANCELLED" as const,
+} as const;
 
 /**
  * Basic booking type
@@ -48,6 +101,7 @@ export interface Booking {
   bookingStatus: BookingStatus;
   paymentStatus: PaymentStatus;
   paymentId: string | null;
+  cancelReason: string | null;
   createdAt: string;
 }
 

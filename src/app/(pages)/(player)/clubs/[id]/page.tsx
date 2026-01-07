@@ -15,9 +15,12 @@ import { Button, IMLink, ImageCarousel, CourtCarousel, EntityBanner, EmptyState 
 import { ClubMobileView } from "@/components/mobile-views";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { useProfileStore } from "@/stores/useProfileStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { useIsMobile } from "@/hooks";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
+import { getTodayStr, clubLocalToUTC, timeOfDayFromUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
 import "@/components/EntityPageLayout.css";
@@ -81,11 +84,6 @@ interface Slot {
   endTime: string;
 }
 
-// Helper to get today's date in YYYY-MM-DD format
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
 export default function ClubDetailPage({
   params,
 }: {
@@ -109,6 +107,9 @@ export default function ClubDetailPage({
   const user = useUserStore((state) => state.user);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isMobile = useIsMobile();
+
+  // Use profile store for invalidation after booking
+  const invalidateProfile = useProfileStore((state) => state.invalidateProfile);
 
   // Use centralized player club store
   // Split selectors to avoid circular dependencies
@@ -142,6 +143,18 @@ export default function ClubDetailPage({
       imageUrl: court.bannerData?.url || null,
     }));
   }, [rawCourts]);
+
+  // Derive available court types from courts (to avoid separate API call)
+  const availableCourtTypes = useMemo(() => {
+    const courtTypes = new Set<"SINGLE" | "DOUBLE">();
+    rawCourts.forEach(court => {
+      if (court.courtFormat === "SINGLE" || court.courtFormat === "DOUBLE") {
+        courtTypes.add(court.courtFormat);
+      }
+    });
+    return Array.from(courtTypes).sort(); // Sort for consistency
+  }, [rawCourts]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
   const [courtAvailability, setCourtAvailability] = useState<Record<string, AvailabilitySlot[]>>({});
@@ -167,7 +180,7 @@ export default function ClubDetailPage({
 
   // Fetch availability for all courts
   const fetchAvailability = useCallback(async (courts: Court[]) => {
-    const today = getTodayDateString();
+    const today = getTodayStr();
     setAvailabilityLoading(true);
 
     try {
@@ -293,6 +306,9 @@ export default function ClubDetailPage({
   };
 
   const handleQuickBookingComplete = () => {
+    // Invalidate profile store to trigger refresh when user navigates to profile
+    invalidateProfile();
+    
     // Refresh availability data after successful booking
     if (courts && courts.length > 0) {
       fetchAvailability(courts);
@@ -334,8 +350,14 @@ export default function ClubDetailPage({
       setIsAuthPromptOpen(true);
       return;
     }
-    const startDateTime = `${date}T${startTime}:00.000Z`;
-    const endDateTime = `${date}T${endTime}:00.000Z`;
+    
+    // Get club timezone with fallback to default
+    const clubTimezone = getClubTimezone(club?.timezone);
+    
+    // Convert club-local time to UTC before creating booking slot
+    const startDateTime = clubLocalToUTC(date, startTime, clubTimezone);
+    const endDateTime = clubLocalToUTC(date, endTime, clubTimezone);
+    
     setPreselectedSlot({ startTime: startDateTime, endTime: endDateTime });
     setSelectedCourtId(courtId);
     setIsCourtAvailabilityOpen(false);
@@ -364,8 +386,8 @@ export default function ClubDetailPage({
     setGalleryIndex(index);
   };
 
-  // Loading skeleton
-  if (loadingClubs && !club) {
+  // Loading skeleton - show while loading OR when no club data yet and no error
+  if (loadingClubs || (!club && !clubsError)) {
     return (
       <main className="rsp-club-detail-page">
         <div className="rsp-club-skeleton-hero" />
@@ -382,13 +404,11 @@ export default function ClubDetailPage({
     );
   }
 
-  // Error state
-  if (clubsError || (!loadingClubs && !club)) {
-    const errorMessage = clubsError
-      ? (clubsError.includes("404") || clubsError.includes("not found")
-        ? t("clubs.clubNotFound")
-        : clubsError)
-      : t("clubs.clubNotFound");
+  // Error state - only show when there's an actual API error
+  if (clubsError) {
+    const errorMessage = clubsError.includes("404") || clubsError.includes("not found")
+      ? t("clubs.clubNotFound")
+      : clubsError;
 
     return (
       <main className="rsp-club-detail-page p-8">
@@ -437,6 +457,17 @@ export default function ClubDetailPage({
         {isAuthenticated && (
           <PlayerQuickBooking
             preselectedClubId={club.id}
+            preselectedClubData={club ? {
+              id: club.id,
+              name: club.name,
+              slug: club.slug || null,
+              location: (club.address as { formattedAddress?: string })?.formattedAddress || "",
+              city: (club.address as { city?: string })?.city || null,
+              timezone: club.timezone || null,
+              bannerData: club.bannerData || null,
+              businessHours: club.businessHours || [],
+            } : undefined}
+            availableCourtTypes={availableCourtTypes.length > 0 ? availableCourtTypes : undefined}
             isOpen={isQuickBookingOpen}
             onClose={() => setIsQuickBookingOpen(false)}
             onBookingComplete={handleQuickBookingComplete}
@@ -536,10 +567,11 @@ export default function ClubDetailPage({
 
         {/* Weekly Availability Timeline */}
         {courts.length > 0 && (
-          <section className="rsp-club-timeline-section mt-8">
+          <section className="rsp-club-timeline-section">
             <WeeklyAvailabilityTimeline
               key={timelineKey}
               clubId={club.id}
+              clubTimezone={club.timezone}
               onSlotClick={handleTimelineSlotClick}
             />
           </section>
@@ -688,18 +720,31 @@ export default function ClubDetailPage({
                     {t("clubDetail.hours")}
                   </h2>
                   <div className="im-club-hours-list">
-                    {club.businessHours.map((hours) => (
-                      <div key={hours.id} className="im-club-hours-row">
-                        <span className="im-club-hours-day">{DAY_NAMES[hours.dayOfWeek]}</span>
-                        {hours.isClosed ? (
-                          <span className="im-club-hours-closed">{t("clubDetail.closed")}</span>
-                        ) : (
-                          <span className="im-club-hours-time">
-                            {hours.openTime} - {hours.closeTime}
-                          </span>
-                        )}
-                      </div>
-                    ))}
+                    {club.businessHours.map((hours) => {
+                      // Get club timezone with fallback
+                      const clubTimezone = getClubTimezone(club.timezone);
+                      
+                      // Convert UTC times to club-local times for display
+                      const displayOpenTime = hours.openTime && !hours.isClosed
+                        ? timeOfDayFromUTC(hours.openTime, clubTimezone)
+                        : hours.openTime;
+                      const displayCloseTime = hours.closeTime && !hours.isClosed
+                        ? timeOfDayFromUTC(hours.closeTime, clubTimezone)
+                        : hours.closeTime;
+                      
+                      return (
+                        <div key={hours.id} className="im-club-hours-row">
+                          <span className="im-club-hours-day">{DAY_NAMES[hours.dayOfWeek]}</span>
+                          {hours.isClosed ? (
+                            <span className="im-club-hours-closed">{t("clubDetail.closed")}</span>
+                          ) : (
+                            <span className="im-club-hours-time">
+                              {displayOpenTime} - {displayCloseTime}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -795,6 +840,17 @@ export default function ClubDetailPage({
       {isAuthenticated && (
         <PlayerQuickBooking
           preselectedClubId={club.id}
+          preselectedClubData={club ? {
+            id: club.id,
+            name: club.name,
+            slug: club.slug || null,
+            location: formattedAddress,
+            city: (club.address as { city?: string })?.city || null,
+            timezone: club.timezone || null,
+            bannerData: club.bannerData || null,
+            businessHours: club.businessHours || [],
+          } : undefined}
+          availableCourtTypes={availableCourtTypes.length > 0 ? availableCourtTypes : undefined}
           isOpen={isQuickBookingOpen}
           onClose={handleQuickBookingClose}
           onBookingComplete={handleQuickBookingComplete}

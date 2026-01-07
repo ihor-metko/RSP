@@ -10,6 +10,7 @@ export function UserRoleIndicator() {
   const clearUser = useUserStore(state => state.clearUser);
   const clearSocketToken = useAuthStore(state => state.clearSocketToken);
   const hasRole = useUserStore(state => state.hasRole);
+  const adminStatus = useUserStore(state => state.adminStatus);
   const isHydrated = useUserStore(state => state.isHydrated);
   const isLoading = useUserStore(state => state.isLoading);
   const user = useUserStore(state => state.user);
@@ -44,8 +45,9 @@ export function UserRoleIndicator() {
 
   const isRootAdmin = hasRole("ROOT_ADMIN");
   const isOrgAdmin = hasRole("ORGANIZATION_ADMIN");
-  const isClubOwner = hasRole("CLUB_OWNER");
-  const isClubAdmin = hasRole("CLUB_ADMIN");
+  // Club owners and admins are identified via adminStatus, not global roles
+  const isClubOwner = adminStatus?.adminType === "club_owner";
+  const isClubAdmin = adminStatus?.adminType === "club_admin";
 
   let roleLabel = t("admin.coaches.roles.player");
   let roleBgColor = "bg-green-500";

@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import { DAY_TRANSLATION_KEYS } from "@/constants/workingHours";
 import { IMLink } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
+import { timeOfDayFromUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import type { CourtDetail, CourtPriceRule } from "./types";
 import "./CourtPricingBlock.css";
 
@@ -11,8 +13,11 @@ interface CourtPricingBlockProps {
   court: CourtDetail;
 }
 
-function formatTimeRange(startTime: string, endTime: string): string {
-  return `${startTime} - ${endTime}`;
+function formatTimeRange(startTime: string, endTime: string, clubTimezone: string): string {
+  // Convert UTC times to club-local times for display
+  const localStart = timeOfDayFromUTC(startTime, clubTimezone);
+  const localEnd = timeOfDayFromUTC(endTime, clubTimezone);
+  return `${localStart} - ${localEnd}`;
 }
 
 // Map of ruleType to translation keys
@@ -64,6 +69,9 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
   const t = useTranslations();
   const hasRules = court.courtPriceRules && court.courtPriceRules.length > 0;
   const groupedRules = groupRulesByType(court.courtPriceRules || []);
+  
+  // Get club timezone for time conversion
+  const clubTimezone = getClubTimezone(court.club?.timezone);
 
   return (
     <div className="im-block im-court-pricing-block">
@@ -115,7 +123,7 @@ export function CourtPricingBlock({ court }: CourtPricingBlockProps) {
                       <div key={rule.id} className="im-pricing-rule-item">
                         <div className="im-pricing-rule-details">
                           <span className="im-pricing-rule-time">
-                            {formatTimeRange(rule.startTime, rule.endTime)}
+                            {formatTimeRange(rule.startTime, rule.endTime, clubTimezone)}
                           </span>
                           {rule.ruleType === "SPECIFIC_DAY" && rule.dayOfWeek !== null && (
                             <span className="im-pricing-rule-day-label">

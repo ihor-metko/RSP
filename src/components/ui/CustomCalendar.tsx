@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import "./CustomCalendar.css";
 
 interface CustomCalendarProps {
@@ -56,6 +57,7 @@ export function CustomCalendar({
   className = "",
   ariaLabel = "Select date",
 }: CustomCalendarProps) {
+  const t = useTranslations("common");
   const [viewDate, setViewDate] = useState(() => {
     if (value) return new Date(value);
     if (rangeStart) return new Date(rangeStart);
@@ -98,8 +100,16 @@ export function CustomCalendar({
   // Check if date is disabled
   const isDateDisabled = (date: Date | null): boolean => {
     if (!date) return true;
-    if (minDateObj && date < minDateObj) return true;
-    if (maxDateObj && date > maxDateObj) return true;
+    // Compare dates at midnight to avoid time component issues
+    const dateAtMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    if (minDateObj) {
+      const minAtMidnight = new Date(minDateObj.getFullYear(), minDateObj.getMonth(), minDateObj.getDate());
+      if (dateAtMidnight < minAtMidnight) return true;
+    }
+    if (maxDateObj) {
+      const maxAtMidnight = new Date(maxDateObj.getFullYear(), maxDateObj.getMonth(), maxDateObj.getDate());
+      if (dateAtMidnight > maxAtMidnight) return true;
+    }
     return false;
   };
 
@@ -213,12 +223,16 @@ export function CustomCalendar({
     }
   }, [focusedDate]);
 
+  // Get month and day names from translations
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
+    t("january"), t("february"), t("march"), t("april"), t("may"), t("june"),
+    t("july"), t("august"), t("september"), t("october"), t("november"), t("december")
   ];
 
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weekDays = [
+    t("sundayShort"), t("mondayShort"), t("tuesdayShort"), t("wednesdayShort"),
+    t("thursdayShort"), t("fridayShort"), t("saturdayShort")
+  ];
 
   return (
     <div 

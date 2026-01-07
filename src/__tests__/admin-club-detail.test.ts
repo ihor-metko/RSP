@@ -55,7 +55,7 @@ describe("Admin Club Detail API - GET", () => {
     openingHours: null,
     logo: "/uploads/logo.jpg",
     heroImage: "/uploads/hero.jpg",
-    defaultCurrency: "USD",
+    defaultCurrency: "UAH",
     timezone: "UTC",
     isPublic: true,
     tags: null,

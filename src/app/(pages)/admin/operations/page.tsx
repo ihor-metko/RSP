@@ -27,10 +27,10 @@ export default function OperationsListPage() {
   // Club store
   const { fetchClubsIfNeeded, loading: loadingClubs } = useAdminClubStore();
 
-  // Check access permissions and redirect Club Admins
+  // Check access permissions and redirect Club Admins/Owners
   useEffect(() => {
-    // Auto-redirect Club Admins to their assigned club
-    if (adminStatus?.adminType === "club_admin" && adminStatus.assignedClub) {
+    // Auto-redirect Club Admins/Owners to their assigned club
+    if ((adminStatus?.adminType === "club_admin" || adminStatus?.adminType === "club_owner") && adminStatus.assignedClub) {
       router.replace(`/admin/operations/${adminStatus.assignedClub.id}`);
       return;
     }

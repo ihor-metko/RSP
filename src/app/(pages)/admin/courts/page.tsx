@@ -153,7 +153,7 @@ export default function AdminCourtsPage() {
 
   // Determine permissions based on admin type
   const canCreate = (adminType: AdminType | undefined): boolean =>
-    adminType === "root_admin" || adminType === "club_admin";
+    adminType === "root_admin" || adminType === "club_admin" || adminType === "club_owner";
 
   const showOrganizationFilter = adminStatus?.adminType === "root_admin";
   const showClubFilter =

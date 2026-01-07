@@ -6,11 +6,16 @@ import type { OperationsBooking } from "@/types/booking";
 import { migrateLegacyStatus } from "@/utils/bookingStatus";
 import { DEFAULT_SPORT_TYPE } from "@/constants/sports";
 import { updateStatisticsForBooking } from "@/services/statisticsService";
+import { isValidUTCString } from "@/utils/utcDateTime";
 
 /**
  * POST /api/admin/bookings/create
  * Create a booking as an admin (no payment required)
  * Admins can book for any user
+ * 
+ * IMPORTANT TIMEZONE RULE:
+ * This endpoint expects startTime and endTime in UTC ISO 8601 format (e.g., "2026-01-06T10:00:00.000Z")
+ * Frontend MUST convert club local time to UTC before sending the request
  */
 export async function POST(request: Request) {
   const authResult = await requireAnyAdmin(request);
@@ -33,6 +38,21 @@ export async function POST(request: Request) {
     if (!userId || !courtId || !startTime || !endTime) {
       return NextResponse.json(
         { error: "Missing required fields: userId, courtId, startTime, endTime" },
+        { status: 400 }
+      );
+    }
+
+    // Validate UTC format - CRITICAL for timezone safety
+    if (!isValidUTCString(startTime)) {
+      return NextResponse.json(
+        { error: "Invalid startTime format. Must be UTC ISO 8601 format (e.g., '2026-01-06T10:00:00.000Z')" },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidUTCString(endTime)) {
+      return NextResponse.json(
+        { error: "Invalid endTime format. Must be UTC ISO 8601 format (e.g., '2026-01-06T10:00:00.000Z')" },
         { status: 400 }
       );
     }
@@ -87,8 +107,8 @@ export async function POST(request: Request) {
     }
 
     // Check admin permissions
-    if (authResult.adminType === "club_admin") {
-      // Club admin can only book for their managed clubs
+    if (authResult.adminType === "club_admin" || authResult.adminType === "club_owner") {
+      // Club admin/owner can only book for their managed clubs
       if (!authResult.managedIds.includes(court.club.id)) {
         return NextResponse.json(
           { error: "You don't have permission to create bookings for this club" },
@@ -126,33 +146,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check for conflicting bookings
+    // Check for conflicting bookings using UTC-based overlap detection
+    // This checks if any existing booking overlaps with the requested new booking time slot
     const conflictingBooking = await prisma.booking.findFirst({
       where: {
         courtId,
         status: {
           in: ["pending", "paid", "reserved"],
         },
-        OR: [
-          {
-            AND: [
-              { start: { lte: start } },
-              { end: { gt: start } },
-            ],
-          },
-          {
-            AND: [
-              { start: { lt: end } },
-              { end: { gte: end } },
-            ],
-          },
-          {
-            AND: [
-              { start: { gte: start } },
-              { end: { lte: end } },
-            ],
-          },
-        ],
+        // Overlap logic: existing booking starts before new booking ends AND ends after new booking starts
+        start: { lt: end },   // Existing booking starts before new booking ends
+        end: { gt: start },   // Existing booking ends after new booking starts
       },
     });
 
@@ -168,8 +172,8 @@ export async function POST(request: Request) {
       (end.getTime() - start.getTime()) / (1000 * 60)
     );
 
-    // Fetch price timeline
-    const startTimeStr = `${start.getHours().toString().padStart(2, "0")}:${start.getMinutes().toString().padStart(2, "0")}`;
+    // Fetch price timeline - use UTC time for price lookup
+    const startTimeStr = `${start.getUTCHours().toString().padStart(2, "0")}:${start.getUTCMinutes().toString().padStart(2, "0")}`;
     const dateStr = start.toISOString().split("T")[0];
 
     let priceCents = Math.round((court.defaultPriceCents / 60) * durationMinutes);

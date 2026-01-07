@@ -46,7 +46,7 @@ interface CourtFormData {
   name: string;
   slug: string;
   type: string;
-  padelCourtFormat: string; // "single" | "double" - only for padel courts
+  courtFormat: string; // "SINGLE" | "DOUBLE" - only for padel courts
   surface: string;
   indoor: boolean;
   shortDescription: string;
@@ -73,12 +73,12 @@ const defaultFormValues: CourtFormData = {
   name: "",
   slug: "",
   type: "",
-  padelCourtFormat: "",
+  courtFormat: "",
   surface: "",
   indoor: false,
   shortDescription: "",
   defaultPrice: 0,
-  currency: "USD",
+  currency: "UAH",
   defaultSlotLengthMinutes: 60,
   courtOpenTime: "",
   courtCloseTime: "",
@@ -106,7 +106,6 @@ export default function CreateCourtPage() {
 
   // User store for auth and role checks
   const hasRole = useUserStore(state => state.hasRole);
-  const hasAnyRole = useUserStore(state => state.hasAnyRole);
   const adminStatus = useUserStore(state => state.adminStatus);
   const isHydrated = useUserStore(state => state.isHydrated);
   const isLoading = useUserStore(state => state.isLoading);
@@ -128,7 +127,8 @@ export default function CreateCourtPage() {
   // Determine which steps to show based on user role
   const isRootAdmin = hasRole("ROOT_ADMIN");
   const isOrgAdmin = hasRole("ORGANIZATION_ADMIN");
-  const isClubAdmin = hasRole("CLUB_ADMIN");
+  // Club admins and club owners are identified via adminStatus, not global roles
+  const isClubLevelAdmin = adminStatus?.adminType === "club_admin" || adminStatus?.adminType === "club_owner";
 
   // Build tabs array based on role
   const ALL_TABS = useMemo(() => {
@@ -267,21 +267,21 @@ export default function CreateCourtPage() {
       setValue("organizationId", orgId);
     }
 
-    if (isClubAdmin && adminStatus?.managedIds && adminStatus.managedIds.length > 0) {
-      // For club admin, pre-select their club (organizationId will be populated when club data loads)
+    if (isClubLevelAdmin && adminStatus?.managedIds && adminStatus.managedIds.length > 0) {
+      // For club admin/owner, pre-select their club (organizationId will be populated when club data loads)
       const clubId = adminStatus.managedIds[0];
       setValue("clubId", clubId);
     }
-  }, [isOrgAdmin, isClubAdmin, adminStatus, setValue]);
+  }, [isOrgAdmin, isClubLevelAdmin, adminStatus, setValue]);
 
-  // Auth check - allow any admin
+  // Auth check - allow any admin (root, org admin, club owner, or club admin)
   useEffect(() => {
     if (!isHydrated || isLoading) return;
 
-    if (!isLoggedIn || !hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"])) {
+    if (!isLoggedIn || !adminStatus?.isAdmin) {
       router.push("/auth/sign-in");
     }
-  }, [isLoggedIn, isLoading, hasAnyRole, router, isHydrated]);
+  }, [isLoggedIn, isLoading, adminStatus, router, isHydrated]);
 
   const showToast = useCallback((type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -497,9 +497,9 @@ export default function CreateCourtPage() {
           break;
         case "basic":
           fieldsToValidate = ["name", "slug"];
-          // Add padelCourtFormat validation only if type is padel
+          // Add courtFormat validation only if type is padel
           if (watch("type") === "padel") {
-            fieldsToValidate.push("padelCourtFormat");
+            fieldsToValidate.push("courtFormat");
           }
           break;
         case "pricing-schedule":
@@ -552,20 +552,15 @@ export default function CreateCourtPage() {
     setError(null);
 
     try {
-      // Build metadata for padel courts
-      const metadata: Record<string, unknown> = {};
-      if (data.type === "padel" && data.padelCourtFormat) {
-        metadata.padelCourtFormat = data.padelCourtFormat;
-      }
-
       // Build payload
       const payload = {
         name: data.name.trim(),
         slug: data.slug.trim() || null,
         type: data.type || null,
+        courtFormat: data.type === "padel" && data.courtFormat ? data.courtFormat.toUpperCase() : null,
         surface: data.surface || null,
         indoor: data.indoor,
-        shortDescription: data.shortDescription || null,
+        description: data.shortDescription || null,
         defaultPriceCents: dollarsToCents(data.defaultPrice),
         defaultSlotLengthMinutes: data.defaultSlotLengthMinutes,
         // No courtOpenTime/courtCloseTime - courts inherit club schedule
@@ -573,11 +568,10 @@ export default function CreateCourtPage() {
         gallery: data.gallery
           .filter((img) => img.url && !img.error)
           .map((img) => ({ url: img.url, alt: img.alt })),
-        visibility,
+        isPublished: visibility === "published",
         tags: data.tags || null,
         maxPlayers: data.maxPlayers || null,
         notes: data.notes || null,
-        metadata: Object.keys(metadata).length > 0 ? JSON.stringify(metadata) : null,
       };
 
       const response = await fetch(`/api/admin/clubs/${targetClubId}/courts`, {
@@ -601,9 +595,9 @@ export default function CreateCourtPage() {
 
       showToast("success", t("admin.courts.new.toast.courtCreatedSuccess"));
 
-      // Redirect to admin courts list page
+      // Redirect to the newly created court detail page
       setTimeout(() => {
-        router.push("/admin/courts");
+        router.push(`/admin/courts/${result.id}`);
       }, 1500);
     } catch (err) {
       const message = err instanceof Error ? err.message : t("admin.courts.new.errors.failedToCreateCourt");
@@ -731,23 +725,23 @@ export default function CreateCourtPage() {
       {watch("type") === "padel" && (
         <div className="im-tab-section">
           <Controller
-            name="padelCourtFormat"
+            name="courtFormat"
             control={control}
             rules={{
-              required: watch("type") === "padel" ? t("admin.courts.new.errors.padelCourtFormatRequired") : false,
+              required: watch("type") === "padel" ? t("admin.courts.new.errors.courtFormatRequired") : false,
             }}
             render={({ field }) => (
               <RadioGroup
-                label={t("admin.courts.new.basicTab.padelCourtFormat") + " *"}
-                name="padelCourtFormat"
+                label={t("admin.courts.new.basicTab.courtFormat") + " *"}
+                name="courtFormat"
                 options={[
                   {
-                    value: "single",
-                    label: t("admin.courts.new.basicTab.padelCourtFormatSingle"),
+                    value: "SINGLE",
+                    label: t("admin.courts.new.basicTab.courtFormatSingle"),
                   },
                   {
-                    value: "double",
-                    label: t("admin.courts.new.basicTab.padelCourtFormatDouble"),
+                    value: "DOUBLE",
+                    label: t("admin.courts.new.basicTab.courtFormatDouble"),
                   },
                 ]}
                 value={field.value}
@@ -756,8 +750,8 @@ export default function CreateCourtPage() {
               />
             )}
           />
-          {errors.padelCourtFormat && (
-            <span className="im-error-text">{errors.padelCourtFormat.message}</span>
+          {errors.courtFormat && (
+            <span className="im-error-text">{errors.courtFormat.message}</span>
           )}
         </div>
       )}

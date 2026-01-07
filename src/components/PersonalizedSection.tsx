@@ -8,6 +8,8 @@ import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { formatPrice } from "@/utils/price";
 import { formatDateWithWeekday, formatTime, formatDateLong } from "@/utils/date";
+import { getTodayStr, clubLocalToUTC, clubLocalToUTCTime } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import "./PersonalizedSection.css";
 
 interface UpcomingBooking {
@@ -55,12 +57,7 @@ type PaymentMethod = "card" | "apple_pay" | "google_pay";
 const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 22;
 const MINUTES_PER_HOUR = 60;
-const DURATION_OPTIONS = [30, 60, 90, 120];
-
-// Get today's date in YYYY-MM-DD format
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
-}
+const DURATION_OPTIONS = [60, 90, 120];
 
 // Generate time options for the dropdown
 function generateTimeOptions(): string[] {
@@ -128,7 +125,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardStep, setWizardStep] = useState(1);
   const [selectedClubId, setSelectedClubId] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>(getTodayDateString());
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayStr());
   const [selectedStartTime, setSelectedStartTime] = useState<string>("10:00");
   const [selectedDuration, setSelectedDuration] = useState<number>(60);
   const [availableCourts, setAvailableCourts] = useState<WizardCourt[]>([]);
@@ -188,9 +185,18 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     setCourtsError(null);
 
     try {
+      // Get selected club to access its timezone
+      const selectedClub = clubs.find(c => c.id === selectedClubId);
+      
+      // Get club timezone (with fallback to default)
+      const clubTimezone = getClubTimezone(selectedClub?.timezone);
+      
+      // Convert club local time to UTC time string (HH:MM format) for API
+      const utcTimeString = clubLocalToUTCTime(selectedDate, selectedStartTime, clubTimezone);
+      
       const params = new URLSearchParams({
         date: selectedDate,
-        start: selectedStartTime,
+        start: utcTimeString, // Send UTC time
         duration: selectedDuration.toString(),
       });
 
@@ -243,7 +249,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     } finally {
       setIsLoadingCourts(false);
     }
-  }, [selectedClubId, selectedDate, selectedStartTime, selectedDuration, t]);
+  }, [selectedClubId, selectedDate, selectedStartTime, selectedDuration, clubs, t]);
 
   // Fetch estimated price when date/time/duration changes in step 2
   useEffect(() => {
@@ -312,9 +318,26 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     setSubmitError(null);
 
     try {
-      const startDateTime = `${selectedDate}T${selectedStartTime}:00.000Z`;
-      const endTime = calculateEndTime(selectedStartTime, selectedDuration);
-      const endDateTime = `${selectedDate}T${endTime}:00.000Z`;
+      // Get selected club to access timezone
+      const selectedClub = clubs.find(c => c.id === selectedClubId);
+      
+      // Validate that we have the club data
+      if (!selectedClub) {
+        setSubmitError(t("auth.errorOccurred"));
+        setIsSubmitting(false);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Selected club not found in clubs list:', selectedClubId);
+        }
+        return;
+      }
+      
+      // Get club timezone with fallback to default
+      const clubTimezone = getClubTimezone(selectedClub.timezone);
+      
+      // Convert club-local time to UTC before sending to API
+      const startDateTime = clubLocalToUTC(selectedDate, selectedStartTime, clubTimezone);
+      const endTimeLocal = calculateEndTime(selectedStartTime, selectedDuration);
+      const endDateTime = clubLocalToUTC(selectedDate, endTimeLocal, clubTimezone);
 
       const response = await fetch("/api/bookings", {
         method: "POST",
@@ -369,7 +392,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
     setIsWizardOpen(true);
     setWizardStep(1);
     setSelectedClubId("");
-    setSelectedDate(getTodayDateString());
+    setSelectedDate(getTodayStr());
     setSelectedStartTime("10:00");
     setSelectedDuration(60);
     setAvailableCourts([]);
@@ -676,7 +699,7 @@ export function PersonalizedSection({ userName }: PersonalizedSectionProps) {
                       className="rsp-wizard-input"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      min={getTodayDateString()}
+                      min={getTodayStr()}
                     />
                   </div>
 

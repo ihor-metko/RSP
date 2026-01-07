@@ -3,9 +3,9 @@
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Modal, Tabs, TabList, Tab, TabPanel, ConfirmationModal } from "@/components/ui";
-import { BaseInfoTab, AddressTab, LogoTab, BannerTab } from "@/components/admin/EntityTabs";
+import { BaseInfoTab, AddressTab, LogoTab, BannerTab, TimezoneTab } from "@/components/admin/EntityTabs";
 import { useAdminClubStore } from "@/stores/useAdminClubStore";
-import type { BaseInfoData, AddressData, LogoData, BannerData } from "@/components/admin/EntityTabs";
+import type { BaseInfoData, AddressData, LogoData, BannerData, TimezoneData } from "@/components/admin/EntityTabs";
 import type { ClubDetail, LogoData as ClubLogoData, BannerData as ClubBannerData } from "@/types/club";
 import "@/components/admin/EntityTabs/EntityTabs.css";
 
@@ -81,6 +81,10 @@ export function ClubEditor({
   const bannerData: BannerData = {
     heroImage: parsedBannerData?.url ? { url: parsedBannerData.url, key: "", preview: parsedBannerData.url } : null,
     bannerAlignment: parsedBannerData?.bannerAlignment || 'center',
+  };
+
+  const timezoneData: TimezoneData = {
+    timezone: club.timezone,
   };
 
   const handleTabChange = useCallback(async (newTabId: string) => {
@@ -294,6 +298,31 @@ export function ClubEditor({
     setHasUnsavedChanges(false);
   }, [club.id, parsedBannerData, onRefresh, t]);
 
+  const handleTimezoneSave = useCallback(async (data: TimezoneData) => {
+    const response = await fetch(`/api/admin/clubs/${club.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        timezone: data.timezone,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: "Invalid response format" }));
+      throw new Error(errorData.error || t("clubDetail.failedToSaveChanges"));
+    }
+
+    // Get updated club data from response
+    const updatedClub = await response.json().catch(() => {
+      throw new Error("Invalid response format");
+    });
+
+    // Update store reactively - no page reload needed
+    updateClubInStore(club.id, updatedClub);
+
+    setHasUnsavedChanges(false);
+  }, [club.id, t, updateClubInStore]);
+
   return (
     <>
       <Modal
@@ -344,6 +373,16 @@ export function ClubEditor({
                 </svg>
               }
             />
+            <Tab
+              id="timezone"
+              label={t("clubs.tabs.timezone.tabLabel")}
+              icon={
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+              }
+            />
           </TabList>
 
           <TabPanel id="baseInfo">
@@ -374,6 +413,14 @@ export function ClubEditor({
             <BannerTab
               initialData={bannerData}
               onSave={handleBannerSave}
+              translationNamespace="clubs.tabs"
+            />
+          </TabPanel>
+
+          <TabPanel id="timezone">
+            <TimezoneTab
+              initialData={timezoneData}
+              onSave={handleTimezoneSave}
               translationNamespace="clubs.tabs"
             />
           </TabPanel>

@@ -28,7 +28,7 @@
 }
 
 .im-public-footer-container {
-  @apply w-7xl mx-auto;
+  @apply w-7xl mx-auto w-full;
 }
 
 .im-public-footer-grid {

@@ -4,6 +4,8 @@ import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Modal, Button, Card, Select } from "@/components/ui";
 import { formatPrice } from "@/utils/price";
+import { filterPastTimeSlots, getTodayStr, clubLocalToUTCTime } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import "./QuickBookingModal.css";
 
 interface AvailableCourt {
@@ -19,6 +21,7 @@ interface AvailableCourt {
 
 interface QuickBookingModalProps {
   clubId: string;
+  clubTimezone?: string | null; // IANA timezone string
   isOpen: boolean;
   onClose: () => void;
   onSelectCourt: (courtId: string, date: string, startTime: string, endTime: string, priceCents?: number) => void;
@@ -27,11 +30,6 @@ interface QuickBookingModalProps {
 // Business hours configuration
 const BUSINESS_START_HOUR = 9;
 const BUSINESS_END_HOUR = 22;
-
-// Get today's date in YYYY-MM-DD format
-function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
-}
 
 // Generate time options for the dropdown
 function generateTimeOptions(): string[] {
@@ -44,33 +42,50 @@ function generateTimeOptions(): string[] {
   return options;
 }
 
-const TIME_OPTIONS = generateTimeOptions();
-const DURATION_OPTIONS = [30, 60, 90, 120];
+const DURATION_OPTIONS = [60, 90, 120, 150, 180];
+const DEFAULT_DURATION = 120; // 2 hours
 
 export function QuickBookingModal({
   clubId,
+  clubTimezone,
   isOpen,
   onClose,
   onSelectCourt,
 }: QuickBookingModalProps) {
   const t = useTranslations();
-  const [date, setDate] = useState<string>(getTodayDateString());
-  const [startTime, setStartTime] = useState<string>("10:00");
-  const [duration, setDuration] = useState<number>(60);
+  const [date, setDate] = useState<string>(getTodayStr());
+  const [startTime, setStartTime] = useState<string>("");
+  const [duration, setDuration] = useState<number>(DEFAULT_DURATION);
   const [availableCourts, setAvailableCourts] = useState<AvailableCourt[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Filter time options to exclude past times for today
+  // Pass club timezone to ensure correct filtering in club's local time
+  const timeOptions = filterPastTimeSlots(generateTimeOptions(), date, clubTimezone || undefined);
+
   const handleFindCourts = useCallback(async () => {
+    // Don't search if startTime is not selected
+    if (!startTime) {
+      setError(t("booking.quickBooking.selectStartTimeFirst"));
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setHasSearched(true);
 
     try {
+      // Get club timezone (with fallback to default)
+      const timezone = getClubTimezone(clubTimezone);
+      
+      // Convert club local time to UTC time string (HH:MM format) for API
+      const utcTimeString = clubLocalToUTCTime(date, startTime, timezone);
+
       const params = new URLSearchParams({
         date,
-        start: startTime,
+        start: utcTimeString, // Send UTC time
         duration: duration.toString(),
       });
       const response = await fetch(
@@ -125,7 +140,7 @@ export function QuickBookingModal({
     } finally {
       setIsLoading(false);
     }
-  }, [clubId, date, startTime, duration, t]);
+  }, [clubId, clubTimezone, date, startTime, duration, t]);
 
   const handleSelectCourt = (court: AvailableCourt) => {
     // Calculate end time based on start time and duration
@@ -184,7 +199,7 @@ export function QuickBookingModal({
               className="tm-booking-select"
               value={date}
               onChange={(e) => handleDateChange(e.target.value)}
-              min={getTodayDateString()}
+              min={getTodayStr()}
               disabled={isLoading}
             />
           </div>
@@ -193,13 +208,14 @@ export function QuickBookingModal({
           <Select
             id="quick-booking-time"
             label={t("booking.quickBooking.startTime")}
-            options={TIME_OPTIONS.map((time) => ({
+            options={timeOptions.map((time) => ({
               value: time,
               label: time,
             }))}
             value={startTime}
             onChange={(value) => handleTimeChange(value)}
             disabled={isLoading}
+            placeholder={t("booking.quickBooking.selectStartTime")}
             className="tm-booking-select"
           />
 
@@ -219,7 +235,7 @@ export function QuickBookingModal({
 
           {/* Find courts button */}
           <div className="tm-quick-booking-search">
-            <Button onClick={handleFindCourts} disabled={isLoading}>
+            <Button onClick={handleFindCourts} disabled={isLoading || !startTime}>
               {isLoading ? t("booking.quickBooking.searching") : t("booking.quickBooking.findAvailableCourts")}
             </Button>
           </div>

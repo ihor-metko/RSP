@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { shouldMarkAsCompleted } from "@/utils/bookingStatus";
+import { shouldMarkAsCompleted, shouldCancelUnpaidBooking } from "@/utils/bookingStatus";
+import { BOOKING_STATUS, PAYMENT_STATUS, CANCEL_REASON } from "@/types/booking";
+import { sendBookingCancellationEmail } from "@/services/emailService";
 
 /**
  * Validate cron authentication
@@ -34,6 +36,7 @@ function validateCronAuth(request: Request): boolean {
  * Cron job endpoint to update persistent booking statuses.
  * This should be called periodically (e.g., every hour) to:
  * - Mark completed bookings as "completed" in the database
+ * - Cancel unpaid bookings that have exceeded payment timeout
  * 
  * This endpoint should be protected by:
  * 1. A secret token in production (Vercel Cron, etc.)
@@ -53,6 +56,116 @@ export async function POST(request: Request) {
 
     const now = new Date();
     
+    // STEP 1: Cancel unpaid bookings that exceeded payment timeout
+    // Find bookings with Confirmed status and Unpaid payment where reservationExpiresAt has passed
+    const unpaidBookings = await prisma.booking.findMany({
+      where: {
+        bookingStatus: BOOKING_STATUS.CONFIRMED,
+        paymentStatus: PAYMENT_STATUS.UNPAID,
+        reservationExpiresAt: {
+          not: null, // Only consider bookings with reservationExpiresAt set
+          lt: now, // Reservation has expired
+        },
+      },
+      select: {
+        id: true,
+        bookingStatus: true,
+        paymentStatus: true,
+        reservationExpiresAt: true,
+        start: true,
+        end: true,
+        user: {
+          select: {
+            email: true,
+            name: true,
+          },
+        },
+        court: {
+          select: {
+            name: true,
+            club: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Filter bookings that should be cancelled
+    const bookingsToCancelIds: string[] = [];
+    const cancellationNotifications: Array<{
+      userEmail: string;
+      userName: string | null;
+      courtName: string;
+      clubName: string;
+      startTime: string;
+      endTime: string;
+    }> = [];
+
+    for (const booking of unpaidBookings) {
+      if (
+        shouldCancelUnpaidBooking(
+          booking.bookingStatus,
+          booking.paymentStatus,
+          booking.reservationExpiresAt,
+          now
+        )
+      ) {
+        bookingsToCancelIds.push(booking.id);
+        cancellationNotifications.push({
+          userEmail: booking.user.email,
+          userName: booking.user.name,
+          courtName: booking.court.name,
+          clubName: booking.court.club.name,
+          startTime: booking.start.toISOString(),
+          endTime: booking.end.toISOString(),
+        });
+      }
+    }
+
+    // Cancel bookings that exceeded payment timeout
+    let cancelledCount = 0;
+    if (bookingsToCancelIds.length > 0) {
+      const cancelResult = await prisma.booking.updateMany({
+        where: {
+          id: {
+            in: bookingsToCancelIds,
+          },
+        },
+        data: {
+          bookingStatus: BOOKING_STATUS.CANCELLED,
+          status: "cancelled", // Update legacy status as well
+          cancelReason: CANCEL_REASON.PAYMENT_TIMEOUT, // Set cancel reason for activity history
+        },
+      });
+      cancelledCount = cancelResult.count;
+
+      // Send cancellation notifications concurrently (non-blocking)
+      const emailPromises = cancellationNotifications.map((notification) =>
+        sendBookingCancellationEmail({
+          to: notification.userEmail,
+          userName: notification.userName || undefined,
+          courtName: notification.courtName,
+          clubName: notification.clubName,
+          startTime: notification.startTime,
+          endTime: notification.endTime,
+        }).catch((error) => {
+          // Log but don't fail the cron job if email fails
+          console.error(
+            `[Cron] Failed to send cancellation email to ${notification.userEmail}:`,
+            error
+          );
+          return { success: false, error };
+        })
+      );
+      
+      // Wait for all emails to complete (or fail)
+      await Promise.allSettled(emailPromises);
+    }
+
+    // STEP 2: Mark completed bookings as "completed" in the database
     // Find all bookings that have ended but are not in a terminal state
     const bookingsToUpdate = await prisma.booking.findMany({
       where: {
@@ -78,7 +191,7 @@ export async function POST(request: Request) {
       .map((booking) => booking.id);
 
     // Update bookings to completed status
-    let updatedCount = 0;
+    let completedCount = 0;
     if (bookingIdsToComplete.length > 0) {
       const updateResult = await prisma.booking.updateMany({
         where: {
@@ -88,21 +201,23 @@ export async function POST(request: Request) {
         },
         data: {
           status: "completed",
+          bookingStatus: BOOKING_STATUS.COMPLETED,
         },
       });
-      updatedCount = updateResult.count;
+      completedCount = updateResult.count;
     }
 
     // Log results
     if (process.env.NODE_ENV === "development") {
       console.log(
-        `[Cron] Booking status update completed. Updated ${updatedCount} bookings to 'completed'.`
+        `[Cron] Booking status update completed. Cancelled ${cancelledCount} unpaid bookings, updated ${completedCount} bookings to 'completed'.`
       );
     }
 
     return NextResponse.json({
       success: true,
-      updatedCount,
+      cancelledCount,
+      completedCount,
       timestamp: now.toISOString(),
     });
   } catch (error) {
@@ -136,8 +251,20 @@ export async function GET(request: Request) {
 
     const now = new Date();
 
-    // Count bookings that need to be updated
-    const pendingUpdates = await prisma.booking.count({
+    // Count bookings that need to be cancelled due to payment timeout
+    const pendingCancellations = await prisma.booking.count({
+      where: {
+        bookingStatus: BOOKING_STATUS.CONFIRMED,
+        paymentStatus: PAYMENT_STATUS.UNPAID,
+        reservationExpiresAt: {
+          not: null, // Only consider bookings with reservationExpiresAt set
+          lt: now, // Reservation has expired
+        },
+      },
+    });
+
+    // Count bookings that need to be updated to completed
+    const pendingCompletions = await prisma.booking.count({
       where: {
         end: {
           lte: now,
@@ -150,7 +277,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       status: "healthy",
-      pendingUpdates,
+      pendingCancellations,
+      pendingCompletions,
       timestamp: now.toISOString(),
     });
   } catch (error) {

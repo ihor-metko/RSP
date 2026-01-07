@@ -213,7 +213,7 @@ describe("GET /api/clubs/[id]/courts/availability", () => {
     expect(slot10am.overallStatus).toBe("booked");
   });
 
-  it("should use current week's Monday when no weekStart provided", async () => {
+  it("should default to rolling mode when no parameters provided", async () => {
     (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
     // Both queries return empty
     (prisma.booking.findMany as jest.Mock)
@@ -228,11 +228,12 @@ describe("GET /api/clubs/[id]/courts/availability", () => {
 
     expect(response.status).toBe(200);
     expect(data.days).toHaveLength(7);
-
-    // The first day should be a Monday (dayOfWeek = 1)
-    // Note: This test may be flaky depending on the current day
-    // The implementation calculates Monday from the current date
-    expect(data.days).toBeDefined();
+    expect(data.mode).toBe("rolling");
+    
+    // In rolling mode (default), the first day should be today
+    // There should be at least one day marked as isToday
+    const todayDay = data.days.find((d: { isToday?: boolean }) => d.isToday === true);
+    expect(todayDay).toBeDefined();
   });
 
   it("should return 500 for database errors", async () => {
@@ -439,6 +440,28 @@ describe("GET /api/clubs/[id]/courts/availability", () => {
 
       expect(response.status).toBe(200);
       expect(data.mode).toBe("rolling");
+    });
+
+    it("should return Monday-Sunday week in calendar mode", async () => {
+      (prisma.club.findUnique as jest.Mock).mockResolvedValue(mockClub);
+      (prisma.booking.findMany as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+
+      const request = createRequestWithParams("club-123", { mode: "calendar" });
+      const response = await GET(request, {
+        params: Promise.resolve({ id: "club-123" }),
+      });
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.mode).toBe("calendar");
+      expect(data.days).toHaveLength(7);
+      
+      // First day should be Monday (dayOfWeek = 1)
+      expect(data.days[0].dayOfWeek).toBe(1);
+      // Last day should be Sunday (dayOfWeek = 0)
+      expect(data.days[6].dayOfWeek).toBe(0);
     });
   });
 });

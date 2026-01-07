@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { SportType } from "@/constants/sports";
 import type { Address } from "@/types/address";
+import type { CourtFormat } from "@/types/court";
 
 // Stable empty array to prevent unnecessary re-renders
 const EMPTY_ARRAY: never[] = [];
@@ -18,9 +19,9 @@ interface PlayerClubCourt {
   surface: string | null;
   indoor: boolean;
   sportType?: SportType | null;
+  courtFormat?: CourtFormat | null;
   defaultPriceCents: number;
   bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
-  metadata?: Record<string, unknown> | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -56,6 +57,7 @@ export interface PlayerClub {
   openingHours?: string | null;
   logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
   bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+  timezone?: string | null;
   tags?: string | null;
   createdAt: string;
   indoorCount: number;
@@ -65,8 +67,8 @@ export interface PlayerClub {
 
 /**
  * Detailed player club info (without courts, coaches, and gallery)
- * Courts: Fetch separately via /api/(player)/clubs/[id]/courts
- * Gallery: Fetch separately via /api/(player)/clubs/[id]/gallery
+ * Courts: Fetch separately via /api/clubs/[id]/courts
+ * Gallery: Fetch separately via /api/clubs/[id]/gallery
  * Coaches: Removed per requirements
  */
 export interface PlayerClubDetail {

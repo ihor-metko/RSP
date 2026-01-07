@@ -3,6 +3,8 @@
  */
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { clubLocalToUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import { calculateEndTime, type WizardState } from "../types";
 import { generateGuestEmail } from "../utils/generateGuestEmail";
 
@@ -85,9 +87,13 @@ export function useWizardSubmit({
         return;
       }
 
-      const startDateTime = `${stepDateTime.date}T${stepDateTime.startTime}:00.000Z`;
-      const endTime = calculateEndTime(stepDateTime.startTime, stepDateTime.duration);
-      const endDateTime = `${stepDateTime.date}T${endTime}:00.000Z`;
+      // Get club timezone with fallback to default
+      const clubTimezone = getClubTimezone(stepClub.selectedClub?.timezone);
+      
+      // Convert club-local time to UTC before sending to API
+      const startDateTimeUTC = clubLocalToUTC(stepDateTime.date, stepDateTime.startTime, clubTimezone);
+      const endTimeLocal = calculateEndTime(stepDateTime.startTime, stepDateTime.duration);
+      const endDateTimeUTC = clubLocalToUTC(stepDateTime.date, endTimeLocal, clubTimezone);
 
       const response = await fetch("/api/admin/bookings/create", {
         method: "POST",
@@ -97,8 +103,8 @@ export function useWizardSubmit({
         body: JSON.stringify({
           userId,
           courtId: stepCourt.selectedCourt.id,
-          startTime: startDateTime,
-          endTime: endDateTime,
+          startTime: startDateTimeUTC,
+          endTime: endDateTimeUTC,
           clubId: stepClub.selectedClubId,
         }),
       });
@@ -127,7 +133,7 @@ export function useWizardSubmit({
           stepCourt.selectedCourt!.id,
           stepDateTime.date,
           stepDateTime.startTime,
-          endTime
+          endTimeLocal
         );
       }, BOOKING_SUCCESS_DISPLAY_DELAY);
     } catch {

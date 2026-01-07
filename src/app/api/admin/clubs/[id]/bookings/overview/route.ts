@@ -160,7 +160,7 @@ export async function GET(
         orderBy: {
           start: "asc",
         },
-        take: 10,
+        take: 5,
         include: {
           user: {
             select: {

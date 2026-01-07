@@ -19,6 +19,7 @@ interface Club {
   id: string;
   name: string;
   location: string;
+  timezone?: string | null;
   logoData?: { url: string; altText?: string; thumbnailUrl?: string } | null;
 }
 
@@ -69,7 +70,7 @@ export default function PlayerDashboardPage() {
   const router = useRouter();
   const t = useTranslations();
   const currentLocale = useCurrentLocale();
-  
+
   // Auth guard: Require authentication, redirect root admins to admin dashboard
   const { isHydrated, isLoading, isLoggedIn, user } = useAuthGuardOnce({
     requireAuth: true,
@@ -87,14 +88,15 @@ export default function PlayerDashboardPage() {
   const clubsFromStore = usePlayerClubStore((state) => state.clubs);
   const clubsLoading = usePlayerClubStore((state) => state.loading);
   const fetchClubsFromStore = usePlayerClubStore((state) => state.fetchClubsIfNeeded);
-  
+
   const [selectedClubId, setSelectedClubId] = useState<string>("");
-  
+
   // Map store clubs to local Club type (memoized to avoid unnecessary re-renders)
   const clubs: Club[] = useMemo(() => clubsFromStore.map((club) => ({
     id: club.id,
     name: club.name,
     location: club.address?.formattedAddress || "",
+    timezone: club.timezone || null,
     address: club.address || null,
     logoData: club.logoData,
   })), [clubsFromStore]);
@@ -135,7 +137,7 @@ export default function PlayerDashboardPage() {
       console.warn("Error fetching clubs:", error);
     }
   }, [fetchClubsFromStore]);
-  
+
   // Set first club as default when clubs are loaded
   useEffect(() => {
     if (clubs.length > 0 && !selectedClubId) {
@@ -151,7 +153,7 @@ export default function PlayerDashboardPage() {
     setBookingsError(null);
 
     try {
-      const response = await fetch(`/api/bookings?userId=${userId}&upcoming=true`);
+      const response = await fetch(`/api/bookings?upcoming=true`);
       if (response.ok) {
         const data = await response.json();
         setUpcomingBookings(Array.isArray(data) ? data : data.bookings || []);
@@ -567,20 +569,16 @@ export default function PlayerDashboardPage() {
                   {t("playerDashboard.navigation.home")}
                 </span>
               </IMLink>
-              <button
-                onClick={() => {
-                  // TODO: Navigate to profile page when implemented
-                  // For now, show user is already logged in
-                }}
-                className="tm-nav-link flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-default opacity-50"
-                disabled
+              <IMLink
+                href="/profile"
+                className="tm-nav-link flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-label={t("playerDashboard.navigation.profile")}
               >
                 <span className="text-2xl mb-2">👤</span>
                 <span className="text-sm font-medium text-center">
                   {t("playerDashboard.navigation.profile")}
                 </span>
-              </button>
+              </IMLink>
             </div>
           </Card>
         </section>
@@ -590,6 +588,7 @@ export default function PlayerDashboardPage() {
       {selectedClubId && (
         <QuickBookingModal
           clubId={selectedClubId}
+          clubTimezone={clubs.find(c => c.id === selectedClubId)?.timezone || null}
           isOpen={isQuickBookingOpen}
           onClose={() => setIsQuickBookingOpen(false)}
           onSelectCourt={handleQuickBookingSelectCourt}

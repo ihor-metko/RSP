@@ -53,8 +53,8 @@ export async function GET(
       if (!authResult.managedIds.includes(court.club.organizationId || "")) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
-    } else if (authResult.adminType === "club_admin") {
-      // Club admin can only access courts in their managed clubs
+    } else if (authResult.adminType === "club_owner" || authResult.adminType === "club_admin") {
+      // Club owner/admin can only access courts in their managed clubs
       if (!authResult.managedIds.includes(court.clubId)) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
@@ -93,7 +93,7 @@ export async function PATCH(
     const resolvedParams = await params;
     const { courtId } = resolvedParams;
     const body = await request.json();
-    const { name, slug, type, surface, indoor, sportType, description, isPublished, defaultPriceCents, isActive, metadata } = body;
+    const { name, slug, type, surface, indoor, sportType, description, isPublished, defaultPriceCents, isActive, courtFormat, bannerData } = body;
 
 
     // Check if court exists
@@ -119,8 +119,8 @@ export async function PATCH(
       if (!authResult.managedIds.includes(existingCourt.club.organizationId || "")) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
-    } else if (authResult.adminType === "club_admin") {
-      // Club admin can only update courts in their managed clubs
+    } else if (authResult.adminType === "club_owner" || authResult.adminType === "club_admin") {
+      // Club owner/admin can only update courts in their managed clubs
       if (!authResult.managedIds.includes(existingCourt.clubId)) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
@@ -158,6 +158,14 @@ export async function PATCH(
     // Sport type validation
     if (sportType !== undefined && !isSupportedSport(sportType)) {
       errors.sportType = "Invalid sport type";
+    }
+
+    // Court format validation
+    if (courtFormat !== undefined && courtFormat !== null) {
+      const normalizedFormat = courtFormat.toUpperCase();
+      if (normalizedFormat !== "SINGLE" && normalizedFormat !== "DOUBLE") {
+        errors.courtFormat = "Court format must be either 'SINGLE' or 'DOUBLE'";
+      }
     }
 
     if (Object.keys(errors).length > 0) {
@@ -211,11 +219,12 @@ export async function PATCH(
     if (surface !== undefined) updateData.surface = surface?.trim() || null;
     if (indoor !== undefined) updateData.indoor = indoor;
     if (sportType !== undefined) updateData.sportType = sportType;
+    if (courtFormat !== undefined) updateData.courtFormat = courtFormat ? courtFormat.toUpperCase() : null;
     if (description !== undefined) updateData.description = description?.trim() || null;
     if (isPublished !== undefined) updateData.isPublished = isPublished;
     if (defaultPriceCents !== undefined) updateData.defaultPriceCents = defaultPriceCents;
     if (isActive !== undefined) updateData.isActive = isActive;
-    if (metadata !== undefined) updateData.metadata = typeof metadata === 'string' ? metadata : JSON.stringify(metadata);
+    if (bannerData !== undefined) updateData.bannerData = typeof bannerData === 'string' ? bannerData : JSON.stringify(bannerData);
 
     const updatedCourt = await prisma.court.update({
       where: { id: courtId },
@@ -292,8 +301,8 @@ export async function DELETE(
       if (!authResult.managedIds.includes(existingCourt.club.organizationId || "")) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }
-    } else if (authResult.adminType === "club_admin") {
-      // Club admin can only delete courts in their managed clubs
+    } else if (authResult.adminType === "club_owner" || authResult.adminType === "club_admin") {
+      // Club owner/admin can only delete courts in their managed clubs
       if (!authResult.managedIds.includes(existingCourt.clubId)) {
         return NextResponse.json({ error: "Court not found" }, { status: 404 });
       }

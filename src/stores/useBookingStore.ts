@@ -17,24 +17,24 @@ const LOCK_EXPIRATION_MS = 5 * 60 * 1000;
 
 /**
  * Zustand store for managing bookings in club operations
- * 
+ *
  * Features:
  * - Fetch bookings by club and date with inflight guards
  * - Create and cancel bookings
  * - Real-time updates via Socket.IO events
  * - Slot locking for temporary reservations
  * - Cache management and invalidation
- * 
+ *
  * Note: Polling has been removed. The store relies entirely on Socket.IO events
  * for real-time updates (booking_created, booking_updated, booking_cancelled,
  * slot_locked, slot_unlocked).
- * 
+ *
  * Usage:
  * ```tsx
  * const bookings = useBookingStore(state => state.bookings);
  * const lockedSlots = useBookingStore(state => state.lockedSlots);
  * const fetchBookingsForDay = useBookingStore(state => state.fetchBookingsForDay);
- * 
+ *
  * useEffect(() => {
  *   fetchBookingsForDay(clubId, '2024-01-15');
  * }, [clubId, fetchBookingsForDay]);
@@ -70,7 +70,7 @@ interface BookingState {
 
   // Fetch bookings for a specific club and date
   fetchBookingsForDay: (clubId: string, date: string) => Promise<OperationsBooking[]>;
-  
+
   // Fetch bookings only if needed (not already loaded for this club/date)
   fetchBookingsIfNeeded: (
     clubId: string,
@@ -96,7 +96,7 @@ interface BookingState {
   // Real-time update methods with timestamp checking
   updateBookingFromSocket: (booking: OperationsBooking) => void;
   removeBookingFromSocket: (bookingId: string) => void;
-  
+
   // Slot lock management
   addLockedSlot: (event: SlotLockedEvent) => void;
   removeLockedSlot: (slotId: string) => void;
@@ -140,7 +140,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
 
       try {
         const response = await fetch(
-          `/api/clubs/${clubId}/operations/bookings?date=${date}`
+          `/api/admin/clubs/${clubId}/operations/bookings?date=${date}`
         );
 
         if (!response.ok) {
@@ -149,7 +149,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
         }
 
         const data: OperationsBooking[] = await response.json();
-        
+
         set({
           bookings: data,
           loading: false,
@@ -186,7 +186,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
     const isSameParams =
       state.lastFetchParams?.clubId === clubId &&
       state.lastFetchParams?.date === date;
-    
+
     const isRecentFetch =
       state.lastFetchedAt &&
       Date.now() - state.lastFetchedAt < 5000; // 5 seconds cache
@@ -291,7 +291,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   updateBookingFromSocket: (booking: OperationsBooking) => {
     const currentBookings = get().bookings;
     const updatedBookings = updateBookingInList(currentBookings, booking);
-    
+
     // Only update state if the booking list was modified (prevents unnecessary re-renders)
     if (updatedBookings !== currentBookings) {
       set({ bookings: updatedBookings });
@@ -307,7 +307,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   // Slot lock management
   addLockedSlot: (event: SlotLockedEvent) => {
     const currentLocks = get().lockedSlots;
-    
+
     // Check if slot is already locked (deduplication)
     const exists = currentLocks.some((lock) => lock.slotId === event.slotId);
     if (exists) {
@@ -332,7 +332,7 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   removeLockedSlot: (slotId: string) => {
     const currentLocks = get().lockedSlots;
     const updatedLocks = currentLocks.filter((lock) => lock.slotId !== slotId);
-    
+
     if (updatedLocks.length !== currentLocks.length) {
       set({ lockedSlots: updatedLocks });
       console.log('[BookingStore] Slot unlocked:', slotId);
@@ -342,11 +342,11 @@ export const useBookingStore = create<BookingState>((set, get) => ({
   cleanupExpiredLocks: () => {
     const currentLocks = get().lockedSlots;
     const now = Date.now();
-    
+
     const validLocks = currentLocks.filter(
       (lock) => now - lock.lockedAt < LOCK_EXPIRATION_MS
     );
-    
+
     if (validLocks.length !== currentLocks.length) {
       set({ lockedSlots: validLocks });
       console.log(

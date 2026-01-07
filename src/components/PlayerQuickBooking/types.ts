@@ -1,3 +1,5 @@
+import { filterPastTimeSlots, getTodayStr } from "@/utils/dateTime";
+
 /**
  * Types for PlayerQuickBooking
  * Universal booking mechanism for player users with support for preselected data
@@ -9,7 +11,16 @@ export interface BookingClub {
   slug: string | null;
   location: string;
   city?: string | null;
+  timezone?: string | null; // IANA timezone string (e.g., "Europe/Kyiv")
   bannerData?: { url: string; altText?: string; description?: string; position?: string } | null;
+  businessHours?: ClubBusinessHours[];
+}
+
+export interface ClubBusinessHours {
+  dayOfWeek: number; // 0=Sunday, 1=Monday, ..., 6=Saturday
+  openTime: string | null; // "HH:mm" format
+  closeTime: string | null; // "HH:mm" format
+  isClosed: boolean;
 }
 
 export interface BookingCourt {
@@ -19,6 +30,7 @@ export interface BookingCourt {
   type: string | null;
   surface: string | null;
   indoor: boolean;
+  courtFormat?: "SINGLE" | "DOUBLE" | null; // Court format for Padel courts
   defaultPriceCents: number;
   priceCents?: number; // Resolved price for the selected slot
   available?: boolean;
@@ -40,6 +52,7 @@ export interface PlayerBookingStep1Data {
   date: string;
   startTime: string;
   duration: number;
+  courtType: "SINGLE" | "DOUBLE";
 }
 
 export interface PlayerBookingStep2Data {
@@ -48,7 +61,9 @@ export interface PlayerBookingStep2Data {
 }
 
 export interface PlayerBookingStep3Data {
-  paymentMethod: PaymentMethod | null;
+  paymentProvider: PaymentProviderInfo | null;
+  reservationId: string | null;
+  reservationExpiresAt: string | null;
 }
 
 export interface PlayerBookingStep4Data {
@@ -56,7 +71,26 @@ export interface PlayerBookingStep4Data {
   confirmed: boolean;
 }
 
+export interface PaymentProviderInfo {
+  id: string;
+  name: string;
+  displayName: string;
+  logoLight: string;
+  logoDark: string;
+}
+
+// Legacy type for backwards compatibility
 export type PaymentMethod = "card" | "apple_pay" | "google_pay";
+
+export interface AlternativeTimeSlot {
+  startTime: string;
+  availableCourtCount: number;
+}
+
+export interface AlternativeDuration {
+  duration: number;
+  availableCourtCount: number;
+}
 
 export interface PlayerQuickBookingState {
   currentStep: number;
@@ -67,11 +101,19 @@ export interface PlayerQuickBookingState {
   step4: PlayerBookingStep4Data;
   availableClubs: BookingClub[];
   availableCourts: BookingCourt[];
+  availableCourtTypes: ("SINGLE" | "DOUBLE")[];
+  availablePaymentProviders: PaymentProviderInfo[];
+  alternativeDurations: AlternativeDuration[];
+  alternativeTimeSlots: AlternativeTimeSlot[];
   isLoadingClubs: boolean;
   isLoadingCourts: boolean;
+  isLoadingCourtTypes: boolean;
+  isLoadingPaymentProviders: boolean;
   clubsError: string | null;
   courtsError: string | null;
+  paymentProvidersError: string | null;
   estimatedPrice: number | null;
+  estimatedPriceRange: { min: number; max: number } | null;
   isSubmitting: boolean;
   submitError: string | null;
 }
@@ -87,6 +129,27 @@ export interface PlayerQuickBookingProps {
     date: string;
     startTime: string;
     duration: number;
+    courtType?: "SINGLE" | "DOUBLE";
+  };
+  // Optional club data (with business hours) to avoid fetching it again
+  preselectedClubData?: BookingClub;
+  // Available court types derived from courts (to avoid separate API call)
+  availableCourtTypes?: ("SINGLE" | "DOUBLE")[];
+  // Resume payment mode - open directly on payment step with existing booking
+  resumePaymentMode?: boolean;
+  resumePaymentBooking?: {
+    bookingId: string;
+    clubId: string;
+    clubName: string;
+    courtId: string;
+    courtName: string;
+    courtType?: "SINGLE" | "DOUBLE";
+    date: string; // YYYY-MM-DD format
+    startTime: string; // HH:MM format in club timezone
+    duration: number; // in minutes
+    price: number; // in cents
+    reservationExpiresAt: string | null; // ISO timestamp
+    timezone?: string; // Club timezone
   };
 }
 
@@ -96,23 +159,128 @@ export interface BookingStepConfig {
   isRequired: boolean;
 }
 
+// Default court type - Double courts are most common in Padel
+export const DEFAULT_COURT_TYPE: "SINGLE" | "DOUBLE" = "DOUBLE";
+export const DEFAULT_DURATION = 120; // 2 hours
+
 // Business hours configuration
-export const BUSINESS_START_HOUR = 9;
+export const BUSINESS_START_HOUR = 8;
 export const BUSINESS_END_HOUR = 22;
-export const DURATION_OPTIONS = [30, 60, 90, 120];
+export const DURATION_OPTIONS = [60, 90, 120, 150, 180];
+
+// Get business hours for a specific date
+export function getBusinessHoursForDate(
+  date: string,
+  businessHours?: ClubBusinessHours[]
+): { openTime: string; closeTime: string } | null {
+  if (!businessHours || businessHours.length === 0) {
+    // Fallback to default hours if no business hours configured
+    return {
+      openTime: `${BUSINESS_START_HOUR.toString().padStart(2, "0")}:00`,
+      closeTime: `${BUSINESS_END_HOUR.toString().padStart(2, "0")}:00`,
+    };
+  }
+
+  const dateObj = new Date(date);
+  const dayOfWeek = dateObj.getDay(); // 0=Sunday, 1=Monday, etc.
+
+  const hoursForDay = businessHours.find((h) => h.dayOfWeek === dayOfWeek);
+
+  if (!hoursForDay || hoursForDay.isClosed || !hoursForDay.openTime || !hoursForDay.closeTime) {
+    return null; // Club is closed on this day
+  }
+
+  return {
+    openTime: hoursForDay.openTime,
+    closeTime: hoursForDay.closeTime,
+  };
+}
+
+// Generate time options based on business hours for a specific date
+export function generateTimeOptionsForDate(
+  date: string,
+  businessHours?: ClubBusinessHours[],
+  clubTimezone?: string | null
+): string[] {
+  const hours = getBusinessHoursForDate(date, businessHours);
+
+  if (!hours) {
+    return []; // Club is closed
+  }
+
+  const [openHour, openMinute] = hours.openTime.split(":").map(Number);
+  const [closeHour, closeMinute] = hours.closeTime.split(":").map(Number);
+
+  const options: string[] = [];
+  let currentHour = openHour;
+  let currentMinute = openMinute;
+
+  while (
+    currentHour < closeHour ||
+    (currentHour === closeHour && currentMinute < closeMinute)
+  ) {
+    const hourStr = currentHour.toString().padStart(2, "0");
+    const minuteStr = currentMinute.toString().padStart(2, "0");
+    options.push(`${hourStr}:${minuteStr}`);
+
+    // Increment by 30 minutes
+    currentMinute += 30;
+    if (currentMinute >= 60) {
+      currentMinute = 0;
+      currentHour += 1;
+    }
+  }
+
+  // Filter out past times if the date is today using centralized utility with club timezone
+  return filterPastTimeSlots(options, date, clubTimezone || undefined);
+}
+
+// Check if a booking would end after closing time
+export function wouldEndAfterClosing(
+  date: string,
+  startTime: string,
+  durationMinutes: number,
+  businessHours?: ClubBusinessHours[]
+): boolean {
+  const hours = getBusinessHoursForDate(date, businessHours);
+
+  if (!hours) {
+    return true; // Club is closed
+  }
+
+  const [startHour, startMinute] = startTime.split(":").map(Number);
+  const [closeHour, closeMinute] = hours.closeTime.split(":").map(Number);
+
+  const startTotalMinutes = startHour * 60 + startMinute;
+  const endTotalMinutes = startTotalMinutes + durationMinutes;
+  const closeTotalMinutes = closeHour * 60 + closeMinute;
+
+  return endTotalMinutes > closeTotalMinutes;
+}
+
+// Get valid duration options for a given start time and date
+export function getValidDurations(
+  date: string,
+  startTime: string,
+  businessHours?: ClubBusinessHours[]
+): number[] {
+  return DURATION_OPTIONS.filter(
+    (duration) => !wouldEndAfterClosing(date, startTime, duration, businessHours)
+  );
+}
 
 // Peak hours (17:00 - 21:00 weekdays, 10:00 - 14:00 weekends)
 export function isPeakHour(date: string, time: string): boolean {
   const dateObj = new Date(date);
   const dayOfWeek = dateObj.getDay();
   const hour = parseInt(time.split(":")[0], 10);
-  
+
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  
+
   if (isWeekend) {
     return hour >= 10 && hour < 14;
   }
-  
+
   return hour >= 17 && hour < 21;
 }
 
@@ -129,7 +297,7 @@ export function generateTimeOptions(): string[] {
 
 // Get today's date in YYYY-MM-DD format
 export function getTodayDateString(): string {
-  return new Date().toISOString().split("T")[0];
+  return getTodayStr();
 }
 
 // Calculate end time based on start time and duration
@@ -141,50 +309,61 @@ export function calculateEndTime(startTime: string, durationMinutes: number): st
   return `${endHour.toString().padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`;
 }
 
-// Format date for display
-export function formatDateDisplay(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-// Format time for display
-export function formatTimeDisplay(startTime: string, endTime: string): string {
-  return `${startTime} - ${endTime}`;
-}
-
 // Determine which steps should be visible based on preselected data
 export function determineVisibleSteps(
   preselectedClubId?: string,
   preselectedCourtId?: string,
-  preselectedDateTime?: { date: string; startTime: string; duration: number }
+  preselectedDateTime?: { date: string; startTime: string; duration: number },
+  resumePaymentMode?: boolean
 ): BookingStepConfig[] {
   const steps: BookingStepConfig[] = [];
-  
+
+  // In resume payment mode, only show payment step
+  if (resumePaymentMode) {
+    steps.push({ id: 3, label: "payment", isRequired: true });
+    steps.push({ id: 4, label: "finalConfirmation", isRequired: true });
+    return steps;
+  }
+
   // Step 0: Club Selection (skip if preselected)
   if (!preselectedClubId) {
     steps.push({ id: 0, label: "selectClub", isRequired: true });
   }
-  
+
   // Step 1: Date & Time (skip if preselected)
   if (!preselectedDateTime) {
     steps.push({ id: 1, label: "dateTime", isRequired: true });
   }
-  
+
   // Step 2: Court Selection (skip if preselected)
   if (!preselectedCourtId) {
     steps.push({ id: 2, label: "selectCourt", isRequired: true });
   }
-  
+
+  // Step 2.5: Confirmation (always required before payment)
+  steps.push({ id: 2.5, label: "confirmation", isRequired: true });
+
   // Step 3: Payment (always required for players)
   steps.push({ id: 3, label: "payment", isRequired: true });
-  
+
   // Step 4: Confirmation (always shown)
-  steps.push({ id: 4, label: "confirmation", isRequired: true });
-  
+  steps.push({ id: 4, label: "finalConfirmation", isRequired: true });
+
   return steps;
+}
+
+// Format date for display (e.g., "Monday, January 6, 2026")
+export function formatDateDisplay(dateString: string): string {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(date);
+}
+
+// Format time range for display (e.g., "10:00 - 12:00")
+export function formatTimeDisplay(startTime: string, endTime: string): string {
+  return `${startTime} - ${endTime}`;
 }

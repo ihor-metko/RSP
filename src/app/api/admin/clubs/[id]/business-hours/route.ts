@@ -97,7 +97,17 @@ export async function PATCH(
       }
     });
 
-    return NextResponse.json({ success: true });
+    // Fetch updated business hours to return to client
+    const updatedBusinessHours = await prisma.clubBusinessHours.findMany({
+      where: { clubId },
+      orderBy: { dayOfWeek: "asc" },
+    });
+
+    // Return only the updated businessHours field (partial update)
+    return NextResponse.json({
+      id: clubId,
+      businessHours: updatedBusinessHours,
+    });
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating business hours:", error);

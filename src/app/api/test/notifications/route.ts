@@ -1,7 +1,7 @@
 /**
  * Test API endpoint to trigger Socket.IO notifications
  * Use this to manually test the global notification system
- * 
+ *
  * GET /api/test/notifications?event=<event_type>
  */
 
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
           paymentId: `test-payment-${Date.now()}`,
           bookingId: 'test-booking',
           amount: 50.0,
-          currency: 'USD',
+          currency: 'UAH',
           clubId: 'test-club',
         });
         break;
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { 
+          {
             error: `Unknown event type: ${event}`,
             availableEvents: [
               'booking_created',
@@ -124,8 +124,8 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: `Event ${event} emitted successfully`,
     });
   } catch (error) {

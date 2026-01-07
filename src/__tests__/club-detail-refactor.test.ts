@@ -53,7 +53,7 @@ describe("Club Detail API Refactoring", () => {
         logoData: JSON.stringify({ url: "https://example.com/logo.png" }),
         bannerData: JSON.stringify({ url: "https://example.com/banner.png" }),
         metadata: null,
-        defaultCurrency: "USD",
+        defaultCurrency: "UAH",
         timezone: "UTC",
         tags: null,
         isPublic: true,

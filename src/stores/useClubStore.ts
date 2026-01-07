@@ -56,8 +56,8 @@ interface ClubState {
   ensureClubById: (id: string, options?: { force?: boolean }) => Promise<ClubDetail>;
   invalidateClubs: () => void;
   
-  // Reactive update method
-  updateClubInStore: (clubId: string, updatedClub: ClubDetail) => void;
+  // Reactive update method - supports partial updates
+  updateClubInStore: (clubId: string, updatedClub: ClubDetail | Partial<ClubDetail> & { id: string }) => void;
   
   createClub: (payload: CreateClubPayload) => Promise<Club>;
   updateClub: (id: string, payload: UpdateClubPayload) => Promise<Club>;
@@ -327,8 +327,12 @@ export const useClubStore = create<ClubState>((set, get) => ({
    * Update club data in store reactively without refetch
    * This enables reactive state management - update store, UI updates automatically
    * Use this after PATCH/PUT operations to avoid full page reloads
+   * 
+   * Supports both full and partial updates:
+   * - Full update: Pass complete ClubDetail object
+   * - Partial update: Pass object with id + updated fields (e.g., { id, businessHours })
    */
-  updateClubInStore: (clubId: string, updatedClub: ClubDetail) => {
+  updateClubInStore: (clubId: string, updatedClub: ClubDetail | Partial<ClubDetail> & { id: string }) => {
     // Validate that the updated club has the correct ID
     if (updatedClub.id !== clubId) {
       console.error(`updateClubInStore: ID mismatch. Expected ${clubId}, got ${updatedClub.id}`);
@@ -336,8 +340,14 @@ export const useClubStore = create<ClubState>((set, get) => ({
     }
 
     set((state) => {
-      // Update clubsById cache
-      const newClubsById = { ...state.clubsById, [clubId]: updatedClub };
+      // Update clubsById cache - merge with existing data to support partial updates
+      const existingClubById = state.clubsById[clubId];
+      const newClubsById = {
+        ...state.clubsById,
+        [clubId]: existingClubById 
+          ? { ...existingClubById, ...updatedClub } // Merge with existing data
+          : updatedClub as ClubDetail, // First time loading - trust the API response
+      };
 
       // Update clubs array if club exists there
       const clubIndex = state.clubs.findIndex(c => c.id === clubId);
@@ -353,9 +363,9 @@ export const useClubStore = create<ClubState>((set, get) => ({
         };
       }
 
-      // Update currentClub if it matches
+      // Update currentClub if it matches - merge with existing data
       const newCurrentClub = state.currentClub?.id === clubId 
-        ? updatedClub 
+        ? { ...state.currentClub, ...updatedClub } // Merge with existing data
         : state.currentClub;
 
       return {

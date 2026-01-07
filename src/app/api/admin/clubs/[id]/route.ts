@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAnyAdmin, requireRootAdmin } from "@/lib/requireRole";
 import { canAccessClub } from "@/lib/permissions/clubAccess";
 import { parseAddress } from "@/types/address";
+import { isValidIANATimezone } from "@/constants/timezone";
 
 export async function GET(
   request: Request,
@@ -65,7 +66,6 @@ export async function GET(
       bannerData: club.bannerData ? JSON.parse(club.bannerData) : null,
     };
 
-    console.log("Fetched club:", formattedClub);
     return NextResponse.json(formattedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
@@ -117,12 +117,20 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { name, slug, shortDescription, isPublic, supportedSports, logoData, bannerData } = body;
+    const { name, slug, shortDescription, isPublic, supportedSports, logoData, bannerData, timezone } = body;
 
     // Validate required fields
     if (name !== undefined && !name.trim()) {
       return NextResponse.json(
         { error: "Club name is required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate timezone if provided
+    if (timezone !== undefined && timezone !== null && !isValidIANATimezone(timezone)) {
+      return NextResponse.json(
+        { error: "Invalid timezone format. Please use IANA timezone format (e.g., Europe/Kyiv, America/New_York)" },
         { status: 400 }
       );
     }
@@ -152,13 +160,42 @@ export async function PATCH(
     if (supportedSports !== undefined) updateData.supportedSports = supportedSports;
     if (logoData !== undefined) updateData.logoData = logoData ? JSON.stringify(logoData) : null;
     if (bannerData !== undefined) updateData.bannerData = bannerData ? JSON.stringify(bannerData) : null;
+    if (timezone !== undefined) updateData.timezone = timezone;
 
-    await prisma.club.update({
+    const updatedClub = await prisma.club.update({
       where: { id: clubId },
       data: updateData,
+      include: {
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        courts: {
+          orderBy: { name: "asc" },
+        },
+        gallery: {
+          orderBy: { sortOrder: "asc" },
+        },
+        businessHours: {
+          orderBy: { dayOfWeek: "asc" },
+        },
+      },
     });
 
-    return NextResponse.json({ success: true });
+    // Parse JSON fields for consistent response format
+    const parsedAddress = parseAddress(updatedClub.address);
+
+    const formattedClub = {
+      ...updatedClub,
+      address: parsedAddress || null,
+      logoData: updatedClub.logoData ? JSON.parse(updatedClub.logoData) : null,
+      bannerData: updatedClub.bannerData ? JSON.parse(updatedClub.bannerData) : null,
+    };
+
+    return NextResponse.json(formattedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.error("Error updating club:", error);

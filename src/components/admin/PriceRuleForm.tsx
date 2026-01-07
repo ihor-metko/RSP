@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Button, Input, Select, TimeInput, DateInput } from "@/components/ui";
 import { centsToDollars, dollarsToCents } from "@/utils/price";
+import { timeOfDayToUTC } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 
 export interface PriceRuleFormData {
   ruleType: string;
@@ -20,6 +22,7 @@ interface PriceRuleFormProps {
   onCancel: () => void;
   isSubmitting?: boolean;
   holidays?: Array<{ id: string; name: string; date: string }>;
+  clubTimezone?: string | null;
 }
 
 const DAY_OF_WEEK_OPTIONS = [
@@ -47,6 +50,7 @@ export function PriceRuleForm({
   onCancel,
   isSubmitting = false,
   holidays = [],
+  clubTimezone,
 }: PriceRuleFormProps) {
   const [formData, setFormData] = useState<PriceRuleFormData>({
     ruleType: initialValues?.ruleType || "SPECIFIC_DAY",
@@ -59,6 +63,9 @@ export function PriceRuleForm({
   });
 
   const [error, setError] = useState("");
+  
+  // Get club timezone with fallback
+  const timezone = getClubTimezone(clubTimezone);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -123,7 +130,19 @@ export function PriceRuleForm({
     }
 
     try {
-      await onSubmit(formData);
+      // Convert club-local times to UTC before sending to API
+      // Use specific date for SPECIFIC_DATE rules to handle DST correctly
+      const referenceDate = formData.ruleType === "SPECIFIC_DATE" && formData.date && formData.date.trim()
+        ? formData.date
+        : undefined;
+      
+      const dataToSubmit: PriceRuleFormData = {
+        ...formData,
+        startTime: timeOfDayToUTC(formData.startTime, timezone, referenceDate),
+        endTime: timeOfDayToUTC(formData.endTime, timezone, referenceDate),
+      };
+      
+      await onSubmit(dataToSubmit);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save price rule");
     }

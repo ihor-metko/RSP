@@ -59,8 +59,16 @@ export async function PATCH(
     const updatedClub = await prisma.club.update({
       where: { id: clubId },
       data: updateData,
+      select: {
+        id: true,
+        phone: true,
+        email: true,
+        website: true,
+        address: true,
+      },
     });
 
+    // Return only the updated contact fields (partial update)
     return NextResponse.json(updatedClub);
   } catch (error) {
     if (process.env.NODE_ENV === "development") {

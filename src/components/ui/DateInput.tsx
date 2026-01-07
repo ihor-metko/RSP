@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useLocale } from "next-intl";
 import { CustomCalendar } from "./CustomCalendar";
 import { Portal } from "./Portal";
 import { useDropdownPosition } from "@/hooks/useDropdownPosition";
@@ -72,6 +73,9 @@ export function DateInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const calendarPopupRef = useRef<HTMLDivElement>(null);
   const justClosedRef = useRef(false);
+  
+  // Get current locale for date formatting
+  const locale = useLocale();
 
   // Calculate dropdown position
   const dropdownPosition = useDropdownPosition({
@@ -82,7 +86,7 @@ export function DateInput({
     matchWidth: false,
   });
 
-  // Format date for display (e.g., "Jan 15, 2024")
+  // Format date for display (e.g., "Jan 15, 2024") with proper locale support
   const formatDisplayDate = (dateStr: string): string => {
     if (!dateStr) return "";
     try {
@@ -91,7 +95,8 @@ export function DateInput({
       if (isNaN(date.getTime())) {
         return "";
       }
-      return date.toLocaleDateString(undefined, {
+      // Use the current locale for formatting
+      return date.toLocaleDateString(locale, {
         year: "numeric",
         month: "short",
         day: "numeric",

@@ -65,9 +65,9 @@ export function CourtCard({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   
-  // Check if user has admin role
-  const hasAnyRole = useUserStore((state) => state.hasAnyRole);
-  const isAdmin = hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN", "CLUB_ADMIN"]);
+  // Check if user has admin role - use adminStatus for comprehensive check
+  const adminStatus = useUserStore((state) => state.adminStatus);
+  const isAdmin = adminStatus?.isAdmin ?? false;
   
   // Determine if admin info should be displayed
   const showAdminInfo = isAdmin && (club || organization);
