@@ -13,6 +13,7 @@ import { useUserStore } from "@/stores/useUserStore";
 import { ProfileBooking, useProfileStore } from "@/stores/useProfileStore";
 import { PAYMENT_STATUS, type BookingStatus, type PaymentStatus } from "@/types/booking";
 import { getPlayerBookingDisplayStatus } from "@/utils/bookingDisplayStatus";
+import { ResumePaymentModal } from "@/components/ResumePaymentModal";
 import "./profile.css";
 
 export default function PlayerProfilePage() {
@@ -46,11 +47,12 @@ export default function PlayerProfilePage() {
   const loadMoreActivity = useProfileStore((state) => state.loadMoreActivity);
 
   // Local state for payment operations
-  const [resumingPayment, setResumingPayment] = useState<string | null>(null);
   const [cancellingBooking, setCancellingBooking] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<ProfileBooking | null>(null);
+  const [showResumePaymentModal, setShowResumePaymentModal] = useState(false);
+  const [bookingToResume, setBookingToResume] = useState<string | null>(null);
 
   // Redirect root admins to admin dashboard
   useEffect(() => {
@@ -60,45 +62,26 @@ export default function PlayerProfilePage() {
     }
   }, [isHydrated, isLoading, user, router]);
 
-  // Resume payment for unpaid booking
-  const handleResumePayment = useCallback(async (bookingId: string) => {
-    setResumingPayment(bookingId);
+  // Resume payment for unpaid booking - opens payment modal
+  const handleResumePayment = useCallback((bookingId: string) => {
+    setBookingToResume(bookingId);
+    setShowResumePaymentModal(true);
     setPaymentError(null);
+  }, []);
 
-    try {
-      const response = await fetch(`/api/bookings/${bookingId}/resume-payment`, {
-        method: "POST",
-      });
+  // Handle payment modal close
+  const handleResumePaymentModalClose = useCallback(() => {
+    setShowResumePaymentModal(false);
+    setBookingToResume(null);
+  }, []);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setPaymentError(errorData.error || "Failed to resume payment");
-        return;
-      }
-
-      const data = await response.json();
-
-      // NOTE: Payment flow integration is intentionally left as a TODO
-      // This PR implements the backend API and UI for resuming payment.
-      // The actual payment provider integration (WayForPay/LiqPay) will be
-      // implemented in a separate task as it requires additional payment
-      // gateway configuration and testing.
-      // For now, successfully calling resume-payment extends the reservation
-      // by 5 minutes, allowing users to complete payment when the payment
-      // flow is integrated.
-      console.log("Payment resumed:", data);
-
-      // Invalidate profile data to trigger refresh on next access
-      invalidateProfile();
-
-      // Refresh profile data to show updated expiration time
-      await fetchProfileDataIfNeeded({ force: true });
-    } catch (error) {
-      console.error("Error resuming payment:", error);
-      setPaymentError("An error occurred while resuming payment");
-    } finally {
-      setResumingPayment(null);
-    }
+  // Handle payment completion
+  const handlePaymentComplete = useCallback(async () => {
+    // Invalidate profile data to trigger refresh on next access
+    invalidateProfile();
+    
+    // Refresh profile data to show updated booking status
+    await fetchProfileDataIfNeeded({ force: true });
   }, [invalidateProfile, fetchProfileDataIfNeeded]);
 
   // Handle cancel booking button click
@@ -300,17 +283,15 @@ export default function PlayerProfilePage() {
                             <div className="im-booking-action-buttons">
                               <Button
                                 onClick={() => handleResumePayment(booking.id)}
-                                disabled={resumingPayment === booking.id || isExpired}
+                                disabled={isExpired}
                                 variant="primary"
                                 size="small"
                               >
-                                {resumingPayment === booking.id
-                                  ? t("playerProfile.resumingPayment")
-                                  : t("playerProfile.payNow")}
+                                {t("playerProfile.payNow")}
                               </Button>
                               <Button
                                 onClick={() => handleCancelClick(booking)}
-                                disabled={cancellingBooking === booking.id || resumingPayment === booking.id}
+                                disabled={cancellingBooking === booking.id}
                                 variant="outline"
                                 size="small"
                               >
@@ -505,6 +486,16 @@ export default function PlayerProfilePage() {
           </div>
         )}
       </ConfirmationModal>
+
+      {/* Resume Payment Modal */}
+      {bookingToResume && (
+        <ResumePaymentModal
+          isOpen={showResumePaymentModal}
+          onClose={handleResumePaymentModalClose}
+          bookingId={bookingToResume}
+          onPaymentComplete={handlePaymentComplete}
+        />
+      )}
     </main>
   );
 }

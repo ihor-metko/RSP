@@ -1555,7 +1555,11 @@
     "bookingConfirmedMessage": "Ваш корт успішно заброньований.",
     "bookingReference": "Номер бронювання",
     "bookingDetails": "Деталі бронювання",
-    "closeAndViewBookings": "Закрити"
+    "closeAndViewBookings": "Закрити",
+    "loadingBookingDetails": "Завантаження деталей бронювання...",
+    "reservedPaymentPending": "Статус: Зарезервовано — очікується оплата",
+    "payAmount": "Оплатити {amount}",
+    "processing": "Обробка..."
   },
   "breadcrumbs": {
     "home": "Головна",

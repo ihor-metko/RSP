@@ -1618,7 +1618,11 @@
     "bookingConfirmedMessage": "Your court has been reserved successfully.",
     "bookingReference": "Booking Reference",
     "bookingDetails": "Booking Details",
-    "closeAndViewBookings": "Close"
+    "closeAndViewBookings": "Close",
+    "loadingBookingDetails": "Loading booking details...",
+    "reservedPaymentPending": "Status: Reserved — payment pending",
+    "payAmount": "Pay {amount}",
+    "processing": "Processing..."
   },
   "adminWizard": {
     "title": "Create Booking",
