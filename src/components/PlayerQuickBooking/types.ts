@@ -320,7 +320,8 @@ export function determineVisibleSteps(
 
   // In resume payment mode, show all previous steps as read-only plus payment step
   if (resumePaymentMode) {
-    // Show all steps (1, 2, 2.5, 3) but they will be read-only except for step 3
+    // Steps 1, 2, and 2.5 will be shown as locked/read-only
+    // Step 3 (payment) will be the active interactive step
     steps.push({ id: 1, label: "dateTime", isRequired: true });
     steps.push({ id: 2, label: "selectCourt", isRequired: true });
     steps.push({ id: 2.5, label: "confirmation", isRequired: true });

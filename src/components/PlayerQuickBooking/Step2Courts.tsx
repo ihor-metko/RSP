@@ -55,7 +55,10 @@ export function Step2Courts({
     );
   }
 
+  // Compute selected court and court lists outside conditional blocks
   const selectedCourt = courts.find(c => c.id === selectedCourtId);
+  const availableCourts = courts.filter((c) => c.available !== false);
+  const unavailableCourts = courts.filter((c) => c.available === false);
 
   return (
     <div className="rsp-wizard-step-content" role="group" aria-labelledby="step2-title">
@@ -255,7 +258,7 @@ export function Step2Courts({
               {t("wizard.selectCourt")}
             </span>
             <span className="rsp-wizard-courts-count" aria-live="polite">
-              {t("wizard.availableCount", { count: courts.filter((c) => c.available !== false).length })}
+              {t("wizard.availableCount", { count: availableCourts.length })}
             </span>
           </div>
 
@@ -266,7 +269,7 @@ export function Step2Courts({
             aria-multiselectable="false"
           >
             {/* Available courts first */}
-            {courts.filter((c) => c.available !== false).map((court) => (
+            {availableCourts.map((court) => (
               <CourtCard
                 key={court.id}
                 court={court}
@@ -276,7 +279,7 @@ export function Step2Courts({
             ))}
 
             {/* Unavailable courts */}
-            {courts.filter((c) => c.available === false).map((court) => (
+            {unavailableCourts.map((court) => (
               <CourtCard
                 key={court.id}
                 court={court}

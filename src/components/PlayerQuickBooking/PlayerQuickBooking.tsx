@@ -111,7 +111,7 @@ export function PlayerQuickBooking({
       };
 
       return {
-        currentStep: 3, // Start directly at payment step in resume mode
+        currentStep: 3, // Start directly at payment step (step 3) in resume mode
         step0: {
           selectedClubId: resumePaymentBooking.clubId,
           selectedClub: initialClub,
