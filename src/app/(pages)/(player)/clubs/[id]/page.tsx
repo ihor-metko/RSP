@@ -15,6 +15,7 @@ import { Button, IMLink, ImageCarousel, CourtCarousel, EntityBanner, EmptyState 
 import { ClubMobileView } from "@/components/mobile-views";
 import { usePlayerClubStore } from "@/stores/usePlayerClubStore";
 import { useUserStore } from "@/stores/useUserStore";
+import { useProfileStore } from "@/stores/useProfileStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { useIsMobile } from "@/hooks";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
@@ -106,6 +107,9 @@ export default function ClubDetailPage({
   const user = useUserStore((state) => state.user);
   const isLoggedIn = useUserStore((state) => state.isLoggedIn);
   const isMobile = useIsMobile();
+
+  // Use profile store for invalidation after booking
+  const invalidateProfile = useProfileStore((state) => state.invalidateProfile);
 
   // Use centralized player club store
   // Split selectors to avoid circular dependencies
@@ -302,6 +306,9 @@ export default function ClubDetailPage({
   };
 
   const handleQuickBookingComplete = () => {
+    // Invalidate profile store to trigger refresh when user navigates to profile
+    invalidateProfile();
+    
     // Refresh availability data after successful booking
     if (courts && courts.length > 0) {
       fetchAvailability(courts);
