@@ -4,9 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button, Card, EmptyState } from "@/components/ui";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { useCurrentLocale } from "@/hooks/useCurrentLocale";
 import { useAuthGuardOnce } from "@/hooks";
 import { formatDateWithWeekday, formatTime, formatPaymentDeadline } from "@/utils/date";
+import { formatPrice } from "@/utils/price";
 import { useUserStore } from "@/stores/useUserStore";
 import { PAYMENT_STATUS, type BookingStatus, type PaymentStatus } from "@/types/booking";
 import { getPlayerBookingDisplayStatus } from "@/utils/bookingDisplayStatus";
@@ -54,7 +56,10 @@ export default function PlayerProfilePage() {
   const [pastLoading, setPastLoading] = useState(true);
   const [activityLoading, setActivityLoading] = useState(true);
   const [resumingPayment, setResumingPayment] = useState<string | null>(null);
+  const [cancellingBooking, setCancellingBooking] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState<Booking | null>(null);
 
   // Pagination state
   const ITEMS_PER_PAGE = 5;
@@ -228,6 +233,48 @@ export default function PlayerProfilePage() {
     }
   }, [fetchUpcomingBookings]);
 
+  // Handle cancel booking button click
+  const handleCancelClick = useCallback((booking: Booking) => {
+    setBookingToCancel(booking);
+    setShowCancelModal(true);
+  }, []);
+
+  // Handle confirm cancel booking
+  const handleConfirmCancel = useCallback(async () => {
+    if (!bookingToCancel) return;
+
+    setCancellingBooking(bookingToCancel.id);
+    setPaymentError(null);
+
+    try {
+      const response = await fetch(`/api/bookings/${bookingToCancel.id}/cancel`, {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setPaymentError(errorData.error || "Failed to cancel booking");
+        return;
+      }
+
+      // Close modal and refresh bookings
+      setShowCancelModal(false);
+      setBookingToCancel(null);
+      await fetchUpcomingBookings();
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      setPaymentError("An error occurred while cancelling the booking");
+    } finally {
+      setCancellingBooking(null);
+    }
+  }, [bookingToCancel, fetchUpcomingBookings]);
+
+  // Handle close cancel modal
+  const handleCloseCancelModal = useCallback(() => {
+    setShowCancelModal(false);
+    setBookingToCancel(null);
+  }, []);
+
   // Initial data fetch
   useEffect(() => {
     if (isLoggedIn && user && !user.isRoot) {
@@ -364,6 +411,10 @@ export default function PlayerProfilePage() {
                             <span className="im-booking-club">{booking.court?.club?.name || ""}</span>
                             <span className="im-booking-court">{booking.court?.name || ""}</span>
                           </div>
+                          <div className="im-booking-price">
+                            <span className="im-booking-price-label">Price:</span>
+                            <span className="im-booking-price-value">{formatPrice(booking.price)}</span>
+                          </div>
                           <div className="im-booking-status-row">
                             <span className={`im-status-badge ${getStatusBadgeClass(displayStatus)}`}>
                               {displayStatus}
@@ -381,16 +432,28 @@ export default function PlayerProfilePage() {
                                 </span>
                               </div>
                             )}
-                            <Button
-                              onClick={() => handleResumePayment(booking.id)}
-                              disabled={resumingPayment === booking.id || isExpired}
-                              variant="primary"
-                              size="small"
-                            >
-                              {resumingPayment === booking.id
-                                ? t("playerProfile.resumingPayment")
-                                : t("playerProfile.payNow")}
-                            </Button>
+                            <div className="im-booking-action-buttons">
+                              <Button
+                                onClick={() => handleResumePayment(booking.id)}
+                                disabled={resumingPayment === booking.id || isExpired}
+                                variant="primary"
+                                size="small"
+                              >
+                                {resumingPayment === booking.id
+                                  ? t("playerProfile.resumingPayment")
+                                  : t("playerProfile.payNow")}
+                              </Button>
+                              <Button
+                                onClick={() => handleCancelClick(booking)}
+                                disabled={cancellingBooking === booking.id || resumingPayment === booking.id}
+                                variant="outline"
+                                size="small"
+                              >
+                                {cancellingBooking === booking.id
+                                  ? t("playerProfile.cancellingBooking")
+                                  : t("playerProfile.cancelBooking")}
+                              </Button>
+                            </div>
                             <p className="im-warning-text-base im-payment-warning">
                               {t("playerProfile.paymentWarning")}
                             </p>
@@ -458,6 +521,10 @@ export default function PlayerProfilePage() {
                           <div className="im-booking-location">
                             <span className="im-booking-club">{booking.court?.club?.name || ""}</span>
                             <span className="im-booking-court">{booking.court?.name || ""}</span>
+                          </div>
+                          <div className="im-booking-price">
+                            <span className="im-booking-price-label">Price:</span>
+                            <span className="im-booking-price-value">{formatPrice(booking.price)}</span>
                           </div>
                           <div className="im-booking-status-row">
                             <span className={`im-status-badge ${getStatusBadgeClass(displayStatus)}`}>
@@ -551,6 +618,28 @@ export default function PlayerProfilePage() {
           </Button>
         </section>
       </div>
+
+      {/* Cancel Booking Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showCancelModal}
+        onClose={handleCloseCancelModal}
+        onConfirm={handleConfirmCancel}
+        title={t("playerProfile.cancelConfirmation.title")}
+        message={t("playerProfile.cancelConfirmation.message")}
+        confirmText={t("playerProfile.cancelConfirmation.confirm")}
+        cancelText={t("playerProfile.cancelConfirmation.keep")}
+        variant="danger"
+        isProcessing={cancellingBooking !== null}
+      >
+        {bookingToCancel && (
+          <div className="im-cancel-booking-details">
+            <p><strong>{bookingToCancel.court?.club?.name}</strong> - {bookingToCancel.court?.name}</p>
+            <p>{formatDateWithWeekday(bookingToCancel.start, currentLocale)}</p>
+            <p>{formatTime(bookingToCancel.start, currentLocale)} - {formatTime(bookingToCancel.end, currentLocale)}</p>
+            <p>{formatPrice(bookingToCancel.price)}</p>
+          </div>
+        )}
+      </ConfirmationModal>
     </main>
   );
 }
