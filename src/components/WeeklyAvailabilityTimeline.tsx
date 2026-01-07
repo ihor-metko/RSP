@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui";
 import { useCourtAvailability } from "@/hooks/useCourtAvailability";
 import {
   getTodayInTimezone,
-  getTodayStr,
   getWeekMonday,
   getTodayInClubTimezone,
   getCurrentTimeInClubTimezone,
@@ -258,23 +257,18 @@ export function WeeklyAvailabilityTimeline({
   const [currentTodayStr, setCurrentTodayStr] = useState<string>(() => 
     getTodayInClubTimezone(validatedClubTimezone)
   );
+  
+  // Current hour in club timezone - updated via auto-update interval
+  const [currentHourInClubTz, setCurrentHourInClubTz] = useState<number>(() => {
+    const time = getCurrentTimeInClubTimezone(validatedClubTimezone);
+    const [hour] = time.split(':').map(Number);
+    return hour;
+  });
+  
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Get locale from next-intl context for consistent i18n
   const locale = useLocale();
-  
-  // Get current time in club timezone for blocking checks
-  // This needs to be recalculated on each render to stay current
-  const currentTimeInClubTz = useMemo(() => 
-    getCurrentTimeInClubTimezone(validatedClubTimezone),
-    [validatedClubTimezone]
-  );
-  
-  // Parse current hour from club timezone time
-  const currentHourInClubTz = useMemo(() => {
-    const [hour] = currentTimeInClubTz.split(':').map(Number);
-    return hour;
-  }, [currentTimeInClubTz]);
 
   // Real-time availability updates via WebSocket
   useCourtAvailability(clubId, () => {
@@ -310,14 +304,20 @@ export function WeeklyAvailabilityTimeline({
     fetchAvailability();
   }, [fetchAvailability]);
 
-  // Auto-update: check if date has changed
+  // Auto-update: check if date has changed and update current hour
   const checkAndUpdateDate = useCallback(() => {
     const newTodayStr = getTodayInClubTimezone(validatedClubTimezone);
+    const newTimeStr = getCurrentTimeInClubTimezone(validatedClubTimezone);
+    const [newHour] = newTimeStr.split(':').map(Number);
+    
     if (newTodayStr !== currentTodayStr) {
       setCurrentTodayStr(newTodayStr);
       // Reset start date to current today/week when date changes
       setStartDate(getStartDate(mode));
     }
+    
+    // Update current hour for blocking logic
+    setCurrentHourInClubTz(newHour);
   }, [currentTodayStr, mode, validatedClubTimezone]);
 
   // Auto-update on visibility change (when user returns to tab)
@@ -494,8 +494,8 @@ export function WeeklyAvailabilityTimeline({
             </div>
             {HOURS.map((utcHour) => {
               // Convert UTC hour to club timezone hour for display
-              // Use the first day's date as reference for conversion
-              const referenceDate = data.days[0]?.date || getTodayStr();
+              // Use the first day's date as reference for conversion, or today if no data yet
+              const referenceDate = data.days[0]?.date || getTodayInClubTimezone(validatedClubTimezone);
               const utcDateTimeStr = `${referenceDate}T${utcHour.toString().padStart(2, '0')}:00:00.000Z`;
               const clubLocalTime = utcToClubLocalTime(utcDateTimeStr, validatedClubTimezone);
               
@@ -514,7 +514,9 @@ export function WeeklyAvailabilityTimeline({
           {/* Day rows */}
           {data.days.map((day) => {
             // Convert UTC date to club timezone date for display
-            // Use noon UTC on this date to get the club-local date
+            // We use noon UTC as reference time to avoid date boundary issues
+            // (e.g., 23:00 UTC on Jan 1 might be 01:00 next day in some timezones,
+            //  but noon UTC will always map to the same calendar day in most timezones)
             const utcNoonStr = `${day.date}T12:00:00.000Z`;
             const clubLocalDate = utcToClubLocalDate(utcNoonStr, validatedClubTimezone);
             
