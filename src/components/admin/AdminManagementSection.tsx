@@ -266,6 +266,12 @@ export default function AdminManagementSection({
       return true;
     }
 
+    // For club context, Club Owner can manage club admins
+    if (context === "club" && isOwner && admin.id !== user?.id) {
+      // Club owner can remove club admins but not themselves
+      return true;
+    }
+
     // For club context, organization admins can manage club admins
     if (context === "club" && hasAnyRole(["ORGANIZATION_ADMIN"])) {
       // Club owner cannot remove themselves
