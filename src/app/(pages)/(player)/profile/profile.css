@@ -101,8 +101,8 @@
 
 .im-booking-time {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
 .im-booking-date {
@@ -120,8 +120,8 @@
 
 .im-booking-location {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
 .im-booking-club {

@@ -37,7 +37,7 @@ export default function PlayerProfilePage() {
   const router = useRouter();
   const t = useTranslations();
   const currentLocale = useCurrentLocale();
-  
+
   // Auth guard: Require authentication, redirect root admins to admin dashboard
   const { isHydrated, isLoading, isLoggedIn, user } = useAuthGuardOnce({
     requireAuth: true,
@@ -89,13 +89,13 @@ export default function PlayerProfilePage() {
       if (response.ok) {
         const data = await response.json();
         const newBookings = Array.isArray(data) ? data : [];
-        
+
         if (loadMore) {
           setUpcomingBookings(prev => [...prev, ...newBookings]);
         } else {
           setUpcomingBookings(newBookings);
         }
-        
+
         // If we got fewer items than requested, there are no more items
         setHasMoreUpcoming(newBookings.length === ITEMS_PER_PAGE);
       } else if (response.status === 401) {
@@ -128,13 +128,13 @@ export default function PlayerProfilePage() {
       if (response.ok) {
         const data = await response.json();
         const newBookings = Array.isArray(data) ? data : [];
-        
+
         if (loadMore) {
           setPastBookings(prev => [...prev, ...newBookings]);
         } else {
           setPastBookings(newBookings);
         }
-        
+
         // If we got fewer items than requested, there are no more items
         setHasMorePast(newBookings.length === ITEMS_PER_PAGE);
       } else if (response.status === 401) {
@@ -167,13 +167,13 @@ export default function PlayerProfilePage() {
       if (response.ok) {
         const data = await response.json();
         const newHistory = Array.isArray(data) ? data : [];
-        
+
         if (loadMore) {
           setActivityHistory(prev => [...prev, ...newHistory]);
         } else {
           setActivityHistory(newHistory);
         }
-        
+
         // If we got fewer items than requested, there are no more items
         setHasMoreActivity(newHistory.length === ITEMS_PER_PAGE);
       } else if (response.status === 401) {
@@ -207,7 +207,7 @@ export default function PlayerProfilePage() {
       }
 
       const data = await response.json();
-      
+
       // NOTE: Payment flow integration is intentionally left as a TODO
       // This PR implements the backend API and UI for resuming payment.
       // The actual payment provider integration (WayForPay/LiqPay) will be
@@ -217,7 +217,7 @@ export default function PlayerProfilePage() {
       // by 5 minutes, allowing users to complete payment when the payment
       // flow is integrated.
       console.log("Payment resumed:", data);
-      
+
       // Refresh bookings to show updated expiration time
       await fetchUpcomingBookings();
     } catch (error) {
@@ -240,33 +240,33 @@ export default function PlayerProfilePage() {
   // Get status badge class based on combined display status
   const getStatusBadgeClass = (displayStatus: string) => {
     const status = displayStatus.toLowerCase();
-    
+
     // Error states (cancelled, no-show, missed) - highest priority
     // Note: "Cancelled (Refunded)" will match here and show as error, which is correct
-    if (status.includes("cancelled") || 
-        status.includes("no-show") || 
-        status.includes("missed")) {
+    if (status.includes("cancelled") ||
+      status.includes("no-show") ||
+      status.includes("missed")) {
       return "im-status-badge--error";
     }
-    
+
     // Info states (refunded) - for standalone refunded status
     if (status.includes("refunded")) {
       return "im-status-badge--info";
     }
-    
+
     // Warning states (awaiting payment, payment pending)
-    if (status.includes("awaiting payment") || 
-        status.includes("payment pending")) {
+    if (status.includes("awaiting payment") ||
+      status.includes("payment pending")) {
       return "im-status-badge--warning";
     }
-    
+
     // Success states (completed, booked, confirmed without payment issues)
-    if (status.includes("completed") || 
-        status.includes("booked") ||
-        status === "confirmed") {
+    if (status.includes("completed") ||
+      status.includes("booked") ||
+      status === "confirmed") {
       return "im-status-badge--success";
     }
-    
+
     return "im-status-badge--default";
   };
 
@@ -338,25 +338,26 @@ export default function PlayerProfilePage() {
                   )}
                   {upcomingBookings.map((booking) => {
                     const isUnpaid = booking.paymentStatus === PAYMENT_STATUS.UNPAID;
-                    const isExpired = booking.reservationExpiresAt 
+                    const isExpired = booking.reservationExpiresAt
                       ? new Date(booking.reservationExpiresAt) < new Date()
                       : false;
-                    
+
                     // Get combined display status
                     const displayStatus = getPlayerBookingDisplayStatus(
                       booking.bookingStatus as BookingStatus,
                       booking.paymentStatus as PaymentStatus
                     );
-                    
+
                     return (
                       <div key={booking.id} className="im-booking-item">
                         <div className="im-booking-details">
                           <div className="im-booking-time">
-                            <span className="im-booking-date">
-                              {formatDateWithWeekday(booking.start, currentLocale)}
-                            </span>
                             <span className="im-booking-time-range">
                               {formatTime(booking.start, currentLocale)} - {formatTime(booking.end, currentLocale)}
+                            </span>
+
+                            <span className="im-booking-date">
+                              {formatDateWithWeekday(booking.start, currentLocale)}
                             </span>
                           </div>
                           <div className="im-booking-location">
@@ -374,8 +375,8 @@ export default function PlayerProfilePage() {
                             {booking.reservationExpiresAt && (
                               <div className="im-payment-deadline">
                                 <span className="im-payment-deadline-label">
-                                  {t("playerProfile.payBy", { 
-                                    deadline: formatPaymentDeadline(booking.reservationExpiresAt, currentLocale) 
+                                  {t("playerProfile.payBy", {
+                                    deadline: formatPaymentDeadline(booking.reservationExpiresAt, currentLocale)
                                   })}
                                 </span>
                               </div>
@@ -386,8 +387,8 @@ export default function PlayerProfilePage() {
                               variant="primary"
                               size="small"
                             >
-                              {resumingPayment === booking.id 
-                                ? t("playerProfile.resumingPayment") 
+                              {resumingPayment === booking.id
+                                ? t("playerProfile.resumingPayment")
                                 : t("playerProfile.payNow")}
                             </Button>
                             <p className="im-warning-text-base im-payment-warning">
@@ -442,7 +443,7 @@ export default function PlayerProfilePage() {
                       booking.bookingStatus as BookingStatus,
                       booking.paymentStatus as PaymentStatus
                     );
-                    
+
                     return (
                       <div key={booking.id} className="im-booking-item">
                         <div className="im-booking-details">
