@@ -19,7 +19,7 @@ import { useProfileStore } from "@/stores/useProfileStore";
 import { useActiveClub } from "@/contexts/ClubContext";
 import { useIsMobile } from "@/hooks";
 import { isValidImageUrl, getImageUrl } from "@/utils/image";
-import { getTodayStr, clubLocalToUTC } from "@/utils/dateTime";
+import { getTodayStr, clubLocalToUTC, utcToClubLocalTime, timeOfDayFromUTC } from "@/utils/dateTime";
 import { getClubTimezone } from "@/constants/timezone";
 import type { Court, AvailabilitySlot, AvailabilityResponse, CourtAvailabilityStatus } from "@/types/court";
 import "@/components/ClubDetailPage.css";
@@ -571,6 +571,7 @@ export default function ClubDetailPage({
             <WeeklyAvailabilityTimeline
               key={timelineKey}
               clubId={club.id}
+              clubTimezone={club.timezone}
               onSlotClick={handleTimelineSlotClick}
             />
           </section>
@@ -719,18 +720,31 @@ export default function ClubDetailPage({
                     {t("clubDetail.hours")}
                   </h2>
                   <div className="im-club-hours-list">
-                    {club.businessHours.map((hours) => (
-                      <div key={hours.id} className="im-club-hours-row">
-                        <span className="im-club-hours-day">{DAY_NAMES[hours.dayOfWeek]}</span>
-                        {hours.isClosed ? (
-                          <span className="im-club-hours-closed">{t("clubDetail.closed")}</span>
-                        ) : (
-                          <span className="im-club-hours-time">
-                            {hours.openTime} - {hours.closeTime}
-                          </span>
-                        )}
-                      </div>
-                    ))}
+                    {club.businessHours.map((hours) => {
+                      // Get club timezone with fallback
+                      const clubTimezone = getClubTimezone(club.timezone);
+                      
+                      // Convert UTC times to club-local times for display
+                      const displayOpenTime = hours.openTime && !hours.isClosed
+                        ? timeOfDayFromUTC(hours.openTime, clubTimezone)
+                        : hours.openTime;
+                      const displayCloseTime = hours.closeTime && !hours.isClosed
+                        ? timeOfDayFromUTC(hours.closeTime, clubTimezone)
+                        : hours.closeTime;
+                      
+                      return (
+                        <div key={hours.id} className="im-club-hours-row">
+                          <span className="im-club-hours-day">{DAY_NAMES[hours.dayOfWeek]}</span>
+                          {hours.isClosed ? (
+                            <span className="im-club-hours-closed">{t("clubDetail.closed")}</span>
+                          ) : (
+                            <span className="im-club-hours-time">
+                              {displayOpenTime} - {displayCloseTime}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -9,7 +9,12 @@ import {
   getTodayInTimezone,
   getTodayStr,
   getWeekMonday,
+  getTodayInClubTimezone,
+  getCurrentTimeInClubTimezone,
+  utcToClubLocalDate,
+  utcToClubLocalTime,
 } from "@/utils/dateTime";
+import { getClubTimezone } from "@/constants/timezone";
 import type {
   WeeklyAvailabilityResponse,
   HourSlotAvailability,
@@ -47,6 +52,7 @@ const AUTO_UPDATE_INTERVAL = 60 * 1000;
 
 interface WeeklyAvailabilityTimelineProps {
   clubId: string;
+  clubTimezone?: string | null;
   onSlotClick?: (
     date: string,
     hour: number,
@@ -228,6 +234,7 @@ function ErrorState({ message, onRetry, errorTitle, retryLabel }: ErrorStateProp
 
 export function WeeklyAvailabilityTimeline({
   clubId,
+  clubTimezone,
   onSlotClick,
   defaultMode = "rolling",
 }: WeeklyAvailabilityTimelineProps) {
@@ -244,14 +251,31 @@ export function WeeklyAvailabilityTimeline({
     isBlocked?: boolean;
     blockReason?: string;
   } | null>(null);
-  const [currentTodayStr, setCurrentTodayStr] = useState<string>(getTodayStr);
+  
+  // Get club timezone with fallback to default
+  const validatedClubTimezone = getClubTimezone(clubTimezone);
+  
+  // Use club timezone for today detection and current time
+  const [currentTodayStr, setCurrentTodayStr] = useState<string>(() => 
+    getTodayInClubTimezone(validatedClubTimezone)
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Get locale from next-intl context for consistent i18n
   const locale = useLocale();
   
-  // Compute current time once per render for consistent blocking checks
-  const now = useMemo(() => new Date(), []);
+  // Get current time in club timezone for blocking checks
+  // This needs to be recalculated on each render to stay current
+  const currentTimeInClubTz = useMemo(() => 
+    getCurrentTimeInClubTimezone(validatedClubTimezone),
+    [validatedClubTimezone]
+  );
+  
+  // Parse current hour from club timezone time
+  const currentHourInClubTz = useMemo(() => {
+    const [hour] = currentTimeInClubTz.split(':').map(Number);
+    return hour;
+  }, [currentTimeInClubTz]);
 
   // Real-time availability updates via WebSocket
   useCourtAvailability(clubId, () => {
@@ -289,13 +313,13 @@ export function WeeklyAvailabilityTimeline({
 
   // Auto-update: check if date has changed
   const checkAndUpdateDate = useCallback(() => {
-    const newTodayStr = getTodayStr();
+    const newTodayStr = getTodayInClubTimezone(validatedClubTimezone);
     if (newTodayStr !== currentTodayStr) {
       setCurrentTodayStr(newTodayStr);
       // Reset start date to current today/week when date changes
       setStartDate(getStartDate(mode));
     }
-  }, [currentTodayStr, mode]);
+  }, [currentTodayStr, mode, validatedClubTimezone]);
 
   // Auto-update on visibility change (when user returns to tab)
   useEffect(() => {
@@ -469,22 +493,35 @@ export function WeeklyAvailabilityTimeline({
             <div className="tm-weekly-grid-corner" role="columnheader">
               {t("dayHour")}
             </div>
-            {HOURS.map((hour) => (
-              <div
-                key={`header-${hour}`}
-                className="tm-weekly-grid-hour-header"
-                role="columnheader"
-              >
-                {formatHour(hour, locale)}
-              </div>
-            ))}
+            {HOURS.map((utcHour) => {
+              // Convert UTC hour to club timezone hour for display
+              // Use the first day's date as reference for conversion
+              const referenceDate = data.days[0]?.date || getTodayStr();
+              const utcDateTimeStr = `${referenceDate}T${utcHour.toString().padStart(2, '0')}:00:00.000Z`;
+              const clubLocalTime = utcToClubLocalTime(utcDateTimeStr, validatedClubTimezone);
+              
+              return (
+                <div
+                  key={`header-${utcHour}`}
+                  className="tm-weekly-grid-hour-header"
+                  role="columnheader"
+                >
+                  {clubLocalTime}
+                </div>
+              );
+            })}
           </div>
 
           {/* Day rows */}
           {data.days.map((day) => {
-            const localizedDayName = getLocalizedDayName(day.date, locale, "short");
-            const { day: dayOfMonth } = parseDateComponents(day.date);
-            const isToday = day.isToday || day.date === currentTodayStr;
+            // Convert UTC date to club timezone date for display
+            // Use noon UTC on this date to get the club-local date
+            const utcNoonStr = `${day.date}T12:00:00.000Z`;
+            const clubLocalDate = utcToClubLocalDate(utcNoonStr, validatedClubTimezone);
+            
+            const localizedDayName = getLocalizedDayName(clubLocalDate, locale, "short");
+            const { day: dayOfMonth } = parseDateComponents(clubLocalDate);
+            const isToday = clubLocalDate === currentTodayStr;
             
             return (
               <div key={day.date} className={`tm-weekly-grid-row ${isToday ? "tm-weekly-grid-row--today" : ""}`} role="row">
@@ -506,8 +543,21 @@ export function WeeklyAvailabilityTimeline({
                   )}
                 </div>
                 {day.hours.map((slot) => {
-                  const blockStatus = isSlotBlocked(day.date, slot.hour, now);
-                  const { isBlocked, reason } = blockStatus;
+                  // Convert UTC hour to club timezone hour for blocking check
+                  // The API returns UTC dates and hours, we need to check blocking in club timezone
+                  // Create a UTC datetime string for this slot
+                  const utcDateTimeStr = `${day.date}T${slot.hour.toString().padStart(2, '0')}:00:00.000Z`;
+                  
+                  // Convert to club timezone
+                  const clubLocalDate = utcToClubLocalDate(utcDateTimeStr, validatedClubTimezone);
+                  const clubLocalTime = utcToClubLocalTime(utcDateTimeStr, validatedClubTimezone);
+                  const [clubLocalHour] = clubLocalTime.split(':').map(Number);
+                  
+                  // Check if blocked using club timezone date and hour
+                  const isPastDay = clubLocalDate < currentTodayStr;
+                  const isTodayPastHour = clubLocalDate === currentTodayStr && clubLocalHour < currentHourInClubTz;
+                  const isBlocked = isPastDay || isTodayPastHour;
+                  const reason: "past_day" | "past_hour" | null = isPastDay ? "past_day" : isTodayPastHour ? "past_hour" : null;
                   const blockReasonText = getBlockReasonText(reason);
                   
                   // Determine CSS class - blocked slots get a special class
@@ -518,13 +568,13 @@ export function WeeklyAvailabilityTimeline({
                   // Build aria-label based on blocked state
                   const ariaLabel = isBlocked
                     ? t("ariaSlotBlockedLabel", { 
-                        dayName: getLocalizedDayName(day.date, locale, "long"),
-                        time: formatHour(slot.hour, locale),
+                        dayName: getLocalizedDayName(clubLocalDate, locale, "long"),
+                        time: clubLocalTime,
                         reason: blockReasonText
                       })
                     : t("ariaSlotLabel", {
-                        dayName: getLocalizedDayName(day.date, locale, "long"),
-                        time: formatHour(slot.hour, locale),
+                        dayName: getLocalizedDayName(clubLocalDate, locale, "long"),
+                        time: clubLocalTime,
                         available: slot.summary.available,
                         partial: slot.summary.partial,
                         booked: slot.summary.booked,
