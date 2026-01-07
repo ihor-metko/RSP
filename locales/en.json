@@ -4800,8 +4800,11 @@
   },
   "landing": {
     "title": "ArenaOne",
-    "tagline": "Find and book padel courts near you",
-    "findCourt": "Find a court"
+    "tagline": "Find and book a court in a minute",
+    "findCourt": "Find a court",
+    "myBookings": "My Bookings",
+    "nextBooking": "Next Booking",
+    "viewBooking": "View"
   },
   "availability": {
     "title": "Check Availability",
