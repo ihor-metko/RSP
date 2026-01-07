@@ -39,15 +39,9 @@ export const BOOKING_STATUS = {
 } as const;
 
 /**
- * Reservation expiration time in milliseconds (5 minutes)
+ * Reservation expiration time in milliseconds (15 minutes)
  */
-export const RESERVATION_EXPIRATION_MS = 5 * 60 * 1000;
-
-/**
- * Payment timeout in milliseconds (30 minutes)
- * After this time, unpaid confirmed bookings will be automatically cancelled
- */
-export const PAYMENT_TIMEOUT_MS = 30 * 60 * 1000;
+export const RESERVATION_EXPIRATION_MS = 15 * 60 * 1000;
 
 /**
  * Legacy status types (for backward compatibility during migration)
