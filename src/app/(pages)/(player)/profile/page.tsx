@@ -178,19 +178,20 @@ export default function PlayerProfilePage() {
   const getStatusBadgeClass = (displayStatus: string) => {
     const lowerStatus = displayStatus.toLowerCase();
     
-    // Success states (paid bookings)
-    if (lowerStatus.includes("booked") || lowerStatus.includes("paid") || lowerStatus === "completed" || lowerStatus === "confirmed") {
-      return "im-status-badge--success";
-    }
-    
-    // Warning states (awaiting payment, pending)
-    if (lowerStatus.includes("reserved") || lowerStatus.includes("pending") || lowerStatus.includes("awaiting")) {
+    // Warning states first (awaiting payment, pending, reserved)
+    // These need to be checked before "confirmed" because "Confirmed, awaiting payment" should be warning
+    if (lowerStatus.includes("awaiting") || lowerStatus.includes("pending") || lowerStatus.includes("reserved")) {
       return "im-status-badge--warning";
     }
     
     // Error states (cancelled, missed, no-show)
     if (lowerStatus.includes("cancelled") || lowerStatus.includes("missed") || lowerStatus.includes("no-show")) {
       return "im-status-badge--error";
+    }
+    
+    // Success states (paid bookings, confirmed, completed, booked)
+    if (lowerStatus.includes("booked") || lowerStatus.includes("paid") || lowerStatus === "completed" || lowerStatus.includes("confirmed")) {
+      return "im-status-badge--success";
     }
     
     return "im-status-badge--default";
