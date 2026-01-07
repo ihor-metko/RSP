@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  width: 400px;
 }
 
 .im-section-edit-modal-content {
