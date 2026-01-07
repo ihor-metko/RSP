@@ -219,6 +219,11 @@
   color: var(--im-error-text, #991b1b);
 }
 
+.im-status-badge--info {
+  background-color: var(--im-info-bg, #dbeafe);
+  color: var(--im-info-text, #1e40af);
+}
+
 .im-status-badge--default {
   background-color: var(--im-default-bg, #f3f4f6);
   color: var(--im-default-text, #4b5563);
@@ -276,6 +281,11 @@
 .dark .im-status-badge--error {
   background-color: rgba(239, 68, 68, 0.2);
   color: #f87171;
+}
+
+.dark .im-status-badge--info {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
 }
 
 .dark .im-status-badge--default {
