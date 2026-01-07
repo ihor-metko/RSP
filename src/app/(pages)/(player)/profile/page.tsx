@@ -370,11 +370,11 @@ export default function PlayerProfilePage() {
                                   ? t("playerProfile.resumingPayment") 
                                   : t("playerProfile.payNow")}
                               </Button>
-                              <p className="im-payment-warning">
+                              <p className="im-warning-text-base im-payment-warning">
                                 {t("playerProfile.paymentWarning")}
                               </p>
                               {isExpired && (
-                                <span className="im-booking-warning">
+                                <span className="im-warning-text-base im-booking-warning">
                                   {t("playerProfile.reservationExpired")}
                                 </span>
                               )}

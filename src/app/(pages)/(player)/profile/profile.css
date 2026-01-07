@@ -170,18 +170,20 @@
   color: var(--im-text-primary);
 }
 
-.im-payment-warning {
-  width: 100%;
+/* Base warning text styles */
+.im-warning-text-base {
   font-size: 0.75rem;
-  color: var(--im-text-secondary);
-  margin: 0.5rem 0 0 0;
   font-style: italic;
 }
 
+.im-payment-warning {
+  width: 100%;
+  color: var(--im-text-secondary);
+  margin: 0.5rem 0 0 0;
+}
+
 .im-booking-warning {
-  font-size: 0.75rem;
   color: var(--im-warning-text, #92400e);
-  font-style: italic;
 }
 
 .im-error-message {
