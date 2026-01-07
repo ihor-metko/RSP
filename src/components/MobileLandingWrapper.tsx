@@ -2,6 +2,7 @@
 
 import { useIsMobile } from "@/hooks";
 import { LandingMobileView } from "@/components/mobile-views";
+import { PlayerBottomNav } from "@/components/layout/PlayerBottomNav";
 import { useEffect, useState } from "react";
 
 /**
@@ -12,6 +13,7 @@ import { useEffect, useState } from "react";
  * Returns null on desktop to allow server components to render normally.
  * 
  * Provides CSS class to parent to control desktop content visibility.
+ * Includes PlayerBottomNav for mobile navigation.
  */
 export function MobileLandingWrapper() {
   const isMobile = useIsMobile();
@@ -31,5 +33,10 @@ export function MobileLandingWrapper() {
     return null;
   }
 
-  return <LandingMobileView />;
+  return (
+    <>
+      <LandingMobileView />
+      <PlayerBottomNav />
+    </>
+  );
 }
