@@ -383,7 +383,7 @@ export default function PlayerProfilePage() {
                             )}
                             <Button
                               onClick={() => handleResumePayment(booking.id)}
-                              disabled={resumingPayment === booking.id}
+                              disabled={resumingPayment === booking.id || isExpired}
                               variant="primary"
                               size="small"
                             >
