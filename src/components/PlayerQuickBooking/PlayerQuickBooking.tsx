@@ -962,8 +962,21 @@ export function PlayerQuickBooking({
       case 2.5:
         // Confirmation step - just verify selection before proceeding to payment
         return !!state.step2.selectedCourtId && !!state.step2.selectedCourt;
-      case 3:
-        return !!state.step3.paymentProvider && !state.isSubmitting && !!state.step3.reservationId;
+      case 3: {
+        // Check if payment provider is selected and reservation exists
+        if (!state.step3.paymentProvider || !state.step3.reservationId || state.isSubmitting) {
+          return false;
+        }
+        // Check if reservation is expired
+        if (state.step3.reservationExpiresAt) {
+          const now = new Date();
+          const expiresAt = new Date(state.step3.reservationExpiresAt);
+          if (expiresAt <= now) {
+            return false; // Expired reservation, disable payment
+          }
+        }
+        return true;
+      }
       case 4:
         return true; // Final confirmation step
       default:

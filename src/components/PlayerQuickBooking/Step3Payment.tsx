@@ -240,7 +240,7 @@ export function Step3Payment({
                 : ""
                 }`}
               onClick={() => onSelectPaymentProvider(provider)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || timeRemaining === 0}
             >
               <div className="rsp-wizard-payment-method-logo">
                 <Image
