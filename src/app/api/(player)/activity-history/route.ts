@@ -30,9 +30,14 @@ export async function GET(request: NextRequest) {
     const skipParam = searchParams.get("skip");
     const takeParam = searchParams.get("take");
 
-    // Parse pagination parameters
-    const skip = skipParam ? parseInt(skipParam, 10) : 0;
-    const take = takeParam ? parseInt(takeParam, 10) : undefined;
+    // Parse pagination parameters with validation
+    const skipParsed = skipParam ? parseInt(skipParam, 10) : 0;
+    const skip = isNaN(skipParsed) ? 0 : Math.max(0, skipParsed);
+    
+    const takeParsed = takeParam ? parseInt(takeParam, 10) : undefined;
+    const take = takeParsed !== undefined 
+      ? (isNaN(takeParsed) ? undefined : Math.max(1, Math.min(100, takeParsed)))
+      : undefined;
 
     // Fetch cancelled unpaid bookings with cancelReason = PAYMENT_TIMEOUT
     const cancelledBookings = await prisma.booking.findMany({
