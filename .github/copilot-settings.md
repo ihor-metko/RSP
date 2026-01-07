@@ -231,3 +231,28 @@ the implementation **must not proceed** until the document is updated and approv
 > Before implementing any mobile player feature, re-read
 > `/docs/player-mobile-flow.md`
 > and ensure the implementation fully complies with it.
+
+# 10. Time & Date Handling Rule (UTC-first)
+
+- All date and time values sent to the backend MUST always be in UTC (UTC+0).
+- The backend stores and operates ONLY with UTC values. No timezone calculations should be introduced on the backend side.
+- All timezone conversions MUST happen on the frontend only, based on the club’s configured timezone.
+
+- Frontend responsibility:
+  - Convert local (club) date/time → UTC before sending any API request.
+  - Convert UTC values received from the backend → club timezone for display.
+
+- DO NOT add new date/time utility functions if existing helpers already exist in the codebase. Always reuse the current utilities.
+- DO NOT calculate or adjust timezones inside API endpoints, services, or backend logic.
+
+- This rule applies to all features including (but not limited to):
+  - Availability
+  - Bookings
+  - Pricing rules
+  - Working hours
+  - Quick booking flow
+  - Player profile (past and future bookings)
+
+**Single source of truth:**
+- Backend = UTC
+- Frontend = timezone-aware UI
