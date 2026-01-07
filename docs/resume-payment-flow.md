@@ -4,6 +4,34 @@
 
 This document describes the implementation of the Resume Payment flow for the Quick Booking modal. When a user has a reserved but unpaid booking, they can resume payment through their profile page. The Quick Booking modal now displays all previous steps (Date/Time, Court Selection, Confirmation) as read-only, followed by an interactive Payment step.
 
+## Visual Flow Diagram
+
+```
+Normal Quick Booking Flow:
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Step 1    │ -> │   Step 2    │ -> │   Step 2.5  │ -> │   Step 3    │
+│ Date & Time │    │Select Court │    │ Confirmation│    │   Payment   │
+│  (Active)   │    │  (Active)   │    │  (Active)   │    │  (Active)   │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+
+Resume Payment Flow:
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   Step 1    │    │   Step 2    │    │   Step 2.5  │    │ ➤ Step 3    │
+│ Date & Time │    │Select Court │    │ Confirmation│    │   Payment   │
+│  (LOCKED🔒) │    │  (LOCKED🔒) │    │  (LOCKED🔒) │    │  (ACTIVE✓)  │
+└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+     ↓                   ↓                   ↓                   ↓
+ Read-only          Read-only          Read-only          Interactive
+ Summary Card       Summary Card       Summary Card       Payment Form
+```
+
+**Key Differences:**
+- 🔒 Steps 1-3 are **locked** and show read-only data
+- ✓ Only Step 4 (Payment) is **active** and interactive
+- Modal opens directly on Step 4 (Payment)
+- Step indicator shows all steps for context
+- User cannot navigate backwards, only Cancel or Pay
+
 ## User Experience
 
 ### Previous Behavior
