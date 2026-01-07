@@ -241,7 +241,7 @@ export default function PlayerProfilePage() {
   const getStatusBadgeClass = (displayStatus: string) => {
     const status = displayStatus.toLowerCase();
     
-    // Success states (completed, paid, confirmed)
+    // Success states (completed, paid, booked)
     if (status.includes("completed") || status.includes("booked")) {
       return "im-status-badge--success";
     }
@@ -249,7 +249,7 @@ export default function PlayerProfilePage() {
     // Warning states (awaiting payment, payment pending, confirmed)
     if (status.includes("awaiting payment") || 
         status.includes("payment pending") || 
-        status === "confirmed") {
+        status.includes("confirmed")) {
       return "im-status-badge--warning";
     }
     
