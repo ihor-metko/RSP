@@ -1532,7 +1532,8 @@
       "noHistory": "No activity to display",
       "cancelledPaymentTimeout": "Cancelled — payment not completed in time"
     },
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "loading": "Loading..."
   },
   "footer": {
     "brandName": "ArenaOne",

@@ -380,7 +380,7 @@ export default function PlayerProfilePage() {
                       disabled={loadingMoreUpcoming}
                       variant="outline"
                     >
-                      {loadingMoreUpcoming ? t("playerProfile.resumingPayment") : t("playerProfile.loadMore")}
+                      {loadingMoreUpcoming ? t("playerProfile.loading") : t("playerProfile.loadMore")}
                     </Button>
                   </div>
                 )}
@@ -434,7 +434,7 @@ export default function PlayerProfilePage() {
                       disabled={loadingMorePast}
                       variant="outline"
                     >
-                      {loadingMorePast ? t("playerProfile.resumingPayment") : t("playerProfile.loadMore")}
+                      {loadingMorePast ? t("playerProfile.loading") : t("playerProfile.loadMore")}
                     </Button>
                   </div>
                 )}
@@ -488,7 +488,7 @@ export default function PlayerProfilePage() {
                       disabled={loadingMoreActivity}
                       variant="outline"
                     >
-                      {loadingMoreActivity ? t("playerProfile.resumingPayment") : t("playerProfile.loadMore")}
+                      {loadingMoreActivity ? t("playerProfile.loading") : t("playerProfile.loadMore")}
                     </Button>
                   </div>
                 )}
