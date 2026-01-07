@@ -131,7 +131,10 @@
     "ongoing": "В процесі",
     "paymentStatusUnpaid": "Не оплачено",
     "paymentStatusPaid": "Оплачено",
-    "paymentStatusRefunded": "Повернено"
+    "paymentStatusRefunded": "Повернено",
+    "Cancelled": "Скасовано",
+    "Confirmed": "Підтверджено",
+    "no-show": "Не з'явився"
   },
   "entityBanner": {
     "edit": "Редагувати",

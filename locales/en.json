@@ -131,7 +131,10 @@
     "ongoing": "Ongoing",
     "paymentStatusUnpaid": "Unpaid",
     "paymentStatusPaid": "Paid",
-    "paymentStatusRefunded": "Refunded"
+    "paymentStatusRefunded": "Refunded",
+    "Cancelled": "Cancelled",
+    "Confirmed": "Confirmed",
+    "no-show": "No-show"
   },
   "entityBanner": {
     "edit": "Edit",
