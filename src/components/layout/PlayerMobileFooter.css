@@ -1,0 +1,109 @@
+@reference "tailwindcss";
+
+/**
+ * PlayerMobileFooter Component Styles
+ *
+ * Mobile-first footer for player-facing UI
+ * Uses im-* class prefix and global CSS variables
+ *
+ * CSS Variables used:
+ * - --im-footer-bg: Footer background (darker than main content)
+ * - --im-footer-text: Footer text color
+ * - --im-footer-text-muted: Muted text color
+ * - --im-footer-link: Link color
+ * - --im-footer-link-hover: Link hover color
+ * - --im-footer-border: Border color
+ * - --im-logo-cyan: Logo cyan color
+ * - --im-logo-emerald: Logo emerald color
+ */
+
+/* Footer container */
+.im-player-mobile-footer {
+  @apply w-full py-8 px-4;
+  background-color: var(--im-footer-bg);
+  border-top: 1px solid var(--im-footer-border);
+  color: var(--im-footer-text);
+}
+
+.im-player-mobile-footer-container {
+  @apply w-full max-w-7xl mx-auto flex flex-col gap-6;
+}
+
+/* Section */
+.im-player-mobile-footer-section {
+  @apply flex flex-col gap-3;
+}
+
+/* Brand */
+.im-player-mobile-footer-brand {
+  @apply mb-1;
+}
+
+.im-player-mobile-footer-logo {
+  @apply font-sans font-extrabold;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.im-player-mobile-footer-logo-arena {
+  color: var(--im-logo-cyan);
+}
+
+.im-player-mobile-footer-logo-one {
+  color: var(--im-logo-emerald);
+}
+
+.im-player-mobile-footer-description {
+  @apply text-sm leading-relaxed;
+  color: var(--im-footer-text-muted);
+  max-width: 400px;
+}
+
+/* Section title */
+.im-player-mobile-footer-title {
+  @apply font-semibold text-base;
+  color: var(--im-footer-text);
+}
+
+/* Links */
+.im-player-mobile-footer-links {
+  @apply flex flex-col gap-2;
+}
+
+a.im-player-mobile-footer-link {
+  @apply text-sm transition-colors;
+  color: var(--im-footer-text-muted);
+  line-height: 1.6;
+}
+
+a.im-player-mobile-footer-link:hover,
+a.im-player-mobile-footer-link:focus {
+  color: var(--im-footer-link-hover);
+}
+
+/* Footer bottom */
+.im-player-mobile-footer-bottom {
+  @apply mt-2 pt-6 text-center;
+  border-top: 1px solid var(--im-footer-border);
+}
+
+.im-player-mobile-footer-copyright {
+  @apply text-sm;
+  color: var(--im-footer-text-muted);
+}
+
+/* Responsive adjustments for larger screens */
+@media (min-width: 768px) {
+  .im-player-mobile-footer {
+    @apply px-6 py-10;
+  }
+
+  .im-player-mobile-footer-container {
+    @apply gap-8;
+  }
+
+  .im-player-mobile-footer-section {
+    @apply gap-4;
+  }
+}

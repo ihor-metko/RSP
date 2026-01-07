@@ -1,5 +1,5 @@
-import Header from "@/components/layout/Header";
-import { PublicFooter } from "@/components/layout/PublicFooter";
+import PlayerMobileHeader from "@/components/layout/PlayerMobileHeader";
+import { PlayerMobileFooter } from "@/components/layout/PlayerMobileFooter";
 
 export default function PlayerLayout({
   children,
@@ -8,13 +8,13 @@ export default function PlayerLayout({
 }>) {
   return (
     <div className="flex flex-col min-h-screen overflow-auto">
-      <Header />
+      <PlayerMobileHeader />
 
       <div className="flex-1 w-7xl mx-auto w-full">
         {children}
       </div>
 
-      <PublicFooter />
+      <PlayerMobileFooter />
     </div>
   );
 }

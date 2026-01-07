@@ -1437,7 +1437,8 @@
       "myTrainings": "Мої тренування",
       "browseClubs": "Переглянути клуби",
       "home": "Головна",
-      "profile": "Профіль"
+      "profile": "Профіль",
+      "bookings": "Мої Бронювання"
     },
     "bookingDetails": {
       "title": "Деталі бронювання"
@@ -1501,7 +1502,9 @@
     "allRightsReserved": "Усі права захищено.",
     "socialLinks": "Соціальні мережі",
     "forClubOwners": "Для власників падел-клубів",
-    "howItWorks": "Як працює платформа"
+    "howItWorks": "Як працює платформа",
+    "getStarted": "Почати",
+    "documentation": "Документація"
   },
   "wizard": {
     "progress": "Прогрес бронювання",

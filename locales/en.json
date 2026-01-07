@@ -1499,7 +1499,8 @@
       "myTrainings": "My Trainings",
       "browseClubs": "Browse Clubs",
       "home": "Home",
-      "profile": "Profile"
+      "profile": "Profile",
+      "bookings": "My Bookings"
     },
     "bookingDetails": {
       "title": "Booking Details"
@@ -1563,7 +1564,9 @@
     "allRightsReserved": "All rights reserved.",
     "socialLinks": "Social Links",
     "forClubOwners": "For padel club owners",
-    "howItWorks": "How the platform works"
+    "howItWorks": "How the platform works",
+    "getStarted": "Get Started",
+    "documentation": "Documentation"
   },
   "wizard": {
     "progress": "Booking progress",
