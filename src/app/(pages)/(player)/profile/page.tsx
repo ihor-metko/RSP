@@ -241,18 +241,6 @@ export default function PlayerProfilePage() {
   const getStatusBadgeClass = (displayStatus: string) => {
     const status = displayStatus.toLowerCase();
     
-    // Success states (completed, paid, booked)
-    if (status.includes("completed") || status.includes("booked")) {
-      return "im-status-badge--success";
-    }
-    
-    // Warning states (awaiting payment, payment pending, confirmed)
-    if (status.includes("awaiting payment") || 
-        status.includes("payment pending") || 
-        status.includes("confirmed")) {
-      return "im-status-badge--warning";
-    }
-    
     // Error states (cancelled, no-show, missed)
     if (status.includes("cancelled") || 
         status.includes("no-show") || 
@@ -263,6 +251,19 @@ export default function PlayerProfilePage() {
     // Info states (refunded)
     if (status.includes("refunded")) {
       return "im-status-badge--info";
+    }
+    
+    // Warning states (awaiting payment, payment pending)
+    if (status.includes("awaiting payment") || 
+        status.includes("payment pending")) {
+      return "im-status-badge--warning";
+    }
+    
+    // Success states (completed, booked, confirmed without payment issues)
+    if (status.includes("completed") || 
+        status.includes("booked") ||
+        status === "confirmed") {
+      return "im-status-badge--success";
     }
     
     return "im-status-badge--default";
