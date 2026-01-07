@@ -1426,7 +1426,9 @@
     "type": {
       "single": "Single",
       "double": "Double"
-    }
+    },
+    "surface": "Surface",
+    "location": "Location"
   },
   "weeklyAvailability": {
     "title": "Weekly Court Availability",
@@ -1628,7 +1630,9 @@
     "bookingConfirmedMessage": "Your court has been reserved successfully.",
     "bookingReference": "Booking Reference",
     "bookingDetails": "Booking Details",
-    "closeAndViewBookings": "Close"
+    "closeAndViewBookings": "Close",
+    "stepLockedInfo": "This step is locked and cannot be modified. You can only complete the payment.",
+    "price": "Price"
   },
   "adminWizard": {
     "title": "Create Booking",

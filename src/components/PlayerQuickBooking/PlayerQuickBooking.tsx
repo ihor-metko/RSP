@@ -111,7 +111,7 @@ export function PlayerQuickBooking({
       };
 
       return {
-        currentStep: visibleSteps[0]?.id || 3, // Start at payment step
+        currentStep: 3, // Start directly at payment step (step 3) in resume mode
         step0: {
           selectedClubId: resumePaymentBooking.clubId,
           selectedClub: initialClub,
@@ -928,6 +928,11 @@ export function PlayerQuickBooking({
 
   // Navigate to previous step
   const handleBack = useCallback(() => {
+    // In resume payment mode, prevent navigation away from payment step
+    if (resumePaymentMode) {
+      return;
+    }
+    
     const currentStepIndex = visibleSteps.findIndex((s) => s.id === state.currentStep);
     if (currentStepIndex > 0) {
       setState((prev) => ({
@@ -936,7 +941,7 @@ export function PlayerQuickBooking({
         submitError: null,
       }));
     }
-  }, [state.currentStep, visibleSteps]);
+  }, [state.currentStep, visibleSteps, resumePaymentMode]);
 
   // Computed values
   const canProceed = useMemo(() => {
@@ -1042,16 +1047,30 @@ export function PlayerQuickBooking({
               const stepIndex = visibleSteps.findIndex((s) => s.id === step.id);
               const isActive = state.currentStep === step.id;
               const isCompleted = currentIndex > stepIndex;
+              // In resume payment mode, steps before payment (steps 1, 2, 2.5) are locked
+              const isLocked = resumePaymentMode && step.id !== 3;
 
               return (
                 <div
                   key={step.id}
                   className={`rsp-wizard-step ${isActive ? "rsp-wizard-step--active" : ""
-                    } ${isCompleted ? "rsp-wizard-step--completed" : ""}`}
+                    } ${isCompleted ? "rsp-wizard-step--completed" : ""} ${isLocked ? "rsp-wizard-step--locked" : ""}`}
                   aria-current={isActive ? "step" : undefined}
                 >
                   <div className="rsp-wizard-step-circle" aria-hidden="true">
-                    {isCompleted ? (
+                    {isLocked ? (
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    ) : isCompleted ? (
                       <svg
                         width="14"
                         height="14"
@@ -1097,6 +1116,7 @@ export function PlayerQuickBooking({
               availableCourtTypes={state.availableCourtTypes}
               businessHours={state.step0.selectedClub?.businessHours}
               clubTimezone={state.step0.selectedClub?.timezone}
+              readOnlyMode={resumePaymentMode}
             />
           )}
 
@@ -1111,6 +1131,7 @@ export function PlayerQuickBooking({
               onSelectAlternativeDuration={handleSelectAlternativeDuration}
               alternativeTimeSlots={state.alternativeTimeSlots}
               onSelectAlternativeTime={handleSelectAlternativeTime}
+              readOnlyMode={resumePaymentMode}
             />
           )}
 
@@ -1123,6 +1144,7 @@ export function PlayerQuickBooking({
               court={state.step2.selectedCourt}
               totalPrice={totalPrice}
               submitError={state.submitError}
+              readOnlyMode={resumePaymentMode}
             />
           )}
 
@@ -1169,13 +1191,14 @@ export function PlayerQuickBooking({
         {/* Navigation Buttons */}
         {state.currentStep !== 4 && (
           <div className="rsp-wizard-nav">
+            {/* In resume payment mode, only show Cancel button, not Back */}
             <button
               type="button"
               className="rsp-wizard-nav-btn rsp-wizard-nav-btn--back"
-              onClick={visibleSteps.findIndex((s) => s.id === state.currentStep) === 0 ? onClose : handleBack}
+              onClick={resumePaymentMode || visibleSteps.findIndex((s) => s.id === state.currentStep) === 0 ? onClose : handleBack}
               disabled={state.isSubmitting}
             >
-              {visibleSteps.findIndex((s) => s.id === state.currentStep) === 0 ? t("common.cancel") : (
+              {resumePaymentMode || visibleSteps.findIndex((s) => s.id === state.currentStep) === 0 ? t("common.cancel") : (
                 <>
                   <svg
                     width="16"

@@ -72,6 +72,25 @@
   color: var(--color-text);
 }
 
+/* Locked steps in resume payment mode */
+.rsp-wizard-step--locked .rsp-wizard-step-circle {
+  background-color: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+.rsp-wizard-step--locked .rsp-wizard-step-label {
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+}
+
+/* Read-only form styling */
+.rsp-wizard-form--readonly {
+  opacity: 1;
+  pointer-events: none;
+}
+
 /* Step Content */
 .rsp-wizard-content {
   min-height: 400px;

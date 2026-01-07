@@ -15,6 +15,7 @@ interface Step2CourtsProps {
   onSelectAlternativeDuration?: (duration: number) => void;
   alternativeTimeSlots?: AlternativeTimeSlot[];
   onSelectAlternativeTime?: (startTime: string) => void;
+  readOnlyMode?: boolean; // Indicates step is locked (resume payment flow)
 }
 
 export function Step2Courts({
@@ -27,6 +28,7 @@ export function Step2Courts({
   onSelectAlternativeDuration,
   alternativeTimeSlots = [],
   onSelectAlternativeTime,
+  readOnlyMode = false,
 }: Step2CourtsProps) {
   const t = useTranslations();
 
@@ -53,6 +55,8 @@ export function Step2Courts({
     );
   }
 
+  // Compute selected court and court lists outside conditional blocks
+  const selectedCourt = courts.find(c => c.id === selectedCourtId);
   const availableCourts = courts.filter((c) => c.available !== false);
   const unavailableCourts = courts.filter((c) => c.available === false);
 
@@ -62,7 +66,61 @@ export function Step2Courts({
         {t("wizard.step2Title")}
       </h2>
 
-      {courts.length === 0 ? (
+      {/* Read-only mode indicator */}
+      {readOnlyMode && (
+        <div className="rsp-wizard-alert rsp-wizard-alert--info" role="status">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            style={{ marginRight: "8px" }}
+            aria-hidden="true"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          {t("wizard.stepLockedInfo")}
+        </div>
+      )}
+
+      {readOnlyMode && selectedCourt ? (
+        // Read-only display
+        <div className="rsp-wizard-summary-card">
+          <div className="rsp-wizard-summary-row">
+            <span className="rsp-wizard-summary-label">{t("wizard.court")}</span>
+            <span className="rsp-wizard-summary-value">{selectedCourt.name}</span>
+          </div>
+          {selectedCourt.type && (
+            <div className="rsp-wizard-summary-row">
+              <span className="rsp-wizard-summary-label">{t("court.type")}</span>
+              <span className="rsp-wizard-summary-value">{selectedCourt.type}</span>
+            </div>
+          )}
+          {selectedCourt.surface && (
+            <div className="rsp-wizard-summary-row">
+              <span className="rsp-wizard-summary-label">{t("court.surface")}</span>
+              <span className="rsp-wizard-summary-value">{selectedCourt.surface}</span>
+            </div>
+          )}
+          {selectedCourt.indoor && (
+            <div className="rsp-wizard-summary-row">
+              <span className="rsp-wizard-summary-label">{t("court.location")}</span>
+              <span className="rsp-wizard-summary-value">{t("common.indoor")}</span>
+            </div>
+          )}
+          <div className="rsp-wizard-summary-row">
+            <span className="rsp-wizard-summary-label">{t("wizard.price")}</span>
+            <span className="rsp-wizard-summary-value">
+              {selectedCourt.priceCents !== undefined
+                ? formatPrice(selectedCourt.priceCents)
+                : `${formatPrice(selectedCourt.defaultPriceCents)} ${t("common.perHour")}`}
+            </span>
+          </div>
+        </div>
+      ) : courts.length === 0 ? (
         <div>
           <div className="rsp-wizard-alert rsp-wizard-alert--info" role="alert">
             {t("booking.quickBooking.noCourtsAvailable")}

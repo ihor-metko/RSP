@@ -16,6 +16,7 @@ interface Step2_5ConfirmationProps {
   court: BookingCourt | null;
   totalPrice: number;
   submitError?: string | null;
+  readOnlyMode?: boolean; // Indicates step is locked (resume payment flow)
 }
 
 // Format date for display
@@ -42,6 +43,7 @@ export function Step2_5Confirmation({
   court,
   totalPrice,
   submitError,
+  readOnlyMode = false,
 }: Step2_5ConfirmationProps) {
   const t = useTranslations();
   const endTime = calculateEndTime(startTime, duration);
@@ -55,6 +57,26 @@ export function Step2_5Confirmation({
       <p className="rsp-wizard-step-description">
         {t("wizard.confirmBookingDetailsDescription")}
       </p>
+
+      {/* Read-only mode indicator */}
+      {readOnlyMode && (
+        <div className="rsp-wizard-alert rsp-wizard-alert--info" role="status">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            style={{ marginRight: "8px" }}
+            aria-hidden="true"
+          >
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          {t("wizard.stepLockedInfo")}
+        </div>
+      )}
 
       {submitError && (
         <div className="rsp-wizard-alert rsp-wizard-alert--error" role="alert">
