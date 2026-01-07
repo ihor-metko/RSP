@@ -346,7 +346,7 @@ export const useClubStore = create<ClubState>((set, get) => ({
         ...state.clubsById,
         [clubId]: existingClubById 
           ? { ...existingClubById, ...updatedClub } // Merge with existing data
-          : updatedClub as ClubDetail, // First time, use as-is
+          : updatedClub as ClubDetail, // First time loading - trust the API response
       };
 
       // Update clubs array if club exists there

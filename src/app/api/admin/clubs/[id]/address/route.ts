@@ -54,9 +54,8 @@ export async function PATCH(
 
     // Build update data object
     const formattedAddress = formatAddress(address);
-    const addressJson = JSON.stringify({ ...address, formattedAddress });
     const updateData: Record<string, unknown> = {
-      address: addressJson,
+      address: JSON.stringify({ ...address, formattedAddress }),
     };
 
     console.log("Updating club address with data:", updateData.address);
