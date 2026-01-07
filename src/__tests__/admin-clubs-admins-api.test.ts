@@ -323,7 +323,7 @@ describe("Admin Clubs Admins API - GET /api/admin/clubs/[id]/admins", () => {
       expect(data.error).toBe("Forbidden");
     });
 
-    it("should return 403 when Club Owner tries to add admin", async () => {
+    it("should allow Club Owner to add admin", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "club-owner", isRoot: false },
       });
@@ -334,8 +334,31 @@ describe("Admin Clubs Admins API - GET /api/admin/clubs/[id]/admins", () => {
         organizationId: "org-1",
       });
 
+      // Is a club owner
+      (prisma.clubMembership.findUnique as jest.Mock).mockResolvedValueOnce({
+        userId: "club-owner",
+        clubId: "club-1",
+        role: "CLUB_OWNER",
+      });
+
       // Not an org admin
       (prisma.membership.findUnique as jest.Mock).mockResolvedValue(null);
+
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: "user-1",
+        name: "New Admin",
+        email: "newadmin@test.com",
+      });
+
+      // No existing membership
+      (prisma.clubMembership.findUnique as jest.Mock).mockResolvedValueOnce(null);
+
+      (prisma.clubMembership.create as jest.Mock).mockResolvedValue({
+        id: "membership-1",
+        userId: "user-1",
+        clubId: "club-1",
+        role: "CLUB_ADMIN",
+      });
 
       const request = new Request("http://localhost:3000/api/admin/clubs/club-1/admins", {
         method: "POST",
@@ -346,8 +369,9 @@ describe("Admin Clubs Admins API - GET /api/admin/clubs/[id]/admins", () => {
       const response = await POST(request, { params: Promise.resolve({ id: "club-1" }) });
       const data = await response.json();
 
-      expect(response.status).toBe(403);
-      expect(data.error).toBe("Forbidden");
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.admin.id).toBe("user-1");
     });
 
     it("should allow Organization Admin to add club admin", async () => {
@@ -463,7 +487,7 @@ describe("Admin Clubs Admins API - GET /api/admin/clubs/[id]/admins", () => {
       expect(data.error).toBe("Forbidden");
     });
 
-    it("should return 403 when Club Owner tries to remove admin", async () => {
+    it("should allow Club Owner to remove admin", async () => {
       mockAuth.mockResolvedValue({
         user: { id: "club-owner", isRoot: false },
       });
@@ -474,8 +498,27 @@ describe("Admin Clubs Admins API - GET /api/admin/clubs/[id]/admins", () => {
         organizationId: "org-1",
       });
 
+      // Is a club owner
+      (prisma.clubMembership.findUnique as jest.Mock).mockResolvedValueOnce({
+        userId: "club-owner",
+        clubId: "club-1",
+        role: "CLUB_OWNER",
+      });
+
       // Not an org admin
       (prisma.membership.findUnique as jest.Mock).mockResolvedValue(null);
+
+      // Target membership to remove (a club admin)
+      (prisma.clubMembership.findUnique as jest.Mock).mockResolvedValueOnce({
+        id: "membership-1",
+        userId: "user-1",
+        clubId: "club-1",
+        role: "CLUB_ADMIN",
+      });
+
+      (prisma.clubMembership.delete as jest.Mock).mockResolvedValue({
+        id: "membership-1",
+      });
 
       const request = new Request("http://localhost:3000/api/admin/clubs/club-1/admins", {
         method: "DELETE",
@@ -486,8 +529,8 @@ describe("Admin Clubs Admins API - GET /api/admin/clubs/[id]/admins", () => {
       const response = await DELETE(request, { params: Promise.resolve({ id: "club-1" }) });
       const data = await response.json();
 
-      expect(response.status).toBe(403);
-      expect(data.error).toBe("Forbidden");
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
     });
 
     it("should allow Organization Admin to remove club admin", async () => {

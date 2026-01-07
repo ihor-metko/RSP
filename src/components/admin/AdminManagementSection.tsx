@@ -226,7 +226,7 @@ export default function AdminManagementSection({
   // Permission checks
   const canManageAdmins = context === "organization"
     ? (isRoot || isOwner)
-    : hasAnyRole(["ROOT_ADMIN", "ORGANIZATION_ADMIN"]);
+    : (isRoot || isOwner || hasAnyRole(["ORGANIZATION_ADMIN"]));
 
   // Check if an owner already exists to determine allowed roles
   const hasOwner = !!primaryOwner;
@@ -263,6 +263,12 @@ export default function AdminManagementSection({
       if (admin.role === ownerRole) {
         return false;
       }
+      return true;
+    }
+
+    // For club context, Club Owner can manage club admins
+    if (context === "club" && isOwner && admin.id !== user?.id) {
+      // Club owner can remove club admins but not themselves
       return true;
     }
 
