@@ -399,12 +399,13 @@ describe("useProfileStore", () => {
     it("should update hasMoreUpcoming when less than 5 items returned", async () => {
       act(() => {
         useProfileStore.setState({
+          // ITEMS_PER_PAGE is 5 in the store
           upcomingBookings: Array(5).fill(mockUpcomingBooking).map((b, i) => ({ ...b, id: `booking-${i}` })),
           hasMoreUpcoming: true,
         });
       });
 
-      // Return only 2 items (less than 5)
+      // Return only 2 items (less than ITEMS_PER_PAGE = 5)
       (global.fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         status: 200,

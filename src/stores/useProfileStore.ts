@@ -195,22 +195,25 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         const past: ProfileBooking[] = await pastResponse.json();
         const activity: ActivityHistoryItem[] = await activityResponse.json();
 
+        // Helper to determine if there are more items to paginate
+        const hasMoreItems = (items: unknown[]) => items.length === ITEMS_PER_PAGE;
+
         const profileData: ProfileData = {
           upcomingBookings: upcoming,
           pastBookings: past,
           activityHistory: activity,
-          hasMoreUpcoming: upcoming.length === ITEMS_PER_PAGE,
-          hasMorePast: past.length === ITEMS_PER_PAGE,
-          hasMoreActivity: activity.length === ITEMS_PER_PAGE,
+          hasMoreUpcoming: hasMoreItems(upcoming),
+          hasMorePast: hasMoreItems(past),
+          hasMoreActivity: hasMoreItems(activity),
         };
 
         set({
           upcomingBookings: upcoming,
           pastBookings: past,
           activityHistory: activity,
-          hasMoreUpcoming: upcoming.length === ITEMS_PER_PAGE,
-          hasMorePast: past.length === ITEMS_PER_PAGE,
-          hasMoreActivity: activity.length === ITEMS_PER_PAGE,
+          hasMoreUpcoming: hasMoreItems(upcoming),
+          hasMorePast: hasMoreItems(past),
+          hasMoreActivity: hasMoreItems(activity),
           loading: false,
           lastFetchedAt: Date.now(),
           _inflightFetch: null,
@@ -240,9 +243,8 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
 
     // Check if we have fresh cached data
     const isFresh = state.lastFetchedAt && Date.now() - state.lastFetchedAt < CACHE_DURATION_MS;
-    const hasData = state.upcomingBookings.length > 0 || state.pastBookings.length > 0 || state.activityHistory.length > 0;
 
-    if (!options.force && isFresh && hasData) {
+    if (!options.force && isFresh && state.hasData()) {
       return {
         upcomingBookings: state.upcomingBookings,
         pastBookings: state.pastBookings,
